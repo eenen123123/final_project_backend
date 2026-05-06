@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+
+    <property name="LOG_HOME" value="${user.home}/logs"/>
+    <property name="APP_LOG" value="${LOG_HOME}/app.log"/>
+
+
+    <!-- 콘솔 출력 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] 📝 %-5level %logger{36} - %msg%n</pattern>
+            <!-- <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [req:%X{requestId:-}] - %msg%n</pattern> -->
+        </encoder>
+    </appender>
+
+    <!-- 파일 출력 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${APP_LOG}</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/app-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] 📝 %-5level %logger{36} - %msg%n</pattern>
+            <!-- <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [req:%X{requestId:-}] - %msg%n</pattern> -->
+        </encoder>
+    </appender>
+
+    <logger name="p6spy" level="info"/>
+
+    <logger name="kr.or.ddit" level="info" additivity="false">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
+    </root>
+</configuration>
