@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.UserMapper">
+
+    <resultMap id="userResultMap" type="kr.or.ddit.finalProject.dto.user.UserDto">
+        <id     property="id"       column="USER_ID"/>
+        <result property="loginId"  column="LOGIN_ID"/>
+        <result property="password" column="PASSWORD"/>
+        <result property="name"     column="USER_NAME"/>
+        <result property="nickName" column="NICK_NAME"/>
+        <result property="role"     column="ROLE"
+                typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="status"   column="STATUS"
+                typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+    </resultMap>
+
+    <select id="existsByLoginId" parameterType="string" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM USERS
+        WHERE LOGIN_ID = #{loginId}
+    </select>
+
+    <select id="existsByNickname" parameterType="string" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM USERS
+        WHERE NICK_NAME = #{nickname}
+    </select>
+
+    <select id="findByLoginId" parameterType="string" resultMap="userResultMap">
+        SELECT USER_ID, LOGIN_ID, PASSWORD, USER_NAME, NICK_NAME, ROLE, STATUS
+        FROM USERS
+        WHERE LOGIN_ID = #{loginId}
+    </select>
+
+    <insert id="insertUser" parameterType="kr.or.ddit.finalProject.dto.user.UserDto">
+        <selectKey keyProperty="id" resultType="long" order="BEFORE">
+            SELECT SEQ_USERS.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO USERS (USER_ID, LOGIN_ID, PASSWORD, USER_NAME, NICK_NAME, ROLE, STATUS)
+        VALUES (#{id}, #{loginId}, #{password}, #{name}, #{nickName},
+                #{role, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+                #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler})
+    </insert>
+
+</mapper>

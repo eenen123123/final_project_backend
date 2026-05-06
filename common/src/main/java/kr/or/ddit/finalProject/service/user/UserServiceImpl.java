@@ -1,6 +1,8 @@
 package kr.or.ddit.finalProject.service.user;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import kr.or.ddit.finalProject.dto.auth.AuthTokens;
 import kr.or.ddit.finalProject.dto.user.Role;
 import kr.or.ddit.finalProject.dto.user.SigninRequestRecord;
@@ -10,6 +12,7 @@ import kr.or.ddit.finalProject.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
+@Service
 public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
@@ -27,8 +30,6 @@ public class UserServiceImpl implements UserService {
                 .build();
         userMapper.insertUser(user);
     }
-
-
 
     @Override
     public AuthTokens signin(SigninRequestRecord signinRequest) {

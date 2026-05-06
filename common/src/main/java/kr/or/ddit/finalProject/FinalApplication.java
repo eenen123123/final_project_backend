@@ -11,7 +11,6 @@ import io.github.cdimascio.dotenv.Dotenv;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@SpringBootApplication
 public class FinalApplication {
 
     private static Dotenv loadDotenvWithFallback() {
