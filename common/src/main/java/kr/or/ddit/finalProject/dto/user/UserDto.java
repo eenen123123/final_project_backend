@@ -11,8 +11,6 @@ import lombok.Data;
 @Builder
 public class UserDto implements Serializable {
 
-    private Long id;
-
     @NotBlank
     @Size(min = 4, max = 20, message = "로그인 ID는 4자 이상 20자 이하로 입력해야 합니다.")
     private String loginId;

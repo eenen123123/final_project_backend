@@ -11,8 +11,11 @@ public class SecurityConfig {
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                http.cors(Customizer.withDefaults())
-                                .csrf(csrf -> csrf.disable())
+                http.cors(Customizer.withDefaults()).csrf(csrf -> csrf.disable())
+                                .headers(headers -> headers.frameOptions(frame -> frame.deny())
+                                                .contentTypeOptions(Customizer.withDefaults())
+                                                .httpStrictTransportSecurity(hsts -> hsts
+                                                                .maxAgeInSeconds(31536000)))
 
                 ;
                 return http.build();

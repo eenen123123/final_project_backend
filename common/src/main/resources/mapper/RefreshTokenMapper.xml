@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.RefreshTokenMapper">
+    <select id="findByToken" resultType="kr.or.ddit.finalProject.dto.user.RefreshTokenDto">
+        SELECT * FROM refresh_tokens WHERE token = #{token}
+    </select>
+
+    <!-- 
+    
+private Long id; // DB에서 자동 생성되는 ID
+
+    private String loginId; // RefreshToken과 연관된 User의 로그인 ID
+
+    private UserDto user; // RefreshToken과 연관된 User 정보
+
+    private String token; // 실제 Refresh Token 문자열
+
+    private Instant expiredAt; // Refresh Token의 만료 시간
+
+
+-->
+
+
+    <insert id="upsertRefreshToken" parameterType="kr.or.ddit.finalProject.dto.user.RefreshTokenDto">
+        merge 
+        INTO refresh_tokens rt
+        using  dual
+        on (rt.login_id = #{loginId})
+        when matched then 
+            update set token = #{token}, expired_at = #{expiredAt}
+        when not matched then
+            insert (login_id, token, expired_at) values (#{loginId}, #{token}, #{expiredAt})
+    </insert>
+    <delete id="deleteRefreshToken">
+        DELETE FROM refresh_tokens WHERE login_id = #{loginId}
+    </delete>
+
+    <select id="findByLoginId" resultType="kr.or.ddit.finalProject.dto.user.RefreshTokenDto">
+        SELECT * FROM refresh_tokens WHERE login_id = #{loginId}
+    </select>
+</mapper>

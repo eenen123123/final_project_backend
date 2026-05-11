@@ -5,43 +5,37 @@
 <mapper namespace="kr.or.ddit.finalProject.mapper.UserMapper">
 
     <resultMap id="userResultMap" type="kr.or.ddit.finalProject.dto.user.UserDto">
-        <id     property="id"       column="USER_ID"/>
-        <result property="loginId"  column="LOGIN_ID"/>
+        <result property="loginId" column="LOGIN_ID"/>
         <result property="password" column="PASSWORD"/>
-        <result property="name"     column="USER_NAME"/>
+        <result property="name" column="name"/>
         <result property="nickName" column="NICK_NAME"/>
-        <result property="role"     column="ROLE"
-                typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
-        <result property="status"   column="STATUS"
-                typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="role" column="ROLE" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="status" column="STATUS" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
     </resultMap>
 
     <select id="existsByLoginId" parameterType="string" resultType="boolean">
-        SELECT COUNT(*) > 0
+        SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END
         FROM USERS
         WHERE LOGIN_ID = #{loginId}
     </select>
 
     <select id="existsByNickname" parameterType="string" resultType="boolean">
-        SELECT COUNT(*) > 0
+        SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END
         FROM USERS
         WHERE NICK_NAME = #{nickname}
     </select>
 
     <select id="findByLoginId" parameterType="string" resultMap="userResultMap">
-        SELECT USER_ID, LOGIN_ID, PASSWORD, USER_NAME, NICK_NAME, ROLE, STATUS
+        SELECT LOGIN_ID, PASSWORD, name, NICK_NAME, ROLE, STATUS
         FROM USERS
         WHERE LOGIN_ID = #{loginId}
     </select>
 
-    <insert id="insertUser" parameterType="kr.or.ddit.finalProject.dto.user.UserDto">
-        <selectKey keyProperty="id" resultType="long" order="BEFORE">
-            SELECT SEQ_USERS.NEXTVAL FROM DUAL
-        </selectKey>
-        INSERT INTO USERS (USER_ID, LOGIN_ID, PASSWORD, USER_NAME, NICK_NAME, ROLE, STATUS)
-        VALUES (#{id}, #{loginId}, #{password}, #{name}, #{nickName},
-                #{role, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
-                #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler})
+    <insert id="insertUser" parameterType="kr.or.ddit.finalProject.dto.user.UserDto" useGeneratedKeys="true" keyProperty="loginId" keyColumn="login_id">
+        INSERT INTO USERS (LOGIN_ID, PASSWORD, name, NICK_NAME, ROLE, STATUS)
+        VALUES (#{loginId}, #{password}, #{name}, #{nickName},
+                #{role, typeHandler=org.apache.ibatis.type.EnumTypeHandler, jdbcType=VARCHAR},
+                #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler, jdbcType=VARCHAR})
     </insert>
 
 </mapper>

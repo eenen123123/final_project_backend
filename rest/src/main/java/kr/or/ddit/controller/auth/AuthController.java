@@ -1,4 +1,4 @@
-package kr.or.ddit.finalProject.controller.auth;
+package kr.or.ddit.controller.auth;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,7 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -43,9 +42,10 @@ public class AuthController {
     }
 
 
-    @PostMapping("/signin")
+    @PostMapping("/login")
     public ResponseEntity<SigninResponseRecord> signin(
             @Valid @RequestBody SigninRequestRecord requestRecord) {
+        log.info("로그인 시도: {}", requestRecord.loginId());
 
         AuthTokens tokens = userService.signin(requestRecord);
         ResponseCookie refreshCookie = createRefreshTokenCookie(tokens.refreshToken());
@@ -56,6 +56,7 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<SigninResponseRecord> refresh(
             @CookieValue(name = "refreshToken") String refreshToken) {
+        log.info("리프레시 토큰 갱신 시도: {}", refreshToken);
         try {
             AuthTokens tokens = userService.refresh(refreshToken);
             ResponseCookie refreshCookie = createRefreshTokenCookie(tokens.refreshToken());
@@ -67,11 +68,11 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/signout")
+    @PostMapping("/logout")
     public ResponseEntity<Void> signout(@CookieValue(name = "refreshToken") String refreshToken) {
         userService.signout(refreshToken);
         ResponseCookie deleteCookie = deleteRefreshTokenCookie();
-        return ResponseEntity.ok().header("Set-cookie", deleteCookie.toString()).build();
+        return ResponseEntity.ok().header("Set-Cookie", deleteCookie.toString()).build();
     }
 
 
@@ -102,6 +103,10 @@ public class AuthController {
                 .path("/api/auth").maxAge(0).build();
     }
 
+    @GetMapping("/test")
+    public ResponseEntity<Void> authTest() {
+        return ResponseEntity.ok(null);
+    }
 
 
 }
