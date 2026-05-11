@@ -74,7 +74,12 @@ public interface UserService {
      */
     void changeRole(String loginId, Role newRole);
 
-
+    /**
+     * 리프레시 토큰을 사용하여 새로운 인증 토큰을 발급하는 메서드
+     * 
+     * @param refreshToken 리프레시 토큰
+     * @return 새로운 인증 토큰을 담은 AuthTokens 객체
+     */
     AuthTokens refresh(String refreshToken);
 
 }

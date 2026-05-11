@@ -34,7 +34,6 @@ public class UserServiceImpl implements UserService {
         if (userMapper.existsByLoginId(signupRequest.loginId())) {
             throw new IllegalArgumentException("이미 사용중인 아이디 입니다.");
         }
-        // TODO Nickname 확인하고 insert할 때 같이 추가하게 변경해야함
 
         UserDto user = UserDto.builder().loginId(signupRequest.loginId())
                 .password(passwordEncoder.encode(signupRequest.password()))
