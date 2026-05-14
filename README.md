@@ -9,6 +9,29 @@ backend
 └── rest (REST API 모듈, React와 통신)
 ```
 
+### 1-1. 요청/응답 구조
+
+```mermaid
+flowchart TD
+    admin(["👤 관리자"])
+    user(["👤 사용자"])
+
+    subgraph system["Final Project"]
+        direction TB
+        admin_app["Spring Boot Admin<br/>Thymeleaf 기반 관리자 페이지<br/>:8080"]
+        common["Spring Boot Common<br/>JWT · 예외처리 · 페이징<br/>공통 유틸리티"]
+        rest_api["Spring Boot REST API<br/>React와 통신하는 JSON API<br/>:8081"]
+        db[("Database<br/>RDBMS")]
+        react["React App<br/>SPA 프론트엔드<br/>:5173"]
+    end
+
+    admin -->|웹 브라우저| admin_app
+    user -->|웹 브라우저| react
+    react -->|REST API + JWT| rest_api
+    admin_app & rest_api -->|공통 참조| common
+    admin_app & rest_api -->|DB 접근| db
+```
+
 ## 2. 프로젝트 실행
 
 - 관리자 페이지 개발 시 admin 모듈을 실행
