@@ -22,7 +22,7 @@ public class JwtTokenProvider {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    // access token의 유효 기간 
+    // access token의 유효 기간
     @Value("${jwt.accessTokenExpiration}")
     private long accessTokenExpiration;
 
@@ -98,7 +98,6 @@ public class JwtTokenProvider {
             return false;
         }
     }
-
 
     // JWT 토큰에서 클레임을 파싱하는 메소드
     private Claims parseClaims(String token) {

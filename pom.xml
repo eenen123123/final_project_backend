@@ -78,6 +78,9 @@
                 <artifactId>cloudinary-http44</artifactId>
                 <version>${cloudinary.version}</version>
             </dependency>
+            
+            
+
         </dependencies>
     </dependencyManagement>
 </project>

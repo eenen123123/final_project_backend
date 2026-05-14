@@ -6,4 +6,46 @@
     <select id="getDate" resultType="kr.or.ddit.finalProject.dto.example.ExampleDto">
         SELECT TO_CHAR(SYSDATE, 'YYYY-MM-DD') AS exampleDate FROM DUAL
     </select>
+
+    <sql id="detailConditionFragment">
+        <trim prefix="where" prefixOverrides="and">
+            <if test="detailCondition != null ">
+                <if test="detailCondition.memName != null and detailCondition.memName != ''">
+                    AND instr (m.mem_name, #{detailCondition.memName}) &gt; 0
+                </if>
+                <if test="detailCondition.memAdd1 != null and detailCondition.memAdd1 != ''">
+                    AND
+                    ( instr (m.mem_add1, #{detailCondition.memAdd1}) &gt; 0
+                    OR instr (m.mem_add2, #{detailCondition.memAdd1}) &gt; 0
+                    )
+                </if>
+            </if>
+        </trim>
+    </sql>
+
+    <sql id="orderFragment">
+        <if test="orderBy != null and orderBy != ''">
+            order by ${orderBy} ${orderDirection}
+        </if>
+    </sql>
+
+    <select id="selectMemberDtoForPagingTestList" resultType="kr.or.ddit.finalProject.paging.temp.MemberDtoForPagingTest">
+
+        select * from (
+            select mem_id, mem_name, mem_mail, mem_add1, mem_add2, mem_zip, mem_hp
+            from member m 
+                <include refid="detailConditionFragment"/>
+                
+                <include refid="orderFragment"/>
+
+        ) 
+        offset #{offset} rows fetch next #{screenSize} rows only
+    </select>
+
+    <select id="getTotalMemberCount" resultType="int">
+        SELECT COUNT(*) FROM MEMBER m
+        <include refid="detailConditionFragment"/>
+    </select>
+
+
 </mapper>

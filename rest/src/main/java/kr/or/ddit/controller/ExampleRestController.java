@@ -4,6 +4,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import kr.or.ddit.finalProject.dto.example.ExampleDto;
 import kr.or.ddit.finalProject.dto.user.SignupRequestRecord;
+import kr.or.ddit.finalProject.exception.ErrorCode;
+import kr.or.ddit.finalProject.exception.user.UserException;
 import kr.or.ddit.finalProject.mapper.TestMapper;
 import kr.or.ddit.finalProject.service.user.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +15,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
 
 @Slf4j
 @RestController
@@ -43,6 +44,11 @@ public class ExampleRestController {
             log.error("Signup failed for: {}", requestRecord, e);
             return ResponseEntity.status(500).body("Signup failed");
         }
+    }
+
+    @GetMapping("/test/throw-error")
+    public void throwError() {
+        throw new UserException(ErrorCode.AUTHENTICATION_FAILED);
     }
 
 }

@@ -23,9 +23,8 @@ public class SecurityConfig {
                                                 SessionCreationPolicy.STATELESS))
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(HttpMethod.GET, "/**").permitAll()
-                                                .requestMatchers("/").permitAll())
-
-                ;
+                                                .requestMatchers("/").permitAll()
+                                                .anyRequest().authenticated());
                 return http.build();
         }
 }

@@ -10,6 +10,8 @@ import kr.or.ddit.finalProject.dto.user.SigninRequestRecord;
 import kr.or.ddit.finalProject.dto.user.SignupRequestRecord;
 import kr.or.ddit.finalProject.dto.user.UserDto;
 import kr.or.ddit.finalProject.dto.user.UserStatus;
+import kr.or.ddit.finalProject.exception.ErrorCode;
+import kr.or.ddit.finalProject.exception.user.UserException;
 import kr.or.ddit.finalProject.jwt.JwtTokenProvider;
 import kr.or.ddit.finalProject.mapper.RefreshTokenMapper;
 import kr.or.ddit.finalProject.mapper.UserMapper;
@@ -32,7 +34,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void signup(SignupRequestRecord signupRequest) {
         if (userMapper.existsByLoginId(signupRequest.loginId())) {
-            throw new IllegalArgumentException("이미 사용중인 아이디 입니다.");
+            throw new UserException(ErrorCode.USERNAME_ALREADY_EXISTS);
         }
 
         UserDto user = UserDto.builder().loginId(signupRequest.loginId())
@@ -74,16 +76,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto authenticate(SigninRequestRecord signinRequest) {
-        String message = "아이디 또는 비밀번호가 일치하지 않습니다.";
         UserDto user = userMapper.findByLoginId(signinRequest.loginId())
-                .orElseThrow(() -> new IllegalArgumentException(message));
+                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
 
         if (!passwordEncoder.matches(signinRequest.password(), user.getPassword())) {
-            throw new IllegalArgumentException(message);
+            throw new UserException(ErrorCode.USERNAME_OR_PASSWORD_INCORRECT);
         }
 
         if (!user.getStatus().equals(UserStatus.ACTIVE)) {
-            throw new IllegalArgumentException("현재 사용할 수 없는 계정입니다.");
+            throw new UserException(ErrorCode.ACCOUNT_UNUSABLE);
         }
         return user;
     }
@@ -92,7 +93,7 @@ public class UserServiceImpl implements UserService {
     public UserDto getUserByToken(String token) {
         String loginId = jwtTokenProvider.getLoginId(token);
         return userMapper.findByLoginId(loginId)
-                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 토큰입니다."));
+                .orElseThrow(() -> new UserException(ErrorCode.INVALID_TOKEN));
     }
 
     @Override
@@ -104,19 +105,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public AuthTokens refresh(String refreshToken) {
         if (!jwtTokenProvider.validateToken(refreshToken)) {
-            throw new IllegalArgumentException("유효하지 않은 리프레시 토큰입니다.");
+            throw new UserException(ErrorCode.INVALID_TOKEN);
         }
 
         if (!"refresh".equals(jwtTokenProvider.getTokenType(refreshToken))) {
-            throw new IllegalArgumentException("리프레시 토큰이 아닙니다.");
+            throw new UserException(ErrorCode.INVALID_TOKEN);
         }
 
         String hashedToken = tokenHashUtil.hmacToken(refreshToken);
         RefreshTokenDto savedRefreshToken = refreshTokenMapper.findByToken(hashedToken)
-                .orElseThrow(() -> new IllegalArgumentException("저장된 리프레시 토큰이 없습니다."));
+                .orElseThrow(() -> new UserException(ErrorCode.INVALID_TOKEN));
 
         UserDto user = userMapper.findByLoginId(savedRefreshToken.getLoginId())
-                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 리프레시 토큰입니다."));
+                .orElseThrow(() -> new UserException(ErrorCode.INVALID_TOKEN));
 
         String accessToken = jwtTokenProvider.createAccessToken(user.getLoginId(), user.getRole());
         String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getLoginId());
