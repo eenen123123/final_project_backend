@@ -1,6 +1,6 @@
 # Final Project - Backend
 
-## 프로젝트 구조
+## 1. 프로젝트 구조
 
 ```
 backend
@@ -9,13 +9,13 @@ backend
 └── rest (REST API 모듈, React와 통신)
 ```
 
-## 프로젝트 실행
+## 2. 프로젝트 실행
 
 - 관리자 페이지 개발 시 admin 모듈을 실행
 - REST API 개발 시 rest 모듈을 실행
 - 공통 모듈은 admin과 rest에서 모두 참조하므로, 별도의 실행이 필요하지 않음
 
-## 접근 주소
+## 3. 접근 주소
 
 - 관리자 페이지: `http://localhost:8080`
 - REST API: `http://localhost:8081`
@@ -34,7 +34,7 @@ backend
 > db_password=bar
 > ```
 
-## 페이징 처리
+## 4. 페이징 처리
 
 [common/src/main/java/kr/or/ddit/finalProject/paging/PaginationInfo.java](common/src/main/java/kr/or/ddit/finalProject/paging/PaginationInfo.java)
 
@@ -43,6 +43,8 @@ backend
 아래와 같이 두개의 생성자가 제공되며, 첫 번째 생성자는 기본적인 페이징 정보만을 설정하는 반면, 두 번째 생성자는 정렬 기준과 방향까지 포함하여 설정할 수 있습니다.
 
 정렬과 관련된 필드인 `orderBy`와 `orderDirection`은 예를 들어, 회원 목록을 반환할 때 `mem_id`를 기준으로 오름차순으로 정렬하려면, `orderBy`에 "mem_id"를, `orderDirection`에 "ASC"를 설정하면 됩니다.
+
+### 4-1. PaginationInfo 클래스의 생성자 예시
 
 ```java
 /**
@@ -77,7 +79,51 @@ public PaginationInfo(int screenSize, int blockSize, int page, String orderBy, S
 
 ```
 
-## 예외 처리
+### 4-2. MyBatis Mapper XML에서 정렬 기준과 방향, 페이징을 사용하는 예시
+
+```xml
+    <!-- 검색과 정렬을 할 수 있도록 조각을 정의 -->
+    <sql id="detailConditionFragment">
+        <trim prefix="where" prefixOverrides="and">
+            <if test="detailCondition != null ">
+                <if test="detailCondition.memName != null and detailCondition.memName != ''">
+                    AND instr (m.mem_name, #{detailCondition.memName}) &gt; 0
+                </if>
+                <if test="detailCondition.memAdd1 != null and detailCondition.memAdd1 != ''">
+                    AND
+                    ( instr (m.mem_add1, #{detailCondition.memAdd1}) &gt; 0
+                    OR instr (m.mem_add2, #{detailCondition.memAdd1}) &gt; 0
+                    )
+                </if>
+            </if>
+        </trim>
+    </sql>
+
+    <sql id="orderFragment">
+        <if test="orderBy != null and orderBy != ''">
+            order by ${orderBy} ${orderDirection}
+        </if>
+    </sql>
+
+
+    <!-- 페이징 처리를 위한 쿼리 -->
+    <select id="selectMemberDtoForPagingTestList" resultType="kr.or.ddit.finalProject.paging.temp.MemberDtoForPagingTest">
+        select * from (
+            select mem_id, mem_name, mem_mail, mem_add1, mem_add2, mem_zip, mem_hp
+            from member m
+                <include refid="detailConditionFragment"/>
+                <include refid="orderFragment"/>
+        )
+        offset #{offset} rows fetch next #{screenSize} rows only
+    </select>
+
+    <select id="getTotalMemberCount" resultType="int">
+        SELECT COUNT(*) FROM MEMBER m
+        <include refid="detailConditionFragment"/>
+    </select>
+```
+
+## 5. 예외 처리
 
 - ### 커스텀 예외 클래스
 
@@ -122,3 +168,5 @@ public PaginationInfo(int screenSize, int blockSize, int page, String orderBy, S
   위 클래스는 REST API에서 발생하는 예외를 처리하는 핸들러입니다. `@RestControllerAdvice` 어노테이션을 사용하여 모든 REST 컨트롤러에서 발생하는 예외를 전역적으로 처리할 수 있습니다.
 
   이 핸들러가 있어 컨트롤러 메소드에서 예외를 따로 처리하지 않고 어느 레이어에서든 예외를 던지면, 해당 예외가 이 핸들러로 전달되어 적절한 HTTP 상태 코드와 메시지를 포함한 일관된 응답이 반환됩니다.
+
+## 6. JWT
