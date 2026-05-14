@@ -2,7 +2,7 @@
 
 ## 1. 프로젝트 구조
 
-```
+```text
 backend
 ├── admin (관리자 모듈, 타임리프 + 스프링)
 ├── common (공통 모듈)
@@ -12,8 +12,20 @@ backend
 ## 2. 프로젝트 실행
 
 - 관리자 페이지 개발 시 admin 모듈을 실행
+
+  ```bash
+   cd admin
+   ./mvnw spring-boot:run
+  ```
+
 - REST API 개발 시 rest 모듈을 실행
-- 공통 모듈은 admin과 rest에서 모두 참조하므로, 별도의 실행이 필요하지 않음
+
+  ```bash
+  cd rest
+  ./mvnw spring-boot:run
+  ```
+
+- 공통 모듈( common )은 admin과 rest에서 모두 참조하므로, 별도의 실행이 필요하지 않음
 
 ## 3. 접근 주소
 
@@ -22,19 +34,19 @@ backend
 
 > [!IMPORTANT]
 >
-> ### 환경 변수 설정
+> ## 4. 환경 변수 설정
 >
 > `.env.example` 파일을 복사하여 `.env` 파일을 생성한 후, 필요한 환경 변수를 설정합니다.
 >
 > ```bash
 > # .env
 >
-> db_host=192.168.35.150
+> db_host=192.168.0.1
 > db_username=foo
 > db_password=bar
 > ```
 
-## 4. 페이징 처리
+## 5. 페이징 처리
 
 [common/src/main/java/kr/or/ddit/finalProject/paging/PaginationInfo.java](common/src/main/java/kr/or/ddit/finalProject/paging/PaginationInfo.java)
 
@@ -44,7 +56,7 @@ backend
 
 정렬과 관련된 필드인 `orderBy`와 `orderDirection`은 예를 들어, 회원 목록을 반환할 때 `mem_id`를 기준으로 오름차순으로 정렬하려면, `orderBy`에 "mem_id"를, `orderDirection`에 "ASC"를 설정하면 됩니다.
 
-### 4-1. PaginationInfo 클래스의 생성자 예시
+### 5-1. PaginationInfo 클래스의 생성자 예시
 
 ```java
 /**
@@ -79,7 +91,9 @@ public PaginationInfo(int screenSize, int blockSize, int page, String orderBy, S
 
 ```
 
-### 4-2. MyBatis Mapper XML에서 정렬 기준과 방향, 페이징을 사용하는 예시
+### 5-2. MyBatis Mapper XML에서 정렬 기준과 방향, 페이징을 사용하는 예시
+
+> temp 패키지는 페이징 처리 테스트를 위한 임시 패키지입니다. 실제로는 도메인 객체와 관련된 패키지에서 사용해야 해요.
 
 ```xml
     <!-- 검색과 정렬을 할 수 있도록 조각을 정의 -->
@@ -123,7 +137,7 @@ public PaginationInfo(int screenSize, int blockSize, int page, String orderBy, S
     </select>
 ```
 
-## 5. 예외 처리
+## 6. 예외 처리
 
 - ### 커스텀 예외 클래스
 
@@ -169,4 +183,4 @@ public PaginationInfo(int screenSize, int blockSize, int page, String orderBy, S
 
   이 핸들러가 있어 컨트롤러 메소드에서 예외를 따로 처리하지 않고 어느 레이어에서든 예외를 던지면, 해당 예외가 이 핸들러로 전달되어 적절한 HTTP 상태 코드와 메시지를 포함한 일관된 응답이 반환됩니다.
 
-## 6. JWT
+## 7. JWT
