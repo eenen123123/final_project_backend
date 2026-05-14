@@ -20,17 +20,19 @@ backend
 - 관리자 페이지: `http://localhost:8080`
 - REST API: `http://localhost:8081`
 
-## 환경 변수 설정
-
-`.env.example` 파일을 복사하여 `.env` 파일을 생성한 후, 필요한 환경 변수를 설정합니다.
-
-```bash
-# .env
-
-db_host=192.168.35.150
-db_username=foo
-db_password=bar
-```
+> [!IMPORTANT]
+>
+> ### 환경 변수 설정
+>
+> `.env.example` 파일을 복사하여 `.env` 파일을 생성한 후, 필요한 환경 변수를 설정합니다.
+>
+> ```bash
+> # .env
+>
+> db_host=192.168.35.150
+> db_username=foo
+> db_password=bar
+> ```
 
 ## 페이징 처리
 
@@ -74,3 +76,49 @@ public PaginationInfo(int screenSize, int blockSize, int page, String orderBy, S
 }
 
 ```
+
+## 예외 처리
+
+- ### 커스텀 예외 클래스
+
+  [common/src/main/java/kr/or/ddit/finalProject/exception/FinalProjectException.java](common/src/main/java/kr/or/ddit/finalProject/exception/FinalProjectException.java)
+
+  위 클래스는 우리 프로젝트에서 발생할 수 있는 예외 상황을 나타내는 최상위 커스텀 예외 클래스입니다. 이 클래스를 상속하여 다양한 예외 상황에 대한 구체적인 예외 클래스를 정의할 수 있습니다.
+
+  상속 받아 정의할 클래스는 도메인 객체와 관련된 예외 상황만 정의하고,
+  구체적인 예외 상황에 대한 메시지는 ErrorCode ENUM에서 정의된 메시지를 사용하여 생성자에서 전달하는 방식으로 구현합니다.
+
+  ```java
+  /**
+   * 사용자 관련 예외를 처리하기 위한 커스텀 예외 클래스
+   */
+  public class UserException extends FinalProjectException {
+      public UserException(ErrorCode errorCode) {
+          super(errorCode);
+      }
+      public UserException(ErrorCode errorCode, Throwable cause) {
+          super(errorCode, cause);
+      }
+  }
+
+  // 사용 예시 (예외 상황에 따라 적절한 에러 코드를 전달하여 예외 객체를 생성)
+  // 예를 들어, 사용자가 존재하지 않는 경우에 대한 예외 처리
+  throw new UserException(ErrorCode.USER_NOT_FOUND);
+
+  // ErrorCode.java 파일에서 USER_NOT_FOUND 에러 코드는 다음과 같이 정의되어 있습니다.
+  USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
+  ```
+
+- ### 에러 코드 ENUM
+
+  [common/src/main/java/kr/or/ddit/finalProject/exception/ErrorCode.java](common/src/main/java/kr/or/ddit/finalProject/exception/ErrorCode.java)
+
+  위 ENUM에서 정의된 에러 코드는 우리 프로젝트에서 발생할 수 있는 다양한 예외 상황을 나타냅니다
+
+- ### REST API 예외 처리 핸들러
+
+  [rest/src/main/java/kr/or/ddit/exception/RestExceptionHandler.java](rest/src/main/java/kr/or/ddit/exception/RestExceptionHandler.java)
+
+  위 클래스는 REST API에서 발생하는 예외를 처리하는 핸들러입니다. `@RestControllerAdvice` 어노테이션을 사용하여 모든 REST 컨트롤러에서 발생하는 예외를 전역적으로 처리할 수 있습니다.
+
+  이 핸들러가 있어 컨트롤러 메소드에서 예외를 따로 처리하지 않고 어느 레이어에서든 예외를 던지면, 해당 예외가 이 핸들러로 전달되어 적절한 HTTP 상태 코드와 메시지를 포함한 일관된 응답이 반환됩니다.
