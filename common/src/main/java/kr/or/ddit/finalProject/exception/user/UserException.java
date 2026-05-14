@@ -15,5 +15,4 @@ public class UserException extends FinalProjectException {
     public UserException(ErrorCode errorCode, Throwable cause) {
         super(errorCode, cause);
     }
-
 }

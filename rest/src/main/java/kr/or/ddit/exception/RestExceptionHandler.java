@@ -21,7 +21,7 @@ public class RestExceptionHandler {
         log.error("Exception caught: {}", code.getMessage());
 
         return ResponseEntity.status(code.getStatus())
-                .body(new ErrorResponse(code.getStatus(), code.getMessage()));
+                .body(new ErrorResponse(code.getStatus().value(), code.getMessage()));
     }
 
     record ErrorResponse(int status, String message) {
