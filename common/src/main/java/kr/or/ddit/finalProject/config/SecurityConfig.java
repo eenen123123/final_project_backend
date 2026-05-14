@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
+
 public class SecurityConfig {
 
         @Bean
@@ -27,13 +28,13 @@ public class SecurityConfig {
                                 ).httpBasic(httpBasic -> httpBasic.disable()) // HTTP Basic 인증 비활성화 (토큰 기반 인증 사용 위함)
 
                                 // 세션 관리 설정 - Stateless로 설정하여 서버가 세션을 유지하지 않도록 함
-                                .sessionManagement(
-                                                session -> session
-                                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .sessionManagement(session -> session.sessionCreationPolicy(
+                                                SessionCreationPolicy.STATELESS))
 
                                 // 권한 설정 - 모든 GET 요청과 루트 경로는 인증 없이 허용
-                                .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.GET, "/**")
-                                                .permitAll().requestMatchers("/").permitAll()
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers(HttpMethod.GET, "/**").permitAll()
+                                                .requestMatchers("/").permitAll()
 
                                 ); // 모든 GET 요청 허용
                 return http.build();
