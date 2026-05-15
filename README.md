@@ -13,7 +13,6 @@ backend
 
 - **Spring Boot** — 웹 서버, Security, Validation, Mail
 - **MyBatis** — SQL 매퍼 (Oracle DB)
-- **Spring Security** — 인증/인가
 - **JWT** (`jjwt`) — Access Token / Refresh Token
 - **JavaMailSender** — 이메일 발송
 - **Cloudinary** — 이미지 업로드
@@ -327,7 +326,7 @@ Refresh Token의 Body에는 다음과 같은 정보가 담겨 있습니다.
 
 Rest 서버 쪽으로 보호자원에 접근하는 요청이 들어오면, 서버는 Authorization Header에 담긴 Access Token을 검증하여 유효한 토큰인지 확인합니다.
 
-JWT 토큰에 담긴 사용자의 정보를 검증 하는 로직을 `JwtAuthenticationFilter`에 구현해 놓았습니다.
+JWT 토큰에 담긴 사용자의 정보를 검증하는 로직을 `JwtAuthenticationFilter`에 구현해 놓았습니다.
 
 사용자의 정보를 사용해 DB에서 해당 사용자가 정말 존재하는지, 해당 사용자가 요청한 보호 자원에 접근할 권한이 있는지 등을 검증하여, 유효한 토큰이라면 해당 요청을 처리하도록 허용하고, 유효하지 않은 토큰이라면 적절한 에러 응답을 반환합니다.
 
