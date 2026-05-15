@@ -55,9 +55,9 @@ flowchart TD
 - 관리자 페이지: `http://localhost:8080`
 - REST API: `http://localhost:8081`
 
+## 4. 환경 변수 설정
+
 > [!IMPORTANT]
->
-> ## 4. 환경 변수 설정
 >
 > `.env.example` 파일을 복사하여 `.env` 파일을 생성한 후, 필요한 환경 변수를 설정합니다.
 >
@@ -234,7 +234,7 @@ Rest 모듈에서 JWT(Json Web Token)를 사용하여 보호 자원을 접근하
 
 2. React Client는 Access Token을 React의 Context에 저장하여 보호 자원에 접근할 때마다 Access Token을 Authorization Header에 담아서 Rest 서버로 요청을 보냅니다.
 
-3. Client가 보호자원 페이지에 접근할 때는 Access Token을 파싱해서 유효한 토큰인지 검증하고, 유효한 토큰이라면 해당 페이지에 접근할 수 있도록 허용합니다.
+3. Client가 보호자원 페이지에 접근할 때는 서버가 Access Token을 파싱해서 유효한 토큰인지 검증하고, 유효한 토큰이라면 해당 페이지에 접근할 수 있도록 허용합니다.
 
    > React의 Context에 Access Token을 저장하는 이유는 React의 컴포넌트 트리 어디에서든 Access Token에 접근할 수 있도록 하기 위해서입니다.
    >
@@ -285,8 +285,6 @@ JWT 토큰에 담긴 사용자의 정보를 검증 하는 로직을 `JwtAuthenti
 
 사용자의 정보를 사용해 DB에서 해당 사용자가 정말 존재하는지, 해당 사용자가 요청한 보호 자원에 접근할 권한이 있는지 등을 검증하여, 유효한 토큰이라면 해당 요청을 처리하도록 허용하고, 적절한 상태 코드와 메시지를 포함한 응답을 반환하도록 구현해 놓았습니다.
 
-JWT 검증은 Rest 모듈의 `JwtAuthenticationFilter`에서 이루어집니다. 이 필터는 클라이언트로부터 전달된 Access Token을 검증하여 유효한 토큰인지 확인합니다.
-
 ## 8. Email
 
 [common/src/main/java/kr/or/ddit/finalProject/service/email/EmailServiceImpl.java](common/src/main/java/kr/or/ddit/finalProject/service/email/EmailServiceImpl.java)
@@ -302,7 +300,7 @@ JWT 검증은 Rest 모듈의 `JwtAuthenticationFilter`에서 이루어집니다.
  * @param to      이메일 수신자
  * @param subject 이메일 제목
  * @param body    이메일 본문
- * @return
+ * @return 발송 결과 메시지
  */
 public String sendEmail(String to, String subject, String body);
 ```

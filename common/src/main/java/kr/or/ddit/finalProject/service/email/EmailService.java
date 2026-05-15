@@ -16,7 +16,7 @@ public interface EmailService {
      * @param to      이메일 수신자
      * @param subject 이메일 제목
      * @param body    이메일 본문
-     * @return
+     * @return 발송 결과 메시지
      */
     public String sendEmail(String to, String subject, String body);
 }
