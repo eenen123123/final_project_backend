@@ -134,6 +134,8 @@ public PaginationInfo(int screenSize, int blockSize, int page, String orderBy, S
 
 ### 5-2. MyBatis Mapper XML에서 정렬 기준과 방향, 페이징을 사용하는 예시
 
+> [!WARNING]
+>
 > temp 패키지는 페이징 처리 테스트를 위한 임시 패키지입니다. 실제로는 도메인 객체와 관련된 패키지에서 사용해야 해요.
 
 ```xml
@@ -224,9 +226,9 @@ public PaginationInfo(int screenSize, int blockSize, int page, String orderBy, S
 
   이 핸들러가 있어 컨트롤러 메소드에서 예외를 따로 처리하지 않고 어느 레이어에서든 예외를 던지면, 해당 예외가 이 핸들러로 전달되어 적절한 HTTP 상태 코드와 메시지를 포함한 일관된 응답이 반환됩니다.
 
-> [!WARNING]
->
-> 단, 이 핸들러는 Rest API 모듈에서만 그리고 FinalProjectException을 상속한 예외 클래스에 대해서만 적용됩니다.
+  > [!WARNING]
+  >
+  > 단, 이 핸들러는 Rest API 모듈에서만 그리고 FinalProjectException을 상속한 예외 클래스에 대해서만 적용됩니다.
 
 ## 7. JWT
 
@@ -236,7 +238,9 @@ Rest 모듈에서 JWT(Json Web Token)를 사용하여 보호 자원을 접근하
 
 우리 프로젝트에서는 JWT를 Access Token과 Refresh Token으로 나누어 사용합니다.
 
-그 이유는 React로 구현된 프론트 엔드에서 비동기 요청을 보낼 때만 사용자의 인증 및 인가를 처리하면, 보호자원의 데이터에 접근하는것은 보호할 수 있지만, 해당 보호 자원 페이지에 접근하는것을 보호할 수 없기 때문에 Access Token과 Refresh Token을 나누어 사용하려고 합니다.
+왜냐하면 API 요청은 Access Token으로 보호할 수 있지만,
+페이지 접근 자체는 보호할 수 없습니다.
+이를 해결하기 위해 두 토큰을 나누어 사용합니다.
 
 #### Access Token
 
@@ -248,17 +252,16 @@ Rest 모듈에서 JWT(Json Web Token)를 사용하여 보호 자원을 접근하
 
 #### 흐름은 다음과 같습니다.
 
-1. React Client가 로그인 하면 Rest 서버에서 Access Token과 Refresh Token을 발급하여 Access Token은 Body에 담아서 React Client로 전달하고, Refresh Token은 HttpOnly Cookie에 담아서 React Client로 전달합니다.
+1. 로그인하면 서버가 Access Token(Body)과 Refresh Token(HttpOnly Cookie)을 발급합니다.
 
-2. React Client는 Access Token을 React의 Context에 저장하여 보호 자원에 접근할 때마다 Access Token을 Authorization Header에 담아서 Rest 서버로 요청을 보냅니다.
+2. 이후 보호 자원 요청마다 Access Token을 `Authorization` 헤더에 담아 서버로 전송합니다.
 
-3. Client가 보호자원 페이지에 접근할 때는 서버가 Access Token을 파싱해서 유효한 토큰인지 검증하고, 유효한 토큰이라면 해당 페이지에 접근할 수 있도록 허용합니다.
+3. 서버가 Access Token을 검증하고, 유효하면 요청을 허용합니다.
 
-   > React의 Context에 Access Token을 저장하는 이유는 React의 컴포넌트 트리 어디에서든 Access Token에 접근할 수 있도록 하기 위해서입니다.
-   >
-   > 다만 Access Token은 유효기간이 짧고, 새로 고침시 날아가기 때문에, 페이지가 새로 렌더링 될 때나, 비동기 요청을 보내기 전 Access Token의 여부와 유효성을 검사하고 Access Token이 유효하지 않다면 withCredentials 옵션을 true로 설정하여 HttpOnly Cookie에 담긴 Refresh Token을 사용하여 새로운 Access Token을 발급받습니다.
-   >
-   > 위의 로직은 axios 인터셉터와 React Auth Context Provider로 구현해 놓았습니다.
+4. Access Token이 없거나 만료됐으면, `withCredentials: true` 옵션으로 HttpOnly Cookie의
+   Refresh Token을 서버에 전송하여 새 Access Token을 재발급받습니다.
+
+> 2~4번 로직은 axios 인터셉터와 React Auth Context Provider로 구현되어 있습니다.
 
 ### 7-2. 로그인
 
@@ -270,7 +273,7 @@ DB에 Refresh Token이 저장되어 있을 때 새로운 로그인 요청이 들
 
 사용자가 로그아웃 할 때 `/api/auth/logout` 엔드포인트로 로그아웃 요청을 보내면, 서버는 DB에 저장된 Refresh Token을 삭제하여 해당 Refresh Token이 더 이상 유효하지 않도록 합니다. 또한 Refresh Token 쿠키도 삭제하여 클라이언트에서 더 이상 Refresh Token에 접근할 수 없도록 합니다.
 
-### Access Token의 Body
+### 7-4. Access Token의 Body
 
 Access Token의 Body에는 다음과 같은 정보가 담겨 있습니다.
 
@@ -283,7 +286,7 @@ Access Token의 Body에는 다음과 같은 정보가 담겨 있습니다.
 }
 ```
 
-### Refresh Token의 Body
+### 7-5. Refresh Token의 Body
 
 Refresh Token의 Body에는 다음과 같은 정보가 담겨 있습니다.
 
@@ -295,7 +298,7 @@ Refresh Token의 Body에는 다음과 같은 정보가 담겨 있습니다.
 }
 ```
 
-### 7-4. JWT 검증
+### 7-6. JWT 검증
 
 Rest 서버 쪽으로 보호자원에 접근하는 요청이 들어오면, 서버는 Authorization Header에 담긴 Access Token을 검증하여 유효한 토큰인지 확인합니다.
 
