@@ -9,7 +9,25 @@ backend
 └── rest (REST API 모듈, React와 통신)
 ```
 
-### 1-1. 요청/응답 구조
+### 1-1. 패키지 룰
+
+레이어로 먼저 나누고, 그 안에서 도메인별로 나눕니다.
+
+```text
+common
+└── kr.or.ddit.finalProject
+    ├── dto
+    │   ├── user        ← 도메인별
+    │   └── auth
+    ├── service
+    │   ├── user
+    │   └── email
+    ├── exception
+    │   └── user
+    └── mapper
+```
+
+### 1-2. 요청/응답 구조
 
 ```mermaid
 flowchart TD
