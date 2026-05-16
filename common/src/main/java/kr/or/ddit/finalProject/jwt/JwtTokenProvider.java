@@ -10,7 +10,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
-import kr.or.ddit.finalProject.dto.user.Role;
 
 @Component
 public class JwtTokenProvider {
@@ -40,38 +39,38 @@ public class JwtTokenProvider {
     }
 
     // 로그인 성공 시 JWT access token을 생성하는 메소드
-    public String createAccessToken(String loginId, Role role) {
+    public String createAccessToken(String userId, String role) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + accessTokenExpiration);
 
-        return Jwts.builder().subject(loginId).claim("type", ACCESS_TOKEN_TYPE)
-                .claim("role", role.name()).issuedAt(now).expiration(expiration).signWith(key)
+        return Jwts.builder().subject(userId).claim("type", ACCESS_TOKEN_TYPE)
+                .claim("role", role).issuedAt(now).expiration(expiration).signWith(key)
                 .compact();
     }
 
     /**
      * 로그인 성공 시 JWT refresh token을 생성하는 메소드
      * 
-     * @param loginId 사용자의 로그인 ID
+     * @param userId 사용자의 ID
      * @return 생성된 JWT refresh token
      */
-    public String createRefreshToken(String loginId) {
+    public String createRefreshToken(String userId) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + refreshTokenExpiration);
 
-        return Jwts.builder().subject(loginId).claim("type", REFRESH_TOKEN_TYPE).issuedAt(now)
+        return Jwts.builder().subject(userId).claim("type", REFRESH_TOKEN_TYPE).issuedAt(now)
                 .expiration(expiration).signWith(key).compact();
     }
 
-    // JWT 토큰에서 로그인 ID를 추출하는 메소드
-    public String getLoginId(String token) {
+    // JWT 토큰에서 사용자 ID를 추출하는 메소드
+    public String getUserId(String token) {
         return parseClaims(token).getSubject();
     }
 
     // JWT 토큰에서 사용자 역할을 추출하는 메소드
-    public Role getRole(String token) {
+    public String getRole(String token) {
         String role = parseClaims(token).get("role", String.class);
-        return Role.valueOf(role);
+        return role;
     }
 
     // JWT 토큰에서 토큰 유형(access 또는 refresh)을 추출하는 메소드

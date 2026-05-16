@@ -4,38 +4,45 @@
 
 <mapper namespace="kr.or.ddit.finalProject.mapper.UserMapper">
 
-    <resultMap id="userResultMap" type="kr.or.ddit.finalProject.dto.user.UserDto">
-        <result property="loginId" column="LOGIN_ID"/>
-        <result property="password" column="PASSWORD"/>
-        <result property="name" column="name"/>
-        <result property="nickName" column="NICK_NAME"/>
-        <result property="role" column="ROLE" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
-        <result property="status" column="STATUS" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+    <resultMap id="userResultMap" type="kr.or.ddit.finalProject.dto.user.MemberDto">
+        <id property="userId" column="USER_ID"/>
+        <result property="userEnpswd" column="USER_ENPSWD"/>
+        <result property="userNm" column="USER_NM"/>
+        <result property="userEnrrno" column="USER_ENRRNO"/>
+        <result property="userGndrCd" column="USER_GNDR_CD"/>
+        <result property="userBrdt" column="USER_BRDT"/>
+        <result property="joinDt" column="JOIN_DT"/>
+        <result property="userTelno" column="USER_TELNO"/>
+        <result property="userEmlAddr" column="USER_EML_ADDR"/>
+        <result property="userZip" column="USER_ZIP"/>
+        <result property="userAddr" column="USER_ADDR"/>
+        <result property="userDaddr" column="USER_DADDR"/>
+        <result property="prflImgPathNm" column="PRFL_IMG_PATH_NM"/>
+        <result property="regDt" column="REG_DT"/>
+        <result property="mdfcnDt" column="MDFCN_DT"/>
+        <result property="userRole" column="USER_ROLE"/>
+ 
     </resultMap>
 
-    <select id="existsByLoginId" parameterType="string" resultType="boolean">
+    <select id="existsByUserId" parameterType="string" resultType="boolean">
         SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END
-        FROM USERS
-        WHERE LOGIN_ID = #{loginId}
+        FROM MEMBER
+        WHERE USER_ID = #{userId}
     </select>
 
-    <select id="existsByNickname" parameterType="string" resultType="boolean">
-        SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END
-        FROM USERS
-        WHERE NICK_NAME = #{nickname}
+
+    <select id="findByUserId" parameterType="string" resultMap="userResultMap">
+        SELECT
+            M.USER_ID, M.USER_ENPSWD, M.USER_NM, M.USER_ENRRNO, M.USER_GNDR_CD,
+            M.USER_BRDT, M.JOIN_DT, M.USER_TELNO, M.USER_EML_ADDR, M.USER_ZIP,
+            M.USER_ADDR, M.USER_DADDR, M.PRFL_IMG_PATH_NM, M.REG_DT, M.MDFCN_DT, M.USER_ROLE
+        FROM MEMBER M
+        WHERE M.USER_ID = #{userId}
     </select>
 
-    <select id="findByLoginId" parameterType="string" resultMap="userResultMap">
-        SELECT LOGIN_ID, PASSWORD, name, NICK_NAME, ROLE, STATUS
-        FROM USERS
-        WHERE LOGIN_ID = #{loginId}
-    </select>
-
-    <insert id="insertUser" parameterType="kr.or.ddit.finalProject.dto.user.UserDto" useGeneratedKeys="true" keyProperty="loginId" keyColumn="login_id">
-        INSERT INTO USERS (LOGIN_ID, PASSWORD, name, NICK_NAME, ROLE, STATUS)
-        VALUES (#{loginId}, #{password}, #{name}, #{nickName},
-                #{role, typeHandler=org.apache.ibatis.type.EnumTypeHandler, jdbcType=VARCHAR},
-                #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler, jdbcType=VARCHAR})
+    <insert id="insertUser" parameterType="kr.or.ddit.finalProject.dto.user.MemberDto" useGeneratedKeys="true" keyProperty="userId" keyColumn="USER_ID">
+        INSERT INTO MEMBER (USER_ID, USER_ENPSWD, USER_NM)
+        VALUES (#{userId}, #{userEnpswd}, #{userNm})
     </insert>
 
 </mapper>

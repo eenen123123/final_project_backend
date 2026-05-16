@@ -4,12 +4,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import kr.or.ddit.finalProject.dto.auth.AuthTokens;
+import kr.or.ddit.finalProject.dto.user.MemberRoleDto;
 import kr.or.ddit.finalProject.dto.user.RefreshTokenDto;
-import kr.or.ddit.finalProject.dto.user.Role;
 import kr.or.ddit.finalProject.dto.user.SigninRequestRecord;
 import kr.or.ddit.finalProject.dto.user.SignupRequestRecord;
-import kr.or.ddit.finalProject.dto.user.UserDto;
-import kr.or.ddit.finalProject.dto.user.UserStatus;
+import kr.or.ddit.finalProject.dto.user.MemberDto;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.user.UserException;
 import kr.or.ddit.finalProject.jwt.JwtTokenProvider;
@@ -33,30 +32,31 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void signup(SignupRequestRecord signupRequest) {
-        if (userMapper.existsByLoginId(signupRequest.loginId())) {
+        if (userMapper.existsByUserId(signupRequest.loginId())) {
             throw new UserException(ErrorCode.USERNAME_ALREADY_EXISTS);
         }
 
-        UserDto user = UserDto.builder().loginId(signupRequest.loginId())
-                .password(passwordEncoder.encode(signupRequest.password()))
-                .name(signupRequest.name()).nickName(signupRequest.nickName()).role(Role.ROLE_USER)
-                .status(UserStatus.ACTIVE).build();
+        MemberDto user = MemberDto.builder().userId(signupRequest.loginId())
+                .userEnpswd(passwordEncoder.encode(signupRequest.password()))
+                .userNm(signupRequest.name()).userRole("ROLE_USER")
+                .build();
         userMapper.insertUser(user);
     }
 
     @Override
     public AuthTokens signin(SigninRequestRecord signinRequest) {
-        UserDto user = authenticate(signinRequest);
-        String accessToken = jwtTokenProvider.createAccessToken(user.getLoginId(), user.getRole());
-        String refreshToken = jwtTokenProvider.createRefreshToken(user.getLoginId());
+        MemberDto user = authenticate(signinRequest);
+        String accessToken = jwtTokenProvider.createAccessToken(user.getUserId(),
+                user.getUserRole());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
         upsertRefreshToken(user, refreshToken);
         return new AuthTokens(BEARER, accessToken, refreshToken);
     }
 
     @Override
     public void signout(String refreshToken) {
-        String loginId = jwtTokenProvider.getLoginId(refreshToken);
-        refreshTokenMapper.deleteRefreshToken(loginId);
+        String userId = jwtTokenProvider.getUserId(refreshToken);
+        refreshTokenMapper.deleteRefreshToken(userId);
     }
 
     @Override
@@ -65,8 +65,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void upsertRefreshToken(UserDto user, String refreshToken) {
-        RefreshTokenDto refreshTokenDto = refreshTokenMapper.findByLoginId(user.getLoginId())
+    public void upsertRefreshToken(MemberDto user, String refreshToken) {
+        RefreshTokenDto refreshTokenDto = refreshTokenMapper.findByUserId(user.getUserId())
                 .orElse(new RefreshTokenDto(user, tokenHashUtil.hmacToken(refreshToken),
                         jwtTokenProvider.getExpiration(refreshToken)));
         refreshTokenDto.rotate(tokenHashUtil.hmacToken(refreshToken),
@@ -75,29 +75,29 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto authenticate(SigninRequestRecord signinRequest) {
-        UserDto user = userMapper.findByLoginId(signinRequest.loginId())
+    public MemberDto authenticate(SigninRequestRecord signinRequest) {
+        MemberDto user = userMapper.findByUserId(signinRequest.userId())
                 .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
 
-        if (!passwordEncoder.matches(signinRequest.password(), user.getPassword())) {
+        if (!passwordEncoder.matches(signinRequest.userPswd(), user.getUserEnpswd())) {
             throw new UserException(ErrorCode.USERNAME_OR_PASSWORD_INCORRECT);
         }
 
-        if (!user.getStatus().equals(UserStatus.ACTIVE)) {
-            throw new UserException(ErrorCode.ACCOUNT_UNUSABLE);
-        }
+        // if (!user.getUserStatus().equals(UserStatus.ACTIVE)) {
+        // throw new UserException(ErrorCode.ACCOUNT_UNUSABLE);
+        // }
         return user;
     }
 
     @Override
-    public UserDto getUserByToken(String token) {
-        String loginId = jwtTokenProvider.getLoginId(token);
-        return userMapper.findByLoginId(loginId)
+    public MemberDto getUserByToken(String token) {
+        String loginId = jwtTokenProvider.getUserId(token);
+        return userMapper.findByUserId(loginId)
                 .orElseThrow(() -> new UserException(ErrorCode.INVALID_TOKEN));
     }
 
     @Override
-    public void changeRole(String loginId, Role newRole) {
+    public void changeRole(String loginId, MemberRoleDto newRole) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'changeRole'");
     }
@@ -116,11 +116,12 @@ public class UserServiceImpl implements UserService {
         RefreshTokenDto savedRefreshToken = refreshTokenMapper.findByToken(hashedToken)
                 .orElseThrow(() -> new UserException(ErrorCode.INVALID_TOKEN));
 
-        UserDto user = userMapper.findByLoginId(savedRefreshToken.getLoginId())
+        MemberDto user = userMapper.findByUserId(savedRefreshToken.getLoginId())
                 .orElseThrow(() -> new UserException(ErrorCode.INVALID_TOKEN));
 
-        String accessToken = jwtTokenProvider.createAccessToken(user.getLoginId(), user.getRole());
-        String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getLoginId());
+        String accessToken = jwtTokenProvider.createAccessToken(user.getUserId(),
+                user.getUserRole());
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
         String newHashedToken = tokenHashUtil.hmacToken(newRefreshToken);
         savedRefreshToken.rotate(newHashedToken, jwtTokenProvider.getExpiration(newRefreshToken));
         refreshTokenMapper.upsertRefreshToken(savedRefreshToken);

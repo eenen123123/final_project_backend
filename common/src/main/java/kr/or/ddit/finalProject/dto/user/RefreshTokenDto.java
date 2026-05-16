@@ -4,8 +4,6 @@ import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -15,16 +13,15 @@ public class RefreshTokenDto {
 
     private String loginId; // RefreshToken과 연관된 User의 로그인 ID
 
-    private UserDto user; // RefreshToken과 연관된 User 정보
+    private MemberDto user; // RefreshToken과 연관된 User 정보
 
     private String token; // 실제 Refresh Token 문자열
 
     private Instant expiredAt; // Refresh Token의 만료 시간
 
-
-    public RefreshTokenDto(UserDto user, String token, Instant expiredAt) {
+    public RefreshTokenDto(MemberDto user, String token, Instant expiredAt) {
         this.user = user;
-        this.loginId = user.getLoginId();
+        this.loginId = user.getUserId();
         this.token = token;
         this.expiredAt = expiredAt;
     }

@@ -7,7 +7,7 @@ import kr.or.ddit.finalProject.dto.auth.AuthTokens;
 import kr.or.ddit.finalProject.dto.user.SigninRequestRecord;
 import kr.or.ddit.finalProject.dto.user.SigninResponseRecord;
 import kr.or.ddit.finalProject.dto.user.SignupRequestRecord;
-import kr.or.ddit.finalProject.dto.user.UserDto;
+import kr.or.ddit.finalProject.dto.user.MemberDto;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.user.UserException;
 import kr.or.ddit.finalProject.service.user.UserService;
@@ -57,7 +57,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<SigninResponseRecord> signin(
             @Valid @RequestBody SigninRequestRecord requestRecord) {
-        log.info("로그인 시도: {}", requestRecord.loginId());
+        log.info("로그인 시도: {}", requestRecord.userId());
 
         AuthTokens tokens = userService.signin(requestRecord);
         ResponseCookie refreshCookie = createRefreshTokenCookie(tokens.refreshToken());
@@ -111,15 +111,14 @@ public class AuthController {
      *         상태로 반환
      */
     @GetMapping("/me")
-    public ResponseEntity<UserDto> getCurrentUser(
+    public ResponseEntity<MemberDto> getCurrentUser(
             @RequestHeader("Authorization") String authorizationHeader) {
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             throw new UserException(ErrorCode.INVALID_TOKEN);
         }
 
-        UserDto user = userService.getUserByToken(authorizationHeader.substring(7));
-        UserDto currentUser = UserDto.builder().loginId(user.getLoginId())
-                .nickName(user.getNickName()).role(user.getRole()).build();
+        MemberDto user = userService.getUserByToken(authorizationHeader.substring(7));
+        MemberDto currentUser = MemberDto.builder().userId(user.getUserId()).build();
 
         return ResponseEntity.ok(currentUser);
     }

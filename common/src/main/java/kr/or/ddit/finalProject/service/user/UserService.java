@@ -1,10 +1,10 @@
 package kr.or.ddit.finalProject.service.user;
 
 import kr.or.ddit.finalProject.dto.auth.AuthTokens;
-import kr.or.ddit.finalProject.dto.user.Role;
+import kr.or.ddit.finalProject.dto.user.MemberRoleDto;
 import kr.or.ddit.finalProject.dto.user.SigninRequestRecord;
 import kr.or.ddit.finalProject.dto.user.SignupRequestRecord;
-import kr.or.ddit.finalProject.dto.user.UserDto;
+import kr.or.ddit.finalProject.dto.user.MemberDto;
 
 public interface UserService {
 
@@ -23,7 +23,6 @@ public interface UserService {
      */
     AuthTokens signin(SigninRequestRecord signinRequest);
 
-
     /**
      * 로그아웃 메서드
      * 
@@ -38,15 +37,13 @@ public interface UserService {
      */
     long getRefreshTokenExpiration();
 
-
     /**
      * 사용자의 리프레시 토큰을 저장하거나 업데이트하는 메서드
      * 
-     * @param user 리프레시 토큰을 저장하거나 업데이트할 사용자 정보
+     * @param user         리프레시 토큰을 저장하거나 업데이트할 사용자 정보
      * @param refreshToken 저장하거나 업데이트할 리프레시 토큰
      */
-    void upsertRefreshToken(UserDto user, String refreshToken);
-
+    void upsertRefreshToken(MemberDto user, String refreshToken);
 
     /**
      * 로그인 요청을 처리하여 사용자 정보를 반환하는 메서드
@@ -54,8 +51,7 @@ public interface UserService {
      * @param signinRequest 로그인 요청 정보를 담은 SigninRequestRecord 객체
      * @return 인증된 사용자 정보를 담은 UserDto 객체
      */
-    UserDto authenticate(SigninRequestRecord signinRequest);
-
+    MemberDto authenticate(SigninRequestRecord signinRequest);
 
     /**
      * JWT 토큰을 사용하여 사용자 정보를 조회하는 메서드
@@ -63,16 +59,15 @@ public interface UserService {
      * @param token JWT 토큰
      * @return JWT 토큰에 해당하는 사용자 정보를 담은 UserDto 객체
      */
-    UserDto getUserByToken(String token);
-
+    MemberDto getUserByToken(String token);
 
     /**
      * 사용자의 역할을 변경하는 메서드
      * 
-     *  @param loginId 변경할 사용자의 로그인 ID
+     * @param loginId 변경할 사용자의 로그인 ID
      * @param newRole 새로운 역할
      */
-    void changeRole(String loginId, Role newRole);
+    void changeRole(String loginId, MemberRoleDto newRole);
 
     /**
      * 리프레시 토큰을 사용하여 새로운 인증 토큰을 발급하는 메서드
@@ -83,5 +78,3 @@ public interface UserService {
     AuthTokens refresh(String refreshToken);
 
 }
-
-

@@ -6,7 +6,7 @@ import kr.or.ddit.finalProject.dto.user.RefreshTokenDto;
 
 @Mapper
 public interface RefreshTokenMapper {
-    Optional<RefreshTokenDto> findByLoginId(String loginId);
+    Optional<RefreshTokenDto> findByUserId(String loginId);
 
     void deleteRefreshToken(String loginId);
 
