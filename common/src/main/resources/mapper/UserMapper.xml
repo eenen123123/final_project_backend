@@ -21,7 +21,7 @@
         <result property="regDt" column="REG_DT"/>
         <result property="mdfcnDt" column="MDFCN_DT"/>
         <result property="userRole" column="USER_ROLE"/>
- 
+
     </resultMap>
 
     <select id="existsByUserId" parameterType="string" resultType="boolean">
@@ -33,11 +33,11 @@
 
     <select id="findByUserId" parameterType="string" resultMap="userResultMap">
         SELECT
-            M.USER_ID, M.USER_ENPSWD, M.USER_NM, M.USER_ENRRNO, M.USER_GNDR_CD,
-            M.USER_BRDT, M.JOIN_DT, M.USER_TELNO, M.USER_EML_ADDR, M.USER_ZIP,
-            M.USER_ADDR, M.USER_DADDR, M.PRFL_IMG_PATH_NM, M.REG_DT, M.MDFCN_DT, M.USER_ROLE
-        FROM MEMBER M
-        WHERE M.USER_ID = #{userId}
+            USER_ID, USER_ENPSWD, USER_NM, USER_ENRRNO, USER_GNDR_CD,
+            USER_BRDT, JOIN_DT, USER_TELNO, USER_EML_ADDR, USER_ZIP,
+            USER_ADDR, USER_DADDR, PRFL_IMG_PATH_NM, REG_DT, MDFCN_DT, USER_ROLE
+        FROM MEMBER
+        WHERE USER_ID = #{userId}
     </select>
 
     <insert id="insertUser" parameterType="kr.or.ddit.finalProject.dto.user.MemberDto" useGeneratedKeys="true" keyProperty="userId" keyColumn="USER_ID">

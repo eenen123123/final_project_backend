@@ -7,37 +7,23 @@
         SELECT * FROM refresh_tokens WHERE token = #{token}
     </select>
 
-    <!-- 
-    
-private Long id; // DB에서 자동 생성되는 ID
-
-    private String loginId; // RefreshToken과 연관된 User의 로그인 ID
-
-    private UserDto user; // RefreshToken과 연관된 User 정보
-
-    private String token; // 실제 Refresh Token 문자열
-
-    private Instant expiredAt; // Refresh Token의 만료 시간
-
-
--->
 
 
     <insert id="upsertRefreshToken" parameterType="kr.or.ddit.finalProject.dto.user.RefreshTokenDto">
         merge 
         INTO refresh_tokens rt
         using  dual
-        on (rt.login_id = #{loginId})
+        on (rt.user_id = #{userId})
         when matched then 
             update set token = #{token}, expired_at = #{expiredAt}
         when not matched then
-            insert (login_id, token, expired_at) values (#{loginId}, #{token}, #{expiredAt})
+            insert (user_id, token, expired_at) values (#{userId}, #{token}, #{expiredAt})
     </insert>
     <delete id="deleteRefreshToken">
-        DELETE FROM refresh_tokens WHERE login_id = #{loginId}
+        DELETE FROM refresh_tokens WHERE user_id = #{userId}
     </delete>
 
-    <select id="findByLoginId" resultType="kr.or.ddit.finalProject.dto.user.RefreshTokenDto">
-        SELECT * FROM refresh_tokens WHERE login_id = #{loginId}
+    <select id="findByUserId" resultType="kr.or.ddit.finalProject.dto.user.RefreshTokenDto">
+        SELECT * FROM refresh_tokens WHERE user_id = #{userId}
     </select>
 </mapper>

@@ -64,10 +64,10 @@ public interface UserService {
     /**
      * 사용자의 역할을 변경하는 메서드
      * 
-     * @param loginId 변경할 사용자의 로그인 ID
+     * @param userId 변경할 사용자의 로그인 ID
      * @param newRole 새로운 역할
      */
-    void changeRole(String loginId, MemberRoleDto newRole);
+    void changeRole(String userId, MemberRoleDto newRole);
 
     /**
      * 리프레시 토큰을 사용하여 새로운 인증 토큰을 발급하는 메서드

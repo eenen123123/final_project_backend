@@ -11,7 +11,7 @@ public class RefreshTokenDto {
 
     private Long id; // DB에서 자동 생성되는 ID
 
-    private String loginId; // RefreshToken과 연관된 User의 로그인 ID
+    private String userId; // RefreshToken과 연관된 User의 로그인 ID
 
     private MemberDto user; // RefreshToken과 연관된 User 정보
 
@@ -21,7 +21,7 @@ public class RefreshTokenDto {
 
     public RefreshTokenDto(MemberDto user, String token, Instant expiredAt) {
         this.user = user;
-        this.loginId = user.getUserId();
+        this.userId = user.getUserId();
         this.token = token;
         this.expiredAt = expiredAt;
     }

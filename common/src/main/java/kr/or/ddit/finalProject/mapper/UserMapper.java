@@ -8,7 +8,7 @@ import kr.or.ddit.finalProject.dto.user.MemberDto;
 public interface UserMapper {
 
     /**
-     * LoginId를 받아서 이미 존재하는 회원인지 조회
+     * 사용자 ID를 받아서 이미 존재하는 회원인지 조회
      * 
      * @param userId 조회할 Id
      * @return 존재 여부

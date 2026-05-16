@@ -39,12 +39,12 @@ public class JwtTokenProvider {
     }
 
     // 로그인 성공 시 JWT access token을 생성하는 메소드
-    public String createAccessToken(String userId, String role) {
+    public String createAccessToken(String userId, String role, String userName) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + accessTokenExpiration);
 
-        return Jwts.builder().subject(userId).claim("type", ACCESS_TOKEN_TYPE)
-                .claim("role", role).issuedAt(now).expiration(expiration).signWith(key)
+        return Jwts.builder().subject(userId).claim("type", ACCESS_TOKEN_TYPE).claim("role", role)
+                .claim("userName", userName).issuedAt(now).expiration(expiration).signWith(key)
                 .compact();
     }
 
