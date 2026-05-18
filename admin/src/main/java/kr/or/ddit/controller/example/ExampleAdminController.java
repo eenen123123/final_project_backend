@@ -54,15 +54,9 @@ public class ExampleAdminController {
             RedirectAttributes redirectAttributes) {
 
         log.info("Received file: {}", file.getOriginalFilename());
-        try {
-            StoredFileResponse response = fileUploadService.uploadFile(file);
-            log.info("File uploaded successfully: {}", response);
-            redirectAttributes.addFlashAttribute("fileResponse", response);
-        } catch (Exception e) {
-            log.error("File upload failed", e);
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    "File upload failed: " + e.getMessage());
-        }
+        StoredFileResponse response = fileUploadService.uploadFile(file);
+        log.info("File uploaded successfully: {}", response);
+        redirectAttributes.addFlashAttribute("fileResponse", response);
 
 
         return "redirect:/admin/test";

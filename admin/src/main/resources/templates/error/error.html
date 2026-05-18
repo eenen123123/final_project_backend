@@ -8,8 +8,10 @@
   </head>
   <body>
     <div class="container">
-      <h1 th:text="${status}"></h1>
-      <p th:text="${message}"></p>
+      <div th:if="${errorMessage != null}">
+        <h1 th:text="${status}"></h1>
+        <p th:text="${errorMessage}"></p>
+      </div>
     </div>
   </body>
 </html>

@@ -33,6 +33,8 @@ public class FileUploadService {
 
     /*  
         파일 서버에서 처리하는 컨트롤러는 아래와 같다
+    
+        
     @PostMapping
     public ResponseEntity<StoredFileResponse> upload(
             @RequestParam MultipartFile file,
@@ -72,6 +74,44 @@ public class FileUploadService {
 
 
     // 파일 업로드 메서드
+    // TODO : 파일 업로드 후 반환되는 객체를 DB에 저장하는 로직 추가 필요
+
+
+    /**
+     * 파일 업로드 메서드
+     * 
+     * @param file 업로드할 파일
+     * @return 업로드된 파일의 정보
+     * 
+     * 응답 예시:
+     * <pre>
+     *     Long id // 파일 ID
+     *     String originalFilename // 원본 파일 이름
+     *     String contentType // 파일의 MIME 타입 (예: image/png, application/pdf 등)
+     *     String fileType // 파일 유형 (예: IMAGE, DOCUMENT 등)
+     *     Long fileSize // 파일 크기 (바이트 단위)
+     *     String url // 파일 접근 URL
+     *     String viewUrl // 파일 뷰어 URL
+     *     String downloadUrl // 파일 다운로드 URL
+     *     String uploadedBy // 업로드한 사용자
+     *     LocalDateTime uploadedAt // 업로드 시각
+     * </pre>
+     * 
+     *<p> Example response:
+     *<p> Uploaded File Details:
+     * <pre>
+     *     ID: 21
+     *     OriginalFilename: "1774443835.png"
+     *     ContentType: "image/png"
+     *     FileType: "IMAGE"
+     *     FileSize: 36878 (bytes)
+     *     URL: "https://paste.maerchen.dev/api/storage/files/21/view"
+     *     ViewURL: "https://paste.maerchen.dev/api/storage/files/21/view"
+     *     DownloadURL: "https://paste.maerchen.dev/api/storage/files/21/download"
+     *     UploadedBy: "anonymous"
+     *     UploadedAt: "2026-05-18T14:32:53.214345536"
+     * </pre>
+     */
     public StoredFileResponse uploadFile(MultipartFile file) {
         if (file.isEmpty()) {
             throw new FinalProjectException(ErrorCode.FILE_EMPTY);
@@ -94,6 +134,13 @@ public class FileUploadService {
         }
     }
 
+    /**
+     * MultipartFile을 ByteArrayResource로 변환하여 파일 서버에 업로드할 수 있도록 준비하는 메서드
+     * 
+     * @param file 업로드할 파일
+     * @return ByteArrayResource로 변환된 파일
+     * @throws IOException 파일 처리 중 오류 발생 시 예외 발생
+     */
     private ByteArrayResource multipartResource(MultipartFile file) throws IOException {
         return new ByteArrayResource(file.getBytes()) {
             @Override
