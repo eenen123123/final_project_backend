@@ -42,6 +42,8 @@ public enum ErrorCode {
 
     CANT_ACCESS_FILE(HttpStatus.INTERNAL_SERVER_ERROR, "파일에 접근할 수 없습니다.");
 
+
+
     private final HttpStatus status;
     private final String message;
 

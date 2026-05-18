@@ -4,10 +4,13 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>테스트 페이지</title>
   </head>
   <body>
     <h1 th:text="${message}">Hello, Thymeleaf!</h1>
+
+    <p>테스트 페이지</p>
+    <p>파일 업로드 및 사용자의 정보를 확인할 수 있습니다.</p>
 
     <div th:if="${user != null}">
       <p th:text="'User ID: ' + ${user.userId}">User ID:</p>
