@@ -372,3 +372,21 @@ public String sendEmailSixDigits(String to) {
     return code;
 }
 ```
+
+## 9. File Upload
+
+### 9-1. Admin 모듈
+
+Admin 모듈에서의 파일 업로드는
+[common/src/main/java/kr/or/ddit/finalProject/service/file/FileUploadService.java](common/src/main/java/kr/or/ddit/finalProject/service/file/FileUploadService.java)
+
+위 서비스로 업로드하는 로직이 구현되어 있습니다.
+
+업로드 후 반환되는 객체는
+[common/src/main/java/kr/or/ddit/finalProject/dto/file/StoredFileResponse.java](common/src/main/java/kr/or/ddit/finalProject/dto/file/StoredFileResponse.java)
+입니다.
+
+### 9-2. Rest 모듈
+
+Rest 모듈에서의 파일 업로드는
+Cloudinary API를 사용하여 구현합니다.

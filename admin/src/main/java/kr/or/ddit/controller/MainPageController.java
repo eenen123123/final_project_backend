@@ -3,13 +3,11 @@ package kr.or.ddit.controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
-
 @Controller
-public class AdminLoginController {
+public class MainPageController {
 
-    @GetMapping("/login")
-    public String getLoginPage() {
-        return "login";
+    @GetMapping("/")
+    public String mainPage() {
+        return "main";
     }
-
 }

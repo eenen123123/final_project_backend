@@ -8,5 +8,46 @@
   </head>
   <body>
     <h1 th:text="${message}">Hello, Thymeleaf!</h1>
+
+    <div th:if="${user != null}">
+      <p th:text="'User ID: ' + ${user.userId}">User ID:</p>
+      <p th:text="'User Name: ' + ${user.userNm}">User Name:</p>
+      <p th:text="'User Email: ' + ${user.userEmlAddr}">User Email:</p>
+      <p th:text="'User Role: ' + ${user.userRole}">User Role:</p>
+    </div>
+
+    <div th:if="${user != null}">
+      <form action="" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" id="file" />
+        <button type="submit">Upload File</button>
+      </form>
+    </div>
+
+    <div th:if="${fileResponse != null}">
+      <h2>Uploaded File Details:</h2>
+      <p th:text="'ID: ' + ${fileResponse.id}">ID:</p>
+      <p th:text="'Original Filename: ' + ${fileResponse.originalFilename}">
+        Original Filename:
+      </p>
+      <p th:text="'Content Type: ' + ${fileResponse.contentType}">
+        Content Type:
+      </p>
+      <p th:text="'File Type: ' + ${fileResponse.fileType}">File Type:</p>
+      <p th:text="'File Size: ' + ${fileResponse.fileSize} + ' bytes'">
+        File Size:
+      </p>
+      <p th:text="'URL: ' + ${fileResponse.url}">URL:</p>
+      <p th:text="'View URL: ' + ${fileResponse.viewUrl}">View URL:</p>
+      <p th:text="'Download URL: ' + ${fileResponse.downloadUrl}">
+        Download URL:
+      </p>
+      <p th:text="'Uploaded By: ' + ${fileResponse.uploadedBy}">Uploaded By:</p>
+
+      <p th:text="'Uploaded At: ' + ${fileResponse.uploadedAt}">Uploaded At:</p>
+    </div>
+
+    <div>
+      <a href="/">Go to Home</a>
+    </div>
   </body>
 </html>

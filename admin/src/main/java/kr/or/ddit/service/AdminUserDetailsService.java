@@ -1,6 +1,7 @@
 package kr.or.ddit.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -9,7 +10,9 @@ import kr.or.ddit.finalProject.dto.user.MemberDto;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.user.UserException;
 import kr.or.ddit.finalProject.mapper.UserMapper;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 public class AdminUserDetailsService implements UserDetailsService {
 
@@ -20,8 +23,17 @@ public class AdminUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         MemberDto user = userMapper.findByUserId(username)
                 .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
+        String role = user.getUserRole();
+        if (role.contains("ROLE_")) {
+            role = role.replace("ROLE_", ""); // "ROLE_" 접두사 제거
+        }
 
-        return null;
+        UserDetails userDetails =
+                User.builder().username(user.getUserId()).password(user.getUserEnpswd()).roles(role) // 관리자 권한 부여
+                        .build();
+
+        log.info("AdminUserDetailsService - loadUserByUsername: {}", userDetails);
+        return userDetails;
     }
 
 }
