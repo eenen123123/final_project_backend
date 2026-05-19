@@ -110,7 +110,6 @@ public class ExampleRestController {
         KakaoPayReadyResponse response = kakaoPayService.payReady(formData, authentication);
 
         return ResponseEntity.ok(response);
-
     }
 
     @GetMapping("/test/kakao-pay/success/{uuid}")
