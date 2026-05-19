@@ -578,3 +578,86 @@ public ResponseEntity<?> confirmPayment(@RequestBody TossPayRequest request,
 
 - 결제 승인 후, 주문 상태를 업데이트하거나, 결제 정보를 DB에 저장하는 로직이 추가로 필요합니다.
 - 결제 실패나 취소에 대한 처리도 구현해야 합니다.
+
+### 11-3. 비고
+
+#### 1. Kakao Pay 결제 승인 응답
+
+```json
+{
+  "cid": "TC0ONETIME",
+  "aid": "Aa0c10ad26bf7fb41c8f",
+  "tid": "Ta0c109f57126faa1c72",
+  "sid": null,
+  "partner_order_id": "order123",
+  "partner_user_id": "testuser02",
+  "payment_method_type": "MONEY",
+  "amount": {
+    "total": 60000,
+    "tax_free": 0,
+    "vat": 5455,
+    "point": 0,
+    "discount": 0,
+    "green_deposit": 0
+  },
+  "card_info": null,
+  "item_name": "춘식이",
+  "item_code": null,
+  "quantity": 10,
+  "created_at": "2026-05-19T16:26:24",
+  "approved_at": "2026-05-19T16:26:37",
+  "payload": null
+}
+```
+
+#### 2. Toss 결제 완료 응답
+
+```json
+{
+  "lastTransactionKey": "txrd_a01krzd9wmazk2jpb29z857z8am",
+  "paymentKey": "tviva20260519150253o97N9",
+  "orderId": "8ac1e1ad-b064-41d9-89b6-7e936c23cf58",
+  "orderName": "춘식이",
+  "taxExemptionAmount": 0,
+  "status": "DONE",
+  "requestedAt": "2026-05-19T15:02:53+09:00",
+  "approvedAt": "2026-05-19T15:03:23+09:00",
+  "useEscrow": false,
+  "cultureExpense": false,
+  "card": null,
+  "virtualAccount": null,
+  "transfer": null,
+  "mobilePhone": null,
+  "giftCertificate": null,
+  "cashReceipt": null,
+  "cashReceipts": null,
+  "discount": null,
+  "cancels": null,
+  "secret": "ps_XZYkKL4MrjGqaqbe5GL80zJwlEWR",
+  "type": "NORMAL",
+  "easyPay": {
+    "provider": "카카오페이",
+    "amount": 10000,
+    "discountAmount": 0
+  },
+  "country": "KR",
+  "failure": null,
+  "receipt": {
+    "url": "https://dashboard-sandbox.tosspayments.com/receipt/redirection?transactionId=tviva20260519150253o97N9&ref=PX"
+  },
+  "checkout": {
+    "url": "https://api.tosspayments.com/v1/payments/tviva20260519150253o97N9/checkout"
+  },
+  "currency": "KRW",
+  "totalAmount": 10000,
+  "balanceAmount": 10000,
+  "suppliedAmount": 9091,
+  "vat": 909,
+  "taxFreeAmount": 0,
+  "method": "간편결제",
+  "version": "2024-06-01",
+  "metadata": null,
+  "mid": null,
+  "partialCancelable": false
+}
+```
