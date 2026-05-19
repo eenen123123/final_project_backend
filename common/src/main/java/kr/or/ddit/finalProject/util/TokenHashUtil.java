@@ -2,10 +2,8 @@ package kr.or.ddit.finalProject.util;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +23,8 @@ public class TokenHashUtil {
 
     public String hmacToken(String token) {
         try {
-            SecretKeySpec secretKeySpec = new SecretKeySpec(SECRET_KEY.getBytes(StandardCharsets.UTF_8), ALGORITHM);
+            SecretKeySpec secretKeySpec =
+                    new SecretKeySpec(SECRET_KEY.getBytes(StandardCharsets.UTF_8), ALGORITHM);
             Mac mac = Mac.getInstance(ALGORITHM);
             mac.init(secretKeySpec);
 

@@ -1,10 +1,8 @@
 package kr.or.ddit.finalProject.config;
 
 import java.io.File;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import io.github.cdimascio.dotenv.Dotenv;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;

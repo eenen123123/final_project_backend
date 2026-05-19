@@ -1,27 +1,27 @@
 package kr.or.ddit.controller.auth;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import jakarta.validation.Valid;
-import kr.or.ddit.finalProject.dto.auth.AuthTokens;
-import kr.or.ddit.finalProject.dto.user.SigninRequestRecord;
-import kr.or.ddit.finalProject.dto.user.SigninResponseRecord;
-import kr.or.ddit.finalProject.dto.user.SignupRequestRecord;
-import kr.or.ddit.finalProject.dto.user.MemberDto;
-import kr.or.ddit.finalProject.exception.ErrorCode;
-import kr.or.ddit.finalProject.exception.user.UserException;
-import kr.or.ddit.finalProject.service.user.UserService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import java.time.Duration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import kr.or.ddit.finalProject.dto.auth.AuthTokens;
+import kr.or.ddit.finalProject.dto.user.MemberDto;
+import kr.or.ddit.finalProject.dto.user.SigninRequestRecord;
+import kr.or.ddit.finalProject.dto.user.SigninResponseRecord;
+import kr.or.ddit.finalProject.dto.user.SignupRequestRecord;
+import kr.or.ddit.finalProject.exception.ErrorCode;
+import kr.or.ddit.finalProject.exception.user.UserException;
+import kr.or.ddit.finalProject.service.user.UserService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/auth")

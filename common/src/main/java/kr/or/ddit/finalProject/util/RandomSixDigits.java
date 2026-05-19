@@ -1,7 +1,6 @@
 package kr.or.ddit.finalProject.util;
 
 import java.util.Random;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
