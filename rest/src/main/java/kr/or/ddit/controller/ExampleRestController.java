@@ -23,6 +23,7 @@ import kr.or.ddit.finalProject.service.email.EmailService;
 import kr.or.ddit.finalProject.service.pay.KakaoPayService;
 import kr.or.ddit.finalProject.service.pay.TossPayService;
 import kr.or.ddit.finalProject.service.user.UserService;
+import kr.or.ddit.finalProject.util.PrintPrettyObject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -117,7 +118,8 @@ public class ExampleRestController {
             @RequestParam("pg_token") String pgToken) {
 
         KakaoPayApproveResponse response = kakaoPayService.approvePayment(pgToken, uuid);
-        log.info("Kakao Pay approval response: {}", response);
+        String prettyResponse = PrintPrettyObject.toPrettyString(response);
+        log.info("Kakao Pay approval response: {}", prettyResponse);
 
         return ResponseEntity.ok(response);
     }
