@@ -107,6 +107,8 @@ flowchart TD
 > cloudinary_api_key=example_cloudinary_api_key
 > cloudinary_api_secret=example_cloudinary_api_secret_key
 >
+> kakao_pay_secret_key=example_kakao_pay_secret_key
+> toss_pay_secret_key=example_toss_pay_secret_key
 > ```
 
 ## 5. 유틸리티
