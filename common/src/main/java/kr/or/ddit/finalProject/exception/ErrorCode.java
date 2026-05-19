@@ -49,7 +49,21 @@ public enum ErrorCode {
 
     KAKAO_PAY_READY_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "카카오페이 결제 준비에 실패했습니다."),
 
-    KAKAO_PAY_APPROVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "카카오페이 결제 승인에 실패했습니다.");
+    KAKAO_PAY_APPROVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "카카오페이 결제 승인에 실패했습니다."),
+
+
+    // TOSS
+
+    ALREADY_PROCESSED_PAYMENT(HttpStatus.BAD_REQUEST, "이미 처리된 결제입니다."),
+
+
+    // UTIL
+    JSON_PROCESSING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "JSON 처리에 실패했습니다."),;
+
+
+
+    // =============================
+
 
 
     private final HttpStatus status;

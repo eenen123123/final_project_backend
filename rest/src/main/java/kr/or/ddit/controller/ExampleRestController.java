@@ -1,29 +1,30 @@
 package kr.or.ddit.controller;
 
+import java.util.Map;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import kr.or.ddit.finalProject.dto.example.ExampleDto;
 import kr.or.ddit.finalProject.dto.pay.kakao.KakaoPayApproveResponse;
 import kr.or.ddit.finalProject.dto.pay.kakao.KakaoPayReadyRequest;
 import kr.or.ddit.finalProject.dto.pay.kakao.KakaoPayReadyResponse;
+import kr.or.ddit.finalProject.dto.pay.toss.TossPayRequest;
 import kr.or.ddit.finalProject.dto.user.SignupRequestRecord;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.user.UserException;
 import kr.or.ddit.finalProject.mapper.TestMapper;
 import kr.or.ddit.finalProject.service.email.EmailService;
 import kr.or.ddit.finalProject.service.pay.KakaoPayService;
+import kr.or.ddit.finalProject.service.pay.TossPayService;
 import kr.or.ddit.finalProject.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import java.util.Map;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @Slf4j
 @RestController
@@ -38,9 +39,8 @@ public class ExampleRestController {
     private final EmailService emailService;
 
     private final KakaoPayService kakaoPayService;
+    private final TossPayService tossPayService;
 
-    @Value("${kakao.pay.secret.key}")
-    private String kakaoPaySecretKey;
 
 
     @GetMapping("/hello")
@@ -69,6 +69,9 @@ public class ExampleRestController {
 
     private String random = null;
 
+
+    // MARK: - Email Test
+
     @GetMapping("/test/email")
     public ResponseEntity<Map<String, String>> getSixDigitString(@RequestParam String email) {
         log.info("Received request to send email to: {}", email);
@@ -96,6 +99,7 @@ public class ExampleRestController {
     }
 
 
+    // MARK: - Kakao Pay Test
 
     @PostMapping("/test/kakao-pay")
     public ResponseEntity<KakaoPayReadyResponse> kakaoPayTest(
@@ -131,4 +135,16 @@ public class ExampleRestController {
         kakaoPayService.failPayment(uuid);
         return ResponseEntity.ok("Payment failed");
     }
+
+    // MARK: - Toss Pay Test 
+
+
+    @PostMapping("/payments/confirm")
+    public ResponseEntity<?> confirmPayment(@RequestBody TossPayRequest request) {
+        log.info("Received Toss Pay confirm request: {}, {}, {}", request.getAmount(),
+                request.getOrderId(), request.getPaymentKey());
+
+        return ResponseEntity.ok(tossPayService.confirm(request));
+    }
+
 }

@@ -25,6 +25,9 @@ public class SecurityConfig {
                                                 .requestMatchers(HttpMethod.GET, "/**").permitAll()
                                                 .requestMatchers(HttpMethod.POST, "/api/test/**")
                                                 .permitAll()
+                                                .requestMatchers(HttpMethod.POST,
+                                                                "/api/payments/confirm")
+                                                .permitAll()
                                                 .requestMatchers(HttpMethod.POST, "/api/auth/**")
                                                 .permitAll()
 

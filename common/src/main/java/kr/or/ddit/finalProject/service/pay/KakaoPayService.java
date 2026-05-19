@@ -16,16 +16,18 @@ import kr.or.ddit.finalProject.dto.pay.kakao.KakaoPayReadyRequest;
 import kr.or.ddit.finalProject.dto.pay.kakao.KakaoPayReadyResponse;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class KakaoPayService {
 
     // TODO : 실제 서비스에서는 DB에 저장하는 방식으로 변경 필요 (동시성 문제, 서버 재시작 시 데이터 손실 문제 등 고려)
 
     @Value("${kakao.pay.secret.key}")
-    private String KakaoPaySecretKey;
+    private String KAKAO_PAY_SECRET_KEY;
 
     private static final String DEFAULT_URL = "http://localhost:8081/api/test/kakao-pay";
 
@@ -37,7 +39,7 @@ public class KakaoPayService {
     private ConcurrentHashMap<String, Map<String, String>> paymentDataStore =
             new ConcurrentHashMap<>();
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     /**
      * 카카오페이 결제 준비 요청을 보내고, 결제 승인 URL을 반환하는 메서드
@@ -113,7 +115,7 @@ public class KakaoPayService {
     private <T> T sendPostRequest(String url, Object requestObject, Class<T> responseType,
             ErrorCode errorCode) {
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "DEV_SECRET_KEY " + KakaoPaySecretKey);
+        headers.set("Authorization", "DEV_SECRET_KEY " + KAKAO_PAY_SECRET_KEY);
         headers.set("Content-Type", "application/json");
         headers.set("Accept", "application/json");
 
