@@ -40,8 +40,16 @@ public enum ErrorCode {
 
     FILE_EMPTY(HttpStatus.BAD_REQUEST, "업로드할 파일이 없습니다."),
 
-    CANT_ACCESS_FILE(HttpStatus.INTERNAL_SERVER_ERROR, "파일에 접근할 수 없습니다.");
+    CANT_ACCESS_FILE(HttpStatus.INTERNAL_SERVER_ERROR, "파일에 접근할 수 없습니다."),
 
+
+    // 결제 관련
+
+    // KAKAO
+
+    KAKAO_PAY_READY_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "카카오페이 결제 준비에 실패했습니다."),
+
+    KAKAO_PAY_APPROVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "카카오페이 결제 승인에 실패했습니다.");
 
 
     private final HttpStatus status;
