@@ -1,0 +1,27 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title th:text="${pageTitle} ?: '기본 관리자 타이틀'"></title>
+
+    <link rel="stylesheet" th:href="@{/css/tailwind.css}" />
+    <link rel="stylesheet" th:href="@{/css/admin-common.css}" />
+    <th:block th:replace="~{${contentPage} :: pageCss} ?: ~{}"></th:block>
+  </head>
+  <body class="bg-gray-50 text-gray-900 antialiased">
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <h1>관리자용 레이아웃 제목 - 이 글씨가 보이면 레이아웃 적용 성공</h1>
+    <main
+      class="container mx-auto px-4 py-6"
+      th:insert="~{${contentPage}}"
+    ></main>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <script th:src="@{/js/admin-global.js}"></script>
+    <th:block th:replace="~{${contentPage} :: pageJs} ?: ~{}"></th:block>
+  </body>
+</html>
