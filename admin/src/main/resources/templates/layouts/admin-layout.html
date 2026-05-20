@@ -3,25 +3,39 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${pageTitle} ?: 'HERMES ADMIN'"></title>
 
-    <title th:text="${pageTitle} ?: '기본 관리자 타이틀'"></title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
 
-    <link rel="stylesheet" th:href="@{/css/tailwind.css}" />
-    <link rel="stylesheet" th:href="@{/css/admin-common.css}" />
-    <th:block th:replace="~{${contentPage} :: pageCss} ?: ~{}"></th:block>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <link rel="stylesheet" th:href="@{/css/admin-core.css}" />
+    <link rel="stylesheet" th:href="@{/css/admin-layout.css}" />
   </head>
-  <body class="bg-gray-50 text-gray-900 antialiased">
-    <header th:replace="~{fragments/header :: header}"></header>
 
-    <h1>관리자용 레이아웃 제목 - 이 글씨가 보이면 레이아웃 적용 성공</h1>
-    <main
-      class="container mx-auto px-4 py-6"
-      th:insert="~{${contentPage}}"
-    ></main>
+  <body class="h-screen flex flex-col overflow-hidden">
+    <header th:replace="~{fragments/header :: headerFragment}"></header>
 
-    <footer th:replace="~{fragments/footer :: footer}"></footer>
+    <div class="flex-1 flex min-h-0 w-full relative">
+      <div
+        th:replace="~{fragments/sidebars/sidebar_admin :: sidebarAdminFragment}"
+      ></div>
 
-    <script th:src="@{/js/admin-global.js}"></script>
-    <th:block th:replace="~{${contentPage} :: pageJs} ?: ~{}"></th:block>
+      <main class="flex-1 overflow-y-auto p-8 no-scrollbar bg-[#F8FAFC]">
+        <th:block th:insert="~{${contentPage}}"></th:block>
+      </main>
+    </div>
+
+    <script th:src="@{/js/admin-core.js}" defer></script>
+    <script th:src="@{/js/admin-layout.js}" defer></script>
   </body>
 </html>
