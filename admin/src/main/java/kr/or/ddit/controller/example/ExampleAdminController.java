@@ -5,6 +5,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.or.ddit.finalProject.dto.example.ExampleDto;
 import kr.or.ddit.finalProject.dto.file.StoredFileResponse;
@@ -13,13 +18,6 @@ import kr.or.ddit.finalProject.mapper.TestMapper;
 import kr.or.ddit.finalProject.mapper.UserMapper;
 import kr.or.ddit.finalProject.service.file.FileUploadService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
 
 @Slf4j
 @Controller
@@ -45,8 +43,9 @@ public class ExampleAdminController {
 
         MemberDto member = userMapper.findByUserId(userId).orElse(null);
         model.addAttribute("user", member);
+        model.addAttribute("pageTitle", "테스트 페이지");
 
-        return "hello";
+        return "admin:/hello";
     }
 
     @PostMapping
@@ -58,11 +57,7 @@ public class ExampleAdminController {
         log.info("File uploaded successfully: {}", response);
         redirectAttributes.addFlashAttribute("fileResponse", response);
 
-
         return "redirect:/admin/test";
     }
 
-
 }
-
-
