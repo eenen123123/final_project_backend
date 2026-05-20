@@ -1,0 +1,291 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+>
+  <head>
+    <title>계정 설정 및 마이페이지 - HERMES</title>
+  </head>
+  <body>
+    <div class="mb-8 space-y-1">
+      <h2 class="text-2xl font-black text-slate-900 tracking-tight">
+        Account Settings
+      </h2>
+      <p class="text-slate-400 text-xs font-medium">
+        보안 등급 업그레이드 및 사내 업무 소통을 위한 개인 설정을 관리합니다.
+      </p>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-8 items-start">
+      <div
+        class="w-full lg:w-64 bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm shrink-0"
+      >
+        <nav class="space-y-1" id="settingsTabMenu">
+          <button
+            data-tab="tab-password"
+            class="tab-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-violet-600 bg-violet-50 transition-all text-left"
+          >
+            <i class="fa-solid fa-key w-5 text-center"></i> 비밀번호 변경
+          </button>
+          <button
+            data-tab="tab-profile"
+            class="tab-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-all text-left"
+          >
+            <i class="fa-solid fa-user-gear w-5 text-center"></i> 연락처 및 정보
+            수정
+          </button>
+          <button
+            data-tab="tab-mfa"
+            class="tab-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-all text-left"
+          >
+            <i class="fa-solid fa-shield-halved w-5 text-center"></i> 2단계 인증
+            (MFA)
+          </button>
+          <button
+            data-tab="tab-notification"
+            class="tab-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-all text-left"
+          >
+            <i class="fa-regular fa-bell w-5 text-center"></i> 알림 및 리포트
+            설정
+          </button>
+        </nav>
+      </div>
+
+      <div
+        class="flex-1 w-full bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden min-h-[500px]"
+      >
+        <div id="tab-password" class="tab-content p-8 space-y-6">
+          <div class="border-b border-slate-100 pb-4">
+            <h4 class="text-base font-bold text-slate-900">비밀번호 재설정</h4>
+            <p class="text-xs text-slate-400 mt-0.5">
+              안전한 시스템 자산 관리를 위해 영문, 숫자, 특수문자를 혼합해
+              주세요.
+            </p>
+          </div>
+          <form class="max-w-md space-y-4">
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-slate-600"
+                >현재 비밀번호</label
+              >
+              <input
+                type="password"
+                class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500 transition-all"
+              />
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-slate-600"
+                >새 비밀번호</label
+              >
+              <input
+                type="password"
+                class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500 transition-all"
+              />
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-slate-600"
+                >새 비밀번호 확인</label
+              >
+              <input
+                type="password"
+                class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500 transition-all"
+              />
+            </div>
+            <button
+              type="button"
+              class="bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold px-5 py-3 rounded-xl transition-all shadow-sm"
+            >
+              비밀번호 업데이트
+            </button>
+          </form>
+        </div>
+
+        <div id="tab-profile" class="tab-content p-8 space-y-6 hidden">
+          <div class="border-b border-slate-100 pb-4">
+            <h4 class="text-base font-bold text-slate-900">
+              개인 업무 정보 정보
+            </h4>
+            <p class="text-xs text-slate-400 mt-0.5">
+              비상 연락망 및 전자 결재선 가시성을 보장하기 위해 최신 정보를
+              기입해 주세요.
+            </p>
+          </div>
+          <form class="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-2xl">
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-slate-600"
+                >관리자 성명</label
+              >
+              <input
+                type="text"
+                th:value="${adminName}"
+                value="홍길동 원장"
+                disabled
+                class="w-full border border-slate-100 bg-slate-50 rounded-xl px-4 py-2.5 text-sm text-slate-400 cursor-not-allowed"
+              />
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-slate-600"
+                >소속 및 할당 권한</label
+              >
+              <input
+                type="text"
+                value="본사 / ROLE_ADMIN"
+                disabled
+                class="w-full border border-slate-100 bg-slate-50 rounded-xl px-4 py-2.5 text-sm text-slate-400 cursor-not-allowed"
+              />
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-slate-600"
+                >사내 긴급 연락망 (이메일)</label
+              >
+              <input
+                type="email"
+                value="ceo@hermesplatform.com"
+                class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500 transition-all"
+              />
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-slate-600"
+                >휴대전화 번호</label
+              >
+              <input
+                type="text"
+                value="010-1234-5678"
+                class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500 transition-all"
+              />
+            </div>
+            <div class="col-span-1 md:col-span-2 pt-2">
+              <button
+                type="button"
+                class="bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold px-5 py-3 rounded-xl transition-all shadow-sm"
+              >
+                프로필 정보 저장
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div id="tab-mfa" class="tab-content p-8 space-y-6 hidden">
+          <div class="border-b border-slate-100 pb-4">
+            <h4 class="text-base font-bold text-slate-900">
+              2단계 인증 (Multi-Factor Authentication)
+            </h4>
+            <p class="text-xs text-slate-400 mt-0.5">
+              최고 수준의 전사 데이터 보호를 위해 외부 기기 OTP를 결합합니다.
+            </p>
+          </div>
+          <div
+            class="max-w-xl p-5 bg-slate-50 rounded-2xl border border-slate-200/50 flex gap-4 items-start"
+          >
+            <i
+              class="fa-solid fa-shield-halved text-3xl text-violet-600 mt-0.5"
+            ></i>
+            <div class="space-y-2">
+              <h5 class="text-sm font-bold text-slate-800">
+                Google Authenticator OTP 인증 연동
+              </h5>
+              <p class="text-xs text-slate-400 leading-relaxed">
+                로그인 프로세스 진행 시 비밀번호 입력 후 스마트폰 모바일 OTP
+                번호 6자리를 한 번 더 검증하도록 강화합니다. 연동 시 사내 자산
+                도용 위험률을 99% 이상 예방할 수 있습니다.
+              </p>
+              <div class="pt-2 flex items-center gap-3">
+                <span
+                  class="bg-rose-50 text-rose-600 font-bold text-[10px] px-2 py-1 rounded-md border border-rose-100"
+                  >현재 미설정</span
+                >
+                <button
+                  class="bg-slate-900 hover:bg-black text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer"
+                >
+                  인증 기기 등록하기
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-notification" class="tab-content p-8 space-y-6 hidden">
+          <div class="border-b border-slate-100 pb-4">
+            <h4 class="text-base font-bold text-slate-900">
+              실시간 시스템 알림 프리셋
+            </h4>
+            <p class="text-xs text-slate-400 mt-0.5">
+              업무 집중 환경 조성을 위해 필요한 수신 카테고리만 허용합니다.
+            </p>
+          </div>
+          <div class="max-w-xl space-y-4">
+            <div
+              class="flex items-center justify-between py-2 border-b border-slate-100"
+            >
+              <div>
+                <h5 class="text-sm font-bold text-slate-800">
+                  신규 전자결재 상신 웹 푸시 알림
+                </h5>
+                <p class="text-xs text-slate-400 mt-0.5">
+                  하위 실무자로부터 새로운 결재 대기 건이 발생 시 즉각 브라우저
+                  토스트 알림
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked
+                class="w-10 h-5 bg-slate-200 checked:bg-violet-600 rounded-full appearance-none relative cursor-pointer before:content-[''] before:w-4 before:h-4 before:bg-white before:rounded-full before:absolute before:top-0.5 before:left-0.5 checked:before:translate-x-5 before:transition-all"
+              />
+            </div>
+            <div
+              class="flex items-center justify-between py-2 border-b border-slate-100"
+            >
+              <div>
+                <h5 class="text-sm font-bold text-slate-800">
+                  주간 종합 재무 분석 리포트 메일링
+                </h5>
+                <p class="text-xs text-slate-400 mt-0.5">
+                  매주 월요일 08:00 등록된 원장 이메일 주소로 전주 수납/매출
+                  통계 이메일 발송
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked
+                class="w-10 h-5 bg-slate-200 checked:bg-violet-600 rounded-full appearance-none relative cursor-pointer before:content-[''] before:w-4 before:h-4 before:bg-white before:rounded-full before:absolute before:top-0.5 before:left-0.5 checked:before:translate-x-5 before:transition-all"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const tabButtons = document.querySelectorAll(".tab-btn");
+        const tabContents = document.querySelectorAll(".tab-content");
+
+        tabButtons.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const targetId = btn.getAttribute("data-tab");
+
+            // 버튼 상태 토글
+            tabButtons.forEach((b) => {
+              b.classList.remove("text-violet-600", "bg-violet-50");
+              b.classList.add("text-slate-500", "font-medium");
+            });
+            btn.classList.add(
+              "text-violet-600",
+              "bg-violet-50",
+              "font-semibold",
+            );
+            btn.classList.remove("text-slate-500", "font-medium");
+
+            // 컨텐츠 가시성 토글
+            tabContents.forEach((content) => {
+              if (content.id === targetId) {
+                content.classList.remove("hidden");
+              } else {
+                content.classList.add("hidden");
+              }
+            });
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
