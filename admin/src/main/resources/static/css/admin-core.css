@@ -1,0 +1,104 @@
+@charset "UTF-8";
+
+/* ==========================================================================
+   1. 전역 디자인 변수 (Theme Variables)
+   ========================================================================== */
+:root {
+  --color-brand-primary: #7c3aed; /* HERMES 시그니처 바이올렛 */
+  --color-brand-primary-hover: #6d28d9; /* 호버 시 짙어지는 바이올렛 */
+  --color-brand-dark: #121212; /* 헤더, 사이드바 다크 배경 */
+  --color-canvas-bg: #f8fafc; /* 메인 워크스페이스 배경 (slate-50) */
+  --border-subtle: rgba(255, 255, 255, 0.05); /* 다크 모드용 미세 보더 */
+}
+
+/* ==========================================================================
+   2. 베이스 및 유틸리티 초기화
+   ========================================================================== */
+body {
+  font-family: "Noto Sans KR", sans-serif;
+  background-color: var(--color-canvas-bg);
+}
+
+/* 전역 스크롤바 UI 숨기기 유틸리티 */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ==========================================================================
+   3. 공통 UI 컴포넌트 디자인 시스템 (어느 페이지든 즉시 통일)
+   ========================================================================== */
+.hm-input {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem; /* rounded-xl */
+  padding: 0.65rem 1rem;
+  font-size: 0.875rem;
+  color: #1e293b;
+  background-color: #ffffff;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hm-input:focus {
+  outline: none;
+  border-color: var(--color-brand-primary);
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.08);
+}
+.hm-input:disabled {
+  background-color: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+  border-color: #e2e8f0;
+}
+
+.hm-btn-primary {
+  background-color: var(--color-brand-primary);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.75rem;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+.hm-btn-primary:hover {
+  background-color: var(--color-brand-primary-hover);
+}
+.hm-btn-primary:active {
+  transform: scale(0.98);
+}
+
+.hm-switch {
+  width: 2.5rem;
+  height: 1.25rem;
+  background-color: #cbd5e1;
+  border-radius: 9999px;
+  appearance: none;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.hm-switch::before {
+  content: "";
+  width: 1rem;
+  height: 1rem;
+  background-color: #ffffff;
+  border-radius: 50%;
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
+  transition: transform 0.2s;
+}
+.hm-switch:checked {
+  background-color: var(--color-brand-primary);
+}
+.hm-switch:checked::before {
+  transform: translateX(1.25rem);
+}
