@@ -20,7 +20,7 @@ function initSidebarToggle() {
   if (!sidebarToggle || !sidebar) return;
 
   // 초기 로드 시 브라우저에 저장된 이전 설정 상태 복원
-  if (localStorage.getItem("sidebarState") === "collapsed") {
+  if (localStorage.getItem("hermesSidebarState") === "collapsed") {
     sidebar.classList.add("sidebar-collapsed");
   }
 
@@ -29,7 +29,7 @@ function initSidebarToggle() {
     sidebar.classList.toggle("sidebar-collapsed");
     const isCollapsed = sidebar.classList.contains("sidebar-collapsed");
     localStorage.setItem(
-      "sidebarState",
+      "hermesSidebarState",
       isCollapsed ? "collapsed" : "expanded",
     );
   });
