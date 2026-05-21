@@ -6,9 +6,9 @@
 
   <div th:if="${user != null}">
     <p th:text="'User ID: ' + ${user.userId}">User ID:</p>
-    <p th:text="'User Name: ' + ${user.userNm}">User Name:</p>
-    <p th:text="'User Email: ' + ${user.userEmlAddr}">User Email:</p>
-    <p th:text="'User Role: ' + ${user.userRole}">User Role:</p>
+    <p th:text="'User Name: ' + ${user.userName}">User Name:</p>
+    <p th:text="'User Email: ' + ${user.userEmailAddr}">User Email:</p>
+    <p th:text="'User Role: ' + ${user.memRoles}">User Role:</p>
   </div>
 
   <div th:if="${user != null}">
