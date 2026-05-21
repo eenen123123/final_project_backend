@@ -31,13 +31,14 @@ public class UserMapperTest {
 
         MemberDto memberDto = userMapper.findByUserId(userId).orElse(null);
         log.info("조회된 회원 정보: {}", memberDto);
-        log.info("회원의 권한 정보: {}", memberDto.getUserRole());
+        // log.info("회원의 권한 정보: {}", memberDto.getUserRole());
+        log.info("회원의 권한 정보: {}", memberDto.getMemRoles());
     }
 
     @Test
     void insertUserTest() {
         MemberDto newUser = MemberDto.builder().userId("newuser01")
-                .userEnpswd(passwordEncoder.encode("java")).userNm("사용자1").build();
+                .userEnpswd(passwordEncoder.encode("java")).userName("사용자1").build();
 
         int result = userMapper.insertUser(newUser);
         log.info("Inserted user result: {}", result);

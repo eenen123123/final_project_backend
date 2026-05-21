@@ -1,7 +1,7 @@
 package kr.or.ddit.finalProject.filter;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,7 +38,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // 인증 객체 생성 및 SecurityContext에 저장
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(user.getUserId(), null,
-                                List.of(new SimpleGrantedAuthority(user.getUserRole())));
+                                // List.of(new SimpleGrantedAuthority(user.getUserRole())));
+                                user.getMemRoles().stream()
+                                        .map(SimpleGrantedAuthority::new)
+                                        .collect(Collectors.toList()));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }

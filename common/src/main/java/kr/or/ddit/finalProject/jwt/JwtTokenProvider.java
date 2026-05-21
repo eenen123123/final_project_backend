@@ -3,6 +3,8 @@ package kr.or.ddit.finalProject.jwt;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
+
 import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -39,7 +41,8 @@ public class JwtTokenProvider {
     }
 
     // 로그인 성공 시 JWT access token을 생성하는 메소드
-    public String createAccessToken(String userId, String role, String userName) {
+    // public String createAccessToken(String userId, String role, String userName) {
+    public String createAccessToken(String userId, List<String> role, String userName) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + accessTokenExpiration);
 
@@ -68,9 +71,13 @@ public class JwtTokenProvider {
     }
 
     // JWT 토큰에서 사용자 역할을 추출하는 메소드
-    public String getRole(String token) {
-        String role = parseClaims(token).get("role", String.class);
-        return role;
+    // public String getRole(String token) {
+    //     String role = parseClaims(token).get("role", String.class);
+    //     return role;
+    // }
+    @SuppressWarnings("unchecked")
+    public List<String> getRoles(String token) {
+        return (List<String>) parseClaims(token).get("role");
     }
 
     // JWT 토큰에서 토큰 유형(access 또는 refresh)을 추출하는 메소드

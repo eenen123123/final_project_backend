@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MemberDto implements Serializable {
+public class MemberDtoTest implements Serializable {
     private String userId; // 사용자ID (PK)
     private String userEnpswd; // 사용자비밀번호 (암호화 저장)
     private String userName; // 사용자명
