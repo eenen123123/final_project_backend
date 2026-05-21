@@ -3,6 +3,7 @@ package kr.or.ddit.finalProject.service.user;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import kr.or.ddit.finalProject.dto.auth.AuthTokens;
 import kr.or.ddit.finalProject.dto.user.MemberRoleDto;
 import kr.or.ddit.finalProject.dto.user.RefreshTokenDto;
@@ -38,7 +39,7 @@ public class UserServiceImpl implements UserService {
 
         MemberDto user = MemberDto.builder().userId(signupRequest.userId())
                 .userEnpswd(passwordEncoder.encode(signupRequest.password()))
-                .userNm(signupRequest.name()).userRole("ROLE_USER").build();
+                .userName(signupRequest.name()).memRoles(List.of("ROLE_USER")).build();
         userMapper.insertUser(user);
     }
 
@@ -47,7 +48,8 @@ public class UserServiceImpl implements UserService {
         MemberDto user = authenticate(signinRequest);
         log.info("Authenticated user: {}", user.getUserId());
         String accessToken = jwtTokenProvider.createAccessToken(user.getUserId(),
-                user.getUserRole(), user.getUserNm());
+                // user.getUserRole(), user.getUserNm());
+                user.getMemRoles(), user.getUserName());
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
         upsertRefreshToken(user, refreshToken);
         return new AuthTokens(BEARER, accessToken, refreshToken);
@@ -119,7 +121,8 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserException(ErrorCode.INVALID_TOKEN));
 
         String accessToken = jwtTokenProvider.createAccessToken(user.getUserId(),
-                user.getUserRole(), user.getUserNm());
+                // user.getUserRole(), user.getUserNm());
+                user.getMemRoles(), user.getUserName());
         String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
         String newHashedToken = tokenHashUtil.hmacToken(newRefreshToken);
         savedRefreshToken.rotate(newHashedToken, jwtTokenProvider.getExpiration(newRefreshToken));
