@@ -43,7 +43,6 @@ public class ExampleAdminController {
 
         MemberDto member = userMapper.findByUserId(userId).orElse(null);
         model.addAttribute("user", member);
-        model.addAttribute("pageTitle", "테스트 페이지");
 
         return "admin:/hello";
     }
