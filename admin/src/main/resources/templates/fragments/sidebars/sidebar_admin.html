@@ -1,37 +1,34 @@
-<!doctype html>
-<html xmlns:th="http://www.thymeleaf.org">
-  <aside
-    th:fragment="sidebarAdminFragment"
-    id="adminSidebar"
-    class="w-72 bg-[#121212] text-slate-400 flex flex-col shrink-0 z-20 transition-all duration-300 overflow-hidden relative border-r border-white/5"
-  >
-    <nav class="flex-1 overflow-y-auto py-8 no-scrollbar overflow-x-hidden">
-      <div th:replace="~{fragments/sidebars/menus/menu_common}"></div>
+<aside
+  th:fragment="sidebarAdminFragment"
+  id="adminSidebar"
+  class="w-72 bg-[#121212] text-slate-400 flex flex-col shrink-0 z-20 transition-all duration-300 overflow-hidden relative border-r border-white/5"
+>
+  <nav class="flex-1 overflow-y-auto py-8 no-scrollbar overflow-x-hidden">
+    <div th:replace="~{fragments/sidebars/menus/menu_common}"></div>
 
-      <div
-        th:if="${session.userRole == 'PRINCIPAL'}"
-        th:replace="~{fragments/sidebars/menus/menu_principal}"
-      ></div>
+    <div
+      th:if="${session.userRole == 'PRINCIPAL'}"
+      th:replace="~{fragments/sidebars/menus/menu_principal}"
+    ></div>
 
-      <div
-        th:if="${session.userRole == 'MANAGER'}"
-        th:replace="~{fragments/sidebars/menus/menu_manager}"
-      ></div>
+    <div
+      th:if="${session.userRole == 'MANAGER'}"
+      th:replace="~{fragments/sidebars/menus/menu_manager}"
+    ></div>
 
-      <div
-        th:if="${session.userRole == 'STAFF'}"
-        th:replace="~{fragments/sidebars/menus/menu_staff}"
-      ></div>
+    <div
+      th:if="${session.userRole == 'STAFF'}"
+      th:replace="~{fragments/sidebars/menus/menu_staff}"
+    ></div>
 
-      <div
-        th:if="${session.userRole == 'PD'}"
-        th:replace="~{fragments/sidebars/menus/menu_pd}"
-      ></div>
+    <div
+      th:if="${session.userRole == 'PD'}"
+      th:replace="~{fragments/sidebars/menus/menu_pd}"
+    ></div>
 
-      <div
-        th:if="${session.userRole == 'TEACHER'}"
-        th:replace="~{fragments/sidebars/menus/menu_teacher}"
-      ></div>
-    </nav>
-  </aside>
-</html>
+    <div
+      th:if="${session.userRole == 'TEACHER'}"
+      th:replace="~{fragments/sidebars/menus/menu_teacher}"
+    ></div>
+  </nav>
+</aside>

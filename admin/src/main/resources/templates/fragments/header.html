@@ -1,84 +1,79 @@
-<!doctype html>
-<html xmlns:th="http://www.thymeleaf.org">
-  <header
-    th:fragment="headerFragment"
-    class="w-full h-20 bg-[#121212] border-b border-white/5 flex items-center justify-between px-6 shrink-0 z-30 shadow-lg"
-  >
-    <div class="flex items-center gap-6">
-      <div class="flex items-center gap-3 whitespace-nowrap">
-        <button
-          id="sidebarToggle"
-          class="w-10 h-10 rounded-xl hover:bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-all cursor-pointer"
-        >
-          <i class="fa-solid fa-bars text-lg"></i>
-        </button>
-        <div
-          class="w-10 h-10 bg-violet-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-violet-500/20"
-        >
-          H
-        </div>
-        <span class="text-white font-bold text-xl tracking-tight"
-          >HERMES
-          <span class="text-violet-500 text-xs font-semibold">ADMIN</span></span
-        >
-      </div>
-    </div>
-
-    <div
-      class="flex items-center gap-4 text-slate-400 max-w-md w-full mx-8 relative"
-    >
-      <i
-        class="fa-solid fa-magnifying-glass absolute left-4 text-slate-500"
-      ></i>
-      <input
-        type="text"
-        placeholder="학생명, 강의명, 결재 문서 번호 검색"
-        class="bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-2.5 text-sm w-full text-slate-200 placeholder-slate-500 focus:outline-none focus:border-violet-500 focus:bg-white/10 transition-all"
-      />
-    </div>
-
-    <div class="flex items-center gap-5">
-      <div
-        class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full text-[11px] font-bold text-slate-400 border border-white/5"
-      >
-        <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-        시스템 정상
-      </div>
-
+<header
+  th:fragment="headerFragment"
+  class="w-full h-20 bg-[#121212] border-b border-white/5 flex items-center justify-between px-6 shrink-0 z-30 shadow-lg"
+>
+  <div class="flex items-center gap-6">
+    <div class="flex items-center gap-3 whitespace-nowrap">
       <button
-        class="relative w-10 h-10 flex items-center justify-center text-slate-400 hover:bg-white/5 hover:text-white rounded-xl transition-all cursor-pointer"
+        id="sidebarToggle"
+        class="w-10 h-10 rounded-xl hover:bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-all cursor-pointer"
       >
-        <i class="fa-regular fa-bell text-xl"></i>
-        <span
-          class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-[#121212]"
-        ></span>
+        <i class="fa-solid fa-bars text-lg"></i>
       </button>
-
-      <div class="w-[1px] h-6 bg-white/10 mx-1"></div>
-
-      <a
-        href="/admin/settings"
-        class="flex items-center gap-3 pl-2 py-1.5 pr-3 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/5 transition-all group cursor-pointer"
+      <div
+        class="w-10 h-10 bg-violet-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-violet-500/20"
       >
-        <div
-          class="w-9 h-9 rounded-xl bg-violet-600 flex items-center justify-center text-white font-bold text-sm shadow-md group-hover:scale-105 transition-transform"
-        >
-          원
-        </div>
-        <div class="hidden md:block text-left">
-          <p
-            class="text-xs font-bold text-white tracking-tight"
-            th:text="${adminName}"
-          >
-            홍길동 원장
-          </p>
-          <p
-            class="text-[10px] text-slate-500 font-medium tracking-wide group-hover:text-violet-400 transition-colors"
-          >
-            계정 설정 <i class="fa-solid fa-angle-right text-[8px] ml-0.5"></i>
-          </p>
-        </div>
-      </a>
+        H
+      </div>
+      <span class="text-white font-bold text-xl tracking-tight"
+        >HERMES
+        <span class="text-violet-500 text-xs font-semibold">ADMIN</span></span
+      >
     </div>
-  </header>
-</html>
+  </div>
+
+  <div
+    class="flex items-center gap-4 text-slate-400 max-w-md w-full mx-8 relative"
+  >
+    <i class="fa-solid fa-magnifying-glass absolute left-4 text-slate-500"></i>
+    <input
+      type="text"
+      placeholder="학생명, 강의명, 결재 문서 번호 검색"
+      class="bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-2.5 text-sm w-full text-slate-200 placeholder-slate-500 focus:outline-none focus:border-violet-500 focus:bg-white/10 transition-all"
+    />
+  </div>
+
+  <div class="flex items-center gap-5">
+    <div
+      class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full text-[11px] font-bold text-slate-400 border border-white/5"
+    >
+      <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+      시스템 정상
+    </div>
+
+    <button
+      class="relative w-10 h-10 flex items-center justify-center text-slate-400 hover:bg-white/5 hover:text-white rounded-xl transition-all cursor-pointer"
+    >
+      <i class="fa-regular fa-bell text-xl"></i>
+      <span
+        class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-[#121212]"
+      ></span>
+    </button>
+
+    <div class="w-[1px] h-6 bg-white/10 mx-1"></div>
+
+    <a
+      href="/admin/settings"
+      class="flex items-center gap-3 pl-2 py-1.5 pr-3 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/5 transition-all group cursor-pointer"
+    >
+      <div
+        class="w-9 h-9 rounded-xl bg-violet-600 flex items-center justify-center text-white font-bold text-sm shadow-md group-hover:scale-105 transition-transform"
+      >
+        원
+      </div>
+      <div class="hidden md:block text-left">
+        <p
+          class="text-xs font-bold text-white tracking-tight"
+          th:text="${adminName}"
+        >
+          홍길동 원장
+        </p>
+        <p
+          class="text-[10px] text-slate-500 font-medium tracking-wide group-hover:text-violet-400 transition-colors"
+        >
+          계정 설정 <i class="fa-solid fa-angle-right text-[8px] ml-0.5"></i>
+        </p>
+      </div>
+    </a>
+  </div>
+</header>
