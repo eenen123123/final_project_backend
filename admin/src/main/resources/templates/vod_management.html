@@ -1,184 +1,173 @@
-<!doctype html>
-<html xmlns:th="http://www.thymeleaf.org">
-  <div class="space-y-6">
+<title th:fragment="pageTitle">강의 VOD 콘텐츠 관리 | HERMES</title>
+
+<div class="space-y-6">
+  <div
+    class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+  >
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
+        강의 VOD 콘텐츠 관리
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">
+        E-M6 스트리밍 엔진에 등록된 강의 영상의 버전 및 호환성을 모니터링합니다.
+      </p>
+    </div>
+    <div>
+      <button
+        class="hm-btn-primary"
+        onclick="
+          showHermesToast('신규 비디오 업로드 마법사를 시작합니다.', 'success')
+        "
+      >
+        <i class="fa-solid fa-cloud-arrow-up"></i>
+        <span>신규 영상 업로드</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
     <div
-      class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+      class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4"
     >
+      <div
+        class="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-xl"
+      >
+        <i class="fa-solid fa-video"></i>
+      </div>
       <div>
-        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
-          강의 VOD 콘텐츠 관리
-        </h1>
-        <p class="text-sm text-slate-500 mt-1">
-          E-M6 스트리밍 엔진에 등록된 강의 영상의 버전 및 호환성을
-          모니터링합니다.
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">
+          전체 등록 영상
         </p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">142개</p>
+      </div>
+    </div>
+    <div
+      class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4"
+    >
+      <div
+        class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl animate-pulse"
+      >
+        <i class="fa-solid fa-compact-disc"></i>
       </div>
       <div>
-        <button
-          class="hm-btn-primary"
-          onclick="
-            showHermesToast(
-              '신규 비디오 업로드 마법사를 시작합니다.',
-              'success',
-            )
-          "
-        >
-          <i class="fa-solid fa-cloud-arrow-up"></i>
-          <span>신규 영상 업로드</span>
-        </button>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">
+          인코딩 진행 중
+        </p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">3개</p>
       </div>
     </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-      <div
-        class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4"
-      >
-        <div
-          class="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-xl"
-        >
-          <i class="fa-solid fa-video"></i>
-        </div>
-        <div>
-          <p
-            class="text-xs font-medium text-slate-400 uppercase tracking-wider"
-          >
-            전체 등록 영상
-          </p>
-          <p class="text-2xl font-bold text-slate-800 mt-0.5">142개</p>
-        </div>
-      </div>
-      <div
-        class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4"
-      >
-        <div
-          class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl animate-pulse"
-        >
-          <i class="fa-solid fa-compact-disc"></i>
-        </div>
-        <div>
-          <p
-            class="text-xs font-medium text-slate-400 uppercase tracking-wider"
-          >
-            인코딩 진행 중
-          </p>
-          <p class="text-2xl font-bold text-slate-800 mt-0.5">3개</p>
-        </div>
-      </div>
-      <div
-        class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4"
-      >
-        <div
-          class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl"
-        >
-          <i class="fa-solid fa-circle-check"></i>
-        </div>
-        <div>
-          <p
-            class="text-xs font-medium text-slate-400 uppercase tracking-wider"
-          >
-            스트리밍 서버 상태
-          </p>
-          <p
-            class="text-sm font-semibold text-emerald-600 mt-1 flex items-center gap-1"
-          >
-            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> 정상
-            (호환성 100%)
-          </p>
-        </div>
-      </div>
-    </div>
-
     <div
-      class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-wrap items-center gap-4"
+      class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4"
     >
-      <div class="w-full sm:w-72 relative">
-        <input
-          type="text"
-          class="hm-input pl-10"
-          placeholder="강의명 또는 강사 이름 검색..."
-        />
-        <i
-          class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"
-        ></i>
+      <div
+        class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl"
+      >
+        <i class="fa-solid fa-circle-check"></i>
       </div>
-      <div class="w-full sm:w-44">
-        <select class="hm-input">
-          <option value="">강좌 카테고리 전체</option>
-          <option value="MATH">고등부 수학</option>
-          <option value="ENG">중등부 영어</option>
-        </select>
-      </div>
-    </div>
-
-    <div
-      class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
-    >
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr
-              class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider"
-            >
-              <th class="py-4 px-6 w-32">썸네일</th>
-              <th class="py-4 px-6">강의 정보 / 버전</th>
-              <th class="py-4 px-6">용량 및 파일 형태</th>
-              <th class="py-4 px-6">인코딩 품질</th>
-              <th class="py-4 px-6 text-center">제어</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
-            <tr class="hover:bg-slate-50/50 transition-colors">
-              <td class="py-4 px-6">
-                <div
-                  class="w-24 h-14 bg-slate-900 rounded-lg flex items-center justify-center relative overflow-hidden border border-slate-200"
-                >
-                  <i class="fa-solid fa-play text-white/40 text-xs"></i>
-                  <div
-                    class="absolute bottom-1 right-1 bg-black/70 text-[9px] text-white px-1 rounded font-mono"
-                  >
-                    52:10
-                  </div>
-                </div>
-              </td>
-              <td class="py-4 px-6">
-                <div class="font-bold text-slate-900">
-                  2026 미적분 개념 완성 - 04강 수열의 극한
-                </div>
-                <div
-                  class="text-xs text-slate-400 mt-0.5 flex items-center gap-2"
-                >
-                  <span>강사: 대표원장</span>
-                  <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
-                  <span
-                    class="bg-violet-50 text-violet-600 px-1.5 py-0.2 rounded text-[10px] font-medium"
-                    >v1.2 호환인증</span
-                  >
-                </div>
-              </td>
-              <td class="py-4 px-6 font-mono text-xs text-slate-500">
-                1.42 GB<br /><span class="text-[11px] text-slate-400"
-                  >MP4 (H.264)</span
-                >
-              </td>
-              <td class="py-4 px-6">
-                <span
-                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700"
-                >
-                  1080p 완료
-                </span>
-              </td>
-              <td class="py-4 px-6 text-center">
-                <button
-                  class="text-slate-400 hover:text-violet-600 p-1.5 transition-colors"
-                  title="썸네일 및 파일 수정"
-                >
-                  <i class="fa-regular fa-pen-to-square text-base"></i>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">
+          스트리밍 서버 상태
+        </p>
+        <p
+          class="text-sm font-semibold text-emerald-600 mt-1 flex items-center gap-1"
+        >
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span> 정상 (호환성
+          100%)
+        </p>
       </div>
     </div>
   </div>
-</html>
+
+  <div
+    class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-wrap items-center gap-4"
+  >
+    <div class="w-full sm:w-72 relative">
+      <input
+        type="text"
+        class="hm-input pl-10"
+        placeholder="강의명 또는 강사 이름 검색..."
+      />
+      <i
+        class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"
+      ></i>
+    </div>
+    <div class="w-full sm:w-44">
+      <select class="hm-input">
+        <option value="">강좌 카테고리 전체</option>
+        <option value="MATH">고등부 수학</option>
+        <option value="ENG">중등부 영어</option>
+      </select>
+    </div>
+  </div>
+
+  <div
+    class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
+  >
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr
+            class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider"
+          >
+            <th class="py-4 px-6 w-32">썸네일</th>
+            <th class="py-4 px-6">강의 정보 / 버전</th>
+            <th class="py-4 px-6">용량 및 파일 형태</th>
+            <th class="py-4 px-6">인코딩 품질</th>
+            <th class="py-4 px-6 text-center">제어</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+          <tr class="hover:bg-slate-50/50 transition-colors">
+            <td class="py-4 px-6">
+              <div
+                class="w-24 h-14 bg-slate-900 rounded-lg flex items-center justify-center relative overflow-hidden border border-slate-200"
+              >
+                <i class="fa-solid fa-play text-white/40 text-xs"></i>
+                <div
+                  class="absolute bottom-1 right-1 bg-black/70 text-[9px] text-white px-1 rounded font-mono"
+                >
+                  52:10
+                </div>
+              </div>
+            </td>
+            <td class="py-4 px-6">
+              <div class="font-bold text-slate-900">
+                2026 미적분 개념 완성 - 04강 수열의 극한
+              </div>
+              <div
+                class="text-xs text-slate-400 mt-0.5 flex items-center gap-2"
+              >
+                <span>강사: 대표원장</span>
+                <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
+                <span
+                  class="bg-violet-50 text-violet-600 px-1.5 py-0.2 rounded text-[10px] font-medium"
+                  >v1.2 호환인증</span
+                >
+              </div>
+            </td>
+            <td class="py-4 px-6 font-mono text-xs text-slate-500">
+              1.42 GB<br /><span class="text-[11px] text-slate-400"
+                >MP4 (H.264)</span
+              >
+            </td>
+            <td class="py-4 px-6">
+              <span
+                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700"
+              >
+                1080p 완료
+              </span>
+            </td>
+            <td class="py-4 px-6 text-center">
+              <button
+                class="text-slate-400 hover:text-violet-600 p-1.5 transition-colors"
+                title="썸네일 및 파일 수정"
+              >
+                <i class="fa-regular fa-pen-to-square text-base"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
