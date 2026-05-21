@@ -1,0 +1,78 @@
+@charset "UTF-8";
+
+/* ==========================================================================
+   HERMES 어드민 사이드바 전용 스타일
+   ========================================================================== */
+
+/* 사이드바 축소(Collapsed) 상태 레이아웃 구조 디자인 */
+.sidebar-collapsed {
+  width: 5.5rem !important; /* 축소 시 아이콘만 보이는 너비 */
+}
+
+.sidebar-collapsed .sidebar-title,
+.sidebar-collapsed .sidebar-link-text,
+.sidebar-collapsed .sidebar-badge {
+  opacity: 0;
+  pointer-events: none;
+  display: none !important;
+}
+
+.sidebar-collapsed .sidebar-link {
+  justify-content: center;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* ========================================================================== 
+   사이드바 메뉴 공통 스타일
+   ========================================================================== */
+.sidebar-section {
+  padding: 0 1rem 2rem;
+}
+
+.sidebar-title {
+  padding-left: 1rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  margin-bottom: 1rem;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+}
+
+.sidebar-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  row-gap: 0.25rem;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  transition: all 0.2s ease;
+  color: inherit;
+  text-decoration: none;
+}
+
+.sidebar-link:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+.sidebar-icon {
+  width: 1.5rem;
+  text-align: center;
+  font-size: 1.125rem;
+}
+
+.sidebar-link-text {
+  font-size: 0.875rem;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}

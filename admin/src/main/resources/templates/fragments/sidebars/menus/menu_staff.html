@@ -1,128 +1,68 @@
-<div class="px-4 mb-8">
+<div class="sidebar-section">
   <p
-    class="sidebar-text px-4 text-[11px] font-bold text-blue-500 uppercase tracking-[0.2em] mb-4 transition-opacity duration-200 whitespace-nowrap"
+    class="sidebar-title text-blue-500"
   >
     행정 전용 권한
   </p>
-  <ul class="space-y-1">
+  <ul class="sidebar-list">
     <li>
-      <a
-        href="/admin/billing"
-        class="sidebar-item flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-all"
-      >
-        <i class="fa-solid fa-money-check-dollar w-6 text-center text-lg"></i>
-        <span
-          class="sidebar-text text-[14px] whitespace-nowrap transition-opacity duration-200"
-          >원비 및 수납 관리</span
-        >
+      <a href="/admin/billing" class="sidebar-link">
+        <i class="fa-solid fa-money-check-dollar sidebar-icon"></i>
+        <span class="sidebar-link-text">원비 및 수납 관리</span>
       </a>
     </li>
     <li>
-      <a
-        href="/admin/expenses"
-        class="sidebar-item flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-all"
-      >
-        <i class="fa-solid fa-receipt w-6 text-center text-lg"></i>
-        <span
-          class="sidebar-text text-[14px] whitespace-nowrap transition-opacity duration-200"
-          >지출 및 영수증 관리</span
-        >
+      <a href="/admin/expenses" class="sidebar-link">
+        <i class="fa-solid fa-receipt sidebar-icon"></i>
+        <span class="sidebar-link-text">지출 및 영수증 관리</span>
       </a>
     </li>
     <li>
-      <a
-        href="/admin/attendance"
-        class="sidebar-item flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-all"
-      >
-        <i class="fa-solid fa-calendar-check w-6 text-center text-lg"></i>
-        <span
-          class="sidebar-text text-[14px] whitespace-nowrap transition-opacity duration-200"
-          >출결 관리</span
-        >
+      <a href="/admin/attendance" class="sidebar-link">
+        <i class="fa-solid fa-calendar-check sidebar-icon"></i>
+        <span class="sidebar-link-text">출결 관리</span>
       </a>
     </li>
     <li>
-      <a
-        href="/admin/logistics"
-        class="sidebar-item flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-all"
-      >
-        <i class="fa-solid fa-boxes-stacked w-6 text-center text-lg"></i>
-        <span
-          class="sidebar-text text-[14px] whitespace-nowrap transition-opacity duration-200"
-          >교재 및 물류 관리</span
-        >
+      <a href="/admin/logistics" class="sidebar-link">
+        <i class="fa-solid fa-boxes-stacked sidebar-icon"></i>
+        <span class="sidebar-link-text">교재 및 물류 관리</span>
       </a>
     </li>
     <li>
-      <a
-        href="/admin/employees"
-        class="sidebar-item flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-all"
-      >
-        <i class="fa-solid fa-users-gear w-6 text-center text-lg"></i>
-        <span
-          class="sidebar-text text-[14px] whitespace-nowrap transition-opacity duration-200"
-          >직원 정보 및 계정 관리</span
-        >
+      <a href="/admin/employees" class="sidebar-link">
+        <i class="fa-solid fa-users-gear sidebar-icon"></i>
+        <span class="sidebar-link-text">직원 정보 및 계정 관리</span>
       </a>
     </li>
     <li>
-      <a
-        href="/admin/hr/leave"
-        class="sidebar-item flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-all"
-      >
-        <i class="fa-solid fa-business-time w-6 text-center text-lg"></i>
-        <span
-          class="sidebar-text text-[14px] whitespace-nowrap transition-opacity duration-200"
-          >근태 및 휴가 관리</span
-        >
+      <a href="/admin/hr/leave" class="sidebar-link">
+        <i class="fa-solid fa-business-time sidebar-icon"></i>
+        <span class="sidebar-link-text">근태 및 휴가 관리</span>
       </a>
     </li>
     <li>
-      <a
-        href="/admin/certificates"
-        class="sidebar-item flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-all"
-      >
-        <i class="fa-solid fa-certificate w-6 text-center text-lg"></i>
-        <span
-          class="sidebar-text text-[14px] whitespace-nowrap transition-opacity duration-200"
-          >증명서 발급 관리</span
-        >
+      <a href="/admin/certificates" class="sidebar-link">
+        <i class="fa-solid fa-certificate sidebar-icon"></i>
+        <span class="sidebar-link-text">증명서 발급 관리</span>
       </a>
     </li>
     <li>
-      <a
-        href="/admin/facilities"
-        class="sidebar-item flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-all"
-      >
-        <i class="fa-solid fa-building-user w-6 text-center text-lg"></i>
-        <span
-          class="sidebar-text text-[14px] whitespace-nowrap transition-opacity duration-200"
-          >시설 및 업체 관리</span
-        >
+      <a href="/admin/facilities" class="sidebar-link">
+        <i class="fa-solid fa-building-user sidebar-icon"></i>
+        <span class="sidebar-link-text">시설 및 업체 관리</span>
       </a>
     </li>
     <li>
-      <a
-        href="/admin/notifications/parent"
-        class="sidebar-item flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-all"
-      >
-        <i class="fa-solid fa-bell w-6 text-center text-lg"></i>
-        <span
-          class="sidebar-text text-[14px] whitespace-nowrap transition-opacity duration-200"
-          >학부모 알림 발송</span
-        >
+      <a href="/admin/notifications/parent" class="sidebar-link">
+        <i class="fa-solid fa-bell sidebar-icon"></i>
+        <span class="sidebar-link-text">학부모 알림 발송</span>
       </a>
     </li>
     <li>
-      <a
-        href="/admin/blacklist"
-        class="sidebar-item flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-all"
-      >
-        <i class="fa-solid fa-user-slash w-6 text-center text-lg"></i>
-        <span
-          class="sidebar-text text-[14px] whitespace-nowrap transition-opacity duration-200"
-          >블랙리스트 관리</span
-        >
+      <a href="/admin/blacklist" class="sidebar-link">
+        <i class="fa-solid fa-user-slash sidebar-icon"></i>
+        <span class="sidebar-link-text">블랙리스트 관리</span>
       </a>
     </li>
   </ul>
