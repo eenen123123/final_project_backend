@@ -16,7 +16,7 @@ public class WebConfig {
         LayoutThymeleafViewResolver resolver = new LayoutThymeleafViewResolver();
         resolver.setTemplateEngine(templateEngine);
         resolver.setCharacterEncoding("UTF-8");
-        resolver.setOrder(1); // 스프링 부트 기본 리졸버보다 우선순위를 높게 설정합니다.
+        // resolver.setOrder(1); // 스프링 부트 기본 리졸버보다 우선순위를 높게 설정합니다.
         return resolver;
     }
 }
