@@ -45,4 +45,10 @@ public class UserMapperTest {
 
 
     }
+
+    @Test
+    void insertUserTest2() {
+
+    }
+
 }

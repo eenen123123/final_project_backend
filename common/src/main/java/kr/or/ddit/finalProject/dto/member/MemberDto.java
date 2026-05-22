@@ -3,7 +3,7 @@ package kr.or.ddit.finalProject.dto.member;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -31,4 +31,7 @@ public class MemberDto implements Serializable {
     private LocalDateTime regDate; // 데이터 생성 시점
     private LocalDateTime modDate; // 데이터 수정 시점
     private String enable;
+
+    private List<MemberRoleDto> memRoles; // 회원이 가진 권한 목록
+
 }

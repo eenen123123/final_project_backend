@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.MemberMapper">
+
+    <resultMap id="memberTestResultMap" type="kr.or.ddit.finalProject.dto.member.MemberDto">
+        <id property="userId" column="USER_ID"/>
+        <result property="userEnpswd" column="USER_ENPSWD"/>
+        <result property="userName" column="USER_NAME"/>
+
+
+        <collection property="memRoles" ofType="kr.or.ddit.finalProject.dto.member.MemberRoleDto">
+            <result property="userRoleCd" column="USER_ROLE_CD" />
+        </collection>
+    </resultMap>
+
+
+    <select id="findByUserId" parameterType="string" resultMap="memberTestResultMap">
+        SELECT
+            m.USER_ID, m.USER_ENPSWD, m.USER_NAME,
+            r.USER_ROLE_CD
+        FROM MEMBER m
+        LEFT JOIN MEMBER_ROLE_MAPPING r ON m.USER_ID = r.USER_ID
+        WHERE m.USER_ID = #{userId}
+    </select>
+
+    <insert id="insertMember" parameterType="kr.or.ddit.finalProject.dto.member.MemberDto" useGeneratedKeys="true" keyProperty="userId" keyColumn="USER_ID">
+        INSERT INTO MEMBER (USER_ID, USER_ENPSWD, USER_NAME)
+        VALUES (#{userId}, #{userEnpswd}, #{userName})
+    </insert>
+
+
+</mapper>
