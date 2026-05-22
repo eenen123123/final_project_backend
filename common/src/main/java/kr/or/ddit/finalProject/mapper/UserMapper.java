@@ -2,7 +2,7 @@ package kr.or.ddit.finalProject.mapper;
 
 import java.util.Optional;
 import org.apache.ibatis.annotations.Mapper;
-import kr.or.ddit.finalProject.dto.user.MemberDto;
+import kr.or.ddit.finalProject.dto.user.UserDto;
 
 @Mapper
 public interface UserMapper {
@@ -22,8 +22,8 @@ public interface UserMapper {
      * @return 존재 여부
      */
 
-    Optional<MemberDto> findByUserId(String userId);
+    Optional<UserDto> findByUserId(String userId);
 
-    int insertUser(MemberDto userDto);
+    int insertUser(UserDto userDto);
 
 }

@@ -11,7 +11,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import kr.or.ddit.finalProject.dto.user.MemberDto;
+import kr.or.ddit.finalProject.dto.user.UserDto;
 import kr.or.ddit.finalProject.jwt.JwtTokenProvider;
 import kr.or.ddit.finalProject.service.user.UserService;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // JWT 토큰이 유효한지 검증
             if (jwtTokenProvider.validateToken(token)) {
-                MemberDto user = userService.getUserByToken(token);
+                UserDto user = userService.getUserByToken(token);
                 // 인증 객체 생성 및 SecurityContext에 저장
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(user.getUserId(), null,

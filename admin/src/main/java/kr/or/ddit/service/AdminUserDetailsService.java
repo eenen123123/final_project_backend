@@ -9,7 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import kr.or.ddit.finalProject.dto.user.MemberDto;
+import kr.or.ddit.finalProject.dto.user.UserDto;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.user.UserException;
 import kr.or.ddit.finalProject.mapper.UserMapper;
@@ -24,7 +24,7 @@ public class AdminUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        MemberDto user = userMapper.findByUserId(username)
+        UserDto user = userMapper.findByUserId(username)
                 .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
         // String role = user.getUserRole();
         // if (role.contains("ROLE_")) {

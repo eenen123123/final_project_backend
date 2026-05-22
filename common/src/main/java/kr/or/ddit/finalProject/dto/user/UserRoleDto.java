@@ -3,7 +3,7 @@ package kr.or.ddit.finalProject.dto.user;
 import lombok.Data;
 
 @Data
-public class MemberRoleDto {
+public class UserRoleDto {
     private Integer authrtSn; // 권한일련번호 (PK, AUTO INCREMENT)
     private String authrtCd; // 권한코드 (ADMIN/USER/GUEST 등)
     private String authrtNm; // 권한명

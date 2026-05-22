@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import kr.or.ddit.finalProject.dto.auth.AuthTokens;
-import kr.or.ddit.finalProject.dto.user.MemberDto;
+import kr.or.ddit.finalProject.dto.user.UserDto;
 import kr.or.ddit.finalProject.dto.user.SigninRequestRecord;
 import kr.or.ddit.finalProject.dto.user.SigninResponseRecord;
 import kr.or.ddit.finalProject.dto.user.SignupRequestRecord;
@@ -111,14 +111,14 @@ public class AuthController {
      *         상태로 반환
      */
     @GetMapping("/me")
-    public ResponseEntity<MemberDto> getCurrentUser(
+    public ResponseEntity<UserDto> getCurrentUser(
             @RequestHeader("Authorization") String authorizationHeader) {
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             throw new UserException(ErrorCode.INVALID_TOKEN);
         }
 
-        MemberDto user = userService.getUserByToken(authorizationHeader.substring(7));
-        MemberDto currentUser = MemberDto.builder().userId(user.getUserId()).build();
+        UserDto user = userService.getUserByToken(authorizationHeader.substring(7));
+        UserDto currentUser = UserDto.builder().userId(user.getUserId()).build();
 
         return ResponseEntity.ok(currentUser);
     }

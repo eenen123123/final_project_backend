@@ -4,7 +4,7 @@
 
 <mapper namespace="kr.or.ddit.finalProject.mapper.UserMapper">
     
-    <resultMap id="memberTestResultMap" type="kr.or.ddit.finalProject.dto.user.MemberDto">
+    <resultMap id="memberTestResultMap" type="kr.or.ddit.finalProject.dto.user.UserDto">
         <id property="userId" column="USER_ID"/>
         <result property="userEnpswd" column="USER_ENPSWD"/>
         <result property="userName" column="USER_NAME"/>
@@ -45,7 +45,7 @@
         WHERE m.USER_ID = #{userId}
     </select>
 
-    <insert id="insertUser" parameterType="kr.or.ddit.finalProject.dto.user.MemberDto" useGeneratedKeys="true" keyProperty="userId" keyColumn="USER_ID">
+    <insert id="insertUser" parameterType="kr.or.ddit.finalProject.dto.user.UserDto" useGeneratedKeys="true" keyProperty="userId" keyColumn="USER_ID">
         INSERT INTO MEMBER (USER_ID, USER_ENPSWD, USER_NM)
         VALUES (#{userId}, #{userEnpswd}, #{userNm})
     </insert>
