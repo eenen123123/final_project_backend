@@ -22,9 +22,21 @@ public class PaginationInfo<T> implements Serializable {
     @Setter
     private T detailCondition; // 검색 할 객체를 담을 제네릭 필드 ex) MemberVO ...
 
+
+    /**
+     * PaginationInfo 객체를 생성하는 생성자 (메세지 목록 조회 시 사용)
+     * 
+     * @param screenSize 한 페이지에 보여줄 데이터 수
+     * @param page       현재 페이지 번호
+     */
+    public PaginationInfo(int screenSize, int page) {
+        this.screenSize = screenSize;
+        this.page = page;
+        this.blockSize = 1; // null pointer exception 방지 (메세지 목록 조회 시 페이지 번호는 1개씩 보여주므로)
+    }
+
     /**
      * PaginationInfo 객체를 생성하는 생성자
-     * 
      * 
      * @param screenSize 한 페이지에 보여줄 데이터 수
      * @param blockSize  한 번에 보여줄 페이지 번호 수
@@ -45,7 +57,8 @@ public class PaginationInfo<T> implements Serializable {
      * @param orderBy        정렬 기준 컬럼명 (ex: mem_id, mem_name 등.. mapper에서 if 문으로 사용)
      * @param orderDirection 정렬 방향 (ASC(오름차순), DESC(내림차순))
      */
-    public PaginationInfo(int screenSize, int blockSize, int page, String orderBy, String orderDirection) {
+    public PaginationInfo(int screenSize, int blockSize, int page, String orderBy,
+            String orderDirection) {
         this.screenSize = screenSize;
         this.blockSize = blockSize;
         this.page = page;
