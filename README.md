@@ -1,6 +1,6 @@
 # Final Project - Backend
 
-## 1. 프로젝트 구1조
+## 1. 프로젝트 구조
 
 ```text
 backend
