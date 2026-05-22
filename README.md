@@ -1,6 +1,6 @@
 # Final Project - Backend
 
-## 1. 프로젝트 구조
+## 1. 프로젝트 구1조
 
 ```text
 backend
@@ -65,17 +65,17 @@ flowchart TD
 
 - 관리자 페이지 개발 시 admin 모듈을 실행
 
-  ```bash
-  cd admin
-  ./mvnw spring-boot:run
-  ```
+    ```bash
+    cd admin
+    ./mvnw spring-boot:run
+    ```
 
 - REST API 개발 시 rest 모듈을 실행
 
-  ```bash
-  cd rest
-  ./mvnw spring-boot:run
-  ```
+    ```bash
+    cd rest
+    ./mvnw spring-boot:run
+    ```
 
 - 공통 모듈(common)은 admin과 rest에서 모두 참조하므로, 별도의 실행이 필요하지 않음
 
@@ -321,10 +321,10 @@ Access Token의 Body에는 다음과 같은 정보가 담겨 있습니다.
 
 ```json
 {
-  "sub": "user123", // 사용자 ID
-  "roles": ["ROLE_USER"], // 사용자 권한 정보
-  "iat": 1620000000, // 토큰 발급 시간 (Unix timestamp)
-  "exp": 1620003600 // 토큰 만료 시간 (Unix timestamp)
+    "sub": "user123", // 사용자 ID
+    "roles": ["ROLE_USER"], // 사용자 권한 정보
+    "iat": 1620000000, // 토큰 발급 시간 (Unix timestamp)
+    "exp": 1620003600 // 토큰 만료 시간 (Unix timestamp)
 }
 ```
 
@@ -334,9 +334,9 @@ Refresh Token의 Body에는 다음과 같은 정보가 담겨 있습니다.
 
 ```json
 {
-  "sub": "user123", // 사용자 ID
-  "iat": 1620000000, // 토큰 발급 시간 (Unix timestamp)
-  "exp": 1622592000 // 토큰 만료 시간 (Unix timestamp)
+    "sub": "user123", // 사용자 ID
+    "iat": 1620000000, // 토큰 발급 시간 (Unix timestamp)
+    "exp": 1622592000 // 토큰 만료 시간 (Unix timestamp)
 }
 ```
 
@@ -585,28 +585,28 @@ public ResponseEntity<?> confirmPayment(@RequestBody TossPayRequest request,
 
 ```json
 {
-  "cid": "TC0ONETIME",
-  "aid": "Aa0c10ad26bf7fb41c8f",
-  "tid": "Ta0c109f57126faa1c72",
-  "sid": null,
-  "partner_order_id": "order123",
-  "partner_user_id": "testuser02",
-  "payment_method_type": "MONEY",
-  "amount": {
-    "total": 60000,
-    "tax_free": 0,
-    "vat": 5455,
-    "point": 0,
-    "discount": 0,
-    "green_deposit": 0
-  },
-  "card_info": null,
-  "item_name": "춘식이",
-  "item_code": null,
-  "quantity": 10,
-  "created_at": "2026-05-19T16:26:24",
-  "approved_at": "2026-05-19T16:26:37",
-  "payload": null
+    "cid": "TC0ONETIME",
+    "aid": "Aa0c10ad26bf7fb41c8f",
+    "tid": "Ta0c109f57126faa1c72",
+    "sid": null,
+    "partner_order_id": "order123",
+    "partner_user_id": "testuser02",
+    "payment_method_type": "MONEY",
+    "amount": {
+        "total": 60000,
+        "tax_free": 0,
+        "vat": 5455,
+        "point": 0,
+        "discount": 0,
+        "green_deposit": 0
+    },
+    "card_info": null,
+    "item_name": "춘식이",
+    "item_code": null,
+    "quantity": 10,
+    "created_at": "2026-05-19T16:26:24",
+    "approved_at": "2026-05-19T16:26:37",
+    "payload": null
 }
 ```
 
@@ -614,50 +614,50 @@ public ResponseEntity<?> confirmPayment(@RequestBody TossPayRequest request,
 
 ```json
 {
-  "lastTransactionKey": "txrd_a01krzd9wmazk2jpb29z857z8am",
-  "paymentKey": "tviva20260519150253o97N9",
-  "orderId": "8ac1e1ad-b064-41d9-89b6-7e936c23cf58",
-  "orderName": "춘식이",
-  "taxExemptionAmount": 0,
-  "status": "DONE",
-  "requestedAt": "2026-05-19T15:02:53+09:00",
-  "approvedAt": "2026-05-19T15:03:23+09:00",
-  "useEscrow": false,
-  "cultureExpense": false,
-  "card": null,
-  "virtualAccount": null,
-  "transfer": null,
-  "mobilePhone": null,
-  "giftCertificate": null,
-  "cashReceipt": null,
-  "cashReceipts": null,
-  "discount": null,
-  "cancels": null,
-  "secret": "ps_XZYkKL4MrjGqaqbe5GL80zJwlEWR",
-  "type": "NORMAL",
-  "easyPay": {
-    "provider": "카카오페이",
-    "amount": 10000,
-    "discountAmount": 0
-  },
-  "country": "KR",
-  "failure": null,
-  "receipt": {
-    "url": "https://dashboard-sandbox.tosspayments.com/receipt/redirection?transactionId=tviva20260519150253o97N9&ref=PX"
-  },
-  "checkout": {
-    "url": "https://api.tosspayments.com/v1/payments/tviva20260519150253o97N9/checkout"
-  },
-  "currency": "KRW",
-  "totalAmount": 10000,
-  "balanceAmount": 10000,
-  "suppliedAmount": 9091,
-  "vat": 909,
-  "taxFreeAmount": 0,
-  "method": "간편결제",
-  "version": "2024-06-01",
-  "metadata": null,
-  "mid": null,
-  "partialCancelable": false
+    "lastTransactionKey": "txrd_a01krzd9wmazk2jpb29z857z8am",
+    "paymentKey": "tviva20260519150253o97N9",
+    "orderId": "8ac1e1ad-b064-41d9-89b6-7e936c23cf58",
+    "orderName": "춘식이",
+    "taxExemptionAmount": 0,
+    "status": "DONE",
+    "requestedAt": "2026-05-19T15:02:53+09:00",
+    "approvedAt": "2026-05-19T15:03:23+09:00",
+    "useEscrow": false,
+    "cultureExpense": false,
+    "card": null,
+    "virtualAccount": null,
+    "transfer": null,
+    "mobilePhone": null,
+    "giftCertificate": null,
+    "cashReceipt": null,
+    "cashReceipts": null,
+    "discount": null,
+    "cancels": null,
+    "secret": "ps_XZYkKL4MrjGqaqbe5GL80zJwlEWR",
+    "type": "NORMAL",
+    "easyPay": {
+        "provider": "카카오페이",
+        "amount": 10000,
+        "discountAmount": 0
+    },
+    "country": "KR",
+    "failure": null,
+    "receipt": {
+        "url": "https://dashboard-sandbox.tosspayments.com/receipt/redirection?transactionId=tviva20260519150253o97N9&ref=PX"
+    },
+    "checkout": {
+        "url": "https://api.tosspayments.com/v1/payments/tviva20260519150253o97N9/checkout"
+    },
+    "currency": "KRW",
+    "totalAmount": 10000,
+    "balanceAmount": 10000,
+    "suppliedAmount": 9091,
+    "vat": 909,
+    "taxFreeAmount": 0,
+    "method": "간편결제",
+    "version": "2024-06-01",
+    "metadata": null,
+    "mid": null,
+    "partialCancelable": false
 }
 ```
