@@ -41,6 +41,10 @@ public class ExampleAdminController {
         String userId = authentication.getName();
         log.info("Authenticated user ID: {}", userId);
 
+        log.info("User details: {}", authentication.getPrincipal());
+
+        log.info("User authorities: {}", authentication.getAuthorities());
+
         MemberDto member = userMapper.findByUserId(userId).orElse(null);
         model.addAttribute("user", member);
 
