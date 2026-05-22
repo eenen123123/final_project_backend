@@ -34,13 +34,10 @@ public class AdminUserDetailsService implements UserDetailsService {
         // UserDetails userDetails =
         //         User.builder().username(user.getUserId()).password(user.getUserEnpswd()).roles(role) // 관리자 권한 부여
         //                 .build();
-        UserDetails userDetails = User.builder()
-            .username(user.getUserId())
-            .password(user.getUserEnpswd())
-            .authorities(user.getMemRoles().stream()
-                    .map(SimpleGrantedAuthority::new)
-                    .collect(Collectors.toList()))
-            .build();
+        UserDetails userDetails = User.builder().username(user.getUserId())
+                .password(user.getUserEnpswd()).authorities(user.getMemRoles().stream()
+                        .map(SimpleGrantedAuthority::new).collect(Collectors.toList()))
+                .build();
 
         log.info("AdminUserDetailsService - loadUserByUsername: {}", userDetails);
         return userDetails;
