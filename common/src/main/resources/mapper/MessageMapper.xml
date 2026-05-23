@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.MessageMapper">
+
+    <!-- MessageRoomDto
+    private Long roomSn; // 기본키(PK) 자동 증가
+    private String roomTypeCd; // 01:1:1 DM / 02:그룹채팅
+    private String roomNm; // 1:1 DM은 NULL (상대방 이름 표시)
+    private String opnrUserId; // MEMBER.USER_ID 참조
+    private LocalDateTime roomCretDt; // 대화방 생성 일시
+    private LocalDateTime lstMsgDt; // 채팅방 목록 최근 메시지 정렬 기준
+    private String delYn; // Y:삭제 / N:정상
+     -->
+
+    <!-- MessageRoomParticipantDto
+    private Long partSn; // 기본키(PK) · 시퀀스
+    private Long roomSn;
+    private String partUserId; // 채팅방 구성원
+    private LocalDateTime joinDt; // 대화방 입장 일시
+    private LocalDateTime exitDt; // 그룹 채팅 나가기 시 기록
+    private String notiYn; // Y:알림ON / N:알림OFF
+    private Long lstReadMsgSn; // 안읽은 메시지 수 계산 기준 읽을 때마다 갱신 
+    -->
+
+    <insert id="insertGroupChatRoom" parameterType="kr.or.ddit.finalProject.dto.message.MessageRoomDto"
+        useGeneratedKeys="true"
+        keyProperty="roomSn"
+        keyColumn="ROOM_SN"
+    >
+        INSERT INTO MESSAGE_ROOM (
+            ROOM_TYPE_CD,
+            ROOM_NM,
+            OPNR_USER_ID
+        ) VALUES (
+            #{roomTypeCd},
+            #{roomNm},
+            #{opnrUserId}
+        )
+    </insert>
+
+
+
+    <!-- insertChatRoomAllParticipant --> 
+
+    <insert id="insertChatRoomParticipant">
+    INSERT INTO MESSAGE_ROOM_PARTICIPANT (
+        PART_SN,
+        ROOM_SN,
+        PART_USER_ID
+    ) VALUES (
+        "TEAM1_202512AF"."ISEQ$$_433514".NEXTVAL,
+        #{roomSn},
+        #{userId}
+    )
+</insert>
+
+    <resultMap id="messageRoomResultMap" type="kr.or.ddit.finalProject.dto.message.MessageRoomDto">
+        <id property="roomSn" column="ROOM_SN"/>
+        <result property="roomTypeCd" column="ROOM_TYPE_CD"/>
+        <result property="roomNm" column="ROOM_NM"/>
+        <result property="opnrUserId" column="OPNR_USER_ID"/>
+        <result property="roomCretDt" column="ROOM_CRET_DT"/>
+        <result property="lstMsgDt" column="LST_MSG_DT"/>
+        <result property="delYn" column="DEL_YN"/>
+
+        <collection property="participants" 
+                    ofType="kr.or.ddit.finalProject.dto.message.MessageRoomParticipantDto">
+            <id property="partSn" column="PART_SN"/>
+            <result property="roomSn" column="ROOM_SN"/>
+            <result property="partUserId" column="PART_USER_ID"/>
+            <result property="joinDt" column="JOIN_DT"/>
+            <result property="exitDt" column="EXIT_DT"/>
+            <result property="notiYn" column="NOTI_YN"/>
+            <result property="lstReadMsgSn" column="LST_READ_MSG_SN"/>
+        </collection>
+    </resultMap>
+
+    <!-- selectAllChatRoomsByUserId -->
+    <select id="selectAllChatRoomsByUserId" resultMap="messageRoomResultMap">
+        SELECT mr.ROOM_SN,
+            mr.ROOM_TYPE_CD,
+            mr.ROOM_NM,
+            mr.OPNR_USER_ID,
+            mr.ROOM_CRET_DT,
+            mr.LST_MSG_DT,
+            mr.DEL_YN,
+            mrp.PART_SN,
+            mrp.PART_USER_ID,
+            mrp.JOIN_DT,
+            mrp.EXIT_DT,
+            mrp.NOTI_YN,
+            mrp.LST_READ_MSG_SN
+        FROM MESSAGE_ROOM mr
+        INNER JOIN MESSAGE_ROOM_PARTICIPANT mrp ON mr.ROOM_SN = mrp.ROOM_SN
+        WHERE mrp.PART_USER_ID = #{userId}
+        AND mr.DEL_YN = 'N'
+        ORDER BY mr.LST_MSG_DT DESC
+    </select>
+</mapper>

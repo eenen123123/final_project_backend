@@ -70,4 +70,18 @@
         FROM MEMBER m
         LEFT JOIN MEMBER_ROLE_MAPPING r ON m.USER_ID = r.USER_ID
     </select>
+
+    <!-- isAllExistUsers (리스트의 사용자 모두가 존재하는지 확인) --> 
+
+    <select id="isAllExistUsers" parameterType="list" resultType="int">
+        SELECT
+            count (*)
+        FROM MEMBER
+        WHERE USER_ID IN
+        <foreach item="userId" collection="list" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </select>
+
+
 </mapper>
