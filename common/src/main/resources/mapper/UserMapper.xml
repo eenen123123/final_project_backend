@@ -3,7 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="kr.or.ddit.finalProject.mapper.UserMapper">
-    
+
     <resultMap id="memberTestResultMap" type="kr.or.ddit.finalProject.dto.user.UserDto">
         <id property="userId" column="USER_ID"/>
         <result property="userEnpswd" column="USER_ENPSWD"/>
@@ -33,7 +33,7 @@
         FROM MEMBER
         WHERE USER_ID = #{userId}
     </select>
-    
+
     <select id="findByUserId" parameterType="string" resultMap="memberTestResultMap">
         SELECT
             m.USER_ID, m.USER_ENPSWD, m.USER_NAME, m.USER_ENRRNO, m.USER_GNDR_CD,
@@ -46,8 +46,8 @@
     </select>
 
     <insert id="insertUser" parameterType="kr.or.ddit.finalProject.dto.user.UserDto" useGeneratedKeys="true" keyProperty="userId" keyColumn="USER_ID">
-        INSERT INTO MEMBER (USER_ID, USER_ENPSWD, USER_NM)
-        VALUES (#{userId}, #{userEnpswd}, #{userNm})
+        INSERT INTO MEMBER (USER_ID, USER_ENPSWD, USER_NAME)
+        VALUES (#{userId}, #{userEnpswd}, #{userName})
     </insert>
 
 </mapper>
