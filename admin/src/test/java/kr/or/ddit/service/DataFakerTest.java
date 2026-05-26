@@ -129,6 +129,9 @@ public class DataFakerTest {
         log.info("총 {}건의 더미 데이터 Insert가 완료되었습니다.", insertCount);
     }
 
+    /**
+     * 더미 계정 1~100 권한 매핑
+     */
     @Test
     void testFakerRoleMapping() {
         List<String> roleList = List.of("ROLE_INSTRUCTOR", "ROLE_PD", "ROLE_PRINCIPAL", "ROLE_MANAGER", "ROLE_STAFF", "ROLE_USER", "ROLE_STUDENT", "ROLE_PARENT");
