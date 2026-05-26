@@ -49,8 +49,11 @@ public class InstructorCurriculumServiceImpl implements InstructorCurriculumServ
             Long generatedId = masterDto.getCurriculumId();
             String rgtrId = masterDto.getRgtrId();
 
-            // 2. AG Grid 상세 데이터 리스트 일괄 등록
-            curriculumMapper.insertDetailList(detailList, generatedId, rgtrId);
+            // 2. AG Grid 상세 데이터 행마다 단건 INSERT (NEXTVAL 중복 방지)
+            for (int i = 0; i < detailList.size(); i++) {
+                CurriculumDetailDto d = detailList.get(i);
+                curriculumMapper.insertDetail(generatedId, i, d.getWeekInfo(), d.getTopic(), d.getContent(), rgtrId);
+            }
             return true;
         }
 
@@ -82,7 +85,10 @@ public class InstructorCurriculumServiceImpl implements InstructorCurriculumServ
 
         // 4. AG Grid 화면에서 새로 넘어온 편집본으로 다시 싹 밀어넣기
         if (detailList != null && !detailList.isEmpty()) {
-            curriculumMapper.insertDetailList(detailList, masterDto.getCurriculumId(), currentUserId);
+            for (int i = 0; i < detailList.size(); i++) {
+                CurriculumDetailDto d = detailList.get(i);
+                curriculumMapper.insertDetail(masterDto.getCurriculumId(), i, d.getWeekInfo(), d.getTopic(), d.getContent(), currentUserId);
+            }
         }
     }
 

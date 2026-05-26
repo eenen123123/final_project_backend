@@ -101,34 +101,33 @@
     )
   </insert>
 
-  <insert id="insertDetailList">
-    INSERT ALL
-    <foreach collection="detailList" item="item" index="idx">
-      INTO CURRICULUM_DETAIL (
-        DETAIL_ID,
-        CURRICULUM_ID,
-        ROW_ORDER,
-        WEEK_INFO,
-        TOPIC,
-        CONTENT,
-        RGTR_ID,
-        REG_DT,
-        LAST_MDFR_ID,
-        MDFCN_DT
-      ) VALUES (
-        SEQ_CURRICULUM_DETAIL.NEXTVAL,
-        #{curriculumId},
-        #{idx},
-        #{item.weekInfo},
-        #{item.topic},
-        #{item.content},
-        #{item.rgtrId},
-        SYSDATE,
-        #{item.lastMdfrId},
-        SYSDATE
-      )
-    </foreach>
-    SELECT * FROM DUAL
+  <!-- INSERT ALL + NEXTVAL 조합은 Oracle에서 NEXTVAL이 문장당 1회만 증가하므로
+       동일한 DETAIL_ID가 중복 발급되어 ORA-00001이 발생합니다.
+       단건 INSERT로 교체하고 서비스 레이어에서 루프 처리합니다. -->
+  <insert id="insertDetail">
+    INSERT INTO CURRICULUM_DETAIL (
+      DETAIL_ID,
+      CURRICULUM_ID,
+      ROW_ORDER,
+      WEEK_INFO,
+      TOPIC,
+      CONTENT,
+      RGTR_ID,
+      REG_DT,
+      LAST_MDFR_ID,
+      MDFCN_DT
+    ) VALUES (
+      SEQ_CURRICULUM_DETAIL.NEXTVAL,
+      #{curriculumId},
+      #{rowOrder},
+      #{weekInfo},
+      #{topic},
+      #{content},
+      #{rgtrId},
+      SYSDATE,
+      NULL,
+      SYSDATE
+    )
   </insert>
 
   <update id="updateMaster" parameterType="kr.or.ddit.dto.CurriculumMasterDto">
