@@ -87,4 +87,23 @@ public class ChatRoomPageController {
         log.info("Created group chat room: {}", newRoom);
         return "redirect:/admin/chat/room/page?roomSn=" + newRoom.getRoomSn();
     }
+
+    @GetMapping("/direct")
+    public String createDirectChatRoom(@RequestParam(defaultValue = "") String otherUserId,
+            Authentication authentication, Model model) {
+        // otherUserId가 없으면 사용자 목록에서 선택하도록 페이지로 이동, 있으면 바로 1:1 채팅방으로 이동
+        if (otherUserId.trim().isBlank()) {
+            String userId = authentication.getName();
+            List<AdminUserDto> adminUsers = memberMapper.getAdminUsers(userId);
+            Map<String, List<AdminUserDto>> groupedAdminUsers =
+                    adminUsers.stream().collect(Collectors.groupingBy(AdminUserDto::getAuthrtNm,
+                            LinkedHashMap::new, Collectors.toList()));
+            model.addAttribute("groupedAdminUsers", groupedAdminUsers);
+            return "admin:/chat/createDirectChatRoom";
+        } else {
+            Long roomSn =
+                    chatService.getOrCreateOneOnOneChatRoom(authentication.getName(), otherUserId);
+            return "redirect:/admin/chat/room/page?roomSn=" + roomSn;
+        }
+    }
 }

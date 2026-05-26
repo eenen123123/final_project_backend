@@ -111,7 +111,19 @@
     <select id="selectAllChatRoomsByUserId" resultMap="MessageRoomSummaryDtoResultMap">
         SELECT mr.ROOM_SN,
             mr.ROOM_TYPE_CD,
-            mr.ROOM_NM,
+
+            case
+                when mr.ROOM_TYPE_CD = '01' then (
+                    select m.user_name || '님과의 대화'
+                    from MESSAGE_ROOM_PARTICIPANT mrp
+                    left join member m on mrp.PART_USER_ID = m.user_id
+                    where mrp.ROOM_SN = mr.ROOM_SN
+                          and mrp.PART_USER_ID != #{userId}
+                )
+                else mr.ROOM_NM
+            end as ROOM_NM,
+
+            
             mr.OPNR_USER_ID,
             mr.ROOM_CRET_DT,
             mr.LST_MSG_DT,
@@ -140,7 +152,21 @@
     <select id="selectChatRoomByRoomSn" parameterType="long" resultMap="messageRoomResultMap">
         SELECT mr.ROOM_SN,
             mr.ROOM_TYPE_CD,
-            mr.ROOM_NM,
+
+
+                                            <!-- mr.ROOM_NM, -->
+             case
+                when mr.ROOM_TYPE_CD = '01' then (
+                    select m.user_name || '님과의 대화'
+                    from MESSAGE_ROOM_PARTICIPANT mrp
+                    left join member m on mrp.PART_USER_ID = m.user_id
+                    where mrp.ROOM_SN = mr.ROOM_SN
+                          and mrp.PART_USER_ID != #{userId}
+                )
+                else mr.ROOM_NM
+            end as ROOM_NM,
+
+
             mr.OPNR_USER_ID,
             mr.ROOM_CRET_DT,
             mr.LST_MSG_DT,
@@ -222,4 +248,26 @@
         WHERE ROOM_SN = #{roomSn}
         AND PART_USER_ID = #{userId}
     </update>
+
+    <!-- selectOneOnOneChatRoom -->
+
+    <select id="selectOneOnOneChatRoom" resultType="long">
+        SELECT mr.ROOM_SN
+
+
+
+        FROM MESSAGE_ROOM mr
+        WHERE mr.ROOM_TYPE_CD = '01'
+        AND mr.ROOM_SN IN (
+            SELECT ROOM_SN
+            FROM MESSAGE_ROOM_PARTICIPANT
+            WHERE PART_USER_ID = #{myId}
+        )
+        AND mr.ROOM_SN IN (
+            SELECT ROOM_SN
+            FROM MESSAGE_ROOM_PARTICIPANT
+            WHERE PART_USER_ID = #{otherId}
+        )
+        AND mr.DEL_YN = 'N'
+    </select>
 </mapper>

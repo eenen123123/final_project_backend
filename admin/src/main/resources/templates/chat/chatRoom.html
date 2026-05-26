@@ -211,7 +211,10 @@
           </span>
         </h3>
       </div>
-      <div class="flex items-center gap-2">
+      <div
+        th:if="${room != null and room.roomTypeCd == '02'}"
+        class="flex items-center gap-2"
+      >
         <span class="text-sm text-violet-500 font-medium">초대하기</span>
       </div>
     </div>
