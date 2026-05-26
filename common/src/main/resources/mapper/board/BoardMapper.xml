@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.board.BoardMapper">
+
+    <!-- 게시글 등록 -->
+    <insert id="insertBoard" parameterType="BoardDto">
+      <selectKey keyProperty="postSn" resultType="Long" order="BEFORE">
+        SELECT "TEAM1_202512AF"."ISEQ$$_433495".NEXTVAL FROM DUAL
+      </selectKey>
+       INSERT INTO BOARD (
+        POST_SN
+        , WRTR_USER_ID
+        , BOARD_TYPE_CD
+        , POST_SJ
+        , POST_CN
+        , ATCH_FILE_ID
+        , POPUP_EXPS_YN
+        , REG_DT
+        , MDFCN_DT
+    ) VALUES (
+        #{postSn}
+        , #{wrtrUserId, jdbcType=VARCHAR}
+        , #{boardTypeCd, jdbcType=CHAR}
+        , #{postSj, jdbcType=VARCHAR}
+        , #{postCn, jdbcType=VARCHAR}
+        , #{atchFileId, jdbcType=VARCHAR}
+        , #{popupExpsYn, jdbcType=CHAR}
+        , CURRENT_TIMESTAMP
+        , CURRENT_TIMESTAMP
+    )
+    </insert>
+
+    <!-- 게시글 수정 -->
+    <update id="updateBoard" parameterType="BoardDto">
+        UPDATE BOARD
+        SET
+            POST_SJ = #{postSj}
+            , POST_CN = #{postCn}
+            , LAST_MDFR_ID = #{lastMdfrId}
+            , MDFCN_DT = CURRENT_TIMESTAMP
+        WHERE POST_SN = #{postSn}
+    </update>
+
+    <!-- 게시글 삭제 -->
+    <delete id="deleteBoard">
+        DELETE FROM BOARD
+        WHERE POST_SN = #{postSn}
+    </delete>
+
+</mapper>
