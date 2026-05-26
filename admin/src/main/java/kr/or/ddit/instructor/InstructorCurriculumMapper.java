@@ -29,9 +29,12 @@ public interface InstructorCurriculumMapper {
     // 커리큘럼 마스터 등록 (등록 후 생성된 시퀀스 ID가 마스터 DTO에 담김)
     int insertMaster(CurriculumMasterDto masterDto);
 
-    // 커리큘럼 상세(Grid 행) 대량 등록 (MyBatis foreach 활용)
-    int insertDetailList(@Param("detailList") List<CurriculumDetailDto> detailList,
-            @Param("curriculumId") Long curriculumId,
+    // 커리큘럼 상세(Grid 행) 단건 등록 - 서비스 루프에서 행마다 호출
+    int insertDetail(@Param("curriculumId") Long curriculumId,
+            @Param("rowOrder") int rowOrder,
+            @Param("weekInfo") String weekInfo,
+            @Param("topic") String topic,
+            @Param("content") String content,
             @Param("rgtrId") String rgtrId);
 
     // ==========================================
