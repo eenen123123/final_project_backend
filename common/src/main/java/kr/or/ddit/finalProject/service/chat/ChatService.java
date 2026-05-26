@@ -44,7 +44,7 @@ public interface ChatService {
      * @param otherId 상대방 사용자ID
      * @return 존재하는 일대일 채팅방이 있으면 해당 채팅방, 없으면 새로 생성된 채팅방
      */
-    MessageRoomDto getOrCreateOneOnOneChatRoom(String myId, String otherId);
+    Long getOrCreateOneOnOneChatRoom(String myId, String otherId);
 
     /**
      * 채팅방 가져오기 (일대일 또는 그룹, 채팅방 목록에서 선택한 채팅방)

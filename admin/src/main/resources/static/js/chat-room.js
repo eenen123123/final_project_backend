@@ -190,7 +190,15 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // textarea 자동 높이 조절
+  let isComposing = false;
+  messageInput.addEventListener("compositionstart", () => { isComposing = true; });
+  messageInput.addEventListener("compositionend", () => {
+    isComposing = false;
+    messageInput.style.height = "auto";
+    messageInput.style.height = messageInput.scrollHeight + "px";
+  });
   messageInput.addEventListener("input", () => {
+    if (isComposing) return;
     messageInput.style.height = "auto";
     messageInput.style.height = messageInput.scrollHeight + "px";
   });

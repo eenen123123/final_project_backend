@@ -23,5 +23,6 @@ public class MessageRoomSummaryDto implements Serializable {
 
     private int participantCount; // 채팅방 참여자 수
     private int unreadMsgCount; // 안읽은 메시지 수
+    private String lstMsgCn; // 마지막 메시지 내용 (채팅방 목록에서 보여줄 용도)
 
 }
