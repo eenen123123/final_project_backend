@@ -164,7 +164,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     // 사용자가 채팅방에서 메시지를 읽었을 때, 해당 메시지의 일련번호(msgSn)를 기준으로 lst_read_msg_sn을 업데이트하는 메서드
-
+    @Override
     public void updateLastReadMessage(long roomSn, String userId, long msgSn) {
         messageMapper.updateLastReadMessage(roomSn, userId, msgSn);
 
