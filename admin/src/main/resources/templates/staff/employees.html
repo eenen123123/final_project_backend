@@ -250,6 +250,7 @@
             <label class="text-xs text-slate-500 mb-1 block">이메일</label>
             <input type="email" class="hm-input" placeholder="user@hermes.com" id="new-email" />
           </div>
+          <!-- USER_ZIP, USER_ADDR, USER_DADDR 3개 입력받게 수정-->
           <div class="col-span-2">
             <label class="text-xs text-slate-500 mb-1 block">주소</label>
             <input type="text" class="hm-input" placeholder="주소를 입력하세요" id="new-addr" />
@@ -262,19 +263,20 @@
         <p class="text-xs font-bold text-violet-600 uppercase tracking-wider mb-3">인사 정보</p>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-xs text-slate-500 mb-1 block">직책 <span class="text-red-400">*</span></label>
+            <label class="text-xs text-slate-500 mb-1 block">소속 부서 <span class="text-red-400">*</span></label>
+            <select class="hm-input" id="new-dept">
+              <option value="">선택</option>
+              <option>PD팀</option><option>강사팀</option><option>행정팀</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">직급 <span class="text-red-400">*</span></label>
             <select class="hm-input" id="new-role">
               <option value="">선택</option>
               <option>매니저</option><option>강사</option><option>행정</option><option>PD</option>
             </select>
           </div>
-          <div>
-            <label class="text-xs text-slate-500 mb-1 block">소속 부서 <span class="text-red-400">*</span></label>
-            <select class="hm-input" id="new-dept">
-              <option value="">선택</option>
-              <option>운영팀</option><option>강의팀</option><option>행정팀</option>
-            </select>
-          </div>
+          
           <div>
             <label class="text-xs text-slate-500 mb-1 block">입사일 <span class="text-red-400">*</span></label>
             <input type="date" class="hm-input" id="new-entry-date" />

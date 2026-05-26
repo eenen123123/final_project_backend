@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.StaffMapper">
+
+    <!-- selectDepartmentList --> 
+    <select id="selectDepartmentList" resultType="kr.or.ddit.finalProject.dto.employee.DepartmentDto">
+        SELECT
+            USER_ID
+            , DEPT_CD
+            , JBGR_CD
+            , JOIN_YMD
+            , RETMT_YMD
+            , EMPL_STAT_CD
+            , ATCH_FILE_ID
+            , CHRG_DUTY_CN
+            , RGTR_ID
+            , LAST_MDFR_ID
+            , REG_DT
+            , MDFCN_DT
+        FROM
+            EMPLOYEE_INFO
+    </select>      
+
+    <!-- selectJobGradeList --> 
+    <select id="selectJobGradeList" resultType="kr.or.ddit.finalProject.dto.employee.JobGradeDto">
+        SELECT
+            JBGR_CD
+            , JBGR_NM
+            , SORT_ORD
+            , USE_YN
+            , BASE_ANN_LV_DAYS
+            , RGTR_ID
+            , LAST_MDFR_ID
+            , REG_DT
+            , MDFCN_DT
+        FROM
+            JOB_GRADE
+    </select>
+</mapper>
