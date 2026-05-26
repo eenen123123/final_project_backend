@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>근태 및 휴가 관리</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/admin-core.css" />
+  <style>
+    .hl-tab-btn { transition: all .18s; }
+    .hl-tab-btn.active {
+      color: #7c3aed;
+      border-bottom: 2px solid #7c3aed;
+      font-weight: 700;
+    }
+    .hl-tab-panel { display: none; }
+    .hl-tab-panel.active { display: block; }
+
+    .leave-bar-track {
+      height: .5rem; background: #f1f5f9; border-radius: 9999px; overflow: hidden;
+    }
+    .leave-bar-fill {
+      height: 100%; border-radius: 9999px; transition: width .4s;
+    }
+
+    .req-card {
+      background: #fff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 1rem;
+      transition: box-shadow .18s, border-color .18s;
+    }
+    .req-card:hover { box-shadow: 0 4px 16px rgba(124,58,237,.08); border-color: #c4b5fd; }
+
+    .req-status-pending  { background: #fef9c3; color: #854d0e; }
+    .req-status-approved { background: #d1fae5; color: #065f46; }
+    .req-status-rejected { background: #fee2e2; color: #991b1b; }
+
+    .type-badge {
+      font-size: .68rem; font-weight: 700; padding: .15rem .55rem;
+      border-radius: .4rem;
+    }
+    .type-annual   { background: #ede9fe; color: #6d28d9; }
+    .type-sick     { background: #fce7f3; color: #9d174d; }
+    .type-official { background: #e0f2fe; color: #0369a1; }
+    .type-half     { background: #fff7ed; color: #c2410c; }
+    .type-special  { background: #f0fdf4; color: #14532d; }
+
+    .att-dot {
+      width: .55rem; height: .55rem; border-radius: 50%; display: inline-block;
+    }
+    .att-normal  { background: #22c55e; }
+    .att-late    { background: #f59e0b; }
+    .att-absent  { background: #ef4444; }
+    .att-leave   { background: #8b5cf6; }
+    .att-holiday { background: #cbd5e1; }
+  </style>
+</head>
+<body>
+
+<!-- ───────────────── 페이지 헤더 ───────────────── -->
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-xl font-bold text-slate-800">근태 및 휴가 관리</h1>
+    <p class="text-sm text-slate-500 mt-0.5">직원 연차·휴가 신청 승인 및 잔여 일수를 관리합니다.</p>
+  </div>
+  <div class="flex gap-2">
+    <button onclick="openModal('modal-manual-leave')" class="text-sm font-semibold border border-slate-200 text-slate-600 px-4 py-2.5 rounded-xl hover:bg-slate-50 flex items-center gap-2">
+      <i class="fa-solid fa-pen-to-square"></i>직권 등록
+    </button>
+    <button onclick="openModal('modal-new-req')" class="hm-btn-primary">
+      <i class="fa-solid fa-plus"></i>휴가 신청
+    </button>
+  </div>
+</div>
+
+<!-- ───────────────── 요약 카드 4개 ───────────────── -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
+      <i class="fa-solid fa-hourglass-half text-violet-600"></i>
+    </div>
+    <div>
+      <p class="text-xs text-slate-500">승인 대기</p>
+      <p class="text-xl font-bold text-slate-800">4</p>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+      <i class="fa-solid fa-circle-check text-emerald-600"></i>
+    </div>
+    <div>
+      <p class="text-xs text-slate-500">이달 승인</p>
+      <p class="text-xl font-bold text-slate-800">12</p>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+      <i class="fa-solid fa-calendar-day text-amber-600"></i>
+    </div>
+    <div>
+      <p class="text-xs text-slate-500">오늘 휴가자</p>
+      <p class="text-xl font-bold text-slate-800">2</p>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
+      <i class="fa-solid fa-circle-xmark text-red-500"></i>
+    </div>
+    <div>
+      <p class="text-xs text-slate-500">이달 반려</p>
+      <p class="text-xl font-bold text-slate-800">1</p>
+    </div>
+  </div>
+</div>
+
+<!-- ───────────────── 탭 네비게이션 ───────────────── -->
+<div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+  <div class="flex border-b border-slate-100 px-6">
+    <button class="hl-tab-btn active py-3.5 px-4 text-sm text-slate-500 -mb-px" data-tab="hl-tab-requests" onclick="switchHlTab('hl-tab-requests',this)">
+      <i class="fa-solid fa-inbox mr-1.5"></i>신청 현황
+      <span id="pending-badge" class="ml-1.5 bg-amber-400 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">4</span>
+    </button>
+    <button class="hl-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px" data-tab="hl-tab-balance" onclick="switchHlTab('hl-tab-balance',this)">
+      <i class="fa-solid fa-scale-balanced mr-1.5"></i>잔여 연차 현황
+    </button>
+    <button class="hl-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px" data-tab="hl-tab-attendance" onclick="switchHlTab('hl-tab-attendance',this)">
+      <i class="fa-solid fa-calendar-check mr-1.5"></i>근태 이력
+    </button>
+  </div>
+
+  <!-- ══════ 탭1: 신청 현황 ══════ -->
+  <div id="hl-tab-requests" class="hl-tab-panel active p-6">
+    <!-- 필터 바 -->
+    <div class="flex flex-wrap gap-3 mb-5">
+      <div class="relative flex-1 min-w-44">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+        <input type="text" placeholder="직원 이름 검색..." class="hm-input pl-10" oninput="filterRequests()" id="req-search" />
+      </div>
+      <select class="hm-input w-36" id="req-status-filter" onchange="filterRequests()">
+        <option value="">전체 상태</option>
+        <option value="대기">승인 대기</option>
+        <option value="승인">승인</option>
+        <option value="반려">반려</option>
+      </select>
+      <select class="hm-input w-36" id="req-type-filter" onchange="filterRequests()">
+        <option value="">전체 유형</option>
+        <option value="연차">연차</option>
+        <option value="반차">반차</option>
+        <option value="병가">병가</option>
+        <option value="공가">공가</option>
+        <option value="특별휴가">특별휴가</option>
+      </select>
+      <input type="month" class="hm-input w-36" id="req-month" onchange="filterRequests()" />
+    </div>
+
+    <!-- 신청 카드 목록 -->
+    <div id="req-list" class="space-y-3"></div>
+  </div>
+
+  <!-- ══════ 탭2: 잔여 연차 현황 ══════ -->
+  <div id="hl-tab-balance" class="hl-tab-panel p-6">
+    <div class="flex flex-wrap gap-3 mb-5 items-end justify-between">
+      <div class="flex gap-3">
+        <select class="hm-input w-32" id="bal-year" onchange="renderBalance()">
+          <option>2025</option><option selected>2026</option>
+        </select>
+        <select class="hm-input w-36" id="bal-dept" onchange="renderBalance()">
+          <option value="">전체 부서</option>
+          <option>운영팀</option><option>강의팀</option><option>행정팀</option>
+        </select>
+      </div>
+      <button onclick="showHermesToast('엑셀 내보내기 준비 중','info')" class="text-sm font-semibold border border-slate-200 text-slate-600 px-4 py-2 rounded-xl hover:bg-slate-50 flex items-center gap-1.5">
+        <i class="fa-solid fa-file-excel text-emerald-600"></i>엑셀 내보내기
+      </button>
+    </div>
+
+    <div class="overflow-x-auto rounded-xl border border-slate-100">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-slate-50 text-slate-500 text-xs">
+            <th class="text-left py-3 px-4 font-semibold">직원명</th>
+            <th class="text-left py-3 px-4 font-semibold">부서</th>
+            <th class="text-left py-3 px-4 font-semibold">총 연차</th>
+            <th class="text-left py-3 px-4 font-semibold">사용</th>
+            <th class="text-left py-3 px-4 font-semibold">잔여</th>
+            <th class="text-left py-3 px-4 font-semibold min-w-36">사용률</th>
+            <th class="text-left py-3 px-4 font-semibold">소멸 예정일</th>
+            <th class="text-left py-3 px-4 font-semibold"></th>
+          </tr>
+        </thead>
+        <tbody id="balance-table-body" class="divide-y divide-slate-50"></tbody>
+      </table>
+    </div>
+
+    <!-- 잔여 0일 경고 -->
+    <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2">
+      <i class="fa-solid fa-triangle-exclamation text-amber-500 mt-0.5 text-sm"></i>
+      <p class="text-xs text-amber-700">연차 잔여 <strong>3일 이하</strong> 직원은 황색, 잔여 <strong>0일</strong> 직원은 적색으로 표시됩니다.</p>
+    </div>
+  </div>
+
+  <!-- ══════ 탭3: 근태 이력 ══════ -->
+  <div id="hl-tab-attendance" class="hl-tab-panel p-6">
+    <div class="flex flex-wrap gap-3 mb-5">
+      <select class="hm-input w-44" id="att-emp-filter" onchange="renderAttHistory()">
+        <option value="">전체 직원</option>
+        <option>김현정</option><option>이수민</option><option>박지호</option>
+        <option>최유리</option><option>정민석</option>
+      </select>
+      <input type="month" class="hm-input w-36" id="att-month" onchange="renderAttHistory()" />
+      <select class="hm-input w-36" id="att-type-filter" onchange="renderAttHistory()">
+        <option value="">전체 유형</option>
+        <option value="정상">정상</option>
+        <option value="지각">지각</option>
+        <option value="결근">결근</option>
+        <option value="휴가">휴가</option>
+      </select>
+    </div>
+
+    <!-- 범례 -->
+    <div class="flex gap-4 mb-4 flex-wrap">
+      <span class="flex items-center gap-1.5 text-xs text-slate-500"><span class="att-dot att-normal"></span>정상</span>
+      <span class="flex items-center gap-1.5 text-xs text-slate-500"><span class="att-dot att-late"></span>지각</span>
+      <span class="flex items-center gap-1.5 text-xs text-slate-500"><span class="att-dot att-absent"></span>결근</span>
+      <span class="flex items-center gap-1.5 text-xs text-slate-500"><span class="att-dot att-leave"></span>휴가</span>
+      <span class="flex items-center gap-1.5 text-xs text-slate-500"><span class="att-dot att-holiday"></span>휴일</span>
+    </div>
+
+    <div class="overflow-x-auto rounded-xl border border-slate-100">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-slate-50 text-slate-500 text-xs">
+            <th class="text-left py-3 px-4 font-semibold">날짜</th>
+            <th class="text-left py-3 px-4 font-semibold">직원명</th>
+            <th class="text-left py-3 px-4 font-semibold">출근</th>
+            <th class="text-left py-3 px-4 font-semibold">퇴근</th>
+            <th class="text-left py-3 px-4 font-semibold">근무시간</th>
+            <th class="text-left py-3 px-4 font-semibold">유형</th>
+            <th class="text-left py-3 px-4 font-semibold">비고</th>
+          </tr>
+        </thead>
+        <tbody id="att-table-body" class="divide-y divide-slate-50"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  MODAL: 휴가 신청                                  -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="modal-new-req" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between p-6 border-b border-slate-100">
+      <h2 class="font-bold text-slate-800"><i class="fa-solid fa-paper-plane mr-2 text-violet-500"></i>휴가 신청</h2>
+      <button onclick="closeModal('modal-new-req')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <div class="p-6 space-y-4">
+      <div>
+        <label class="text-xs text-slate-500 mb-1 block">신청 직원 <span class="text-red-400">*</span></label>
+        <select class="hm-input" id="req-emp">
+          <option value="">선택</option>
+          <option>김현정</option><option>이수민</option><option>박지호</option>
+          <option>최유리</option><option>정민석</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-xs text-slate-500 mb-1 block">휴가 유형 <span class="text-red-400">*</span></label>
+        <div class="flex flex-wrap gap-2" id="req-type-btns">
+          <button type="button" data-type="연차"   onclick="selectLeaveType(this)" class="type-btn text-xs font-semibold border-2 border-slate-200 rounded-lg px-3 py-2 transition-colors hover:border-violet-400">연차</button>
+          <button type="button" data-type="반차"   onclick="selectLeaveType(this)" class="type-btn text-xs font-semibold border-2 border-slate-200 rounded-lg px-3 py-2 transition-colors hover:border-violet-400">반차 (오전)</button>
+          <button type="button" data-type="반차(오후)" onclick="selectLeaveType(this)" class="type-btn text-xs font-semibold border-2 border-slate-200 rounded-lg px-3 py-2 transition-colors hover:border-violet-400">반차 (오후)</button>
+          <button type="button" data-type="병가"   onclick="selectLeaveType(this)" class="type-btn text-xs font-semibold border-2 border-slate-200 rounded-lg px-3 py-2 transition-colors hover:border-violet-400">병가</button>
+          <button type="button" data-type="공가"   onclick="selectLeaveType(this)" class="type-btn text-xs font-semibold border-2 border-slate-200 rounded-lg px-3 py-2 transition-colors hover:border-violet-400">공가</button>
+          <button type="button" data-type="특별휴가" onclick="selectLeaveType(this)" class="type-btn text-xs font-semibold border-2 border-slate-200 rounded-lg px-3 py-2 transition-colors hover:border-violet-400">특별휴가</button>
+        </div>
+        <input type="hidden" id="selected-leave-type" value="" />
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs text-slate-500 mb-1 block">시작일 <span class="text-red-400">*</span></label>
+          <input type="date" class="hm-input" id="req-start" oninput="calcLeaveDays()" />
+        </div>
+        <div>
+          <label class="text-xs text-slate-500 mb-1 block">종료일 <span class="text-red-400">*</span></label>
+          <input type="date" class="hm-input" id="req-end" oninput="calcLeaveDays()" />
+        </div>
+      </div>
+
+      <!-- 일수 계산 결과 -->
+      <div id="leave-days-box" class="hidden bg-violet-50 border border-violet-200 rounded-xl px-4 py-3 flex items-center justify-between">
+        <span class="text-xs text-violet-700 font-semibold">사용 연차일수 (주말 제외)</span>
+        <span class="text-lg font-bold text-violet-700" id="leave-days-result">0일</span>
+      </div>
+
+      <div>
+        <label class="text-xs text-slate-500 mb-1 block">사유</label>
+        <textarea class="hm-input resize-none" rows="3" id="req-reason" placeholder="휴가 사유를 입력하세요..."></textarea>
+      </div>
+
+      <!-- 잔여 연차 미리보기 -->
+      <div id="balance-preview" class="bg-slate-50 rounded-xl px-4 py-3">
+        <p class="text-xs text-slate-500 mb-2">직원 선택 시 잔여 연차가 표시됩니다.</p>
+      </div>
+    </div>
+    <div class="flex gap-3 justify-end p-6 border-t border-slate-100">
+      <button onclick="closeModal('modal-new-req')" class="text-sm text-slate-500 px-5 py-2.5 rounded-xl hover:bg-slate-100 font-semibold">취소</button>
+      <button onclick="submitLeaveReq()" class="hm-btn-primary px-6 py-2.5">신청 제출</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  MODAL: 신청 상세 / 승인·반려                       -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="modal-req-detail" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+    <div class="flex items-center justify-between p-6 border-b border-slate-100">
+      <h2 class="font-bold text-slate-800">휴가 신청 상세</h2>
+      <button onclick="closeModal('modal-req-detail')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <div class="p-6 space-y-4">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-xl bg-violet-100 flex items-center justify-center font-bold text-violet-700 text-base" id="dtl-avatar">김</div>
+        <div>
+          <p class="font-bold text-slate-800" id="dtl-name">김현정</p>
+          <div class="flex gap-2 mt-0.5">
+            <span class="type-badge type-annual" id="dtl-type">연차</span>
+            <span class="text-xs text-slate-400" id="dtl-dept">운영팀</span>
+          </div>
+        </div>
+        <span class="ml-auto text-xs font-bold px-2.5 py-1 rounded-full" id="dtl-status-badge">대기</span>
+      </div>
+
+      <div class="space-y-0 rounded-xl border border-slate-100 overflow-hidden">
+        <div class="flex px-4 py-2.5 bg-slate-50"><span class="w-24 text-xs text-slate-500">신청일</span><span class="text-xs font-semibold text-slate-800" id="dtl-req-date">-</span></div>
+        <div class="flex px-4 py-2.5"><span class="w-24 text-xs text-slate-500">휴가 기간</span><span class="text-xs font-semibold text-slate-800" id="dtl-period">-</span></div>
+        <div class="flex px-4 py-2.5 bg-slate-50"><span class="w-24 text-xs text-slate-500">사용 일수</span><span class="text-xs font-semibold text-violet-700" id="dtl-days">-</span></div>
+        <div class="flex px-4 py-2.5"><span class="w-24 text-xs text-slate-500">잔여(신청 후)</span><span class="text-xs font-semibold text-slate-800" id="dtl-remain">-</span></div>
+        <div class="flex px-4 py-2.5 bg-slate-50"><span class="w-24 text-xs text-slate-500">사유</span><span class="text-xs font-semibold text-slate-800" id="dtl-reason">-</span></div>
+      </div>
+
+      <!-- 반려 사유 입력 (반려 클릭 시 표시) -->
+      <div id="reject-reason-box" class="hidden">
+        <label class="text-xs text-slate-500 mb-1 block">반려 사유 <span class="text-red-400">*</span></label>
+        <textarea class="hm-input resize-none" rows="2" id="reject-reason-input" placeholder="반려 사유를 입력해주세요..."></textarea>
+      </div>
+
+      <!-- 버튼 (대기 상태일 때만 표시) -->
+      <div id="dtl-action-btns" class="flex gap-3">
+        <button onclick="showRejectBox()" class="flex-1 py-2.5 rounded-xl border border-red-200 text-sm font-bold text-red-500 hover:bg-red-50">
+          <i class="fa-solid fa-xmark mr-1"></i>반려
+        </button>
+        <button onclick="approveRequest()" class="flex-1 py-2.5 rounded-xl bg-emerald-500 text-white text-sm font-bold hover:bg-emerald-600">
+          <i class="fa-solid fa-check mr-1"></i>승인
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  MODAL: 직권 등록 (휴가 강제 차감/부여)            -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="modal-manual-leave" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+    <div class="flex items-center justify-between p-6 border-b border-slate-100">
+      <h2 class="font-bold text-slate-800"><i class="fa-solid fa-pen-to-square mr-2 text-amber-500"></i>직권 연차 조정</h2>
+      <button onclick="closeModal('modal-manual-leave')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <div class="p-6 space-y-4">
+      <div>
+        <label class="text-xs text-slate-500 mb-1 block">대상 직원 <span class="text-red-400">*</span></label>
+        <select class="hm-input" id="manual-emp">
+          <option value="">선택</option>
+          <option>김현정</option><option>이수민</option><option>박지호</option>
+          <option>최유리</option><option>정민석</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-xs text-slate-500 mb-1 block">조정 유형</label>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="flex items-center gap-2 border-2 border-slate-200 rounded-xl px-3 py-2.5 cursor-pointer has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50 transition-colors">
+            <input type="radio" name="manual-type" value="부여" class="accent-emerald-500" checked /> <span class="text-sm font-semibold text-slate-700">연차 부여</span>
+          </label>
+          <label class="flex items-center gap-2 border-2 border-slate-200 rounded-xl px-3 py-2.5 cursor-pointer has-[:checked]:border-red-400 has-[:checked]:bg-red-50 transition-colors">
+            <input type="radio" name="manual-type" value="차감" class="accent-red-500" /> <span class="text-sm font-semibold text-slate-700">연차 차감</span>
+          </label>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs text-slate-500 mb-1 block">일수 <span class="text-red-400">*</span></label>
+          <input type="number" class="hm-input" id="manual-days" min="0.5" step="0.5" placeholder="1" />
+        </div>
+        <div>
+          <label class="text-xs text-slate-500 mb-1 block">적용 기준일</label>
+          <input type="date" class="hm-input" id="manual-date" />
+        </div>
+      </div>
+      <div>
+        <label class="text-xs text-slate-500 mb-1 block">사유 <span class="text-red-400">*</span></label>
+        <input type="text" class="hm-input" id="manual-reason" placeholder="예: 입사 1주년 보상 연차" />
+      </div>
+    </div>
+    <div class="flex gap-3 justify-end p-6 border-t border-slate-100">
+      <button onclick="closeModal('modal-manual-leave')" class="text-sm text-slate-500 px-5 py-2.5 rounded-xl hover:bg-slate-100 font-semibold">취소</button>
+      <button onclick="saveManualLeave()" class="hm-btn-primary px-6 py-2.5">적용</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  MODAL: 직원별 연차 상세 이력                      -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="modal-balance-detail" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[85vh] overflow-y-auto">
+    <div class="flex items-center justify-between p-6 border-b border-slate-100">
+      <h2 class="font-bold text-slate-800" id="bal-detail-title">김현정 · 연차 이력</h2>
+      <button onclick="closeModal('modal-balance-detail')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <div class="p-6">
+      <!-- 요약 -->
+      <div class="grid grid-cols-3 gap-3 mb-5">
+        <div class="bg-slate-50 rounded-xl p-3 text-center">
+          <p class="text-xs text-slate-500">총 연차</p>
+          <p class="text-xl font-bold text-slate-800" id="bal-total">15</p>
+        </div>
+        <div class="bg-amber-50 rounded-xl p-3 text-center">
+          <p class="text-xs text-slate-500">사용</p>
+          <p class="text-xl font-bold text-amber-600" id="bal-used">7</p>
+        </div>
+        <div class="bg-violet-50 rounded-xl p-3 text-center">
+          <p class="text-xs text-slate-500">잔여</p>
+          <p class="text-xl font-bold text-violet-700" id="bal-remain">8</p>
+        </div>
+      </div>
+      <!-- 이력 테이블 -->
+      <div id="bal-history" class="space-y-2 text-xs"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ─── 더미 데이터 ─── */
+const leaveRequests = [
+  { id:1, emp:'김현정', dept:'운영팀', type:'연차',   start:'2026-05-28', end:'2026-05-30', days:3, reason:'개인 여행',    status:'대기', reqDate:'2026-05-20' },
+  { id:2, emp:'이수민', dept:'행정팀', type:'반차',   start:'2026-05-27', end:'2026-05-27', days:0.5, reason:'병원 방문', status:'대기', reqDate:'2026-05-22' },
+  { id:3, emp:'박지호', dept:'강의팀', type:'병가',   start:'2026-05-26', end:'2026-05-26', days:1, reason:'감기',         status:'대기', reqDate:'2026-05-25' },
+  { id:4, emp:'정민석', dept:'운영팀', type:'공가',   start:'2026-05-29', end:'2026-05-29', days:1, reason:'직무 교육',    status:'대기', reqDate:'2026-05-23' },
+  { id:5, emp:'최유리', dept:'강의팀', type:'특별휴가', start:'2026-05-12', end:'2026-05-14', days:3, reason:'경조사',    status:'승인', reqDate:'2026-05-08' },
+  { id:6, emp:'김현정', dept:'운영팀', type:'연차',   start:'2026-04-14', end:'2026-04-14', days:1, reason:'개인 사정',   status:'승인', reqDate:'2026-04-10' },
+  { id:7, emp:'이수민', dept:'행정팀', type:'연차',   start:'2026-04-02', end:'2026-04-02', days:1, reason:'가족 행사',   status:'반려', reqDate:'2026-03-28' },
+];
+
+const leaveBalances = [
+  { emp:'김현정', dept:'운영팀', total:15, used:4,  expire:'2027-03-01' },
+  { emp:'이수민', dept:'행정팀', total:12, used:5,  expire:'2027-01-07' },
+  { emp:'박지호', dept:'강의팀', total:15, used:10, expire:'2026-09-01' },
+  { emp:'최유리', dept:'강의팀', total:11, used:9,  expire:'2027-07-14' },
+  { emp:'정민석', dept:'운영팀', total:12, used:3,  expire:'2027-03-03' },
+];
+
+const attHistory = [
+  { date:'2026-05-26', emp:'김현정', in:'09:02', out:'18:05', hours:9.0, type:'정상', note:'' },
+  { date:'2026-05-26', emp:'이수민', in:'09:15', out:'18:00', hours:8.75, type:'지각', note:'지각 10분' },
+  { date:'2026-05-26', emp:'박지호', in:'-',     out:'-',     hours:0,   type:'결근', note:'병가 처리' },
+  { date:'2026-05-26', emp:'정민석', in:'09:00', out:'18:10', hours:9.2, type:'정상', note:'' },
+  { date:'2026-05-23', emp:'최유리', in:'-',     out:'-',     hours:0,   type:'휴가', note:'특별휴가' },
+  { date:'2026-05-23', emp:'김현정', in:'08:55', out:'18:00', hours:9.1, type:'정상', note:'' },
+  { date:'2026-05-22', emp:'이수민', in:'09:00', out:'13:10', hours:4.2, type:'정상', note:'오후 반차' },
+];
+
+let selectedReqId = null;
+let rejectBoxVisible = false;
+
+/* ─── 탭 전환 ─── */
+function switchHlTab(tabId, btn) {
+  document.querySelectorAll('.hl-tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.hl-tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+
+/* ─── 탭1: 신청 카드 렌더링 ─── */
+const typeClass = { '연차':'type-annual','반차':'type-half','반차(오후)':'type-half','병가':'type-sick','공가':'type-official','특별휴가':'type-special' };
+const statusClass = { '대기':'req-status-pending','승인':'req-status-approved','반려':'req-status-rejected' };
+
+function renderRequests(list) {
+  const el = document.getElementById('req-list');
+  if (!list.length) { el.innerHTML = '<p class="text-sm text-slate-400 text-center py-10">해당 신청이 없습니다.</p>'; return; }
+  el.innerHTML = list.map(r => `
+    <div class="req-card p-4 cursor-pointer" onclick="openReqDetail(${r.id})">
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-violet-100 flex items-center justify-center font-bold text-violet-700 text-sm flex-shrink-0">${r.emp[0]}</div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-bold text-sm text-slate-800">${r.emp}</span>
+              <span class="type-badge ${typeClass[r.type]||'type-annual'}">${r.type}</span>
+              <span class="text-xs font-bold px-2 py-0.5 rounded-full ${statusClass[r.status]}">${r.status}</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">${r.dept} · 신청일 ${r.reqDate}</p>
+          </div>
+        </div>
+        <div class="text-right">
+          <p class="text-sm font-bold text-slate-800">${r.start} ~ ${r.end}</p>
+          <p class="text-xs text-violet-600 font-semibold mt-0.5">${r.days}일 사용</p>
+        </div>
+      </div>
+      ${r.status==='대기' ? `
+      <div class="flex gap-2 mt-3 pt-3 border-t border-slate-100">
+        <button onclick="event.stopPropagation(); quickAction(${r.id},'반려')" class="flex-1 text-xs font-bold border border-red-200 text-red-500 py-1.5 rounded-lg hover:bg-red-50">반려</button>
+        <button onclick="event.stopPropagation(); quickAction(${r.id},'승인')" class="flex-1 text-xs font-bold bg-emerald-500 text-white py-1.5 rounded-lg hover:bg-emerald-600">승인</button>
+      </div>` : ''}
+    </div>
+  `).join('');
+}
+
+function filterRequests() {
+  const q   = document.getElementById('req-search').value.trim();
+  const st  = document.getElementById('req-status-filter').value;
+  const tp  = document.getElementById('req-type-filter').value;
+  const mon = document.getElementById('req-month').value;
+  const filtered = leaveRequests.filter(r =>
+    (!q   || r.emp.includes(q)) &&
+    (!st  || r.status === st) &&
+    (!tp  || r.type === tp) &&
+    (!mon || r.start.startsWith(mon))
+  );
+  renderRequests(filtered);
+  updatePendingBadge();
+}
+
+function quickAction(id, action) {
+  const r = leaveRequests.find(x => x.id === id);
+  if (!r) return;
+  r.status = action;
+  filterRequests();
+  const bal = leaveBalances.find(b => b.emp === r.emp);
+  if (action === '승인' && bal) bal.used += r.days;
+  renderBalance();
+  showHermesToast(`${r.emp} 직원 휴가 신청이 ${action}되었습니다.`, action==='승인'?'success':'error');
+}
+
+function updatePendingBadge() {
+  const cnt = leaveRequests.filter(r => r.status === '대기').length;
+  document.getElementById('pending-badge').textContent = cnt;
+}
+
+/* ─── 신청 상세 모달 ─── */
+function openReqDetail(id) {
+  const r = leaveRequests.find(x => x.id === id);
+  if (!r) return;
+  selectedReqId = id;
+  rejectBoxVisible = false;
+  document.getElementById('reject-reason-box').classList.add('hidden');
+  document.getElementById('reject-reason-input').value = '';
+
+  document.getElementById('dtl-avatar').textContent = r.emp[0];
+  document.getElementById('dtl-name').textContent   = r.emp;
+  document.getElementById('dtl-type').className     = 'type-badge ' + (typeClass[r.type]||'type-annual');
+  document.getElementById('dtl-type').textContent   = r.type;
+  document.getElementById('dtl-dept').textContent   = r.dept;
+  const sb = document.getElementById('dtl-status-badge');
+  sb.textContent  = r.status;
+  sb.className    = 'ml-auto text-xs font-bold px-2.5 py-1 rounded-full ' + statusClass[r.status];
+  document.getElementById('dtl-req-date').textContent = r.reqDate;
+  document.getElementById('dtl-period').textContent   = r.start + ' ~ ' + r.end;
+  document.getElementById('dtl-days').textContent     = r.days + '일';
+  const bal = leaveBalances.find(b => b.emp === r.emp);
+  const rem = bal ? (bal.total - bal.used - r.days) : '-';
+  document.getElementById('dtl-remain').textContent   = rem + '일';
+  document.getElementById('dtl-reason').textContent   = r.reason || '-';
+  document.getElementById('dtl-action-btns').classList.toggle('hidden', r.status !== '대기');
+  openModal('modal-req-detail');
+}
+
+function showRejectBox() {
+  rejectBoxVisible = true;
+  document.getElementById('reject-reason-box').classList.remove('hidden');
+  document.getElementById('reject-reason-input').focus();
+}
+
+function approveRequest() {
+  if (rejectBoxVisible) {
+    const reason = document.getElementById('reject-reason-input').value.trim();
+    if (!reason) { showHermesToast('반려 사유를 입력해주세요.', 'error'); return; }
+    quickAction(selectedReqId, '반려');
+  } else {
+    quickAction(selectedReqId, '승인');
+  }
+  closeModal('modal-req-detail');
+}
+
+/* ─── 탭2: 잔여 연차 테이블 ─── */
+function renderBalance() {
+  const dept = document.getElementById('bal-dept').value;
+  const list = leaveBalances.filter(b => !dept || b.dept === dept);
+  document.getElementById('balance-table-body').innerHTML = list.map(b => {
+    const remain = b.total - b.used;
+    const pct    = Math.round((b.used / b.total) * 100);
+    const barColor = remain === 0 ? '#ef4444' : remain <= 3 ? '#f59e0b' : '#7c3aed';
+    const rowBg    = remain === 0 ? 'bg-red-50' : remain <= 3 ? 'bg-amber-50' : '';
+    return `
+      <tr class="hover:bg-slate-50 transition-colors ${rowBg}">
+        <td class="py-3 px-4">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center text-xs font-bold text-violet-700">${b.emp[0]}</div>
+            <span class="font-semibold text-slate-800 text-xs">${b.emp}</span>
+          </div>
+        </td>
+        <td class="py-3 px-4 text-xs text-slate-600">${b.dept}</td>
+        <td class="py-3 px-4 text-xs font-bold text-slate-800">${b.total}일</td>
+        <td class="py-3 px-4 text-xs text-amber-600 font-semibold">${b.used}일</td>
+        <td class="py-3 px-4 text-xs font-bold" style="color:${barColor}">${remain}일</td>
+        <td class="py-3 px-4 min-w-36">
+          <div class="flex items-center gap-2">
+            <div class="leave-bar-track flex-1">
+              <div class="leave-bar-fill" style="width:${pct}%; background:${barColor}"></div>
+            </div>
+            <span class="text-xs text-slate-500 w-8 text-right">${pct}%</span>
+          </div>
+        </td>
+        <td class="py-3 px-4 text-xs text-slate-500">${b.expire}</td>
+        <td class="py-3 px-4">
+          <button onclick="openBalDetail('${b.emp}')" class="text-xs text-violet-600 hover:underline font-semibold">이력</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+/* ─── 직원별 연차 이력 모달 ─── */
+function openBalDetail(empName) {
+  const b = leaveBalances.find(x => x.emp === empName);
+  if (!b) return;
+  document.getElementById('bal-detail-title').textContent = empName + ' · 연차 이력';
+  document.getElementById('bal-total').textContent  = b.total;
+  document.getElementById('bal-used').textContent   = b.used;
+  document.getElementById('bal-remain').textContent = b.total - b.used;
+
+  const empReqs = leaveRequests.filter(r => r.emp === empName && r.status === '승인');
+  document.getElementById('bal-history').innerHTML = empReqs.length
+    ? empReqs.map(r => `
+        <div class="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2">
+          <div>
+            <span class="type-badge ${typeClass[r.type]||'type-annual'} mr-1.5">${r.type}</span>
+            <span class="text-slate-700 font-semibold">${r.start} ~ ${r.end}</span>
+          </div>
+          <span class="text-violet-700 font-bold">-${r.days}일</span>
+        </div>
+      `).join('')
+    : '<p class="text-slate-400 text-center py-4">사용 이력이 없습니다.</p>';
+
+  openModal('modal-balance-detail');
+}
+
+/* ─── 탭3: 근태 이력 테이블 ─── */
+const attDotClass = { '정상':'att-normal','지각':'att-late','결근':'att-absent','휴가':'att-leave','휴일':'att-holiday' };
+
+function renderAttHistory() {
+  const emp  = document.getElementById('att-emp-filter').value;
+  const mon  = document.getElementById('att-month').value;
+  const tp   = document.getElementById('att-type-filter').value;
+  const list = attHistory.filter(a =>
+    (!emp || a.emp === emp) &&
+    (!mon || a.date.startsWith(mon)) &&
+    (!tp  || a.type === tp)
+  );
+  const body = document.getElementById('att-table-body');
+  if (!list.length) { body.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-400 text-sm">근태 이력이 없습니다.</td></tr>'; return; }
+  body.innerHTML = list.map(a => `
+    <tr class="hover:bg-slate-50 transition-colors">
+      <td class="py-3 px-4 text-xs text-slate-600 font-semibold">${a.date}</td>
+      <td class="py-3 px-4">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 rounded-md bg-violet-100 flex items-center justify-center text-xs font-bold text-violet-700">${a.emp[0]}</div>
+          <span class="text-xs font-semibold text-slate-800">${a.emp}</span>
+        </div>
+      </td>
+      <td class="py-3 px-4 text-xs text-slate-600">${a.in}</td>
+      <td class="py-3 px-4 text-xs text-slate-600">${a.out}</td>
+      <td class="py-3 px-4 text-xs text-slate-600">${a.hours > 0 ? a.hours + 'h' : '-'}</td>
+      <td class="py-3 px-4">
+        <span class="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+          <span class="att-dot ${attDotClass[a.type]||'att-holiday'}"></span>${a.type}
+        </span>
+      </td>
+      <td class="py-3 px-4 text-xs text-slate-500">${a.note || '-'}</td>
+    </tr>
+  `).join('');
+}
+
+/* ─── 휴가 신청 폼 ─── */
+function selectLeaveType(btn) {
+  document.querySelectorAll('.type-btn').forEach(b => {
+    b.classList.remove('border-violet-500','bg-violet-50','text-violet-700');
+    b.classList.add('border-slate-200','text-slate-700');
+  });
+  btn.classList.remove('border-slate-200','text-slate-700');
+  btn.classList.add('border-violet-500','bg-violet-50','text-violet-700');
+  document.getElementById('selected-leave-type').value = btn.dataset.type;
+}
+
+function calcLeaveDays() {
+  const s = document.getElementById('req-start').value;
+  const e = document.getElementById('req-end').value;
+  if (!s || !e) return;
+  let days = 0, cur = new Date(s);
+  const end = new Date(e);
+  while (cur <= end) {
+    const dow = cur.getDay();
+    if (dow !== 0 && dow !== 6) days++;
+    cur.setDate(cur.getDate() + 1);
+  }
+  document.getElementById('leave-days-box').classList.remove('hidden');
+  document.getElementById('leave-days-result').textContent = days + '일';
+}
+
+function submitLeaveReq() {
+  const emp  = document.getElementById('req-emp').value;
+  const type = document.getElementById('selected-leave-type').value;
+  const s    = document.getElementById('req-start').value;
+  const e    = document.getElementById('req-end').value;
+  if (!emp || !type || !s || !e) { showHermesToast('필수 항목을 모두 입력해주세요.', 'error'); return; }
+  const days = parseInt(document.getElementById('leave-days-result').textContent) || 1;
+  leaveRequests.unshift({ id: leaveRequests.length+1, emp, dept:'운영팀', type, start:s, end:e, days,
+    reason: document.getElementById('req-reason').value, status:'대기', reqDate: new Date().toISOString().slice(0,10) });
+  closeModal('modal-new-req');
+  filterRequests();
+  showHermesToast(emp + ' 직원의 휴가 신청이 등록되었습니다.', 'success');
+}
+
+/* ─── 직권 연차 조정 ─── */
+function saveManualLeave() {
+  const emp    = document.getElementById('manual-emp').value;
+  const type   = document.querySelector('input[name="manual-type"]:checked').value;
+  const days   = parseFloat(document.getElementById('manual-days').value);
+  const reason = document.getElementById('manual-reason').value.trim();
+  if (!emp || !days || !reason) { showHermesToast('필수 항목을 모두 입력해주세요.', 'error'); return; }
+  const bal = leaveBalances.find(b => b.emp === emp);
+  if (bal) {
+    if (type === '부여') bal.total += days;
+    else bal.used = Math.min(bal.total, bal.used + days);
+  }
+  closeModal('modal-manual-leave');
+  renderBalance();
+  showHermesToast(`${emp} 직원 연차 ${type} ${days}일 처리 완료.`, 'success');
+}
+
+/* ─── 모달 공통 ─── */
+function openModal(id)  { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+document.querySelectorAll('[id^="modal-"]').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); });
+});
+
+/* ─── 초기 렌더링 ─── */
+(function () {
+  const today = new Date().toISOString().slice(0, 7);
+  document.getElementById('req-month').value = today;
+  document.getElementById('att-month').value = today;
+  document.getElementById('manual-date').value = new Date().toISOString().slice(0, 10);
+
+  renderRequests(leaveRequests);
+  renderBalance();
+  renderAttHistory();
+
+  const firstBtn = document.querySelector('.hl-tab-btn[data-tab="hl-tab-requests"]');
+  if (firstBtn) switchHlTab('hl-tab-requests', firstBtn);
+})();
+</script>
+
+</body>
+</html>

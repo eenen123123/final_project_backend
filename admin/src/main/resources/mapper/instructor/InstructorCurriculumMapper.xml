@@ -3,9 +3,9 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="kr.or.ddit.instructor.InstructorCurriculumMapper">
+<mapper namespace="kr.or.ddit.instructor.mapper.InstructorCurriculumMapper">
 
-  <resultMap id="curriculumMasterMap" type="kr.or.ddit.dto.CurriculumMasterDto">
+  <resultMap id="curriculumMasterMap" type="kr.or.ddit.dto.instructor.CurriculumMasterDto">
     <id property="curriculumId" column="CURRICULUM_ID" />
     <result property="title" column="TITLE" />
     <result property="instructorId" column="INSTRUCTOR_ID" />
@@ -16,7 +16,7 @@
     <result property="mdfcnDt" column="MDFCN_DT" />
   </resultMap>
 
-  <resultMap id="curriculumDetailMap" type="kr.or.ddit.dto.CurriculumDetailDto">
+  <resultMap id="curriculumDetailMap" type="kr.or.ddit.dto.instructor.CurriculumDetailDto">
     <id property="detailId" column="DETAIL_ID" />
     <result property="curriculumId" column="CURRICULUM_ID" />
     <result property="rowOrder" column="ROW_ORDER" />
@@ -31,14 +31,8 @@
 
   <select id="selectMasterList" resultMap="curriculumMasterMap">
     SELECT
-      CURRICULUM_ID,
-      TITLE,
-      INSTRUCTOR_ID,
-      USE_YN,
-      RGTR_ID,
-      REG_DT,
-      LAST_MDFR_ID,
-      MDFCN_DT
+      CURRICULUM_ID, TITLE, INSTRUCTOR_ID, USE_YN,
+      RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
     FROM CURRICULUM_MASTER
     WHERE INSTRUCTOR_ID = #{instructorId}
       AND USE_YN = 'Y'
@@ -47,111 +41,64 @@
 
   <select id="selectMasterById" resultMap="curriculumMasterMap">
     SELECT
-      CURRICULUM_ID,
-      TITLE,
-      INSTRUCTOR_ID,
-      USE_YN,
-      RGTR_ID,
-      REG_DT,
-      LAST_MDFR_ID,
-      MDFCN_DT
+      CURRICULUM_ID, TITLE, INSTRUCTOR_ID, USE_YN,
+      RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
     FROM CURRICULUM_MASTER
     WHERE CURRICULUM_ID = #{curriculumId}
   </select>
 
   <select id="selectDetailList" resultMap="curriculumDetailMap">
     SELECT
-      DETAIL_ID,
-      CURRICULUM_ID,
-      ROW_ORDER,
-      WEEK_INFO,
-      TOPIC,
-      CONTENT,
-      RGTR_ID,
-      REG_DT,
-      LAST_MDFR_ID,
-      MDFCN_DT
+      DETAIL_ID, CURRICULUM_ID, ROW_ORDER,
+      WEEK_INFO, TOPIC, CONTENT,
+      RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
     FROM CURRICULUM_DETAIL
     WHERE CURRICULUM_ID = #{curriculumId}
     ORDER BY ROW_ORDER ASC
   </select>
 
-  <insert id="insertMaster" parameterType="kr.or.ddit.dto.CurriculumMasterDto">
+  <insert id="insertMaster" parameterType="kr.or.ddit.dto.instructor.CurriculumMasterDto">
     <selectKey keyProperty="curriculumId" resultType="long" order="BEFORE">
       SELECT SEQ_CURRICULUM_MASTER.NEXTVAL FROM DUAL
     </selectKey>
     INSERT INTO CURRICULUM_MASTER (
-      CURRICULUM_ID,
-      TITLE,
-      INSTRUCTOR_ID,
-      USE_YN,
-      RGTR_ID,
-      REG_DT,
-      LAST_MDFR_ID,
-      MDFCN_DT
+      CURRICULUM_ID, TITLE, INSTRUCTOR_ID, USE_YN,
+      RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
     ) VALUES (
-      #{curriculumId},
-      #{title},
-      #{instructorId},
-      'Y',
-      #{rgtrId},
-      SYSDATE,
-      #{lastMdfrId},
-      SYSDATE
+      #{curriculumId}, #{title}, #{instructorId}, 'Y',
+      #{rgtrId}, SYSDATE, #{lastMdfrId}, SYSDATE
     )
   </insert>
 
-  <insert id="insertDetailList">
-    INSERT ALL
-    <foreach collection="detailList" item="item" index="idx">
-      INTO CURRICULUM_DETAIL (
-        DETAIL_ID,
-        CURRICULUM_ID,
-        ROW_ORDER,
-        WEEK_INFO,
-        TOPIC,
-        CONTENT,
-        RGTR_ID,
-        REG_DT,
-        LAST_MDFR_ID,
-        MDFCN_DT
-      ) VALUES (
-        SEQ_CURRICULUM_DETAIL.NEXTVAL,
-        #{curriculumId},
-        #{idx},
-        #{item.weekInfo},
-        #{item.topic},
-        #{item.content},
-        #{item.rgtrId},
-        SYSDATE,
-        #{item.lastMdfrId},
-        SYSDATE
-      )
-    </foreach>
-    SELECT * FROM DUAL
+  <!-- INSERT ALL + NEXTVAL 조합은 Oracle에서 NEXTVAL이 문장당 1회만 증가하므로
+       동일한 DETAIL_ID가 중복 발급되어 ORA-00001이 발생합니다. -->
+  <insert id="insertDetail">
+    INSERT INTO CURRICULUM_DETAIL (
+      DETAIL_ID, CURRICULUM_ID, ROW_ORDER,
+      WEEK_INFO, TOPIC, CONTENT,
+      RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
+    ) VALUES (
+      SEQ_CURRICULUM_DETAIL.NEXTVAL,
+      #{curriculumId}, #{rowOrder},
+      #{weekInfo}, #{topic}, #{content},
+      #{rgtrId}, SYSDATE, NULL, SYSDATE
+    )
   </insert>
 
-  <update id="updateMaster" parameterType="kr.or.ddit.dto.CurriculumMasterDto">
+  <update id="updateMaster" parameterType="kr.or.ddit.dto.instructor.CurriculumMasterDto">
     UPDATE CURRICULUM_MASTER
-    SET
-      TITLE = #{title},
-      LAST_MDFR_ID = #{lastMdfrId},
-      MDFCN_DT = SYSDATE
+    SET TITLE = #{title}, LAST_MDFR_ID = #{lastMdfrId}, MDFCN_DT = SYSDATE
     WHERE CURRICULUM_ID = #{curriculumId}
   </update>
 
   <update id="deleteMasterLogically">
     UPDATE CURRICULUM_MASTER
-    SET
-      USE_YN = 'N',
-      LAST_MDFR_ID = #{lastMdfrId},
-      MDFCN_DT = SYSDATE
+    SET USE_YN = 'N', LAST_MDFR_ID = #{lastMdfrId}, MDFCN_DT = SYSDATE
     WHERE CURRICULUM_ID = #{curriculumId}
   </update>
 
   <delete id="deleteDetailsByMasterId">
-    DELETE FROM CURRICULUM_DETAIL
-    WHERE CURRICULUM_ID = #{curriculumId}
+    DELETE FROM CURRICULUM_DETAIL WHERE CURRICULUM_ID = #{curriculumId}
   </delete>
 
 </mapper>

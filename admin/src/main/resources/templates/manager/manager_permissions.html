@@ -1,0 +1,640 @@
+<title th:fragment="pageTitle">관리자 권한 운영 | HERMES</title>
+
+<div class="space-y-6">
+
+  <!-- ① 페이지 헤더 -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">관리자 권한 운영</h1>
+      <p class="text-sm text-slate-500 mt-1">직원별 시스템 메뉴 접근 권한을 관리하고 퇴사 직원의 접근을 즉시 차단합니다.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <button class="hm-btn-primary" onclick="openGrantModal()">
+        <i class="fa-solid fa-user-plus"></i>
+        <span>신규 권한 부여</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ② 요약 카드 -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-users-gear"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">전체 직원</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">12명</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">접근 활성</p>
+        <p class="text-2xl font-bold text-emerald-600 mt-0.5">10명</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-user-clock"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">권한 검토 필요</p>
+        <p class="text-2xl font-bold text-amber-500 mt-0.5">2명</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-user-slash"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">접근 차단</p>
+        <p class="text-2xl font-bold text-red-500 mt-0.5">2명</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 직원 권한 목록 + 상세 패널 -->
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+    <!-- 직원 목록 (좌) -->
+    <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col">
+      <!-- 목록 헤더 -->
+      <div class="p-4 border-b border-slate-100">
+        <div class="flex gap-2 mb-3">
+          <input type="text" class="hm-input flex-1" placeholder="이름 또는 직책 검색..." oninput="filterStaff(this.value)">
+        </div>
+        <div class="flex gap-2">
+          <button onclick="setStaffFilter('all', this)"
+            class="staff-filter-btn flex-1 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors bg-slate-50">
+            전체
+          </button>
+          <button onclick="setStaffFilter('active', this)"
+            class="staff-filter-btn flex-1 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
+            활성
+          </button>
+          <button onclick="setStaffFilter('review', this)"
+            class="staff-filter-btn flex-1 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
+            검토
+          </button>
+          <button onclick="setStaffFilter('blocked', this)"
+            class="staff-filter-btn flex-1 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
+            차단
+          </button>
+        </div>
+      </div>
+
+      <!-- 직원 목록 -->
+      <div class="overflow-y-auto flex-1 max-h-[520px] no-scrollbar" id="staffList"></div>
+    </div>
+
+    <!-- 권한 상세 (우) -->
+    <div class="lg:col-span-3 bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col">
+
+      <!-- 선택 전 안내 -->
+      <div id="staffDetailEmpty" class="flex-1 flex flex-col items-center justify-center text-slate-300">
+        <i class="fa-solid fa-user-shield text-5xl mb-4"></i>
+        <p class="text-sm">직원을 선택하면 권한 상세가 표시됩니다.</p>
+      </div>
+
+      <!-- 선택 후 상세 -->
+      <div id="staffDetail" class="hidden flex-1 flex flex-col gap-5">
+
+        <!-- 직원 프로필 -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-violet-100 text-violet-600 font-bold text-xl flex items-center justify-center" id="detailAvatar">-</div>
+            <div>
+              <p class="text-lg font-bold text-slate-800" id="detailName">-</p>
+              <p class="text-sm text-slate-500" id="detailRole">-</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2" id="detailActions"></div>
+        </div>
+
+        <!-- 접근 상태 + 마지막 로그인 -->
+        <div class="grid grid-cols-3 gap-3">
+          <div class="bg-slate-50 rounded-xl p-3 text-center">
+            <p class="text-xs text-slate-400 mb-1">접근 상태</p>
+            <div id="detailStatus"></div>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-3 text-center">
+            <p class="text-xs text-slate-400 mb-1">마지막 로그인</p>
+            <p class="text-sm font-semibold text-slate-700" id="detailLastLogin">-</p>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-3 text-center">
+            <p class="text-xs text-slate-400 mb-1">권한 부여일</p>
+            <p class="text-sm font-semibold text-slate-700" id="detailGrantDate">-</p>
+          </div>
+        </div>
+
+        <!-- 메뉴 접근 권한 -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-bold text-slate-700">메뉴 접근 권한</h3>
+            <button onclick="savePermissions()" class="hm-btn-primary text-xs py-1.5 px-3">
+              <i class="fa-solid fa-floppy-disk"></i> 권한 저장
+            </button>
+          </div>
+          <div class="space-y-2" id="menuPermissions"></div>
+        </div>
+
+        <!-- 권한 변경 이력 -->
+        <div>
+          <h3 class="text-sm font-bold text-slate-700 mb-3">최근 권한 변경 이력</h3>
+          <div class="space-y-2 max-h-40 overflow-y-auto no-scrollbar" id="permissionHistory"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ 퇴사 처리 대기 알림 -->
+  <div class="bg-red-50 border border-red-200 rounded-2xl p-5">
+    <div class="flex items-start gap-4">
+      <div class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-lg shrink-0">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <div class="flex-1">
+        <p class="text-sm font-bold text-red-700 mb-1">권한 검토 필요 직원</p>
+        <p class="text-xs text-red-500 mb-3">아래 직원은 보직 변경 또는 퇴사 예정으로 권한 검토가 필요합니다.</p>
+        <div class="flex flex-wrap gap-3" id="reviewAlertList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 신규 권한 부여 모달 ===== -->
+<div id="grantModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeGrantModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="text-base font-bold text-slate-800">신규 권한 부여</h3>
+      <button onclick="closeGrantModal()" class="text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+    <div class="space-y-4">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">직원명 <span class="text-red-400">*</span></label>
+          <input type="text" class="hm-input" id="grantName" placeholder="이름 입력">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">아이디 <span class="text-red-400">*</span></label>
+          <input type="text" class="hm-input" id="grantId" placeholder="시스템 ID">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">직책 <span class="text-red-400">*</span></label>
+          <select class="hm-input" id="grantRoleType">
+            <option value="">직책 선택</option>
+            <option value="manager">매니저</option>
+            <option value="staff">행정 직원</option>
+            <option value="instructor">강사</option>
+            <option value="pd">PD</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">입사일</label>
+          <input type="date" class="hm-input" id="grantJoinDate">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-2">부여할 메뉴 권한</label>
+        <div class="space-y-2 border border-slate-100 rounded-xl p-3 max-h-52 overflow-y-auto no-scrollbar" id="grantMenuList"></div>
+      </div>
+    </div>
+    <div class="flex gap-3 mt-5">
+      <button class="flex-1 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors" onclick="closeGrantModal()">취소</button>
+      <button class="flex-1 hm-btn-primary" onclick="saveGrantPermission()">
+        <i class="fa-solid fa-user-check"></i>
+        <span>권한 부여 완료</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 접근 차단 확인 모달 ===== -->
+<div id="blockModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeBlockModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6 text-center">
+    <div class="w-16 h-16 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-3xl mx-auto mb-4">
+      <i class="fa-solid fa-user-slash"></i>
+    </div>
+    <h3 class="text-base font-bold text-slate-800 mb-2" id="blockModalTitle">접근 차단 확인</h3>
+    <p class="text-sm text-slate-500 mb-6" id="blockModalDesc"></p>
+    <div class="flex gap-3">
+      <button class="flex-1 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors" onclick="closeBlockModal()">취소</button>
+      <button class="flex-1 py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-xl transition-colors" onclick="confirmBlock()">
+        <i class="fa-solid fa-lock mr-1"></i>차단 실행
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 페이지 스크립트 ===== -->
+<script>
+  /* ── 메뉴 목록 정의 ── */
+  const allMenus = [
+    { key: 'dashboard',    label: '대시보드',          icon: 'fa-gauge-high' },
+    { key: 'student',      label: '학생 관리',          icon: 'fa-user-graduate' },
+    { key: 'class',        label: '강의 관리',          icon: 'fa-chalkboard' },
+    { key: 'attendance',   label: '출결 관리',          icon: 'fa-calendar-check' },
+    { key: 'payment',      label: '결제/수강료',        icon: 'fa-credit-card' },
+    { key: 'consultation', label: '학부모 상담',        icon: 'fa-comments' },
+    { key: 'retention',    label: '퇴원 방어',          icon: 'fa-shield-halved' },
+    { key: 'teachers',     label: '강사 모니터링',      icon: 'fa-person-chalkboard' },
+    { key: 'approval',     label: '결재 관리',          icon: 'fa-file-signature' },
+    { key: 'notice',       label: '공지/알림',          icon: 'fa-bell' },
+    { key: 'report',       label: '리포트/통계',        icon: 'fa-chart-bar' },
+    { key: 'system',       label: '시스템 설정',        icon: 'fa-gear' },
+  ];
+
+  /* ── 직원 데이터 ── */
+  const staffData = [
+    {
+      id: 1, name: '박매니저', loginId: 'mgr_park', role: '매니저', roleType: 'manager',
+      status: 'active', lastLogin: '2026-05-26 09:12', grantDate: '2024-03-01',
+      menus: ['dashboard','student','class','attendance','payment','consultation','retention','teachers','approval','notice','report'],
+      history: [
+        { date: '2026-05-01', action: '결재 관리 권한 추가', by: '원장' },
+        { date: '2026-03-15', action: '리포트/통계 권한 추가', by: '원장' },
+        { date: '2024-03-01', action: '초기 권한 부여', by: '원장' },
+      ],
+      note: '',
+    },
+    {
+      id: 2, name: '이담임', loginId: 'staff_lee', role: '행정 직원', roleType: 'staff',
+      status: 'active', lastLogin: '2026-05-26 10:45', grantDate: '2024-07-15',
+      menus: ['dashboard','student','class','attendance','consultation','notice'],
+      history: [
+        { date: '2026-01-10', action: '학부모 상담 권한 추가', by: '박매니저' },
+        { date: '2024-07-15', action: '초기 권한 부여', by: '원장' },
+      ],
+      note: '',
+    },
+    {
+      id: 3, name: '김철수', loginId: 'inst_kim', role: '강사', roleType: 'instructor',
+      status: 'active', lastLogin: '2026-05-25 17:30', grantDate: '2023-09-01',
+      menus: ['dashboard','class','attendance','consultation','notice'],
+      history: [
+        { date: '2023-09-01', action: '초기 권한 부여', by: '원장' },
+      ],
+      note: '',
+    },
+    {
+      id: 4, name: '이영희', loginId: 'inst_lee', role: '강사', roleType: 'instructor',
+      status: 'active', lastLogin: '2026-05-24 16:00', grantDate: '2024-02-01',
+      menus: ['dashboard','class','attendance','consultation','notice'],
+      history: [
+        { date: '2024-02-01', action: '초기 권한 부여', by: '원장' },
+      ],
+      note: '',
+    },
+    {
+      id: 5, name: '박민수', loginId: 'inst_park', role: '강사', roleType: 'instructor',
+      status: 'active', lastLogin: '2026-05-26 08:55', grantDate: '2022-03-01',
+      menus: ['dashboard','class','attendance','consultation','notice'],
+      history: [
+        { date: '2022-03-01', action: '초기 권한 부여', by: '원장' },
+      ],
+      note: '',
+    },
+    {
+      id: 6, name: '최수진', loginId: 'inst_choi', role: '강사', roleType: 'instructor',
+      status: 'active', lastLogin: '2026-05-23 15:10', grantDate: '2025-01-06',
+      menus: ['dashboard','class','attendance','notice'],
+      history: [
+        { date: '2025-01-06', action: '초기 권한 부여', by: '박매니저' },
+      ],
+      note: '',
+    },
+    {
+      id: 7, name: '정태양', loginId: 'inst_jung', role: '강사', roleType: 'instructor',
+      status: 'active', lastLogin: '2026-05-26 11:00', grantDate: '2025-06-01',
+      menus: ['dashboard','class','attendance','notice'],
+      history: [
+        { date: '2025-06-01', action: '초기 권한 부여', by: '박매니저' },
+      ],
+      note: '',
+    },
+    {
+      id: 8, name: '한PD', loginId: 'pd_han', role: 'PD', roleType: 'pd',
+      status: 'active', lastLogin: '2026-05-25 13:00', grantDate: '2024-09-01',
+      menus: ['dashboard','class','notice','report'],
+      history: [
+        { date: '2024-09-01', action: '초기 권한 부여', by: '원장' },
+      ],
+      note: '',
+    },
+    {
+      id: 9, name: '오행정', loginId: 'staff_oh', role: '행정 직원', roleType: 'staff',
+      status: 'active', lastLogin: '2026-05-20 14:00', grantDate: '2025-03-01',
+      menus: ['dashboard','student','attendance','payment','notice'],
+      history: [
+        { date: '2025-03-01', action: '초기 권한 부여', by: '박매니저' },
+      ],
+      note: '',
+    },
+    {
+      id: 10, name: '임직원', loginId: 'staff_lim', role: '행정 직원', roleType: 'staff',
+      status: 'active', lastLogin: '2026-05-19 09:00', grantDate: '2023-11-01',
+      menus: ['dashboard','student','attendance','notice'],
+      history: [
+        { date: '2023-11-01', action: '초기 권한 부여', by: '원장' },
+      ],
+      note: '',
+    },
+    {
+      id: 11, name: '강보직', loginId: 'mgr_kang', role: '매니저 (보직변경 예정)', roleType: 'manager',
+      status: 'review', lastLogin: '2026-05-15 10:00', grantDate: '2023-05-01',
+      menus: ['dashboard','student','class','attendance','payment','consultation','notice','report'],
+      history: [
+        { date: '2026-05-20', action: '보직변경으로 권한 검토 필요 표시', by: '박매니저' },
+      ],
+      note: '6월 1일부로 강사 보직으로 변경 예정. 매니저 메뉴 권한 회수 필요.',
+    },
+    {
+      id: 12, name: '윤퇴사', loginId: 'staff_yoon', role: '행정 직원 (퇴사 예정)', roleType: 'staff',
+      status: 'review', lastLogin: '2026-05-10 16:30', grantDate: '2022-08-01',
+      menus: ['dashboard','student','attendance','payment','notice'],
+      history: [
+        { date: '2026-05-22', action: '퇴사 예정으로 권한 검토 필요 표시', by: '박매니저' },
+      ],
+      note: '5월 31일 퇴사 예정. 퇴사일에 전체 접근 차단 처리 필요.',
+    },
+  ];
+
+  const blockedStaff = [
+    { id: 13, name: '구직원A', loginId: 'ex_staff_a', role: '행정 직원', blockedDate: '2026-04-01', reason: '퇴사' },
+    { id: 14, name: '구강사B', loginId: 'ex_inst_b',  role: '강사',      blockedDate: '2026-03-15', reason: '계약 종료' },
+  ];
+
+  let selectedStaffId = null;
+  let blockTargetId = null;
+  let currentFilter = 'all';
+
+  /* ── 상태 배지 ── */
+  function statusBadge(status) {
+    const map = {
+      'active':  ['bg-emerald-50 text-emerald-700', '활성'],
+      'review':  ['bg-amber-50 text-amber-600',     '검토 필요'],
+      'blocked': ['bg-red-50 text-red-600',          '차단'],
+    };
+    const [cls, label] = map[status] || ['bg-slate-100 text-slate-500', status];
+    return `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${cls}">${label}</span>`;
+  }
+
+  function roleBadge(roleType) {
+    const map = { manager: 'bg-violet-50 text-violet-700', staff: 'bg-sky-50 text-sky-700', instructor: 'bg-emerald-50 text-emerald-700', pd: 'bg-amber-50 text-amber-700' };
+    return `<span class="px-2 py-0.5 rounded-full text-xs font-medium ${map[roleType] || 'bg-slate-100 text-slate-500'}">${roleType}</span>`;
+  }
+
+  /* ── 직원 목록 렌더링 ── */
+  function renderStaffList(filter, keyword) {
+    const list = document.getElementById('staffList');
+    let data = staffData.filter(s => {
+      if (filter === 'active')  return s.status === 'active';
+      if (filter === 'review')  return s.status === 'review';
+      if (filter === 'blocked') return false;
+      return true;
+    });
+
+    const allData = filter === 'blocked'
+      ? blockedStaff.map(b => ({ ...b, status: 'blocked' }))
+      : filter === 'all'
+      ? [...data, ...blockedStaff.map(b => ({ ...b, status: 'blocked' }))]
+      : data;
+
+    const searched = keyword
+      ? allData.filter(s => s.name.includes(keyword) || (s.role || '').includes(keyword))
+      : allData;
+
+    if (searched.length === 0) {
+      list.innerHTML = `<div class="py-8 text-center text-slate-300 text-sm">해당하는 직원이 없습니다.</div>`;
+      return;
+    }
+
+    list.innerHTML = searched.map(s => {
+      const isSelected = s.id === selectedStaffId;
+      const dot = s.status === 'active' ? 'bg-emerald-400' : s.status === 'review' ? 'bg-amber-400' : 'bg-red-400';
+      return `
+        <button onclick="selectStaff(${s.id}, '${s.status}')"
+          class="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0
+            ${isSelected ? 'bg-violet-50 border-l-2 border-l-violet-500' : 'border-l-2 border-l-transparent'}">
+          <div class="relative shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 font-bold flex items-center justify-center">
+              ${s.name[0]}
+            </div>
+            <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${dot}"></span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-1.5">
+              <p class="text-sm font-semibold text-slate-800">${s.name}</p>
+              ${s.status === 'review' ? `<i class="fa-solid fa-triangle-exclamation text-amber-400 text-xs"></i>` : ''}
+            </div>
+            <p class="text-xs text-slate-400 truncate">${s.role}</p>
+          </div>
+          <div class="shrink-0">${statusBadge(s.status)}</div>
+        </button>
+      `;
+    }).join('');
+  }
+
+  function setStaffFilter(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.staff-filter-btn').forEach(b => {
+      b.classList.remove('bg-violet-50', 'text-violet-700', 'border-violet-300');
+      b.classList.add('bg-slate-50', 'text-slate-500', 'border-slate-200');
+    });
+    btn.classList.remove('bg-slate-50', 'text-slate-500', 'border-slate-200');
+    btn.classList.add('bg-violet-50', 'text-violet-700', 'border-violet-300');
+    renderStaffList(filter, '');
+  }
+
+  function filterStaff(keyword) {
+    renderStaffList(currentFilter, keyword);
+  }
+
+  /* ── 직원 선택 → 권한 상세 ── */
+  function selectStaff(id, status) {
+    selectedStaffId = id;
+    renderStaffList(currentFilter, '');
+
+    const isBlocked = status === 'blocked';
+    const s = isBlocked
+      ? { ...blockedStaff.find(b => b.id === id), menus: [], history: [], status: 'blocked' }
+      : staffData.find(s => s.id === id);
+
+    if (!s) return;
+
+    document.getElementById('staffDetailEmpty').classList.add('hidden');
+    document.getElementById('staffDetail').classList.remove('hidden');
+
+    document.getElementById('detailAvatar').textContent = s.name[0];
+    document.getElementById('detailName').textContent = s.name;
+    document.getElementById('detailRole').textContent = (s.role || '-') + '  ·  ' + (s.loginId || '-');
+    document.getElementById('detailLastLogin').textContent = s.lastLogin || (s.blockedDate ? s.blockedDate + ' (차단)' : '-');
+    document.getElementById('detailGrantDate').textContent = s.grantDate || s.blockedDate || '-';
+    document.getElementById('detailStatus').innerHTML = statusBadge(s.status);
+
+    /* 액션 버튼 */
+    const actions = document.getElementById('detailActions');
+    if (isBlocked) {
+      actions.innerHTML = `
+        <button onclick="showHermesToast('접근 차단이 해제되었습니다.', 'success')"
+          class="px-3 py-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors">
+          <i class="fa-solid fa-lock-open mr-1"></i>차단 해제
+        </button>`;
+    } else if (s.status === 'review') {
+      actions.innerHTML = `
+        <button onclick="openBlockModal(${s.id})"
+          class="px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
+          <i class="fa-solid fa-user-slash mr-1"></i>즉시 차단
+        </button>`;
+    } else {
+      actions.innerHTML = `
+        <button onclick="openBlockModal(${s.id})"
+          class="px-3 py-1.5 text-xs font-semibold text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
+          <i class="fa-solid fa-user-slash mr-1"></i>접근 차단
+        </button>`;
+    }
+
+    /* 메뉴 권한 토글 */
+    const menuContainer = document.getElementById('menuPermissions');
+    if (isBlocked || !s.menus) {
+      menuContainer.innerHTML = `<p class="text-xs text-slate-300 text-center py-3">차단된 계정은 권한을 편집할 수 없습니다.</p>`;
+    } else {
+      menuContainer.innerHTML = allMenus.map(m => {
+        const has = s.menus.includes(m.key);
+        return `
+          <label class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 cursor-pointer group">
+            <div class="flex items-center gap-3">
+              <div class="w-7 h-7 rounded-lg ${has ? 'bg-violet-50 text-violet-600' : 'bg-slate-100 text-slate-300'} flex items-center justify-center text-xs transition-colors">
+                <i class="fa-solid ${m.icon}"></i>
+              </div>
+              <span class="text-sm font-medium text-slate-700">${m.label}</span>
+            </div>
+            <input type="checkbox" class="hm-switch" data-menu="${m.key}" ${has ? 'checked' : ''}>
+          </label>
+        `;
+      }).join('');
+    }
+
+    /* 변경 이력 */
+    const historyContainer = document.getElementById('permissionHistory');
+    const history = s.history || [];
+    historyContainer.innerHTML = history.length === 0
+      ? `<p class="text-xs text-slate-300 text-center py-2">변경 이력이 없습니다.</p>`
+      : history.map(h => `
+          <div class="flex items-start gap-3 text-xs">
+            <span class="text-slate-300 whitespace-nowrap shrink-0">${h.date}</span>
+            <span class="text-slate-600">${h.action}</span>
+            <span class="text-slate-400 ml-auto shrink-0">${h.by}</span>
+          </div>
+        `).join('');
+
+    /* 검토 사유 표시 */
+    if (s.note) {
+      const noteEl = document.createElement('div');
+      noteEl.className = 'bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700 leading-relaxed';
+      noteEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1.5"></i>${s.note}`;
+      menuContainer.parentElement.insertAdjacentElement('beforebegin', noteEl);
+    }
+  }
+
+  /* ── 권한 저장 ── */
+  function savePermissions() {
+    const s = staffData.find(s => s.id === selectedStaffId);
+    if (!s) return;
+    const checked = [...document.querySelectorAll('#menuPermissions input[type=checkbox]')]
+      .filter(cb => cb.checked).map(cb => cb.dataset.menu);
+    s.menus = checked;
+    showHermesToast(`${s.name}의 권한이 저장되었습니다.`, 'success');
+  }
+
+  /* ── 차단 모달 ── */
+  function openBlockModal(id) {
+    blockTargetId = id;
+    const s = staffData.find(s => s.id === id);
+    document.getElementById('blockModalTitle').textContent = s.name + ' 접근 차단';
+    document.getElementById('blockModalDesc').textContent =
+      s.name + '(' + s.loginId + ')의 시스템 접근을 즉시 차단합니다. 모든 메뉴 권한이 회수되며 로그인이 불가합니다.';
+    document.getElementById('blockModal').classList.remove('hidden');
+  }
+
+  function closeBlockModal() {
+    document.getElementById('blockModal').classList.add('hidden');
+    blockTargetId = null;
+  }
+
+  function confirmBlock() {
+    const s = staffData.find(s => s.id === blockTargetId);
+    if (s) { s.status = 'blocked'; s.menus = []; }
+    closeBlockModal();
+    selectedStaffId = null;
+    document.getElementById('staffDetailEmpty').classList.remove('hidden');
+    document.getElementById('staffDetail').classList.add('hidden');
+    renderStaffList(currentFilter, '');
+    showHermesToast('접근이 차단되었습니다. 해당 직원은 즉시 로그아웃됩니다.', 'success');
+  }
+
+  /* ── 권한 부여 모달 ── */
+  function openGrantModal() {
+    const grantMenuList = document.getElementById('grantMenuList');
+    grantMenuList.innerHTML = allMenus.map(m => `
+      <label class="flex items-center gap-3 py-1.5 cursor-pointer">
+        <input type="checkbox" class="hm-switch" data-grant-menu="${m.key}">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid ${m.icon} text-slate-400 w-4 text-center text-xs"></i>
+          <span class="text-sm text-slate-700">${m.label}</span>
+        </div>
+      </label>
+    `).join('');
+    document.getElementById('grantModal').classList.remove('hidden');
+  }
+
+  function closeGrantModal() {
+    document.getElementById('grantModal').classList.add('hidden');
+    ['grantName','grantId','grantJoinDate'].forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('grantRoleType').value = '';
+  }
+
+  function saveGrantPermission() {
+    const name     = document.getElementById('grantName').value.trim();
+    const loginId  = document.getElementById('grantId').value.trim();
+    const roleType = document.getElementById('grantRoleType').value;
+    if (!name)     { showHermesToast('직원명을 입력해 주세요.', 'error'); return; }
+    if (!loginId)  { showHermesToast('시스템 ID를 입력해 주세요.', 'error'); return; }
+    if (!roleType) { showHermesToast('직책을 선택해 주세요.', 'error'); return; }
+    closeGrantModal();
+    showHermesToast(name + '에게 권한이 부여되었습니다.', 'success');
+  }
+
+  /* ── 검토 필요 알림 ── */
+  function renderReviewAlert() {
+    const container = document.getElementById('reviewAlertList');
+    const reviews = staffData.filter(s => s.status === 'review');
+    container.innerHTML = reviews.map(s => `
+      <div class="flex items-center gap-3 bg-white border border-red-200 rounded-xl px-4 py-2.5">
+        <div class="w-8 h-8 rounded-lg bg-red-50 text-red-500 font-bold flex items-center justify-center text-sm shrink-0">
+          ${s.name[0]}
+        </div>
+        <div class="min-w-0">
+          <p class="text-sm font-semibold text-slate-800">${s.name}</p>
+          <p class="text-xs text-red-500 truncate max-w-48">${s.note}</p>
+        </div>
+        <button onclick="selectStaff(${s.id}, 'review')" class="ml-2 px-3 py-1 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors shrink-0">
+          권한 처리
+        </button>
+      </div>
+    `).join('');
+  }
+
+  /* ── 초기 렌더링 ── */
+  renderStaffList('all', '');
+  renderReviewAlert();
+</script>

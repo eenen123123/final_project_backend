@@ -1,0 +1,759 @@
+<title th:fragment="pageTitle">학사 운영 모니터링 | HERMES</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<div class="space-y-6">
+
+  <!-- ① 페이지 헤더 -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">학사 운영 모니터링</h1>
+      <p class="text-sm text-slate-500 mt-1">강의 개설 현황, 수업 진도율, 시험 일정 및 학생 성적 통계를 실시간으로 조회합니다.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 bg-white border border-slate-100 shadow-sm px-3 py-2 rounded-xl text-xs font-medium text-slate-500">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        실시간 데이터
+      </div>
+      <button class="hm-btn-primary" onclick="showHermesToast('학사 리포트를 내보내기합니다.', 'success')">
+        <i class="fa-solid fa-file-arrow-down"></i>
+        <span>리포트 내보내기</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ② 요약 통계 카드 -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-chalkboard"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">개설 강의</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">18개</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-chart-line"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">평균 진도율</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">67%</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-clipboard-list"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">예정 시험</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">5건</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-star"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">전체 평균 점수</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">74.2점</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 탭 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="flex border-b border-slate-100 px-6 pt-4 gap-1">
+      <button data-tab="tab-lecture"
+        class="mon-tab-btn px-5 py-2.5 text-sm font-semibold rounded-t-xl transition-all text-slate-500 hover:text-violet-600 border-b-2 border-transparent"
+        onclick="switchMonTab('tab-lecture', this)">
+        <i class="fa-solid fa-chalkboard mr-2"></i>강의 개설 현황
+      </button>
+      <button data-tab="tab-progress"
+        class="mon-tab-btn px-5 py-2.5 text-sm font-semibold rounded-t-xl transition-all text-slate-500 hover:text-violet-600 border-b-2 border-transparent"
+        onclick="switchMonTab('tab-progress', this)">
+        <i class="fa-solid fa-chart-line mr-2"></i>수업 진도율
+      </button>
+      <button data-tab="tab-exam"
+        class="mon-tab-btn px-5 py-2.5 text-sm font-semibold rounded-t-xl transition-all text-slate-500 hover:text-violet-600 border-b-2 border-transparent"
+        onclick="switchMonTab('tab-exam', this)">
+        <i class="fa-solid fa-clipboard-list mr-2"></i>시험 일정
+      </button>
+      <button data-tab="tab-grade"
+        class="mon-tab-btn px-5 py-2.5 text-sm font-semibold rounded-t-xl transition-all text-slate-500 hover:text-violet-600 border-b-2 border-transparent"
+        onclick="switchMonTab('tab-grade', this)">
+        <i class="fa-solid fa-chart-bar mr-2"></i>성적 통계
+      </button>
+    </div>
+
+    <!-- ===== TAB 1: 강의 개설 현황 ===== -->
+    <div id="tab-lecture" class="mon-tab-panel p-6 space-y-5">
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="w-full sm:w-64 relative">
+          <input type="text" class="hm-input pl-10" placeholder="강의명 또는 강사명 검색..." />
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+        </div>
+        <div class="w-full sm:w-40">
+          <select class="hm-input">
+            <option value="">과목 전체</option>
+            <option>수학</option>
+            <option>영어</option>
+            <option>국어</option>
+          </select>
+        </div>
+        <div class="w-full sm:w-40">
+          <select class="hm-input">
+            <option value="">상태 전체</option>
+            <option>진행 중</option>
+            <option>준비 중</option>
+            <option>종료</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+                <th class="py-4 px-6">강의 정보</th>
+                <th class="py-4 px-6">담당 강사</th>
+                <th class="py-4 px-6">수강 인원</th>
+                <th class="py-4 px-6">수업 일정</th>
+                <th class="py-4 px-6 text-center">진도율</th>
+                <th class="py-4 px-6 text-center">상태</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="py-4 px-6">
+                  <p class="font-bold text-slate-800">2026 수능 수학 완성</p>
+                  <p class="text-xs text-slate-400 mt-0.5">고등 수학 A반 · 월·수·금</p>
+                </td>
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center text-xs font-bold shrink-0">홍</div>
+                    <span>홍길동 원장</span>
+                  </div>
+                </td>
+                <td class="py-4 px-6">
+                  <span class="font-semibold text-slate-800">30</span>
+                  <span class="text-slate-400 text-xs"> / 30명</span>
+                  <span class="ml-1 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded-full">마감</span>
+                </td>
+                <td class="py-4 px-6 text-xs text-slate-500">2026-03-02 ~ 2026-11-28</td>
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-2">
+                    <div class="flex-1 h-1.5 rounded-full bg-slate-200 overflow-hidden min-w-16">
+                      <div class="h-full bg-violet-500 rounded-full" style="width: 42%"></div>
+                    </div>
+                    <span class="text-xs font-bold text-slate-700 w-8 text-right">42%</span>
+                  </div>
+                </td>
+                <td class="py-4 px-6 text-center">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 진행 중
+                  </span>
+                </td>
+              </tr>
+
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="py-4 px-6">
+                  <p class="font-bold text-slate-800">중등 수학 기초 완성</p>
+                  <p class="text-xs text-slate-400 mt-0.5">중등 수학 A반 · 화·목</p>
+                </td>
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center text-xs font-bold shrink-0">이</div>
+                    <span>이수진 강사</span>
+                  </div>
+                </td>
+                <td class="py-4 px-6">
+                  <span class="font-semibold text-slate-800">28</span>
+                  <span class="text-slate-400 text-xs"> / 30명</span>
+                </td>
+                <td class="py-4 px-6 text-xs text-slate-500">2026-03-04 ~ 2026-11-27</td>
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-2">
+                    <div class="flex-1 h-1.5 rounded-full bg-slate-200 overflow-hidden min-w-16">
+                      <div class="h-full bg-violet-500 rounded-full" style="width: 40%"></div>
+                    </div>
+                    <span class="text-xs font-bold text-slate-700 w-8 text-right">40%</span>
+                  </div>
+                </td>
+                <td class="py-4 px-6 text-center">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 진행 중
+                  </span>
+                </td>
+              </tr>
+
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="py-4 px-6">
+                  <p class="font-bold text-slate-800">수능 영어 독해 특강</p>
+                  <p class="text-xs text-slate-400 mt-0.5">고등 영어반 · 월·수·금</p>
+                </td>
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center text-xs font-bold shrink-0">김</div>
+                    <span>김민준 팀장</span>
+                  </div>
+                </td>
+                <td class="py-4 px-6">
+                  <span class="font-semibold text-slate-800">29</span>
+                  <span class="text-slate-400 text-xs"> / 30명</span>
+                  <span class="ml-1 text-[10px] text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded-full">임박</span>
+                </td>
+                <td class="py-4 px-6 text-xs text-slate-500">2026-03-02 ~ 2026-11-28</td>
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-2">
+                    <div class="flex-1 h-1.5 rounded-full bg-slate-200 overflow-hidden min-w-16">
+                      <div class="h-full bg-violet-500 rounded-full" style="width: 39%"></div>
+                    </div>
+                    <span class="text-xs font-bold text-slate-700 w-8 text-right">39%</span>
+                  </div>
+                </td>
+                <td class="py-4 px-6 text-center">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 진행 중
+                  </span>
+                </td>
+              </tr>
+
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="py-4 px-6">
+                  <p class="font-bold text-slate-800">여름방학 특별 수학</p>
+                  <p class="text-xs text-slate-400 mt-0.5">전 학년 대상 · 집중반</p>
+                </td>
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-bold shrink-0">박</div>
+                    <span>박지성 강사</span>
+                  </div>
+                </td>
+                <td class="py-4 px-6">
+                  <span class="font-semibold text-slate-800">0</span>
+                  <span class="text-slate-400 text-xs"> / 25명</span>
+                </td>
+                <td class="py-4 px-6 text-xs text-slate-500">2026-07-21 ~ 2026-08-15</td>
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-2">
+                    <div class="flex-1 h-1.5 rounded-full bg-slate-200 overflow-hidden min-w-16">
+                      <div class="h-full bg-slate-300 rounded-full" style="width: 0%"></div>
+                    </div>
+                    <span class="text-xs font-bold text-slate-400 w-8 text-right">0%</span>
+                  </div>
+                </td>
+                <td class="py-4 px-6 text-center">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> 준비 중
+                  </span>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+        <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+          <p class="text-xs text-slate-400">전체 18개 강의 중 1 – 4 표시</p>
+          <div class="flex items-center gap-1">
+            <button class="w-8 h-8 rounded-lg bg-violet-600 text-white text-xs font-bold flex items-center justify-center">1</button>
+            <button class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 text-xs flex items-center justify-center">2</button>
+            <button class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 text-xs flex items-center justify-center">3</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB 2: 수업 진도율 ===== -->
+    <div id="tab-progress" class="mon-tab-panel p-6 space-y-6 hidden">
+      <!-- 반별 진도율 카드 그리드 -->
+      <div>
+        <h3 class="text-sm font-bold text-slate-700 mb-4">반별 수업 진도율 현황</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+          <div class="rounded-xl border border-slate-100 p-5 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <p class="text-sm font-bold text-slate-800">고등 수학 A반</p>
+                <p class="text-xs text-slate-400 mt-0.5">홍길동 원장 · 30명</p>
+              </div>
+              <span class="text-xl font-black text-violet-600">42%</span>
+            </div>
+            <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+              <div class="h-full bg-violet-500 rounded-full transition-all" style="width: 42%"></div>
+            </div>
+            <div class="flex justify-between mt-2 text-[11px] text-slate-400">
+              <span>진행: 17/40강</span>
+              <span>목표: 11월 28일</span>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-slate-100 p-5 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <p class="text-sm font-bold text-slate-800">고등 수학 B반</p>
+                <p class="text-xs text-slate-400 mt-0.5">이수진 강사 · 22명</p>
+              </div>
+              <span class="text-xl font-black text-violet-600">55%</span>
+            </div>
+            <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+              <div class="h-full bg-violet-500 rounded-full" style="width: 55%"></div>
+            </div>
+            <div class="flex justify-between mt-2 text-[11px] text-slate-400">
+              <span>진행: 22/40강</span>
+              <span>목표: 11월 28일</span>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-slate-100 p-5 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <p class="text-sm font-bold text-slate-800">중등 수학 A반</p>
+                <p class="text-xs text-slate-400 mt-0.5">이수진 강사 · 28명</p>
+              </div>
+              <span class="text-xl font-black text-violet-600">40%</span>
+            </div>
+            <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+              <div class="h-full bg-violet-500 rounded-full" style="width: 40%"></div>
+            </div>
+            <div class="flex justify-between mt-2 text-[11px] text-slate-400">
+              <span>진행: 16/40강</span>
+              <span>목표: 11월 27일</span>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-slate-100 p-5 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <p class="text-sm font-bold text-slate-800">중등 수학 B반</p>
+                <p class="text-xs text-slate-400 mt-0.5">박지성 강사 · 24명</p>
+              </div>
+              <span class="text-xl font-black text-violet-600">38%</span>
+            </div>
+            <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+              <div class="h-full bg-violet-500 rounded-full" style="width: 38%"></div>
+            </div>
+            <div class="flex justify-between mt-2 text-[11px] text-slate-400">
+              <span>진행: 15/40강</span>
+              <span>목표: 11월 27일</span>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-slate-100 p-5 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <p class="text-sm font-bold text-slate-800">고등 영어반</p>
+                <p class="text-xs text-slate-400 mt-0.5">김민준 팀장 · 29명</p>
+              </div>
+              <span class="text-xl font-black text-emerald-600">78%</span>
+            </div>
+            <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+              <div class="h-full bg-emerald-500 rounded-full" style="width: 78%"></div>
+            </div>
+            <div class="flex justify-between mt-2 text-[11px] text-slate-400">
+              <span>진행: 31/40강</span>
+              <span>목표: 11월 28일</span>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-slate-100 p-5 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <p class="text-sm font-bold text-slate-800">중등 영어반</p>
+                <p class="text-xs text-slate-400 mt-0.5">최지원 강사 · 18명</p>
+              </div>
+              <span class="text-xl font-black text-amber-500">91%</span>
+            </div>
+            <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+              <div class="h-full bg-amber-500 rounded-full" style="width: 91%"></div>
+            </div>
+            <div class="flex justify-between mt-2 text-[11px] text-slate-400">
+              <span>진행: 36/40강</span>
+              <span class="text-amber-500 font-semibold">종강 임박</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 진도율 추이 차트 -->
+      <div>
+        <h3 class="text-sm font-bold text-slate-700 mb-4">월별 평균 진도율 추이</h3>
+        <div class="h-56">
+          <canvas id="progressChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB 3: 시험 일정 ===== -->
+    <div id="tab-exam" class="mon-tab-panel p-6 space-y-5 hidden">
+
+      <!-- 달력 형식 일정 뷰 -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- 예정 시험 목록 -->
+        <div class="lg:col-span-2 space-y-3">
+          <h3 class="text-sm font-bold text-slate-700">예정 시험 일정</h3>
+
+          <div class="rounded-xl border border-violet-100 bg-violet-50/50 p-4">
+            <div class="flex items-start gap-4">
+              <div class="text-center bg-violet-600 text-white rounded-xl px-3 py-2 shrink-0 min-w-14">
+                <p class="text-[10px] font-bold opacity-80">6월</p>
+                <p class="text-2xl font-black leading-none">07</p>
+                <p class="text-[10px] font-bold opacity-80">토</p>
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-xs font-bold text-violet-700 bg-violet-100 px-2 py-0.5 rounded-full">월간 정기시험</span>
+                  <span class="text-xs text-slate-400">D-12</span>
+                </div>
+                <p class="text-sm font-bold text-slate-800 mt-1">6월 전 과목 월간 모의고사</p>
+                <p class="text-xs text-slate-500 mt-1">대상: 전체 재학생 324명 &nbsp;·&nbsp; 시간: 오전 10:00 ~ 오후 1:00</p>
+                <p class="text-xs text-slate-500 mt-0.5">장소: 전 강의실 동시 진행</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-sky-100 bg-sky-50/50 p-4">
+            <div class="flex items-start gap-4">
+              <div class="text-center bg-sky-500 text-white rounded-xl px-3 py-2 shrink-0 min-w-14">
+                <p class="text-[10px] font-bold opacity-80">6월</p>
+                <p class="text-2xl font-black leading-none">14</p>
+                <p class="text-[10px] font-bold opacity-80">토</p>
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-xs font-bold text-sky-700 bg-sky-100 px-2 py-0.5 rounded-full">단원 평가</span>
+                  <span class="text-xs text-slate-400">D-19</span>
+                </div>
+                <p class="text-sm font-bold text-slate-800 mt-1">고등 수학 A·B반 미적분 단원평가</p>
+                <p class="text-xs text-slate-500 mt-1">대상: 고등 수학 A·B반 (52명) &nbsp;·&nbsp; 시간: 오전 10:00 ~ 12:00</p>
+                <p class="text-xs text-slate-500 mt-0.5">담당: 홍길동 원장, 이수진 강사</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-amber-100 bg-amber-50/50 p-4">
+            <div class="flex items-start gap-4">
+              <div class="text-center bg-amber-500 text-white rounded-xl px-3 py-2 shrink-0 min-w-14">
+                <p class="text-[10px] font-bold opacity-80">6월</p>
+                <p class="text-2xl font-black leading-none">21</p>
+                <p class="text-[10px] font-bold opacity-80">토</p>
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">모의고사</span>
+                  <span class="text-xs text-slate-400">D-26</span>
+                </div>
+                <p class="text-sm font-bold text-slate-800 mt-1">수능 대비 실전 모의고사 (고3 전용)</p>
+                <p class="text-xs text-slate-500 mt-1">대상: 고등학교 3학년 (88명) &nbsp;·&nbsp; 시간: 오전 9:00 ~ 오후 2:00</p>
+                <p class="text-xs text-slate-500 mt-0.5">형식: 수능 동일 형식 · OMR 마킹</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-teal-100 bg-teal-50/50 p-4">
+            <div class="flex items-start gap-4">
+              <div class="text-center bg-teal-500 text-white rounded-xl px-3 py-2 shrink-0 min-w-14">
+                <p class="text-[10px] font-bold opacity-80">7월</p>
+                <p class="text-2xl font-black leading-none">05</p>
+                <p class="text-[10px] font-bold opacity-80">토</p>
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-xs font-bold text-teal-700 bg-teal-100 px-2 py-0.5 rounded-full">중간 점검</span>
+                  <span class="text-xs text-slate-400">D-40</span>
+                </div>
+                <p class="text-sm font-bold text-slate-800 mt-1">전 반 상반기 학습 성취도 점검</p>
+                <p class="text-xs text-slate-500 mt-1">대상: 전체 재학생 &nbsp;·&nbsp; 시간: 반별 순차 진행</p>
+                <p class="text-xs text-slate-500 mt-0.5">결과 보고서 학부모 발송 예정</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 최근 완료 시험 -->
+        <div class="space-y-3">
+          <h3 class="text-sm font-bold text-slate-700">최근 완료 시험</h3>
+          <div class="space-y-2">
+
+            <div class="rounded-xl border border-slate-100 bg-slate-50/60 p-3.5">
+              <div class="flex items-center justify-between mb-1">
+                <p class="text-xs font-bold text-slate-700">5월 월간 모의고사</p>
+                <span class="text-[10px] text-slate-400 font-mono">05-10</span>
+              </div>
+              <p class="text-xs text-slate-500">전체 324명 &nbsp;·&nbsp; 평균 74.2점</p>
+              <div class="mt-2 h-1 rounded-full bg-slate-200 overflow-hidden">
+                <div class="h-full bg-violet-400 rounded-full" style="width: 74%"></div>
+              </div>
+            </div>
+
+            <div class="rounded-xl border border-slate-100 bg-slate-50/60 p-3.5">
+              <div class="flex items-center justify-between mb-1">
+                <p class="text-xs font-bold text-slate-700">고등수학 4단원 평가</p>
+                <span class="text-[10px] text-slate-400 font-mono">05-03</span>
+              </div>
+              <p class="text-xs text-slate-500">A·B반 52명 &nbsp;·&nbsp; 평균 81.3점</p>
+              <div class="mt-2 h-1 rounded-full bg-slate-200 overflow-hidden">
+                <div class="h-full bg-emerald-400 rounded-full" style="width: 81%"></div>
+              </div>
+            </div>
+
+            <div class="rounded-xl border border-slate-100 bg-slate-50/60 p-3.5">
+              <div class="flex items-center justify-between mb-1">
+                <p class="text-xs font-bold text-slate-700">4월 월간 모의고사</p>
+                <span class="text-[10px] text-slate-400 font-mono">04-12</span>
+              </div>
+              <p class="text-xs text-slate-500">전체 320명 &nbsp;·&nbsp; 평균 71.8점</p>
+              <div class="mt-2 h-1 rounded-full bg-slate-200 overflow-hidden">
+                <div class="h-full bg-violet-400 rounded-full" style="width: 72%"></div>
+              </div>
+            </div>
+
+            <div class="rounded-xl border border-slate-100 bg-slate-50/60 p-3.5">
+              <div class="flex items-center justify-between mb-1">
+                <p class="text-xs font-bold text-slate-700">중등 영어 단원평가</p>
+                <span class="text-[10px] text-slate-400 font-mono">04-05</span>
+              </div>
+              <p class="text-xs text-slate-500">중등 영어반 18명 &nbsp;·&nbsp; 평균 68.5점</p>
+              <div class="mt-2 h-1 rounded-full bg-slate-200 overflow-hidden">
+                <div class="h-full bg-amber-400 rounded-full" style="width: 68%"></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB 4: 성적 통계 ===== -->
+    <div id="tab-grade" class="mon-tab-panel p-6 space-y-6 hidden">
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- 분포 차트 -->
+        <div>
+          <h3 class="text-sm font-bold text-slate-700 mb-4">전체 점수 분포 (최근 시험 기준)</h3>
+          <div class="h-56">
+            <canvas id="gradeDistChart"></canvas>
+          </div>
+        </div>
+
+        <!-- 반별 평균 점수 -->
+        <div>
+          <h3 class="text-sm font-bold text-slate-700 mb-4">반별 평균 점수 비교</h3>
+          <div class="h-56">
+            <canvas id="classAvgChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- 성적 상세 테이블 -->
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-bold text-slate-700">반별 성적 통계 상세</h3>
+          <div class="w-40">
+            <select class="hm-input !py-1.5 !text-xs">
+              <option>5월 월간 모의고사</option>
+              <option>4월 월간 모의고사</option>
+              <option>고등수학 4단원 평가</option>
+            </select>
+          </div>
+        </div>
+        <div class="rounded-xl border border-slate-100 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+                  <th class="py-3.5 px-6">반</th>
+                  <th class="py-3.5 px-6 text-right">응시 인원</th>
+                  <th class="py-3.5 px-6 text-right">평균</th>
+                  <th class="py-3.5 px-6 text-right">최고</th>
+                  <th class="py-3.5 px-6 text-right">최저</th>
+                  <th class="py-3.5 px-6 text-center">90점 이상</th>
+                  <th class="py-3.5 px-6 text-center">60점 미만</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+
+                <tr class="hover:bg-slate-50/50 transition-colors">
+                  <td class="py-3.5 px-6 font-semibold text-slate-800">고등 수학 A반</td>
+                  <td class="py-3.5 px-6 text-right">30명</td>
+                  <td class="py-3.5 px-6 text-right font-bold text-violet-700">79.4점</td>
+                  <td class="py-3.5 px-6 text-right text-emerald-600 font-mono">98점</td>
+                  <td class="py-3.5 px-6 text-right text-rose-500 font-mono">42점</td>
+                  <td class="py-3.5 px-6 text-center">
+                    <span class="inline-flex items-center justify-center w-8 h-6 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">8명</span>
+                  </td>
+                  <td class="py-3.5 px-6 text-center">
+                    <span class="inline-flex items-center justify-center w-8 h-6 rounded-full bg-rose-50 text-rose-600 text-xs font-bold">2명</span>
+                  </td>
+                </tr>
+
+                <tr class="hover:bg-slate-50/50 transition-colors">
+                  <td class="py-3.5 px-6 font-semibold text-slate-800">고등 수학 B반</td>
+                  <td class="py-3.5 px-6 text-right">22명</td>
+                  <td class="py-3.5 px-6 text-right font-bold text-violet-700">74.1점</td>
+                  <td class="py-3.5 px-6 text-right text-emerald-600 font-mono">95점</td>
+                  <td class="py-3.5 px-6 text-right text-rose-500 font-mono">38점</td>
+                  <td class="py-3.5 px-6 text-center">
+                    <span class="inline-flex items-center justify-center w-8 h-6 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">5명</span>
+                  </td>
+                  <td class="py-3.5 px-6 text-center">
+                    <span class="inline-flex items-center justify-center w-8 h-6 rounded-full bg-rose-50 text-rose-600 text-xs font-bold">3명</span>
+                  </td>
+                </tr>
+
+                <tr class="hover:bg-slate-50/50 transition-colors">
+                  <td class="py-3.5 px-6 font-semibold text-slate-800">중등 수학 A반</td>
+                  <td class="py-3.5 px-6 text-right">28명</td>
+                  <td class="py-3.5 px-6 text-right font-bold text-violet-700">72.8점</td>
+                  <td class="py-3.5 px-6 text-right text-emerald-600 font-mono">100점</td>
+                  <td class="py-3.5 px-6 text-right text-rose-500 font-mono">45점</td>
+                  <td class="py-3.5 px-6 text-center">
+                    <span class="inline-flex items-center justify-center w-8 h-6 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">6명</span>
+                  </td>
+                  <td class="py-3.5 px-6 text-center">
+                    <span class="inline-flex items-center justify-center w-8 h-6 rounded-full bg-rose-50 text-rose-600 text-xs font-bold">4명</span>
+                  </td>
+                </tr>
+
+                <tr class="hover:bg-slate-50/50 transition-colors">
+                  <td class="py-3.5 px-6 font-semibold text-slate-800">고등 영어반</td>
+                  <td class="py-3.5 px-6 text-right">29명</td>
+                  <td class="py-3.5 px-6 text-right font-bold text-violet-700">76.3점</td>
+                  <td class="py-3.5 px-6 text-right text-emerald-600 font-mono">97점</td>
+                  <td class="py-3.5 px-6 text-right text-rose-500 font-mono">51점</td>
+                  <td class="py-3.5 px-6 text-center">
+                    <span class="inline-flex items-center justify-center w-8 h-6 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">7명</span>
+                  </td>
+                  <td class="py-3.5 px-6 text-center">
+                    <span class="inline-flex items-center justify-center w-8 h-6 rounded-full bg-rose-50 text-rose-600 text-xs font-bold">1명</span>
+                  </td>
+                </tr>
+
+                <tr class="bg-violet-50/40 font-semibold">
+                  <td class="py-3.5 px-6 text-violet-700 font-bold">전체 평균</td>
+                  <td class="py-3.5 px-6 text-right">324명</td>
+                  <td class="py-3.5 px-6 text-right font-black text-violet-700">74.2점</td>
+                  <td class="py-3.5 px-6 text-right text-emerald-600 font-mono">100점</td>
+                  <td class="py-3.5 px-6 text-right text-rose-500 font-mono">38점</td>
+                  <td class="py-3.5 px-6 text-center">
+                    <span class="inline-flex items-center justify-center px-2 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">42명</span>
+                  </td>
+                  <td class="py-3.5 px-6 text-center">
+                    <span class="inline-flex items-center justify-center px-2 h-6 rounded-full bg-rose-100 text-rose-600 text-xs font-bold">17명</span>
+                  </td>
+                </tr>
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ===== 페이지 스크립트 ===== -->
+<script>
+  function switchMonTab(tabId, btn) {
+    document.querySelectorAll('.mon-tab-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.mon-tab-btn').forEach(b => {
+      b.classList.remove('text-violet-600', 'border-violet-500', 'bg-violet-50/60');
+      b.classList.add('text-slate-500', 'border-transparent');
+    });
+    document.getElementById(tabId).classList.remove('hidden');
+    btn.classList.remove('text-slate-500', 'border-transparent');
+    btn.classList.add('text-violet-600', 'border-violet-500', 'bg-violet-50/60');
+
+    if (tabId === 'tab-progress' && progressChart) progressChart.resize();
+    if (tabId === 'tab-grade') {
+      if (gradeDistChart) gradeDistChart.resize();
+      if (classAvgChart) classAvgChart.resize();
+    }
+  }
+
+  /* 진도율 추이 라인 차트 */
+  const progressChart = new Chart(
+    document.getElementById('progressChart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: ['3월', '4월', '5월'],
+      datasets: [
+        { label: '고등 수학 A', data: [10, 27, 42], borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.08)', tension: 0.4, fill: true, borderWidth: 2, pointRadius: 4 },
+        { label: '고등 수학 B', data: [12, 33, 55], borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,0.08)', tension: 0.4, fill: true, borderWidth: 2, pointRadius: 4 },
+        { label: '고등 영어', data: [15, 45, 78], borderColor: '#34d399', backgroundColor: 'rgba(52,211,153,0.08)', tension: 0.4, fill: true, borderWidth: 2, pointRadius: 4 },
+        { label: '중등 영어', data: [20, 55, 91], borderColor: '#fbbf24', backgroundColor: 'rgba(251,191,36,0.08)', tension: 0.4, fill: true, borderWidth: 2, pointRadius: 4 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12 } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 12 } } },
+        y: { min: 0, max: 100, grid: { color: 'rgba(148,163,184,0.1)' }, ticks: { font: { size: 11 }, callback: v => v + '%' } }
+      }
+    }
+  });
+
+  /* 점수 분포 막대 차트 */
+  const gradeDistChart = new Chart(
+    document.getElementById('gradeDistChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['0~39', '40~49', '50~59', '60~69', '70~79', '80~89', '90~100'],
+      datasets: [{
+        label: '학생 수',
+        data: [5, 12, 38, 72, 98, 71, 28],
+        backgroundColor: [
+          'rgba(239,68,68,0.8)', 'rgba(249,115,22,0.8)', 'rgba(234,179,8,0.8)',
+          'rgba(34,197,94,0.7)', 'rgba(124,58,237,0.8)', 'rgba(56,189,248,0.8)', 'rgba(20,184,166,0.8)'
+        ],
+        borderRadius: 6, borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+        y: { grid: { color: 'rgba(148,163,184,0.1)' }, ticks: { font: { size: 11 }, callback: v => v + '명' } }
+      }
+    }
+  });
+
+  /* 반별 평균 수평 막대 차트 */
+  const classAvgChart = new Chart(
+    document.getElementById('classAvgChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['고등수학A', '고등수학B', '중등수학A', '중등수학B', '고등영어', '중등영어'],
+      datasets: [{
+        label: '평균 점수',
+        data: [79.4, 74.1, 72.8, 69.5, 76.3, 68.5],
+        backgroundColor: 'rgba(124,58,237,0.8)',
+        borderRadius: 6, borderSkipped: false,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { min: 50, max: 100, grid: { color: 'rgba(148,163,184,0.1)' }, ticks: { font: { size: 11 }, callback: v => v + '점' } },
+        y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+
+  /* 탭 초기화 — 차트 선언 이후에 실행 */
+  (function () {
+    const firstBtn = document.querySelector('.mon-tab-btn[data-tab="tab-lecture"]');
+    if (firstBtn) switchMonTab('tab-lecture', firstBtn);
+  })();
+</script>
