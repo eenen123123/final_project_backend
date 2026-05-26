@@ -1,0 +1,611 @@
+<title th:fragment="pageTitle">관리자 권한 설정 | HERMES</title>
+
+<div class="space-y-6">
+
+  <!-- ① 페이지 헤더 -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">관리자 권한 설정</h1>
+      <p class="text-sm text-slate-500 mt-1">직원 접속 이력 조회, 직급별 메뉴 접근 권한 관리, 권한 변경 요청 최종 승인을 수행합니다.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <button class="hm-btn-primary" onclick="showHermesToast('권한 설정을 일괄 저장했습니다.', 'success')">
+        <i class="fa-solid fa-floppy-disk"></i>
+        <span>변경사항 저장</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ② 요약 통계 카드 -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-xl">
+        <i class="fa-solid fa-users"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">전체 직원</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">48명</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl animate-pulse">
+        <i class="fa-solid fa-circle-dot"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">현재 접속 중</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">12명</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">승인 대기 요청</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">3건</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 탭 네비게이션 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="flex border-b border-slate-100 px-6 pt-4 gap-1" id="permTabBar">
+      <button data-tab="tab-employees"
+        class="perm-tab-btn px-5 py-2.5 text-sm font-semibold rounded-t-xl transition-all text-slate-500 hover:text-violet-600 border-b-2 border-transparent"
+        onclick="switchPermTab('tab-employees', this)">
+        <i class="fa-solid fa-address-card mr-2"></i>직원 목록 &amp; 접속 이력
+      </button>
+      <button data-tab="tab-roles"
+        class="perm-tab-btn px-5 py-2.5 text-sm font-semibold rounded-t-xl transition-all text-slate-500 hover:text-violet-600 border-b-2 border-transparent"
+        onclick="switchPermTab('tab-roles', this)">
+        <i class="fa-solid fa-shield-halved mr-2"></i>직급별 메뉴 권한
+      </button>
+      <button data-tab="tab-approvals"
+        class="perm-tab-btn px-5 py-2.5 text-sm font-semibold rounded-t-xl transition-all text-slate-500 hover:text-violet-600 border-b-2 border-transparent"
+        onclick="switchPermTab('tab-approvals', this)">
+        <i class="fa-solid fa-file-signature mr-2"></i>승인 대기 요청
+        <span class="ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold">3</span>
+      </button>
+    </div>
+
+    <!-- ===== TAB 1: 직원 목록 & 접속 이력 ===== -->
+    <div id="tab-employees" class="perm-tab-panel p-6 space-y-5">
+      <!-- 검색/필터 바 -->
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="w-full sm:w-72 relative">
+          <input type="text" class="hm-input pl-10" placeholder="직원명 또는 사번 검색..." />
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+        </div>
+        <div class="w-full sm:w-40">
+          <select class="hm-input">
+            <option value="">직급 전체</option>
+            <option>원장</option>
+            <option>팀장</option>
+            <option>강사</option>
+            <option>직원</option>
+          </select>
+        </div>
+        <div class="w-full sm:w-40">
+          <select class="hm-input">
+            <option value="">접속 상태 전체</option>
+            <option>접속 중</option>
+            <option>오프라인</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 직원 테이블 -->
+      <div class="rounded-xl border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+                <th class="py-4 px-6">직원 정보</th>
+                <th class="py-4 px-6">부서 / 직급</th>
+                <th class="py-4 px-6">마지막 접속</th>
+                <th class="py-4 px-6 text-center">접속 상태</th>
+                <th class="py-4 px-6 text-center">이력 조회</th>
+                <th class="py-4 px-6 text-center">권한 수준</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+
+              <!-- 행 1 -->
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-violet-600 flex items-center justify-center text-white font-bold text-sm">홍</div>
+                    <div>
+                      <p class="font-bold text-slate-800">홍길동</p>
+                      <p class="text-xs text-slate-400">EMP-001</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-6">
+                  <p class="font-medium text-slate-700">교학부</p>
+                  <p class="text-xs text-slate-400 mt-0.5">원장</p>
+                </td>
+                <td class="py-4 px-6 text-xs text-slate-500 font-mono">2026-05-26 09:14</td>
+                <td class="py-4 px-6 text-center">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 접속 중
+                  </span>
+                </td>
+                <td class="py-4 px-6 text-center">
+                  <button class="text-slate-400 hover:text-violet-600 p-1.5 transition-colors" onclick="openActivityModal('홍길동')" title="접속 이력 보기">
+                    <i class="fa-solid fa-timeline text-base"></i>
+                  </button>
+                </td>
+                <td class="py-4 px-6 text-center">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-violet-50 text-violet-700">
+                    <i class="fa-solid fa-crown text-[10px]"></i> 최고 관리자
+                  </span>
+                </td>
+              </tr>
+
+              <!-- 행 2 -->
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-sky-500 flex items-center justify-center text-white font-bold text-sm">김</div>
+                    <div>
+                      <p class="font-bold text-slate-800">김민준</p>
+                      <p class="text-xs text-slate-400">EMP-015</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-6">
+                  <p class="font-medium text-slate-700">마케팅팀</p>
+                  <p class="text-xs text-slate-400 mt-0.5">팀장</p>
+                </td>
+                <td class="py-4 px-6 text-xs text-slate-500 font-mono">2026-05-26 08:52</td>
+                <td class="py-4 px-6 text-center">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 접속 중
+                  </span>
+                </td>
+                <td class="py-4 px-6 text-center">
+                  <button class="text-slate-400 hover:text-violet-600 p-1.5 transition-colors" onclick="openActivityModal('김민준')" title="접속 이력 보기">
+                    <i class="fa-solid fa-timeline text-base"></i>
+                  </button>
+                </td>
+                <td class="py-4 px-6 text-center">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700">
+                    <i class="fa-solid fa-user-tie text-[10px]"></i> 팀장
+                  </span>
+                </td>
+              </tr>
+
+              <!-- 행 3 -->
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-rose-400 flex items-center justify-center text-white font-bold text-sm">이</div>
+                    <div>
+                      <p class="font-bold text-slate-800">이수진</p>
+                      <p class="text-xs text-slate-400">EMP-023</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-6">
+                  <p class="font-medium text-slate-700">강사팀</p>
+                  <p class="text-xs text-slate-400 mt-0.5">강사</p>
+                </td>
+                <td class="py-4 px-6 text-xs text-slate-500 font-mono">2026-05-25 18:33</td>
+                <td class="py-4 px-6 text-center">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> 오프라인
+                  </span>
+                </td>
+                <td class="py-4 px-6 text-center">
+                  <button class="text-slate-400 hover:text-violet-600 p-1.5 transition-colors" onclick="openActivityModal('이수진')" title="접속 이력 보기">
+                    <i class="fa-solid fa-timeline text-base"></i>
+                  </button>
+                </td>
+                <td class="py-4 px-6 text-center">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-50 text-slate-600">
+                    <i class="fa-solid fa-chalkboard-user text-[10px]"></i> 강사
+                  </span>
+                </td>
+              </tr>
+
+              <!-- 행 4 -->
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-teal-500 flex items-center justify-center text-white font-bold text-sm">박</div>
+                    <div>
+                      <p class="font-bold text-slate-800">박재원</p>
+                      <p class="text-xs text-slate-400">EMP-031</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-6">
+                  <p class="font-medium text-slate-700">행정팀</p>
+                  <p class="text-xs text-slate-400 mt-0.5">직원</p>
+                </td>
+                <td class="py-4 px-6 text-xs text-slate-500 font-mono">2026-05-26 10:01</td>
+                <td class="py-4 px-6 text-center">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 접속 중
+                  </span>
+                </td>
+                <td class="py-4 px-6 text-center">
+                  <button class="text-slate-400 hover:text-violet-600 p-1.5 transition-colors" onclick="openActivityModal('박재원')" title="접속 이력 보기">
+                    <i class="fa-solid fa-timeline text-base"></i>
+                  </button>
+                </td>
+                <td class="py-4 px-6 text-center">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-50 text-slate-600">
+                    <i class="fa-solid fa-user text-[10px]"></i> 일반 직원
+                  </span>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+        <!-- 페이지네이션 -->
+        <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+          <p class="text-xs text-slate-400">전체 48명 중 1 – 10 표시</p>
+          <div class="flex items-center gap-1">
+            <button class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-all flex items-center justify-center text-xs">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button class="w-8 h-8 rounded-lg bg-violet-600 text-white text-xs font-bold flex items-center justify-center">1</button>
+            <button class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 text-xs flex items-center justify-center">2</button>
+            <button class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 text-xs flex items-center justify-center">3</button>
+            <button class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-all flex items-center justify-center text-xs">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB 2: 직급별 메뉴 권한 ===== -->
+    <div id="tab-roles" class="perm-tab-panel p-6 space-y-5 hidden">
+      <div class="flex items-start gap-3 p-4 bg-violet-50 border border-violet-100 rounded-xl">
+        <i class="fa-solid fa-circle-info text-violet-500 mt-0.5 shrink-0"></i>
+        <p class="text-xs text-violet-700 leading-relaxed">
+          아래 스위치를 통해 직급별 메뉴 접근 권한을 설정하세요. 변경 후 반드시 상단의 <strong>변경사항 저장</strong> 버튼을 눌러야 적용됩니다.
+        </p>
+      </div>
+
+      <div class="rounded-xl border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-100">
+                <th class="py-4 px-6 text-left text-xs font-bold text-slate-500 tracking-wider w-52">메뉴 / 기능</th>
+                <th class="py-4 px-5 text-center text-xs font-bold text-violet-600 tracking-wider">
+                  <i class="fa-solid fa-crown mr-1 text-[10px]"></i>원장
+                </th>
+                <th class="py-4 px-5 text-center text-xs font-bold text-blue-600 tracking-wider">
+                  <i class="fa-solid fa-user-tie mr-1 text-[10px]"></i>팀장
+                </th>
+                <th class="py-4 px-5 text-center text-xs font-bold text-teal-600 tracking-wider">
+                  <i class="fa-solid fa-user-pen mr-1 text-[10px]"></i>PD
+                </th>
+                <th class="py-4 px-5 text-center text-xs font-bold text-rose-500 tracking-wider">
+                  <i class="fa-solid fa-chalkboard-user mr-1 text-[10px]"></i>강사
+                </th>
+                <th class="py-4 px-5 text-center text-xs font-bold text-slate-500 tracking-wider">
+                  <i class="fa-solid fa-user mr-1 text-[10px]"></i>직원
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50 text-slate-600">
+
+              <!-- 섹션: 대시보드 -->
+              <tr class="bg-slate-50/80">
+                <td colspan="6" class="py-2.5 px-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest">대시보드</td>
+              </tr>
+              <tr class="hover:bg-slate-50/40 transition-colors">
+                <td class="py-3.5 px-6 text-sm font-medium text-slate-700">메인 대시보드</td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" checked /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" checked /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" checked /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" checked /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" checked /></td>
+              </tr>
+
+              <!-- 섹션: 학생 관리 -->
+              <tr class="bg-slate-50/80">
+                <td colspan="6" class="py-2.5 px-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest">학생 관리</td>
+              </tr>
+              <tr class="hover:bg-slate-50/40 transition-colors">
+                <td class="py-3.5 px-6 text-sm font-medium text-slate-700">학생 정보 조회</td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" checked /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" checked /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" checked /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" /></td>
+              </tr>
+              <tr class="hover:bg-slate-50/40 transition-colors">
+                <td class="py-3.5 px-6 text-sm font-medium text-slate-700">학생 등록 / 수정</td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" checked /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" checked /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" /></td>
+              </tr>
+              <tr class="hover:bg-slate-50/40 transition-colors">
+                <td class="py-3.5 px-6 text-sm font-medium text-slate-700">학생 삭제</td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" checked /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" /></td>
+              </tr>
+
+              <!-- 섹션: 강의 콘텐츠 -->
+              <tr class="bg-slate-50/80">
+                <td colspan="6" class="py-2.5 px-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest">강의 콘텐츠</td>
+              </tr>
+              <tr class="hover:bg-slate-50/40 transition-colors">
+                <td class="py-3.5 px-6 text-sm font-medium text-slate-700">VOD 콘텐츠 조회</td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" checked /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" checked /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" checked /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" checked /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" /></td>
+              </tr>
+              <tr class="hover:bg-slate-50/40 transition-colors">
+                <td class="py-3.5 px-6 text-sm font-medium text-slate-700">VOD 업로드 / 삭제</td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" checked /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" checked /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" checked /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" /></td>
+              </tr>
+
+              <!-- 섹션: 권한 관리 -->
+              <tr class="bg-slate-50/80">
+                <td colspan="6" class="py-2.5 px-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest">권한 관리</td>
+              </tr>
+              <tr class="hover:bg-slate-50/40 transition-colors">
+                <td class="py-3.5 px-6 text-sm font-medium text-slate-700">권한 설정 조회</td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" checked /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" checked /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" /></td>
+              </tr>
+              <tr class="hover:bg-slate-50/40 transition-colors">
+                <td class="py-3.5 px-6 text-sm font-medium text-slate-700">권한 수정 (이 페이지)</td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" checked /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" /></td>
+                <td class="py-3.5 px-5 text-center"><input type="checkbox" class="hm-switch" /></td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB 3: 승인 대기 요청 ===== -->
+    <div id="tab-approvals" class="perm-tab-panel p-6 space-y-4 hidden">
+
+      <!-- 요청 카드 1: 보직 변경 -->
+      <div class="rounded-xl border border-amber-100 bg-amber-50/50 p-5">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-base shrink-0 mt-0.5">
+              <i class="fa-solid fa-rotate"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">보직 변경 요청</span>
+                <span class="text-xs text-slate-400 font-mono">REQ-2026-051</span>
+              </div>
+              <p class="text-sm font-bold text-slate-800 mt-1">김민준 <span class="text-slate-400 font-normal">직원 → 팀장 승급</span></p>
+              <p class="text-xs text-slate-500 mt-1">요청자: 박성훈 팀장 &nbsp;·&nbsp; 요청일시: 2026-05-25 14:32</p>
+              <p class="text-xs text-slate-600 mt-2 bg-white border border-slate-100 rounded-lg px-3 py-2 leading-relaxed">
+                마케팅팀 내 팀장 공석으로 인한 긴급 승급 요청입니다. 성과 지표 달성 기준 충족 확인됨.
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <button class="hm-btn-primary !bg-emerald-600 hover:!bg-emerald-700 !py-2 !px-4"
+              onclick="showHermesToast('REQ-2026-051 요청을 승인했습니다.', 'success')">
+              <i class="fa-solid fa-check"></i><span>승인</span>
+            </button>
+            <button class="hm-btn-primary !bg-rose-600 hover:!bg-rose-700 !py-2 !px-4"
+              onclick="showHermesToast('REQ-2026-051 요청을 반려했습니다.', 'error')">
+              <i class="fa-solid fa-xmark"></i><span>반려</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 요청 카드 2: 권한 수정 -->
+      <div class="rounded-xl border border-amber-100 bg-amber-50/50 p-5">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-base shrink-0 mt-0.5">
+              <i class="fa-solid fa-key"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">권한 추가 요청</span>
+                <span class="text-xs text-slate-400 font-mono">REQ-2026-052</span>
+              </div>
+              <p class="text-sm font-bold text-slate-800 mt-1">이수진 강사 <span class="text-slate-400 font-normal">→ 학생 정보 조회 권한 추가</span></p>
+              <p class="text-xs text-slate-500 mt-1">요청자: 이수진 본인 &nbsp;·&nbsp; 요청일시: 2026-05-26 08:15</p>
+              <p class="text-xs text-slate-600 mt-2 bg-white border border-slate-100 rounded-lg px-3 py-2 leading-relaxed">
+                담당 학생 성적 관리를 위해 학생 정보 조회 권한이 필요합니다. 열람 범위 담당 반 한정 요청.
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <button class="hm-btn-primary !bg-emerald-600 hover:!bg-emerald-700 !py-2 !px-4"
+              onclick="showHermesToast('REQ-2026-052 요청을 승인했습니다.', 'success')">
+              <i class="fa-solid fa-check"></i><span>승인</span>
+            </button>
+            <button class="hm-btn-primary !bg-rose-600 hover:!bg-rose-700 !py-2 !px-4"
+              onclick="showHermesToast('REQ-2026-052 요청을 반려했습니다.', 'error')">
+              <i class="fa-solid fa-xmark"></i><span>반려</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 요청 카드 3: 보직 변경 -->
+      <div class="rounded-xl border border-amber-100 bg-amber-50/50 p-5">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-base shrink-0 mt-0.5">
+              <i class="fa-solid fa-rotate"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">보직 변경 요청</span>
+                <span class="text-xs text-slate-400 font-mono">REQ-2026-053</span>
+              </div>
+              <p class="text-sm font-bold text-slate-800 mt-1">박재원 <span class="text-slate-400 font-normal">행정팀 직원 → 교학팀 직원 (부서 이동)</span></p>
+              <p class="text-xs text-slate-500 mt-1">요청자: 홍길동 원장 &nbsp;·&nbsp; 요청일시: 2026-05-26 09:50</p>
+              <p class="text-xs text-slate-600 mt-2 bg-white border border-slate-100 rounded-lg px-3 py-2 leading-relaxed">
+                조직 개편에 따른 교학팀 인력 보강 목적 부서 이동 요청입니다.
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <button class="hm-btn-primary !bg-emerald-600 hover:!bg-emerald-700 !py-2 !px-4"
+              onclick="showHermesToast('REQ-2026-053 요청을 승인했습니다.', 'success')">
+              <i class="fa-solid fa-check"></i><span>승인</span>
+            </button>
+            <button class="hm-btn-primary !bg-rose-600 hover:!bg-rose-700 !py-2 !px-4"
+              onclick="showHermesToast('REQ-2026-053 요청을 반려했습니다.', 'error')">
+              <i class="fa-solid fa-xmark"></i><span>반려</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== 접속 이력 모달 ===== -->
+<div id="activityModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+      <div>
+        <h3 class="text-base font-bold text-slate-800" id="activityModalTitle">접속 이력</h3>
+        <p class="text-xs text-slate-400 mt-0.5">최근 30일 시스템 접속 활동</p>
+      </div>
+      <button onclick="closeActivityModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 flex items-center justify-center transition-all">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="p-6 space-y-3 max-h-96 overflow-y-auto no-scrollbar">
+      <div class="flex items-start gap-3">
+        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs shrink-0 mt-0.5">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-slate-700">로그인</p>
+          <p class="text-xs text-slate-400">2026-05-26 09:14 &nbsp;·&nbsp; IP 192.168.1.42 &nbsp;·&nbsp; Chrome / Windows</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-3">
+        <div class="w-8 h-8 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center text-xs shrink-0 mt-0.5">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-slate-700">권한 설정 메뉴 접근</p>
+          <p class="text-xs text-slate-400">2026-05-26 09:20 &nbsp;·&nbsp; IP 192.168.1.42</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-3">
+        <div class="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center text-xs shrink-0 mt-0.5">
+          <i class="fa-solid fa-users"></i>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-slate-700">학생 목록 조회</p>
+          <p class="text-xs text-slate-400">2026-05-26 09:35 &nbsp;·&nbsp; IP 192.168.1.42</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-3">
+        <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xs shrink-0 mt-0.5">
+          <i class="fa-solid fa-pen-to-square"></i>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-slate-700">학생 정보 수정 (3건)</p>
+          <p class="text-xs text-slate-400">2026-05-26 09:41 &nbsp;·&nbsp; IP 192.168.1.42</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-3">
+        <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-xs shrink-0 mt-0.5">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-slate-700">로그아웃</p>
+          <p class="text-xs text-slate-400">2026-05-25 18:30 &nbsp;·&nbsp; IP 192.168.1.42</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-3">
+        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs shrink-0 mt-0.5">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-slate-700">로그인</p>
+          <p class="text-xs text-slate-400">2026-05-25 08:58 &nbsp;·&nbsp; IP 192.168.1.42 &nbsp;·&nbsp; Chrome / Windows</p>
+        </div>
+      </div>
+    </div>
+    <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end">
+      <button onclick="closeActivityModal()" class="hm-btn-primary !bg-slate-600 hover:!bg-slate-700 !py-2 !px-5">
+        닫기
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== 페이지 스크립트 ===== -->
+<script>
+  /* 탭 전환 */
+  (function initTabs() {
+    const firstBtn = document.querySelector('.perm-tab-btn[data-tab="tab-employees"]');
+    if (firstBtn) switchPermTab('tab-employees', firstBtn);
+  })();
+
+  function switchPermTab(tabId, btn) {
+    document.querySelectorAll('.perm-tab-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.perm-tab-btn').forEach(b => {
+      b.classList.remove('text-violet-600', 'border-violet-500', 'bg-violet-50/60');
+      b.classList.add('text-slate-500', 'border-transparent');
+    });
+
+    const panel = document.getElementById(tabId);
+    if (panel) panel.classList.remove('hidden');
+
+    btn.classList.remove('text-slate-500', 'border-transparent');
+    btn.classList.add('text-violet-600', 'border-violet-500', 'bg-violet-50/60');
+  }
+
+  /* 접속 이력 모달 */
+  function openActivityModal(name) {
+    document.getElementById('activityModalTitle').textContent = name + ' — 접속 이력';
+    const modal = document.getElementById('activityModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  function closeActivityModal() {
+    const modal = document.getElementById('activityModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+
+  /* 모달 바깥 클릭 시 닫기 */
+  document.getElementById('activityModal').addEventListener('click', function(e) {
+    if (e.target === this) closeActivityModal();
+  });
+</script>
