@@ -100,4 +100,53 @@
         order by m.user_id
 
     </select>
+    <!-- fakerMember -->
+    <insert id="fakerMember" parameterType="kr.or.ddit.finalProject.dto.member.MemberDto" useGeneratedKeys="true" keyProperty="userId" keyColumn="USER_ID">
+        INSERT INTO "MEMBER" (
+            USER_ID
+            , USER_ENPSWD
+            , USER_NAME
+            , USER_ENRRNO
+            , USER_GNDR_CD
+            , USER_BRDT
+            , JOIN_DT
+            , USER_TELNO
+            , USER_EMAIL_ADDR
+            , USER_ZIP
+            , USER_ADDR
+            , USER_DADDR
+            , REG_DATE
+            , MOD_DATE
+            , ENABLE
+        )
+        VALUES (
+            #{userId}
+            , #{userEnpswd}
+            , #{userName}
+            , #{userEnrrno}
+            , #{userGndrCd}
+            , #{userBrdt}
+            , CURRENT_TIMESTAMP
+            , #{userTelno}
+            , #{userEmailAddr}
+            , #{userZip}
+            , #{userAddr}
+            , #{userDaddr}
+            , CURRENT_TIMESTAMP
+            , CURRENT_TIMESTAMP
+            , '1'
+        )
+    </insert>
+
+    <!-- fakerRoleMapping -->
+    <insert id="fakerRoleMapping">
+        INSERT INTO MEMBER_ROLE_MAPPING (
+            USER_ID,
+            USER_ROLE_CD
+        ) VALUES
+        (
+            #{userId},
+            #{role}
+        )
+    </insert>
 </mapper>

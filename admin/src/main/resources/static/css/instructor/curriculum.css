@@ -1,0 +1,56 @@
+.ag-theme-alpine {
+    /* 색상 */
+    --ag-background-color: #ffffff;
+    --ag-header-background-color: #f8fafc;
+    --ag-header-foreground-color: #475569;
+    --ag-header-column-separator-color: #e2e8f0;
+    --ag-row-hover-color: #f0f9ff;
+    --ag-selected-row-background-color: #e0f2fe;
+    --ag-range-selection-border-color: #0ea5e9;
+    --ag-cell-horizontal-border: solid #f1f5f9;
+    --ag-borders: solid 1px;
+    --ag-border-color: #e2e8f0;
+    --ag-row-border-color: #f1f5f9;
+    --ag-odd-row-background-color: #ffffff;
+    --ag-checkbox-checked-color: #0ea5e9;
+    --ag-checkbox-unchecked-color: #94a3b8;
+    /* 폰트 — 페이지 전체와 통일 */
+    --ag-font-size: 13px;
+    --ag-font-family: "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+    --ag-foreground-color: #334155;
+    /* 행 높이 */
+    --ag-row-height: 42px;
+    --ag-header-height: 40px;
+}
+
+/* 헤더 텍스트 */
+.ag-theme-alpine .ag-header-cell-label {
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.03em;
+    color: #64748b;
+}
+
+/* 폰트가 Alpine 기본값에 덮어씌워지는 것 방지 */
+.ag-theme-alpine .ag-cell,
+.ag-theme-alpine .ag-header-cell-text,
+.ag-theme-alpine .ag-cell-editor input {
+    font-family: "Noto Sans KR", "Apple SD Gothic Neo", sans-serif !important;
+}
+
+/* 헤더 하단 구분선 */
+.ag-theme-alpine .ag-header {
+    border-bottom: 1px solid #bae6fd;
+}
+
+/* 셀 편집 중 포커스 링 */
+.ag-theme-alpine .ag-cell-inline-editing {
+    border-color: #0ea5e9 !important;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15) !important;
+}
+
+/* 셀 세로 정렬 */
+.ag-theme-alpine .ag-cell {
+    display: flex;
+    align-items: center;
+}

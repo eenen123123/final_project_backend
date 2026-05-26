@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.dto.user.AdminUserDto;
 
@@ -26,4 +28,10 @@ public interface MemberMapper {
 
     List<AdminUserDto> getAdminUsers(@Param("excludeUserId") String excludeUserId);
 
+    // 더미 데이터 생성
+    int fakerMember(MemberDto member);
+
+    // 더미 권한 부여
+    int fakerRoleMapping(@Param("userId") String userId, @Param("role") String role);
+    
 }
