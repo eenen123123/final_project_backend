@@ -1,8 +1,14 @@
 package kr.or.ddit.controller;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import kr.or.ddit.finalProject.dto.employee.DepartmentDto;
+import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
+import kr.or.ddit.finalProject.mapper.StaffMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -11,6 +17,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 @RequestMapping("/admin")
 public class StaffController {
+    
+    @Autowired
+    StaffMapper staffMapper;
 
     /**
      * 원비 및 수납 관리
@@ -18,6 +27,7 @@ public class StaffController {
      */
     @GetMapping("/billing")
     public String getBilling() {
+        log.info("getBilling()");
         return "admin:/staff/billing";
     }
 
@@ -27,6 +37,7 @@ public class StaffController {
      */
     @GetMapping("/expenses")
     public String getExpenses() {
+        log.info("getExpenses()");
         return "admin:/staff/expenses";
     }
 
@@ -35,6 +46,7 @@ public class StaffController {
      */
     @GetMapping("/attendance")
     public String getAttendance() {
+        log.info("getAttendance()");
         return "admin:/staff/attendance";
     }
 
@@ -43,6 +55,7 @@ public class StaffController {
      */
     @GetMapping("/logistics")
     public String getLogistics() {
+        log.info("getLogistics()");
         return "admin:/staff/logistics";
     }
 
@@ -51,6 +64,13 @@ public class StaffController {
      */
     @GetMapping("/employees")
     public String getEmployees() {
+        log.info("getEmployees()");
+        List<DepartmentDto> departmentlist = staffMapper.selectDepartmentList();
+        List<JobGradeDto> jobgradelist = staffMapper.selectJobGradeList();
+
+        log.info("departmentlist : {}", departmentlist);
+        log.info("jobgradelist : {}", jobgradelist);
+
         return "admin:/staff/employees";
     }
 
@@ -59,12 +79,14 @@ public class StaffController {
      */
     @GetMapping("/hr/leave")
     public String getHrLeave() {
+        log.info("getHrLeave()");
         return "admin:/staff/hr_leave";
     }
 
     /** 증명서 발급 관리 */
     @GetMapping("/certificates")
     public String getCertificates() {
+        log.info("getCertificates()");
         return "admin:/staff/certificates";
     }
 
@@ -73,6 +95,7 @@ public class StaffController {
      */
     @GetMapping("/facilities")
     public String getFacilities() {
+        log.info("getFacilities()");
         return "admin:/staff/facilities";
     }
 
@@ -81,14 +104,16 @@ public class StaffController {
      */
     @GetMapping("/notifications/parent")
     public String getNotificationsParent() {
+        log.info("getNotificationsParent()");
         return "admin:/staff/notifications_parent";
     }
 
     /**
      * 블랙리스트 관리
      */
-    @GetMapping("'/blacklist")
+    @GetMapping("/blacklist")
     public String getBlacklist() {
+        log.info("getBlacklist()");
         return "admin:/staff/blacklist";
     }
     
