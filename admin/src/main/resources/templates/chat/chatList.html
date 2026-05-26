@@ -1,179 +1,177 @@
 <title th:fragment="pageTitle">채팅방 목록 | HERMES</title>
 
 <div class="space-y-6">
-    <!-- 페이지 헤더 -->
-    <div
-        class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
-    >
-        <div>
-            <h1
-                class="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2"
-            >
-                <i class="fa-solid fa-comments text-violet-500"></i>
-                <span>사내 메신저 목록</span>
-            </h1>
-            <p class="text-sm text-slate-500 mt-1">
-                전체 채팅방 현황을 확인하고 관리합니다.
-            </p>
-        </div>
-
-        <div class="flex items-center gap-3">
-            <a
-                href="/admin/chat/room/create"
-                class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 rounded-lg transition-colors"
-            >
-                <i class="fa-solid fa-plus text-[10px]"></i>
-                <span>채팅방 생성</span>
-            </a>
-
-
-        </div>
+  <!-- 페이지 헤더 -->
+  <div
+    class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+  >
+    <div>
+      <h1
+        class="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2"
+      >
+        <i class="fa-solid fa-comments text-violet-500"></i>
+        <span>사내 메신저 목록</span>
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">
+        전체 채팅방 현황을 확인하고 관리합니다.
+      </p>
     </div>
 
-    <!-- 채팅방 없을 때 -->
-    <div
-        th:if="${#lists.isEmpty(chatRoomList)}"
-        class="bg-white rounded-2xl border border-slate-100 shadow-sm p-16 flex flex-col items-center justify-center text-center gap-3"
-    >
-        <div
-            class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-2xl"
-        >
-            <i class="fa-regular fa-comment-dots"></i>
-        </div>
-        <p class="text-sm font-medium text-slate-500">
-            참여 중인 채팅방이 없습니다.
-        </p>
+    <div class="flex items-center gap-3">
+      <a
+        href="/admin/chat/room/create"
+        class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 rounded-lg transition-colors"
+      >
+        <i class="fa-solid fa-plus text-[10px]"></i>
+        <span>채팅방 생성</span>
+      </a>
     </div>
+  </div>
 
-    <!-- 채팅방 목록 -->
+  <!-- 채팅방 없을 때 -->
+  <div
+    th:if="${#lists.isEmpty(chatRoomList)}"
+    class="bg-white rounded-2xl border border-slate-100 shadow-sm p-16 flex flex-col items-center justify-center text-center gap-3"
+  >
     <div
-        th:unless="${#lists.isEmpty(chatRoomList)}"
-        class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
+      class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-2xl"
     >
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr
-                        class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider uppercase"
+      <i class="fa-regular fa-comment-dots"></i>
+    </div>
+    <p class="text-sm font-medium text-slate-500">
+      참여 중인 채팅방이 없습니다.
+    </p>
+  </div>
+
+  <!-- 채팅방 목록 -->
+  <div
+    th:unless="${#lists.isEmpty(chatRoomList)}"
+    class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
+  >
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr
+            class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider uppercase"
+          >
+            <th class="py-4 px-6">채팅방 정보</th>
+            <th class="py-4 px-6">유형</th>
+            <th class="py-4 px-6">참여자</th>
+            <th class="py-4 px-6">마지막 메시지</th>
+            <th class="py-4 px-6">읽지 않은 메시지</th>
+            <th class="py-4 px-6">생성일</th>
+            <th class="py-4 px-6 text-center">이동</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+          <tr
+            th:each="room : ${chatRoomList}"
+            class="hover:bg-slate-50/50 transition-colors"
+          >
+            <!-- 채팅방 이름 -->
+            <td class="py-4 px-6">
+              <a th:href="@{/admin/chat/room/page(roomSn=${room.roomSn})}">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-10 h-10 rounded-xl flex items-center justify-center text-base"
+                    th:classappend="${room.roomTypeCd == '01'} ? 'bg-sky-50 text-sky-500' : 'bg-violet-50 text-violet-500'"
+                  >
+                    <i
+                      th:class="${room.roomTypeCd == '01'} ? 'fa-solid fa-user' : 'fa-solid fa-users'"
+                    ></i>
+                  </div>
+                  <div>
+                    <p
+                      class="font-semibold text-slate-900"
+                      th:text="${room.roomNm != null ? room.roomNm : '1:1 DM'}"
                     >
-                        <th class="py-4 px-6">채팅방 정보</th>
-                        <th class="py-4 px-6">유형</th>
-                        <th class="py-4 px-6">참여자</th>
-                        <th class="py-4 px-6">마지막 메시지</th>
-                        <th class="py-4 px-6">읽지 않은 메시지</th>
-                        <th class="py-4 px-6">생성일</th>
-                        <th class="py-4 px-6 text-center">이동</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
-                    <tr
-                        th:each="room : ${chatRoomList}"
-                        class="hover:bg-slate-50/50 transition-colors"
+                      채팅방 이름
+                    </p>
+                    <p
+                      class="text-xs text-slate-400 mt-0.5"
+                      th:text="'개설자: ' + ${room.opnrUserId}"
                     >
-                        <!-- 채팅방 이름 -->
-                        <td class="py-4 px-6">
-                            <div class="flex items-center gap-3">
-                                <div
-                                    class="w-10 h-10 rounded-xl flex items-center justify-center text-base"
-                                    th:classappend="${room.roomTypeCd == '01'} ? 'bg-sky-50 text-sky-500' : 'bg-violet-50 text-violet-500'"
-                                >
-                                    <i
-                                        th:class="${room.roomTypeCd == '01'} ? 'fa-solid fa-user' : 'fa-solid fa-users'"
-                                    ></i>
-                                </div>
-                                <div>
-                                    <p
-                                        class="font-semibold text-slate-900"
-                                        th:text="${room.roomNm != null ? room.roomNm : '1:1 DM'}"
-                                    >
-                                        채팅방 이름
-                                    </p>
-                                    <p
-                                        class="text-xs text-slate-400 mt-0.5"
-                                        th:text="'개설자: ' + ${room.opnrUserId}"
-                                    >
-                                        개설자
-                                    </p>
-                                </div>
-                            </div>
-                        </td>
+                      개설자
+                    </p>
+                  </div>
+                </div>
+              </a>
+            </td>
 
-                        <!-- 채팅방 유형 뱃지 -->
-                        <td class="py-4 px-6">
-                            <span
-                                th:if="${room.roomTypeCd == '01'}"
-                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-50 text-sky-600"
-                            >
-                                <i class="fa-solid fa-user text-[10px]"></i> 1:1
-                                DM
-                            </span>
-                            <span
-                                th:if="${room.roomTypeCd == '02'}"
-                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-violet-50 text-violet-600"
-                            >
-                                <i class="fa-solid fa-users text-[10px]"></i>
-                                그룹
-                            </span>
-                        </td>
+            <!-- 채팅방 유형 뱃지 -->
+            <td class="py-4 px-6">
+              <span
+                th:if="${room.roomTypeCd == '01'}"
+                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-50 text-sky-600"
+              >
+                <i class="fa-solid fa-user text-[10px]"></i> 1:1 DM
+              </span>
+              <span
+                th:if="${room.roomTypeCd == '02'}"
+                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-violet-50 text-violet-600"
+              >
+                <i class="fa-solid fa-users text-[10px]"></i>
+                그룹
+              </span>
+            </td>
 
-                        <!-- 참여자 수 -->
-                        <td class="py-4 px-6">
-                            <span
-                                class="text-sm font-medium text-slate-700"
-                                th:text="${room.participantCount != null ? room.participantCount : 0} + '명'"
-                                >0명</span
-                            >
-                        </td>
+            <!-- 참여자 수 -->
+            <td class="py-4 px-6">
+              <span
+                class="text-sm font-medium text-slate-700"
+                th:text="${room.participantCount != null ? room.participantCount : 0} + '명'"
+                >0명</span
+              >
+            </td>
 
-                        <!-- 마지막 메시지 일시 -->
-                        <td
-                            class="py-4 px-6 text-xs text-slate-400 font-mono"
-                            th:text="${room.lstMsgDt != null ? #temporals.format(room.lstMsgDt, 'yyyy-MM-dd HH:mm') : '-'}"
-                        >
-                            -
-                        </td>
-                        
-                        <td 
-                            class="py-4 px-6 text-xs font-mono"
-                            th:text="${room.unreadMsgCount != null && room.unreadMsgCount > 0 ? room.unreadMsgCount + '개' : '모두 읽음'}">
-                            읽지 않음
-                        </td>
+            <!-- 마지막 메시지 일시 -->
+            <td
+              class="py-4 px-6 text-xs text-slate-400 font-mono"
+              th:text="${room.lstMsgDt != null ? #temporals.format(room.lstMsgDt, 'yyyy-MM-dd HH:mm') : '-'}"
+            >
+              -
+            </td>
 
-                        <!-- 생성일시 -->
-                        <td
-                            class="py-4 px-6 text-xs text-slate-400 font-mono"
-                            th:text="${room.roomCretDt != null ? #temporals.format(room.roomCretDt, 'yyyy-MM-dd') : '-'}"
-                        >
-                            -
-                        </td>
+            <td
+              class="py-4 px-6 text-xs font-mono"
+              th:text="${room.unreadMsgCount != null && room.unreadMsgCount > 0 ? room.unreadMsgCount + '개' : '모두 읽음'}"
+            >
+              읽지 않음
+            </td>
 
-                        <!-- 채팅방 입장 버튼 -->
-                        <td class="py-4 px-6 text-center">
-                            <a
-                                th:href="@{/admin/chat/room/page(roomSn=${room.roomSn})}"
-                                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-violet-600 bg-violet-50 hover:bg-violet-100 rounded-lg transition-colors"
-                            >
-                                <i
-                                    class="fa-solid fa-arrow-right-to-bracket text-[10px]"
-                                ></i>
-                                <span>입장</span>
-                            </a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+            <!-- 생성일시 -->
+            <td
+              class="py-4 px-6 text-xs text-slate-400 font-mono"
+              th:text="${room.roomCretDt != null ? #temporals.format(room.roomCretDt, 'yyyy-MM-dd') : '-'}"
+            >
+              -
+            </td>
 
-        <!-- 목록 하단 요약 -->
-        <div class="border-t border-slate-100 px-6 py-3 bg-slate-50/50">
-            <p class="text-xs text-slate-400">
-                전체
-                <span
-                    class="font-semibold text-slate-600"
-                    th:text="${chatRoomList.size()}"
-                    >0</span
-                >개 채팅방
-            </p>
-        </div>
+            <!-- 채팅방 입장 버튼 -->
+            <td class="py-4 px-6 text-center">
+              <a
+                th:href="@{/admin/chat/room/page(roomSn=${room.roomSn})}"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-violet-600 bg-violet-50 hover:bg-violet-100 rounded-lg transition-colors"
+              >
+                <i class="fa-solid fa-arrow-right-to-bracket text-[10px]"></i>
+                <span>입장</span>
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+
+    <!-- 목록 하단 요약 -->
+    <div class="border-t border-slate-100 px-6 py-3 bg-slate-50/50">
+      <p class="text-xs text-slate-400">
+        전체
+        <span
+          class="font-semibold text-slate-600"
+          th:text="${chatRoomList.size()}"
+          >0</span
+        >개 채팅방
+      </p>
+    </div>
+  </div>
 </div>
