@@ -5,14 +5,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import kr.or.ddit.finalProject.dto.member.MemberDto;
+import org.springframework.web.bind.annotation.RequestParam;
 import kr.or.ddit.finalProject.dto.message.CreateMessageRoomRequestDto;
 import kr.or.ddit.finalProject.dto.message.MessageContentDto;
 import kr.or.ddit.finalProject.dto.message.MessageRoomDto;
@@ -22,9 +22,6 @@ import kr.or.ddit.finalProject.mapper.MemberMapper;
 import kr.or.ddit.finalProject.service.chat.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 
 @Slf4j
@@ -69,6 +66,7 @@ public class ChatRoomPageController {
         return "admin:/chat/chatRoom";
     }
 
+    // 채팅방 생성 페이지로 이동
     @GetMapping("/create")
     public String createChatRoom(Model model, Authentication authentication) {
         String userId = authentication.getName();
@@ -79,6 +77,7 @@ public class ChatRoomPageController {
         return "admin:/chat/createChatRoom";
     }
 
+    // 채팅방 생성 처리
     @PostMapping("/create")
     public String createChatRoom(@ModelAttribute CreateMessageRoomRequestDto requestDto,
             Authentication authentication) {
@@ -86,5 +85,25 @@ public class ChatRoomPageController {
         MessageRoomDto newRoom = chatService.createGroupChatRoom(creatorUserId, requestDto);
         log.info("Created group chat room: {}", newRoom);
         return "redirect:/admin/chat/room/page?roomSn=" + newRoom.getRoomSn();
+    }
+
+    // 일대일 채팅방 생성 또는 기존 채팅방으로 이동
+    @GetMapping("/direct")
+    public String createDirectChatRoom(@RequestParam(defaultValue = "") String otherUserId,
+            Authentication authentication, Model model) {
+        // otherUserId가 없으면 사용자 목록에서 선택하도록 페이지로 이동, 있으면 바로 1:1 채팅방으로 이동
+        if (otherUserId.trim().isBlank()) {
+            String userId = authentication.getName();
+            List<AdminUserDto> adminUsers = memberMapper.getAdminUsers(userId);
+            Map<String, List<AdminUserDto>> groupedAdminUsers =
+                    adminUsers.stream().collect(Collectors.groupingBy(AdminUserDto::getAuthrtNm,
+                            LinkedHashMap::new, Collectors.toList()));
+            model.addAttribute("groupedAdminUsers", groupedAdminUsers);
+            return "admin:/chat/createDirectChatRoom";
+        } else {
+            Long roomSn =
+                    chatService.getOrCreateOneOnOneChatRoom(authentication.getName(), otherUserId);
+            return "redirect:/admin/chat/room/page?roomSn=" + roomSn;
+        }
     }
 }

@@ -107,14 +107,15 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public MessageRoomDto getGroupChatRoom(long roomSn, Authentication authentication) {
+        String userId = authentication.getName();
 
         // 채팅방의 정보를 조회 하는데, 요청한 사용자가 해당 채팅방의 참여자인지 확인하고 참여자가 아니라면 예외를 발생시킴
-        MessageRoomDto room = messageMapper.selectChatRoomByRoomSn(roomSn);
+        MessageRoomDto room = messageMapper.selectChatRoomByRoomSn(roomSn, userId);
         if (room == null) {
             throw new FinalProjectException(ErrorCode.CHAT_ROOM_NOT_FOUND);
         }
 
-        boolean isParticipant = messageMapper.isParticipant(roomSn, authentication.getName()) > 0;
+        boolean isParticipant = messageMapper.isParticipant(roomSn, userId) > 0;
         if (!isParticipant) {
             throw new FinalProjectException(ErrorCode.CHAT_ROOM_ACCESS_DENIED);
         }
@@ -123,9 +124,29 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public MessageRoomDto getOrCreateOneOnOneChatRoom(String myId, String otherId) {
-        // TODO Auto-generated method stub
-        return null;
+    public Long getOrCreateOneOnOneChatRoom(String myId, String otherId) {
+        // otherId가 존재하는 회원인지 확인
+        if (memberMapper.isAllExistUsers(List.of(otherId)) != 1) {
+            throw new FinalProjectException(ErrorCode.USER_NOT_FOUND);
+        }
+        // 이미 존재하는 일대일 채팅방이 있는지 확인
+        Long existingRoomSn = messageMapper.selectOneOnOneChatRoom(myId, otherId);
+        if (existingRoomSn != null) {
+            return existingRoomSn;
+        }
+
+        // 일대일 채팅방이 존재하지 않으면 새로 생성
+        MessageRoomDto newRoom = new MessageRoomDto();
+        newRoom.setRoomNm("1:1 채팅방 (" + myId + " & " + otherId + ")");
+        newRoom.setRoomTypeCd("01"); // 01: 1:1 DM
+        newRoom.setOpnrUserId(myId);
+        messageMapper.insertGroupChatRoom(newRoom);
+
+        // 채팅방 참여자 추가 (myId와 otherId)
+        messageMapper.insertChatRoomParticipant(newRoom.getRoomSn(), myId);
+        messageMapper.insertChatRoomParticipant(newRoom.getRoomSn(), otherId);
+
+        return newRoom.getRoomSn();
     }
 
     @Override
@@ -164,7 +185,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     // 사용자가 채팅방에서 메시지를 읽었을 때, 해당 메시지의 일련번호(msgSn)를 기준으로 lst_read_msg_sn을 업데이트하는 메서드
-
+    @Override
     public void updateLastReadMessage(long roomSn, String userId, long msgSn) {
         messageMapper.updateLastReadMessage(roomSn, userId, msgSn);
 

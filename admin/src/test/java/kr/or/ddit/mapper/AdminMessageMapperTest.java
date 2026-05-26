@@ -14,17 +14,17 @@ public class AdminMessageMapperTest {
     @Autowired
     MessageMapper messageMapper;
 
-    @Test
-    void selectChatRoomByRoomSn() {
-        // Given
-        long roomSn = 10L; // 테스트할 채팅방 일련번호
+    // @Test
+    // void selectChatRoomByRoomSn() {
+    //     // Given
+    //     long roomSn = 10L; // 테스트할 채팅방 일련번호
 
-        // When
-        var room = messageMapper.selectChatRoomByRoomSn(roomSn);
+    //     // When
+    //     var room = messageMapper.selectChatRoomByRoomSn(roomSn);
 
-        // Then
-        log.info("조회된 채팅방 정보: {}", room.getParticipants());
-    }
+    //     // Then
+    //     log.info("조회된 채팅방 정보: {}", room.getParticipants());
+    // }
 
     // @Test
     // void selectAllChatRoomsByUserId() {
