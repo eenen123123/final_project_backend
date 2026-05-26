@@ -1,11 +1,13 @@
-# 2026-05-26 14:02 작업 내용 기록
+# instructor 커리큘럼 관리 기능 작업 기록
 
-## 📘 최종 상태 요약 문서
+## 최종 상태 요약
+
+---
 
 ### 1. 프로젝트 개요
 
-현재 `instructor` 커리큘럼 관리 기능은 **기능 테스트 기준으로 정상 동작하는 상태**에 가깝습니다.  
-Mapper, 컨트롤러, 템플릿, 그리고 저장 쿼리 쪽에서 발생하던 오류를 순차적으로 정리했고, 마지막으로 빌드 검증까지 완료했습니다.
+`instructor` 커리큘럼 관리 기능은 **정상 동작 확인 완료 상태**입니다.
+Mapper XML/DTO/DB 정합성, 컨트롤러 인증, 시퀀스 중복 PK 문제, UI 디자인, 관심사 분리까지 순차적으로 정리됐습니다.
 
 ---
 
@@ -13,84 +15,93 @@ Mapper, 컨트롤러, 템플릿, 그리고 저장 쿼리 쪽에서 발생하던 
 
 #### A. Mapper XML과 DTO/DB 컬럼 정합성 정리
 
-- InstructorCurriculumMapper.xml 에서 DTO 필드 기준으로 매핑이 맞지 않던 부분을 정리했습니다.
-- 실제 DB 컬럼명인 `RGTR_ID`, `REG_DT`, `LAST_MDFR_ID`, `MDFCN_DT` 기준으로 수정했습니다.
-- 기존에 사용하던 `REG_ID`, `MOD_ID`, `REG_DATE`, `MOD_DATE` 형태는 제거했습니다.
+- `InstructorCurriculumMapper.xml` 에서 실제 DB 컬럼명 기준으로 매핑을 정리했습니다.
+- 실제 컬럼명: `RGTR_ID`, `REG_DT`, `LAST_MDFR_ID`, `MDFCN_DT`
+- 기존에 사용하던 `REG_ID`, `MOD_ID`, `REG_DATE`, `MOD_DATE` 형태는 제거됐습니다.
 
 #### B. 컨트롤러 인증 처리 안정화
 
-- `InstructorCurriculumController` 에서 `SecurityContextHolder` 를 필드 초기화하던 방식 대신, 요청 시점의 `Authentication` 에서 로그인 ID를 받아오도록 수정했습니다.
-- 저장/수정 시 감사 필드 주입 로직을 정리했고, 저장 실패 시 결과를 확인하도록 처리했습니다.
+- `InstructorCurriculumController` 에서 `SecurityContextHolder` 필드 초기화 방식 대신, 요청 시점의 `Authentication` 에서 로그인 ID를 받아오도록 수정했습니다.
+- 저장/수정 시 감사 필드 주입 로직을 정리했습니다.
 
 #### C. 템플릿 안전성 개선
 
-- curriculum_main.html 의 `th:onclick` 에 제목 문자열을 직접 삽입하던 방식을 바꾸고, `escapeJavaScript` 를 적용하도록 수정했습니다.
+- `curriculum_main.html` 의 `th:onclick` 에 제목 문자열을 직접 삽입하던 방식을 `escapeJavaScript` 로 변경했습니다.
 - 제목에 특수문자가 포함되어도 JS 문자열 깨짐 위험을 줄였습니다.
 
-#### D. 저장 쿼리 오류 수정
+#### D. ORA-00904 수정
 
 - `GET_NEXT_DETAIL_SEQ()` 를 실제 DB에 존재하는 `SEQ_CURRICULUM_DETAIL.NEXTVAL` 로 변경했습니다.
-- 이로 인해 `ORA-00904` 오류가 해소되었습니다.
 
-#### E. 시퀀스/PK 충돌 원인 정리
+#### E. ORA-00001 근본 해결 (INSERT ALL → 단건 INSERT 루프)
 
-- 두 번째 저장 시 발생한 `ORA-00001` 는 **PK 중복(DETAIL_ID 충돌)** 이었고, 이는 시퀀스 상태 문제 가능성이 높습니다.
-- 테스트 중 실패한 저장이 시퀀스를 소비했을 가능성이 있어, 테스트 데이터 정리와 시퀀스 재생성이 가장 안전한 대응으로 정리했습니다.
+Oracle에서 `INSERT ALL ... SELECT * FROM DUAL` 구문은 단일 SQL 문장이므로 `NEXTVAL` 이 문장당 1회만 증가합니다.
+결과적으로 모든 행이 동일한 `DETAIL_ID` 를 받아 PK 중복(`ORA-00001`)이 발생했습니다.
+
+**해결:** `insertDetailList` (INSERT ALL) 를 폐기하고 단건 `insertDetail` 로 교체 후 서비스 레이어에서 루프 처리합니다.
+
+수정된 파일:
+
+| 파일 | 변경 내용 |
+| --- | --- |
+| `InstructorCurriculumMapper.xml` | `insertDetailList` 제거 → `insertDetail` (단건 INSERT) 추가 |
+| `InstructorCurriculumMapper.java` | 메서드 시그니처 교체, `@Param` 명칭 정합성 정리 |
+| `InstructorCurriculumServiceImpl.java` | `createCurriculum()`, `modifyCurriculum()` 양쪽 모두 루프 처리로 변경 |
+
+> 시퀀스 자체는 정상입니다. 롤백되어도 `NEXTVAL` 소비는 취소되지 않으므로 번호에 공백(gap)이 생길 수 있으나, PK는 연속일 필요가 없어 문제되지 않습니다. 시퀀스 재생성은 불필요합니다.
 
 ---
 
-### 3. 수정된 주요 파일
+### 3. UI 개선
 
-- InstructorCurriculumMapper.xml
-- InstructorCurriculumController.java
-- curriculum_main.html
+#### AG Grid 테마 재정의
+
+페이지 전체 디자인(sky/slate 계열, Noto Sans KR)과 조화롭도록 `ag-theme-alpine` CSS 변수를 재정의했습니다.
+
+- 폰트: `"Noto Sans KR", "Apple SD Gothic Neo", sans-serif` (Alpine 기본값 override용 `!important` 병행 적용)
+- 행 높이 `42px`, 헤더 높이 `40px`
+- 헤더 텍스트: uppercase 제거, slate 계열 색상 적용
+- 체크박스 색상: sky blue 통일
+- 셀 편집 포커스 링: sky blue
 
 ---
 
-### 4. 검증 결과
+### 4. 관심사 분리
 
-다음 명령으로 빌드 검증을 수행했습니다.
+`curriculum_main.html` 한 파일에 혼재하던 HTML/CSS/JS를 3개 파일로 분리했습니다.
 
-- `mvn -pl admin -am -DskipTests compile`
+```text
+static/
+  css/curriculum/curriculum.css   ← AG Grid 테마 CSS
+  js/curriculum/curriculum.js     ← 그리드 초기화 및 비즈니스 로직 전체
 
-검증 결과:
+templates/instructor/
+  curriculum_main.html            ← HTML 마크업만 남김
+```
 
-- `BUILD SUCCESS`
-
-즉, **현재 수정된 코드 기준으로 빌드 오류는 없습니다.**
+- Thymeleaf `th:href="@{...}"` / `th:src="@{...}"` 로 참조 (context path 자동 대응)
+- JS에 Thymeleaf 인라인 표현식이 없었으므로 외부 파일로 완전 이동 가능
+- `defer` 속성으로 DOM 준비 후 JS 실행 보장
 
 ---
 
 ### 5. 현재 상태
 
-현재 기준으로 다음과 같은 상태입니다.
-
-#### 정상으로 보이는 부분
-
-- 커리큘럼 저장 기능 테스트가 정상적으로 진행되는 흐름
-- Mapper XML과 DB 컬럼 정합성 확보
-- 컨트롤러 인증/감사 필드 처리 개선
-- 템플릿 안전성 개선
-- 빌드 통과
-
-#### 참고해야 할 부분
-
-- 테스트 중 시퀀스가 꼬일 수 있으므로, 필요 시 테스트 데이터와 시퀀스 재생성 전략을 별도로 관리하는 것이 좋습니다.
-- 향후 `insertDetailList` / `deleteMasterLogically` 의 `@Param` 이름 정합성까지 정리하면 더 깔끔한 상태가 됩니다.
+- 커리큘럼 생성/수정/삭제 기능 테스트 정상 확인
+- Mapper XML, DTO, DB 컬럼 정합성 확보
+- 컨트롤러 인증/감사 필드 처리 정상
+- ORA-00001 근본 해결 완료
+- AG Grid UI 디자인 정리
+- HTML/CSS/JS 관심사 분리 완료
+- 빌드 통과 (`mvn -pl admin -am -DskipTests compile` → BUILD SUCCESS)
 
 ---
 
-### 6. 최종 결론
+### 6. 수정된 주요 파일 목록
 
-현재 작업 기준으로 **커리큘럼 생성 관련 주요 오류들은 정리되었고, 빌드까지 정상 통과한 상태**입니다.  
-지금은 **테스트 데이터/시퀀스 상태를 안정적으로 관리하는 방식만 추가로 관리하면**, 실제 운영 테스트에도 무리가 없는 상태라고 볼 수 있습니다.
-
----
-
-### 7. 권장 다음 단계
-
-1. 테스트 데이터와 시퀀스 상태를 정리한 뒤 재테스트
-2. `@Param` 이름 정합성까지 정리
-3. 필요 시 수정/삭제 흐름까지 종합 테스트 진행
-
-원하시면 다음으로 **“다음 단계 실행 체크리스트”** 형태로 정리해드릴게요.
+- `admin/src/main/java/kr/or/ddit/instructor/InstructorCurriculumMapper.java`
+- `admin/src/main/java/kr/or/ddit/instructor/InstructorCurriculumServiceImpl.java`
+- `admin/src/main/resources/mapper/InstructorCurriculumMapper.xml`
+- `admin/src/main/resources/templates/instructor/curriculum_main.html`
+- `admin/src/main/resources/static/css/curriculum/curriculum.css` (신규)
+- `admin/src/main/resources/static/js/curriculum/curriculum.js` (신규)
