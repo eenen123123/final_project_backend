@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
 public class CurriculumMasterDto {
 
     @NotNull
-    private Integer curriculumId;
+    private Long curriculumId;
     @NotBlank
     private String title;
     @NotBlank
