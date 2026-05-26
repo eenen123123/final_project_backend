@@ -1,0 +1,336 @@
+<div class="curriculum-container">
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css"
+    />
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
+
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800">
+                나의 커리큘럼 관리
+            </h1>
+            <p class="text-sm text-slate-500 mt-1">
+                강사 본인이 작성한 커리큘럼 표를 조회하고 유연하게 편집할 수
+                있습니다.
+            </p>
+        </div>
+        <div class="flex gap-2">
+            <button
+                type="button"
+                onclick="createNewCurriculum()"
+                class="px-4 py-2 bg-blue-600 text-white rounded shadow text-sm hover:bg-blue-700"
+            >
+                <i class="fa-solid fa-plus mr-1"></i> 새 커리큘럼 작성
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        <div
+            class="xl:col-span-1 bg-white p-4 rounded-lg shadow border border-slate-200"
+        >
+            <h2 class="text-md font-semibold text-slate-700 mb-3 border-b pb-2">
+                <i class="fa-solid fa-list mr-1"></i> 작성 목록
+            </h2>
+            <ul class="space-y-2 overflow-y-auto max-h-[600px] no-scrollbar">
+                <li
+                    th:if="${#lists.isEmpty(masterList)}"
+                    class="text-center py-8 text-sm text-slate-400"
+                >
+                    등록된 커리큘럼이 없습니다.
+                </li>
+                <li
+                    th:each="master : ${masterList}"
+                    th:id="'master-item-' + ${master.curriculumId}"
+                    th:attr="onclick=|loadCurriculumDetail(${master.curriculumId}, '${#strings.escapeJavaScript(master.title)}')|"
+                    class="p-3 bg-slate-50 hover:bg-blue-50 border border-slate-200 rounded cursor-pointer transition-colors"
+                >
+                    <div
+                        class="font-medium text-slate-800 text-sm truncate"
+                        th:text="${master.title}"
+                    >
+                        과정 타이틀
+                    </div>
+                    <div class="text-xs text-slate-400 mt-1">
+                        <span
+                            th:text="${#strings.substring(master.regDt, 0, 10)}"
+                            >2026-05-26</span
+                        >
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <div
+            class="xl:col-span-3 bg-white p-5 rounded-lg shadow border border-slate-200 flex flex-col"
+        >
+            <div
+                class="flex flex-wrap items-center justify-between gap-3 mb-4 bg-slate-50 p-3 rounded border border-slate-100"
+            >
+                <div class="flex-1 min-w-[250px]">
+                    <label
+                        class="block text-xs font-bold text-slate-500 uppercase"
+                        >커리큘럼 타이틀</label
+                    >
+                    <input
+                        type="text"
+                        id="curriculumTitle"
+                        placeholder="과정 제목을 입력하세요 (예: Java 백엔드 개발자 양성과정)"
+                        class="w-full mt-1 bg-white border border-slate-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                        disabled
+                    />
+                </div>
+                <div class="flex items-end gap-2 h-full mt-4 sm:mt-0">
+                    <button
+                        type="button"
+                        onclick="onAddRow()"
+                        id="btnDetailAction"
+                        class="px-3 py-1.5 bg-slate-600 text-white rounded text-xs hover:bg-slate-700"
+                        disabled
+                    >
+                        <i class="fa-solid fa-row-insert mr-1"></i> 행 추가
+                    </button>
+                    <button
+                        type="button"
+                        onclick="onRemoveSelectedRow()"
+                        id="btnDetailActionDel"
+                        class="px-3 py-1.5 bg-rose-600 text-white rounded text-xs hover:bg-rose-700"
+                        disabled
+                    >
+                        <i class="fa-solid fa-trash mr-1"></i> 선택 행 삭제
+                    </button>
+                </div>
+            </div>
+
+            <div id="myGrid" class="ag-theme-alpine w-full h-[450px]"></div>
+
+            <div
+                class="flex justify-end gap-2 mt-4 pt-3 border-t border-slate-100"
+            >
+                <button
+                    type="button"
+                    id="btnDeleteMain"
+                    onclick="deleteCurriculum()"
+                    class="px-4 py-2 bg-red-100 text-red-700 font-semibold rounded text-sm hover:bg-red-200 hidden"
+                >
+                    <i class="fa-solid fa-trash-can mr-1"></i> 전체 삭제
+                </button>
+                <button
+                    type="button"
+                    id="btnSaveMain"
+                    onclick="saveCurriculumData()"
+                    class="px-5 py-2 bg-emerald-600 text-white font-semibold rounded text-sm hover:bg-emerald-700 hidden"
+                >
+                    <i class="fa-solid fa-floppy-disk mr-1"></i> 데이터 저장
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        let gridApi = null;
+        let currentSelectedMasterId = null; // 현재 편집 중인 커리큘럼 ID (null이면 신규 작성 모드)
+
+        // AG Grid 정의 세팅 (가이드의 데이터 매핑 규칙에 따라 field 설계)
+        const gridOptions = {
+            columnDefs: [
+                {
+                    headerName: "순서",
+                    valueGetter: "node.rowIndex + 1",
+                    width: 70,
+                    cellClass: "text-center bg-slate-50",
+                },
+                {
+                    headerName: "주차 및 회차 정보",
+                    field: "weekInfo",
+                    width: 140,
+                    editable: true,
+                    checkboxSelection: true,
+                },
+                {
+                    headerName: "강의 주제",
+                    field: "topic",
+                    width: 220,
+                    editable: true,
+                },
+                {
+                    headerName: "상세 강의 내용 설명",
+                    field: "content",
+                    flex: 1,
+                    editable: true,
+                    cellEditor: "agLargeTextCellEditor",
+                },
+            ],
+            rowData: [],
+            rowSelection: "single", // 단일 행 선택 모드
+            defaultColDef: {
+                resizable: true,
+                sortable: false,
+                filter: false,
+            },
+        };
+
+        // DOM 로드 완료 시 그리드 초기화 생성
+        document.addEventListener("DOMContentLoaded", () => {
+            const gridDiv = document.querySelector("#myGrid");
+            gridApi = agGrid.createGrid(gridDiv, gridOptions);
+        });
+
+        // 기능 1: 새 커리큘럼 작성 버튼 이벤트
+        function createNewCurriculum() {
+            currentSelectedMasterId = null;
+            document.getElementById("curriculumTitle").value = "";
+            document.getElementById("curriculumTitle").disabled = false;
+
+            // 제어 버튼 활성화
+            setControlState(true, false);
+            gridApi.setGridOption("rowData", [
+                {
+                    weekInfo: "1주차",
+                    topic: "샘플 주제 입력",
+                    content: "샘플 내용 입력",
+                },
+            ]);
+        }
+
+        // 기능 2: 목록 클릭 시 단건 상세 이력 조회 (AJAX)
+        function loadCurriculumDetail(masterId, title) {
+            currentSelectedMasterId = masterId;
+            document.getElementById("curriculumTitle").value = title;
+            document.getElementById("curriculumTitle").disabled = false;
+
+            setControlState(true, true);
+
+            fetch(`/instructor/curriculum/detail/${masterId}`)
+                .then((res) => res.json())
+                .then((data) => {
+                    gridApi.setGridOption("rowData", data);
+                })
+                .catch((err) =>
+                    alert(
+                        "데이터 로드 실패: 권한이 없거나 에러가 발생했습니다.",
+                    ),
+                );
+        }
+
+        // 기능 3: 동적 행 추가/삭제 기능
+        function onAddRow() {
+            const newItem = { weekInfo: "새 주차", topic: "", content: "" };
+            gridApi.applyTransaction({ add: [newItem] });
+        }
+
+        function onRemoveSelectedRow() {
+            const selectedRows = gridApi.getSelectedRows();
+            if (selectedRows.length === 0) {
+                alert("삭제할 행을 표에서 선택해주세요.");
+                return;
+            }
+            gridApi.applyTransaction({ remove: selectedRows });
+        }
+
+        // 기능 4: 데이터 서버 비동기 전송 (신규 저장 및 수정 통합)
+        function saveCurriculumData() {
+            const title = document
+                .getElementById("curriculumTitle")
+                .value.trim();
+            if (!title) {
+                alert("커리큘럼 제목을 입력해 주세요.");
+                return;
+            }
+
+            // AG Grid 전체 로우 데이터 추출
+            const rowData = [];
+            gridApi.forEachNode((node) => rowData.push(node.data));
+
+            if (rowData.length === 0) {
+                alert("표에 최소 한 개 이상의 행을 작성해야 합니다.");
+                return;
+            }
+
+            const url = currentSelectedMasterId
+                ? `/instructor/curriculum/modify/${currentSelectedMasterId}`
+                : "/instructor/curriculum/save";
+            const method = currentSelectedMasterId ? "PUT" : "POST";
+
+            fetch(url, {
+                method: method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title: title, detailList: rowData }),
+            })
+                .then((res) => {
+                    if (res.ok) {
+                        alert("성공적으로 저장되었습니다.");
+                        location.reload(); // 단순 구현을 위한 페이지 새로고침
+                    } else {
+                        throw new Error();
+                    }
+                })
+                .catch(() => alert("저장 실패: 권한 예외가 발생했습니다."));
+        }
+
+        // 기능 5: 요구사항 반영된 경고창 확인 후 소프트 딜리트 진행
+        function deleteCurriculum() {
+            if (!currentSelectedMasterId) return;
+
+            // 요구사항: "정말로 삭제하시겠습니까?" 경고창 출력 후 동작
+            if (
+                confirm(
+                    "정말로 삭제하시겠습니까? (삭제된 데이터는 복구되지 않습니다.)",
+                )
+            ) {
+                fetch(
+                    `/instructor/curriculum/delete/${currentSelectedMasterId}`,
+                    {
+                        method: "DELETE",
+                    },
+                )
+                    .then((res) => {
+                        if (res.ok) {
+                            alert("정상적으로 삭제 처리되었습니다.");
+                            location.reload();
+                        } else {
+                            throw new Error();
+                        }
+                    })
+                    .catch(() =>
+                        alert("삭제 권한이 없거나 처리 오류가 발생했습니다."),
+                    );
+            }
+        }
+
+        // UI 유틸: 상태 제어 플래그
+        function setControlState(activeGrid, showDelete) {
+            document.getElementById("btnDetailAction").disabled = !activeGrid;
+            document.getElementById("btnDetailActionDel").disabled =
+                !activeGrid;
+
+            const btnSave = document.getElementById("btnSaveMain");
+            const btnDel = document.getElementById("btnDeleteMain");
+
+            btnSave.classList.remove("hidden");
+            if (showDelete) btnDel.classList.remove("hidden");
+            else btnDel.classList.add("hidden");
+        }
+    </script>
+
+    <style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .ag-theme-alpine {
+            --ag-header-background-color: #f1f5f9;
+            --ag-header-foreground-color: #334155;
+            --ag-row-hover-color: #eff6ff;
+            font-size: 13px;
+        }
+    </style>
+</div>
