@@ -1,15 +1,20 @@
 package kr.or.ddit.controller.chat;
 
+import java.util.Collections;
 import java.util.List;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import kr.or.ddit.finalProject.dto.message.MessageContentDto;
 import kr.or.ddit.finalProject.dto.message.MessageRoomDto;
 import kr.or.ddit.finalProject.service.chat.ChatService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestParam;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/admin/chat/room")
@@ -18,9 +23,9 @@ public class ChatRoomPageController {
     private final ChatService chatService;
 
     @GetMapping("/list")
-    public String getChatRoomList(Model model) {
+    public String getChatRoomList(Model model, Authentication authentication) {
 
-        String userId = "testuser01"; // TODO: 로그인한 사용자ID로 변경
+        String userId = authentication.getName();
         List<MessageRoomDto> chatRoomList = chatService.getChatRoomList(userId);
         model.addAttribute("chatRoomList", chatRoomList);
         return "admin:/chat/chatList";
@@ -36,10 +41,15 @@ public class ChatRoomPageController {
      * @return 채팅방 페이지 뷰 이름
      */
     @GetMapping("/page")
-    public String getPage(@RequestParam long roomSn, Model model) {
+    public String getPage(@RequestParam long roomSn, Model model, Authentication authentication) {
 
-        MessageRoomDto room = chatService.getGroupChatRoom(roomSn);
+        MessageRoomDto room = chatService.getGroupChatRoom(roomSn, authentication);
         model.addAttribute("room", room);
+        List<MessageContentDto> messages =
+                chatService.getChatMessages(roomSn, 20, 1, authentication); // 최신 20개 메시지
+        Collections.reverse(messages); // DESC로 가져온 거 뒤집어서 오래된 순으로 표시
+        model.addAttribute("chatMessages", messages);
+        model.addAttribute("currentUserId", authentication.getName());
 
         return "admin:/chat/chatRoom";
     }

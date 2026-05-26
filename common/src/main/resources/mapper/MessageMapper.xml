@@ -24,11 +24,22 @@
     private Long lstReadMsgSn; // 안읽은 메시지 수 계산 기준 읽을 때마다 갱신 
     -->
 
-    <insert id="insertGroupChatRoom" parameterType="kr.or.ddit.finalProject.dto.message.MessageRoomDto"
-        useGeneratedKeys="true"
-        keyProperty="roomSn"
-        keyColumn="ROOM_SN"
-    >
+
+    <!-- MessageContentDto
+
+    private Long msgSn; // 기본키(PK) · 시퀀스
+    private Long roomSn;
+    private String msgTypeCd; // 01:텍스트 02:이미지 03:파일
+    private String msgCn;
+    private LocalDateTime sndDt;
+    private String sendrUserId; // MEMBER.USER_ID 참조
+    private String delYn; // Y:삭제 / N:정상
+    private LocalDateTime delDt; // DEL_YN='Y' 시 삭제 처리 일시
+    private String atchFileId; // 공통첨부파일분류
+    
+    -->
+
+    <insert id="insertGroupChatRoom" parameterType="kr.or.ddit.finalProject.dto.message.MessageRoomDto" useGeneratedKeys="true" keyProperty="roomSn" keyColumn="ROOM_SN">
         INSERT INTO MESSAGE_ROOM (
             ROOM_TYPE_CD,
             ROOM_NM,
@@ -42,7 +53,7 @@
 
 
 
-    <!-- insertChatRoomAllParticipant --> 
+    <!-- insertChatRoomAllParticipant -->
 
     <insert id="insertChatRoomParticipant">
     INSERT INTO MESSAGE_ROOM_PARTICIPANT (
@@ -54,7 +65,7 @@
         #{roomSn},
         #{userId}
     )
-</insert>
+    </insert>
 
     <resultMap id="messageRoomResultMap" type="kr.or.ddit.finalProject.dto.message.MessageRoomDto">
         <id property="roomSn" column="ROOM_SN"/>
@@ -65,8 +76,7 @@
         <result property="lstMsgDt" column="LST_MSG_DT"/>
         <result property="delYn" column="DEL_YN"/>
 
-        <collection property="participants" 
-                    ofType="kr.or.ddit.finalProject.dto.message.MessageRoomParticipantDto">
+        <collection property="participants" ofType="kr.or.ddit.finalProject.dto.message.MessageRoomParticipantDto">
             <id property="partSn" column="PART_SN"/>
             <result property="roomSn" column="ROOM_SN"/>
             <result property="partUserId" column="PART_USER_ID"/>
@@ -94,8 +104,62 @@
             mrp.LST_READ_MSG_SN
         FROM MESSAGE_ROOM mr
         INNER JOIN MESSAGE_ROOM_PARTICIPANT mrp ON mr.ROOM_SN = mrp.ROOM_SN
-        WHERE mrp.PART_USER_ID = #{userId}
+        WHERE 
+            (mrp.PART_USER_ID = #{userId}
+            or
+            mr.OPNR_USER_ID = #{userId})
         AND mr.DEL_YN = 'N'
         ORDER BY mr.LST_MSG_DT DESC
     </select>
+
+    <select id="selectChatRoomByRoomSn" parameterType="long" resultMap="messageRoomResultMap">
+        SELECT mr.ROOM_SN,
+            mr.ROOM_TYPE_CD,
+            mr.ROOM_NM,
+            mr.OPNR_USER_ID,
+            mr.ROOM_CRET_DT,
+            mr.LST_MSG_DT,
+            mr.DEL_YN,
+            mrp.PART_SN,
+            mrp.PART_USER_ID,
+            mrp.JOIN_DT,
+            mrp.EXIT_DT,
+            mrp.NOTI_YN,
+            mrp.LST_READ_MSG_SN
+        FROM MESSAGE_ROOM mr
+        INNER JOIN MESSAGE_ROOM_PARTICIPANT mrp ON mr.ROOM_SN = mrp.ROOM_SN
+        WHERE mr.ROOM_SN = #{roomSn}
+        AND mr.DEL_YN = 'N'
+
+    </select>
+
+
+    <select id="isParticipant" parameterType="map" resultType="int">
+    SELECT COUNT(*)
+    FROM MESSAGE_ROOM_PARTICIPANT
+    WHERE ROOM_SN = #{roomSn}
+    AND PART_USER_ID = #{userId}
+    </select>
+
+    <insert id="insertChatMessage" parameterType="kr.or.ddit.finalProject.dto.message.MessageContentDto">
+        INSERT INTO MESSAGE_CONTENT (
+            ROOM_SN,
+            SENDR_USER_ID,
+            MSG_CN
+        ) VALUES (
+            #{roomSn},
+            #{sendrUserId},
+            #{msgCn}
+        )
+    </insert>
+
+    <select id="selectChatMessagesByRoomSn" resultType="kr.or.ddit.finalProject.dto.message.MessageContentDto">
+        SELECT *
+        FROM MESSAGE_CONTENT
+        WHERE ROOM_SN = #{roomSn}
+        ORDER BY msg_sn desc
+        offset #{paginationInfo.offset} rows fetch next #{paginationInfo.screenSize} rows only
+    </select>
+
+
 </mapper>

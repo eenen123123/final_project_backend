@@ -1,6 +1,7 @@
 package kr.or.ddit.finalProject.service.chat;
 
 import java.util.List;
+import org.springframework.security.core.Authentication;
 import kr.or.ddit.finalProject.dto.message.MessageContentDto;
 import kr.or.ddit.finalProject.dto.message.MessageRoomDto;
 
@@ -49,17 +50,18 @@ public interface ChatService {
      * @param roomSn 채팅방 일련번호
      * @return 해당 채팅방 정보
      */
-    MessageRoomDto getGroupChatRoom(long roomSn);
+    MessageRoomDto getGroupChatRoom(long roomSn, Authentication authentication);
 
     /**
      * 채팅 메시지 기록 조회 (페이징 처리)
      * 
      * @param roomSn     채팅방 일련번호
-     * @param page       메시지 페이지 번호 (1부터 시작)
      * @param screenSize 페이지당 메시지 수
+     * @param page       메시지 페이지 번호 (1부터 시작)
      * @return 해당 채팅방의 메시지 목록 (페이징 처리된 결과)
      */
-    List<MessageContentDto> getChatMessages(long roomSn, int page, int screenSize);
+    List<MessageContentDto> getChatMessages(long roomSn, int screenSize, int page,
+            Authentication authentication);
 
     /**
      * 그룹 채팅방 생성
@@ -75,12 +77,9 @@ public interface ChatService {
     /**
      * 채팅 메시지 전송
      * 
-     * @param roomSn      채팅방 일련번호
-     * @param sendrUserId 발신자 사용자ID
-     * @param msgTypeCd   메시지 유형 코드
-     * @param msgCn       메시지 내용
+     * @param messageContentDto 메시지 내용 DTO
      */
-    void sendMessage(Long roomSn, String sendrUserId, String msgTypeCd, String msgCn);
+    void sendMessage(MessageContentDto messageContentDto);
 
     /**
      * 채팅방 목록 조회 (사용자가 참여한 채팅방 목록)
@@ -90,5 +89,7 @@ public interface ChatService {
      * @return 사용자가 참여한 채팅방 목록 (각 채팅방에는 마지막 메시지 내용과 마지막 메시지 전송 일시 포함)
      */
     List<MessageRoomDto> getChatRoomList(String userId);
+
+    boolean isUserInChatRoom(long roomSn, String userId);
 
 }

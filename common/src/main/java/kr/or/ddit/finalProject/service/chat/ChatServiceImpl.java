@@ -2,7 +2,7 @@ package kr.or.ddit.finalProject.service.chat;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,8 +12,11 @@ import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.mapper.MemberMapper;
 import kr.or.ddit.finalProject.mapper.MessageMapper;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
@@ -23,7 +26,8 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     @Transactional
-    public MessageRoomDto createGroupChatRoom(String roomNm, String opnrUserId, List<String> partUserIds) {
+    public MessageRoomDto createGroupChatRoom(String roomNm, String opnrUserId,
+            List<String> partUserIds) {
         // 채팅방 생성
 
         // partUserIds 목록의 회원들이 존재하는지 확인
@@ -33,11 +37,8 @@ public class ChatServiceImpl implements ChatService {
         }
 
         // 채팅방 생성
-        MessageRoomDto newRoom = MessageRoomDto.builder()
-                .roomTypeCd("02") // 그룹채팅
-                .roomNm(roomNm)
-                .opnrUserId(opnrUserId)
-                .build();
+        MessageRoomDto newRoom = MessageRoomDto.builder().roomTypeCd("02") // 그룹채팅
+                .roomNm(roomNm).opnrUserId(opnrUserId).build();
         int result = messageMapper.insertGroupChatRoom(newRoom);
         if (result <= 0) {
             throw new FinalProjectException(ErrorCode.CHAT_ROOM_CREATION_FAILED);
@@ -55,10 +56,22 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public List<MessageContentDto> getChatMessages(long roomSn, int page, int screenSize) {
-        // TODO Auto-generated method stub
-        return null;
+    public List<MessageContentDto> getChatMessages(long roomSn, int screenSize, int page,
+            Authentication authentication) {
+
+        boolean isParticipant = messageMapper.isParticipant(roomSn, authentication.getName()) > 0;
+        if (!isParticipant) {
+            throw new FinalProjectException(ErrorCode.CHAT_ROOM_ACCESS_DENIED);
+        }
+
+        PaginationInfo<MessageContentDto> paginationInfo = new PaginationInfo<>(screenSize, page);
+        List<MessageContentDto> messages =
+                messageMapper.selectChatMessagesByRoomSn(roomSn, paginationInfo);
+
+
+        return messages;
     }
+
 
     @Override
     public List<MessageRoomDto> getChatRoomList(String userId) {
@@ -66,9 +79,20 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public MessageRoomDto getGroupChatRoom(long roomSn) {
-        // TODO Auto-generated method stub
-        return null;
+    public MessageRoomDto getGroupChatRoom(long roomSn, Authentication authentication) {
+
+        // 채팅방의 정보를 조회 하는데, 요청한 사용자가 해당 채팅방의 참여자인지 확인하고 참여자가 아니라면 예외를 발생시킴
+        MessageRoomDto room = messageMapper.selectChatRoomByRoomSn(roomSn);
+        if (room == null) {
+            throw new FinalProjectException(ErrorCode.CHAT_ROOM_NOT_FOUND);
+        }
+
+        boolean isParticipant = messageMapper.isParticipant(roomSn, authentication.getName()) > 0;
+        if (!isParticipant) {
+            throw new FinalProjectException(ErrorCode.CHAT_ROOM_ACCESS_DENIED);
+        }
+
+        return room;
     }
 
     @Override
@@ -78,9 +102,25 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public void sendMessage(Long roomSn, String sendrUserId, String msgTypeCd, String msgCn) {
-        // TODO Auto-generated method stub
+    public void sendMessage(MessageContentDto messageContentDto) {
 
+        // 메시지를 저장하기 전에, 해당 사용자가 채팅방의 참여자인지 확인하고 참여자가 아니라면 예외를 발생시킴
+        boolean isParticipant = messageMapper.isParticipant(messageContentDto.getRoomSn(),
+                messageContentDto.getSendrUserId()) > 0;
+        if (!isParticipant) {
+            throw new FinalProjectException(ErrorCode.CHAT_ROOM_ACCESS_DENIED);
+        }
+
+        // 메시지 저장
+        int result = messageMapper.insertChatMessage(messageContentDto);
+        log.info("Inserted chat message: {}", messageContentDto);
+        if (result <= 0) {
+            throw new FinalProjectException(ErrorCode.CHAT_MESSAGE_CREATION_FAILED);
+        }
     }
 
+    @Override
+    public boolean isUserInChatRoom(long roomSn, String userId) {
+        return messageMapper.isParticipant(roomSn, userId) > 0;
+    }
 }
