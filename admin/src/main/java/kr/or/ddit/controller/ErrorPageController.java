@@ -10,6 +10,6 @@ public class ErrorPageController {
 
     @GetMapping
     public String handleError() {
-        return "error/error";
+        return "admin:/error/error";
     }
 }
