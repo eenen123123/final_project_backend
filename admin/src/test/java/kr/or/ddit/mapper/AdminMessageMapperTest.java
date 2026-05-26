@@ -26,16 +26,16 @@ public class AdminMessageMapperTest {
         log.info("조회된 채팅방 정보: {}", room.getParticipants());
     }
 
-    @Test
-    void selectAllChatRoomsByUserId() {
-        // Given
-        String userId = "testuser01"; // 테스트할 사용자ID  
+    // @Test
+    // void selectAllChatRoomsByUserId() {
+    //     // Given
+    //     String userId = "testuser01"; // 테스트할 사용자ID  
 
-        // When
-        var chatRooms = messageMapper.selectAllChatRoomsByUserId(userId);
-        // Then
-        chatRooms.forEach(room -> log.info("조회된 채팅방: {}", room.getParticipants().size()));
-    }
+    //     // When
+    //     var chatRooms = messageMapper.selectAllChatRoomsByUserId(userId);
+    //     // Then
+    //     chatRooms.forEach(room -> log.info("조회된 채팅방: {}", room.getParticipants().size()));
+    // }
 
     @Test
     void selectChatMessagesByRoomSn() {

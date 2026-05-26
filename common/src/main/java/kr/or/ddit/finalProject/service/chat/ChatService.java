@@ -2,8 +2,10 @@ package kr.or.ddit.finalProject.service.chat;
 
 import java.util.List;
 import org.springframework.security.core.Authentication;
+import kr.or.ddit.finalProject.dto.message.CreateMessageRoomRequestDto;
 import kr.or.ddit.finalProject.dto.message.MessageContentDto;
 import kr.or.ddit.finalProject.dto.message.MessageRoomDto;
+import kr.or.ddit.finalProject.dto.message.MessageRoomSummaryDto;
 
 /**
  * 채팅 서비스 인터페이스
@@ -67,12 +69,12 @@ public interface ChatService {
      * 그룹 채팅방 생성
      * - 그룹 채팅방은 채팅방 이름과 참여자 목록이 필요
      * 
-     * @param roomNm      채팅방 이름
-     * @param opnrUserId  채팅방 개설자 사용자ID
-     * @param partUserIds 참여자 사용자ID 목록 (개설자 포함)
+     * @param creatorUserId 채팅방 개설자 사용자ID
+     * @param requestDto    채팅방 생성 요청 DTO (채팅방 이름, 참여자 목록 등)
      * @return 생성된 그룹 채팅방
      */
-    MessageRoomDto createGroupChatRoom(String roomNm, String opnrUserId, List<String> partUserIds);
+    MessageRoomDto createGroupChatRoom(String creatorUserId,
+            CreateMessageRoomRequestDto requestDto);
 
     /**
      * 채팅 메시지 전송
@@ -88,8 +90,17 @@ public interface ChatService {
      * @param userId 사용자ID (채팅방 목록을 조회할 사용자ID)
      * @return 사용자가 참여한 채팅방 목록 (각 채팅방에는 마지막 메시지 내용과 마지막 메시지 전송 일시 포함)
      */
-    List<MessageRoomDto> getChatRoomList(String userId);
+    List<MessageRoomSummaryDto> getChatRoomList(String userId);
 
     boolean isUserInChatRoom(long roomSn, String userId);
+
+    /**
+     * 사용자가 채팅방에서 메시지를 읽었을 때, 해당 메시지의 일련번호(msgSn)를 기준으로 lst_read_msg_sn을 업데이트하는 메서드
+     * 
+     * @param roomSn 채팅방 일련번호
+     * @param userId 사용자ID
+     * @param msgSn  읽은 메시지의 일련번호
+     */
+    void updateLastReadMessage(long roomSn, String userId, long msgSn);
 
 }

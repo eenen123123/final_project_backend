@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import kr.or.ddit.finalProject.dto.message.MessageContentDto;
 import kr.or.ddit.finalProject.dto.message.MessageRoomDto;
+import kr.or.ddit.finalProject.dto.message.MessageRoomSummaryDto;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
 
 @Mapper
@@ -15,7 +16,7 @@ public interface MessageMapper {
 
     void insertChatRoomParticipant(@Param("roomSn") Long roomSn, @Param("userId") String userId);
 
-    List<MessageRoomDto> selectAllChatRoomsByUserId(@Param("userId") String userId);
+    List<MessageRoomSummaryDto> selectAllChatRoomsByUserId(@Param("userId") String userId);
 
     MessageRoomDto selectChatRoomByRoomSn(@Param("roomSn") Long roomSn);
 
@@ -25,4 +26,9 @@ public interface MessageMapper {
 
     List<MessageContentDto> selectChatMessagesByRoomSn(@Param("roomSn") Long roomSn,
             @Param("paginationInfo") PaginationInfo<MessageContentDto> paginationInfo);
+
+    int updateLastSentMessage(@Param("roomSn") Long roomSn);
+
+    void updateLastReadMessage(@Param("roomSn") Long roomSn, @Param("userId") String userId,
+            @Param("msgSn") long msgSn);
 }

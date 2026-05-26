@@ -1,18 +1,31 @@
 package kr.or.ddit.controller.chat;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import kr.or.ddit.finalProject.dto.member.MemberDto;
+import kr.or.ddit.finalProject.dto.message.CreateMessageRoomRequestDto;
 import kr.or.ddit.finalProject.dto.message.MessageContentDto;
 import kr.or.ddit.finalProject.dto.message.MessageRoomDto;
+import kr.or.ddit.finalProject.dto.message.MessageRoomSummaryDto;
+import kr.or.ddit.finalProject.dto.user.AdminUserDto;
+import kr.or.ddit.finalProject.mapper.MemberMapper;
 import kr.or.ddit.finalProject.service.chat.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @Slf4j
 @Controller
@@ -21,12 +34,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class ChatRoomPageController {
 
     private final ChatService chatService;
+    private final MemberMapper memberMapper;
 
     @GetMapping("/list")
     public String getChatRoomList(Model model, Authentication authentication) {
 
         String userId = authentication.getName();
-        List<MessageRoomDto> chatRoomList = chatService.getChatRoomList(userId);
+        List<MessageRoomSummaryDto> chatRoomList = chatService.getChatRoomList(userId);
         model.addAttribute("chatRoomList", chatRoomList);
         return "admin:/chat/chatList";
     }
@@ -51,7 +65,26 @@ public class ChatRoomPageController {
         model.addAttribute("chatMessages", messages);
         model.addAttribute("currentUserId", authentication.getName());
 
+
         return "admin:/chat/chatRoom";
     }
 
+    @GetMapping("/create")
+    public String createChatRoom(Model model, Authentication authentication) {
+        String userId = authentication.getName();
+        List<AdminUserDto> adminUsers = memberMapper.getAdminUsers(userId);
+        Map<String, List<AdminUserDto>> groupedAdminUsers = adminUsers.stream().collect(Collectors
+                .groupingBy(AdminUserDto::getAuthrtNm, LinkedHashMap::new, Collectors.toList()));
+        model.addAttribute("groupedAdminUsers", groupedAdminUsers);
+        return "admin:/chat/createChatRoom";
+    }
+
+    @PostMapping("/create")
+    public String createChatRoom(@ModelAttribute CreateMessageRoomRequestDto requestDto,
+            Authentication authentication) {
+        String creatorUserId = authentication.getName();
+        MessageRoomDto newRoom = chatService.createGroupChatRoom(creatorUserId, requestDto);
+        log.info("Created group chat room: {}", newRoom);
+        return "redirect:/admin/chat/room/page?roomSn=" + newRoom.getRoomSn();
+    }
 }

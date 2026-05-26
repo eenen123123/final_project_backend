@@ -76,6 +76,7 @@
         <result property="lstMsgDt" column="LST_MSG_DT"/>
         <result property="delYn" column="DEL_YN"/>
 
+
         <collection property="participants" ofType="kr.or.ddit.finalProject.dto.message.MessageRoomParticipantDto">
             <id property="partSn" column="PART_SN"/>
             <result property="roomSn" column="ROOM_SN"/>
@@ -84,11 +85,30 @@
             <result property="exitDt" column="EXIT_DT"/>
             <result property="notiYn" column="NOTI_YN"/>
             <result property="lstReadMsgSn" column="LST_READ_MSG_SN"/>
+            <result property="partRoleName" column="PART_ROLE_NAME"/>
+            <result property="partUserName" column="PART_USER_NAME"/>
         </collection>
+
+
     </resultMap>
 
+    <resultMap id="MessageRoomSummaryDtoResultMap" type="kr.or.ddit.finalProject.dto.message.MessageRoomSummaryDto">
+        <id property="roomSn" column="ROOM_SN"/>
+        <result property="roomTypeCd" column="ROOM_TYPE_CD"/>
+        <result property="roomNm" column="ROOM_NM"/>
+        <result property="opnrUserId" column="OPNR_USER_ID"/>
+        <result property="roomCretDt" column="ROOM_CRET_DT"/>
+        <result property="lstMsgDt" column="LST_MSG_DT"/>
+        <result property="delYn" column="DEL_YN"/>
+        <result property="participantCount" column="PARTICIPANT_COUNT"/>
+        <result property="unreadMsgCount" column="UNREAD_MSG_COUNT"/>
+
+    </resultMap>
+
+
+
     <!-- selectAllChatRoomsByUserId -->
-    <select id="selectAllChatRoomsByUserId" resultMap="messageRoomResultMap">
+    <select id="selectAllChatRoomsByUserId" resultMap="MessageRoomSummaryDtoResultMap">
         SELECT mr.ROOM_SN,
             mr.ROOM_TYPE_CD,
             mr.ROOM_NM,
@@ -96,18 +116,23 @@
             mr.ROOM_CRET_DT,
             mr.LST_MSG_DT,
             mr.DEL_YN,
-            mrp.PART_SN,
-            mrp.PART_USER_ID,
-            mrp.JOIN_DT,
-            mrp.EXIT_DT,
-            mrp.NOTI_YN,
-            mrp.LST_READ_MSG_SN
+       
+         (SELECT COUNT(*) FROM MESSAGE_ROOM_PARTICIPANT
+            WHERE ROOM_SN = mr.ROOM_SN) AS PARTICIPANT_COUNT,
+
+            (
+                select count(*)
+                from message_content mc
+                left join message_room_participant mrp on mc.ROOM_SN = mrp.ROOM_SN
+                where mc.ROOM_SN = mr.ROOM_SN
+                      and mrp.PART_USER_ID = #{userId}
+                      and mc.MSG_SN &gt; nvl(mrp.LST_READ_MSG_SN, 0)
+            ) as UNREAD_MSG_COUNT
+      
         FROM MESSAGE_ROOM mr
-        INNER JOIN MESSAGE_ROOM_PARTICIPANT mrp ON mr.ROOM_SN = mrp.ROOM_SN
-        WHERE 
-            (mrp.PART_USER_ID = #{userId}
-            or
-            mr.OPNR_USER_ID = #{userId})
+        WHERE mr.ROOM_SN IN (
+            SELECT ROOM_SN FROM MESSAGE_ROOM_PARTICIPANT WHERE PART_USER_ID = #{userId}
+        )
         AND mr.DEL_YN = 'N'
         ORDER BY mr.LST_MSG_DT DESC
     </select>
@@ -125,12 +150,22 @@
             mrp.JOIN_DT,
             mrp.EXIT_DT,
             mrp.NOTI_YN,
-            mrp.LST_READ_MSG_SN
+            mrp.LST_READ_MSG_SN,
+            (
+                select mrole.authrt_nm
+                from member_role_mapping mrm
+                left join member_role mrole on mrm.user_role_cd = mrole.user_role_cd
+                where mrm.user_id = mrp.part_user_id
+                      and mrm.user_role_cd != 'ROLE_ADMIN'
+            ) as part_role_name,
+            m.user_name as part_user_name
         FROM MESSAGE_ROOM mr
         INNER JOIN MESSAGE_ROOM_PARTICIPANT mrp ON mr.ROOM_SN = mrp.ROOM_SN
-        WHERE mr.ROOM_SN = #{roomSn}
-        AND mr.DEL_YN = 'N'
-
+        INNER JOIN member m ON mrp.PART_USER_ID = m.user_id
+        <where>
+            mr.ROOM_SN = #{roomSn}
+            AND mr.DEL_YN = 'N'
+        </where>
     </select>
 
 
@@ -141,7 +176,7 @@
     AND PART_USER_ID = #{userId}
     </select>
 
-    <insert id="insertChatMessage" parameterType="kr.or.ddit.finalProject.dto.message.MessageContentDto">
+    <insert id="insertChatMessage" parameterType="kr.or.ddit.finalProject.dto.message.MessageContentDto" useGeneratedKeys="true" keyProperty="msgSn" keyColumn="MSG_SN">
         INSERT INTO MESSAGE_CONTENT (
             ROOM_SN,
             SENDR_USER_ID,
@@ -154,12 +189,37 @@
     </insert>
 
     <select id="selectChatMessagesByRoomSn" resultType="kr.or.ddit.finalProject.dto.message.MessageContentDto">
-        SELECT *
-        FROM MESSAGE_CONTENT
-        WHERE ROOM_SN = #{roomSn}
-        ORDER BY msg_sn desc
+        SELECT mc.*, (
+            select mr.authrt_nm
+            from member_role_mapping mrm
+            left join member_role mr on mrm.user_role_cd = mr.user_role_cd
+            where mrm.user_id = mc.sendr_user_id
+                  and mrm.user_role_cd != 'ROLE_ADMIN'
+        ) as sender_role_name, m.user_name as user_name
+        FROM MESSAGE_CONTENT mc
+        left join member m on mc.sendr_user_id = m.user_id
+        
+
+        WHERE mc.ROOM_SN = #{roomSn}
+        ORDER BY mc.MSG_SN desc
         offset #{paginationInfo.offset} rows fetch next #{paginationInfo.screenSize} rows only
     </select>
 
 
+    <!-- updateLastSentMessage -->
+
+    <update id="updateLastSentMessage">
+        UPDATE MESSAGE_ROOM
+        SET LST_MSG_DT = SYSDATE
+        WHERE ROOM_SN = #{roomSn}
+    </update>
+
+    <!-- updateLastReadMessage -->
+
+    <update id="updateLastReadMessage">
+        UPDATE MESSAGE_ROOM_PARTICIPANT
+        SET LST_READ_MSG_SN = #{msgSn}
+        WHERE ROOM_SN = #{roomSn}
+        AND PART_USER_ID = #{userId}
+    </update>
 </mapper>

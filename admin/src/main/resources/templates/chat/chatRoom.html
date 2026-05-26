@@ -110,11 +110,12 @@
                 <div
                     th:if="${msg.sendrUserId == currentUserId}"
                     class="flex flex-col items-end gap-1"
+                    th:attr="data-msg-sn=${msg.msgSn}"
                 >
                     <div class="flex items-end gap-2">
                         <span
                             class="text-[10px] text-slate-400 mb-0.5"
-                            th:text="${msg.sndDt != null ? #temporals.format(msg.sndDt, 'HH:mm') : ''}"
+                            th:text="${msg.sndDt != null ? #temporals.format(msg.sndDt, 'yyyy-MM-dd HH:mm') : ''}"
                         ></span>
                         <div
                             class="chat-bubble-mine px-4 py-2.5 text-sm max-w-xs lg:max-w-sm break-words"
@@ -129,12 +130,25 @@
                 <div
                     th:unless="${msg.sendrUserId == currentUserId}"
                     class="flex flex-col items-start gap-1"
+                    th:attr="data-msg-sn=${msg.msgSn}"
                 >
-                    <span
-                        class="text-xs font-semibold text-slate-500 pl-1"
-                        th:text="${msg.sendrUserId}"
-                        >보낸 사람</span
-                    >
+                    <div class="flex items-center gap-1.5 pl-1">
+                        <span
+                            th:if="${msg.senderRoleName != null}"
+                            th:class="${msg.senderRoleName == 'ROLE_ADMIN'}
+                                ? 'text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-500'
+                                : 'text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500'"
+                            th:text="${msg.senderRoleName == 'ROLE_ADMIN'} ? '관리자' : ${msg.senderRoleName}"
+                        ></span>
+                        <span
+                            class="text-xs font-semibold text-slate-700"
+                            th:text="${msg.userName}"
+                        ></span>
+                        <span
+                            class="text-xs text-slate-400"
+                            th:text="'(' + ${msg.sendrUserId} + ')'"
+                        ></span>
+                    </div>
                     <div class="flex items-end gap-2">
                         <div
                             class="chat-bubble-other px-4 py-2.5 text-sm max-w-xs lg:max-w-sm break-words"
@@ -144,7 +158,7 @@
                         </div>
                         <span
                             class="text-[10px] text-slate-400 mb-0.5"
-                            th:text="${msg.sndDt != null ? #temporals.format(msg.sndDt, 'HH:mm') : ''}"
+                            th:text="${msg.sndDt != null ? #temporals.format(msg.sndDt, 'yyyy-MM-dd HH:mm') : ''}"
                         ></span>
                     </div>
                 </div>
@@ -176,7 +190,7 @@
 
     <!-- 참여자 목록 사이드바 -->
     <div
-        class="w-56 shrink-0 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col"
+        class="w-80 shrink-0 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col"
     >
         <div class="px-4 py-3.5 border-b border-slate-100">
             <h3
@@ -206,8 +220,8 @@
                 </div>
                 <span
                     class="text-sm text-slate-700 font-medium truncate"
-                    th:text="${p.partUserId}"
-                    >사용자ID</span
+                    th:text="'[' + ${p.partRoleName} + '] ' + ${p.partUserName} + ' (' + ${p.partUserId} + ')'"
+                    >참여자</span
                 >
             </li>
             <!-- 참여자 없을 때 -->

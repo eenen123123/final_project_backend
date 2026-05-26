@@ -3,7 +3,9 @@ package kr.or.ddit.finalProject.mapper;
 import java.util.List;
 import java.util.Optional;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
+import kr.or.ddit.finalProject.dto.user.AdminUserDto;
 
 @Mapper
 public interface MemberMapper {
@@ -21,5 +23,7 @@ public interface MemberMapper {
      * @return 존재하는 사용자ID의 수 (userIds.size()와 같으면 모두 존재, 작으면 일부 또는 모두 존재하지 않음)
      */
     int isAllExistUsers(List<String> userIds);
+
+    List<AdminUserDto> getAdminUsers(@Param("excludeUserId") String excludeUserId);
 
 }

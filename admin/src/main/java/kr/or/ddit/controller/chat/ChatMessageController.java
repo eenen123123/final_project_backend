@@ -11,6 +11,7 @@ import kr.or.ddit.finalProject.service.chat.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 
@@ -45,6 +46,16 @@ public class ChatMessageController {
                 chatService.getChatMessages(Long.parseLong(roomSn), size, page, authentication);
 
         return ResponseEntity.ok(messages);
+    }
+
+
+    // 메시지를 읽은 것으로 처리하는 엔드포인트 (예: 사용자가 채팅방에서 메시지를 읽었을 때 호출, 구독한 클라이언트에서 메시지를 읽었을 때 프론트엔드에서 호출)
+    @PostMapping("/chat/read")
+    public String markMessageAsRead(@RequestParam String roomSn, @RequestParam String msgSn,
+            Authentication authentication) {
+        chatService.updateLastReadMessage(Long.parseLong(roomSn), authentication.getName(),
+                Long.parseLong(msgSn));
+        return "OK";
     }
 
 }

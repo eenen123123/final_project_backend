@@ -71,7 +71,7 @@
         LEFT JOIN MEMBER_ROLE_MAPPING r ON m.USER_ID = r.USER_ID
     </select>
 
-    <!-- isAllExistUsers (리스트의 사용자 모두가 존재하는지 확인) --> 
+    <!-- isAllExistUsers (리스트의 사용자 모두가 존재하는지 확인) -->
 
     <select id="isAllExistUsers" parameterType="list" resultType="int">
         SELECT
@@ -84,4 +84,20 @@
     </select>
 
 
+    <!-- getAdminUsers -->
+
+    <select id="getAdminUsers" resultType="kr.or.ddit.finalProject.dto.user.AdminUserDto">
+        select 
+            m.user_id,
+            m.user_name,
+            mrm.user_role_cd,
+            mr.authrt_nm
+        from member m
+        inner join member_role_mapping mrm on m.user_id = mrm.user_id
+        right join member_role mr on mrm.user_role_cd = mr.user_role_cd
+        where mrm.user_role_cd = 'ROLE_ADMIN'
+                and m.user_id != #{excludeUserId}
+        order by m.user_id
+
+    </select>
 </mapper>
