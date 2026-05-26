@@ -124,8 +124,26 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public MessageRoomDto getOrCreateOneOnOneChatRoom(String myId, String otherId) {
-        // TODO Auto-generated method stub
-        return null;
+        // otherId가 존재하는 회원인지 확인
+        if (memberMapper.isAllExistUsers(List.of(otherId)) != 1) {
+            throw new FinalProjectException(ErrorCode.USER_NOT_FOUND);
+        }
+        // 이미 존재하는 일대일 채팅방이 있는지 확인
+        MessageRoomDto existingRoom = messageMapper.selectOneOnOneChatRoom(myId, otherId);
+        if (existingRoom != null) {
+            return existingRoom;
+        }
+
+        // 일대일 채팅방이 존재하지 않으면 새로 생성
+        MessageRoomDto newRoom = new MessageRoomDto();
+        newRoom.setRoomTypeCd("01"); // 01: 1:1 DM
+        messageMapper.insertGroupChatRoom(newRoom);
+
+        // 채팅방 참여자 추가 (myId와 otherId)
+        messageMapper.insertChatRoomParticipant(newRoom.getRoomSn(), myId);
+        messageMapper.insertChatRoomParticipant(newRoom.getRoomSn(), otherId);
+
+        return newRoom;
     }
 
     @Override

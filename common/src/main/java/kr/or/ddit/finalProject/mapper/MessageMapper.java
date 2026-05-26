@@ -16,6 +16,9 @@ public interface MessageMapper {
 
     void insertChatRoomParticipant(@Param("roomSn") Long roomSn, @Param("userId") String userId);
 
+    MessageRoomDto selectOneOnOneChatRoom(@Param("myId") String myId,
+            @Param("otherId") String otherId);
+
     List<MessageRoomSummaryDto> selectAllChatRoomsByUserId(@Param("userId") String userId);
 
     MessageRoomDto selectChatRoomByRoomSn(@Param("roomSn") Long roomSn);
