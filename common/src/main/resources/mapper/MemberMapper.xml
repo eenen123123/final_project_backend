@@ -4,11 +4,44 @@
 
 <mapper namespace="kr.or.ddit.finalProject.mapper.MemberMapper">
 
+    <!-- 
+    
+    private String userId; // 기본키 (PK)
+    private String userEnpswd; // 암호화된 비번
+    private String userName; // 사용자명
+    private String userEnrrno; // AES-256 암호화 필수
+    private String userGndrCd; // M:남성 F:여성 U:미확인
+    private LocalDate userBrdt;
+    private LocalDateTime joinDt; // 가입 시각
+    private String userTelno; // (9)99-(9)999-9999 형식
+    private String userEmailAddr;
+    private String userZip;
+    private String userAddr;
+    private String userDaddr;
+    private String userProfile; // 이미지 URL/경로
+    private LocalDateTime regDate; // 데이터 생성 시점
+    private LocalDateTime modDate; // 데이터 수정 시점
+    private String enable;
+
+    -->
+
     <resultMap id="memberTestResultMap" type="kr.or.ddit.finalProject.dto.member.MemberDto">
         <id property="userId" column="USER_ID"/>
         <result property="userEnpswd" column="USER_ENPSWD"/>
         <result property="userName" column="USER_NAME"/>
-
+        <result property="userEnrrno" column="USER_ENRRNO"/>
+        <result property="userGndrCd" column="USER_GNDR_CD"/>
+        <result property="userBrdt" column="USER_BRDT"/>
+        <result property="joinDt" column="JOIN_DT"/>
+        <result property="userTelno" column="USER_TELNO"/>
+        <result property="userEmailAddr" column="USER_EMAIL_ADDR"/>
+        <result property="userZip" column="USER_ZIP"/>
+        <result property="userAddr" column="USER_ADDR"/>
+        <result property="userDaddr" column="USER_DADDR"/>
+        <result property="userProfile" column="USER_PROFILE"/>
+        <result property="regDate" column="REG_DATE"/>
+        <result property="modDate" column="MOD_DATE"/>
+        <result property="enable" column="ENABLE"/>
 
         <collection property="memRoles" ofType="kr.or.ddit.finalProject.dto.member.MemberRoleDto">
             <result property="userRoleCd" column="USER_ROLE_CD" />
@@ -30,8 +63,44 @@
         VALUES (#{userId}, #{userEnpswd}, #{userName})
     </insert>
 
+    <select id="findAllMembers" resultMap="memberTestResultMap">
+        SELECT
+            m.*,
+            r.USER_ROLE_CD
+        FROM MEMBER m
+        LEFT JOIN MEMBER_ROLE_MAPPING r ON m.USER_ID = r.USER_ID
+    </select>
 
-    <!-- fakerMember --> 
+    <!-- isAllExistUsers (리스트의 사용자 모두가 존재하는지 확인) -->
+
+    <select id="isAllExistUsers" parameterType="list" resultType="int">
+        SELECT
+            count (*)
+        FROM MEMBER
+        WHERE USER_ID IN
+        <foreach item="userId" collection="list" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </select>
+
+
+    <!-- getAdminUsers -->
+
+    <select id="getAdminUsers" resultType="kr.or.ddit.finalProject.dto.user.AdminUserDto">
+        select 
+            m.user_id,
+            m.user_name,
+            mrm.user_role_cd,
+            mr.authrt_nm
+        from member m
+        inner join member_role_mapping mrm on m.user_id = mrm.user_id
+        right join member_role mr on mrm.user_role_cd = mr.user_role_cd
+        where mrm.user_role_cd = 'ROLE_ADMIN'
+                and m.user_id != #{excludeUserId}
+        order by m.user_id
+
+    </select>
+    <!-- fakerMember -->
     <insert id="fakerMember" parameterType="kr.or.ddit.finalProject.dto.member.MemberDto" useGeneratedKeys="true" keyProperty="userId" keyColumn="USER_ID">
         INSERT INTO "MEMBER" (
             USER_ID
@@ -69,7 +138,7 @@
         )
     </insert>
 
-    <!-- fakerRoleMapping --> 
+    <!-- fakerRoleMapping -->
     <insert id="fakerRoleMapping">
         INSERT INTO MEMBER_ROLE_MAPPING (
             USER_ID,
@@ -79,5 +148,5 @@
             #{userId},
             #{role}
         )
-    </insert>    
+    </insert>
 </mapper>
