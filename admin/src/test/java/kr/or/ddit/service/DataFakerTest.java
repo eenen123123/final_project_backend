@@ -2,6 +2,7 @@ package kr.or.ddit.service;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
@@ -126,5 +127,40 @@ public class DataFakerTest {
             }
         }
         log.info("총 {}건의 더미 데이터 Insert가 완료되었습니다.", insertCount);
+    }
+
+    @Test
+    void testFakerRoleMapping() {
+        List<String> roleList = List.of("ROLE_INSTRUCTOR", "ROLE_PD", "ROLE_PRINCIPAL", "ROLE_MANAGER", "ROLE_STAFF", "ROLE_USER", "ROLE_STUDENT", "ROLE_PARENT");
+
+        // 관리자 계열 권한들
+        List<String> adminRoles = List.of("ROLE_INSTRUCTOR", "ROLE_PD", "ROLE_PRINCIPAL", "ROLE_MANAGER", "ROLE_STAFF");
+
+        for (int i=2; i<101; i++) {
+
+            // 사용자 ID 포맷팅
+            String userId = String.format("testuser%02d", i);
+
+            // roleList 랜덤 추출
+            int randomIndex = faker.random().nextInt(roleList.size());
+            String randomRole = roleList.get(randomIndex);
+
+            // 추출된 권한이 관리자 리스트에 있는지 체크
+            if (adminRoles.contains(randomRole)) {
+                // 관리자 권한인 경우 2개의 권한 insert
+
+                // ADMIN 부여
+                memberMapper.fakerRoleMapping(userId, "ROLE_ADMIN");
+                log.info("[ADMIN 그룹 - 1] USERID : {}, ROLE : ROLE_ADMIN", userId);
+            
+                // 두 번째: 랜덤으로 뽑힌 상세 관리자 권한 부여
+                memberMapper.fakerRoleMapping(userId, randomRole);
+                log.info("[ADMIN 그룹 - 2] USERID : {}, ROLE : {}", userId, randomRole);
+            } else {
+                // 일반 사용자 권한인 경우 1개의 권한 insert
+                memberMapper.fakerRoleMapping(userId, randomRole);
+                log.info("[USER 그룹 - 단일] USERID : {}, ROLE : {}", userId, randomRole);
+            }
+        }
     }
 }
