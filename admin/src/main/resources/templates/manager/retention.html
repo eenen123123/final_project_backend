@@ -1,0 +1,552 @@
+<title th:fragment="pageTitle">퇴원 방어 및 유지 관리 | HERMES</title>
+
+<div class="space-y-6">
+
+  <!-- ① 페이지 헤더 -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">퇴원 방어 및 유지 관리</h1>
+      <p class="text-sm text-slate-500 mt-1">근태 특이사항과 퇴원 위험 학생을 파악하고 상담 프로세스를 통해 학생 유지율을 관리합니다.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <button class="hm-btn-primary" onclick="showHermesToast('퇴원 위험 리포트를 내보내기합니다.', 'success')">
+        <i class="fa-solid fa-file-arrow-down"></i>
+        <span>리포트 내보내기</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ② 요약 통계 카드 -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-users"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">전체 재학생</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">324명</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">퇴원 위험</p>
+        <p class="text-2xl font-bold text-red-500 mt-0.5">18명</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-user-clock"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">근태 이상</p>
+        <p class="text-2xl font-bold text-amber-600 mt-0.5">47명</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">상담 완료 유지</p>
+        <p class="text-2xl font-bold text-emerald-600 mt-0.5">11명</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 탭 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+
+    <!-- 탭 헤더 -->
+    <div class="flex items-center gap-1 px-5 pt-4 border-b border-slate-100">
+      <button class="ret-tab-btn px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors"
+        data-tab="tab-attendance" onclick="switchRetTab('tab-attendance', this)">
+        <i class="fa-solid fa-calendar-xmark mr-1.5"></i>근태 특이사항
+      </button>
+      <button class="ret-tab-btn px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors"
+        data-tab="tab-risk" onclick="switchRetTab('tab-risk', this)">
+        <i class="fa-solid fa-triangle-exclamation mr-1.5"></i>퇴원 위험 분류
+      </button>
+      <button class="ret-tab-btn px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors"
+        data-tab="tab-process" onclick="switchRetTab('tab-process', this)">
+        <i class="fa-solid fa-comments mr-1.5"></i>상담 프로세스 이력
+      </button>
+    </div>
+
+    <!-- ── 탭 1: 근태 특이사항 ── -->
+    <div id="tab-attendance" class="ret-tab-panel p-5">
+
+      <!-- 필터 -->
+      <div class="flex flex-wrap gap-3 mb-4">
+        <div class="w-44">
+          <input type="text" class="hm-input" placeholder="학생명 검색..." oninput="filterAttendance(this.value)">
+        </div>
+        <div class="w-36">
+          <select class="hm-input" onchange="filterAttendanceType(this.value)">
+            <option value="">전체 유형</option>
+            <option value="결석">결석</option>
+            <option value="지각">지각</option>
+            <option value="조퇴">조퇴</option>
+          </select>
+        </div>
+        <div class="w-36">
+          <select class="hm-input" onchange="filterAttendanceClass(this.value)">
+            <option value="">전체 반</option>
+            <option value="고등수학A">고등수학A</option>
+            <option value="고등수학B">고등수학B</option>
+            <option value="중등수학A">중등수학A</option>
+            <option value="중등수학B">중등수학B</option>
+            <option value="고등영어">고등영어</option>
+          </select>
+        </div>
+        <div class="ml-auto flex items-center gap-2">
+          <span class="text-xs text-slate-400">기준: 최근 30일</span>
+          <select class="hm-input w-28" onchange="showHermesToast('기간이 변경되었습니다.', 'info')">
+            <option value="30">최근 30일</option>
+            <option value="60">최근 60일</option>
+            <option value="90">최근 90일</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 테이블 -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-100">
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">학생명</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">담당반</th>
+              <th class="text-center py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">결석</th>
+              <th class="text-center py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">지각</th>
+              <th class="text-center py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">조퇴</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">최근 특이사항</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">위험도</th>
+              <th class="py-2 px-3"></th>
+            </tr>
+          </thead>
+          <tbody id="attendanceTableBody"></tbody>
+        </table>
+      </div>
+
+      <!-- 특이사항 기록 패널 -->
+      <div class="mt-5 border-t border-slate-100 pt-5">
+        <h3 class="text-sm font-bold text-slate-700 mb-3">
+          <i class="fa-solid fa-pen-to-square mr-1.5 text-violet-500"></i>근태 특이사항 기록
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <select class="hm-input" id="attStudent">
+            <option value="">학생 선택</option>
+            <option value="1">김민준 (고등수학A)</option>
+            <option value="2">이서연 (중등수학B)</option>
+            <option value="3">박지호 (고등영어)</option>
+            <option value="4">최유진 (중등수학A)</option>
+            <option value="5">정하은 (고등수학B)</option>
+            <option value="6">한도현 (고등수학A)</option>
+            <option value="7">오지수 (중등수학B)</option>
+          </select>
+          <input type="date" class="hm-input" id="attDate">
+          <select class="hm-input" id="attType">
+            <option value="결석">결석</option>
+            <option value="지각">지각</option>
+            <option value="조퇴">조퇴</option>
+          </select>
+          <input type="text" class="hm-input" id="attMemo" placeholder="사유 입력 (선택)">
+        </div>
+        <div class="flex justify-end mt-3">
+          <button class="hm-btn-primary" onclick="saveAttendance()">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>특이사항 저장</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 탭 2: 퇴원 위험 분류 ── -->
+    <div id="tab-risk" class="ret-tab-panel hidden p-5">
+
+      <!-- 위험도 범례 + 필터 -->
+      <div class="flex flex-wrap items-center gap-4 mb-4">
+        <div class="flex items-center gap-3 text-xs">
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>고위험 (퇴원 임박)</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-400 inline-block"></span>중위험 (주의 요망)</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-sky-400 inline-block"></span>저위험 (모니터링)</span>
+        </div>
+        <div class="ml-auto flex gap-3">
+          <select class="hm-input w-32" id="riskFilter" onchange="filterRisk(this.value)">
+            <option value="">전체 위험도</option>
+            <option value="고위험">고위험</option>
+            <option value="중위험">중위험</option>
+            <option value="저위험">저위험</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 카드 그리드 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" id="riskCardGrid"></div>
+    </div>
+
+    <!-- ── 탭 3: 상담 프로세스 이력 ── -->
+    <div id="tab-process" class="ret-tab-panel hidden p-5">
+
+      <div class="flex flex-wrap gap-3 mb-5">
+        <div class="w-44">
+          <input type="text" class="hm-input" placeholder="학생명 검색..." oninput="filterProcess(this.value)">
+        </div>
+        <div class="w-36">
+          <select class="hm-input" onchange="filterProcessResult(this.value)">
+            <option value="">전체 결과</option>
+            <option value="유지">유지 성공</option>
+            <option value="진행중">진행 중</option>
+            <option value="퇴원">퇴원</option>
+          </select>
+        </div>
+        <div class="ml-auto">
+          <button class="hm-btn-primary" onclick="openProcessModal()">
+            <i class="fa-solid fa-plus"></i>
+            <span>상담 이력 추가</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 프로세스 이력 테이블 -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-100">
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">학생명</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">담당반</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">퇴원 사유</th>
+              <th class="text-center py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">상담 횟수</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">최근 상담일</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">담당자</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">결과</th>
+              <th class="py-2 px-3"></th>
+            </tr>
+          </thead>
+          <tbody id="processTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== 상담 이력 추가 모달 ===== -->
+<div id="processModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeProcessModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="text-base font-bold text-slate-800">상담 프로세스 이력 추가</h3>
+      <button onclick="closeProcessModal()" class="text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+    <div class="space-y-3">
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">학생 선택 <span class="text-red-400">*</span></label>
+        <select class="hm-input" id="modalProcessStudent">
+          <option value="">학생을 선택하세요</option>
+          <option value="1">김민준 (고등수학A)</option>
+          <option value="2">이서연 (중등수학B)</option>
+          <option value="3">박지호 (고등영어)</option>
+          <option value="4">최유진 (중등수학A)</option>
+          <option value="5">정하은 (고등수학B)</option>
+          <option value="6">한도현 (고등수학A)</option>
+          <option value="7">오지수 (중등수학B)</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">퇴원 사유</label>
+        <select class="hm-input" id="modalReason">
+          <option value="성적 불만">성적 불만</option>
+          <option value="비용 부담">비용 부담</option>
+          <option value="이사/전학">이사/전학</option>
+          <option value="타 학원 이동">타 학원 이동</option>
+          <option value="학습 의욕 저하">학습 의욕 저하</option>
+          <option value="기타">기타</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">상담 내용 <span class="text-red-400">*</span></label>
+        <textarea class="hm-input resize-none" id="modalProcessContent" rows="3" placeholder="상담 내용을 간략히 입력하세요..."></textarea>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">결과</label>
+        <select class="hm-input" id="modalResult">
+          <option value="진행중">진행 중</option>
+          <option value="유지">유지 성공</option>
+          <option value="퇴원">퇴원</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex gap-3 mt-5">
+      <button class="flex-1 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors" onclick="closeProcessModal()">취소</button>
+      <button class="flex-1 hm-btn-primary" onclick="saveProcessRecord()">
+        <i class="fa-solid fa-floppy-disk"></i>
+        <span>저장</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 페이지 스크립트 ===== -->
+<script>
+  /* ── 더미 데이터 ── */
+  const attendanceData = [
+    { id: 1, studentId: 1, student: '김민준', classNm: '고등수학A', absence: 4, late: 6, early: 1, lastNote: '2026-05-24 무단 결석', risk: '고위험' },
+    { id: 2, studentId: 2, student: '이서연', classNm: '중등수학B', absence: 3, late: 2, early: 0, lastNote: '2026-05-20 지각 (개인 사정)', risk: '중위험' },
+    { id: 3, studentId: 3, student: '박지호', classNm: '고등영어',  absence: 1, late: 4, early: 2, lastNote: '2026-05-23 조퇴 (병원)', risk: '저위험' },
+    { id: 4, studentId: 4, student: '최유진', classNm: '중등수학A', absence: 5, late: 8, early: 3, lastNote: '2026-05-25 무단 결석', risk: '고위험' },
+    { id: 5, studentId: 5, student: '정하은', classNm: '고등수학B', absence: 0, late: 1, early: 0, lastNote: '2026-05-10 지각 (교통 지연)', risk: '저위험' },
+    { id: 6, studentId: 6, student: '한도현', classNm: '고등수학A', absence: 2, late: 5, early: 1, lastNote: '2026-05-22 지각', risk: '중위험' },
+    { id: 7, studentId: 7, student: '오지수', classNm: '중등수학B', absence: 6, late: 3, early: 0, lastNote: '2026-05-26 무단 결석', risk: '고위험' },
+  ];
+
+  const riskData = [
+    { id: 1, student: '김민준', classNm: '고등수학A', grade: '고2', risk: '고위험', reasons: ['무단 결석 4회', '성적 하락 (78점)', '학부모 불만 접수'], lastContact: '2026-05-20', counselCount: 2, counselor: '이담임', note: '다음 상담 시 수강 중단 의향 확인 필요' },
+    { id: 4, student: '최유진', classNm: '중등수학A', grade: '중2', risk: '고위험', reasons: ['무단 결석 5회', '수업 태도 불량', '학원비 연체 1회'], lastContact: '2026-05-15', counselCount: 3, counselor: '박매니저', note: '학부모와 통화 시 전학 고려 중 발언' },
+    { id: 7, student: '오지수', classNm: '중등수학B', grade: '중1', risk: '고위험', reasons: ['무단 결석 6회', '학부모 연락 두절'], lastContact: '2026-05-10', counselCount: 1, counselor: '이담임', note: '가정 방문 검토 중' },
+    { id: 2, student: '이서연', classNm: '중등수학B', grade: '중3', risk: '중위험', reasons: ['결석 3회', '성적 정체'], lastContact: '2026-05-18', counselCount: 1, counselor: '박매니저', note: '진학 고민으로 학원 재등록 검토 중' },
+    { id: 6, student: '한도현', classNm: '고등수학A', grade: '고1', risk: '중위험', reasons: ['지각 5회', '수업 집중도 저하'], lastContact: '2026-05-22', counselCount: 1, counselor: '이담임', note: '다음 달 수강 여부 불명확' },
+    { id: 3, student: '박지호', classNm: '고등영어',  grade: '고1', risk: '저위험', reasons: ['조퇴 2회 (병원)'], lastContact: '2026-05-23', counselCount: 0, counselor: '-', note: '건강 문제 일시적, 유지 가능성 높음' },
+  ];
+
+  const processData = [
+    { id: 1, student: '김민준', classNm: '고등수학A', reason: '성적 불만', counselCount: 2, lastDate: '2026-05-20', counselor: '이담임', result: '진행중' },
+    { id: 4, student: '최유진', classNm: '중등수학A', reason: '학습 의욕 저하', counselCount: 3, lastDate: '2026-05-15', counselor: '박매니저', result: '진행중' },
+    { id: 7, student: '오지수', classNm: '중등수학B', reason: '비용 부담', counselCount: 1, lastDate: '2026-05-10', counselor: '이담임', result: '진행중' },
+    { id: 8, student: '강수현', classNm: '고등수학A', reason: '타 학원 이동', counselCount: 4, lastDate: '2026-04-30', counselor: '박매니저', result: '퇴원' },
+    { id: 9, student: '윤지안', classNm: '중등수학B', reason: '이사/전학', counselCount: 2, lastDate: '2026-04-25', counselor: '이담임', result: '퇴원' },
+    { id: 10, student: '임서준', classNm: '고등영어',  reason: '비용 부담', counselCount: 3, lastDate: '2026-05-01', counselor: '박매니저', result: '유지' },
+  ];
+
+  /* ── 탭 전환 ── */
+  function switchRetTab(tabId, btn) {
+    document.querySelectorAll('.ret-tab-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.ret-tab-btn').forEach(b => {
+      b.classList.remove('text-violet-600', 'border-violet-500', 'bg-violet-50/60');
+      b.classList.add('text-slate-500', 'border-transparent');
+    });
+    document.getElementById(tabId).classList.remove('hidden');
+    btn.classList.remove('text-slate-500', 'border-transparent');
+    btn.classList.add('text-violet-600', 'border-violet-500', 'bg-violet-50/60');
+  }
+
+  /* ── 위험도 배지 ── */
+  function riskBadge(risk) {
+    const map = {
+      '고위험': 'bg-red-50 text-red-600',
+      '중위험': 'bg-amber-50 text-amber-600',
+      '저위험': 'bg-sky-50 text-sky-600',
+    };
+    return `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${map[risk] || 'bg-slate-100 text-slate-500'}">${risk}</span>`;
+  }
+
+  /* ── 결과 배지 ── */
+  function resultBadge(result) {
+    const map = {
+      '유지':   'bg-emerald-50 text-emerald-700',
+      '진행중': 'bg-violet-50 text-violet-700',
+      '퇴원':   'bg-slate-100 text-slate-500',
+    };
+    return `<span class="px-2 py-0.5 rounded-full text-xs font-semibold ${map[result] || 'bg-slate-100 text-slate-500'}">${result}</span>`;
+  }
+
+  /* ── 근태 이상 게이지 ── */
+  function absenceGauge(count, max, color) {
+    const pct = Math.min(100, Math.round((count / max) * 100));
+    return `<div class="flex items-center gap-2">
+      <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+        <div class="h-full ${color} rounded-full" style="width:${pct}%"></div>
+      </div>
+      <span class="text-xs font-bold w-4 text-right">${count}</span>
+    </div>`;
+  }
+
+  /* ── 근태 특이사항 테이블 렌더링 ── */
+  function renderAttendanceTable(data) {
+    const tbody = document.getElementById('attendanceTableBody');
+    if (!tbody) return;
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" class="py-10 text-center text-slate-300 text-sm">해당 데이터가 없습니다.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map(r => `
+      <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+        <td class="py-3 px-3 font-medium text-slate-800">${r.student}</td>
+        <td class="py-3 px-3 text-xs text-slate-500">${r.classNm}</td>
+        <td class="py-3 px-3 w-24">${absenceGauge(r.absence, 7, 'bg-red-400')}</td>
+        <td class="py-3 px-3 w-24">${absenceGauge(r.late, 10, 'bg-amber-400')}</td>
+        <td class="py-3 px-3 w-24">${absenceGauge(r.early, 5, 'bg-sky-400')}</td>
+        <td class="py-3 px-3 text-xs text-slate-500 max-w-xs truncate">${r.lastNote}</td>
+        <td class="py-3 px-3">${riskBadge(r.risk)}</td>
+        <td class="py-3 px-3">
+          <button onclick="goToProcess(${r.studentId})" class="text-violet-500 hover:text-violet-700 text-xs font-semibold whitespace-nowrap">
+            <i class="fa-solid fa-comments"></i> 상담
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function filterAttendance(keyword) {
+    const data = keyword ? attendanceData.filter(r => r.student.includes(keyword)) : attendanceData;
+    renderAttendanceTable(data);
+  }
+
+  function filterAttendanceType(type) {
+    if (!type) { renderAttendanceTable(attendanceData); return; }
+    const key = type === '결석' ? 'absence' : type === '지각' ? 'late' : 'early';
+    renderAttendanceTable(attendanceData.filter(r => r[key] > 0));
+  }
+
+  function filterAttendanceClass(classNm) {
+    const data = classNm ? attendanceData.filter(r => r.classNm === classNm) : attendanceData;
+    renderAttendanceTable(data);
+  }
+
+  /* ── 근태 저장 ── */
+  function saveAttendance() {
+    const student = document.getElementById('attStudent').value;
+    const date    = document.getElementById('attDate').value;
+    const type    = document.getElementById('attType').value;
+    if (!student) { showHermesToast('학생을 선택해 주세요.', 'error'); return; }
+    if (!date)    { showHermesToast('날짜를 선택해 주세요.', 'error'); return; }
+    showHermesToast(`${type} 특이사항이 저장되었습니다.`, 'success');
+    document.getElementById('attStudent').value = '';
+    document.getElementById('attDate').value = '';
+    document.getElementById('attMemo').value = '';
+  }
+
+  /* ── 퇴원 위험 카드 렌더링 ── */
+  function renderRiskCards(data) {
+    const grid = document.getElementById('riskCardGrid');
+    if (!grid) return;
+    if (data.length === 0) {
+      grid.innerHTML = `<div class="col-span-3 py-10 text-center text-slate-300 text-sm">해당하는 학생이 없습니다.</div>`;
+      return;
+    }
+    const borderMap = { '고위험': 'border-red-200', '중위험': 'border-amber-200', '저위험': 'border-sky-200' };
+    const dotMap    = { '고위험': 'bg-red-500', '중위험': 'bg-amber-400', '저위험': 'bg-sky-400' };
+    grid.innerHTML = data.map(r => `
+      <div class="bg-white rounded-2xl border-2 ${borderMap[r.risk]} shadow-sm p-4">
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-2.5 h-2.5 rounded-full ${dotMap[r.risk]} shrink-0 mt-0.5"></div>
+            <div>
+              <p class="font-bold text-slate-800">${r.student}</p>
+              <p class="text-xs text-slate-400">${r.grade} · ${r.classNm}</p>
+            </div>
+          </div>
+          ${riskBadge(r.risk)}
+        </div>
+
+        <div class="space-y-1 mb-3">
+          ${r.reasons.map(reason => `
+            <div class="flex items-center gap-1.5 text-xs text-slate-600">
+              <i class="fa-solid fa-circle-exclamation text-slate-300 shrink-0"></i>
+              ${reason}
+            </div>
+          `).join('')}
+        </div>
+
+        ${r.note ? `<p class="text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2 mb-3 leading-relaxed">${r.note}</p>` : ''}
+
+        <div class="border-t border-slate-100 pt-3 flex items-center justify-between">
+          <div class="text-xs text-slate-400">
+            <span>최근 상담: ${r.lastContact}</span>
+            <span class="mx-1.5">·</span>
+            <span>담당: ${r.counselor}</span>
+            <span class="mx-1.5">·</span>
+            <span class="font-semibold text-violet-600">${r.counselCount}회</span>
+          </div>
+          <button onclick="openProcessModal()" class="text-xs font-semibold text-violet-600 hover:text-violet-800 transition-colors">
+            <i class="fa-solid fa-comments mr-0.5"></i> 상담 추가
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function filterRisk(value) {
+    const data = value ? riskData.filter(r => r.risk === value) : riskData;
+    renderRiskCards(data);
+  }
+
+  /* ── 상담 프로세스 이력 테이블 ── */
+  function renderProcessTable(data) {
+    const tbody = document.getElementById('processTableBody');
+    if (!tbody) return;
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" class="py-10 text-center text-slate-300 text-sm">해당 데이터가 없습니다.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map(r => `
+      <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+        <td class="py-3 px-3 font-medium text-slate-800">${r.student}</td>
+        <td class="py-3 px-3 text-xs text-slate-500">${r.classNm}</td>
+        <td class="py-3 px-3 text-sm text-slate-600">${r.reason}</td>
+        <td class="py-3 px-3 text-center">
+          <span class="px-2.5 py-0.5 bg-violet-50 text-violet-700 rounded-full text-xs font-bold">${r.counselCount}회</span>
+        </td>
+        <td class="py-3 px-3 text-sm text-slate-500">${r.lastDate}</td>
+        <td class="py-3 px-3 text-sm text-slate-600">${r.counselor}</td>
+        <td class="py-3 px-3">${resultBadge(r.result)}</td>
+        <td class="py-3 px-3">
+          <button onclick="openProcessModal()" class="text-violet-500 hover:text-violet-700 text-xs font-semibold">
+            <i class="fa-solid fa-plus"></i> 추가
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function filterProcess(keyword) {
+    const data = keyword ? processData.filter(r => r.student.includes(keyword)) : processData;
+    renderProcessTable(data);
+  }
+
+  function filterProcessResult(result) {
+    const data = result ? processData.filter(r => r.result === result) : processData;
+    renderProcessTable(data);
+  }
+
+  /* ── 근태 탭에서 상담 탭으로 이동 ── */
+  function goToProcess(studentId) {
+    const btn = document.querySelector('.ret-tab-btn[data-tab="tab-process"]');
+    if (btn) switchRetTab('tab-process', btn);
+    showHermesToast('상담 프로세스 이력 탭으로 이동했습니다.', 'info');
+  }
+
+  /* ── 상담 이력 모달 ── */
+  function openProcessModal() {
+    document.getElementById('processModal').classList.remove('hidden');
+  }
+
+  function closeProcessModal() {
+    document.getElementById('processModal').classList.add('hidden');
+  }
+
+  function saveProcessRecord() {
+    const student = document.getElementById('modalProcessStudent').value;
+    const content = document.getElementById('modalProcessContent').value.trim();
+    if (!student) { showHermesToast('학생을 선택해 주세요.', 'error'); return; }
+    if (!content) { showHermesToast('상담 내용을 입력해 주세요.', 'error'); return; }
+    closeProcessModal();
+    showHermesToast('상담 이력이 저장되었습니다.', 'success');
+    document.getElementById('modalProcessContent').value = '';
+  }
+
+  /* ── 초기 렌더링 ── */
+  renderAttendanceTable(attendanceData);
+  renderRiskCards(riskData);
+  renderProcessTable(processData);
+
+  /* ── 탭 초기화 (렌더링 이후에 실행) ── */
+  (function () {
+    const firstBtn = document.querySelector('.ret-tab-btn[data-tab="tab-attendance"]');
+    if (firstBtn) switchRetTab('tab-attendance', firstBtn);
+  })();
+</script>
