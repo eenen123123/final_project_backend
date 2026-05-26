@@ -32,7 +32,7 @@ public class InstructorCurriculumController {
     /**
      * 1. 커리큘럼 관리 메인 화면 이동 (공통 레이아웃 규칙 적용)
      */
-    @GetMapping("/main")
+    @GetMapping
     public String curriculumMainPage(Model model, Authentication authentication) {
         String loginInstructorId = resolveLoginUserId(authentication);
 
@@ -41,7 +41,7 @@ public class InstructorCurriculumController {
 
         // [레이아웃 가이드 2-1 규칙] contentPage에 실제 템플릿 경로 설정
         model.addAttribute("contentPage", "instructor/curriculum_main");
-        return "admin:/instructor/curriculum_main";
+        return "admin:/instructor/curriculum";
     }
 
     /**
