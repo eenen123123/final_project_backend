@@ -1,0 +1,761 @@
+<title th:fragment="pageTitle">원비 및 수납 관리 | HERMES</title>
+
+<div class="space-y-6">
+
+  <!-- ① 페이지 헤더 -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">원비 및 수납 관리</h1>
+      <p class="text-sm text-slate-500 mt-1">수강료 수납·미납 조회, 안내 메시지 발송, 일일 마감 처리를 통합 관리합니다.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <button class="px-4 py-2.5 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors flex items-center gap-2"
+        onclick="openCloseModal()">
+        <i class="fa-solid fa-flag-checkered"></i>
+        <span>일일 마감</span>
+      </button>
+      <button class="hm-btn-primary" onclick="openPayModal(null)">
+        <i class="fa-solid fa-plus"></i>
+        <span>수납 등록</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ② 오늘 수납 현황 카드 -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-lg shrink-0">
+          <i class="fa-solid fa-won-sign"></i>
+        </div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">오늘 수납액</p>
+      </div>
+      <p class="text-2xl font-bold text-slate-800">4,820,000</p>
+      <p class="text-xs text-slate-400 mt-0.5">원 · 7건</p>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center text-lg shrink-0">
+          <i class="fa-solid fa-circle-exclamation"></i>
+        </div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">미납 인원</p>
+      </div>
+      <p class="text-2xl font-bold text-red-500">8명</p>
+      <p class="text-xs text-slate-400 mt-0.5">총 12,400,000원</p>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">
+          <i class="fa-solid fa-credit-card"></i>
+        </div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">카드 수납</p>
+      </div>
+      <p class="text-2xl font-bold text-slate-800">3,520,000</p>
+      <p class="text-xs text-slate-400 mt-0.5">원 · 5건</p>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-lg shrink-0">
+          <i class="fa-solid fa-building-columns"></i>
+        </div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">계좌이체</p>
+      </div>
+      <p class="text-2xl font-bold text-slate-800">1,300,000</p>
+      <p class="text-xs text-slate-400 mt-0.5">원 · 2건</p>
+    </div>
+  </div>
+
+  <!-- ③ 탭 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+
+    <div class="flex items-center gap-1 px-5 pt-4 border-b border-slate-100 overflow-x-auto no-scrollbar">
+      <button class="bl-tab-btn px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap"
+        data-tab="tab-receipt" onclick="switchBlTab('tab-receipt', this)">
+        <i class="fa-solid fa-receipt mr-1.5"></i>일일 수납 내역
+      </button>
+      <button class="bl-tab-btn px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap"
+        data-tab="tab-unpaid" onclick="switchBlTab('tab-unpaid', this)">
+        <i class="fa-solid fa-circle-exclamation mr-1.5"></i>미납자 관리
+        <span class="ml-1 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">8</span>
+      </button>
+      <button class="bl-tab-btn px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap"
+        data-tab="tab-history" onclick="switchBlTab('tab-history', this)">
+        <i class="fa-solid fa-clock-rotate-left mr-1.5"></i>수납 이력 조회
+      </button>
+    </div>
+
+    <!-- ── 탭 1: 일일 수납 내역 ── -->
+    <div id="tab-receipt" class="bl-tab-panel p-5">
+
+      <!-- 날짜 + 요약 -->
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div class="flex items-center gap-3">
+          <input type="date" class="hm-input w-40" id="receiptDate" value="2026-05-26">
+          <button onclick="showHermesToast('해당 날짜 데이터를 불러왔습니다.', 'info')" class="px-4 py-2 text-sm font-semibold text-violet-600 bg-violet-50 hover:bg-violet-100 rounded-xl transition-colors">
+            조회
+          </button>
+        </div>
+        <div class="flex items-center gap-3 text-sm text-slate-500">
+          <span>합계: <strong class="text-slate-800">4,820,000원</strong></span>
+          <span class="text-slate-200">|</span>
+          <span>건수: <strong class="text-slate-800">7건</strong></span>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-100">
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">시각</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">학생명</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">담당반</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">항목</th>
+              <th class="text-right py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">금액</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">결제수단</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">상태</th>
+              <th class="py-2 px-3"></th>
+            </tr>
+          </thead>
+          <tbody id="receiptTableBody"></tbody>
+        </table>
+      </div>
+
+      <!-- 마감 상태 바 -->
+      <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+          <span class="text-xs text-slate-500">마감 전 · 오늘 수납 합계 <strong>4,820,000원</strong> (7건)</span>
+        </div>
+        <button onclick="openCloseModal()" class="px-4 py-2 text-xs font-semibold text-white bg-slate-700 hover:bg-slate-800 rounded-xl transition-colors">
+          <i class="fa-solid fa-flag-checkered mr-1.5"></i>일일 마감 실행
+        </button>
+      </div>
+    </div>
+
+    <!-- ── 탭 2: 미납자 관리 ── -->
+    <div id="tab-unpaid" class="bl-tab-panel hidden p-5">
+
+      <!-- 필터 + 일괄 발송 -->
+      <div class="flex flex-wrap gap-3 mb-4">
+        <div class="w-44">
+          <input type="text" class="hm-input" placeholder="학생명 검색..." oninput="filterUnpaid(this.value)">
+        </div>
+        <div class="w-36">
+          <select class="hm-input" onchange="filterUnpaidClass(this.value)">
+            <option value="">전체 반</option>
+            <option value="고등수학A">고등수학A</option>
+            <option value="고등수학B">고등수학B</option>
+            <option value="중등수학A">중등수학A</option>
+            <option value="중등수학B">중등수학B</option>
+            <option value="고등영어">고등영어</option>
+          </select>
+        </div>
+        <div class="w-36">
+          <select class="hm-input" id="unpaidOverdueFilter" onchange="filterUnpaidOverdue(this.value)">
+            <option value="">전체 연체</option>
+            <option value="1">1개월</option>
+            <option value="2">2개월 이상</option>
+            <option value="3">3개월 이상</option>
+          </select>
+        </div>
+        <div class="ml-auto flex items-center gap-2">
+          <label class="flex items-center gap-2 text-xs text-slate-500 cursor-pointer">
+            <input type="checkbox" id="selectAllUnpaid" onchange="toggleSelectAll(this.checked)">
+            전체 선택
+          </label>
+          <button onclick="sendBulkMessage()" class="px-4 py-2 text-xs font-semibold text-white bg-amber-500 hover:bg-amber-600 rounded-xl transition-colors flex items-center gap-2">
+            <i class="fa-solid fa-paper-plane"></i>선택 안내 발송
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-100">
+              <th class="py-2 px-3 w-8"></th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">학생명</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">담당반</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">학부모</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">연락처</th>
+              <th class="text-right py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">미납액</th>
+              <th class="text-center py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">연체</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">최근 안내</th>
+              <th class="py-2 px-3"></th>
+            </tr>
+          </thead>
+          <tbody id="unpaidTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── 탭 3: 수납 이력 조회 ── -->
+    <div id="tab-history" class="bl-tab-panel hidden p-5">
+
+      <div class="flex flex-wrap gap-3 mb-4">
+        <div class="w-44">
+          <input type="text" class="hm-input" placeholder="학생명 검색..." oninput="filterHistory(this.value)">
+        </div>
+        <div class="w-32">
+          <select class="hm-input" onchange="filterHistoryMethod(this.value)">
+            <option value="">전체 수단</option>
+            <option value="카드">카드</option>
+            <option value="계좌이체">계좌이체</option>
+            <option value="현금">현금</option>
+          </select>
+        </div>
+        <div class="w-36">
+          <select class="hm-input" onchange="filterHistoryItem(this.value)">
+            <option value="">전체 항목</option>
+            <option value="수강료">수강료</option>
+            <option value="교재비">교재비</option>
+            <option value="모의고사비">모의고사비</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2 ml-auto">
+          <input type="date" class="hm-input w-36" id="historyFrom" value="2026-05-01">
+          <span class="text-slate-300">~</span>
+          <input type="date" class="hm-input w-36" id="historyTo"   value="2026-05-26">
+          <button onclick="showHermesToast('기간 조회를 실행합니다.', 'info')" class="px-4 py-2 text-xs font-semibold text-violet-600 bg-violet-50 hover:bg-violet-100 rounded-xl transition-colors">
+            조회
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-100">
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">수납일시</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">학생명</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">담당반</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">항목</th>
+              <th class="text-right py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">금액</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">결제수단</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">처리자</th>
+              <th class="py-2 px-3"></th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody"></tbody>
+        </table>
+      </div>
+
+      <!-- 페이징 -->
+      <div class="flex items-center justify-between mt-4 pt-4 border-t border-slate-50">
+        <p class="text-xs text-slate-400">총 38건 · 합계 <strong>48,240,000원</strong></p>
+        <div class="flex items-center gap-1">
+          <button class="w-8 h-8 rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 text-xs flex items-center justify-center"><i class="fa-solid fa-chevron-left"></i></button>
+          <button class="w-8 h-8 rounded-lg bg-violet-600 text-white text-xs font-bold flex items-center justify-center">1</button>
+          <button class="w-8 h-8 rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 text-xs flex items-center justify-center">2</button>
+          <button class="w-8 h-8 rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 text-xs flex items-center justify-center">3</button>
+          <button class="w-8 h-8 rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 text-xs flex items-center justify-center"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== 수납 등록 모달 ===== -->
+<div id="payModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closePayModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="text-base font-bold text-slate-800">수납 등록</h3>
+      <button onclick="closePayModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <div class="space-y-3">
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">학생 선택 <span class="text-red-400">*</span></label>
+        <select class="hm-input" id="payStudent">
+          <option value="">학생을 선택하세요</option>
+          <option value="1">김민준 (고등수학A)</option>
+          <option value="2">이서연 (중등수학B)</option>
+          <option value="3">박지호 (고등영어)</option>
+          <option value="4">최유진 (중등수학A)</option>
+          <option value="5">정하은 (고등수학B)</option>
+          <option value="6">한도현 (고등수학A)</option>
+          <option value="7">오지수 (중등수학B)</option>
+          <option value="8">강수현 (고등수학A)</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">수납 항목 <span class="text-red-400">*</span></label>
+          <select class="hm-input" id="payItem" onchange="autoFillAmount()">
+            <option value="">항목 선택</option>
+            <option value="수강료" data-amount="380000">수강료</option>
+            <option value="교재비" data-amount="35000">교재비</option>
+            <option value="모의고사비" data-amount="20000">모의고사비</option>
+            <option value="기타" data-amount="">기타</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">수납 월</label>
+          <select class="hm-input" id="payMonth">
+            <option value="2026-06">2026년 6월</option>
+            <option value="2026-05" selected>2026년 5월</option>
+            <option value="2026-04">2026년 4월</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">금액 <span class="text-red-400">*</span></label>
+        <div class="relative">
+          <input type="number" class="hm-input pr-8" id="payAmount" placeholder="0" oninput="formatAmountDisplay()">
+          <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">원</span>
+        </div>
+        <p class="text-xs text-violet-600 mt-1 font-medium" id="amountDisplay"></p>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">결제 수단 <span class="text-red-400">*</span></label>
+        <div class="grid grid-cols-3 gap-2" id="payMethodGroup">
+          <button type="button" onclick="selectMethod('카드', this)"
+            class="pay-method-btn py-2.5 text-sm font-semibold rounded-xl border-2 border-slate-200 text-slate-500 hover:border-violet-300 transition-colors">
+            <i class="fa-solid fa-credit-card block mb-1 text-base"></i>카드
+          </button>
+          <button type="button" onclick="selectMethod('계좌이체', this)"
+            class="pay-method-btn py-2.5 text-sm font-semibold rounded-xl border-2 border-slate-200 text-slate-500 hover:border-violet-300 transition-colors">
+            <i class="fa-solid fa-building-columns block mb-1 text-base"></i>계좌이체
+          </button>
+          <button type="button" onclick="selectMethod('현금', this)"
+            class="pay-method-btn py-2.5 text-sm font-semibold rounded-xl border-2 border-slate-200 text-slate-500 hover:border-violet-300 transition-colors">
+            <i class="fa-solid fa-money-bill block mb-1 text-base"></i>현금
+          </button>
+        </div>
+      </div>
+
+      <!-- 카드 정보 (카드 선택 시에만 표시) -->
+      <div id="cardInfoSection" class="hidden space-y-2">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">카드사</label>
+            <select class="hm-input" id="cardCompany">
+              <option>신한카드</option><option>국민카드</option><option>현대카드</option>
+              <option>롯데카드</option><option>삼성카드</option><option>우리카드</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">할부</label>
+            <select class="hm-input" id="cardInstallment">
+              <option value="0">일시불</option>
+              <option value="2">2개월</option>
+              <option value="3">3개월</option>
+              <option value="6">6개월</option>
+              <option value="12">12개월</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">카드 번호 (끝 4자리)</label>
+          <input type="text" class="hm-input" id="cardLast4" placeholder="0000" maxlength="4">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">메모</label>
+        <input type="text" class="hm-input" id="payMemo" placeholder="특이사항 입력 (선택)">
+      </div>
+    </div>
+    <div class="flex gap-3 mt-5">
+      <button class="flex-1 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors" onclick="closePayModal()">취소</button>
+      <button class="flex-1 hm-btn-primary" onclick="savePayment()">
+        <i class="fa-solid fa-check"></i>
+        <span>수납 완료</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 안내 메시지 발송 모달 ===== -->
+<div id="msgModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeMsgModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="text-base font-bold text-slate-800">미납 안내 메시지 발송</h3>
+      <button onclick="closeMsgModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <div class="space-y-3">
+      <div class="bg-slate-50 rounded-xl p-3">
+        <p class="text-xs text-slate-500 mb-1">발송 대상</p>
+        <p class="text-sm font-semibold text-slate-800" id="msgTarget">-</p>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">발송 채널</label>
+        <div class="flex gap-2">
+          <button type="button" onclick="selectChannel('SMS', this)"
+            class="msg-channel-btn flex-1 py-2 text-xs font-semibold rounded-xl border-2 border-slate-200 text-slate-500 hover:border-violet-300 transition-colors">
+            <i class="fa-solid fa-comment-sms mr-1"></i>SMS
+          </button>
+          <button type="button" onclick="selectChannel('카카오톡', this)"
+            class="msg-channel-btn flex-1 py-2 text-xs font-semibold rounded-xl border-2 border-slate-200 text-slate-500 hover:border-violet-300 transition-colors">
+            <i class="fa-solid fa-comment mr-1"></i>카카오톡
+          </button>
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">메시지 내용</label>
+        <textarea class="hm-input resize-none" id="msgContent" rows="5"></textarea>
+        <p class="text-xs text-slate-400 mt-1 text-right" id="msgCount">0 / 90자</p>
+      </div>
+    </div>
+    <div class="flex gap-3 mt-5">
+      <button class="flex-1 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors" onclick="closeMsgModal()">취소</button>
+      <button class="flex-1 hm-btn-primary" onclick="sendMessage()">
+        <i class="fa-solid fa-paper-plane"></i>
+        <span>발송</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 일일 마감 모달 ===== -->
+<div id="closeModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeCloseModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6 text-center">
+    <div class="w-16 h-16 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-3xl mx-auto mb-4">
+      <i class="fa-solid fa-flag-checkered"></i>
+    </div>
+    <h3 class="text-base font-bold text-slate-800 mb-2">일일 마감 실행</h3>
+    <p class="text-sm text-slate-500 mb-1">2026년 5월 26일 수납 현황</p>
+    <div class="bg-slate-50 rounded-xl p-4 mb-5 text-left space-y-2">
+      <div class="flex justify-between text-sm"><span class="text-slate-500">총 수납액</span><span class="font-bold text-slate-800">4,820,000원</span></div>
+      <div class="flex justify-between text-sm"><span class="text-slate-500">수납 건수</span><span class="font-bold text-slate-800">7건</span></div>
+      <div class="flex justify-between text-sm"><span class="text-slate-500">카드</span><span class="text-slate-600">3,520,000원</span></div>
+      <div class="flex justify-between text-sm"><span class="text-slate-500">계좌이체</span><span class="text-slate-600">1,300,000원</span></div>
+      <div class="flex justify-between text-sm"><span class="text-slate-500">현금</span><span class="text-slate-600">0원</span></div>
+      <div class="border-t border-slate-200 pt-2 flex justify-between text-xs text-slate-400">
+        <span>마감 후 매출 DB 자동 반영</span>
+        <span class="text-violet-500 font-semibold">연동 대기 중</span>
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <button class="flex-1 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors" onclick="closeCloseModal()">취소</button>
+      <button class="flex-1 py-2.5 text-sm font-semibold text-white bg-slate-700 hover:bg-slate-800 rounded-xl transition-colors" onclick="confirmDayClose()">
+        <i class="fa-solid fa-flag-checkered mr-1"></i>마감 확정
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 페이지 스크립트 ===== -->
+<script>
+  /* ── 더미 데이터 ── */
+  const receiptData = [
+    { id: 1, time: '09:15', student: '김민준', classNm: '고등수학A', item: '수강료',    amount: 380000, method: '카드',    cardCompany: '신한카드', installment: 0, memo: '', status: '완료' },
+    { id: 2, time: '09:42', student: '이서연', classNm: '중등수학B', item: '수강료',    amount: 320000, method: '계좌이체', cardCompany: '',         installment: 0, memo: '', status: '완료' },
+    { id: 3, time: '10:05', student: '박지호', classNm: '고등영어',  item: '교재비',    amount:  35000, method: '카드',    cardCompany: '국민카드', installment: 0, memo: '', status: '완료' },
+    { id: 4, time: '10:30', student: '최유진', classNm: '중등수학A', item: '수강료',    amount: 320000, method: '카드',    cardCompany: '현대카드', installment: 3, memo: '3개월 할부', status: '완료' },
+    { id: 5, time: '11:00', student: '정하은', classNm: '고등수학B', item: '모의고사비', amount: 20000,  method: '카드',    cardCompany: '삼성카드', installment: 0, memo: '', status: '완료' },
+    { id: 6, time: '13:20', student: '한도현', classNm: '고등수학A', item: '수강료',    amount: 380000, method: '계좌이체', cardCompany: '',         installment: 0, memo: '', status: '완료' },
+    { id: 7, time: '14:50', student: '임서준', classNm: '고등영어',  item: '수강료',    amount: 380000, method: '카드',    cardCompany: '롯데카드', installment: 0, memo: '', status: '완료' },
+  ];
+
+  const unpaidData = [
+    { id: 1, student: '강수현', classNm: '고등수학A', parent: '강민정', phone: '010-1234-5678', amount: 380000, overdue: 1, lastNotice: '2026-05-10', selected: false },
+    { id: 2, student: '오지수', classNm: '중등수학B', parent: '오상호', phone: '010-2345-6789', amount: 640000, overdue: 2, lastNotice: '2026-05-05', selected: false },
+    { id: 3, student: '윤지안', classNm: '고등영어',  parent: '윤미래', phone: '010-3456-7890', amount: 380000, overdue: 1, lastNotice: '2026-05-12', selected: false },
+    { id: 4, student: '장태현', classNm: '중등수학A', parent: '장수연', phone: '010-4567-8901', amount: 960000, overdue: 3, lastNotice: '2026-04-20', selected: false },
+    { id: 5, student: '신예나', classNm: '고등수학B', parent: '신현철', phone: '010-5678-9012', amount: 380000, overdue: 1, lastNotice: '2026-05-15', selected: false },
+    { id: 6, student: '백지훈', classNm: '고등수학A', parent: '백승호', phone: '010-6789-0123', amount: 760000, overdue: 2, lastNotice: '2026-05-01', selected: false },
+    { id: 7, student: '류지수', classNm: '중등수학B', parent: '류인철', phone: '010-7890-1234', amount: 380000, overdue: 1, lastNotice: '2026-05-18', selected: false },
+    { id: 8, student: '남도현', classNm: '고등영어',  parent: '남지영', phone: '010-8901-2345', amount: 1140000, overdue: 3, lastNotice: '2026-04-15', selected: false },
+  ];
+
+  const historyData = [
+    { id: 1, datetime: '2026-05-26 09:15', student: '김민준', classNm: '고등수학A', item: '수강료',    amount: 380000, method: '카드',    handler: '이담임' },
+    { id: 2, datetime: '2026-05-25 10:00', student: '이서연', classNm: '중등수학B', item: '수강료',    amount: 320000, method: '계좌이체', handler: '이담임' },
+    { id: 3, datetime: '2026-05-24 14:30', student: '박지호', classNm: '고등영어',  item: '교재비',    amount:  35000, method: '카드',    handler: '오행정' },
+    { id: 4, datetime: '2026-05-23 09:00', student: '최유진', classNm: '중등수학A', item: '수강료',    amount: 320000, method: '카드',    handler: '이담임' },
+    { id: 5, datetime: '2026-05-22 11:20', student: '정하은', classNm: '고등수학B', item: '모의고사비', amount: 20000,  method: '카드',    handler: '오행정' },
+    { id: 6, datetime: '2026-05-21 15:00', student: '한도현', classNm: '고등수학A', item: '수강료',    amount: 380000, method: '계좌이체', handler: '이담임' },
+  ];
+
+  let selectedMethod = '';
+  let selectedChannel = '';
+  let msgTargetIds = [];
+
+  /* ── 탭 전환 ── */
+  function switchBlTab(tabId, btn) {
+    document.querySelectorAll('.bl-tab-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.bl-tab-btn').forEach(b => {
+      b.classList.remove('text-violet-600', 'border-violet-500', 'bg-violet-50/60');
+      b.classList.add('text-slate-500', 'border-transparent');
+    });
+    document.getElementById(tabId).classList.remove('hidden');
+    btn.classList.remove('text-slate-500', 'border-transparent');
+    btn.classList.add('text-violet-600', 'border-violet-500', 'bg-violet-50/60');
+  }
+
+  /* ── 결제수단 배지 ── */
+  function methodBadge(method) {
+    const map = { '카드': 'bg-violet-50 text-violet-700', '계좌이체': 'bg-sky-50 text-sky-700', '현금': 'bg-emerald-50 text-emerald-700' };
+    return `<span class="px-2 py-0.5 rounded-full text-xs font-medium ${map[method] || 'bg-slate-100 text-slate-500'}">${method}</span>`;
+  }
+
+  function overdueBadge(months) {
+    const cls = months >= 3 ? 'bg-red-100 text-red-700' : months >= 2 ? 'bg-amber-100 text-amber-700' : 'bg-orange-50 text-orange-600';
+    return `<span class="px-2 py-0.5 rounded-full text-xs font-bold ${cls}">${months}개월</span>`;
+  }
+
+  /* ── 수납 내역 테이블 ── */
+  function renderReceiptTable(data) {
+    const tbody = document.getElementById('receiptTableBody');
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" class="py-10 text-center text-slate-300 text-sm">수납 내역이 없습니다.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map(r => `
+      <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+        <td class="py-3 px-3 text-slate-500 whitespace-nowrap">${r.time}</td>
+        <td class="py-3 px-3 font-medium text-slate-800">${r.student}</td>
+        <td class="py-3 px-3 text-xs text-slate-500">${r.classNm}</td>
+        <td class="py-3 px-3 text-slate-600">${r.item}</td>
+        <td class="py-3 px-3 text-right font-semibold text-slate-800">${r.amount.toLocaleString()}원</td>
+        <td class="py-3 px-3">
+          ${methodBadge(r.method)}
+          ${r.cardCompany ? `<span class="ml-1 text-xs text-slate-400">${r.cardCompany}${r.installment > 0 ? ' · ' + r.installment + '개월' : ''}</span>` : ''}
+        </td>
+        <td class="py-3 px-3"><span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs font-semibold">완료</span></td>
+        <td class="py-3 px-3">
+          <button onclick="showHermesToast('영수증을 출력합니다.', 'info')" class="text-xs text-slate-400 hover:text-violet-600 transition-colors">
+            <i class="fa-solid fa-print"></i>
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  /* ── 미납자 테이블 ── */
+  function renderUnpaidTable(data) {
+    const tbody = document.getElementById('unpaidTableBody');
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="9" class="py-10 text-center text-slate-300 text-sm">미납자가 없습니다.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map(u => `
+      <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors ${u.overdue >= 3 ? 'bg-red-50/30' : ''}">
+        <td class="py-3 px-3">
+          <input type="checkbox" class="unpaid-check" data-id="${u.id}" ${u.selected ? 'checked' : ''}
+            onchange="toggleUnpaidSelect(${u.id}, this.checked)">
+        </td>
+        <td class="py-3 px-3 font-medium text-slate-800">${u.student}</td>
+        <td class="py-3 px-3 text-xs text-slate-500">${u.classNm}</td>
+        <td class="py-3 px-3 text-slate-600">${u.parent}</td>
+        <td class="py-3 px-3 text-slate-500 text-xs">${u.phone}</td>
+        <td class="py-3 px-3 text-right font-bold text-red-600">${u.amount.toLocaleString()}원</td>
+        <td class="py-3 px-3 text-center">${overdueBadge(u.overdue)}</td>
+        <td class="py-3 px-3 text-xs text-slate-400">${u.lastNotice || '-'}</td>
+        <td class="py-3 px-3">
+          <div class="flex gap-2">
+            <button onclick="openPayModal(${u.id})" class="text-xs font-semibold text-violet-600 hover:text-violet-800 whitespace-nowrap">
+              <i class="fa-solid fa-won-sign"></i> 수납
+            </button>
+            <button onclick="openMsgModal([${u.id}])" class="text-xs font-semibold text-amber-500 hover:text-amber-700 whitespace-nowrap">
+              <i class="fa-solid fa-comment"></i> 안내
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function filterUnpaid(keyword) {
+    const data = keyword ? unpaidData.filter(u => u.student.includes(keyword) || u.parent.includes(keyword)) : unpaidData;
+    renderUnpaidTable(data);
+  }
+
+  function filterUnpaidClass(classNm) {
+    const data = classNm ? unpaidData.filter(u => u.classNm === classNm) : unpaidData;
+    renderUnpaidTable(data);
+  }
+
+  function filterUnpaidOverdue(months) {
+    const m = parseInt(months);
+    const data = m ? unpaidData.filter(u => u.overdue >= m) : unpaidData;
+    renderUnpaidTable(data);
+  }
+
+  function toggleSelectAll(checked) {
+    unpaidData.forEach(u => u.selected = checked);
+    renderUnpaidTable(unpaidData);
+  }
+
+  function toggleUnpaidSelect(id, checked) {
+    const u = unpaidData.find(u => u.id === id);
+    if (u) u.selected = checked;
+  }
+
+  function sendBulkMessage() {
+    const selected = unpaidData.filter(u => u.selected);
+    if (selected.length === 0) { showHermesToast('발송할 학생을 선택해 주세요.', 'error'); return; }
+    openMsgModal(selected.map(u => u.id));
+  }
+
+  /* ── 수납 이력 테이블 ── */
+  function renderHistoryTable(data) {
+    const tbody = document.getElementById('historyTableBody');
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" class="py-10 text-center text-slate-300 text-sm">조회된 내역이 없습니다.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map(h => `
+      <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+        <td class="py-3 px-3 text-slate-500 text-xs whitespace-nowrap">${h.datetime}</td>
+        <td class="py-3 px-3 font-medium text-slate-800">${h.student}</td>
+        <td class="py-3 px-3 text-xs text-slate-500">${h.classNm}</td>
+        <td class="py-3 px-3 text-slate-600">${h.item}</td>
+        <td class="py-3 px-3 text-right font-semibold text-slate-800">${h.amount.toLocaleString()}원</td>
+        <td class="py-3 px-3">${methodBadge(h.method)}</td>
+        <td class="py-3 px-3 text-xs text-slate-500">${h.handler}</td>
+        <td class="py-3 px-3">
+          <button onclick="showHermesToast('영수증을 출력합니다.', 'info')" class="text-xs text-slate-400 hover:text-violet-600 transition-colors">
+            <i class="fa-solid fa-print"></i>
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function filterHistory(keyword) {
+    const data = keyword ? historyData.filter(h => h.student.includes(keyword)) : historyData;
+    renderHistoryTable(data);
+  }
+
+  function filterHistoryMethod(method) {
+    const data = method ? historyData.filter(h => h.method === method) : historyData;
+    renderHistoryTable(data);
+  }
+
+  function filterHistoryItem(item) {
+    const data = item ? historyData.filter(h => h.item === item) : historyData;
+    renderHistoryTable(data);
+  }
+
+  /* ── 수납 등록 모달 ── */
+  function openPayModal(unpaidId) {
+    selectedMethod = '';
+    document.querySelectorAll('.pay-method-btn').forEach(b => {
+      b.classList.remove('border-violet-500', 'bg-violet-50', 'text-violet-700');
+      b.classList.add('border-slate-200', 'text-slate-500');
+    });
+    document.getElementById('cardInfoSection').classList.add('hidden');
+    document.getElementById('payAmount').value = '';
+    document.getElementById('amountDisplay').textContent = '';
+    document.getElementById('payMemo').value = '';
+
+    if (unpaidId) {
+      const u = unpaidData.find(u => u.id === unpaidId);
+      if (u) {
+        document.getElementById('payStudent').value = unpaidId;
+        document.getElementById('payItem').value = '수강료';
+        document.getElementById('payAmount').value = u.amount;
+        formatAmountDisplay();
+      }
+    } else {
+      document.getElementById('payStudent').value = '';
+      document.getElementById('payItem').value = '';
+    }
+    document.getElementById('payModal').classList.remove('hidden');
+  }
+
+  function closePayModal() {
+    document.getElementById('payModal').classList.add('hidden');
+  }
+
+  function selectMethod(method, btn) {
+    selectedMethod = method;
+    document.querySelectorAll('.pay-method-btn').forEach(b => {
+      b.classList.remove('border-violet-500', 'bg-violet-50', 'text-violet-700');
+      b.classList.add('border-slate-200', 'text-slate-500');
+    });
+    btn.classList.remove('border-slate-200', 'text-slate-500');
+    btn.classList.add('border-violet-500', 'bg-violet-50', 'text-violet-700');
+    document.getElementById('cardInfoSection').classList.toggle('hidden', method !== '카드');
+  }
+
+  function autoFillAmount() {
+    const sel = document.getElementById('payItem');
+    const opt = sel.options[sel.selectedIndex];
+    const amt = opt.dataset.amount;
+    if (amt) { document.getElementById('payAmount').value = amt; formatAmountDisplay(); }
+  }
+
+  function formatAmountDisplay() {
+    const val = parseInt(document.getElementById('payAmount').value) || 0;
+    document.getElementById('amountDisplay').textContent = val > 0 ? val.toLocaleString() + '원' : '';
+  }
+
+  function savePayment() {
+    if (!document.getElementById('payStudent').value) { showHermesToast('학생을 선택해 주세요.', 'error'); return; }
+    if (!document.getElementById('payItem').value)    { showHermesToast('수납 항목을 선택해 주세요.', 'error'); return; }
+    if (!document.getElementById('payAmount').value)  { showHermesToast('금액을 입력해 주세요.', 'error'); return; }
+    if (!selectedMethod) { showHermesToast('결제 수단을 선택해 주세요.', 'error'); return; }
+    closePayModal();
+    showHermesToast('수납이 완료되었습니다.', 'success');
+  }
+
+  /* ── 안내 메시지 모달 ── */
+  function openMsgModal(ids) {
+    msgTargetIds = ids;
+    selectedChannel = '';
+    document.querySelectorAll('.msg-channel-btn').forEach(b => {
+      b.classList.remove('border-violet-500', 'bg-violet-50', 'text-violet-700');
+      b.classList.add('border-slate-200', 'text-slate-500');
+    });
+    const targets = unpaidData.filter(u => ids.includes(u.id));
+    document.getElementById('msgTarget').textContent = targets.map(u => u.student + ' (' + u.parent + ')').join(', ');
+    const template = targets.length === 1
+      ? `[HERMES학원] ${targets[0].parent}님, ${targets[0].student} 학생의 ${targets[0].overdue}개월분 수강료 ${targets[0].amount.toLocaleString()}원이 미납되어 있습니다. 빠른 시일 내 납부 부탁드립니다.`
+      : `[HERMES학원] 수강료 미납 안내 메시지입니다. 미납 내역을 확인하시어 빠른 납부 부탁드립니다.`;
+    document.getElementById('msgContent').value = template;
+    updateMsgCount();
+    document.getElementById('msgModal').classList.remove('hidden');
+  }
+
+  function closeMsgModal() { document.getElementById('msgModal').classList.add('hidden'); }
+
+  function selectChannel(channel, btn) {
+    selectedChannel = channel;
+    document.querySelectorAll('.msg-channel-btn').forEach(b => {
+      b.classList.remove('border-violet-500', 'bg-violet-50', 'text-violet-700');
+      b.classList.add('border-slate-200', 'text-slate-500');
+    });
+    btn.classList.remove('border-slate-200', 'text-slate-500');
+    btn.classList.add('border-violet-500', 'bg-violet-50', 'text-violet-700');
+  }
+
+  function updateMsgCount() {
+    const content = document.getElementById('msgContent').value;
+    document.getElementById('msgCount').textContent = content.length + ' / 90자';
+  }
+
+  document.getElementById('msgContent')?.addEventListener('input', updateMsgCount);
+
+  function sendMessage() {
+    if (!selectedChannel) { showHermesToast('발송 채널을 선택해 주세요.', 'error'); return; }
+    closeMsgModal();
+    showHermesToast(selectedChannel + ' 안내 메시지가 발송되었습니다.', 'success');
+  }
+
+  /* ── 일일 마감 모달 ── */
+  function openCloseModal()  { document.getElementById('closeModal').classList.remove('hidden'); }
+  function closeCloseModal() { document.getElementById('closeModal').classList.add('hidden'); }
+
+  function confirmDayClose() {
+    closeCloseModal();
+    showHermesToast('일일 마감이 완료되었습니다. 매출 DB에 반영되었습니다.', 'success');
+  }
+
+  /* ── 초기 렌더링 ── */
+  renderReceiptTable(receiptData);
+  renderUnpaidTable(unpaidData);
+  renderHistoryTable(historyData);
+
+  /* ── 탭 초기화 (렌더링 이후에 실행) ── */
+  (function () {
+    const firstBtn = document.querySelector('.bl-tab-btn[data-tab="tab-receipt"]');
+    if (firstBtn) switchBlTab('tab-receipt', firstBtn);
+  })();
+</script>

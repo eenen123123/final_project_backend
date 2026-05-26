@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>직원 정보 및 계정 관리</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/admin-core.css" />
+  <style>
+    .emp-tab-btn { transition: all .18s; }
+    .emp-tab-btn.active {
+      color: #7c3aed;
+      border-bottom: 2px solid #7c3aed;
+      font-weight: 700;
+    }
+    .emp-tab-panel { display: none; }
+    .emp-tab-panel.active { display: block; }
+
+    .emp-card {
+      background: #fff;
+      border-radius: 1rem;
+      border: 1.5px solid #e2e8f0;
+      transition: box-shadow .18s, border-color .18s;
+    }
+    .emp-card:hover { box-shadow: 0 4px 16px rgba(124,58,237,.09); border-color: #c4b5fd; }
+    .emp-card.selected { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.12); }
+
+    .status-badge {
+      display: inline-flex; align-items: center; gap: .3rem;
+      font-size: .7rem; font-weight: 700; padding: .18rem .6rem;
+      border-radius: 9999px; letter-spacing: .02em;
+    }
+    .status-active   { background: #d1fae5; color: #065f46; }
+    .status-resigned { background: #fee2e2; color: #991b1b; }
+    .status-leave    { background: #fef9c3; color: #854d0e; }
+
+    .role-tag {
+      font-size: .68rem; font-weight: 700; padding: .15rem .55rem;
+      border-radius: .4rem;
+    }
+    .role-manager  { background: #ede9fe; color: #6d28d9; }
+    .role-staff    { background: #dbeafe; color: #1d4ed8; }
+    .role-instructor { background: #e0f2fe; color: #0369a1; }
+    .role-pd       { background: #ffedd5; color: #c2410c; }
+
+    .info-row { display: flex; padding: .55rem 0; border-bottom: 1px solid #f1f5f9; }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { width: 7rem; font-size: .78rem; color: #64748b; flex-shrink: 0; }
+    .info-value { font-size: .82rem; color: #1e293b; font-weight: 500; }
+
+    .danger-zone { border: 1.5px solid #fca5a5; border-radius: .75rem; background: #fff7f7; }
+
+    .acct-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .65rem 0; border-bottom: 1px solid #f1f5f9;
+    }
+    .acct-row:last-child { border-bottom: none; }
+  </style>
+</head>
+<body>
+
+<!-- ───────────────── 페이지 헤더 ───────────────── -->
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-xl font-bold text-slate-800">직원 정보 및 계정 관리</h1>
+    <p class="text-sm text-slate-500 mt-0.5">인사 기록 조회, 계정 생성, 퇴사 처리를 관리합니다.</p>
+  </div>
+  <button onclick="openModal('modal-new-emp')" class="hm-btn-primary">
+    <i class="fa-solid fa-user-plus"></i> 신규 직원 등록
+  </button>
+</div>
+
+<!-- ───────────────── 요약 카드 4개 ───────────────── -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
+      <i class="fa-solid fa-users text-violet-600"></i>
+    </div>
+    <div>
+      <p class="text-xs text-slate-500">전체 직원</p>
+      <p class="text-xl font-bold text-slate-800">18</p>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+      <i class="fa-solid fa-circle-check text-emerald-600"></i>
+    </div>
+    <div>
+      <p class="text-xs text-slate-500">재직 중</p>
+      <p class="text-xl font-bold text-slate-800">15</p>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+      <i class="fa-solid fa-plane-departure text-amber-600"></i>
+    </div>
+    <div>
+      <p class="text-xs text-slate-500">휴직 중</p>
+      <p class="text-xl font-bold text-slate-800">1</p>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
+      <i class="fa-solid fa-user-xmark text-red-500"></i>
+    </div>
+    <div>
+      <p class="text-xs text-slate-500">퇴사자(이번 달)</p>
+      <p class="text-xl font-bold text-slate-800">2</p>
+    </div>
+  </div>
+</div>
+
+<!-- ───────────────── 탭 네비게이션 ───────────────── -->
+<div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+  <div class="flex border-b border-slate-100 px-6">
+    <button class="emp-tab-btn active py-3.5 px-4 text-sm text-slate-500 -mb-px" data-tab="emp-tab-list" onclick="switchEmpTab('emp-tab-list',this)">
+      <i class="fa-solid fa-list-ul mr-1.5"></i>직원 현황
+    </button>
+    <button class="emp-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px" data-tab="emp-tab-hr" onclick="switchEmpTab('emp-tab-hr',this)">
+      <i class="fa-solid fa-id-card mr-1.5"></i>인사 기록
+    </button>
+    <button class="emp-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px" data-tab="emp-tab-account" onclick="switchEmpTab('emp-tab-account',this)">
+      <i class="fa-solid fa-shield-halved mr-1.5"></i>계정 관리
+    </button>
+  </div>
+
+  <!-- ══════ 탭1: 직원 현황 ══════ -->
+  <div id="emp-tab-list" class="emp-tab-panel active p-6">
+    <!-- 검색 & 필터 -->
+    <div class="flex flex-wrap gap-3 mb-5">
+      <div class="relative flex-1 min-w-48">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+        <input type="text" placeholder="이름 또는 직책 검색..." class="hm-input pl-10" oninput="filterEmpList()" id="emp-search" />
+      </div>
+      <select class="hm-input w-36" id="emp-status-filter" onchange="filterEmpList()">
+        <option value="">전체 상태</option>
+        <option value="재직">재직 중</option>
+        <option value="휴직">휴직 중</option>
+        <option value="퇴사">퇴사</option>
+      </select>
+      <select class="hm-input w-36" id="emp-role-filter" onchange="filterEmpList()">
+        <option value="">전체 직책</option>
+        <option value="매니저">매니저</option>
+        <option value="강사">강사</option>
+        <option value="행정">행정</option>
+        <option value="PD">PD</option>
+      </select>
+    </div>
+
+    <!-- 직원 카드 그리드 -->
+    <div id="emp-card-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <!-- 카드들은 JS renderEmpCards()로 생성 -->
+    </div>
+  </div>
+
+  <!-- ══════ 탭2: 인사 기록 ══════ -->
+  <div id="emp-tab-hr" class="emp-tab-panel p-6">
+    <div class="flex flex-wrap gap-3 mb-5 items-end justify-between">
+      <div class="flex gap-3">
+        <select class="hm-input w-40" id="hr-year">
+          <option>2025</option><option selected>2026</option>
+        </select>
+        <select class="hm-input w-36" id="hr-dept">
+          <option value="">전체 부서</option>
+          <option>운영팀</option><option>강의팀</option><option>행정팀</option>
+        </select>
+      </div>
+      <button class="hm-btn-primary text-sm px-4 py-2" onclick="showHermesToast('엑셀로 내보내기 준비 중','info')">
+        <i class="fa-solid fa-file-excel mr-1"></i>엑셀 내보내기
+      </button>
+    </div>
+
+    <div class="overflow-x-auto rounded-xl border border-slate-100">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-slate-50 text-slate-500 text-xs">
+            <th class="text-left py-3 px-4 font-semibold">직원명</th>
+            <th class="text-left py-3 px-4 font-semibold">직책</th>
+            <th class="text-left py-3 px-4 font-semibold">입사일</th>
+            <th class="text-left py-3 px-4 font-semibold">근무 유형</th>
+            <th class="text-left py-3 px-4 font-semibold">주간 근무시간</th>
+            <th class="text-left py-3 px-4 font-semibold">소속 부서</th>
+            <th class="text-left py-3 px-4 font-semibold">상태</th>
+            <th class="text-left py-3 px-4 font-semibold"></th>
+          </tr>
+        </thead>
+        <tbody id="hr-table-body" class="divide-y divide-slate-50">
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════ 탭3: 계정 관리 ══════ -->
+  <div id="emp-tab-account" class="emp-tab-panel p-6">
+    <!-- 안내 배너 -->
+    <div class="bg-violet-50 border border-violet-200 rounded-xl px-4 py-3 flex items-start gap-3 mb-5">
+      <i class="fa-solid fa-circle-info text-violet-500 mt-0.5"></i>
+      <p class="text-xs text-violet-700 leading-relaxed">
+        계정 생성 시 임시 비밀번호가 자동 부여되며 첫 로그인 시 변경을 요구합니다. 퇴사 직원 계정 비활성화 후 30일 경과 시 개인정보 파기 대상으로 분류됩니다.
+      </p>
+    </div>
+
+    <!-- 계정 목록 -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4" id="acct-list">
+      <!-- JS renderAcctList()로 생성 -->
+    </div>
+
+    <!-- 파기 대기 섹션 -->
+    <div class="danger-zone p-4 mt-6">
+      <div class="flex items-center gap-2 mb-3">
+        <i class="fa-solid fa-triangle-exclamation text-red-500"></i>
+        <span class="font-bold text-sm text-red-700">개인정보 파기 대기</span>
+        <span class="status-badge status-resigned text-xs">2명</span>
+      </div>
+      <div class="space-y-2" id="destruction-list">
+        <!-- JS renderDestructionList()로 생성 -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  MODAL: 신규 직원 등록                             -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="modal-new-emp" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between p-6 border-b border-slate-100">
+      <h2 class="font-bold text-slate-800"><i class="fa-solid fa-user-plus mr-2 text-violet-500"></i>신규 직원 등록</h2>
+      <button onclick="closeModal('modal-new-emp')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <div class="p-6 space-y-5">
+      <!-- 기본 정보 -->
+      <div>
+        <p class="text-xs font-bold text-violet-600 uppercase tracking-wider mb-3">기본 정보</p>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">이름 <span class="text-red-400">*</span></label>
+            <input type="text" class="hm-input" placeholder="홍길동" id="new-name" />
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">주민등록번호 <span class="text-red-400">*</span></label>
+            <input type="text" class="hm-input" placeholder="000000-0000000" id="new-rrn" maxlength="14" oninput="formatRrn(this)" />
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">연락처 <span class="text-red-400">*</span></label>
+            <input type="text" class="hm-input" placeholder="010-0000-0000" id="new-phone" oninput="formatPhone(this)" maxlength="13" />
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">이메일</label>
+            <input type="email" class="hm-input" placeholder="user@hermes.com" id="new-email" />
+          </div>
+          <div class="col-span-2">
+            <label class="text-xs text-slate-500 mb-1 block">주소</label>
+            <input type="text" class="hm-input" placeholder="주소를 입력하세요" id="new-addr" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 인사 정보 -->
+      <div>
+        <p class="text-xs font-bold text-violet-600 uppercase tracking-wider mb-3">인사 정보</p>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">직책 <span class="text-red-400">*</span></label>
+            <select class="hm-input" id="new-role">
+              <option value="">선택</option>
+              <option>매니저</option><option>강사</option><option>행정</option><option>PD</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">소속 부서 <span class="text-red-400">*</span></label>
+            <select class="hm-input" id="new-dept">
+              <option value="">선택</option>
+              <option>운영팀</option><option>강의팀</option><option>행정팀</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">입사일 <span class="text-red-400">*</span></label>
+            <input type="date" class="hm-input" id="new-entry-date" />
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">근무 유형</label>
+            <select class="hm-input" id="new-work-type">
+              <option>정규직</option><option>계약직</option><option>파트타임</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">주간 근무시간</label>
+            <input type="number" class="hm-input" placeholder="40" id="new-hours" min="1" max="60" />
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">급여 (만원)</label>
+            <input type="number" class="hm-input" placeholder="300" id="new-salary" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 계정 정보 -->
+      <div class="bg-violet-50 border border-violet-200 rounded-xl p-4">
+        <p class="text-xs font-bold text-violet-600 uppercase tracking-wider mb-3">시스템 계정 초기 설정</p>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">로그인 ID <span class="text-red-400">*</span></label>
+            <input type="text" class="hm-input" placeholder="loginid" id="new-login-id" />
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">임시 비밀번호</label>
+            <div class="relative">
+              <input type="text" class="hm-input pr-20 bg-slate-50" id="new-temp-pw" readonly value="Hermes@2026" />
+              <button onclick="genTempPw()" class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-violet-600 font-semibold hover:text-violet-800">재생성</button>
+            </div>
+          </div>
+        </div>
+        <div class="mt-3">
+          <p class="text-xs text-slate-500 mb-2">초기 접근 권한</p>
+          <div class="flex flex-wrap gap-2" id="new-perm-list">
+            <label class="flex items-center gap-1.5 text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 cursor-pointer hover:border-violet-400 transition-colors">
+              <input type="checkbox" class="accent-violet-600" /> 출결 관리
+            </label>
+            <label class="flex items-center gap-1.5 text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 cursor-pointer hover:border-violet-400 transition-colors">
+              <input type="checkbox" class="accent-violet-600" /> 원비 수납
+            </label>
+            <label class="flex items-center gap-1.5 text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 cursor-pointer hover:border-violet-400 transition-colors">
+              <input type="checkbox" class="accent-violet-600" /> 교재 물류
+            </label>
+            <label class="flex items-center gap-1.5 text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 cursor-pointer hover:border-violet-400 transition-colors">
+              <input type="checkbox" class="accent-violet-600" /> 지출 관리
+            </label>
+            <label class="flex items-center gap-1.5 text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 cursor-pointer hover:border-violet-400 transition-colors">
+              <input type="checkbox" class="accent-violet-600" /> 상담 기록
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="flex gap-3 justify-end p-6 border-t border-slate-100">
+      <button onclick="closeModal('modal-new-emp')" class="text-sm text-slate-500 px-5 py-2.5 rounded-xl hover:bg-slate-100 font-semibold">취소</button>
+      <button onclick="saveNewEmp()" class="hm-btn-primary px-6 py-2.5">등록 완료</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  MODAL: 직원 상세 / 인사기록 수정                  -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="modal-emp-detail" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between p-6 border-b border-slate-100">
+      <h2 class="font-bold text-slate-800" id="detail-title">직원 상세 정보</h2>
+      <div class="flex gap-2">
+        <button onclick="toggleDetailEdit()" id="detail-edit-btn" class="text-xs text-violet-600 font-semibold border border-violet-300 px-3 py-1.5 rounded-lg hover:bg-violet-50">
+          <i class="fa-solid fa-pen mr-1"></i>수정
+        </button>
+        <button onclick="closeModal('modal-emp-detail')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+    </div>
+    <div class="p-6" id="detail-body">
+      <!-- 직원 헤더 -->
+      <div class="flex items-center gap-4 mb-5">
+        <div class="w-14 h-14 rounded-2xl bg-violet-100 flex items-center justify-center text-2xl font-bold text-violet-700" id="detail-avatar">김</div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-lg text-slate-800" id="detail-name">김현정</span>
+            <span class="status-badge status-active" id="detail-status-badge">재직</span>
+          </div>
+          <div class="flex gap-2 mt-1">
+            <span class="role-tag role-manager" id="detail-role-tag">매니저</span>
+            <span class="text-xs text-slate-500" id="detail-dept-tag">운영팀</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 기본 정보 섹션 -->
+      <div class="mb-4">
+        <p class="text-xs font-bold text-violet-600 uppercase tracking-wider mb-2">기본 정보</p>
+        <div>
+          <div class="info-row"><span class="info-label">연락처</span><span class="info-value" id="detail-phone">010-1234-5678</span></div>
+          <div class="info-row"><span class="info-label">이메일</span><span class="info-value" id="detail-email">kim@hermes.com</span></div>
+          <div class="info-row"><span class="info-label">주소</span><span class="info-value" id="detail-addr">서울시 강남구 역삼동</span></div>
+        </div>
+      </div>
+
+      <!-- 인사 정보 섹션 -->
+      <div class="mb-4">
+        <p class="text-xs font-bold text-violet-600 uppercase tracking-wider mb-2">인사 정보</p>
+        <div>
+          <div class="info-row"><span class="info-label">입사일</span><span class="info-value" id="detail-entry">2023-03-02</span></div>
+          <div class="info-row"><span class="info-label">근속 기간</span><span class="info-value" id="detail-tenure">3년 2개월</span></div>
+          <div class="info-row"><span class="info-label">근무 유형</span><span class="info-value" id="detail-work-type">정규직</span></div>
+          <div class="info-row"><span class="info-label">주간 근무시간</span><span class="info-value" id="detail-hours">40시간</span></div>
+          <div class="info-row"><span class="info-label">급여</span><span class="info-value" id="detail-salary">320만원</span></div>
+        </div>
+      </div>
+
+      <!-- 수정 폼 (숨김) -->
+      <div id="detail-edit-form" class="hidden">
+        <p class="text-xs font-bold text-amber-600 uppercase tracking-wider mb-3">인사 기록 수정</p>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">연락처</label>
+            <input type="text" class="hm-input" id="edit-phone" placeholder="010-0000-0000" />
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">근무 유형</label>
+            <select class="hm-input" id="edit-work-type">
+              <option>정규직</option><option>계약직</option><option>파트타임</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">주간 근무시간</label>
+            <input type="number" class="hm-input" id="edit-hours" placeholder="40" />
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">급여 (만원)</label>
+            <input type="number" class="hm-input" id="edit-salary" placeholder="300" />
+          </div>
+          <div class="col-span-2">
+            <label class="text-xs text-slate-500 mb-1 block">주소</label>
+            <input type="text" class="hm-input" id="edit-addr" placeholder="주소" />
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">상태 변경</label>
+            <select class="hm-input" id="edit-status">
+              <option>재직</option><option>휴직</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">소속 부서</label>
+            <select class="hm-input" id="edit-dept">
+              <option>운영팀</option><option>강의팀</option><option>행정팀</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex gap-2 mt-4 justify-end">
+          <button onclick="toggleDetailEdit()" class="text-sm text-slate-500 px-4 py-2 rounded-xl hover:bg-slate-100 font-semibold">취소</button>
+          <button onclick="saveDetailEdit()" class="hm-btn-primary px-5 py-2">저장</button>
+        </div>
+      </div>
+
+      <!-- 위험 구역 (퇴사 처리) -->
+      <div class="danger-zone p-4 mt-4">
+        <p class="text-xs font-bold text-red-600 mb-2"><i class="fa-solid fa-triangle-exclamation mr-1"></i>퇴사 처리</p>
+        <p class="text-xs text-slate-500 mb-3">퇴사 처리 시 계정이 즉시 비활성화되고 30일 후 개인정보 파기 대상으로 이관됩니다.</p>
+        <div class="grid grid-cols-2 gap-2 mb-3">
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">퇴사 사유</label>
+            <select class="hm-input" id="resign-reason">
+              <option>개인 사정</option><option>계약 만료</option><option>권고사직</option><option>기타</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">퇴사일</label>
+            <input type="date" class="hm-input" id="resign-date" />
+          </div>
+        </div>
+        <button onclick="openResignConfirm()" class="w-full text-sm font-bold text-red-600 border border-red-300 rounded-xl py-2.5 hover:bg-red-50 transition-colors">
+          <i class="fa-solid fa-user-xmark mr-1.5"></i>퇴사 처리 실행
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  MODAL: 퇴사 최종 확인                             -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="modal-resign-confirm" class="fixed inset-0 bg-black/60 z-[60] hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
+    <div class="p-6 text-center">
+      <div class="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+        <i class="fa-solid fa-user-xmark text-red-500 text-2xl"></i>
+      </div>
+      <h3 class="font-bold text-slate-800 mb-2">퇴사 처리 최종 확인</h3>
+      <p class="text-sm text-slate-500 mb-1">
+        <span class="font-semibold text-slate-700" id="resign-confirm-name">김현정</span> 직원을 퇴사 처리합니다.
+      </p>
+      <p class="text-xs text-red-500 mb-5">계정이 즉시 비활성화되며, 해당 직원은 시스템에 접근할 수 없게 됩니다.</p>
+      <div class="flex gap-3">
+        <button onclick="closeModal('modal-resign-confirm')" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50">취소</button>
+        <button onclick="executeResign()" class="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600">퇴사 처리</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  MODAL: 개인정보 파기 확인                         -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="modal-destroy-confirm" class="fixed inset-0 bg-black/60 z-[60] hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
+    <div class="p-6 text-center">
+      <div class="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+        <i class="fa-solid fa-trash-can text-red-500 text-2xl"></i>
+      </div>
+      <h3 class="font-bold text-slate-800 mb-2">개인정보 파기</h3>
+      <p class="text-sm text-slate-500 mb-1">
+        <span class="font-semibold text-slate-700" id="destroy-name">박서준</span> 직원의 개인정보를 파기합니다.
+      </p>
+      <p class="text-xs text-red-500 mb-5">주민등록번호, 주소, 연락처 등 민감 정보가 영구 삭제되며 복구가 불가능합니다.</p>
+      <p class="text-xs text-slate-400 mb-5 bg-slate-50 rounded-lg p-2">파기 대상: 주민등록번호, 주소, 연락처, 계좌정보</p>
+      <div class="flex gap-3">
+        <button onclick="closeModal('modal-destroy-confirm')" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50">취소</button>
+        <button onclick="executeDestroy()" class="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600">파기 실행</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ─── 더미 데이터 ─── */
+const employees = [
+  { id:1, name:'김현정', role:'매니저', dept:'운영팀', entry:'2023-03-02', workType:'정규직', hours:40, salary:320, phone:'010-1234-5678', email:'kim@hermes.com', addr:'서울시 강남구', status:'재직', loginId:'kimhj', lastLogin:'2026-05-25' },
+  { id:2, name:'이수민', role:'행정',   dept:'행정팀', entry:'2024-01-08', workType:'정규직', hours:40, salary:270, phone:'010-2345-6789', email:'lee@hermes.com', addr:'서울시 서초구', status:'재직', loginId:'leesm', lastLogin:'2026-05-25' },
+  { id:3, name:'박지호', role:'강사',   dept:'강의팀', entry:'2022-09-01', workType:'정규직', hours:40, salary:350, phone:'010-3456-7890', email:'park@hermes.com', addr:'서울시 송파구', status:'재직', loginId:'parkjh', lastLogin:'2026-05-24' },
+  { id:4, name:'최유리', role:'강사',   dept:'강의팀', entry:'2023-07-15', workType:'계약직', hours:30, salary:220, phone:'010-4567-8901', email:'choi@hermes.com', addr:'서울시 마포구', status:'휴직', loginId:'choiyr', lastLogin:'2026-03-10' },
+  { id:5, name:'정민석', role:'PD',     dept:'운영팀', entry:'2024-03-04', workType:'정규직', hours:40, salary:290, phone:'010-5678-9012', email:'jung@hermes.com', addr:'서울시 노원구', status:'재직', loginId:'jungms', lastLogin:'2026-05-23' },
+  { id:6, name:'박서준', role:'행정',   dept:'행정팀', entry:'2021-06-14', workType:'정규직', hours:40, salary:300, phone:'010-6789-0123', email:'psj@hermes.com',  addr:'서울시 강동구', status:'퇴사', loginId:'parksjDisabled', lastLogin:'2026-02-28' },
+];
+
+let selectedEmpId = null;
+let detailEditMode = false;
+
+/* ─── 탭 전환 ─── */
+function switchEmpTab(tabId, btn) {
+  document.querySelectorAll('.emp-tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.emp-tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+
+/* ─── 직원 현황 카드 렌더링 ─── */
+function renderEmpCards(list) {
+  const roleClass = { '매니저':'role-manager', '행정':'role-staff', '강사':'role-instructor', 'PD':'role-pd' };
+  const statusClass = { '재직':'status-active', '휴직':'status-leave', '퇴사':'status-resigned' };
+  const grid = document.getElementById('emp-card-grid');
+  if (!list.length) { grid.innerHTML = '<p class="text-sm text-slate-400 col-span-3 text-center py-10">검색 결과가 없습니다.</p>'; return; }
+  grid.innerHTML = list.map(e => `
+    <div class="emp-card p-4 cursor-pointer${selectedEmpId===e.id?' selected':''}" onclick="openDetail(${e.id})">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center font-bold text-violet-700 text-base flex-shrink-0">${e.name[0]}</div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="font-bold text-sm text-slate-800">${e.name}</span>
+            <span class="status-badge ${statusClass[e.status]}">${e.status}</span>
+          </div>
+          <div class="flex gap-1.5 mt-0.5 flex-wrap">
+            <span class="role-tag ${roleClass[e.role]}">${e.role}</span>
+            <span class="text-xs text-slate-400">${e.dept}</span>
+          </div>
+        </div>
+      </div>
+      <div class="space-y-1.5 text-xs text-slate-500">
+        <div class="flex items-center gap-1.5"><i class="fa-solid fa-calendar-day w-4 text-center"></i>입사일 ${e.entry}</div>
+        <div class="flex items-center gap-1.5"><i class="fa-solid fa-phone w-4 text-center"></i>${e.phone}</div>
+        <div class="flex items-center gap-1.5"><i class="fa-solid fa-clock w-4 text-center"></i>주 ${e.hours}시간 · ${e.workType}</div>
+      </div>
+      <div class="mt-3 pt-3 border-t border-slate-100 flex gap-2">
+        <button onclick="event.stopPropagation(); openDetail(${e.id})" class="flex-1 text-xs text-violet-600 font-semibold border border-violet-200 py-1.5 rounded-lg hover:bg-violet-50">상세보기</button>
+        ${e.status!=='퇴사'
+          ? `<button onclick="event.stopPropagation(); openDetail(${e.id})" class="flex-1 text-xs text-slate-600 font-semibold border border-slate-200 py-1.5 rounded-lg hover:bg-slate-50">수정</button>`
+          : `<button onclick="event.stopPropagation(); openDestroyConfirm(${e.id})" class="flex-1 text-xs text-red-500 font-semibold border border-red-200 py-1.5 rounded-lg hover:bg-red-50">정보 파기</button>`
+        }
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ─── 필터링 ─── */
+function filterEmpList() {
+  const q     = document.getElementById('emp-search').value.trim().toLowerCase();
+  const st    = document.getElementById('emp-status-filter').value;
+  const role  = document.getElementById('emp-role-filter').value;
+  const filtered = employees.filter(e =>
+    (!q    || e.name.includes(q) || e.role.includes(q)) &&
+    (!st   || e.status === st) &&
+    (!role || e.role === role)
+  );
+  renderEmpCards(filtered);
+}
+
+/* ─── 인사 기록 테이블 렌더링 ─── */
+function renderHrTable() {
+  const roleClass = { '매니저':'role-manager', '행정':'role-staff', '강사':'role-instructor', 'PD':'role-pd' };
+  const statusClass = { '재직':'status-active', '휴직':'status-leave', '퇴사':'status-resigned' };
+  document.getElementById('hr-table-body').innerHTML = employees.map(e => `
+    <tr class="hover:bg-slate-50 transition-colors">
+      <td class="py-3 px-4">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center text-xs font-bold text-violet-700">${e.name[0]}</div>
+          <span class="font-semibold text-slate-800 text-xs">${e.name}</span>
+        </div>
+      </td>
+      <td class="py-3 px-4"><span class="role-tag ${roleClass[e.role]}">${e.role}</span></td>
+      <td class="py-3 px-4 text-xs text-slate-600">${e.entry}</td>
+      <td class="py-3 px-4 text-xs text-slate-600">${e.workType}</td>
+      <td class="py-3 px-4 text-xs text-slate-600">주 ${e.hours}시간</td>
+      <td class="py-3 px-4 text-xs text-slate-600">${e.dept}</td>
+      <td class="py-3 px-4"><span class="status-badge ${statusClass[e.status]}">${e.status}</span></td>
+      <td class="py-3 px-4">
+        <button onclick="openDetail(${e.id})" class="text-xs text-violet-600 hover:underline font-semibold">상세</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+/* ─── 계정 목록 렌더링 ─── */
+function renderAcctList() {
+  const active = employees.filter(e => e.status !== '퇴사');
+  document.getElementById('acct-list').innerHTML = active.map(e => `
+    <div class="bg-white border border-slate-100 rounded-xl p-4 shadow-sm">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center text-sm font-bold text-violet-700">${e.name[0]}</div>
+          <div>
+            <p class="font-bold text-sm text-slate-800">${e.name}</p>
+            <p class="text-xs text-slate-400">ID: ${e.loginId}</p>
+          </div>
+        </div>
+        <span class="status-badge ${e.status==='재직'?'status-active':'status-leave'}">${e.status}</span>
+      </div>
+      <div class="acct-row">
+        <span class="text-xs text-slate-500">마지막 로그인</span>
+        <span class="text-xs font-semibold text-slate-700">${e.lastLogin}</span>
+      </div>
+      <div class="acct-row">
+        <span class="text-xs text-slate-500">비밀번호 재설정</span>
+        <button onclick="resetPw(${e.id},'${e.name}')" class="text-xs text-amber-600 font-semibold hover:underline">임시 비밀번호 발급</button>
+      </div>
+      <div class="acct-row">
+        <span class="text-xs text-slate-500">접근 차단</span>
+        <button onclick="openResignConfirmDirect(${e.id},'${e.name}')" class="text-xs text-red-500 font-semibold hover:underline">계정 비활성화</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ─── 개인정보 파기 대기 목록 ─── */
+function renderDestructionList() {
+  const resigned = employees.filter(e => e.status === '퇴사');
+  document.getElementById('destruction-list').innerHTML = resigned.map(e => `
+    <div class="flex items-center justify-between bg-white border border-red-100 rounded-xl px-4 py-3">
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-lg bg-red-100 flex items-center justify-center text-xs font-bold text-red-500">${e.name[0]}</div>
+        <div>
+          <p class="text-xs font-bold text-slate-800">${e.name}</p>
+          <p class="text-xs text-slate-400">퇴사 처리일: 2026-02-28 · D+87</p>
+        </div>
+      </div>
+      <button onclick="openDestroyConfirm(${e.id})" class="text-xs text-red-500 font-bold border border-red-300 px-3 py-1.5 rounded-lg hover:bg-red-50">파기 실행</button>
+    </div>
+  `).join('');
+}
+
+/* ─── 직원 상세 모달 열기 ─── */
+function openDetail(id) {
+  const e = employees.find(x => x.id === id);
+  if (!e) return;
+  selectedEmpId = id;
+  renderEmpCards(employees);
+
+  // 상태 배지
+  const statusClass = { '재직':'status-active', '휴직':'status-leave', '퇴사':'status-resigned' };
+  const roleClass = { '매니저':'role-manager', '행정':'role-staff', '강사':'role-instructor', 'PD':'role-pd' };
+
+  document.getElementById('detail-title').textContent = e.name + ' · 직원 상세';
+  document.getElementById('detail-avatar').textContent = e.name[0];
+  document.getElementById('detail-name').textContent = e.name;
+  document.getElementById('detail-status-badge').className = 'status-badge ' + statusClass[e.status];
+  document.getElementById('detail-status-badge').textContent = e.status;
+  document.getElementById('detail-role-tag').className = 'role-tag ' + roleClass[e.role];
+  document.getElementById('detail-role-tag').textContent = e.role;
+  document.getElementById('detail-dept-tag').textContent = e.dept;
+  document.getElementById('detail-phone').textContent = e.phone;
+  document.getElementById('detail-email').textContent = e.email;
+  document.getElementById('detail-addr').textContent = e.addr;
+  document.getElementById('detail-entry').textContent = e.entry;
+  document.getElementById('detail-tenure').textContent = calcTenure(e.entry);
+  document.getElementById('detail-work-type').textContent = e.workType;
+  document.getElementById('detail-hours').textContent = '주 ' + e.hours + '시간';
+  document.getElementById('detail-salary').textContent = e.salary + '만원';
+
+  // 수정 폼 초기화
+  if (detailEditMode) toggleDetailEdit();
+  document.getElementById('resign-confirm-name').textContent = e.name;
+
+  openModal('modal-emp-detail');
+}
+
+function calcTenure(entry) {
+  const d = new Date(entry);
+  const now = new Date();
+  let y = now.getFullYear() - d.getFullYear();
+  let m = now.getMonth() - d.getMonth();
+  if (m < 0) { y--; m += 12; }
+  return y > 0 ? `${y}년 ${m}개월` : `${m}개월`;
+}
+
+/* ─── 수정 폼 토글 ─── */
+function toggleDetailEdit() {
+  detailEditMode = !detailEditMode;
+  const form = document.getElementById('detail-edit-form');
+  const btn  = document.getElementById('detail-edit-btn');
+  form.classList.toggle('hidden', !detailEditMode);
+  btn.textContent = detailEditMode ? '취소' : '✏ 수정';
+  if (detailEditMode) {
+    const e = employees.find(x => x.id === selectedEmpId);
+    if (e) {
+      document.getElementById('edit-phone').value     = e.phone;
+      document.getElementById('edit-work-type').value = e.workType;
+      document.getElementById('edit-hours').value     = e.hours;
+      document.getElementById('edit-salary').value    = e.salary;
+      document.getElementById('edit-addr').value      = e.addr;
+    }
+  }
+}
+
+function saveDetailEdit() {
+  const e = employees.find(x => x.id === selectedEmpId);
+  if (!e) return;
+  e.phone    = document.getElementById('edit-phone').value || e.phone;
+  e.workType = document.getElementById('edit-work-type').value;
+  e.hours    = parseInt(document.getElementById('edit-hours').value) || e.hours;
+  e.salary   = parseInt(document.getElementById('edit-salary').value) || e.salary;
+  e.addr     = document.getElementById('edit-addr').value || e.addr;
+  e.status   = document.getElementById('edit-status').value;
+  e.dept     = document.getElementById('edit-dept').value;
+  toggleDetailEdit();
+  openDetail(e.id);
+  renderHrTable();
+  showHermesToast('인사 기록이 수정되었습니다.', 'success');
+}
+
+/* ─── 퇴사 처리 ─── */
+function openResignConfirm() {
+  document.getElementById('resign-confirm-name').textContent =
+    employees.find(x => x.id === selectedEmpId)?.name || '';
+  openModal('modal-resign-confirm');
+}
+
+function openResignConfirmDirect(id, name) {
+  selectedEmpId = id;
+  document.getElementById('resign-confirm-name').textContent = name;
+  openModal('modal-resign-confirm');
+}
+
+function executeResign() {
+  const e = employees.find(x => x.id === selectedEmpId);
+  if (e) {
+    e.status   = '퇴사';
+    e.loginId += 'Disabled';
+  }
+  closeModal('modal-resign-confirm');
+  closeModal('modal-emp-detail');
+  renderEmpCards(employees);
+  renderHrTable();
+  renderAcctList();
+  renderDestructionList();
+  showHermesToast('퇴사 처리 및 계정이 비활성화되었습니다.', 'success');
+}
+
+/* ─── 개인정보 파기 ─── */
+function openDestroyConfirm(id) {
+  selectedEmpId = id;
+  document.getElementById('destroy-name').textContent = employees.find(x => x.id === id)?.name || '';
+  openModal('modal-destroy-confirm');
+}
+
+function executeDestroy() {
+  const idx = employees.findIndex(x => x.id === selectedEmpId);
+  if (idx !== -1) {
+    employees[idx].phone  = '파기 완료';
+    employees[idx].addr   = '파기 완료';
+    employees[idx].email  = '파기 완료';
+  }
+  closeModal('modal-destroy-confirm');
+  renderDestructionList();
+  renderAcctList();
+  showHermesToast('개인정보가 파기되었습니다.', 'success');
+}
+
+/* ─── 신규 직원 등록 저장 ─── */
+function saveNewEmp() {
+  const name = document.getElementById('new-name').value.trim();
+  const role = document.getElementById('new-role').value;
+  const dept = document.getElementById('new-dept').value;
+  const entry = document.getElementById('new-entry-date').value;
+  const loginId = document.getElementById('new-login-id').value.trim();
+  if (!name || !role || !dept || !entry || !loginId) {
+    showHermesToast('필수 항목을 모두 입력해주세요.', 'error'); return;
+  }
+  employees.push({
+    id: employees.length + 1, name, role, dept, entry,
+    workType: document.getElementById('new-work-type').value,
+    hours: parseInt(document.getElementById('new-hours').value) || 40,
+    salary: parseInt(document.getElementById('new-salary').value) || 0,
+    phone: document.getElementById('new-phone').value,
+    email: document.getElementById('new-email').value,
+    addr: document.getElementById('new-addr').value,
+    status: '재직', loginId,
+    lastLogin: '-'
+  });
+  closeModal('modal-new-emp');
+  renderEmpCards(employees);
+  renderHrTable();
+  renderAcctList();
+  showHermesToast(name + ' 직원이 등록되었습니다.', 'success');
+}
+
+/* ─── 비밀번호 재설정 ─── */
+function resetPw(id, name) {
+  showHermesToast(name + '에게 임시 비밀번호가 발급되었습니다.', 'success');
+}
+
+/* ─── 임시 비밀번호 생성 ─── */
+function genTempPw() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$!';
+  let pw = 'Hermes@';
+  for (let i = 0; i < 5; i++) pw += chars[Math.floor(Math.random() * chars.length)];
+  document.getElementById('new-temp-pw').value = pw;
+}
+
+/* ─── 입력 포맷 ─── */
+function formatPhone(el) {
+  let v = el.value.replace(/\D/g, '');
+  if (v.length > 11) v = v.slice(0, 11);
+  if (v.length >= 8) v = v.slice(0,3) + '-' + v.slice(3,7) + '-' + v.slice(7);
+  else if (v.length >= 4) v = v.slice(0,3) + '-' + v.slice(3);
+  el.value = v;
+}
+
+function formatRrn(el) {
+  let v = el.value.replace(/\D/g, '');
+  if (v.length > 13) v = v.slice(0, 13);
+  if (v.length > 6) v = v.slice(0,6) + '-' + v.slice(6);
+  el.value = v;
+}
+
+/* ─── 모달 공통 ─── */
+function openModal(id)  { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+document.querySelectorAll('[id^="modal-"]').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); });
+});
+
+/* ─── 초기 렌더링 ─── */
+(function () {
+  renderEmpCards(employees);
+  renderHrTable();
+  renderAcctList();
+  renderDestructionList();
+
+  const firstBtn = document.querySelector('.emp-tab-btn[data-tab="emp-tab-list"]');
+  if (firstBtn) switchEmpTab('emp-tab-list', firstBtn);
+})();
+</script>
+
+</body>
+</html>
