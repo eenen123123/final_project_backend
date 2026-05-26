@@ -102,6 +102,7 @@
         <result property="delYn" column="DEL_YN"/>
         <result property="participantCount" column="PARTICIPANT_COUNT"/>
         <result property="unreadMsgCount" column="UNREAD_MSG_COUNT"/>
+        <result property="lstMsgCn" column="LST_MSG_CN"/>
 
     </resultMap>
 
@@ -139,7 +140,15 @@
                 where mc.ROOM_SN = mr.ROOM_SN
                       and mrp.PART_USER_ID = #{userId}
                       and mc.MSG_SN &gt; nvl(mrp.LST_READ_MSG_SN, 0)
-            ) as UNREAD_MSG_COUNT
+            ) as UNREAD_MSG_COUNT,
+
+            (select  mc.MSG_CN
+
+            from MESSAGE_CONTENT mc
+            where mc.ROOM_SN = mr.ROOM_SN
+            order by mc.SND_DT desc
+            fetch first 1 row only
+            ) as LST_MSG_CN
       
         FROM MESSAGE_ROOM mr
         WHERE mr.ROOM_SN IN (
@@ -154,7 +163,7 @@
             mr.ROOM_TYPE_CD,
 
 
-                                            <!-- mr.ROOM_NM, -->
+                                                                                                    <!-- mr.ROOM_NM, -->
              case
                 when mr.ROOM_TYPE_CD = '01' then (
                     select m.user_name || '님과의 대화'

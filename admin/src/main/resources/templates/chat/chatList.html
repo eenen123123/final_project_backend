@@ -60,13 +60,13 @@
           <tr
             class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider uppercase"
           >
-            <th class="py-4 px-6">채팅방 정보</th>
+            <th class="py-4 px-6 pl-20">채팅방 정보</th>
             <th class="py-4 px-6">유형</th>
             <th class="py-4 px-6">참여자</th>
             <th class="py-4 px-6">마지막 메시지</th>
             <th class="py-4 px-6">읽지 않은 메시지</th>
             <th class="py-4 px-6">생성일</th>
-            <th class="py-4 px-6 text-center">이동</th>
+            <!-- <th class="py-4 px-6 text-center">이동</th> -->
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
@@ -131,12 +131,20 @@
               >
             </td>
 
-            <!-- 마지막 메시지 일시 -->
-            <td
-              class="py-4 px-6 text-xs text-slate-400 font-mono"
-              th:text="${room.lstMsgDt != null ? #temporals.format(room.lstMsgDt, 'yyyy-MM-dd HH:mm') : '-'}"
-            >
-              -
+            <!-- 마지막 메시지 내용, 날짜/시간 -->
+            <td class="py-4 px-6">
+              <div class="flex flex-col gap-0.5 max-w-[14rem]">
+                <p
+                  class="text-sm text-slate-600 truncate"
+                  th:text="${room.lstMsgCn != null ? room.lstMsgCn : '-'}"
+                >
+                  -
+                </p>
+                <p
+                  class="text-[12px] text-slate-400 font-mono"
+                  th:text="${room.lstMsgDt != null ? #temporals.format(room.lstMsgDt, 'yyyy-MM-dd HH:mm') : ''}"
+                ></p>
+              </div>
             </td>
 
             <td
@@ -155,7 +163,7 @@
             </td>
 
             <!-- 채팅방 입장 버튼 -->
-            <td class="py-4 px-6 text-center">
+            <!-- <td class="py-4 px-6 text-center">
               <a
                 th:href="@{/admin/chat/room/page(roomSn=${room.roomSn})}"
                 class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-violet-600 bg-violet-50 hover:bg-violet-100 rounded-lg transition-colors"
@@ -163,7 +171,7 @@
                 <i class="fa-solid fa-arrow-right-to-bracket text-[10px]"></i>
                 <span>입장</span>
               </a>
-            </td>
+            </td> -->
           </tr>
         </tbody>
       </table>
