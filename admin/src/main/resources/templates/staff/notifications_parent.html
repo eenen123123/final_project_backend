@@ -1,0 +1,804 @@
+<title th:fragment="pageTitle">학부모 알림 발송 | HERMES</title>
+
+<div class="space-y-6">
+
+  <!-- ① 페이지 헤더 -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">학부모 알림 발송</h1>
+      <p class="text-sm text-slate-500 mt-1">공지사항·FAQ 관리, 등하원 알림톡 자동 발송, 성적 리포트 전송 및 발송 이력을 관리합니다.</p>
+    </div>
+  </div>
+
+  <!-- ② 요약 카드 -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-lg shrink-0">
+          <i class="fa-solid fa-bullhorn"></i>
+        </div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">공지사항</p>
+      </div>
+      <p class="text-2xl font-bold text-slate-800">14건</p>
+      <p class="text-xs text-slate-400 mt-0.5">고정 2건 포함</p>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0 animate-pulse">
+          <i class="fa-solid fa-message"></i>
+        </div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">오늘 발송</p>
+      </div>
+      <p class="text-2xl font-bold text-emerald-600">38건</p>
+      <p class="text-xs text-slate-400 mt-0.5">등하원 포함</p>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center text-lg shrink-0">
+          <i class="fa-solid fa-circle-exclamation"></i>
+        </div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">발송 실패</p>
+      </div>
+      <p class="text-2xl font-bold text-red-500">2건</p>
+      <p class="text-xs text-slate-400 mt-0.5">재발송 필요</p>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-lg shrink-0">
+          <i class="fa-solid fa-circle-question"></i>
+        </div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">FAQ</p>
+      </div>
+      <p class="text-2xl font-bold text-slate-800">22건</p>
+      <p class="text-xs text-slate-400 mt-0.5">등록된 질문</p>
+    </div>
+  </div>
+
+  <!-- ③ 탭 네비게이션 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="flex border-b border-slate-100 px-6 pt-4 gap-1" id="notifTabBar">
+      <button data-tab="tab-notice"
+        class="notif-tab-btn px-5 py-2.5 text-sm font-semibold rounded-t-xl transition-all text-slate-500 border-b-2 border-transparent hover:text-violet-600"
+        onclick="switchTab('tab-notice', this)">
+        <i class="fa-solid fa-bullhorn mr-2"></i>공지사항
+      </button>
+      <button data-tab="tab-faq"
+        class="notif-tab-btn px-5 py-2.5 text-sm font-semibold rounded-t-xl transition-all text-slate-500 border-b-2 border-transparent hover:text-violet-600"
+        onclick="switchTab('tab-faq', this)">
+        <i class="fa-solid fa-circle-question mr-2"></i>FAQ
+      </button>
+      <button data-tab="tab-auto"
+        class="notif-tab-btn px-5 py-2.5 text-sm font-semibold rounded-t-xl transition-all text-slate-500 border-b-2 border-transparent hover:text-violet-600"
+        onclick="switchTab('tab-auto', this)">
+        <i class="fa-solid fa-robot mr-2"></i>자동 알림톡
+      </button>
+      <button data-tab="tab-report"
+        class="notif-tab-btn px-5 py-2.5 text-sm font-semibold rounded-t-xl transition-all text-slate-500 border-b-2 border-transparent hover:text-violet-600"
+        onclick="switchTab('tab-report', this)">
+        <i class="fa-solid fa-file-lines mr-2"></i>성적 리포트 발송
+      </button>
+      <button data-tab="tab-history"
+        class="notif-tab-btn px-5 py-2.5 text-sm font-semibold rounded-t-xl transition-all text-slate-500 border-b-2 border-transparent hover:text-violet-600"
+        onclick="switchTab('tab-history', this)">
+        <i class="fa-solid fa-clock-rotate-left mr-2"></i>발송 이력
+        <span class="ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-red-600 text-[10px] font-bold">2</span>
+      </button>
+    </div>
+
+
+    <!-- ===== TAB 1: 공지사항 ===== -->
+    <div id="tab-notice" class="notif-tab-panel p-6 space-y-5">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3 flex-wrap">
+          <div class="w-56 relative">
+            <input type="text" class="hm-input pl-10" placeholder="공지 제목 검색...">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+          </div>
+          <select class="hm-input w-36">
+            <option value="">대상 전체</option>
+            <option>전체 학부모</option>
+            <option>초등부</option>
+            <option>중등부</option>
+            <option>고등부</option>
+          </select>
+        </div>
+        <button class="hm-btn-primary" onclick="openNoticeModal(null)">
+          <i class="fa-solid fa-plus"></i><span>공지 작성</span>
+        </button>
+      </div>
+
+      <!-- 공지 목록 -->
+      <div class="rounded-xl border border-slate-100 overflow-hidden">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+              <th class="py-3.5 px-5 w-8"></th>
+              <th class="py-3.5 px-5">제목</th>
+              <th class="py-3.5 px-5">공개 대상</th>
+              <th class="py-3.5 px-5">작성자</th>
+              <th class="py-3.5 px-5">작성일</th>
+              <th class="py-3.5 px-5 text-center">상단 고정</th>
+              <th class="py-3.5 px-5 text-center">제어</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50 text-sm text-slate-700" id="noticeTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+
+    <!-- ===== TAB 2: FAQ ===== -->
+    <div id="tab-faq" class="notif-tab-panel p-6 space-y-5 hidden">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-56 relative">
+            <input type="text" class="hm-input pl-10" placeholder="질문 검색...">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+          </div>
+          <select class="hm-input w-36">
+            <option value="">카테고리 전체</option>
+            <option>수강/등록</option>
+            <option>수업/교재</option>
+            <option>납부/환불</option>
+            <option>앱/서비스</option>
+            <option>기타</option>
+          </select>
+        </div>
+        <button class="hm-btn-primary" onclick="openFaqModal(null)">
+          <i class="fa-solid fa-plus"></i><span>FAQ 작성</span>
+        </button>
+      </div>
+
+      <div class="space-y-3" id="faqList"></div>
+    </div>
+
+
+    <!-- ===== TAB 3: 자동 알림톡 ===== -->
+    <div id="tab-auto" class="notif-tab-panel p-6 space-y-6 hidden">
+
+      <div class="flex items-start gap-3 p-4 bg-violet-50 border border-violet-100 rounded-xl">
+        <i class="fa-solid fa-circle-info text-violet-500 mt-0.5 shrink-0"></i>
+        <p class="text-xs text-violet-700 leading-relaxed">
+          등원·하원 알림은 학생이 출결 단말기를 태그하는 순간 학부모 번호로 카카오 알림톡이 자동 발송됩니다.
+          각 항목별 활성화 여부와 발송 메시지 템플릿을 설정하세요.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+        <!-- 등원 알림 -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <i class="fa-solid fa-right-to-bracket"></i>
+              </div>
+              <div>
+                <p class="text-sm font-bold text-slate-800">등원 알림</p>
+                <p class="text-xs text-slate-400">학생 출석 태그 시 즉시 발송</p>
+              </div>
+            </div>
+            <input type="checkbox" class="hm-switch" id="arrivalSwitch" checked>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">메시지 템플릿</label>
+            <textarea class="hm-input resize-none text-xs font-mono" rows="4" id="arrivalTemplate">[HERMES 학원]
+#{학생명} 학생이 #{시각}에 등원했습니다.
+오늘도 열심히 공부하겠습니다!
+문의: 02-1234-5678</textarea>
+          </div>
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span><i class="fa-solid fa-hashtag mr-1"></i>변수: #{학생명} #{시각} #{날짜} #{강의명}</span>
+            <button class="text-violet-600 font-semibold hover:underline" onclick="showHermesToast('등원 알림 템플릿이 저장되었습니다.', 'success')">저장</button>
+          </div>
+        </div>
+
+        <!-- 하원 알림 -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
+                <i class="fa-solid fa-right-from-bracket"></i>
+              </div>
+              <div>
+                <p class="text-sm font-bold text-slate-800">하원 알림</p>
+                <p class="text-xs text-slate-400">학생 하원 태그 시 즉시 발송</p>
+              </div>
+            </div>
+            <input type="checkbox" class="hm-switch" id="departureSwitch" checked>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">메시지 템플릿</label>
+            <textarea class="hm-input resize-none text-xs font-mono" rows="4" id="departureTemplate">[HERMES 학원]
+#{학생명} 학생이 #{시각}에 하원했습니다.
+오늘 수업도 수고했습니다!
+문의: 02-1234-5678</textarea>
+          </div>
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span><i class="fa-solid fa-hashtag mr-1"></i>변수: #{학생명} #{시각} #{날짜} #{강의명}</span>
+            <button class="text-violet-600 font-semibold hover:underline" onclick="showHermesToast('하원 알림 템플릿이 저장되었습니다.', 'success')">저장</button>
+          </div>
+        </div>
+
+        <!-- 결석 알림 -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                <i class="fa-solid fa-user-xmark"></i>
+              </div>
+              <div>
+                <p class="text-sm font-bold text-slate-800">미등원 알림</p>
+                <p class="text-xs text-slate-400">수업 시작 후 30분 미등원 시 발송</p>
+              </div>
+            </div>
+            <input type="checkbox" class="hm-switch" id="absentSwitch" checked>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">발송 지연 (분)</label>
+            <input type="number" class="hm-input" value="30" min="10" max="60">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">메시지 템플릿</label>
+            <textarea class="hm-input resize-none text-xs font-mono" rows="3">[HERMES 학원]
+#{학생명} 학생이 아직 등원하지 않았습니다.
+확인 부탁드립니다. 문의: 02-1234-5678</textarea>
+          </div>
+          <div class="flex justify-end">
+            <button class="text-xs text-violet-600 font-semibold hover:underline" onclick="showHermesToast('미등원 알림 설정이 저장되었습니다.', 'success')">저장</button>
+          </div>
+        </div>
+
+        <!-- 수납 알림 -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                <i class="fa-solid fa-won-sign"></i>
+              </div>
+              <div>
+                <p class="text-sm font-bold text-slate-800">수납 안내 알림</p>
+                <p class="text-xs text-slate-400">수강료 납부일 D-3 자동 발송</p>
+              </div>
+            </div>
+            <input type="checkbox" class="hm-switch" id="paySwitch">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">발송 기준 (D-N일)</label>
+            <input type="number" class="hm-input" value="3" min="1" max="14">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">메시지 템플릿</label>
+            <textarea class="hm-input resize-none text-xs font-mono" rows="3">[HERMES 학원]
+#{학생명} #{월}월 수강료 #{금액}원
+납부 예정일 #{날짜}입니다.</textarea>
+          </div>
+          <div class="flex justify-end">
+            <button class="text-xs text-violet-600 font-semibold hover:underline" onclick="showHermesToast('수납 알림 설정이 저장되었습니다.', 'success')">저장</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ===== TAB 4: 성적 리포트 발송 ===== -->
+    <div id="tab-report" class="notif-tab-panel p-6 space-y-5 hidden">
+
+      <!-- 발송 조건 설정 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-4">
+          <h3 class="text-sm font-bold text-slate-700"><i class="fa-solid fa-sliders mr-2 text-violet-500"></i>발송 조건 설정</h3>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">발송 대상 학년</label>
+            <select class="hm-input" id="reportGrade">
+              <option value="">전체 학년</option>
+              <option>초등 전체</option>
+              <option>중등 전체</option>
+              <option>고등 전체</option>
+              <option>고1</option><option>고2</option><option>고3</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">리포트 유형</label>
+            <select class="hm-input" id="reportType">
+              <option value="성적표">성적표</option>
+              <option value="학습 리포트">학습 리포트 (주간)</option>
+              <option value="모의고사 결과">모의고사 결과</option>
+              <option value="출결 현황">출결 현황</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">발송 메모 (선택)</label>
+            <textarea class="hm-input resize-none" id="reportMemo" rows="2" placeholder="학부모께 전달할 추가 안내 문구"></textarea>
+          </div>
+          <button class="hm-btn-primary w-full" onclick="sendReportNotif()">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>알림톡 발송</span>
+          </button>
+        </div>
+
+        <!-- 발송 미리보기 -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-3">
+          <h3 class="text-sm font-bold text-slate-700"><i class="fa-solid fa-eye mr-2 text-violet-500"></i>발송 미리보기</h3>
+          <div class="bg-[#FEE500] rounded-2xl p-4 text-[#3C1E1E] text-xs space-y-2 font-medium leading-relaxed">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-8 h-8 rounded-full bg-[#3C1E1E] flex items-center justify-center text-[#FEE500] text-xs font-black">H</div>
+              <span class="font-bold text-sm">HERMES 학원</span>
+            </div>
+            <p class="font-bold text-sm">[HERMES] 학습 리포트 안내</p>
+            <p>안녕하세요, 홍길동 학생 학부모님.</p>
+            <p>이번 주 <strong>학습 리포트</strong>가 준비되었습니다.</p>
+            <p>📊 학습 달성률: <strong>87%</strong></p>
+            <p>📝 과제 제출률: <strong>100%</strong></p>
+            <p>📅 기간: 2026.05.19 ~ 05.25</p>
+            <p class="pt-1 border-t border-[#3C1E1E]/20">자세한 내용은 앱에서 확인하세요.<br>문의: 02-1234-5678</p>
+          </div>
+          <p class="text-xs text-slate-400 text-center">실제 발송 시 학생별 데이터로 치환됩니다.</p>
+        </div>
+      </div>
+
+      <!-- 최근 발송 내역 -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+          <h3 class="text-sm font-bold text-slate-700">최근 리포트 발송 내역</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+                <th class="py-3.5 px-5">발송일시</th>
+                <th class="py-3.5 px-5">리포트 유형</th>
+                <th class="py-3.5 px-5">대상</th>
+                <th class="py-3.5 px-5 text-center">발송 수</th>
+                <th class="py-3.5 px-5 text-center">성공</th>
+                <th class="py-3.5 px-5 text-center">실패</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50 text-slate-700" id="reportHistoryBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ===== TAB 5: 발송 이력 ===== -->
+    <div id="tab-history" class="notif-tab-panel p-6 space-y-5 hidden">
+
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="w-48 relative">
+          <input type="text" class="hm-input pl-10" placeholder="학생명 또는 학부모명...">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+        </div>
+        <select class="hm-input w-36">
+          <option value="">발송 유형 전체</option>
+          <option>등원 알림</option>
+          <option>하원 알림</option>
+          <option>공지사항</option>
+          <option>성적 리포트</option>
+          <option>수납 안내</option>
+        </select>
+        <select class="hm-input w-36">
+          <option value="">상태 전체</option>
+          <option value="성공">발송 성공</option>
+          <option value="실패">발송 실패</option>
+        </select>
+        <button class="hm-btn-primary !bg-red-500 hover:!bg-red-600 ml-auto" onclick="resendAllFailed()">
+          <i class="fa-solid fa-rotate-right"></i>
+          <span>실패 건 일괄 재발송</span>
+        </button>
+      </div>
+
+      <div class="rounded-xl border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+                <th class="py-3.5 px-5">발송 시각</th>
+                <th class="py-3.5 px-5">유형</th>
+                <th class="py-3.5 px-5">학생명</th>
+                <th class="py-3.5 px-5">수신 번호</th>
+                <th class="py-3.5 px-5 text-center">상태</th>
+                <th class="py-3.5 px-5 text-center">재발송</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50 text-slate-700" id="historyTableBody"></tbody>
+          </table>
+        </div>
+        <div class="flex items-center justify-between px-5 py-4 border-t border-slate-100 bg-slate-50/50">
+          <p class="text-xs text-slate-400">오늘 총 40건 (성공 38, 실패 2)</p>
+          <div class="flex items-center gap-1">
+            <button class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 flex items-center justify-center text-xs"><i class="fa-solid fa-chevron-left"></i></button>
+            <button class="w-8 h-8 rounded-lg bg-violet-600 text-white text-xs font-bold flex items-center justify-center">1</button>
+            <button class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 text-xs flex items-center justify-center">2</button>
+            <button class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 flex items-center justify-center text-xs"><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ===== 공지 작성/수정 모달 ===== -->
+<div id="noticeModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeNoticeModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl mx-4 flex flex-col max-h-[92vh]">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
+      <h3 class="text-base font-bold text-slate-800" id="noticeModalTitle">공지사항 작성</h3>
+      <button onclick="closeNoticeModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <div class="overflow-y-auto p-6 space-y-4 flex-1 no-scrollbar">
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">제목 <span class="text-red-400">*</span></label>
+        <input type="text" class="hm-input" id="nTitle" placeholder="공지 제목을 입력하세요">
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">공개 대상 <span class="text-red-400">*</span></label>
+          <select class="hm-input" id="nTarget">
+            <option value="전체 학부모">전체 학부모</option>
+            <option value="초등부">초등부</option>
+            <option value="중등부">중등부</option>
+            <option value="고등부">고등부</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">상단 고정</label>
+          <div class="flex items-center gap-3 h-[42px]">
+            <input type="checkbox" class="hm-switch" id="nPinned">
+            <span class="text-xs text-slate-500" id="nPinnedLabel">고정 안 함</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">내용 <span class="text-red-400">*</span></label>
+        <textarea class="hm-input resize-none" id="nContent" rows="6" placeholder="공지 내용을 입력하세요"></textarea>
+      </div>
+      <div class="flex items-center gap-3">
+        <input type="checkbox" class="hm-switch" id="nSendAlimtalk">
+        <div>
+          <p class="text-xs font-semibold text-slate-700">알림톡 즉시 발송</p>
+          <p class="text-xs text-slate-400">저장과 동시에 대상 학부모에게 알림톡 발송</p>
+        </div>
+      </div>
+    </div>
+    <div class="flex gap-3 px-6 py-4 border-t border-slate-100 shrink-0">
+      <button class="flex-1 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors" onclick="closeNoticeModal()">취소</button>
+      <button class="flex-1 hm-btn-primary" onclick="saveNotice()">
+        <i class="fa-solid fa-floppy-disk"></i><span>저장</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FAQ 작성 모달 ===== -->
+<div id="faqModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeFaqModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 flex flex-col max-h-[92vh]">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
+      <h3 class="text-base font-bold text-slate-800" id="faqModalTitle">FAQ 작성</h3>
+      <button onclick="closeFaqModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <div class="overflow-y-auto p-6 space-y-4 flex-1 no-scrollbar">
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">카테고리 <span class="text-red-400">*</span></label>
+        <select class="hm-input" id="faqCategory">
+          <option value="">선택</option>
+          <option value="수강/등록">수강/등록</option>
+          <option value="수업/교재">수업/교재</option>
+          <option value="납부/환불">납부/환불</option>
+          <option value="앱/서비스">앱/서비스</option>
+          <option value="기타">기타</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">질문 <span class="text-red-400">*</span></label>
+        <input type="text" class="hm-input" id="faqQuestion" placeholder="자주 묻는 질문을 입력하세요">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">답변 <span class="text-red-400">*</span></label>
+        <textarea class="hm-input resize-none" id="faqAnswer" rows="5" placeholder="답변을 입력하세요"></textarea>
+      </div>
+    </div>
+    <div class="flex gap-3 px-6 py-4 border-t border-slate-100 shrink-0">
+      <button class="flex-1 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors" onclick="closeFaqModal()">취소</button>
+      <button class="flex-1 hm-btn-primary" onclick="saveFaq()">
+        <i class="fa-solid fa-floppy-disk"></i><span>저장</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== 페이지 스크립트 ===== -->
+<script>
+  /* ── 더미 데이터 ── */
+  const noticeData = [
+    { id: 1, title: '2026년 여름방학 특강 수강 안내',    target: '전체 학부모', author: '이담임', date: '2026-05-24', pinned: true  },
+    { id: 2, title: '6월 수강료 납부 안내',              target: '전체 학부모', author: '오행정', date: '2026-05-23', pinned: true  },
+    { id: 3, title: '고등부 모의고사 일정 변경 공지',    target: '고등부',      author: '이담임', date: '2026-05-20', pinned: false },
+    { id: 4, title: '중등부 교재 변경 안내 (6월부터)',   target: '중등부',      author: '오행정', date: '2026-05-18', pinned: false },
+    { id: 5, title: '학원 앱 업데이트 안내 v2.3.0',     target: '전체 학부모', author: '이담임', date: '2026-05-15', pinned: false },
+  ];
+
+  const faqData = [
+    { id: 1, category: '수강/등록', question: '수강 신청은 어떻게 하나요?',               answer: '홈페이지 또는 학원 앱을 통해 수강 신청이 가능합니다. 직접 방문 또는 전화로도 신청할 수 있습니다.' },
+    { id: 2, category: '납부/환불', question: '수강료 환불 규정이 어떻게 되나요?',         answer: '수업 시작 전 취소 시 100% 환불, 1/3 경과 전 2/3 환불, 1/2 경과 전 1/2 환불, 1/2 경과 후 환불 불가입니다.' },
+    { id: 3, category: '수업/교재', question: '교재는 별도 구매해야 하나요?',              answer: '기본 교재는 수강료에 포함되어 있습니다. 일부 선택 교재는 별도 구매가 필요할 수 있습니다.' },
+    { id: 4, category: '앱/서비스', question: '학부모 앱 등/하원 알림은 어디서 설정하나요?', answer: '학부모 앱 → 설정 → 알림 설정에서 등하원 알림 수신 여부를 설정하실 수 있습니다.' },
+  ];
+
+  const historyData = [
+    { time: '2026-05-26 10:32', type: '등원 알림',   student: '김지아',  phone: '010-1234-5678', status: '성공' },
+    { time: '2026-05-26 10:28', type: '등원 알림',   student: '이준혁',  phone: '010-2345-6789', status: '성공' },
+    { time: '2026-05-26 09:55', type: '등원 알림',   student: '박소연',  phone: '010-3456-7890', status: '실패' },
+    { time: '2026-05-26 09:41', type: '공지사항',    student: '전체',    phone: '—',             status: '성공' },
+    { time: '2026-05-26 09:12', type: '등원 알림',   student: '최민성',  phone: '010-4567-8901', status: '실패' },
+    { time: '2026-05-25 18:30', type: '하원 알림',   student: '김지아',  phone: '010-1234-5678', status: '성공' },
+    { time: '2026-05-25 18:21', type: '하원 알림',   student: '이준혁',  phone: '010-2345-6789', status: '성공' },
+  ];
+
+  const reportHistory = [
+    { datetime: '2026-05-25 20:00', type: '학습 리포트 (주간)', target: '전체', sent: 142, success: 140, fail: 2 },
+    { datetime: '2026-05-18 20:00', type: '학습 리포트 (주간)', target: '전체', sent: 142, success: 142, fail: 0 },
+    { datetime: '2026-05-10 09:00', type: '성적표',            target: '고등부', sent: 58,  success: 58,  fail: 0 },
+  ];
+
+  /* ── 탭 전환 ── */
+  (function() {
+    const firstBtn = document.querySelector('.notif-tab-btn[data-tab="tab-notice"]');
+    if (firstBtn) switchTab('tab-notice', firstBtn);
+  })();
+
+  function switchTab(tabId, btn) {
+    document.querySelectorAll('.notif-tab-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.notif-tab-btn').forEach(b => {
+      b.classList.remove('text-violet-600', 'border-violet-500', 'bg-violet-50/60');
+      b.classList.add('text-slate-500', 'border-transparent');
+    });
+    document.getElementById(tabId)?.classList.remove('hidden');
+    btn.classList.remove('text-slate-500', 'border-transparent');
+    btn.classList.add('text-violet-600', 'border-violet-500', 'bg-violet-50/60');
+  }
+
+  /* ── 공지사항 테이블 ── */
+  function renderNotice() {
+    const tbody = document.getElementById('noticeTableBody');
+    const sorted = [...noticeData].sort((a, b) => b.pinned - a.pinned);
+    tbody.innerHTML = sorted.map(n => `
+      <tr class="hover:bg-slate-50/50 transition-colors ${n.pinned ? 'bg-violet-50/30' : ''}">
+        <td class="py-3.5 px-5">
+          ${n.pinned ? '<i class="fa-solid fa-thumbtack text-violet-500 text-xs rotate-45"></i>' : ''}
+        </td>
+        <td class="py-3.5 px-5">
+          <p class="font-medium text-slate-800">${n.title}</p>
+        </td>
+        <td class="py-3.5 px-5">
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">${n.target}</span>
+        </td>
+        <td class="py-3.5 px-5 text-xs text-slate-500">${n.author}</td>
+        <td class="py-3.5 px-5 text-xs text-slate-400 font-mono">${n.date}</td>
+        <td class="py-3.5 px-5 text-center">
+          <button onclick="togglePin(${n.id})" class="w-8 h-8 rounded-lg flex items-center justify-center mx-auto transition-colors ${n.pinned ? 'bg-violet-100 text-violet-600' : 'hover:bg-slate-100 text-slate-300 hover:text-slate-500'}">
+            <i class="fa-solid fa-thumbtack text-sm ${n.pinned ? 'rotate-45' : ''}"></i>
+          </button>
+        </td>
+        <td class="py-3.5 px-5 text-center">
+          <div class="flex items-center justify-center gap-1">
+            <button onclick="openNoticeModal(${n.id})" class="text-xs text-slate-400 hover:text-violet-600 px-2 py-1 rounded-lg hover:bg-violet-50 transition-colors">
+              <i class="fa-regular fa-pen-to-square"></i>
+            </button>
+            <button onclick="deleteNotice(${n.id})" class="text-xs text-slate-400 hover:text-red-500 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">
+              <i class="fa-regular fa-trash-can"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function togglePin(id) {
+    const n = noticeData.find(n => n.id === id);
+    if (!n) return;
+    n.pinned = !n.pinned;
+    renderNotice();
+    showHermesToast(n.pinned ? `"${n.title}" 공지를 상단 고정했습니다.` : `"${n.title}" 공지 고정을 해제했습니다.`, 'success');
+  }
+
+  function deleteNotice(id) {
+    const n = noticeData.find(n => n.id === id);
+    showHermesToast(`"${n?.title}" 공지가 삭제되었습니다.`, 'error');
+  }
+
+  /* ── FAQ 목록 ── */
+  const faqCategoryColors = {
+    '수강/등록': 'bg-violet-50 text-violet-700',
+    '납부/환불': 'bg-red-50 text-red-700',
+    '수업/교재': 'bg-sky-50 text-sky-700',
+    '앱/서비스': 'bg-emerald-50 text-emerald-700',
+    '기타':      'bg-slate-100 text-slate-600',
+  };
+
+  function renderFaq() {
+    const list = document.getElementById('faqList');
+    list.innerHTML = faqData.map(f => `
+      <div class="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+        <button class="w-full flex items-start justify-between gap-4 px-5 py-4 text-left hover:bg-slate-50/50 transition-colors"
+          onclick="toggleFaq(${f.id})">
+          <div class="flex items-start gap-3 flex-1 min-w-0">
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${faqCategoryColors[f.category] || faqCategoryColors['기타']}">${f.category}</span>
+            <p class="text-sm font-semibold text-slate-800">${f.question}</p>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <button onclick="event.stopPropagation(); openFaqModal(${f.id})" class="text-xs text-slate-400 hover:text-violet-600 p-1"><i class="fa-regular fa-pen-to-square"></i></button>
+            <button onclick="event.stopPropagation(); deleteFaq(${f.id})" class="text-xs text-slate-400 hover:text-red-500 p-1"><i class="fa-regular fa-trash-can"></i></button>
+            <i class="fa-solid fa-chevron-down text-slate-300 text-xs transition-transform" id="faqChevron${f.id}"></i>
+          </div>
+        </button>
+        <div id="faqAnswer${f.id}" class="hidden px-5 pb-4">
+          <div class="bg-slate-50 rounded-xl p-4 text-sm text-slate-600 leading-relaxed border-l-2 border-violet-300">
+            ${f.answer}
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function toggleFaq(id) {
+    const answerEl = document.getElementById(`faqAnswer${id}`);
+    const chevron  = document.getElementById(`faqChevron${id}`);
+    const isOpen   = !answerEl.classList.contains('hidden');
+    answerEl.classList.toggle('hidden', isOpen);
+    chevron.classList.toggle('rotate-180', !isOpen);
+  }
+
+  function deleteFaq(id) {
+    const f = faqData.find(f => f.id === id);
+    showHermesToast(`"${f?.question}" FAQ가 삭제되었습니다.`, 'error');
+  }
+
+  /* ── 발송 이력 테이블 ── */
+  function renderHistory() {
+    const tbody = document.getElementById('historyTableBody');
+    tbody.innerHTML = historyData.map(h => `
+      <tr class="hover:bg-slate-50/50 transition-colors ${h.status === '실패' ? 'bg-red-50/30' : ''}">
+        <td class="py-3.5 px-5 text-xs text-slate-500 font-mono whitespace-nowrap">${h.time}</td>
+        <td class="py-3.5 px-5">
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full
+            ${h.type === '등원 알림' ? 'bg-emerald-50 text-emerald-700' :
+              h.type === '하원 알림' ? 'bg-sky-50 text-sky-700' :
+              h.type === '공지사항'  ? 'bg-violet-50 text-violet-700' :
+              'bg-slate-100 text-slate-600'}">${h.type}</span>
+        </td>
+        <td class="py-3.5 px-5 text-sm font-medium text-slate-700">${h.student}</td>
+        <td class="py-3.5 px-5 text-xs text-slate-400 font-mono">${h.phone}</td>
+        <td class="py-3.5 px-5 text-center">
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold
+            ${h.status === '성공' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'}">
+            <i class="fa-solid ${h.status === '성공' ? 'fa-circle-check' : 'fa-circle-xmark'} text-[10px]"></i>
+            ${h.status}
+          </span>
+        </td>
+        <td class="py-3.5 px-5 text-center">
+          ${h.status === '실패'
+            ? `<button onclick="resendSingle('${h.student}')"
+                class="text-xs text-rose-600 hover:text-rose-800 font-semibold px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 transition-colors flex items-center gap-1 mx-auto">
+                <i class="fa-solid fa-rotate-right text-[10px]"></i> 재발송
+               </button>`
+            : '<span class="text-slate-200 text-xs">—</span>'}
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  /* ── 리포트 발송 이력 ── */
+  function renderReportHistory() {
+    const tbody = document.getElementById('reportHistoryBody');
+    tbody.innerHTML = reportHistory.map(r => `
+      <tr class="hover:bg-slate-50/50 transition-colors border-b border-slate-50">
+        <td class="py-3.5 px-5 text-xs text-slate-500 font-mono whitespace-nowrap">${r.datetime}</td>
+        <td class="py-3.5 px-5 text-sm font-medium text-slate-700">${r.type}</td>
+        <td class="py-3.5 px-5"><span class="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">${r.target}</span></td>
+        <td class="py-3.5 px-5 text-center font-semibold text-slate-700">${r.sent}</td>
+        <td class="py-3.5 px-5 text-center font-semibold text-emerald-600">${r.success}</td>
+        <td class="py-3.5 px-5 text-center font-semibold ${r.fail > 0 ? 'text-red-500' : 'text-slate-300'}">${r.fail}</td>
+      </tr>
+    `).join('');
+  }
+
+  /* ── 공지 모달 ── */
+  let editingNoticeId = null;
+
+  function openNoticeModal(id) {
+    editingNoticeId = id;
+    if (id) {
+      const n = noticeData.find(n => n.id === id);
+      document.getElementById('noticeModalTitle').textContent = '공지사항 수정';
+      document.getElementById('nTitle').value   = n.title;
+      document.getElementById('nTarget').value  = n.target;
+      document.getElementById('nContent').value = '';
+      document.getElementById('nPinned').checked = n.pinned;
+    } else {
+      document.getElementById('noticeModalTitle').textContent = '공지사항 작성';
+      ['nTitle','nContent'].forEach(id => { document.getElementById(id).value = ''; });
+      document.getElementById('nTarget').value = '전체 학부모';
+      document.getElementById('nPinned').checked = false;
+      document.getElementById('nSendAlimtalk').checked = false;
+    }
+    updatePinnedLabel();
+    document.getElementById('noticeModal').classList.remove('hidden');
+  }
+
+  function closeNoticeModal() { document.getElementById('noticeModal').classList.add('hidden'); }
+
+  function updatePinnedLabel() {
+    document.getElementById('nPinnedLabel').textContent = document.getElementById('nPinned').checked ? '고정' : '고정 안 함';
+  }
+  document.getElementById('nPinned').addEventListener('change', updatePinnedLabel);
+
+  function saveNotice() {
+    const title   = document.getElementById('nTitle').value.trim();
+    const content = document.getElementById('nContent').value.trim();
+    if (!title)   { showHermesToast('제목을 입력해 주세요.', 'error'); return; }
+    if (!content) { showHermesToast('내용을 입력해 주세요.', 'error'); return; }
+    closeNoticeModal();
+    const alimtalk = document.getElementById('nSendAlimtalk').checked;
+    showHermesToast(editingNoticeId
+      ? '공지사항이 수정되었습니다.'
+      : alimtalk ? '공지사항이 저장되고 알림톡이 발송되었습니다.' : '공지사항이 저장되었습니다.', 'success');
+  }
+
+  /* ── FAQ 모달 ── */
+  let editingFaqId = null;
+
+  function openFaqModal(id) {
+    editingFaqId = id;
+    if (id) {
+      const f = faqData.find(f => f.id === id);
+      document.getElementById('faqModalTitle').textContent = 'FAQ 수정';
+      document.getElementById('faqCategory').value = f.category;
+      document.getElementById('faqQuestion').value  = f.question;
+      document.getElementById('faqAnswer').value    = f.answer;
+    } else {
+      document.getElementById('faqModalTitle').textContent = 'FAQ 작성';
+      ['faqCategory','faqQuestion','faqAnswer'].forEach(id => { document.getElementById(id).value = ''; });
+    }
+    document.getElementById('faqModal').classList.remove('hidden');
+  }
+
+  function closeFaqModal() { document.getElementById('faqModal').classList.add('hidden'); }
+
+  function saveFaq() {
+    const category = document.getElementById('faqCategory').value;
+    const question = document.getElementById('faqQuestion').value.trim();
+    const answer   = document.getElementById('faqAnswer').value.trim();
+    if (!category) { showHermesToast('카테고리를 선택해 주세요.', 'error'); return; }
+    if (!question) { showHermesToast('질문을 입력해 주세요.', 'error'); return; }
+    if (!answer)   { showHermesToast('답변을 입력해 주세요.', 'error'); return; }
+    closeFaqModal();
+    showHermesToast(editingFaqId ? 'FAQ가 수정되었습니다.' : 'FAQ가 등록되었습니다.', 'success');
+  }
+
+  /* ── 리포트 발송 ── */
+  function sendReportNotif() {
+    const grade = document.getElementById('reportGrade').value || '전체';
+    const type  = document.getElementById('reportType').value;
+    showHermesToast(`${grade} 대상 "${type}" 알림톡이 발송되었습니다.`, 'success');
+  }
+
+  /* ── 재발송 ── */
+  function resendSingle(student) {
+    showHermesToast(`${student} 학부모에게 알림톡을 재발송했습니다.`, 'success');
+  }
+
+  function resendAllFailed() {
+    showHermesToast('실패 건 2건을 일괄 재발송했습니다.', 'success');
+  }
+
+  /* ── 초기 렌더링 ── */
+  renderNotice();
+  renderFaq();
+  renderHistory();
+  renderReportHistory();
+</script>
