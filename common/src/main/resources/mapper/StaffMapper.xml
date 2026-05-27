@@ -24,11 +24,24 @@
         INSERT INTO MEMBER (
             USER_ID, USER_ENPSWD, USER_NAME, USER_ENRRNO, USER_GNDR_CD, USER_BRDT, 
             JOIN_DT, USER_TELNO, USER_EMAIL_ADDR, USER_ZIP, USER_ADDR, USER_DADDR, 
-            USER_PROFILE, REG_DATE, MOD_DATE, ENABLE
+            USER_PROFILE, REG_DATE, MOD_DATE, ENABLE, USER_ROLE
         ) VALUES (
-            #{userId}, #{userEnpswd}, #{userName}, #{userEnrrno}, #{userGndrCd}, #{userBrdt}, 
-            CURRENT_TIMESTAMP, #{userTelno}, #{userEmailAddr}, #{userZip}, #{userAddr}, #{userDaddr}, 
-            #{userProfile}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, '1'
+            #{userId, jdbcType=VARCHAR}, 
+            #{userEnpswd, jdbcType=VARCHAR}, 
+            #{userName, jdbcType=VARCHAR}, 
+            #{userEnrrno, jdbcType=VARCHAR}, 
+            #{userGndrCd, jdbcType=CHAR}, 
+            #{userBrdt, jdbcType=DATE}, 
+            CURRENT_TIMESTAMP, 
+            #{userTelno, jdbcType=VARCHAR}, 
+            #{userEmailAddr, jdbcType=VARCHAR}, 
+            #{userZip, jdbcType=VARCHAR}, 
+            #{userAddr, jdbcType=VARCHAR}, 
+            #{userDaddr, jdbcType=VARCHAR}, 
+            #{userProfile, jdbcType=VARCHAR}, CURRENT_TIMESTAMP, 
+            CURRENT_TIMESTAMP, 
+            '1', 
+            #{userRole, jdbcType=VARCHAR}
         )
     </insert>
 
@@ -37,9 +50,18 @@
             USER_ID, DEPT_CD, JBGR_CD, JOIN_YMD, RETMT_YMD, EMPL_STAT_CD, 
             ATCH_FILE_ID, CHRG_DUTY_CN, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
         ) VALUES (
-            #{userId}, #{deptCd}, #{jbgrCd}, #{joinYmd}, #{retmtYmd}, #{emplStatCd}, 
-            #{atchFileId}, #{chrgDutyCn}, #{rgtrId}, #{lastMdfrId}, 
-            #{regDt, jdbcType=TIMESTAMP}, #{mdfcnDt, jdbcType=TIMESTAMP}
+            #{userId, jdbcType=VARCHAR}, 
+            #{deptCd, jdbcType=CHAR}, 
+            #{jbgrCd, jdbcType=CHAR}, 
+            #{joinYmd, jdbcType=TIMESTAMP}, 
+            #{retmtYmd, jdbcType=TIMESTAMP}, 
+            #{emplStatCd, jdbcType=CHAR}, 
+            #{atchFileId, jdbcType=VARCHAR}, 
+            #{chrgDutyCn, jdbcType=VARCHAR}, 
+            #{rgtrId, jdbcType=VARCHAR}, 
+            #{lastMdfrId, jdbcType=VARCHAR}, 
+            SYSTIMESTAMP, 
+            SYSTIMESTAMP
         )
     </insert>
 
@@ -47,8 +69,12 @@
         INSERT INTO EMPLOYEE_SALARY (
             USER_ID, BASE_SALARY, APPLY_YMD, USE_YN, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
         ) VALUES (
-            #{userId}, #{baseSalary}, #{applyYmd}, #{useYn}, #{rgtrId}, #{lastMdfrId}, 
-            #{regDt, jdbcType=TIMESTAMP}, #{mdfcnDt, jdbcType=TIMESTAMP}
+            #{userId, jdbcType=VARCHAR}, 
+            #{baseSalary, jdbcType=NUMERIC}, #{applyYmd, jdbcType=DATE},     #{useYn, jdbcType=CHAR}, 
+            #{rgtrId, jdbcType=VARCHAR}, 
+            #{lastMdfrId, jdbcType=VARCHAR}, 
+            SYSTIMESTAMP, 
+            SYSTIMESTAMP
         )
     </insert>
 </mapper>
