@@ -160,6 +160,10 @@ public class StaffController {
             memberDto.setUserTelno(cleanTelno);
         }
 
+        log.info("등록할 직원 정보: {}", memberDto);
+        log.info("등록할 직원 상세 정보: {}", employeeInfoDto);
+        log.info("등록할 직원 급여 정보: {}", employeeSalary);
+
         // 일괄 트랜잭션 등록 처리
         staffService.registerEmployee(memberDto); // 직원 등록
         staffService.saveEmployeeInfo(employeeInfoDto); // 직원 정보 저장
