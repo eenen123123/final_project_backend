@@ -4,38 +4,51 @@
 
 <mapper namespace="kr.or.ddit.finalProject.mapper.StaffMapper">
 
-    <!-- selectDepartmentList --> 
     <select id="selectDepartmentList" resultType="kr.or.ddit.finalProject.dto.employee.DepartmentDto">
         SELECT
-            DEPT_CD
-            , PRNT_DEPT_CD
-            , DEPT_NM
-            , USE_YN
-            , INTL_TEL_NO
-            , RGTR_ID
-            , LAST_MDFR_ID
-            , REG_DT
-            , MDFCN_DT
+            DEPT_CD, PRNT_DEPT_CD, DEPT_NM, USE_YN, INTL_TEL_NO, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
         FROM
             DEPARTMENT
     </select>      
 
-    <!-- selectJobGradeList --> 
     <select id="selectJobGradeList" resultType="kr.or.ddit.finalProject.dto.employee.JobGradeDto">
         SELECT
-            JBGR_CD
-            , JBGR_NM
-            , SORT_ORD
-            , USE_YN
-            , BASE_ANN_LV_DAYS
-            , RGTR_ID
-            , LAST_MDFR_ID
-            , REG_DT
-            , MDFCN_DT
-            , DEPT_CD
+            JBGR_CD, JBGR_NM, SORT_ORD, USE_YN, BASE_ANN_LV_DAYS, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT, DEPT_CD
         FROM
             JOB_GRADE
         WHERE USE_YN = 'Y'
         ORDER BY SORT_ORD
     </select>
+
+    <insert id="insertEmployee" parameterType="kr.or.ddit.finalProject.dto.member.MemberDto">
+        INSERT INTO MEMBER (
+            USER_ID, USER_ENPSWD, USER_NAME, USER_ENRRNO, USER_GNDR_CD, USER_BRDT, 
+            JOIN_DT, USER_TELNO, USER_EMAIL_ADDR, USER_ZIP, USER_ADDR, USER_DADDR, 
+            USER_PROFILE, REG_DATE, MOD_DATE, ENABLE
+        ) VALUES (
+            #{userId}, #{userEnpswd}, #{userName}, #{userEnrrno}, #{userGndrCd}, #{userBrdt}, 
+            CURRENT_TIMESTAMP, #{userTelno}, #{userEmailAddr}, #{userZip}, #{userAddr}, #{userDaddr}, 
+            #{userProfile}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, '1'
+        )
+    </insert>
+
+    <insert id="insertEmployeeInfo" parameterType="kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto">
+        INSERT INTO EMPLOYEE_INFO (
+            USER_ID, DEPT_CD, JBGR_CD, JOIN_YMD, RETMT_YMD, EMPL_STAT_CD, 
+            ATCH_FILE_ID, CHRG_DUTY_CN, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
+        ) VALUES (
+            #{userId}, #{deptCd}, #{jbgrCd}, #{joinYmd}, #{retmtYmd}, #{emplStatCd}, 
+            #{atchFileId}, #{chrgDutyCn}, #{rgtrId}, #{lastMdfrId}, 
+            #{regDt, jdbcType=TIMESTAMP}, #{mdfcnDt, jdbcType=TIMESTAMP}
+        )
+    </insert>
+
+    <insert id="insertEmployeeSalary" parameterType="kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto">
+        INSERT INTO EMPLOYEE_SALARY (
+            USER_ID, BASE_SALARY, APPLY_YMD, USE_YN, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
+        ) VALUES (
+            #{userId}, #{baseSalary}, #{applyYmd}, #{useYn}, #{rgtrId}, #{lastMdfrId}, 
+            #{regDt, jdbcType=TIMESTAMP}, #{mdfcnDt, jdbcType=TIMESTAMP}
+        )
+    </insert>
 </mapper>
