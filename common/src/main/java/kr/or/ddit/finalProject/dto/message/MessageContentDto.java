@@ -27,5 +27,6 @@ public class MessageContentDto implements Serializable {
 
     private String senderRoleName;
     private String userName;
+    private String fileNm; // 파일 원본명 (DB 미매핑, WS 브로드캐스트 및 SELECT JOIN 전용)
 
 }

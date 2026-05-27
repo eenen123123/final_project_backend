@@ -1,4 +1,4 @@
-package kr.or.ddit.dto.instructor;
+package kr.or.ddit.finalProject.dto.curriculum;
 
 import java.time.LocalDate;
 
@@ -7,23 +7,22 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-@EqualsAndHashCode(of = "curriculumId")
+@EqualsAndHashCode(of = "detailId")
 @Data
-public class CurriculumMasterDto {
+public class CurriculumDetailDto {
 
     @NotNull
-    private Long curriculumId;
-    @NotBlank
-    private String title;
-    @NotBlank
-    private String instructorId;
-    private String useYn;
+    private Integer detailId;
+    @NotNull
+    private Integer curriculumId;
+    @NotNull
+    private Integer rowOrder;
+    private String weekInfo;
+    private String topic;
+    private String content;
     @NotBlank
     private String rgtrId;
     private LocalDate regDt;
     private String lastMdfrId;
     private LocalDate mdfcnDt;
-
-    private CurriculumDetailDto curriculumDetail;
-
 }

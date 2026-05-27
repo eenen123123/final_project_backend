@@ -113,23 +113,23 @@ flowchart TD
 
 ## 5. 유틸리티
 
-### 5-1. [RandomSixDigits](common/src/main/java/kr/or/ddit/finalProject/util/RandomSixDigits.java)
+### 5-1. [RandomSixDigits](common/src/main/java/kr/or/ddit/finalProject/util/RandomSixDigits.java) (common)
 
 6자리 인증 코드를 생성하는 유틸리티 클래스입니다.
 이메일 인증에 사용하며, `generate()` 메소드를 호출하면 000000부터 999999 사이의 랜덤한 6자리 숫자 문자열이 반환됩니다.
 
-### 5-2. [TokenHashUtil](common/src/main/java/kr/or/ddit/finalProject/util/TokenHashUtil.java)
+### 5-2. [TokenHashUtil](common/src/main/java/kr/or/ddit/finalProject/util/TokenHashUtil.java) (common)
 
 토큰 해싱 유틸리티, HMAC-SHA256 알고리즘을 사용하여 토큰을 해싱하는 기능을 제공합니다.
 
-### 5-3. [PrintPrettyObject](common/src/main/java/kr/or/ddit/finalProject/util/PrintPrettyObject.java)
+### 5-3. [PrintPrettyObject](common/src/main/java/kr/or/ddit/finalProject/util/PrintPrettyObject.java) (common)
 
 객체를 JSON 형태로 예쁘게 반환하는 유틸리티 클래스입니다.
 디버깅이나 로깅 시 객체의 내용을 쉽게 확인할 수 있도록 도와줍니다.
 
 ## 6. 페이징 처리
 
-[common/src/main/java/kr/or/ddit/finalProject/paging/PaginationInfo.java](common/src/main/java/kr/or/ddit/finalProject/paging/PaginationInfo.java)
+[PaginationInfo.java](common/src/main/java/kr/or/ddit/finalProject/paging/PaginationInfo.java) (common)
 
 위의 클래스는 페이징 처리를 위한 정보를 담고 있습니다.
 
@@ -224,7 +224,7 @@ public PaginationInfo(int screenSize, int blockSize, int page, String orderBy, S
 
 ### 7-1. 커스텀 예외 클래스
 
-[common/src/main/java/kr/or/ddit/finalProject/exception/FinalProjectException.java](common/src/main/java/kr/or/ddit/finalProject/exception/FinalProjectException.java)
+[FinalProjectException.java](common/src/main/java/kr/or/ddit/finalProject/exception/FinalProjectException.java) (common)
 
 위 클래스는 우리 프로젝트에서 발생할 수 있는 예외 상황을 나타내는 최상위 커스텀 예외 클래스입니다. 이 클래스를 상속하여 다양한 예외 상황에 대한 구체적인 예외 클래스를 정의할 수 있습니다.
 
@@ -254,13 +254,13 @@ USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
 
 ### 7-2. 에러 코드 ENUM
 
-[common/src/main/java/kr/or/ddit/finalProject/exception/ErrorCode.java](common/src/main/java/kr/or/ddit/finalProject/exception/ErrorCode.java)
+[ErrorCode.java](common/src/main/java/kr/or/ddit/finalProject/exception/ErrorCode.java) (common)
 
 위 ENUM에서 정의된 에러 코드는 우리 프로젝트에서 발생할 수 있는 다양한 예외 상황을 나타냅니다.
 
 ### 7-3. REST API 예외 처리 핸들러
 
-[rest/src/main/java/kr/or/ddit/exception/RestExceptionHandler.java](rest/src/main/java/kr/or/ddit/exception/RestExceptionHandler.java)
+[RestExceptionHandler.java](rest/src/main/java/kr/or/ddit/exception/RestExceptionHandler.java) (rest)
 
 위 클래스는 REST API에서 발생하는 예외를 처리하는 핸들러입니다. `@RestControllerAdvice` 어노테이션을 사용하여 모든 REST 컨트롤러에서 발생하는 예외를 전역적으로 처리할 수 있습니다.
 
@@ -350,7 +350,7 @@ JWT 토큰에 담긴 사용자의 정보를 검증하는 로직을 `JwtAuthentic
 
 ## 9. Email
 
-[common/src/main/java/kr/or/ddit/finalProject/service/email/EmailServiceImpl.java](common/src/main/java/kr/or/ddit/finalProject/service/email/EmailServiceImpl.java)
+[EmailServiceImpl.java](common/src/main/java/kr/or/ddit/finalProject/service/email/EmailServiceImpl.java) (common)
 
 위 클래스는 이메일 발송을 담당하는 서비스 클래스입니다. Spring의 `JavaMailSender`를 사용하여 이메일을 발송하는 기능을 구현하고 있습니다.
 
@@ -393,16 +393,134 @@ public String sendEmailSixDigits(String to) {
 
 ## 10. File Upload
 
-### 10-1. Admin 모듈
+### 10-1. Admin 모듈 — FileUploadService
 
-Admin 모듈에서의 파일 업로드는
-[common/src/main/java/kr/or/ddit/finalProject/service/file/FileUploadService.java](common/src/main/java/kr/or/ddit/finalProject/service/file/FileUploadService.java)
+Admin 모듈의 파일 업로드는 공통 서비스인 `FileUploadService`를 통해 처리됩니다.
+채팅 파일 전송, 강의 영상 업로드, 강의 첨부파일 등 파일이 필요한 모든 기능에서 공통으로 사용합니다.
 
-위 서비스로 업로드하는 로직이 구현되어 있습니다.
+관련 파일:
 
-업로드 후 반환되는 객체는
-[common/src/main/java/kr/or/ddit/finalProject/dto/file/StoredFileResponse.java](common/src/main/java/kr/or/ddit/finalProject/dto/file/StoredFileResponse.java)
-입니다.
+- 서비스: [FileUploadService.java](common/src/main/java/kr/or/ddit/finalProject/service/file/FileUploadService.java) (common)
+- DB 저장 결과 DTO: [FileDto.java](common/src/main/java/kr/or/ddit/finalProject/dto/file/FileDto.java) (common)
+- 파일 서버 응답 DTO: [StoredFileResponse.java](common/src/main/java/kr/or/ddit/finalProject/dto/file/StoredFileResponse.java) (common)
+- DB 매퍼: [FileUploadMapper.java](common/src/main/java/kr/or/ddit/finalProject/mapper/FileUploadMapper.java) (common)
+
+#### 지원 파일 형식
+
+외부 파일 서버(`paste.maerchen.dev`)가 허용하는 형식입니다.
+
+| 형식 | MIME 타입 |
+| --- | --- |
+| 이미지 | `image/jpeg`, `image/png`, `image/gif`, `image/webp` |
+| PDF | `application/pdf` |
+| 동영상 | `video/mp4`, `video/webm`, `video/ogg` |
+| ZIP | `application/zip`, `application/x-zip-compressed` |
+
+> [!NOTE]
+> 지원하지 않는 형식을 보내면 파일 서버가 `400 Bad Request`를 반환하며, 이는 `FILE_TYPE_NOT_SUPPORTED` 예외로 변환됩니다.
+> 프론트엔드에서 사전에 MIME 타입을 검증하는 것을 권장합니다.
+
+#### 업로드 흐름
+
+```mermaid
+sequenceDiagram
+    participant C as 클라이언트 (브라우저)
+    participant Ctrl as 각 기능의 Controller
+    participant S as FileUploadService
+    participant F as 외부 파일 서버<br/>(paste.maerchen.dev)
+    participant D as DB<br/>(CMMT_ATCH_FILE_DTL)
+
+    C->>Ctrl: POST (MultipartFile 포함)
+    Ctrl->>S: uploadFile(file, userId)
+    S->>F: POST /api/storage/files (multipart)
+    F-->>S: StoredFileResponse (id, url, contentType 등)
+    S->>D: INSERT CMMT_ATCH_FILE_DTL → atchFileDtlSn 자동 채번
+    S-->>Ctrl: FileDto 반환
+    Note over Ctrl: 이후 처리는 각 기능에서 담당<br/>(채팅 메시지 저장, 강의 테이블 연결 등)
+    Ctrl-->>C: 응답
+```
+
+#### Input / Output
+
+**Input** — `FileUploadService.uploadFile(MultipartFile file, String userId)`
+
+| 파라미터 | 설명 |
+| --- | --- |
+| `file` | 업로드할 파일 (`MultipartFile`) |
+| `userId` | 업로드한 사용자 ID (`Authentication.getName()`으로 획득) |
+
+**Output** — `FileDto`
+
+| 필드 | DB 컬럼 | 설명 |
+| --- | --- | --- |
+| `atchFileDtlSn` | `ATCH_FILE_DTL_SN` (PK) | DB 저장 후 시퀀스로 자동 채번. 다른 테이블과 JOIN할 때 FK로 사용 |
+| `orgnFileNm` | `ORGN_FILE_NM` | 원본 파일명 |
+| `savePathNm` | `SAVE_PATH_NM` | 파일 서버 접근 URL (= `viewUrl`) |
+| `saveFileNm` | `SAVE_FILE_NM` | 파일 서버 URL (= `url`) |
+| `fileExtNm` | `FILE_EXT_NM` | MIME 타입 (예: `image/png`) — 확장자가 아님에 주의 |
+| `fileSizeCnt` | `FILE_SIZE_CNT` | 파일 크기 (bytes) |
+| `rgtrId` | `RGTR_ID` | 업로드한 사용자 ID |
+
+> [!IMPORTANT]
+> `fileExtNm` 필드명이 '확장자'처럼 보이지만 실제로는 **MIME 타입** 문자열이 저장됩니다.
+> 이미지 여부 판별 시 `fileExtNm.startsWith("image/")` 를 사용하세요.
+
+#### 기본 사용 예시
+
+```java
+@PostMapping("/some/upload")
+public ResponseEntity<?> upload(@RequestParam MultipartFile file, Authentication authentication) {
+    String userId = authentication.getName();
+    FileDto fileDto = fileUploadService.uploadFile(file, userId);
+
+    // 이후 각 기능에 맞게 FileDto를 활용
+    // fileDto.getAtchFileDtlSn() → 다른 테이블의 FK로 저장
+    // fileDto.getSavePathNm()    → 파일 접근 URL
+    // fileDto.getOrgnFileNm()    → 원본 파일명
+    // fileDto.getFileExtNm()     → MIME 타입 (image/* 여부 판별 등)
+    ...
+}
+```
+
+#### 예외
+
+`FileUploadService.uploadFile()` 에서 발생할 수 있는 예외입니다.
+호출하는 컨트롤러에서 `@ExceptionHandler`로 처리하거나, `@ControllerAdvice`를 통해 전역 처리할 수 있습니다.
+
+| 예외 상황 | `ErrorCode` | HTTP 상태 |
+| --- | --- | --- |
+| 파일이 비어있음 | `FILE_EMPTY` | 400 |
+| 지원하지 않는 파일 형식 | `FILE_TYPE_NOT_SUPPORTED` | 400 |
+| 파일 서버 업로드 실패 | `FILE_UPLOAD_FAILED` | 500 |
+| DB 저장 실패 | `FILE_INFO_SAVE_FAILED` | 500 |
+
+#### 적용 사례 — 채팅 파일 전송
+
+채팅에서는 업로드된 파일을 WebSocket으로 브로드캐스트하는 추가 처리가 있습니다.
+`FileDto`의 MIME 타입(`fileExtNm`)으로 채팅 메시지 타입(`msgTypeCd`)을 결정합니다.
+
+| `msgTypeCd` | 조건 | 채팅 표시 방식 |
+| --- | --- | --- |
+| `02` | `fileExtNm.startsWith("image/")` | 인라인 이미지 미리보기 |
+| `03` | 그 외 (PDF, 동영상, ZIP 등) | 파일 다운로드 링크 |
+
+```java
+// ChatMessageController.uploadFile() 요약
+FileDto fileDto = fileUploadService.uploadFile(file, userId);
+
+String msgTypeCd = fileDto.getFileExtNm() != null
+        && fileDto.getFileExtNm().startsWith("image/") ? "02" : "03";
+
+MessageContentDto msg = MessageContentDto.builder()
+        .msgTypeCd(msgTypeCd)
+        .msgCn(fileDto.getSavePathNm())                        // 파일 접근 URL
+        .atchFileId(String.valueOf(fileDto.getAtchFileDtlSn())) // JOIN 키
+        .build();
+
+chatService.sendMessage(msg);                 // DB 저장
+msg.setFileNm(fileDto.getOrgnFileNm());       // WS 브로드캐스트용 (DB 미매핑)
+messagingTemplate.convertAndSend("/topic/messages/" + roomSn, msg);
+```
 
 ### 10-2. Rest 모듈
 
@@ -413,7 +531,7 @@ Cloudinary API를 사용하여 구현합니다.
 
 ### 11-1. Kakao Pay API
 
-[common/src/main/java/kr/or/ddit/finalProject/service/pay/KakaoPayService.java](common/src/main/java/kr/or/ddit/finalProject/service/pay/KakaoPayService.java)
+[KakaoPayService.java](common/src/main/java/kr/or/ddit/finalProject/service/pay/KakaoPayService.java) (common)
 
 위 서비스는 Kakao Pay API를 사용하여 결제 요청을 처리하는 서비스 클래스입니다.
 
@@ -463,7 +581,7 @@ public ResponseEntity<KakaoPayApproveResponse> getMethodName(@PathVariable("uuid
 
 ### 11-2. Toss Payments API
 
-[common/src/main/java/kr/or/ddit/finalProject/service/pay/TossPayService.java](common/src/main/java/kr/or/ddit/finalProject/service/pay/TossPayService.java)
+[TossPayService.java](common/src/main/java/kr/or/ddit/finalProject/service/pay/TossPayService.java) (common)
 
 위 서비스는 Toss Payments API를 사용하여 결제 요청을 처리하는 서비스 클래스입니다.
 

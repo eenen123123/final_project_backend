@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.board.QnaMapper">
+
+    <resultMap id="qnaResultMap" type="QnaDto">
+        <id property="postSn" column="POST_SN"/>
+        <result property="qnaCtgCd" column="QNA_CTG_CD"/>
+        <result property="secrYn" column="SECR_YN"/>
+        <result property="answStatCd" column="ANSW_STAT_CD"/>
+        <result property="answCn" column="ANSW_CN"/>
+        <result property="answrUserId" column="ANSWR_USER_ID"/>
+        <result property="answDt" column="ANSW_DT"/>
+        <!-- BOARD 조인 -->
+        <result property="postSj" column="POST_SJ"/>
+        <result property="postCn" column="POST_CN"/>
+        <result property="wrtrUserId" column="WRTR_USER_ID"/>
+        <result property="regDt" column="REG_DT"/>
+        <result property="mdfcnDt" column="MDFCN_DT"/>
+        <!-- 공통코드 조인 -->
+        <result property="qnaCtgNm" column="QNA_CTG_NM"/>
+        <result property="answStatNm" column="ANSW_STAT_NM"/>
+    </resultMap>
+
+    <!-- QnA 목록 조회 -->
+    <select id="findQnaList" resultMap="qnaResultMap">
+        SELECT
+            q.POST_SN
+            , q.QNA_CTG_CD
+            , q.SECR_YN
+            , q.ANSW_STAT_CD
+            , q.ANSW_CN
+            , q.ANSWR_USER_ID
+            , q.ANSW_DT
+            , b.POST_SJ
+            , b.POST_CN
+            , b.WRTR_USER_ID
+            , b.REG_DT
+            , b.MDFCN_DT
+            , c1.COM_CD_NM AS QNA_CTG_NM
+            , c2.COM_CD_NM AS ANSW_STAT_NM
+        FROM QNA q
+        JOIN BOARD b ON b.POST_SN = q.POST_SN
+        LEFT JOIN COM_CD c1 ON c1.CL_CODE = '105' AND c1.COM_CD = q.QNA_CTG_CD
+        LEFT JOIN COM_CD c2 ON c2.CL_CODE = '104' AND c2.COM_CD = q.ANSW_STAT_CD
+        <where>
+            <if test="qnaCtgCd != null and qnaCtgCd != ''">
+                AND q.QNA_CTG_CD = #{qnaCtgCd}
+            </if>
+            <if test="answStatCd != null and answStatCd != ''">
+                AND q.ANSW_STAT_CD = #{answStatCd}
+            </if>
+        </where>
+        ORDER BY b.REG_DT DESC
+    </select>
+
+    <!-- QnA 단건 조회 -->
+    <select id="findQnaById" resultMap="qnaResultMap">
+        SELECT
+            q.POST_SN
+            , q.QNA_CTG_CD
+            , q.SECR_YN
+            , q.ANSW_STAT_CD
+            , q.ANSW_CN
+            , q.ANSWR_USER_ID
+            , q.ANSW_DT
+            , b.POST_SJ
+            , b.POST_CN
+            , b.WRTR_USER_ID
+            , b.REG_DT
+            , b.MDFCN_DT
+            , c1.COM_CD_NM AS QNA_CTG_NM
+            , c2.COM_CD_NM AS ANSW_STAT_NM
+        FROM QNA q
+        JOIN BOARD b ON b.POST_SN = q.POST_SN
+        LEFT JOIN COM_CD c1 ON c1.CL_CODE = '105' AND c1.COM_CD = q.QNA_CTG_CD
+        LEFT JOIN COM_CD c2 ON c2.CL_CODE = '104' AND c2.COM_CD = q.ANSW_STAT_CD
+        WHERE q.POST_SN = #{postSn}
+    </select>
+
+    <!-- QnA INSERT -->
+    <insert id="insertQna" parameterType="QnaDto">
+        INSERT INTO QNA (
+            POST_SN
+            , QNA_CTG_CD
+            , SECR_YN
+            , ANSW_STAT_CD
+        ) VALUES (
+            #{postSn}
+            , #{qnaCtgCd, jdbcType=CHAR}
+            , #{secrYn, jdbcType=CHAR}
+            , '01'
+        )
+    </insert>
+
+    <!-- QnA UPDATE -->
+    <update id="updateQna" parameterType="QnaDto">
+        UPDATE QNA
+        SET
+            QNA_CTG_CD = #{qnaCtgCd, jdbcType=CHAR}
+            , SECR_YN = #{secrYn, jdbcType=CHAR}
+        WHERE POST_SN = #{postSn}
+    </update>
+
+    <!-- QnA 답변 등록 -->
+    <update id="updateQnaAnswer" parameterType="QnaDto">
+        UPDATE QNA
+        SET
+            ANSW_STAT_CD = '02'
+            , ANSW_CN = #{answCn}
+            , ANSWR_USER_ID = #{answrUserId}
+            , ANSW_DT = CURRENT_TIMESTAMP
+        WHERE POST_SN = #{postSn}
+    </update>
+
+    <!-- QnA DELETE -->
+    <delete id="deleteQna">
+        DELETE FROM QNA
+        WHERE POST_SN = #{postSn}
+    </delete>
+
+</mapper>

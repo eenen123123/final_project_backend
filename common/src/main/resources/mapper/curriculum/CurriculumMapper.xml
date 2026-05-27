@@ -3,9 +3,9 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="kr.or.ddit.instructor.mapper.InstructorCurriculumMapper">
+<mapper namespace="kr.or.ddit.finalProject.mapper.curriculum.CurriculumMapper">
 
-  <resultMap id="curriculumMasterMap" type="kr.or.ddit.dto.instructor.CurriculumMasterDto">
+  <resultMap id="curriculumMasterMap" type="kr.or.ddit.finalProject.dto.curriculum.CurriculumMasterDto">
     <id property="curriculumId" column="CURRICULUM_ID" />
     <result property="title" column="TITLE" />
     <result property="instructorId" column="INSTRUCTOR_ID" />
@@ -16,7 +16,7 @@
     <result property="mdfcnDt" column="MDFCN_DT" />
   </resultMap>
 
-  <resultMap id="curriculumDetailMap" type="kr.or.ddit.dto.instructor.CurriculumDetailDto">
+  <resultMap id="curriculumDetailMap" type="kr.or.ddit.finalProject.dto.curriculum.CurriculumDetailDto">
     <id property="detailId" column="DETAIL_ID" />
     <result property="curriculumId" column="CURRICULUM_ID" />
     <result property="rowOrder" column="ROW_ORDER" />
@@ -57,7 +57,7 @@
     ORDER BY ROW_ORDER ASC
   </select>
 
-  <insert id="insertMaster" parameterType="kr.or.ddit.dto.instructor.CurriculumMasterDto">
+  <insert id="insertMaster" parameterType="kr.or.ddit.finalProject.dto.curriculum.CurriculumMasterDto">
     <selectKey keyProperty="curriculumId" resultType="long" order="BEFORE">
       SELECT SEQ_CURRICULUM_MASTER.NEXTVAL FROM DUAL
     </selectKey>
@@ -85,7 +85,7 @@
     )
   </insert>
 
-  <update id="updateMaster" parameterType="kr.or.ddit.dto.instructor.CurriculumMasterDto">
+  <update id="updateMaster" parameterType="kr.or.ddit.finalProject.dto.curriculum.CurriculumMasterDto">
     UPDATE CURRICULUM_MASTER
     SET TITLE = #{title}, LAST_MDFR_ID = #{lastMdfrId}, MDFCN_DT = SYSDATE
     WHERE CURRICULUM_ID = #{curriculumId}
