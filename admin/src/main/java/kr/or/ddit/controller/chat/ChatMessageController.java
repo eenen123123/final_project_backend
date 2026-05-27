@@ -20,8 +20,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-
-
 @Slf4j
 @RequiredArgsConstructor
 @RestController
@@ -49,12 +47,11 @@ public class ChatMessageController {
     @GetMapping("/chat/more")
     public ResponseEntity<List<MessageContentDto>> getMoreMessages(@RequestParam String roomSn,
             @RequestParam int size, @RequestParam int page, Authentication authentication) {
-        List<MessageContentDto> messages =
-                chatService.getChatMessages(Long.parseLong(roomSn), size, page, authentication);
+        List<MessageContentDto> messages
+                = chatService.getChatMessages(Long.parseLong(roomSn), size, page, authentication);
 
         return ResponseEntity.ok(messages);
     }
-
 
     // 메시지를 읽은 것으로 처리하는 엔드포인트 (예: 사용자가 채팅방에서 메시지를 읽었을 때 호출, 구독한 클라이언트에서 메시지를 읽었을 때 프론트엔드에서 호출)
     @PostMapping("/chat/read")
@@ -80,9 +77,9 @@ public class ChatMessageController {
         FileDto fileDto = fileUploadService.uploadFile(file, userId);
 
         // fileExtNm은 확장자가 아닌 MIME 타입(예: image/png)을 저장함
-        String msgTypeCd =
-                fileDto.getFileExtNm() != null && fileDto.getFileExtNm().startsWith("image/") ? "02"
-                        : "03";
+        String msgTypeCd
+                = fileDto.getFileExtNm() != null && fileDto.getFileExtNm().startsWith("image/") ? "02"
+                : "03";
 
         MessageContentDto msg = MessageContentDto.builder().roomSn(Long.parseLong(roomSn))
                 .sendrUserId(userId).msgTypeCd(msgTypeCd).msgCn(fileDto.getSavePathNm())
