@@ -1,13 +1,13 @@
-package kr.or.ddit.instructor.service;
+package kr.or.ddit.finalProject.service.curriculum;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import kr.or.ddit.dto.instructor.CurriculumDetailDto;
-import kr.or.ddit.dto.instructor.CurriculumMasterDto;
-import kr.or.ddit.instructor.mapper.InstructorCurriculumMapper;
+import kr.or.ddit.finalProject.dto.curriculum.CurriculumDetailDto;
+import kr.or.ddit.finalProject.dto.curriculum.CurriculumMasterDto;
+import kr.or.ddit.finalProject.mapper.curriculum.CurriculumMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,9 +15,9 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class InstructorCurriculumServiceImpl implements InstructorCurriculumService {
+public class CurriculumServiceImpl implements CurriculumService {
 
-    private final InstructorCurriculumMapper curriculumMapper;
+    private final CurriculumMapper curriculumMapper;
 
     @Override
     public List<CurriculumMasterDto> retrieveMasterList(String instructorId) {
