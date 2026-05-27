@@ -1,15 +1,15 @@
-package kr.or.ddit.instructor.mapper;
+package kr.or.ddit.finalProject.mapper.curriculum;
 
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import kr.or.ddit.dto.instructor.CurriculumDetailDto;
-import kr.or.ddit.dto.instructor.CurriculumMasterDto;
+import kr.or.ddit.finalProject.dto.curriculum.CurriculumDetailDto;
+import kr.or.ddit.finalProject.dto.curriculum.CurriculumMasterDto;
 
 @Mapper
-public interface InstructorCurriculumMapper {
+public interface CurriculumMapper {
 
     List<CurriculumMasterDto> selectMasterList(@Param("instructorId") String instructorId);
 
