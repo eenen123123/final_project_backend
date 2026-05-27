@@ -1,4 +1,4 @@
-package kr.or.ddit.instructor.controller;
+package kr.or.ddit.controller.instructor;
 
 import java.util.List;
 
@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import kr.or.ddit.dto.instructor.CurriculumDetailDto;
-import kr.or.ddit.dto.instructor.CurriculumMasterDto;
-import kr.or.ddit.instructor.service.InstructorCurriculumService;
+import kr.or.ddit.finalProject.dto.curriculum.CurriculumDetailDto;
+import kr.or.ddit.finalProject.dto.curriculum.CurriculumMasterDto;
+import kr.or.ddit.finalProject.service.curriculum.CurriculumService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class InstructorCurriculumController {
 
-    private final InstructorCurriculumService curriculumService;
+    private final CurriculumService curriculumService;
 
     @GetMapping
     public String curriculumMainPage(Model model, Authentication authentication) {
@@ -109,7 +109,9 @@ public class InstructorCurriculumController {
     }
 
     private void applyAuditInfo(List<CurriculumDetailDto> detailList, String currentUserId) {
-        if (detailList == null) return;
+        if (detailList == null) {
+            return;
+        }
         for (CurriculumDetailDto detail : detailList) {
             detail.setRgtrId(currentUserId);
             detail.setLastMdfrId(currentUserId);
@@ -118,6 +120,7 @@ public class InstructorCurriculumController {
 
     @lombok.Data
     public static class CurriculumSaveRequest {
+
         private String title;
         private List<CurriculumDetailDto> detailList;
     }

@@ -1,4 +1,4 @@
-package kr.or.ddit.instructor.controller;
+package kr.or.ddit.controller.instructor;
 
 import java.util.List;
 
@@ -8,8 +8,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import kr.or.ddit.dto.instructor.CourseDto;
-import kr.or.ddit.instructor.service.InstructorCourseService;
+import kr.or.ddit.finalProject.dto.course.CourseDto;
+import kr.or.ddit.finalProject.service.course.CourseService;
 import lombok.RequiredArgsConstructor;
 
 @Controller
@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class InstructorCourseController {
 
-    private final InstructorCourseService courseService;
+    private final CourseService courseService;
 
     @GetMapping
     public String courseMainPage(Model model, Authentication authentication) {

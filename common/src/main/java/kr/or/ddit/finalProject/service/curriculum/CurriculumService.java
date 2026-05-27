@@ -1,11 +1,11 @@
-package kr.or.ddit.instructor.service;
+package kr.or.ddit.finalProject.service.curriculum;
 
 import java.util.List;
 
-import kr.or.ddit.dto.instructor.CurriculumDetailDto;
-import kr.or.ddit.dto.instructor.CurriculumMasterDto;
+import kr.or.ddit.finalProject.dto.curriculum.CurriculumDetailDto;
+import kr.or.ddit.finalProject.dto.curriculum.CurriculumMasterDto;
 
-public interface InstructorCurriculumService {
+public interface CurriculumService {
 
     List<CurriculumMasterDto> retrieveMasterList(String instructorId);
 

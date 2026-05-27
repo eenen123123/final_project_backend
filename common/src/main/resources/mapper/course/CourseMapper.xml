@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.course.CourseMapper">
+
+  <resultMap id="courseMap" type="kr.or.ddit.finalProject.dto.course.CourseDto">
+    <id property="courseSn" column="COURSE_SN" />
+    <result property="curriculumId" column="CURRICULUM_ID" />
+    <result property="subjId" column="SUBJ_ID" />
+    <result property="subjClId" column="SUBJ_CL_ID" />
+    <result property="instrUserId" column="INSTR_USER_ID" />
+    <result property="courseNm" column="COURSE_NM" />
+    <result property="courseExplnCn" column="COURSE_EXPLN_CN" />
+    <result property="thmbImg" column="THMB_IMG" />
+    <result property="totLrnTimeCnt" column="TOT_LRN_TIME_CNT" />
+    <result property="opnnYn" column="OPNN_YN" />
+    <result property="atchFileId" column="ATCH_FILE_ID" />
+    <result property="prodMthdCd" column="PROD_MTHD_CD" />
+    <result property="coursePrice" column="COURSE_PRICE" />
+    <result property="rgtrId" column="RGTR_ID" />
+    <result property="lastMdfrId" column="LAST_MDFR_ID" />
+    <result property="regDt" column="REG_DT" />
+    <result property="mdfcnDt" column="MDFCN_DT" />
+    <result property="curriculumTitle" column="CURRICULUM_TITLE" />
+    <result property="classCount" column="CLASS_COUNT" />
+  </resultMap>
+
+  <select id="selectCourseListByInstructor" resultMap="courseMap">
+    SELECT
+      C.COURSE_SN, C.CURRICULUM_ID, C.SUBJ_ID, C.SUBJ_CL_ID,
+      C.INSTR_USER_ID, C.COURSE_NM, C.COURSE_EXPLN_CN, C.THMB_IMG,
+      C.TOT_LRN_TIME_CNT, C.OPNN_YN, C.ATCH_FILE_ID, C.PROD_MTHD_CD,
+      C.COURSE_PRICE, C.RGTR_ID, C.LAST_MDFR_ID, C.REG_DT, C.MDFCN_DT,
+      CM.TITLE AS CURRICULUM_TITLE,
+      (SELECT COUNT(*) FROM CLASSROOM CL WHERE CL.COURSE_SN = C.COURSE_SN) AS CLASS_COUNT
+    FROM COURSE C
+    LEFT JOIN CURRICULUM_MASTER CM ON C.CURRICULUM_ID = CM.CURRICULUM_ID
+    WHERE C.INSTR_USER_ID = #{instrUserId}
+    ORDER BY C.REG_DT DESC
+  </select>
+
+  <insert id="insertCourse" parameterType="kr.or.ddit.finalProject.dto.course.CourseDto">
+    INSERT INTO COURSE (
+      CURRICULUM_ID, SUBJ_ID, SUBJ_CL_ID, INSTR_USER_ID,
+      COURSE_NM, COURSE_EXPLN_CN, THMB_IMG, TOT_LRN_TIME_CNT,
+      OPNN_YN, PROD_MTHD_CD, COURSE_PRICE,
+      RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
+    ) VALUES (
+      #{curriculumId, jdbcType=NUMERIC},
+      #{subjId, jdbcType=NUMERIC},
+      #{subjClId, jdbcType=NUMERIC},
+      #{instrUserId},
+      #{courseNm},
+      #{courseExplnCn, jdbcType=VARCHAR},
+      #{thmbImg, jdbcType=VARCHAR},
+      #{totLrnTimeCnt, jdbcType=VARCHAR},
+      NVL(#{opnnYn, jdbcType=CHAR}, 'Y'),
+      #{prodMthdCd, jdbcType=CHAR}, NVL(#{coursePrice,jdbcType=NUMERIC}, 0),
+      #{rgtrId, jdbcType=VARCHAR},
+      CURRENT_TIMESTAMP,
+      #{lastMdfrId, jdbcType=VARCHAR},
+      CURRENT_TIMESTAMP
+    )
+  </insert>
+
+</mapper>
