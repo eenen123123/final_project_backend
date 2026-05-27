@@ -23,7 +23,7 @@ public class EmployeeInfoDto implements Serializable {
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate joinYmd; // 실제 출근 시작 날짜 (시/분/초 제외)
-    
+
     private LocalDateTime retmtYmd;
     private String emplStatCd; // 재직,휴직,퇴사 등 상태값 (01:재직 02:휴직 03:퇴사)
     private String atchFileId; // 공통첨부파일분류
@@ -32,4 +32,8 @@ public class EmployeeInfoDto implements Serializable {
     private String lastMdfrId;
     private LocalDateTime regDt;
     private LocalDateTime mdfcnDt;
+
+
+    private String deptNm; // 부서명
+    private String jbgrNm; // 직급명
 }

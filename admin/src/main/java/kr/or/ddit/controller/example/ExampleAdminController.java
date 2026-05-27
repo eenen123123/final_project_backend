@@ -13,7 +13,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.or.ddit.finalProject.dto.example.ExampleDto;
 import kr.or.ddit.finalProject.dto.file.FileDto;
-import kr.or.ddit.finalProject.dto.file.StoredFileResponse;
 import kr.or.ddit.finalProject.dto.user.UserDto;
 import kr.or.ddit.finalProject.mapper.TestMapper;
 import kr.or.ddit.finalProject.mapper.UserMapper;

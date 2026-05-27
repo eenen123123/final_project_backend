@@ -24,8 +24,9 @@ public class MessageContentDto implements Serializable {
     private LocalDateTime delDt; // DEL_YN='Y' 시 삭제 처리 일시
     private String atchFileId; // 공통첨부파일분류
 
-    private String senderRoleName;
     private String userName;
     private String fileNm; // 파일 원본명 (DB 미매핑, WS 브로드캐스트 및 SELECT JOIN 전용)
 
+    private String partDeptNm; // 부서명
+    private String partJbgrNm; // 직급명
 }

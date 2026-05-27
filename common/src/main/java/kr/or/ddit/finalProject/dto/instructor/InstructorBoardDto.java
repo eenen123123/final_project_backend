@@ -1,7 +1,6 @@
 package kr.or.ddit.finalProject.dto.instructor;
 
 import java.io.Serializable;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;

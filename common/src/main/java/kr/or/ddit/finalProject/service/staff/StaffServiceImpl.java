@@ -6,7 +6,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import kr.or.ddit.finalProject.dto.employee.DepartmentDto;
+import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
+import kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto;
 import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
+import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.mapper.StaffMapper;
 import lombok.RequiredArgsConstructor;
 
@@ -31,20 +34,20 @@ public class StaffServiceImpl implements StaffService{
 
     // 직원 등록
     @Override
-    public void registerEmployee() {
-        staffMapper.insertEmployee(null);
+    public void registerEmployee(MemberDto memberDto) {
+        staffMapper.insertEmployee(memberDto);
     }
 
     // 직원 정보 저장
     @Override
-    public void saveEmployeeInfo() {
-        staffMapper.insertEmployeeInfo(null);
+    public void saveEmployeeInfo(EmployeeInfoDto employeeInfoDto) {
+        staffMapper.insertEmployeeInfo(employeeInfoDto);
     }
 
     // 직원 급여 정보 저장
     @Override
-    public void saveEmployeeSalary() {
-        staffMapper.insertEmployeeSalary(null);
+    public void saveEmployeeSalary(EmployeeSalaryDto employeeSalaryDto) {
+        staffMapper.insertEmployeeSalary(employeeSalaryDto);
     }
 
 }

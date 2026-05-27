@@ -27,7 +27,7 @@ src/main/resources/templates/
               └── menus/              (역할별로 쪼갠 순수 메뉴 리스트 파일)
                     ├── menu_common.html     (공통: 모든 관리자 무조건 노출)
                     ├── menu_principal.html  (원장 전용 권한)
-                    ├── menu_manager.html    (실장 전용 권한)
+                    ├── menu_manager.html    (행정팀장 전용 권한)
                     ├── menu_staff.html      (행정 전용 권한)
                     ├── menu_teacher.html    (선생님 전용 권한)
                     └── menu_pd.html         (PD 전용 권한)
