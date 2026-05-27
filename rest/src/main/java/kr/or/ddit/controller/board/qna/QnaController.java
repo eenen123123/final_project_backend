@@ -3,7 +3,6 @@ package kr.or.ddit.controller.board.qna;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,7 +40,7 @@ public class QnaController {
         return ResponseEntity.ok(qnaService.getQnaById(postSn));
     }
 
-    // QnA 등록
+    // QnA 등록 (사용자)
     // POST /api/qna
     @PostMapping
     public ResponseEntity<Void> createQna(@RequestBody QnaDto qnaDto) {
@@ -49,7 +48,7 @@ public class QnaController {
         return ResponseEntity.ok().build();
     }
 
-    // QnA 수정
+    // QnA 수정 (사용자)
     // PUT /api/qna/{postSn}
     @PutMapping("/{postSn}")
     public ResponseEntity<Void> updateQna(@PathVariable Long postSn, @RequestBody QnaDto qnaDto) {
@@ -57,22 +56,4 @@ public class QnaController {
         qnaService.updateQna(qnaDto);
         return ResponseEntity.ok().build();
     }
-
-    // QnA 답변 등록
-    // PUT /api/qna/{postSn}/answer
-    @PutMapping("/{postSn}/answer")
-    public ResponseEntity<Void> answerQna(@PathVariable Long postSn, @RequestBody QnaDto qnaDto) {
-        qnaDto.setPostSn(postSn);
-        qnaService.answerQna(qnaDto);
-        return ResponseEntity.ok().build();
-    }
-
-    // QnA 삭제
-    // DELETE /api/qna/{postSn}
-    @DeleteMapping("/{postSn}")
-    public ResponseEntity<Void> deleteQna(@PathVariable Long postSn) {
-        qnaService.deleteQna(postSn);
-        return ResponseEntity.ok().build();
-    }
-
 }

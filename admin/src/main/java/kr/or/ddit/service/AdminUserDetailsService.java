@@ -30,7 +30,6 @@ public class AdminUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         MemberDto user = memberMapper.findByUserId(username)
                 .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
-        log.info("memRole: {}", user.getMemRoles());
         // String role = user.getUserRole();
         // if (role.contains("ROLE_")) {
         //     role = role.replace("ROLE_", ""); // "ROLE_" 접두사 제거
