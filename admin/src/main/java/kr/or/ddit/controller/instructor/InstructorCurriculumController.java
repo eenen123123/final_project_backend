@@ -36,8 +36,6 @@ public class InstructorCurriculumController {
 
         List<CurriculumMasterDto> masterList = curriculumService.retrieveMasterList(loginInstructorId);
         model.addAttribute("masterList", masterList);
-
-        model.addAttribute("contentPage", "instructor/curriculum_main");
         return "admin:/instructor/curriculum";
     }
 
