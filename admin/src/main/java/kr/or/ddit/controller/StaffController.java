@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
 import kr.or.ddit.finalProject.dto.employee.DepartmentDto;
+import kr.or.ddit.finalProject.dto.employee.EmployeeDetailDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto;
 import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
@@ -83,11 +84,20 @@ public class StaffController {
     public String getEmployees(Model model) {
         log.info("getEmployees()");
 
+        // 전체 직원 조회
+        List<EmployeeDetailDto> employeeList = staffService.retrieveEmployeeList();
+
+        // log.info("조회된 직원 수: {}", employeeList);
+
+        // 부서명 조회
         List<DepartmentDto> departmentlist = staffService.retrieveDepartmentList();
+
+        // 직급명 조회
         List<JobGradeDto> jobgradelist = staffService.retrieveJobGradeList();
 
         model.addAttribute("departmentlist", departmentlist);
         model.addAttribute("jobgradelist", jobgradelist);
+        model.addAttribute("employeeList", employeeList);
 
         return "admin:/staff/employees";
     }
@@ -126,6 +136,8 @@ public class StaffController {
         //     // 알림을 보여줄 직원 등록 화면(Form)의 Thymeleaf 뷰 경로를 문자열로 리턴한다.
         //     return "admin/employeeForm"; 
         // }
+
+        
 
 
         // ROLE 설정 (예: ROLE_ADMIN)

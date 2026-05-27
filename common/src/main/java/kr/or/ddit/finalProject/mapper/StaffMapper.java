@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import kr.or.ddit.finalProject.dto.employee.DepartmentDto;
+import kr.or.ddit.finalProject.dto.employee.EmployeeDetailDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto;
 import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
@@ -28,5 +29,5 @@ public interface StaffMapper {
     void insertEmployeeSalary(EmployeeSalaryDto employeeSalary);
 
     // 직원 리스트 조회
-    // List<Employee
+    List<EmployeeDetailDto> selectEmployeeList();
 }
