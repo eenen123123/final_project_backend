@@ -32,6 +32,8 @@ public class MemberDto implements Serializable {
     private LocalDateTime modDate; // 데이터 수정 시점
     private String enable;
 
-    private List<MemberRoleDto> memRoles; // 회원이 가진 권한 목록
+    private String userRole; // 사용자 권한 (예: ROLE_USER, ROLE_ADMIN 등)
+
+    private List<MemberRoleDto> memRoles; // 회원이 가진 권한 목록 
 
 }
