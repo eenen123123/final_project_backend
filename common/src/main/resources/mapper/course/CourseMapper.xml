@@ -25,6 +25,7 @@
     <result property="mdfcnDt" column="MDFCN_DT" />
     <result property="curriculumTitle" column="CURRICULUM_TITLE" />
     <result property="classCount" column="CLASS_COUNT" />
+    <result property="firstClassSn" column="FIRST_CLASS_SN" />
   </resultMap>
 
   <select id="selectCourseListByInstructor" resultMap="courseMap">
@@ -34,7 +35,8 @@
       C.TOT_LRN_TIME_CNT, C.OPNN_YN, C.ATCH_FILE_ID, C.PROD_MTHD_CD,
       C.COURSE_PRICE, C.RGTR_ID, C.LAST_MDFR_ID, C.REG_DT, C.MDFCN_DT,
       CM.TITLE AS CURRICULUM_TITLE,
-      (SELECT COUNT(*) FROM CLASSROOM CL WHERE CL.COURSE_SN = C.COURSE_SN) AS CLASS_COUNT
+      (SELECT COUNT(*) FROM CLASSROOM CL WHERE CL.COURSE_SN = C.COURSE_SN) AS CLASS_COUNT,
+      (SELECT MIN(CLASS_SN) FROM CLASSROOM CL WHERE CL.COURSE_SN = C.COURSE_SN) AS FIRST_CLASS_SN
     FROM COURSE C
     LEFT JOIN CURRICULUM_MASTER CM ON C.CURRICULUM_ID = CM.CURRICULUM_ID
     WHERE C.INSTR_USER_ID = #{instrUserId}

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.classroom.ClassroomMapper">
+
+  <resultMap id="classroomMap" type="kr.or.ddit.finalProject.dto.classroom.ClassroomDto">
+    <id property="classSn" column="CLASS_SN" />
+    <result property="opnrUserId" column="OPNR_USER_ID" />
+    <result property="courseSn" column="COURSE_SN" />
+    <result property="classNm" column="CLASS_NM" />
+    <result property="enrlStrtYmd" column="ENRL_STRT_YMD" />
+    <result property="enrlEndYmd" column="ENRL_END_YMD" />
+    <result property="useYn" column="USE_YN" />
+    <result property="regDt" column="REG_DT" />
+    <result property="mdfcnDt" column="MDFCN_DT" />
+    <result property="rgtrId" column="RGTR_ID" />
+    <result property="lastMdfrId" column="LAST_MDFR_ID" />
+    <result property="courseNm" column="COURSE_NM" />
+    <result property="instrNm" column="INSTR_NM" />
+    <result property="memberCount" column="MEMBER_COUNT" />
+  </resultMap>
+
+  <resultMap id="classroomMemberMap" type="kr.or.ddit.finalProject.dto.classroom.ClassroomMemberDto">
+    <id property="enrlSn" column="ENRL_SN" />
+    <result property="classSn" column="CLASS_SN" />
+    <result property="userId" column="USER_ID" />
+    <result property="enrlStatCd" column="ENRL_STAT_CD" />
+    <result property="rgtrId" column="RGTR_ID" />
+    <result property="regDt" column="REG_DT" />
+    <result property="lastMdfrId" column="LAST_MDFR_ID" />
+    <result property="mdfcnDt" column="MDFCN_DT" />
+    <result property="userName" column="USER_NAME" />
+    <result property="userEmailAddr" column="USER_EMAIL_ADDR" />
+    <result property="userProfile" column="USER_PROFILE" />
+  </resultMap>
+
+  <select id="selectClassroomById" resultMap="classroomMap">
+    SELECT
+      c.CLASS_SN, c.OPNR_USER_ID, c.COURSE_SN, c.CLASS_NM,
+      c.ENRL_STRT_YMD, c.ENRL_END_YMD, c.USE_YN,
+      c.REG_DT, c.MDFCN_DT, c.RGTR_ID, c.LAST_MDFR_ID,
+      co.COURSE_NM,
+      m.USER_NAME AS INSTR_NM,
+      (SELECT COUNT(*) FROM CLASSROOM_MEMBER cm
+       WHERE cm.CLASS_SN = c.CLASS_SN AND cm.ENRL_STAT_CD = '01') AS MEMBER_COUNT
+    FROM CLASSROOM c
+    LEFT JOIN COURSE co ON c.COURSE_SN = co.COURSE_SN
+    LEFT JOIN MEMBER m ON c.OPNR_USER_ID = m.USER_ID
+    WHERE c.CLASS_SN = #{classId}
+  </select>
+
+  <select id="selectMembersByClassId" resultMap="classroomMemberMap">
+    SELECT
+      cm.ENRL_SN, cm.CLASS_SN, cm.USER_ID, cm.ENRL_STAT_CD,
+      cm.RGTR_ID, cm.REG_DT, cm.LAST_MDFR_ID, cm.MDFCN_DT,
+      m.USER_NAME, m.USER_EMAIL_ADDR, m.USER_PROFILE
+    FROM CLASSROOM_MEMBER cm
+    LEFT JOIN MEMBER m ON cm.USER_ID = m.USER_ID
+    WHERE cm.CLASS_SN = #{classId}
+    <if test="enrlStatCd != null">
+      AND cm.ENRL_STAT_CD = #{enrlStatCd}
+    </if>
+    ORDER BY cm.REG_DT ASC
+  </select>
+
+</mapper>

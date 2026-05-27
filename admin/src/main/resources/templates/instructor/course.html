@@ -79,15 +79,24 @@
                             <span th:text="${course.totLrnTimeCnt}">00:00:00</span>
                         </span>
                     </div>
-                    <!-- 클래스룸 입장 버튼 (추후 활성화) -->
+                    <!-- 클래스룸 없을 때: 비활성화 -->
                     <button
+                        th:if="${course.firstClassSn == null}"
                         type="button"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-500 text-white rounded-lg text-xs font-semibold hover:bg-sky-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-500 text-white rounded-lg text-xs font-semibold opacity-40 cursor-not-allowed"
                         disabled
-                        title="클래스룸 기능 준비 중"
                     >
                         <i class="fa-solid fa-arrow-right-to-bracket"></i> 클래스룸 입장
                     </button>
+                    <!-- 클래스룸 있을 때: React 프론트로 이동 -->
+                    <a
+                        th:if="${course.firstClassSn != null}"
+                        th:href="'http://localhost:9001/classroom/' + ${course.firstClassSn}"
+                        target="_blank"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-500 text-white rounded-lg text-xs font-semibold hover:bg-sky-600 transition-colors"
+                    >
+                        <i class="fa-solid fa-arrow-right-to-bracket"></i> 클래스룸 입장
+                    </a>
                 </div>
             </div>
         </div>

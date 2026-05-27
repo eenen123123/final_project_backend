@@ -37,4 +37,5 @@ public class CourseDto implements Serializable {
     private String subjNm;
     private String subjClNm;
     private int classCount;
+    private Long firstClassSn; // 첫 번째 클래스룸 CLASS_SN (클래스룸 입장 버튼용)
 }
