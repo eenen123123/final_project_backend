@@ -7,7 +7,6 @@ import org.apache.ibatis.annotations.Param;
 
 
 import kr.or.ddit.finalProject.dto.member.MemberDto;
-import kr.or.ddit.finalProject.dto.user.AdminUserDto;
 
 @Mapper
 public interface MemberMapper {

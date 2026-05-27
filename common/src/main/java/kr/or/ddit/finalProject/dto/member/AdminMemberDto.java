@@ -1,9 +1,7 @@
 package kr.or.ddit.finalProject.dto.member;
 
-import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,8 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MemberDto implements Serializable {
-
+public class AdminMemberDto {
     private String userId; // 기본키 (PK)
     private String userEnpswd; // 암호화된 비번
     private String userName; // 사용자명
@@ -35,4 +32,5 @@ public class MemberDto implements Serializable {
 
     private String userRole; // 사용자 권한 (예: ROLE_USER, ROLE_ADMIN 등)
 
+    private EmployeeInfoDto employeeInfo; // 직원 정보 (EmployeeInfoDto)
 }

@@ -14,4 +14,10 @@
         insert into EMPLOYEE_INFO (USER_ID, DEPT_CD, JBGR_CD, EMPL_STAT_CD)
         values (#{userId}, #{deptCd}, #{jbgrCd}, #{emplStatCd})
     </insert>
+
+    <!-- selectEmployeeInfoByUserId -->
+
+    <select id="selectEmployeeInfoByUserId" parameterType="string" resultType="kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto">
+        select * from EMPLOYEE_INFO where USER_ID = #{userId}
+    </select>
 </mapper>
