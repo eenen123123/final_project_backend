@@ -1,115 +1,160 @@
 <title th:fragment="pageTitle">채팅방 생성 | HERMES</title>
 
 <div class="space-y-6">
-    <!-- 페이지 헤더 -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-            <h1 class="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                <i class="fa-solid fa-comments text-violet-500"></i>
-                <span>채팅방 생성</span>
-            </h1>
-            <p class="text-sm text-slate-500 mt-1">새로운 그룹 채팅방을 만들고 참여자를 초대합니다.</p>
-        </div>
-        <a
-            href="/admin/chat/room/list"
-            class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg transition-colors"
-        >
-            <i class="fa-solid fa-arrow-left text-xs"></i>
-            <span>목록으로</span>
-        </a>
+  <!-- 페이지 헤더 -->
+  <div
+    class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+  >
+    <div>
+      <h1
+        class="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2"
+      >
+        <i class="fa-solid fa-comments text-violet-500"></i>
+        <span>채팅방 생성</span>
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">
+        새로운 그룹 채팅방을 만들고 참여자를 초대합니다.
+      </p>
+    </div>
+    <a
+      href="/admin/chat/room/list"
+      class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg transition-colors"
+    >
+      <i class="fa-solid fa-arrow-left text-xs"></i>
+      <span>목록으로</span>
+    </a>
+  </div>
+
+  <form
+    action=""
+    method="post"
+    class="space-y-5"
+    enctype="application/x-www-form-urlencoded"
+  >
+    <!-- 채팅방 이름 입력 -->
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+      <h2 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-pen text-violet-400 text-xs"></i>
+        채팅방 이름
+      </h2>
+      <input
+        type="text"
+        name="roomName"
+        id="roomName"
+        placeholder="채팅방 이름을 입력하세요"
+        class="w-full px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 border border-slate-200 rounded-xl focus:outline-none focus:border-violet-400 transition-colors"
+      />
     </div>
 
-    <form action="" method="post" class="space-y-5" enctype="application/x-www-form-urlencoded">
+    <!-- 참여자 선택 -->
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+      <h2 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-users text-violet-400 text-xs"></i>
+        참여자 선택
+      </h2>
 
-        <!-- 채팅방 이름 입력 -->
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-            <h2 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-pen text-violet-400 text-xs"></i>
-                채팅방 이름
-            </h2>
-            <input
-                type="text"
-                name="roomName"
-                id="roomName"
-                placeholder="채팅방 이름을 입력하세요"
-                class="w-full px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 border border-slate-200 rounded-xl focus:outline-none focus:border-violet-400 transition-colors"
-            />
-        </div>
+      <!-- 역할별 그룹 목록 (스크롤 영역) -->
+      <div
+        class="max-h-[28rem] overflow-y-auto space-y-4 pr-1"
+        th:unless="${#maps.isEmpty(groupedAdminUsers)}"
+      >
+        <div th:each="entry : ${groupedAdminUsers}">
+          <!-- 역할 구분선 헤더 -->
+          <div
+            class="flex items-center gap-2 px-1 py-1 sticky top-0 bg-white z-10"
+          >
+            <span
+              class="text-[11px] font-bold text-violet-600 uppercase tracking-wider"
+              th:text="${entry.key}"
+              >역할</span
+            >
+            <span
+              class="text-[10px] text-slate-400 font-medium"
+              th:text="${entry.value.size()} + '명'"
+              >0명</span
+            >
+            <div class="flex-1 h-px bg-slate-100"></div>
+          </div>
 
-        <!-- 참여자 선택 -->
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-            <h2 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-users text-violet-400 text-xs"></i>
-                참여자 선택
-            </h2>
-
-            <!-- 역할별 그룹 목록 (스크롤 영역) -->
-            <div class="max-h-[28rem] overflow-y-auto space-y-4 pr-1" th:unless="${#maps.isEmpty(groupedAdminUsers)}">
-                <div th:each="entry : ${groupedAdminUsers}">
-                    <!-- 역할 구분선 헤더 -->
-                    <div class="flex items-center gap-2 px-1 py-1 sticky top-0 bg-white z-10">
-                        <span class="text-[11px] font-bold text-violet-600 uppercase tracking-wider" th:text="${entry.key}">역할</span>
-                        <span class="text-[10px] text-slate-400 font-medium"
-                              th:text="${entry.value.size()} + '명'">0명</span>
-                        <div class="flex-1 h-px bg-slate-100"></div>
-                    </div>
-
-                    <!-- 해당 역할의 유저 목록 -->
-                    <ul class="space-y-0.5">
-                        <li
-                            th:each="user : ${entry.value}"
-                            class="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-slate-50 transition-colors"
-                        >
-                            <input
-                                type="checkbox"
-                                name="participantIds"
-                                th:value="${user.userId}"
-                                th:id="'user-' + ${user.userId}"
-                                class="w-4 h-4 accent-violet-600 cursor-pointer shrink-0"
-                            />
-                            <label th:for="'user-' + ${user.userId}" class="flex items-center gap-2.5 flex-1 cursor-pointer min-w-0">
-                                <div
-                                    class="w-8 h-8 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center text-xs font-bold shrink-0"
-                                    th:text="${#strings.substring(user.userId, 0, 1).toUpperCase()}"
-                                >U</div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-semibold text-slate-800 truncate" th:text="${user.userName}">이름</p>
-                                    <p class="text-xs text-slate-400 truncate" th:text="${user.userId}">아이디</p>
-                                </div>
-                            </label>
-                        </li>
-                    </ul>
+          <!-- 해당 역할의 유저 목록 -->
+          <ul class="space-y-0.5">
+            <li
+              th:each="user : ${entry.value}"
+              class="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-slate-50 transition-colors"
+            >
+              <input
+                type="checkbox"
+                name="participantIds"
+                th:value="${user.userId}"
+                th:id="'user-' + ${user.userId}"
+                class="w-4 h-4 accent-violet-600 cursor-pointer shrink-0"
+              />
+              <label
+                th:for="'user-' + ${user.userId}"
+                class="flex items-center gap-2.5 flex-1 cursor-pointer min-w-0"
+              >
+                <div
+                  class="w-8 h-8 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center text-xs font-bold shrink-0"
+                  th:text="${#strings.substring(user.userId, 0, 1).toUpperCase()}"
+                >
+                  U
                 </div>
-            </div>
-
-            <!-- 참여자 없을 때 -->
-            <div
-                th:if="${#maps.isEmpty(groupedAdminUsers)}"
-                class="py-10 flex flex-col items-center justify-center gap-2 text-center"
-            >
-                <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xl">
-                    <i class="fa-solid fa-user-slash"></i>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-1 mb-0.5">
+                    <span
+                      class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 truncate"
+                      th:text="${user.employeeInfo.jbgrNm}"
+                      >직급명</span
+                    >
+                  </div>
+                  <p
+                    class="text-sm font-semibold text-slate-800 truncate"
+                    th:text="${user.userName}"
+                  >
+                    이름
+                  </p>
+                  <p
+                    class="text-xs text-slate-400 truncate"
+                    th:text="${user.userId}"
+                  >
+                    아이디
+                  </p>
                 </div>
-                <p class="text-sm text-slate-400">초대 가능한 사용자가 없습니다.</p>
-            </div>
+              </label>
+            </li>
+          </ul>
         </div>
+      </div>
 
-        <!-- 하단 버튼 -->
-        <div class="flex items-center justify-end gap-3">
-            <a
-                href="/admin/chat/room/list"
-                class="px-5 py-2.5 text-sm font-semibold text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition-colors"
-            >
-                취소
-            </a>
-            <button
-                type="submit"
-                class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 active:bg-violet-800 rounded-xl transition-colors"
-            >
-                <i class="fa-solid fa-comments text-xs"></i>
-                채팅방 생성
-            </button>
+      <!-- 참여자 없을 때 -->
+      <div
+        th:if="${#maps.isEmpty(groupedAdminUsers)}"
+        class="py-10 flex flex-col items-center justify-center gap-2 text-center"
+      >
+        <div
+          class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xl"
+        >
+          <i class="fa-solid fa-user-slash"></i>
         </div>
+        <p class="text-sm text-slate-400">초대 가능한 사용자가 없습니다.</p>
+      </div>
+    </div>
 
-    </form>
+    <!-- 하단 버튼 -->
+    <div class="flex items-center justify-end gap-3">
+      <a
+        href="/admin/chat/room/list"
+        class="px-5 py-2.5 text-sm font-semibold text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition-colors"
+      >
+        취소
+      </a>
+      <button
+        type="submit"
+        class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 active:bg-violet-800 rounded-xl transition-colors"
+      >
+        <i class="fa-solid fa-comments text-xs"></i>
+        채팅방 생성
+      </button>
+    </div>
+  </form>
 </div>

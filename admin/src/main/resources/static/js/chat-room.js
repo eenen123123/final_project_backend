@@ -102,14 +102,19 @@ function buildMessageElement(message) {
     const senderInfo = document.createElement("div");
     senderInfo.className = "flex items-center gap-1.5 pl-1";
 
-    if (message.senderRoleName) {
-      const isAdmin = message.senderRoleName === "ROLE_ADMIN";
-      const roleBadge = document.createElement("span");
-      roleBadge.className = isAdmin
-        ? "text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-500"
-        : "text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500";
-      roleBadge.textContent = isAdmin ? "관리자" : message.senderRoleName;
-      senderInfo.appendChild(roleBadge);
+    if (message.partDeptNm) {
+      const deptBadge = document.createElement("span");
+      deptBadge.className =
+        "text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-violet-50 text-violet-500";
+      deptBadge.textContent = message.partDeptNm;
+      senderInfo.appendChild(deptBadge);
+    }
+    if (message.partJbgrNm) {
+      const jbgrBadge = document.createElement("span");
+      jbgrBadge.className =
+        "text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500";
+      jbgrBadge.textContent = message.partJbgrNm;
+      senderInfo.appendChild(jbgrBadge);
     }
 
     const nameSpan = document.createElement("span");
