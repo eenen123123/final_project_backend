@@ -50,7 +50,7 @@ public class AdminUserDetailsService implements UserDetailsService {
         //                 .build();
         UserDetails userDetails = User.builder().username(user.getUserId())
                 .password(user.getUserEnpswd()).authorities(roles.stream().map(SimpleGrantedAuthority::new).toList()).build();
-        userDetails.getAuthorities().forEach(auth -> log.info("Granted Authority: {}", auth.getAuthority()));
+        // userDetails.getAuthorities().forEach(auth -> log.info("Granted Authority: {}", auth.getAuthority()));
         return userDetails;
     }
 

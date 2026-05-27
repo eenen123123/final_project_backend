@@ -8,27 +8,27 @@
     <div th:replace="~{fragments/sidebars/menus/menu_common}"></div>
 
     <div
-      sec:authorize="hasAuthority('D100')"
+      sec:authorize="hasAuthority('D400')"
       th:replace="~{fragments/sidebars/menus/menu_principal}"
     ></div>
 
     <div
-      sec:authorize="hasAuthority('ROLE_MANAGER')"
+      sec:authorize="hasAuthority('D100') and hasAuthority('A001')"
       th:replace="~{fragments/sidebars/menus/menu_manager}"
     ></div>
 
     <div
-      sec:authorize="hasAuthority('ROLE_STAFF')"
+      sec:authorize="hasAuthority('D100')"
       th:replace="~{fragments/sidebars/menus/menu_staff}"
     ></div>
 
     <div
-      sec:authorize="hasAuthority('ROLE_PD')"
+      sec:authorize="hasAuthority('D200')"
       th:replace="~{fragments/sidebars/menus/menu_pd}"
     ></div>
 
     <div
-      sec:authorize="hasAuthority('ROLE_INSTRUCTOR')"
+      sec:authorize="hasAuthority('D300')"
       th:replace="~{fragments/sidebars/menus/menu_instructor}"
     ></div>
   </nav>
