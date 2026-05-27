@@ -3,12 +3,8 @@ package kr.or.ddit.controller.board.notice;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,31 +36,4 @@ public class NoticeController {
     public ResponseEntity<NoticeDto> getNoticeById(@PathVariable Long postSn) {
         return ResponseEntity.ok(noticeService.getNoticeById(postSn));
     }
-
-    // 공지사항 등록
-    // POST /api/notice
-    @PostMapping
-    public ResponseEntity<Void> createNotice(@RequestBody NoticeDto noticeDto) {
-        noticeService.createNotice(noticeDto);
-        return ResponseEntity.ok().build();
-    }
-
-    // 공지사항 수정
-    // PUT /api/notice/{postSn}
-    @PutMapping("/{postSn}")
-    public ResponseEntity<Void> updateNotice(@PathVariable Long postSn,
-            @RequestBody NoticeDto noticeDto) {
-        noticeDto.setPostSn(postSn);
-        noticeService.updateNotice(noticeDto);
-        return ResponseEntity.ok().build();
-    }
-
-    // 공지사항 삭제
-    // DELETE /api/notice/{postSn}
-    @DeleteMapping("/{postSn}")
-    public ResponseEntity<Void> deleteNotice(@PathVariable Long postSn) {
-        noticeService.deleteNotice(postSn);
-        return ResponseEntity.ok().build();
-    }
-
 }
