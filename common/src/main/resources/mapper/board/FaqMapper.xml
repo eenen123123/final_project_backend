@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.board.FaqMapper">
+
+    <resultMap id="faqResultMap" type="FaqDto">
+        <id property="postSn" column="POST_SN"/>
+        <result property="faqCtgCd" column="FAQ_CTG_CD"/>
+        <result property="faqSubCtgCd" column="FAQ_SUB_CTG_CD"/>
+        <result property="expsOrd" column="EXPS_ORD"/>
+        <result property="topFixYn" column="TOP_FIX_YN"/>
+        <!-- BOARD 조인 -->
+        <result property="postSj" column="POST_SJ"/>
+        <result property="postCn" column="POST_CN"/>
+        <result property="wrtrUserId" column="WRTR_USER_ID"/>
+        <result property="regDt" column="REG_DT"/>
+        <!-- 공통코드 조인 -->
+        <result property="faqCtgNm" column="FAQ_CTG_NM"/>
+        <result property="faqSubCtgNm" column="FAQ_SUB_CTG_NM"/>
+    </resultMap>
+
+    <!-- FAQ 목록 조회 -->
+    <select id="findFaqList" resultMap="faqResultMap">
+        SELECT
+            f.POST_SN
+            , f.FAQ_CTG_CD
+            , f.FAQ_SUB_CTG_CD
+            , f.EXPS_ORD
+            , f.TOP_FIX_YN
+            , b.POST_SJ
+            , b.POST_CN
+            , b.WRTR_USER_ID
+            , b.REG_DT
+            , c1.COM_CD_NM AS FAQ_CTG_NM
+            , c2.COM_CD_NM AS FAQ_SUB_CTG_NM
+        FROM FAQ f
+        JOIN BOARD b ON b.POST_SN = f.POST_SN
+        LEFT JOIN COM_CD c1 ON c1.CL_CODE = '101' AND c1.COM_CD = f.FAQ_CTG_CD
+        LEFT JOIN COM_CD c2 ON c2.CL_CODE = '102' AND c2.COM_CD = f.FAQ_SUB_CTG_CD
+        <where>
+            <if test="faqCtgCd != null and faqCtgCd != ''">
+                AND f.FAQ_CTG_CD = #{faqCtgCd}
+            </if>
+            <if test="faqSubCtgCd != null and faqSubCtgCd != ''">
+                AND f.FAQ_SUB_CTG_CD = #{faqSubCtgCd}
+            </if>
+        </where>
+        ORDER BY f.TOP_FIX_YN DESC, f.EXPS_ORD ASC
+    </select>
+
+    <!-- FAQ 단건 조회 -->
+    <select id="findFaqById" resultMap="faqResultMap">
+        SELECT
+            f.POST_SN
+            , f.FAQ_CTG_CD
+            , f.FAQ_SUB_CTG_CD
+            , f.EXPS_ORD
+            , f.TOP_FIX_YN
+            , b.POST_SJ
+            , b.POST_CN
+            , b.WRTR_USER_ID
+            , b.REG_DT
+            , c1.COM_CD_NM AS FAQ_CTG_NM
+            , c2.COM_CD_NM AS FAQ_SUB_CTG_NM
+        FROM FAQ f
+        JOIN BOARD b ON b.POST_SN = f.POST_SN
+        LEFT JOIN COM_CD c1 ON c1.CL_CODE = '101' AND c1.COM_CD = f.FAQ_CTG_CD
+        LEFT JOIN COM_CD c2 ON c2.CL_CODE = '102' AND c2.COM_CD = f.FAQ_SUB_CTG_CD
+        WHERE f.POST_SN = #{postSn}
+    </select>
+
+    <!-- FAQ 등록 (BOARD 먼저 INSERT 후 FAQ INSERT) -->
+    <insert id="insertFaq" parameterType="FaqDto">
+        INSERT INTO FAQ (
+            POST_SN
+            , FAQ_CTG_CD
+            , FAQ_SUB_CTG_CD
+            , EXPS_ORD
+            , TOP_FIX_YN
+        ) VALUES (
+            #{postSn}
+            , #{faqCtgCd}
+            , #{faqSubCtgCd}
+            , #{expsOrd}
+            , #{topFixYn}
+        )
+    </insert>
+
+    <!-- FAQ 수정 -->
+    <update id="updateFaq" parameterType="FaqDto">
+        UPDATE FAQ
+        SET
+            FAQ_CTG_CD = #{faqCtgCd}
+            , FAQ_SUB_CTG_CD = #{faqSubCtgCd}
+            , EXPS_ORD = #{expsOrd}
+            , TOP_FIX_YN = #{topFixYn}
+        WHERE POST_SN = #{postSn}
+    </update>
+
+    <!-- FAQ 삭제 -->
+    <delete id="deleteFaq">
+        DELETE FROM FAQ
+        WHERE POST_SN = #{postSn}
+    </delete>
+
+</mapper>

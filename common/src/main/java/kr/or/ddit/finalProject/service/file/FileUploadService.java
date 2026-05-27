@@ -4,6 +4,7 @@ import java.io.IOException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -14,20 +15,25 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import jakarta.servlet.http.HttpServletRequest;
+import kr.or.ddit.finalProject.dto.file.FileDto;
 import kr.or.ddit.finalProject.dto.file.StoredFileResponse;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
+import kr.or.ddit.finalProject.mapper.FileUploadMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 // 파일 업로드 서비스 클래스
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class FileUploadService {
     @Value("${file.server.upload-url:https://paste.maerchen.dev/api/storage/files}")
     private String fileServerPath;
 
     private final RestClient restClient = RestClient.create();
+    private final FileUploadMapper fileUploadMapper;
 
     /*  
         파일 서버에서 처리하는 컨트롤러는 아래와 같다
@@ -110,7 +116,7 @@ public class FileUploadService {
      *     UploadedAt: "2026-05-18T14:32:53.214345536"
      * </pre>
      */
-    public StoredFileResponse uploadFile(MultipartFile file) {
+    public FileDto uploadFile(MultipartFile file, String userId) {
         if (file.isEmpty()) {
             throw new FinalProjectException(ErrorCode.FILE_EMPTY);
         }
@@ -119,16 +125,23 @@ public class FileUploadService {
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
             body.add("file", multipartResource(file));
 
-            return restClient.post().uri(fileServerPath).contentType(MediaType.MULTIPART_FORM_DATA)
-                    .headers(this::relayAuthorizationHeader).body(body).retrieve()
-                    .body(StoredFileResponse.class);
+
+            StoredFileResponse fileResponse =
+                    restClient.post().uri(fileServerPath).contentType(MediaType.MULTIPART_FORM_DATA)
+                            .headers(this::relayAuthorizationHeader).body(body).retrieve()
+                            .body(StoredFileResponse.class);
+            return insertFileInfoToDatabase(fileResponse, userId);
         } catch (RestClientResponseException e) {
             log.error("파일 서버 업로드 실패. status={}, body={}", e.getStatusCode(),
                     e.getResponseBodyAsString(), e);
-            throw new FinalProjectException(ErrorCode.FILE_UPLOAD_FAILED);
+            if (e.getStatusCode() == HttpStatus.BAD_REQUEST) {
+                throw new FinalProjectException(ErrorCode.FILE_TYPE_NOT_SUPPORTED, e);
+            } else {
+                throw new FinalProjectException(ErrorCode.FILE_UPLOAD_FAILED, e);
+            }
         } catch (IOException e) {
             log.error("파일 처리 중 오류 발생", e);
-            throw new FinalProjectException(ErrorCode.FILE_UPLOAD_FAILED);
+            throw new FinalProjectException(ErrorCode.FILE_UPLOAD_FAILED, e);
         }
     }
 
@@ -162,4 +175,19 @@ public class FileUploadService {
         }
     }
 
+    // 파일 업로드 후 반환되는 객체를 DB에 저장하는 메서드
+    private FileDto insertFileInfoToDatabase(StoredFileResponse fileResponse, String userId) {
+
+        FileDto fileDto = FileDto.builder().atchFileId(001) // 임시값
+                .orgnFileNm(fileResponse.originalFilename()).savePathNm(fileResponse.url())
+                .saveFileNm(fileResponse.url()).fileExtNm(fileResponse.contentType())
+                .fileSizeCnt(fileResponse.fileSize()).rgtrId(userId).delYn("N").dwnldCnt(0).build();
+
+        int result = fileUploadMapper.insertFileInfo(fileDto);
+        if (result <= 0) {
+            log.error("파일 정보 DB 저장 실패: {}", fileDto);
+            throw new FinalProjectException(ErrorCode.FILE_INFO_SAVE_FAILED);
+        }
+        return fileDto;
+    }
 }

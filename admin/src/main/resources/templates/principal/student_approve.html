@@ -1,0 +1,540 @@
+<title th:fragment="pageTitle">학생 관리 최종 승인 | HERMES</title>
+
+<div class="space-y-6">
+
+  <!-- ① 페이지 헤더 -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">학생 관리 최종 승인</h1>
+      <p class="text-sm text-slate-500 mt-1">재학생 현황 및 반별 인원을 확인하고 신규 입원·퇴원 요청을 최종 승인합니다.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <button class="hm-btn-primary" onclick="showHermesToast('전체 승인 처리를 시작합니다.', 'success')">
+        <i class="fa-solid fa-check-double"></i>
+        <span>대기 전체 승인</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ② 요약 통계 카드 -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-user-graduate"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">전체 재학생</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">324명</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-user-plus"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">입원 승인 대기</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">7명</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-user-minus"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">퇴원 승인 대기</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">3명</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">이번 달 승인</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">21건</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 반별 인원 현황 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+    <h2 class="text-sm font-bold text-slate-700 mb-4">반별 인원 현황</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+
+      <div class="rounded-xl border border-slate-100 bg-slate-50 p-4 text-center">
+        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">중등 수학 A</p>
+        <p class="text-2xl font-bold text-violet-600">28</p>
+        <div class="mt-2 h-1.5 rounded-full bg-slate-200 overflow-hidden">
+          <div class="h-full bg-violet-500 rounded-full" style="width: 93%"></div>
+        </div>
+        <p class="text-[10px] text-slate-400 mt-1">정원 30명</p>
+      </div>
+
+      <div class="rounded-xl border border-slate-100 bg-slate-50 p-4 text-center">
+        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">중등 수학 B</p>
+        <p class="text-2xl font-bold text-violet-600">24</p>
+        <div class="mt-2 h-1.5 rounded-full bg-slate-200 overflow-hidden">
+          <div class="h-full bg-violet-500 rounded-full" style="width: 80%"></div>
+        </div>
+        <p class="text-[10px] text-slate-400 mt-1">정원 30명</p>
+      </div>
+
+      <div class="rounded-xl border border-slate-100 bg-slate-50 p-4 text-center">
+        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">고등 수학 A</p>
+        <p class="text-2xl font-bold text-violet-600">30</p>
+        <div class="mt-2 h-1.5 rounded-full bg-slate-200 overflow-hidden">
+          <div class="h-full bg-emerald-500 rounded-full" style="width: 100%"></div>
+        </div>
+        <p class="text-[10px] text-emerald-500 mt-1 font-semibold">정원 마감</p>
+      </div>
+
+      <div class="rounded-xl border border-slate-100 bg-slate-50 p-4 text-center">
+        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">고등 수학 B</p>
+        <p class="text-2xl font-bold text-violet-600">22</p>
+        <div class="mt-2 h-1.5 rounded-full bg-slate-200 overflow-hidden">
+          <div class="h-full bg-violet-500 rounded-full" style="width: 73%"></div>
+        </div>
+        <p class="text-[10px] text-slate-400 mt-1">정원 30명</p>
+      </div>
+
+      <div class="rounded-xl border border-slate-100 bg-slate-50 p-4 text-center">
+        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">중등 영어</p>
+        <p class="text-2xl font-bold text-violet-600">18</p>
+        <div class="mt-2 h-1.5 rounded-full bg-slate-200 overflow-hidden">
+          <div class="h-full bg-violet-500 rounded-full" style="width: 60%"></div>
+        </div>
+        <p class="text-[10px] text-slate-400 mt-1">정원 30명</p>
+      </div>
+
+      <div class="rounded-xl border border-slate-100 bg-slate-50 p-4 text-center">
+        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">고등 영어</p>
+        <p class="text-2xl font-bold text-violet-600">29</p>
+        <div class="mt-2 h-1.5 rounded-full bg-slate-200 overflow-hidden">
+          <div class="h-full bg-amber-500 rounded-full" style="width: 97%"></div>
+        </div>
+        <p class="text-[10px] text-amber-500 mt-1 font-semibold">마감 임박</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ④ 탭 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="flex border-b border-slate-100 px-6 pt-4 gap-1">
+      <button data-tab="tab-all"
+        class="sa-tab-btn px-5 py-2.5 text-sm font-semibold rounded-t-xl transition-all text-slate-500 hover:text-violet-600 border-b-2 border-transparent"
+        onclick="switchSaTab('tab-all', this)">
+        <i class="fa-solid fa-list-ul mr-2"></i>전체 재학생
+      </button>
+      <button data-tab="tab-enroll"
+        class="sa-tab-btn px-5 py-2.5 text-sm font-semibold rounded-t-xl transition-all text-slate-500 hover:text-violet-600 border-b-2 border-transparent"
+        onclick="switchSaTab('tab-enroll', this)">
+        <i class="fa-solid fa-user-plus mr-2"></i>입원 승인 대기
+        <span class="ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">7</span>
+      </button>
+      <button data-tab="tab-withdraw"
+        class="sa-tab-btn px-5 py-2.5 text-sm font-semibold rounded-t-xl transition-all text-slate-500 hover:text-violet-600 border-b-2 border-transparent"
+        onclick="switchSaTab('tab-withdraw', this)">
+        <i class="fa-solid fa-user-minus mr-2"></i>퇴원 승인 대기
+        <span class="ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-bold">3</span>
+      </button>
+    </div>
+
+    <!-- ===== TAB 1: 전체 재학생 ===== -->
+    <div id="tab-all" class="sa-tab-panel p-6 space-y-5">
+      <!-- 검색/필터 -->
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="w-full sm:w-72 relative">
+          <input type="text" class="hm-input pl-10" placeholder="학생명 또는 학번 검색..." />
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+        </div>
+        <div class="w-full sm:w-40">
+          <select class="hm-input">
+            <option value="">반 전체</option>
+            <option>중등 수학 A</option>
+            <option>중등 수학 B</option>
+            <option>고등 수학 A</option>
+            <option>고등 수학 B</option>
+            <option>중등 영어</option>
+            <option>고등 영어</option>
+          </select>
+        </div>
+        <div class="w-full sm:w-40">
+          <select class="hm-input">
+            <option value="">학년 전체</option>
+            <option>중학교 1학년</option>
+            <option>중학교 2학년</option>
+            <option>중학교 3학년</option>
+            <option>고등학교 1학년</option>
+            <option>고등학교 2학년</option>
+            <option>고등학교 3학년</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 전체 재학생 테이블 -->
+      <div class="rounded-xl border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+                <th class="py-4 px-6">학생 정보</th>
+                <th class="py-4 px-6">학년</th>
+                <th class="py-4 px-6">수강 반</th>
+                <th class="py-4 px-6">입원일</th>
+                <th class="py-4 px-6 text-center">재원 상태</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center font-bold text-sm shrink-0">김</div>
+                    <div>
+                      <p class="font-bold text-slate-800">김지훈</p>
+                      <p class="text-xs text-slate-400">STU-2024-001</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-6 text-sm text-slate-600">고등학교 2학년</td>
+                <td class="py-4 px-6">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-violet-50 text-violet-700">고등 수학 B</span>
+                </td>
+                <td class="py-4 px-6 text-xs text-slate-500 font-mono">2024-03-02</td>
+                <td class="py-4 px-6 text-center">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 재원 중
+                  </span>
+                </td>
+              </tr>
+
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-sm shrink-0">이</div>
+                    <div>
+                      <p class="font-bold text-slate-800">이하은</p>
+                      <p class="text-xs text-slate-400">STU-2024-002</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-6 text-sm text-slate-600">중학교 3학년</td>
+                <td class="py-4 px-6">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-violet-50 text-violet-700">중등 수학 A</span>
+                </td>
+                <td class="py-4 px-6 text-xs text-slate-500 font-mono">2024-03-02</td>
+                <td class="py-4 px-6 text-center">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 재원 중
+                  </span>
+                </td>
+              </tr>
+
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-sm shrink-0">박</div>
+                    <div>
+                      <p class="font-bold text-slate-800">박서준</p>
+                      <p class="text-xs text-slate-400">STU-2024-003</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-6 text-sm text-slate-600">고등학교 1학년</td>
+                <td class="py-4 px-6">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-violet-50 text-violet-700">고등 영어</span>
+                </td>
+                <td class="py-4 px-6 text-xs text-slate-500 font-mono">2024-09-01</td>
+                <td class="py-4 px-6 text-center">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 재원 중
+                  </span>
+                </td>
+              </tr>
+
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-sm shrink-0">최</div>
+                    <div>
+                      <p class="font-bold text-slate-800">최수아</p>
+                      <p class="text-xs text-slate-400">STU-2025-011</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-6 text-sm text-slate-600">중학교 1학년</td>
+                <td class="py-4 px-6">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-violet-50 text-violet-700">중등 영어</span>
+                </td>
+                <td class="py-4 px-6 text-xs text-slate-500 font-mono">2025-03-03</td>
+                <td class="py-4 px-6 text-center">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 재원 중
+                  </span>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+        <!-- 페이지네이션 -->
+        <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+          <p class="text-xs text-slate-400">전체 324명 중 1 – 15 표시</p>
+          <div class="flex items-center gap-1">
+            <button class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 flex items-center justify-center text-xs">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button class="w-8 h-8 rounded-lg bg-violet-600 text-white text-xs font-bold flex items-center justify-center">1</button>
+            <button class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 text-xs flex items-center justify-center">2</button>
+            <button class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 text-xs flex items-center justify-center">3</button>
+            <span class="text-slate-300 text-xs px-1">···</span>
+            <button class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 text-xs flex items-center justify-center">22</button>
+            <button class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 flex items-center justify-center text-xs">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB 2: 입원 승인 대기 ===== -->
+    <div id="tab-enroll" class="sa-tab-panel p-6 space-y-4 hidden">
+      <div class="flex items-start gap-3 p-4 bg-emerald-50 border border-emerald-100 rounded-xl">
+        <i class="fa-solid fa-circle-info text-emerald-500 mt-0.5 shrink-0"></i>
+        <p class="text-xs text-emerald-700 leading-relaxed">
+          아래 신규 입원 신청 목록을 검토하고 <strong>승인</strong> 또는 <strong>반려</strong>를 처리하세요. 승인 시 학생 계정이 즉시 활성화됩니다.
+        </p>
+      </div>
+
+      <!-- 입원 신청 카드 -->
+      <div class="rounded-xl border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+                <th class="py-4 px-6">신청 학생</th>
+                <th class="py-4 px-6">학년 / 희망반</th>
+                <th class="py-4 px-6">보호자 연락처</th>
+                <th class="py-4 px-6">신청일</th>
+                <th class="py-4 px-6 text-center">처리</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm shrink-0">강</div>
+                    <div>
+                      <p class="font-bold text-slate-800">강민서</p>
+                      <p class="text-xs text-slate-400">신규 입원 신청</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-6">
+                  <p class="text-sm text-slate-700">중학교 2학년</p>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-violet-50 text-violet-700 mt-1">중등 수학 B</span>
+                </td>
+                <td class="py-4 px-6 text-sm text-slate-600 font-mono">010-1234-5678</td>
+                <td class="py-4 px-6 text-xs text-slate-500 font-mono">2026-05-24</td>
+                <td class="py-4 px-6">
+                  <div class="flex items-center justify-center gap-2">
+                    <button class="hm-btn-primary !bg-emerald-600 hover:!bg-emerald-700 !py-1.5 !px-3 !text-xs"
+                      onclick="showHermesToast('강민서 학생 입원을 승인했습니다.', 'success')">
+                      <i class="fa-solid fa-check"></i><span>승인</span>
+                    </button>
+                    <button class="hm-btn-primary !bg-rose-600 hover:!bg-rose-700 !py-1.5 !px-3 !text-xs"
+                      onclick="showHermesToast('강민서 학생 입원을 반려했습니다.', 'error')">
+                      <i class="fa-solid fa-xmark"></i><span>반려</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-sm shrink-0">윤</div>
+                    <div>
+                      <p class="font-bold text-slate-800">윤지우</p>
+                      <p class="text-xs text-slate-400">신규 입원 신청</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-6">
+                  <p class="text-sm text-slate-700">고등학교 1학년</p>
+                  <div class="flex items-center gap-1 mt-1">
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-violet-50 text-violet-700">고등 수학 A</span>
+                    <span class="text-[10px] text-amber-600 font-semibold bg-amber-50 px-1.5 py-0.5 rounded-full">정원 마감</span>
+                  </div>
+                </td>
+                <td class="py-4 px-6 text-sm text-slate-600 font-mono">010-9876-5432</td>
+                <td class="py-4 px-6 text-xs text-slate-500 font-mono">2026-05-25</td>
+                <td class="py-4 px-6">
+                  <div class="flex items-center justify-center gap-2">
+                    <button class="hm-btn-primary !bg-emerald-600 hover:!bg-emerald-700 !py-1.5 !px-3 !text-xs"
+                      onclick="showHermesToast('윤지우 학생 입원을 승인했습니다.', 'success')">
+                      <i class="fa-solid fa-check"></i><span>승인</span>
+                    </button>
+                    <button class="hm-btn-primary !bg-rose-600 hover:!bg-rose-700 !py-1.5 !px-3 !text-xs"
+                      onclick="showHermesToast('윤지우 학생 입원을 반려했습니다.', 'error')">
+                      <i class="fa-solid fa-xmark"></i><span>반려</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-sm shrink-0">장</div>
+                    <div>
+                      <p class="font-bold text-slate-800">장예린</p>
+                      <p class="text-xs text-slate-400">신규 입원 신청</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-6">
+                  <p class="text-sm text-slate-700">중학교 1학년</p>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-violet-50 text-violet-700 mt-1">중등 영어</span>
+                </td>
+                <td class="py-4 px-6 text-sm text-slate-600 font-mono">010-5555-1234</td>
+                <td class="py-4 px-6 text-xs text-slate-500 font-mono">2026-05-26</td>
+                <td class="py-4 px-6">
+                  <div class="flex items-center justify-center gap-2">
+                    <button class="hm-btn-primary !bg-emerald-600 hover:!bg-emerald-700 !py-1.5 !px-3 !text-xs"
+                      onclick="showHermesToast('장예린 학생 입원을 승인했습니다.', 'success')">
+                      <i class="fa-solid fa-check"></i><span>승인</span>
+                    </button>
+                    <button class="hm-btn-primary !bg-rose-600 hover:!bg-rose-700 !py-1.5 !px-3 !text-xs"
+                      onclick="showHermesToast('장예린 학생 입원을 반려했습니다.', 'error')">
+                      <i class="fa-solid fa-xmark"></i><span>반려</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB 3: 퇴원 승인 대기 ===== -->
+    <div id="tab-withdraw" class="sa-tab-panel p-6 space-y-4 hidden">
+      <div class="flex items-start gap-3 p-4 bg-rose-50 border border-rose-100 rounded-xl">
+        <i class="fa-solid fa-triangle-exclamation text-rose-500 mt-0.5 shrink-0"></i>
+        <p class="text-xs text-rose-700 leading-relaxed">
+          퇴원 승인 시 학생 계정이 <strong>즉시 비활성화</strong>되며 수강 이력은 보존됩니다. 신중히 검토 후 처리하세요.
+        </p>
+      </div>
+
+      <!-- 퇴원 신청 카드 -->
+      <div class="space-y-3">
+
+        <div class="rounded-xl border border-rose-100 bg-rose-50/40 p-5">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-base shrink-0">정</div>
+              <div>
+                <p class="text-sm font-bold text-slate-800">정도윤</p>
+                <p class="text-xs text-slate-500 mt-0.5">STU-2023-045 &nbsp;·&nbsp; 고등 수학 B &nbsp;·&nbsp; 고등학교 3학년</p>
+                <p class="text-xs text-slate-500 mt-0.5">퇴원 신청일: 2026-05-23 &nbsp;·&nbsp; 신청자: 보호자</p>
+                <p class="text-xs text-slate-600 mt-2 bg-white border border-slate-100 rounded-lg px-3 py-2 leading-relaxed max-w-sm">
+                  대학 입시 준비로 인해 학원 수강을 중단하고자 합니다.
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button class="hm-btn-primary !bg-emerald-600 hover:!bg-emerald-700 !py-2 !px-4"
+                onclick="showHermesToast('정도윤 학생 퇴원을 승인했습니다.', 'success')">
+                <i class="fa-solid fa-check"></i><span>승인</span>
+              </button>
+              <button class="hm-btn-primary !bg-slate-500 hover:!bg-slate-600 !py-2 !px-4"
+                onclick="showHermesToast('정도윤 학생 퇴원을 반려했습니다.', 'error')">
+                <i class="fa-solid fa-xmark"></i><span>반려</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-rose-100 bg-rose-50/40 p-5">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-base shrink-0">오</div>
+              <div>
+                <p class="text-sm font-bold text-slate-800">오세진</p>
+                <p class="text-xs text-slate-500 mt-0.5">STU-2024-088 &nbsp;·&nbsp; 중등 수학 A &nbsp;·&nbsp; 중학교 2학년</p>
+                <p class="text-xs text-slate-500 mt-0.5">퇴원 신청일: 2026-05-24 &nbsp;·&nbsp; 신청자: 보호자</p>
+                <p class="text-xs text-slate-600 mt-2 bg-white border border-slate-100 rounded-lg px-3 py-2 leading-relaxed max-w-sm">
+                  이사로 인한 통원 불가. 전학 예정.
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button class="hm-btn-primary !bg-emerald-600 hover:!bg-emerald-700 !py-2 !px-4"
+                onclick="showHermesToast('오세진 학생 퇴원을 승인했습니다.', 'success')">
+                <i class="fa-solid fa-check"></i><span>승인</span>
+              </button>
+              <button class="hm-btn-primary !bg-slate-500 hover:!bg-slate-600 !py-2 !px-4"
+                onclick="showHermesToast('오세진 학생 퇴원을 반려했습니다.', 'error')">
+                <i class="fa-solid fa-xmark"></i><span>반려</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-rose-100 bg-rose-50/40 p-5">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-base shrink-0">한</div>
+              <div>
+                <p class="text-sm font-bold text-slate-800">한소희</p>
+                <p class="text-xs text-slate-500 mt-0.5">STU-2025-012 &nbsp;·&nbsp; 고등 영어 &nbsp;·&nbsp; 고등학교 1학년</p>
+                <p class="text-xs text-slate-500 mt-0.5">퇴원 신청일: 2026-05-26 &nbsp;·&nbsp; 신청자: 담당 강사</p>
+                <p class="text-xs text-slate-600 mt-2 bg-white border border-slate-100 rounded-lg px-3 py-2 leading-relaxed max-w-sm">
+                  3개월 이상 수업 미참석 및 연락 두절. 자동 퇴원 처리 요청.
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button class="hm-btn-primary !bg-emerald-600 hover:!bg-emerald-700 !py-2 !px-4"
+                onclick="showHermesToast('한소희 학생 퇴원을 승인했습니다.', 'success')">
+                <i class="fa-solid fa-check"></i><span>승인</span>
+              </button>
+              <button class="hm-btn-primary !bg-slate-500 hover:!bg-slate-600 !py-2 !px-4"
+                onclick="showHermesToast('한소희 학생 퇴원을 반려했습니다.', 'error')">
+                <i class="fa-solid fa-xmark"></i><span>반려</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== 페이지 스크립트 ===== -->
+<script>
+  (function initTabs() {
+    const firstBtn = document.querySelector('.sa-tab-btn[data-tab="tab-all"]');
+    if (firstBtn) switchSaTab('tab-all', firstBtn);
+  })();
+
+  function switchSaTab(tabId, btn) {
+    document.querySelectorAll('.sa-tab-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.sa-tab-btn').forEach(b => {
+      b.classList.remove('text-violet-600', 'border-violet-500', 'bg-violet-50/60');
+      b.classList.add('text-slate-500', 'border-transparent');
+    });
+
+    const panel = document.getElementById(tabId);
+    if (panel) panel.classList.remove('hidden');
+
+    btn.classList.remove('text-slate-500', 'border-transparent');
+    btn.classList.add('text-violet-600', 'border-violet-500', 'bg-violet-50/60');
+  }
+</script>

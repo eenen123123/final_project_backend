@@ -6,6 +6,9 @@ import kr.or.ddit.finalProject.dto.user.SigninRequestRecord;
 import kr.or.ddit.finalProject.dto.user.SignupRequestRecord;
 import kr.or.ddit.finalProject.dto.user.UserDto;
 
+/**
+ * 이거 이제 사용 안합니다
+ */
 public interface UserService {
 
     /**

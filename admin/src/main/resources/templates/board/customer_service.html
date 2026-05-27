@@ -1,0 +1,292 @@
+<div>
+  <!-- 페이지 헤더 -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-xl font-bold text-slate-800">고객센터 관리</h1>
+      <p class="text-sm text-slate-500 mt-0.5">FAQ, 공지사항, QnA를 통합 관리합니다.</p>
+    </div>
+  </div>
+
+  <!-- 탭 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+    <div class="flex border-b border-slate-100 px-6">
+      <button class="cs-tab-btn active py-3.5 px-4 text-sm text-slate-500 -mb-px"
+              onclick="switchTab('tab-faq', this)">
+        <i class="fa-solid fa-circle-question mr-1.5"></i>FAQ
+      </button>
+      <button class="cs-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px"
+              onclick="switchTab('tab-notice', this)">
+        <i class="fa-solid fa-bullhorn mr-1.5"></i>공지사항
+      </button>
+      <button class="cs-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px"
+              onclick="switchTab('tab-qna', this)">
+        <i class="fa-solid fa-comments mr-1.5"></i>QnA
+      </button>
+    </div>
+
+    <!-- ══ FAQ 탭 ══ -->
+    <div id="tab-faq" class="cs-tab-panel active p-6">
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex gap-3">
+          <select id="faq-filter-ctg" onchange="filterFaq()" class="hm-input w-36">
+            <option value="">전체 대분류</option>
+            <option value="01">강의/교재</option>
+            <option value="02">결제</option>
+            <option value="03">학습기기</option>
+            <option value="04">동영상</option>
+            <option value="05">도서</option>
+          </select>
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input type="text" id="faq-search" placeholder="제목 검색..." class="hm-input pl-10 w-56" oninput="filterFaq()" />
+          </div>
+        </div>
+        <a href="/admin/board/faq/write" class="hm-btn-primary text-sm">
+          <i class="fa-solid fa-plus mr-1"></i>FAQ 등록
+        </a>
+      </div>
+
+      <div class="overflow-x-auto rounded-xl border border-slate-100">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-slate-50 text-slate-500 text-xs">
+              <th class="text-center py-3 px-4 font-semibold w-16">번호</th>
+              <th class="text-center py-3 px-4 font-semibold w-24">대분류</th>
+              <th class="text-center py-3 px-4 font-semibold w-28">중분류</th>
+              <th class="text-left py-3 px-4 font-semibold">제목</th>
+              <th class="text-center py-3 px-4 font-semibold w-16">BEST</th>
+              <th class="text-center py-3 px-4 font-semibold w-28">등록일</th>
+              <th class="text-center py-3 px-4 font-semibold w-24">관리</th>
+            </tr>
+          </thead>
+          <tbody id="faq-table-body" class="divide-y divide-slate-50">
+            <tr th:each="faq : ${faqList}"
+                th:attr="data-ctg=${faq.faqCtgCd}, data-title=${faq.postSj}">
+              <td class="py-3 px-4 text-center text-xs text-slate-400" th:text="${faq.postSn}"></td>
+              <td class="py-3 px-4 text-center">
+                <span class="text-xs bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded-full"
+                      th:text="${faq.faqCtgNm}"></span>
+              </td>
+              <td class="py-3 px-4 text-center text-xs text-slate-500" th:text="${faq.faqSubCtgNm}"></td>
+              <td class="py-3 px-4 text-slate-800 font-medium" th:text="${faq.postSj}"></td>
+              <td class="py-3 px-4 text-center">
+                <span th:if="${faq.topFixYn == 'Y'}"
+                      class="inline-block bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">BEST</span>
+                <span th:unless="${faq.topFixYn == 'Y'}" class="text-xs text-slate-300">-</span>
+              </td>
+              <td class="py-3 px-4 text-center text-xs text-slate-400"
+                  th:text="${#temporals.format(faq.regDt, 'yyyy-MM-dd')}"></td>
+              <td class="py-3 px-4 text-center">
+                <div class="flex items-center justify-center gap-2">
+                  <a th:href="@{/admin/board/faq/edit/{postSn}(postSn=${faq.postSn})}"
+                     class="text-xs text-violet-600 font-semibold hover:underline">수정</a>
+                  <form th:action="@{/admin/board/faq/delete/{postSn}(postSn=${faq.postSn})}" method="post"
+                        onsubmit="return confirm('삭제하시겠습니까?')">
+                    <button type="submit" class="text-xs text-red-500 font-semibold hover:underline">삭제</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(faqList)}">
+              <td colspan="7" class="py-10 text-center text-sm text-slate-400">등록된 FAQ가 없습니다.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ 공지사항 탭 ══ -->
+    <div id="tab-notice" class="cs-tab-panel p-6">
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex gap-3">
+          <select id="notice-filter-type" onchange="filterNotice()" class="hm-input w-36">
+            <option value="">전체 유형</option>
+            <option value="01">일반공지</option>
+            <option value="02">이벤트</option>
+            <option value="03">점검</option>
+          </select>
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input type="text" id="notice-search" placeholder="제목 검색..." class="hm-input pl-10 w-56" oninput="filterNotice()" />
+          </div>
+        </div>
+        <a href="/admin/board/notice/write" class="hm-btn-primary text-sm">
+          <i class="fa-solid fa-plus mr-1"></i>공지사항 등록
+        </a>
+      </div>
+
+      <div class="overflow-x-auto rounded-xl border border-slate-100">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-slate-50 text-slate-500 text-xs">
+              <th class="text-center py-3 px-4 font-semibold w-16">번호</th>
+              <th class="text-center py-3 px-4 font-semibold w-24">유형</th>
+              <th class="text-left py-3 px-4 font-semibold">제목</th>
+              <th class="text-center py-3 px-4 font-semibold w-16">팝업</th>
+              <th class="text-center py-3 px-4 font-semibold w-28">등록일</th>
+              <th class="text-center py-3 px-4 font-semibold w-24">관리</th>
+            </tr>
+          </thead>
+          <tbody id="notice-table-body" class="divide-y divide-slate-50">
+            <tr th:each="notice : ${noticeList}"
+                th:attr="data-type=${notice.noticeTypeCd}, data-title=${notice.postSj}">
+              <td class="py-3 px-4 text-center text-xs text-slate-400" th:text="${notice.postSn}"></td>
+              <td class="py-3 px-4 text-center">
+                <span th:switch="${notice.noticeTypeCd}">
+                  <span th:case="'01'" class="text-xs bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded-full">일반공지</span>
+                  <span th:case="'02'" class="text-xs bg-orange-50 text-orange-600 font-semibold px-2 py-0.5 rounded-full">이벤트</span>
+                  <span th:case="'03'" class="text-xs bg-red-50 text-red-600 font-semibold px-2 py-0.5 rounded-full">점검</span>
+                </span>
+              </td>
+              <td class="py-3 px-4 text-slate-800 font-medium" th:text="${notice.postSj}"></td>
+              <td class="py-3 px-4 text-center">
+                <span th:if="${notice.popupExpsYn == 'Y'}"
+                      class="text-xs bg-violet-50 text-violet-600 font-semibold px-2 py-0.5 rounded-full">Y</span>
+                <span th:unless="${notice.popupExpsYn == 'Y'}" class="text-xs text-slate-300">-</span>
+              </td>
+              <td class="py-3 px-4 text-center text-xs text-slate-400"
+                  th:text="${#temporals.format(notice.regDt, 'yyyy-MM-dd')}"></td>
+              <td class="py-3 px-4 text-center">
+                <div class="flex items-center justify-center gap-2">
+                  <a th:href="@{/admin/board/notice/edit/{postSn}(postSn=${notice.postSn})}"
+                     class="text-xs text-violet-600 font-semibold hover:underline">수정</a>
+                  <form th:action="@{/admin/board/notice/delete/{postSn}(postSn=${notice.postSn})}" method="post"
+                        onsubmit="return confirm('삭제하시겠습니까?')">
+                    <button type="submit" class="text-xs text-red-500 font-semibold hover:underline">삭제</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(noticeList)}">
+              <td colspan="6" class="py-10 text-center text-sm text-slate-400">등록된 공지사항이 없습니다.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ QnA 탭 ══ -->
+    <div id="tab-qna" class="cs-tab-panel p-6">
+      <div class="flex gap-3 mb-4">
+        <select id="qna-filter-stat" onchange="filterQna()" class="hm-input w-36">
+          <option value="">전체 상태</option>
+          <option value="01">답변대기</option>
+          <option value="02">답변완료</option>
+        </select>
+        <select id="qna-filter-ctg" onchange="filterQna()" class="hm-input w-36">
+          <option value="">전체 카테고리</option>
+          <option value="01">수강문의</option>
+          <option value="02">결제문의</option>
+          <option value="03">기타</option>
+        </select>
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+          <input type="text" id="qna-search" placeholder="제목 검색..." class="hm-input pl-10 w-56" oninput="filterQna()" />
+        </div>
+      </div>
+
+      <div class="overflow-x-auto rounded-xl border border-slate-100">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-slate-50 text-slate-500 text-xs">
+              <th class="text-center py-3 px-4 font-semibold w-16">번호</th>
+              <th class="text-center py-3 px-4 font-semibold w-24">카테고리</th>
+              <th class="text-left py-3 px-4 font-semibold">제목</th>
+              <th class="text-center py-3 px-4 font-semibold w-16">비공개</th>
+              <th class="text-center py-3 px-4 font-semibold w-24">답변상태</th>
+              <th class="text-center py-3 px-4 font-semibold w-28">등록일</th>
+              <th class="text-center py-3 px-4 font-semibold w-24">관리</th>
+            </tr>
+          </thead>
+          <tbody id="qna-table-body" class="divide-y divide-slate-50">
+            <tr th:each="qna : ${qnaList}"
+                th:attr="data-stat=${qna.answStatCd}, data-ctg=${qna.qnaCtgCd}, data-title=${qna.postSj}">
+              <td class="py-3 px-4 text-center text-xs text-slate-400" th:text="${qna.postSn}"></td>
+              <td class="py-3 px-4 text-center">
+                <span class="text-xs bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded-full"
+                      th:text="${qna.qnaCtgNm}"></span>
+              </td>
+              <td class="py-3 px-4 text-slate-800 font-medium" th:text="${qna.postSj}"></td>
+              <td class="py-3 px-4 text-center">
+                <span th:if="${qna.secrYn == 'Y'}"
+                      class="text-xs bg-slate-100 text-slate-500 font-semibold px-2 py-0.5 rounded-full">
+                  <i class="fa-solid fa-lock text-[10px]"></i>
+                </span>
+                <span th:unless="${qna.secrYn == 'Y'}" class="text-xs text-slate-300">-</span>
+              </td>
+              <td class="py-3 px-4 text-center">
+                <span th:if="${qna.answStatCd == '01'}"
+                      class="text-xs bg-amber-50 text-amber-600 font-semibold px-2 py-0.5 rounded-full">답변대기</span>
+                <span th:if="${qna.answStatCd == '02'}"
+                      class="text-xs bg-emerald-50 text-emerald-600 font-semibold px-2 py-0.5 rounded-full">답변완료</span>
+              </td>
+              <td class="py-3 px-4 text-center text-xs text-slate-400"
+                  th:text="${#temporals.format(qna.regDt, 'yyyy-MM-dd')}"></td>
+              <td class="py-3 px-4 text-center">
+                <div class="flex items-center justify-center gap-2">
+                  <a th:href="@{/admin/board/qna/{postSn}(postSn=${qna.postSn})}"
+                     class="text-xs text-violet-600 font-semibold hover:underline">답변</a>
+                  <form th:action="@{/admin/board/qna/delete/{postSn}(postSn=${qna.postSn})}" method="post"
+                        onsubmit="return confirm('삭제하시겠습니까?')">
+                    <button type="submit" class="text-xs text-red-500 font-semibold hover:underline">삭제</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(qnaList)}">
+              <td colspan="7" class="py-10 text-center text-sm text-slate-400">등록된 QnA가 없습니다.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .cs-tab-btn { transition: all .18s; }
+  .cs-tab-btn.active { color: #7c3aed; border-bottom: 2px solid #7c3aed; font-weight: 700; }
+  .cs-tab-panel { display: none; }
+  .cs-tab-panel.active { display: block; }
+</style>
+
+<script>
+function switchTab(tabId, btn) {
+  document.querySelectorAll('.cs-tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.cs-tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+
+function filterFaq() {
+  const ctg   = document.getElementById('faq-filter-ctg').value;
+  const query = document.getElementById('faq-search').value.trim().toLowerCase();
+  document.querySelectorAll('#faq-table-body tr[data-ctg]').forEach(row => {
+    const matchCtg   = !ctg   || row.dataset.ctg === ctg;
+    const matchTitle = !query || row.dataset.title.toLowerCase().includes(query);
+    row.style.display = (matchCtg && matchTitle) ? '' : 'none';
+  });
+}
+
+function filterNotice() {
+  const type  = document.getElementById('notice-filter-type').value;
+  const query = document.getElementById('notice-search').value.trim().toLowerCase();
+  document.querySelectorAll('#notice-table-body tr[data-type]').forEach(row => {
+    const matchType  = !type  || row.dataset.type === type;
+    const matchTitle = !query || row.dataset.title.toLowerCase().includes(query);
+    row.style.display = (matchType && matchTitle) ? '' : 'none';
+  });
+}
+
+function filterQna() {
+  const stat  = document.getElementById('qna-filter-stat').value;
+  const ctg   = document.getElementById('qna-filter-ctg').value;
+  const query = document.getElementById('qna-search').value.trim().toLowerCase();
+  document.querySelectorAll('#qna-table-body tr[data-stat]').forEach(row => {
+    const matchStat  = !stat  || row.dataset.stat === stat;
+    const matchCtg   = !ctg   || row.dataset.ctg === ctg;
+    const matchTitle = !query || row.dataset.title.toLowerCase().includes(query);
+    row.style.display = (matchStat && matchCtg && matchTitle) ? '' : 'none';
+  });
+}
+</script>

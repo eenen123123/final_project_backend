@@ -1,0 +1,745 @@
+<title th:fragment="pageTitle">출결 관리 | HERMES</title>
+
+<div class="space-y-6">
+
+  <!-- ① 페이지 헤더 -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">출결 관리</h1>
+      <p class="text-sm text-slate-500 mt-1">학생 일일 출결 상태를 기록하고 미출석 학생을 확인합니다.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <input type="date" class="hm-input w-40" id="attendanceDate">
+      <button class="hm-btn-primary" onclick="openStudentModal(null)">
+        <i class="fa-solid fa-user-plus"></i>
+        <span>학생 정보 등록</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ② 오늘 출결 현황 카드 -->
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-lg shrink-0">
+        <i class="fa-solid fa-users"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">전체</p>
+        <p class="text-xl font-bold text-slate-800">48명</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">
+        <i class="fa-solid fa-right-to-bracket"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">등원</p>
+        <p class="text-xl font-bold text-emerald-600" id="countAttend">31명</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-lg shrink-0">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">하원</p>
+        <p class="text-xl font-bold text-sky-600" id="countLeave">9명</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center text-lg shrink-0">
+        <i class="fa-solid fa-xmark"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">결석</p>
+        <p class="text-xl font-bold text-red-500" id="countAbsent">5명</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-lg shrink-0">
+        <i class="fa-solid fa-clock"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">미확인</p>
+        <p class="text-xl font-bold text-amber-500" id="countUnknown">3명</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 탭 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+
+    <div class="flex items-center gap-1 px-5 pt-4 border-b border-slate-100 overflow-x-auto no-scrollbar">
+      <button class="att-tab-btn px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap"
+        data-tab="tab-daily" onclick="switchAttTab('tab-daily', this)">
+        <i class="fa-solid fa-calendar-day mr-1.5"></i>일일 출결 현황
+      </button>
+      <button class="att-tab-btn px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap"
+        data-tab="tab-absent" onclick="switchAttTab('tab-absent', this)">
+        <i class="fa-solid fa-user-xmark mr-1.5"></i>미출석 확인 대상
+        <span class="ml-1 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full" id="absentBadge">8</span>
+      </button>
+      <button class="att-tab-btn px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap"
+        data-tab="tab-student" onclick="switchAttTab('tab-student', this)">
+        <i class="fa-solid fa-address-book mr-1.5"></i>학생 정보 관리
+      </button>
+    </div>
+
+    <!-- ── 탭 1: 일일 출결 현황 ── -->
+    <div id="tab-daily" class="att-tab-panel p-5">
+
+      <!-- 필터 -->
+      <div class="flex flex-wrap gap-3 mb-4">
+        <div class="w-44">
+          <input type="text" class="hm-input" placeholder="학생명 검색..." oninput="filterDaily(this.value)">
+        </div>
+        <div class="w-36">
+          <select class="hm-input" onchange="filterDailyClass(this.value)">
+            <option value="">전체 반</option>
+            <option value="고등수학A">고등수학A</option>
+            <option value="고등수학B">고등수학B</option>
+            <option value="중등수학A">중등수학A</option>
+            <option value="중등수학B">중등수학B</option>
+            <option value="고등영어">고등영어</option>
+            <option value="과학기초">과학기초</option>
+          </select>
+        </div>
+        <div class="w-36">
+          <select class="hm-input" onchange="filterDailyStatus(this.value)">
+            <option value="">전체 상태</option>
+            <option value="등원">등원</option>
+            <option value="하원">하원</option>
+            <option value="결석">결석</option>
+            <option value="미확인">미확인</option>
+            <option value="지각">지각</option>
+            <option value="조퇴">조퇴</option>
+          </select>
+        </div>
+        <div class="ml-auto">
+          <button onclick="showHermesToast('전체 출결 현황을 엑셀로 내보내기합니다.', 'success')"
+            class="px-4 py-2.5 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors flex items-center gap-2">
+            <i class="fa-solid fa-file-arrow-down"></i> 내보내기
+          </button>
+        </div>
+      </div>
+
+      <!-- 출결 테이블 -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-100">
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">학생명</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">담당반</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">학년</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">등원 시각</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">하원 시각</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">상태</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">비고</th>
+              <th class="py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">상태 변경</th>
+            </tr>
+          </thead>
+          <tbody id="dailyTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── 탭 2: 미출석 확인 대상 ── -->
+    <div id="tab-absent" class="att-tab-panel hidden p-5">
+
+      <!-- 안내 -->
+      <div class="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5">
+        <i class="fa-solid fa-triangle-exclamation text-amber-500 mt-0.5 shrink-0"></i>
+        <div class="text-sm">
+          <p class="font-semibold text-amber-700">미출석 확인 대상 학생</p>
+          <p class="text-amber-600 text-xs mt-0.5">연속 결석 2회 이상 또는 오늘 미확인 상태인 학생입니다. 학부모 연락 후 결과를 기록해 주세요.</p>
+        </div>
+      </div>
+
+      <!-- 분류 탭 -->
+      <div class="flex gap-2 mb-4">
+        <button onclick="filterAbsentType('all', this)"
+          class="absent-type-btn px-3 py-1.5 text-xs font-semibold rounded-lg bg-violet-50 text-violet-700 border border-violet-200 transition-colors">
+          전체 (8)
+        </button>
+        <button onclick="filterAbsentType('연속결석', this)"
+          class="absent-type-btn px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
+          연속 결석 (5)
+        </button>
+        <button onclick="filterAbsentType('미확인', this)"
+          class="absent-type-btn px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
+          오늘 미확인 (3)
+        </button>
+      </div>
+
+      <div class="space-y-3" id="absentList"></div>
+    </div>
+
+    <!-- ── 탭 3: 학생 정보 관리 ── -->
+    <div id="tab-student" class="att-tab-panel hidden p-5">
+
+      <div class="flex flex-wrap gap-3 mb-4">
+        <div class="w-44">
+          <input type="text" class="hm-input" placeholder="이름/연락처 검색..." oninput="filterStudentInfo(this.value)">
+        </div>
+        <div class="w-36">
+          <select class="hm-input" onchange="filterStudentClass(this.value)">
+            <option value="">전체 반</option>
+            <option value="고등수학A">고등수학A</option>
+            <option value="고등수학B">고등수학B</option>
+            <option value="중등수학A">중등수학A</option>
+            <option value="중등수학B">중등수학B</option>
+            <option value="고등영어">고등영어</option>
+            <option value="과학기초">과학기초</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-100">
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">학생명</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">학년</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">담당반</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">학부모</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">연락처</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">주소</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">등록일</th>
+              <th class="py-2 px-3"></th>
+            </tr>
+          </thead>
+          <tbody id="studentInfoTableBody"></tbody>
+        </table>
+      </div>
+
+      <!-- 페이징 -->
+      <div class="flex items-center justify-between mt-4 pt-4 border-t border-slate-50">
+        <p class="text-xs text-slate-400">총 48명</p>
+        <div class="flex items-center gap-1">
+          <button class="w-8 h-8 rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 text-xs flex items-center justify-center"><i class="fa-solid fa-chevron-left"></i></button>
+          <button class="w-8 h-8 rounded-lg bg-violet-600 text-white text-xs font-bold flex items-center justify-center">1</button>
+          <button class="w-8 h-8 rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 text-xs flex items-center justify-center">2</button>
+          <button class="w-8 h-8 rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 text-xs flex items-center justify-center">3</button>
+          <button class="w-8 h-8 rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 text-xs flex items-center justify-center"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== 출결 상태 변경 모달 ===== -->
+<div id="statusModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeStatusModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-base font-bold text-slate-800">출결 상태 변경</h3>
+      <button onclick="closeStatusModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <div class="bg-slate-50 rounded-xl px-4 py-3 mb-4">
+      <p class="text-sm font-bold text-slate-800" id="statusModalStudent">-</p>
+      <p class="text-xs text-slate-400 mt-0.5" id="statusModalClass">-</p>
+    </div>
+    <div class="space-y-2 mb-4">
+      <label class="block text-xs font-medium text-slate-500 mb-2">출결 상태</label>
+      <div class="grid grid-cols-3 gap-2" id="statusBtnGroup">
+        <button onclick="selectStatus('등원', this)"
+          class="status-btn py-2.5 text-xs font-bold rounded-xl border-2 border-slate-200 text-slate-500 hover:border-emerald-400 transition-colors">
+          <i class="fa-solid fa-right-to-bracket block mb-1 text-base text-emerald-500"></i>등원
+        </button>
+        <button onclick="selectStatus('하원', this)"
+          class="status-btn py-2.5 text-xs font-bold rounded-xl border-2 border-slate-200 text-slate-500 hover:border-sky-400 transition-colors">
+          <i class="fa-solid fa-right-from-bracket block mb-1 text-base text-sky-500"></i>하원
+        </button>
+        <button onclick="selectStatus('결석', this)"
+          class="status-btn py-2.5 text-xs font-bold rounded-xl border-2 border-slate-200 text-slate-500 hover:border-red-400 transition-colors">
+          <i class="fa-solid fa-xmark block mb-1 text-base text-red-500"></i>결석
+        </button>
+        <button onclick="selectStatus('지각', this)"
+          class="status-btn py-2.5 text-xs font-bold rounded-xl border-2 border-slate-200 text-slate-500 hover:border-amber-400 transition-colors">
+          <i class="fa-solid fa-clock block mb-1 text-base text-amber-500"></i>지각
+        </button>
+        <button onclick="selectStatus('조퇴', this)"
+          class="status-btn py-2.5 text-xs font-bold rounded-xl border-2 border-slate-200 text-slate-500 hover:border-orange-400 transition-colors">
+          <i class="fa-solid fa-person-walking-arrow-right block mb-1 text-base text-orange-500"></i>조퇴
+        </button>
+        <button onclick="selectStatus('미확인', this)"
+          class="status-btn py-2.5 text-xs font-bold rounded-xl border-2 border-slate-200 text-slate-500 hover:border-slate-400 transition-colors">
+          <i class="fa-solid fa-question block mb-1 text-base text-slate-400"></i>미확인
+        </button>
+      </div>
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-slate-500 mb-1.5">비고 (선택)</label>
+      <input type="text" class="hm-input" id="statusNote" placeholder="사유 또는 메모 입력">
+    </div>
+    <div class="flex gap-3 mt-5">
+      <button class="flex-1 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors" onclick="closeStatusModal()">취소</button>
+      <button class="flex-1 hm-btn-primary" onclick="saveStatus()">
+        <i class="fa-solid fa-check"></i><span>저장</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 학생 정보 등록/수정 모달 ===== -->
+<div id="studentModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeStudentModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 flex flex-col max-h-[92vh]">
+
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
+      <h3 class="text-base font-bold text-slate-800" id="studentModalTitle">학생 정보 등록</h3>
+      <button onclick="closeStudentModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+
+    <div class="overflow-y-auto p-6 space-y-4 flex-1">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">학생명 <span class="text-red-400">*</span></label>
+          <input type="text" class="hm-input" id="stuName" placeholder="이름 입력">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">학년 <span class="text-red-400">*</span></label>
+          <select class="hm-input" id="stuGrade">
+            <option value="">학년 선택</option>
+            <option value="중1">중1</option><option value="중2">중2</option><option value="중3">중3</option>
+            <option value="고1">고1</option><option value="고2">고2</option><option value="고3">고3</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">담당반 <span class="text-red-400">*</span></label>
+        <select class="hm-input" id="stuClass">
+          <option value="">반 선택</option>
+          <option value="고등수학A">고등수학A</option>
+          <option value="고등수학B">고등수학B</option>
+          <option value="중등수학A">중등수학A</option>
+          <option value="중등수학B">중등수학B</option>
+          <option value="고등영어">고등영어</option>
+          <option value="과학기초">과학기초</option>
+        </select>
+      </div>
+
+      <div class="border-t border-slate-100 pt-4">
+        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">학부모 정보</p>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">학부모명 <span class="text-red-400">*</span></label>
+            <input type="text" class="hm-input" id="stuParent" placeholder="학부모 성함">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">연락처 <span class="text-red-400">*</span></label>
+            <input type="tel" class="hm-input" id="stuPhone" placeholder="010-0000-0000"
+              oninput="formatPhone(this)">
+          </div>
+        </div>
+        <div class="mt-3">
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">추가 연락처</label>
+          <input type="tel" class="hm-input" id="stuPhone2" placeholder="010-0000-0000 (선택)"
+            oninput="formatPhone(this)">
+        </div>
+      </div>
+
+      <div class="border-t border-slate-100 pt-4">
+        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">주소 정보</p>
+        <div class="flex gap-2 mb-2">
+          <input type="text" class="hm-input flex-1" id="stuZip" placeholder="우편번호" readonly>
+          <button onclick="showHermesToast('주소 검색 API 연동이 필요합니다.', 'info')"
+            class="px-4 py-2.5 text-sm font-semibold text-violet-600 bg-violet-50 hover:bg-violet-100 rounded-xl transition-colors whitespace-nowrap">
+            주소 검색
+          </button>
+        </div>
+        <input type="text" class="hm-input mb-2" id="stuAddr1" placeholder="기본 주소" readonly>
+        <input type="text" class="hm-input" id="stuAddr2" placeholder="상세 주소 입력">
+      </div>
+
+      <div class="border-t border-slate-100 pt-4">
+        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">등록 정보</p>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">등록일 <span class="text-red-400">*</span></label>
+            <input type="date" class="hm-input" id="stuJoinDate">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">상태</label>
+            <select class="hm-input" id="stuStatus">
+              <option value="재학">재학</option>
+              <option value="휴원">휴원</option>
+              <option value="퇴원">퇴원</option>
+            </select>
+          </div>
+        </div>
+        <div class="mt-3">
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">특이사항</label>
+          <textarea class="hm-input resize-none" id="stuNote" rows="2" placeholder="알레르기, 건강 이상, 특별 관리 사항 등"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex gap-3 px-6 py-4 border-t border-slate-100 shrink-0">
+      <button class="flex-1 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors" onclick="closeStudentModal()">취소</button>
+      <button class="flex-1 hm-btn-primary" onclick="saveStudent()">
+        <i class="fa-solid fa-floppy-disk"></i><span>저장</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 페이지 스크립트 ===== -->
+<script>
+  /* ── 더미 데이터 ── */
+  const dailyData = [
+    { id:1,  name:'김민준', grade:'고2', classNm:'고등수학A', arriveTime:'14:02', leaveTime:'',      status:'등원',  note:'' },
+    { id:2,  name:'이서연', grade:'중3', classNm:'중등수학B', arriveTime:'13:58', leaveTime:'17:00', status:'하원',  note:'' },
+    { id:3,  name:'박지호', grade:'고1', classNm:'고등영어',  arriveTime:'14:10', leaveTime:'',      status:'등원',  note:'' },
+    { id:4,  name:'최유진', grade:'중2', classNm:'중등수학A', arriveTime:'',      leaveTime:'',      status:'결석',  note:'무단 결석' },
+    { id:5,  name:'정하은', grade:'고3', classNm:'고등수학B', arriveTime:'14:25', leaveTime:'',      status:'지각',  note:'30분 지각' },
+    { id:6,  name:'한도현', grade:'고1', classNm:'고등수학A', arriveTime:'14:00', leaveTime:'15:30', status:'조퇴',  note:'병원 방문' },
+    { id:7,  name:'오지수', grade:'중1', classNm:'중등수학B', arriveTime:'',      leaveTime:'',      status:'미확인', note:'' },
+    { id:8,  name:'강수현', grade:'고2', classNm:'고등수학A', arriveTime:'14:05', leaveTime:'',      status:'등원',  note:'' },
+    { id:9,  name:'윤지안', grade:'중3', classNm:'고등영어',  arriveTime:'',      leaveTime:'',      status:'미확인', note:'' },
+    { id:10, name:'장태현', grade:'중2', classNm:'중등수학A', arriveTime:'',      leaveTime:'',      status:'결석',  note:'사전 연락' },
+    { id:11, name:'신예나', grade:'고3', classNm:'고등수학B', arriveTime:'14:01', leaveTime:'18:00', status:'하원',  note:'' },
+    { id:12, name:'백지훈', grade:'고1', classNm:'고등수학A', arriveTime:'14:08', leaveTime:'',      status:'등원',  note:'' },
+  ];
+
+  const absentData = [
+    { id:4,  name:'최유진', grade:'중2', classNm:'중등수학A', parent:'최정호', phone:'010-4444-5555', type:'연속결석', consecutive:3, lastContact:'2026-05-24', contactResult:'연락 안됨' },
+    { id:7,  name:'오지수', grade:'중1', classNm:'중등수학B', parent:'오상호', phone:'010-7777-8888', type:'미확인',  consecutive:1, lastContact:'-',          contactResult:'' },
+    { id:9,  name:'윤지안', grade:'중3', classNm:'고등영어',  parent:'윤미래', phone:'010-9999-0000', type:'미확인',  consecutive:1, lastContact:'-',          contactResult:'' },
+    { id:10, name:'장태현', grade:'중2', classNm:'중등수학A', parent:'장수연', phone:'010-1010-1111', type:'연속결석', consecutive:2, lastContact:'2026-05-25', contactResult:'학부모 확인' },
+    { id:13, name:'류지수', grade:'중1', classNm:'중등수학B', parent:'류인철', phone:'010-2222-3333', type:'연속결석', consecutive:4, lastContact:'2026-05-23', contactResult:'연락 안됨' },
+    { id:14, name:'남도현', grade:'고1', classNm:'고등영어',  parent:'남지영', phone:'010-3333-4444', type:'연속결석', consecutive:2, lastContact:'2026-05-25', contactResult:'학부모 확인' },
+    { id:15, name:'임예슬', grade:'고2', classNm:'고등수학B', parent:'임재원', phone:'010-4444-5555', type:'연속결석', consecutive:5, lastContact:'2026-05-22', contactResult:'연락 안됨' },
+    { id:16, name:'조민서', grade:'중3', classNm:'중등수학A', parent:'조현우', phone:'010-5555-6666', type:'미확인',  consecutive:1, lastContact:'-',          contactResult:'' },
+  ];
+
+  const studentInfoData = [
+    { id:1,  name:'김민준', grade:'고2', classNm:'고등수학A', parent:'김영희', phone:'010-1111-2222', phone2:'010-1234-5678', zip:'06100', addr1:'서울 강남구 테헤란로 123',  addr2:'101호', joinDate:'2024-03-02', status:'재학', note:'' },
+    { id:2,  name:'이서연', grade:'중3', classNm:'중등수학B', parent:'이미숙', phone:'010-2222-3333', phone2:'',             zip:'04551', addr1:'서울 중구 명동길 45',      addr2:'',      joinDate:'2024-09-01', status:'재학', note:'' },
+    { id:3,  name:'박지호', grade:'고1', classNm:'고등영어',  parent:'박현주', phone:'010-3333-4444', phone2:'',             zip:'05505', addr1:'서울 송파구 잠실대로 200', addr2:'203호', joinDate:'2025-01-06', status:'재학', note:'' },
+    { id:4,  name:'최유진', grade:'중2', classNm:'중등수학A', parent:'최정호', phone:'010-4444-5555', phone2:'',             zip:'03180', addr1:'서울 종로구 사직로 50',    addr2:'',      joinDate:'2023-09-01', status:'재학', note:'연속 결석 관리 대상' },
+    { id:5,  name:'정하은', grade:'고3', classNm:'고등수학B', parent:'정민아', phone:'010-5555-6666', phone2:'010-5678-9012', zip:'06256', addr1:'서울 강남구 역삼로 77',    addr2:'',      joinDate:'2022-03-02', status:'재학', note:'' },
+    { id:6,  name:'한도현', grade:'고1', classNm:'고등수학A', parent:'한지훈', phone:'010-6666-7777', phone2:'',             zip:'07332', addr1:'서울 영등포구 여의도동 10', addr2:'502호', joinDate:'2025-03-03', status:'재학', note:'심장 질환 주의' },
+  ];
+
+  let statusTargetId = null;
+  let selectedNewStatus = '';
+  let editingStudentId = null;
+
+  /* ── 탭 전환 ── */
+  function switchAttTab(tabId, btn) {
+    document.querySelectorAll('.att-tab-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.att-tab-btn').forEach(b => {
+      b.classList.remove('text-violet-600', 'border-violet-500', 'bg-violet-50/60');
+      b.classList.add('text-slate-500', 'border-transparent');
+    });
+    document.getElementById(tabId).classList.remove('hidden');
+    btn.classList.remove('text-slate-500', 'border-transparent');
+    btn.classList.add('text-violet-600', 'border-violet-500', 'bg-violet-50/60');
+  }
+
+  /* ── 출결 상태 배지 ── */
+  function statusBadge(status) {
+    const map = {
+      '등원':  'bg-emerald-50 text-emerald-700',
+      '하원':  'bg-sky-50 text-sky-700',
+      '결석':  'bg-red-50 text-red-600',
+      '지각':  'bg-amber-50 text-amber-600',
+      '조퇴':  'bg-orange-50 text-orange-600',
+      '미확인': 'bg-slate-100 text-slate-500',
+    };
+    return `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${map[status] || 'bg-slate-100 text-slate-500'}">${status}</span>`;
+  }
+
+  /* ── 일일 출결 테이블 ── */
+  function renderDailyTable(data) {
+    const tbody = document.getElementById('dailyTableBody');
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" class="py-10 text-center text-slate-300 text-sm">해당하는 학생이 없습니다.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map(r => `
+      <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors ${r.status === '미확인' ? 'bg-amber-50/30' : r.status === '결석' ? 'bg-red-50/20' : ''}">
+        <td class="py-3 px-3 font-medium text-slate-800">${r.name}</td>
+        <td class="py-3 px-3 text-xs text-slate-500">${r.classNm}</td>
+        <td class="py-3 px-3 text-xs text-slate-500">${r.grade}</td>
+        <td class="py-3 px-3 text-slate-600">${r.arriveTime || '<span class="text-slate-300">-</span>'}</td>
+        <td class="py-3 px-3 text-slate-600">${r.leaveTime  || '<span class="text-slate-300">-</span>'}</td>
+        <td class="py-3 px-3">${statusBadge(r.status)}</td>
+        <td class="py-3 px-3 text-xs text-slate-400 max-w-xs truncate">${r.note || '-'}</td>
+        <td class="py-3 px-3 text-center">
+          <button onclick="openStatusModal(${r.id})"
+            class="px-3 py-1 text-xs font-semibold text-violet-600 bg-violet-50 hover:bg-violet-100 rounded-lg transition-colors">
+            <i class="fa-solid fa-pen-to-square mr-1"></i>변경
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function filterDaily(keyword) {
+    const data = keyword ? dailyData.filter(r => r.name.includes(keyword)) : dailyData;
+    renderDailyTable(data);
+  }
+
+  function filterDailyClass(classNm) {
+    const data = classNm ? dailyData.filter(r => r.classNm === classNm) : dailyData;
+    renderDailyTable(data);
+  }
+
+  function filterDailyStatus(status) {
+    const data = status ? dailyData.filter(r => r.status === status) : dailyData;
+    renderDailyTable(data);
+  }
+
+  /* ── 미출석 목록 ── */
+  function renderAbsentList(data) {
+    const list = document.getElementById('absentList');
+    if (data.length === 0) {
+      list.innerHTML = `<div class="py-10 text-center text-slate-300 text-sm">해당하는 학생이 없습니다.</div>`;
+      return;
+    }
+    list.innerHTML = data.map(a => {
+      const urgentColor = a.consecutive >= 3 ? 'border-red-300 bg-red-50/30' : 'border-amber-200 bg-amber-50/20';
+      const dotColor    = a.consecutive >= 3 ? 'bg-red-500' : 'bg-amber-400';
+      const contacted   = a.contactResult !== '';
+      return `
+        <div class="border-2 ${urgentColor} rounded-2xl p-4">
+          <div class="flex items-start justify-between gap-3 mb-3">
+            <div class="flex items-center gap-3">
+              <div class="relative">
+                <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 font-bold flex items-center justify-center shrink-0">${a.name[0]}</div>
+                <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${dotColor}"></span>
+              </div>
+              <div>
+                <p class="font-bold text-slate-800">${a.name}
+                  <span class="ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-white border border-slate-200 text-slate-500">${a.grade} · ${a.classNm}</span>
+                </p>
+                <p class="text-xs text-slate-500 mt-0.5">학부모: ${a.parent} · ${a.phone}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              ${a.type === '연속결석'
+                ? `<span class="px-2.5 py-1 bg-red-50 text-red-600 text-xs font-bold rounded-full">연속 ${a.consecutive}회</span>`
+                : `<span class="px-2.5 py-1 bg-amber-50 text-amber-600 text-xs font-bold rounded-full">오늘 미확인</span>`}
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div class="text-xs text-slate-400">
+              최근 연락: <span class="${contacted ? 'text-slate-600' : 'text-slate-300'}">${a.lastContact === '-' ? '미실시' : a.lastContact}</span>
+              ${a.contactResult ? ` · <span class="${a.contactResult.includes('안됨') ? 'text-red-500 font-semibold' : 'text-emerald-600 font-semibold'}">${a.contactResult}</span>` : ''}
+            </div>
+            <div class="flex gap-2">
+              <button onclick="markContactResult(${a.id}, '연락 안됨')"
+                class="px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
+                <i class="fa-solid fa-phone-slash mr-1"></i>연락 안됨
+              </button>
+              <button onclick="markContactResult(${a.id}, '학부모 확인')"
+                class="px-3 py-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors">
+                <i class="fa-solid fa-phone-volume mr-1"></i>확인 완료
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function filterAbsentType(type, btn) {
+    document.querySelectorAll('.absent-type-btn').forEach(b => {
+      b.classList.remove('bg-violet-50', 'text-violet-700', 'border-violet-200');
+      b.classList.add('border-slate-200', 'text-slate-500');
+    });
+    btn.classList.remove('border-slate-200', 'text-slate-500');
+    btn.classList.add('bg-violet-50', 'text-violet-700', 'border-violet-200');
+    const data = type === 'all' ? absentData : absentData.filter(a => a.type === type);
+    renderAbsentList(data);
+  }
+
+  function markContactResult(id, result) {
+    const a = absentData.find(a => a.id === id);
+    if (a) {
+      a.contactResult = result;
+      a.lastContact   = new Date().toISOString().slice(0, 10);
+    }
+    renderAbsentList(absentData);
+    showHermesToast(result + ' 처리되었습니다.', result.includes('안됨') ? 'error' : 'success');
+  }
+
+  /* ── 학생 정보 테이블 ── */
+  function renderStudentInfoTable(data) {
+    const tbody = document.getElementById('studentInfoTableBody');
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" class="py-10 text-center text-slate-300 text-sm">해당하는 학생이 없습니다.</td></tr>`;
+      return;
+    }
+    const stuStatusBadge = s => {
+      const map = { '재학': 'bg-emerald-50 text-emerald-700', '휴원': 'bg-amber-50 text-amber-600', '퇴원': 'bg-slate-100 text-slate-500' };
+      return `<span class="px-2 py-0.5 rounded-full text-xs font-medium ${map[s] || 'bg-slate-100 text-slate-500'}">${s}</span>`;
+    };
+    tbody.innerHTML = data.map(s => `
+      <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+        <td class="py-3 px-3 font-medium text-slate-800">
+          ${s.name}
+          ${s.note ? `<i class="fa-solid fa-circle-exclamation text-amber-400 ml-1 text-xs" title="${s.note}"></i>` : ''}
+        </td>
+        <td class="py-3 px-3 text-xs text-slate-500">${s.grade}</td>
+        <td class="py-3 px-3 text-xs text-slate-500">${s.classNm}</td>
+        <td class="py-3 px-3 text-slate-600">${s.parent}</td>
+        <td class="py-3 px-3 text-xs text-slate-600 whitespace-nowrap">
+          ${s.phone}
+          ${s.phone2 ? `<br><span class="text-slate-400">${s.phone2}</span>` : ''}
+        </td>
+        <td class="py-3 px-3 text-xs text-slate-500 max-w-48 truncate" title="${s.addr1} ${s.addr2}">
+          ${s.addr1 ? s.addr1 + (s.addr2 ? ' ' + s.addr2 : '') : '<span class="text-slate-300">-</span>'}
+        </td>
+        <td class="py-3 px-3 text-xs text-slate-400 whitespace-nowrap">${s.joinDate}</td>
+        <td class="py-3 px-3">
+          <div class="flex items-center gap-2">
+            ${stuStatusBadge(s.status)}
+            <button onclick="openStudentModal(${s.id})" class="text-xs text-slate-400 hover:text-violet-600 transition-colors">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function filterStudentInfo(keyword) {
+    const data = keyword ? studentInfoData.filter(s => s.name.includes(keyword) || s.phone.includes(keyword) || s.parent.includes(keyword)) : studentInfoData;
+    renderStudentInfoTable(data);
+  }
+
+  function filterStudentClass(classNm) {
+    const data = classNm ? studentInfoData.filter(s => s.classNm === classNm) : studentInfoData;
+    renderStudentInfoTable(data);
+  }
+
+  /* ── 출결 상태 변경 모달 ── */
+  function openStatusModal(id) {
+    const r = dailyData.find(r => r.id === id);
+    if (!r) return;
+    statusTargetId = id;
+    selectedNewStatus = r.status;
+    document.getElementById('statusModalStudent').textContent = r.name;
+    document.getElementById('statusModalClass').textContent   = r.grade + ' · ' + r.classNm;
+    document.getElementById('statusNote').value = r.note;
+
+    /* 현재 상태 버튼 활성화 */
+    document.querySelectorAll('.status-btn').forEach(b => {
+      b.classList.remove('border-violet-500', 'bg-violet-50', 'text-violet-700');
+      b.classList.add('border-slate-200', 'text-slate-500');
+    });
+    const currentBtn = [...document.querySelectorAll('.status-btn')].find(b => b.textContent.trim() === r.status);
+    if (currentBtn) {
+      currentBtn.classList.remove('border-slate-200', 'text-slate-500');
+      currentBtn.classList.add('border-violet-500', 'bg-violet-50', 'text-violet-700');
+    }
+
+    document.getElementById('statusModal').classList.remove('hidden');
+  }
+
+  function closeStatusModal() {
+    document.getElementById('statusModal').classList.add('hidden');
+    statusTargetId = null;
+    selectedNewStatus = '';
+  }
+
+  function selectStatus(status, btn) {
+    selectedNewStatus = status;
+    document.querySelectorAll('.status-btn').forEach(b => {
+      b.classList.remove('border-violet-500', 'bg-violet-50', 'text-violet-700');
+      b.classList.add('border-slate-200', 'text-slate-500');
+    });
+    btn.classList.remove('border-slate-200', 'text-slate-500');
+    btn.classList.add('border-violet-500', 'bg-violet-50', 'text-violet-700');
+  }
+
+  function saveStatus() {
+    if (!selectedNewStatus) { showHermesToast('상태를 선택해 주세요.', 'error'); return; }
+    const r = dailyData.find(r => r.id === statusTargetId);
+    if (r) {
+      r.status = selectedNewStatus;
+      r.note   = document.getElementById('statusNote').value;
+      if (selectedNewStatus === '등원' && !r.arriveTime) r.arriveTime = new Date().toTimeString().slice(0, 5);
+      if (selectedNewStatus === '하원' && !r.leaveTime)  r.leaveTime  = new Date().toTimeString().slice(0, 5);
+    }
+    closeStatusModal();
+    renderDailyTable(dailyData);
+    showHermesToast('출결 상태가 변경되었습니다.', 'success');
+  }
+
+  /* ── 학생 정보 모달 ── */
+  function openStudentModal(id) {
+    editingStudentId = id;
+    const today = new Date().toISOString().slice(0, 10);
+
+    if (id) {
+      const s = studentInfoData.find(s => s.id === id);
+      document.getElementById('studentModalTitle').textContent = '학생 정보 수정';
+      document.getElementById('stuName').value     = s.name;
+      document.getElementById('stuGrade').value    = s.grade;
+      document.getElementById('stuClass').value    = s.classNm;
+      document.getElementById('stuParent').value   = s.parent;
+      document.getElementById('stuPhone').value    = s.phone;
+      document.getElementById('stuPhone2').value   = s.phone2;
+      document.getElementById('stuZip').value      = s.zip;
+      document.getElementById('stuAddr1').value    = s.addr1;
+      document.getElementById('stuAddr2').value    = s.addr2;
+      document.getElementById('stuJoinDate').value = s.joinDate;
+      document.getElementById('stuStatus').value   = s.status;
+      document.getElementById('stuNote').value     = s.note;
+    } else {
+      document.getElementById('studentModalTitle').textContent = '학생 정보 등록';
+      ['stuName','stuParent','stuPhone','stuPhone2','stuZip','stuAddr1','stuAddr2','stuNote'].forEach(id => { document.getElementById(id).value = ''; });
+      document.getElementById('stuGrade').value    = '';
+      document.getElementById('stuClass').value    = '';
+      document.getElementById('stuJoinDate').value = today;
+      document.getElementById('stuStatus').value   = '재학';
+    }
+    document.getElementById('studentModal').classList.remove('hidden');
+  }
+
+  function closeStudentModal() {
+    document.getElementById('studentModal').classList.add('hidden');
+    editingStudentId = null;
+  }
+
+  function formatPhone(input) {
+    let val = input.value.replace(/\D/g, '');
+    if (val.length <= 3)       input.value = val;
+    else if (val.length <= 7)  input.value = val.slice(0, 3) + '-' + val.slice(3);
+    else                       input.value = val.slice(0, 3) + '-' + val.slice(3, 7) + '-' + val.slice(7, 11);
+  }
+
+  function saveStudent() {
+    const name   = document.getElementById('stuName').value.trim();
+    const grade  = document.getElementById('stuGrade').value;
+    const cls    = document.getElementById('stuClass').value;
+    const parent = document.getElementById('stuParent').value.trim();
+    const phone  = document.getElementById('stuPhone').value.trim();
+    if (!name)   { showHermesToast('학생명을 입력해 주세요.', 'error'); return; }
+    if (!grade)  { showHermesToast('학년을 선택해 주세요.', 'error'); return; }
+    if (!cls)    { showHermesToast('담당반을 선택해 주세요.', 'error'); return; }
+    if (!parent) { showHermesToast('학부모명을 입력해 주세요.', 'error'); return; }
+    if (!phone)  { showHermesToast('연락처를 입력해 주세요.', 'error'); return; }
+    closeStudentModal();
+    showHermesToast(editingStudentId ? '학생 정보가 수정되었습니다.' : '학생이 등록되었습니다.', 'success');
+  }
+
+  /* ── 초기 렌더링 ── */
+  document.getElementById('attendanceDate').value = new Date().toISOString().slice(0, 10);
+  renderDailyTable(dailyData);
+  renderAbsentList(absentData);
+  renderStudentInfoTable(studentInfoData);
+
+  /* ── 탭 초기화 (렌더링 이후에 실행) ── */
+  (function () {
+    const firstBtn = document.querySelector('.att-tab-btn[data-tab="tab-daily"]');
+    if (firstBtn) switchAttTab('tab-daily', firstBtn);
+  })();
+</script>

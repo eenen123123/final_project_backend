@@ -1,0 +1,120 @@
+<div>
+  <!-- 페이지 헤더 -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-xl font-bold text-slate-800">FAQ 등록</h1>
+      <p class="text-sm text-slate-500 mt-0.5">새로운 FAQ를 등록합니다.</p>
+    </div>
+    <a href="/admin/board/faq" class="text-sm text-slate-500 hover:text-slate-700 font-semibold">
+      <i class="fa-solid fa-arrow-left mr-1"></i> 목록으로
+    </a>
+  </div>
+
+  <!-- 등록 폼 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-8">
+    <form action="/admin/board/faq/write" method="post">
+
+      <div class="grid grid-cols-2 gap-6 mb-6">
+        <!-- 대분류 -->
+        <div>
+          <label class="text-xs font-semibold text-slate-600 mb-1.5 block">
+            대분류 <span class="text-red-400">*</span>
+          </label>
+          <select name="faqCtgCd" id="faqCtgCd" onchange="updateSubCtg()" class="hm-input">
+            <option value="01">강의/교재</option>
+            <option value="02">결제</option>
+            <option value="03">학습기기</option>
+            <option value="04">동영상</option>
+            <option value="05">도서</option>
+          </select>
+        </div>
+
+        <!-- 중분류 -->
+        <div>
+          <label class="text-xs font-semibold text-slate-600 mb-1.5 block">
+            중분류 <span class="text-red-400">*</span>
+          </label>
+          <select name="faqSubCtgCd" id="faqSubCtgCd" class="hm-input"></select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-6 mb-6">
+        <!-- 작성자 -->
+        <div>
+          <label class="text-xs font-semibold text-slate-600 mb-1.5 block">작성자</label>
+          <input type="text" name="wrtrUserId" class="hm-input bg-slate-50"
+                 th:value="${session.userId}" readonly />
+        </div>
+
+        <!-- BEST 여부 -->
+        <div>
+          <label class="text-xs font-semibold text-slate-600 mb-1.5 block">BEST 고정</label>
+          <div class="flex items-center gap-3 h-10">
+            <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+              <input type="radio" name="topFixYn" value="Y" class="accent-blue-600" /> Y (고정)
+            </label>
+            <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+              <input type="radio" name="topFixYn" value="N" checked class="accent-blue-600" /> N (미고정)
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 제목 -->
+      <div class="mb-6">
+        <label class="text-xs font-semibold text-slate-600 mb-1.5 block">
+          제목 <span class="text-red-400">*</span>
+        </label>
+        <input type="text" name="postSj" placeholder="FAQ 제목을 입력하세요."
+               class="hm-input" required />
+      </div>
+
+      <!-- 내용 -->
+      <div class="mb-8">
+        <label class="text-xs font-semibold text-slate-600 mb-1.5 block">
+          내용 <span class="text-red-400">*</span>
+        </label>
+        <textarea name="postCn" rows="12" placeholder="FAQ 내용을 입력하세요."
+                  class="hm-input resize-none" required></textarea>
+      </div>
+
+      <!-- 버튼 -->
+      <div class="flex justify-center gap-3">
+        <a href="/admin/board/faq"
+           class="px-6 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
+          취소
+        </a>
+        <button type="submit" class="hm-btn-primary px-8 py-2.5">
+          등록
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<script>
+const SUB_CATEGORIES = {
+  '01': [['01','수강신청'],['02','수강기간'],['03','교재'],['04','환불/취소']],
+  '02': [['05','결제수단'],['06','영수증'],['07','쿠폰/포인트']],
+  '03': [['08','기기등록'],['09','앱설치'],['10','오류']],
+  '04': [['11','플레이어 기능'],['12','플레이어 설치'],['13','플레이어 재생']],
+  '05': [['14','주문'],['15','배송'],['16','반품/교환']],
+};
+
+function updateSubCtg(selectedSub) {
+  const ctg    = document.getElementById('faqCtgCd').value;
+  const subSel = document.getElementById('faqSubCtgCd');
+  subSel.innerHTML = '';
+  (SUB_CATEGORIES[ctg] || []).forEach(([val, label]) => {
+    const opt = document.createElement('option');
+    opt.value = val;
+    opt.textContent = label;
+    if (selectedSub && val === selectedSub) opt.selected = true;
+    subSel.appendChild(opt);
+  });
+}
+
+// 초기 중분류 로드
+updateSubCtg();
+</script>

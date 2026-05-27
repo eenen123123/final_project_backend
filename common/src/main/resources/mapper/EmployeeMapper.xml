@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.EmployeeMapper">
+
+
+
+
+
+    <!-- insertEmployeeInfo -->
+
+    <insert id="insertEmployeeInfo" parameterType="kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto">
+        insert into EMPLOYEE_INFO (USER_ID, DEPT_CD, JBGR_CD, EMPL_STAT_CD)
+        values (#{userId}, #{deptCd}, #{jbgrCd}, #{emplStatCd})
+    </insert>
+
+    <!-- selectEmployeeInfoByUserId -->
+
+    <select id="selectEmployeeInfoByUserId" parameterType="string" resultType="kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto">
+        select * from EMPLOYEE_INFO where USER_ID = #{userId}
+    </select>
+</mapper>

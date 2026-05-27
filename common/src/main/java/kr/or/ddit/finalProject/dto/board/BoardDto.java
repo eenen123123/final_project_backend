@@ -1,7 +1,6 @@
 package kr.or.ddit.finalProject.dto.board;
 
 import java.io.Serializable;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
@@ -15,16 +14,16 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class BoardDto implements Serializable {
 
-    private Long postSn; // 기본키(PK) · 시퀀스
-    private String wrtrUserId; // MEMBER.USER_ID 참조
-    private String boardTypeCd;
-    private String postSj;
-    private String postCn;
-    private String atchFileId; // 공통첨부파일분류
-    private Long topFixOrd; // NULL이면 일반 게시글
-    private String popupExpsYn; // Y:팝업노출 / N:미노출
-    private Long inqCnt;
-    private String lastMdfrId; // 마지막 수정자
-    private LocalDateTime regDt;
-    private LocalDateTime mdfcnDt;
+    private Long postSn;        // PK 자동채번
+    private String wrtrUserId;  // 작성자
+    private String boardTypeCd; // 게시판 타입
+    private String postSj;      // 제목
+    private String postCn;      // 내용
+    private String atchFileId;  // 첨부파일 분류 ID
+    private Long topFixOrd;     // 상단고정
+    private String popupExpsYn; // 팝업노출
+    private Long inqCnt;        // 조회수
+    private String lastMdfrId;  // 마지막수정자
+    private LocalDateTime regDt; // 등록일
+    private LocalDateTime mdfcnDt;// 수정일
 }

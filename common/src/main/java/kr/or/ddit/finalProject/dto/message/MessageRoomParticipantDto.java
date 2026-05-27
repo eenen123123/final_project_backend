@@ -22,4 +22,7 @@ public class MessageRoomParticipantDto implements Serializable {
     private LocalDateTime exitDt; // 그룹 채팅 나가기 시 기록
     private String notiYn; // Y:알림ON / N:알림OFF
     private Long lstReadMsgSn; // 안읽은 메시지 수 계산 기준 읽을 때마다 갱신
+
+    private String partRoleName; //  역할 이름 (예: 관리자, 일반 사용자 등)
+    private String partUserName; //  이름
 }
