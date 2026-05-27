@@ -19,11 +19,16 @@ public class ClassroomDto implements Serializable {
     private String opnrUserId; // MEMBER.USER_ID 참조
     private Long courseSn; // COURSE.COURSE_SN 참조
     private String classNm;
-    private String enrlStrtYmd; // 표현형식 YYYY-MM-DD
-    private String enrlEndYmd; // NULL = 무기한
-    private String classStatCd; // COM_CD 공통코드 참조
+    private String enrlStrtYmd; // 표현형식 YYYYMMDD (CHAR 8)
+    private String enrlEndYmd; // 표현형식 YYYYMMDD (CHAR 8), NULL = 무기한
+    private String useYn; // 운영여부 Y/N
     private LocalDateTime regDt;
     private LocalDateTime mdfcnDt;
     private String rgtrId; // MEMBER.USER_ID 참조 권장
     private String lastMdfrId;
+
+    // JOIN fields
+    private String courseNm;
+    private String instrNm; // MEMBER.USER_NM of opnrUserId
+    private Integer memberCount;
 }
