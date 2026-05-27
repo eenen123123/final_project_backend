@@ -26,12 +26,8 @@ public interface MemberMapper {
      */
     int isAllExistUsers(List<String> userIds);
 
-    List<AdminUserDto> getAdminUsers(@Param("excludeUserId") String excludeUserId);
+    List<MemberDto> getAdminUsers(@Param("excludeUserId") String excludeUserId);
 
-    // 더미 데이터 생성
-    int fakerMember(MemberDto member);
 
-    // 더미 권한 부여
-    int fakerRoleMapping(@Param("userId") String userId, @Param("role") String role);
-    
+
 }
