@@ -38,10 +38,8 @@
         SELECT
             m.USER_ID, m.USER_ENPSWD, m.USER_NAME, m.USER_ENRRNO, m.USER_GNDR_CD,
             m.USER_BRDT, m.JOIN_DT, m.USER_TELNO, m.USER_EMAIL_ADDR, m.USER_ZIP,
-            m.USER_ADDR, m.USER_DADDR, m.USER_PROFILE, m.REG_DATE, m.MOD_DATE, m.ENABLE,
-            r.USER_ROLE_CD
+            m.USER_ADDR, m.USER_DADDR, m.USER_PROFILE, m.REG_DATE, m.MOD_DATE, m.ENABLE
         FROM MEMBER m
-        LEFT JOIN MEMBER_ROLE_MAPPING r ON m.USER_ID = r.USER_ID
         WHERE m.USER_ID = #{userId}
     </select>
 
