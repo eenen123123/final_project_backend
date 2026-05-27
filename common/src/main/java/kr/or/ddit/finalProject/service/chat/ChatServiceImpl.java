@@ -176,7 +176,14 @@ public class ChatServiceImpl implements ChatService {
 
         // message_room_participant 테이블에서 해당하는 참여자의 lst_read_msg_sn보다 큰 메시지들을 읽지 않은 메시지로 간주하여, 필요에 따라 알림 처리 등을 할 수 있음
 
-        // TODO:  브로드캐스트용 발신자 정보 채우기 해야됨
+        // 브로드캐스트용 발신자 정보 채우기 (실시간 메시지에 이름/부서/직급 표시)
+        MessageContentDto senderInfo =
+                messageMapper.selectSenderInfo(messageContentDto.getSendrUserId());
+        if (senderInfo != null) {
+            messageContentDto.setUserName(senderInfo.getUserName());
+            messageContentDto.setPartDeptNm(senderInfo.getPartDeptNm());
+            messageContentDto.setPartJbgrNm(senderInfo.getPartJbgrNm());
+        }
     }
 
     @Override

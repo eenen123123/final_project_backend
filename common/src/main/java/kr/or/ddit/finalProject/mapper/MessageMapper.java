@@ -30,6 +30,8 @@ public interface MessageMapper {
     List<MessageContentDto> selectChatMessagesByRoomSn(@Param("roomSn") Long roomSn,
             @Param("paginationInfo") PaginationInfo<MessageContentDto> paginationInfo);
 
+    MessageContentDto selectSenderInfo(@Param("userId") String userId);
+
     int updateLastSentMessage(@Param("roomSn") Long roomSn);
 
     void updateLastReadMessage(@Param("roomSn") Long roomSn, @Param("userId") String userId,
