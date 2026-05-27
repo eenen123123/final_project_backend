@@ -7,20 +7,17 @@
     <!-- selectDepartmentList --> 
     <select id="selectDepartmentList" resultType="kr.or.ddit.finalProject.dto.employee.DepartmentDto">
         SELECT
-            USER_ID
-            , DEPT_CD
-            , JBGR_CD
-            , JOIN_YMD
-            , RETMT_YMD
-            , EMPL_STAT_CD
-            , ATCH_FILE_ID
-            , CHRG_DUTY_CN
+            DEPT_CD
+            , PRNT_DEPT_CD
+            , DEPT_NM
+            , USE_YN
+            , INTL_TEL_NO
             , RGTR_ID
             , LAST_MDFR_ID
             , REG_DT
             , MDFCN_DT
         FROM
-            EMPLOYEE_INFO
+            DEPARTMENT
     </select>      
 
     <!-- selectJobGradeList --> 
@@ -35,7 +32,10 @@
             , LAST_MDFR_ID
             , REG_DT
             , MDFCN_DT
+            , DEPT_CD
         FROM
             JOB_GRADE
+        WHERE USE_YN = 'Y'
+        ORDER BY SORT_ORD
     </select>
 </mapper>

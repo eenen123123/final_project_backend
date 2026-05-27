@@ -5,6 +5,7 @@
   <title>직원 정보 및 계정 관리</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="/css/admin-core.css" />
   <style>
@@ -227,8 +228,9 @@
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
     <div class="flex items-center justify-between p-6 border-b border-slate-100">
       <h2 class="font-bold text-slate-800"><i class="fa-solid fa-user-plus mr-2 text-violet-500"></i>신규 직원 등록</h2>
-      <button onclick="closeModal('modal-new-emp')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      <button type="button" onclick="closeModal('modal-new-emp')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
     </div>
+    <form id="form-new-emp" action="/admin/employees" method="POST" enctype="multipart/form-data" onsubmit="return validateNewEmp()">
     <div class="p-6 space-y-5">
       <!-- 기본 정보 -->
       <div>
@@ -236,24 +238,48 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="text-xs text-slate-500 mb-1 block">이름 <span class="text-red-400">*</span></label>
-            <input type="text" class="hm-input" placeholder="홍길동" id="new-name" />
+            <input type="text" class="hm-input" placeholder="홍길동" id="new-name" name="userName" oninput="autoGenLoginId()" />
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">주민등록번호 <span class="text-red-400">*</span></label>
-            <input type="text" class="hm-input" placeholder="000000-0000000" id="new-rrn" maxlength="14" oninput="formatRrn(this)" />
+            <input type="text" class="hm-input" placeholder="000000-0000000" id="new-rrn" name="userEnrrno" maxlength="14" oninput="formatRrn(this); autoFillTempPw()" />
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">생년월일</label>
+            <input type="text" class="hm-input bg-slate-50" id="new-brdt" name="userBrdt" readonly />
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">성별</label>
+            <select class="hm-input" id="new-gndr" name="userGndrCd">
+              <option value="U">미확인</option>
+              <option value="M">남성</option>
+              <option value="F">여성</option>
+            </select>
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">연락처 <span class="text-red-400">*</span></label>
-            <input type="text" class="hm-input" placeholder="010-0000-0000" id="new-phone" oninput="formatPhone(this)" maxlength="13" />
+            <input type="text" class="hm-input" placeholder="010-0000-0000" id="new-phone" name="userTelno" oninput="formatPhone(this)" maxlength="13" />
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">이메일</label>
-            <input type="email" class="hm-input" placeholder="user@hermes.com" id="new-email" />
+            <input type="email" class="hm-input" placeholder="user@hermes.com" id="new-email" name="userEmailAddr" />
           </div>
-          <!-- USER_ZIP, USER_ADDR, USER_DADDR 3개 입력받게 수정-->
+          <div class="col-span-2 flex gap-2">
+            <div class="w-36">
+              <label class="text-xs text-slate-500 mb-1 block">우편번호</label>
+              <input type="text" class="hm-input" placeholder="00000" id="postcode" name="userZip" maxlength="5" readonly />
+            </div>
+            <div class="flex items-end">
+              <button type="button" onclick="searchZipCode()" class="hm-btn-primary text-xs px-3 py-2.5 whitespace-nowrap">우편번호 검색</button>
+            </div>
+          </div>
           <div class="col-span-2">
-            <label class="text-xs text-slate-500 mb-1 block">주소</label>
-            <input type="text" class="hm-input" placeholder="주소를 입력하세요" id="new-addr" />
+            <label class="text-xs text-slate-500 mb-1 block">기본 주소 <span class="text-red-400">*</span></label>
+            <input type="text" class="hm-input" placeholder="도로명 주소" id="address" name="userAddr" readonly />
+          </div>
+          <div class="col-span-2">
+            <label class="text-xs text-slate-500 mb-1 block">상세 주소</label>
+            <input type="text" class="hm-input" placeholder="상세 주소 (동/호수 등)" id="detailAddress" name="userDaddr" />
           </div>
         </div>
       </div>
@@ -264,36 +290,54 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="text-xs text-slate-500 mb-1 block">소속 부서 <span class="text-red-400">*</span></label>
-            <select class="hm-input" id="new-dept">
+            <select class="hm-input" id="new-dept" name="deptCd">
               <option value="">선택</option>
-              <option>PD팀</option><option>강사팀</option><option>행정팀</option>
+              <option th:each="dept : ${departmentlist}"
+                    th:value="${dept.deptCd}"
+                    th:text="${dept.deptNm}">
+              </option>
             </select>
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">직급 <span class="text-red-400">*</span></label>
-            <select class="hm-input" id="new-role">
+            <select class="hm-input" id="new-role" name="jbgrCd">
               <option value="">선택</option>
-              <option>매니저</option><option>강사</option><option>행정</option><option>PD</option>
+              <option th:each="jobGrade : ${jobgradelist}"
+                    th:value="${jobGrade.jbgrCd}"
+                    th:text="${jobGrade.jbgrNm}"
+                    th:data-dept="${jobGrade.deptCd}">
+              </option>
             </select>
           </div>
-          
           <div>
             <label class="text-xs text-slate-500 mb-1 block">입사일 <span class="text-red-400">*</span></label>
-            <input type="date" class="hm-input" id="new-entry-date" />
+            <input type="date" class="hm-input" id="new-entry-date" name="joinYmd" oninput="autoGenLoginId()" />
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">재직 상태 <span class="text-red-400">*</span></label>
+            <select class="hm-input" id="new-empl-stat" name="emplStatCd">
+              <option value="01">재직</option>
+              <option value="02">휴직</option>
+              <option value="03">퇴사</option>
+            </select>
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">근무 유형</label>
-            <select class="hm-input" id="new-work-type">
+            <select class="hm-input" id="new-work-type" name="workType">
               <option>정규직</option><option>계약직</option><option>파트타임</option>
             </select>
           </div>
           <div>
-            <label class="text-xs text-slate-500 mb-1 block">주간 근무시간</label>
-            <input type="number" class="hm-input" placeholder="40" id="new-hours" min="1" max="60" />
-          </div>
-          <div>
             <label class="text-xs text-slate-500 mb-1 block">급여 (만원)</label>
-            <input type="number" class="hm-input" placeholder="300" id="new-salary" />
+            <input type="number" class="hm-input" placeholder="300" id="new-salary" name="salary" />
+          </div>
+          <div class="col-span-2">
+            <label class="text-xs text-slate-500 mb-1 block">담당 업무</label>
+            <textarea class="hm-input resize-none" rows="2" placeholder="담당 업무 내용을 입력하세요" id="new-chrg-duty" name="chrgDutyCn"></textarea>
+          </div>
+          <div class="col-span-2">
+            <label class="text-xs text-slate-500 mb-1 block">프로필 사진</label>
+            <input type="file" class="hm-input py-1.5 text-xs" id="new-atch-file" name="userProfile" accept="image/*" />
           </div>
         </div>
       </div>
@@ -302,44 +346,29 @@
       <div class="bg-violet-50 border border-violet-200 rounded-xl p-4">
         <p class="text-xs font-bold text-violet-600 uppercase tracking-wider mb-3">시스템 계정 초기 설정</p>
         <div class="grid grid-cols-2 gap-3">
-          <div>
+          <div class="col-span-2">
             <label class="text-xs text-slate-500 mb-1 block">로그인 ID <span class="text-red-400">*</span></label>
-            <input type="text" class="hm-input" placeholder="loginid" id="new-login-id" />
+            <div class="relative">
+              <input type="text" class="hm-input pr-20 bg-slate-50 font-mono text-sm" id="new-login-id" name="userId" placeholder="이름·입사일 입력 시 자동 생성됩니다" readonly />
+              <button type="button" onclick="autoGenLoginId(true)" class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-violet-600 font-semibold hover:text-violet-800">재생성</button>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">입사년도 4자리 + 입사월 2자리 + 이름 영어 초성 + 일련번호 2자리</p>
           </div>
-          <div>
+          <div class="col-span-2">
             <label class="text-xs text-slate-500 mb-1 block">임시 비밀번호</label>
             <div class="relative">
-              <input type="text" class="hm-input pr-20 bg-slate-50" id="new-temp-pw" readonly value="Hermes@2026" />
-              <button onclick="genTempPw()" class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-violet-600 font-semibold hover:text-violet-800">재생성</button>
+              <input type="text" class="hm-input pr-28 bg-slate-50 font-mono" id="new-temp-pw" name="userEnpswd" readonly placeholder="주민등록번호 입력 시 자동 설정됩니다" />
+              <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-400">생년월일 앞 6자리</span>
             </div>
-          </div>
-        </div>
-        <div class="mt-3">
-          <p class="text-xs text-slate-500 mb-2">초기 접근 권한</p>
-          <div class="flex flex-wrap gap-2" id="new-perm-list">
-            <label class="flex items-center gap-1.5 text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 cursor-pointer hover:border-violet-400 transition-colors">
-              <input type="checkbox" class="accent-violet-600" /> 출결 관리
-            </label>
-            <label class="flex items-center gap-1.5 text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 cursor-pointer hover:border-violet-400 transition-colors">
-              <input type="checkbox" class="accent-violet-600" /> 원비 수납
-            </label>
-            <label class="flex items-center gap-1.5 text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 cursor-pointer hover:border-violet-400 transition-colors">
-              <input type="checkbox" class="accent-violet-600" /> 교재 물류
-            </label>
-            <label class="flex items-center gap-1.5 text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 cursor-pointer hover:border-violet-400 transition-colors">
-              <input type="checkbox" class="accent-violet-600" /> 지출 관리
-            </label>
-            <label class="flex items-center gap-1.5 text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 cursor-pointer hover:border-violet-400 transition-colors">
-              <input type="checkbox" class="accent-violet-600" /> 상담 기록
-            </label>
           </div>
         </div>
       </div>
     </div>
     <div class="flex gap-3 justify-end p-6 border-t border-slate-100">
-      <button onclick="closeModal('modal-new-emp')" class="text-sm text-slate-500 px-5 py-2.5 rounded-xl hover:bg-slate-100 font-semibold">취소</button>
-      <button onclick="saveNewEmp()" class="hm-btn-primary px-6 py-2.5">등록 완료</button>
+      <button type="button" onclick="closeModal('modal-new-emp')" class="text-sm text-slate-500 px-5 py-2.5 rounded-xl hover:bg-slate-100 font-semibold">취소</button>
+      <button type="submit" class="hm-btn-primary px-6 py-2.5">등록 완료</button>
     </div>
+    </form>
   </div>
 </div>
 
@@ -781,45 +810,121 @@ function executeDestroy() {
   showHermesToast('개인정보가 파기되었습니다.', 'success');
 }
 
-/* ─── 신규 직원 등록 저장 ─── */
-function saveNewEmp() {
-  const name = document.getElementById('new-name').value.trim();
-  const role = document.getElementById('new-role').value;
-  const dept = document.getElementById('new-dept').value;
-  const entry = document.getElementById('new-entry-date').value;
-  const loginId = document.getElementById('new-login-id').value.trim();
-  if (!name || !role || !dept || !entry || !loginId) {
-    showHermesToast('필수 항목을 모두 입력해주세요.', 'error'); return;
+/* ─── 한글 초성 → 영어 로마자 변환 ─── */
+function koreanInitialsToEng(name) {
+  const map = {
+    'ㄱ':'g','ㄲ':'kk','ㄴ':'n','ㄷ':'d','ㄸ':'tt',
+    'ㄹ':'r','ㅁ':'m','ㅂ':'b','ㅃ':'pp','ㅅ':'s',
+    'ㅆ':'ss','ㅇ':'y','ㅈ':'j','ㅉ':'jj','ㅊ':'ch',
+    'ㅋ':'k','ㅌ':'t','ㅍ':'p','ㅎ':'h'
+  };
+
+  const cho = [
+    'ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ',
+    'ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'
+  ];
+
+  let result = '';
+
+  for (const char of name) {
+    const code = char.charCodeAt(0) - 44032;
+
+    if (code >= 0 && code <= 11171) {
+      const choIndex = Math.floor(code / 588);
+      result += map[cho[choIndex]];
+    }
   }
-  employees.push({
-    id: employees.length + 1, name, role, dept, entry,
-    workType: document.getElementById('new-work-type').value,
-    hours: parseInt(document.getElementById('new-hours').value) || 40,
-    salary: parseInt(document.getElementById('new-salary').value) || 0,
-    phone: document.getElementById('new-phone').value,
-    email: document.getElementById('new-email').value,
-    addr: document.getElementById('new-addr').value,
-    status: '재직', loginId,
-    lastLogin: '-'
-  });
-  closeModal('modal-new-emp');
-  renderEmpCards(employees);
-  renderHrTable();
-  renderAcctList();
-  showHermesToast(name + ' 직원이 등록되었습니다.', 'success');
+
+  return result;
+}
+
+/* ─── 로그인 ID 자동 생성 ─── */
+function autoGenLoginId(force) {
+  const name  = document.getElementById('new-name').value.trim();
+  const entry = document.getElementById('new-entry-date').value;
+  const idEl  = document.getElementById('new-login-id');
+  if (!name || !entry) { if (force) showHermesToast('이름과 입사일을 먼저 입력해주세요.', 'error'); return; }
+  const year  = entry.slice(0, 4);
+  const month = entry.slice(5, 7);
+  const initials = koreanInitialsToEng(name);
+  const serial = String(employees.length + 1).padStart(2, '0');
+  idEl.value = year + month + initials + serial;
+}
+
+/* ─── 주민번호에서 생년월일·성별·임시비밀번호 자동 파생 ─── */
+function autoFillTempPw() {
+  const rrn = document.getElementById('new-rrn').value.replace(/\D/g, '');
+
+  // 임시 비밀번호: 생년월일 앞 6자리
+  document.getElementById('new-temp-pw').value = rrn.length >= 6 ? rrn.slice(0, 6) : '';
+
+  // 생년월일 파생 (7번째 자리로 세기 결정)
+  if (rrn.length >= 7) {
+    const genderDigit = parseInt(rrn[6]);
+    const century = (genderDigit === 3 || genderDigit === 4) ? '20' : '19';
+    const yy = rrn.slice(0, 2), mm = rrn.slice(2, 4), dd = rrn.slice(4, 6);
+    document.getElementById('new-brdt').value = century + yy + '-' + mm + '-' + dd;
+
+    // 성별 파생
+    const gndrMap = { 1: 'M', 2: 'F', 3: 'M', 4: 'F' };
+    document.getElementById('new-gndr').value = gndrMap[genderDigit] || 'U';
+  } else {
+    document.getElementById('new-brdt').value = '';
+    document.getElementById('new-gndr').value = 'U';
+  }
+}
+
+/* ─── 우편번호 검색 (Daum 우편번호 서비스 연동 준비) ─── */
+function searchZipCode() {
+  new daum.Postcode({
+      oncomplete: function(data) {
+          // 3. 사용자가 주소를 선택했을 때 실행되는 콜백 영역
+          
+          // 사용자가 도로명 주소를 선택했을 때와 지번 주소를 선택했을 때를 고려하여 변수를 설정한다.
+          let addr = ''; 
+          
+          if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우
+              addr = data.roadAddress;
+          } else { // 사용자가 지번 주소를 선택했을 경우
+              addr = data.jibunAddress;
+          }
+
+          // 4. 각각의 input 상자에 값을 매핑하여 넣어준다.
+          document.getElementById('postcode').value = data.zonecode; // 5자리 우편번호
+          document.getElementById("address").value = addr;           // 주소 정보
+          
+          // 주소 입력이 완료되면 상세주소 입력창으로 포커스를 이동시킨다.
+          document.getElementById("detailAddress").focus();
+      }
+  }).open(); // 팝업창을 연다.
+}
+
+/* ─── 신규 직원 등록 submit 전 유효성 검사 ─── */
+function validateNewEmp() {
+  const name    = document.getElementById('new-name').value.trim();
+  const rrn     = document.getElementById('new-rrn').value.trim();
+  const phone   = document.getElementById('new-phone').value.trim();
+  const dept    = document.getElementById('new-dept').value;
+  const role    = document.getElementById('new-role').value;
+  const entry   = document.getElementById('new-entry-date').value;
+  const loginId = document.getElementById('new-login-id').value.trim();
+  const addr    = document.getElementById('address').value.trim();
+
+  if (!name)    { showHermesToast('이름을 입력해주세요.', 'error'); return false; }
+  if (!rrn)     { showHermesToast('주민등록번호를 입력해주세요.', 'error'); return false; }
+  if (!phone)   { showHermesToast('연락처를 입력해주세요.', 'error'); return false; }
+  if (!addr)    { showHermesToast('기본 주소를 입력해주세요.', 'error'); return false; }
+  if (!dept)    { showHermesToast('소속 부서를 선택해주세요.', 'error'); return false; }
+  if (!role)    { showHermesToast('직급을 선택해주세요.', 'error'); return false; }
+  if (!entry)   { showHermesToast('입사일을 입력해주세요.', 'error'); return false; }
+  if (!loginId) { showHermesToast('로그인 ID가 생성되지 않았습니다.', 'error'); return false; }
+
+  return true;
 }
 
 /* ─── 비밀번호 재설정 ─── */
 function resetPw(id, name) {
   showHermesToast(name + '에게 임시 비밀번호가 발급되었습니다.', 'success');
-}
-
-/* ─── 임시 비밀번호 생성 ─── */
-function genTempPw() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$!';
-  let pw = 'Hermes@';
-  for (let i = 0; i < 5; i++) pw += chars[Math.floor(Math.random() * chars.length)];
-  document.getElementById('new-temp-pw').value = pw;
 }
 
 /* ─── 입력 포맷 ─── */
@@ -855,6 +960,30 @@ document.querySelectorAll('[id^="modal-"]').forEach(m => {
   const firstBtn = document.querySelector('.emp-tab-btn[data-tab="emp-tab-list"]');
   if (firstBtn) switchEmpTab('emp-tab-list', firstBtn);
 })();
+
+// 사용자가 부서를 바꿨을 때 직급을 필터링하는 자바스크립트 로직
+document.getElementById('new-dept').addEventListener('change', function() {
+    const selectedDept = this.value;
+    const roleSelect = document.getElementById('new-role');
+    const roleOptions = roleSelect.querySelectorAll('option');
+
+    roleSelect.value = ""; // 초기화
+
+    roleOptions.forEach(option => {
+        if (option.value === "") {
+            option.style.display = "block";
+            return;
+        }
+
+        const targetDept = option.getAttribute('data-dept');
+
+        if (selectedDept === targetDept) {
+            option.style.display = "block";
+        } else {
+            option.style.display = "none";
+        }
+    });
+});
 </script>
 
 </body>

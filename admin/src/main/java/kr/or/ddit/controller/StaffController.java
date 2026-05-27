@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import kr.or.ddit.finalProject.dto.employee.DepartmentDto;
@@ -63,13 +64,14 @@ public class StaffController {
      * 직원 정보 및 계정 관리
      */
     @GetMapping("/employees")
-    public String getEmployees() {
+    public String getEmployees(Model model) {
         log.info("getEmployees()");
+
         List<DepartmentDto> departmentlist = staffMapper.selectDepartmentList();
         List<JobGradeDto> jobgradelist = staffMapper.selectJobGradeList();
 
-        log.info("departmentlist : {}", departmentlist);
-        log.info("jobgradelist : {}", jobgradelist);
+        model.addAttribute("departmentlist", departmentlist);
+        model.addAttribute("jobgradelist", jobgradelist);
 
         return "admin:/staff/employees";
     }

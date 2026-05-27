@@ -24,4 +24,5 @@ public class JobGradeDto implements Serializable {
     private String lastMdfrId;
     private LocalDateTime regDt;
     private LocalDateTime mdfcnDt;
+    private String deptCd;
 }
