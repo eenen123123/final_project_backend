@@ -100,5 +100,66 @@ body {
   background-color: var(--color-brand-primary);
 }
 .hm-switch:checked::before {
-  transform: translateX(1.25rem);
+    transform: translateX(1.25rem);
+}
+
+/* ==========================================================================
+   4. 특정 UI 컴포넌트 디자인 시스템
+   ========================================================================== */
+/* hm-btn-primary 색상 변형 */
+
+/* 강사 색상 */
+.hm-input-sky {
+    border-color: #0ea5e9;
+}
+.hm-btn-sky {
+    background-color: #0ea5e9;
+}
+.hm-btn-sky:hover {
+    background-color: #0284c7;
+}
+.hm-switch-sky:checked {
+    background-color: #0ea5e9;
+}
+
+/* 행정팀장(실장) 색상 */
+.hm-input-emerald {
+    border-color: #10b981;
+}
+.hm-btn-emerald {
+    background-color: #10b981;
+}
+.hm-btn-emerald:hover {
+    background-color: #059669;
+}
+.hm-switch-emerald:checked {
+    background-color: #10b981;
+}
+
+/* pd 색상 */
+.hm-input-orange {
+    border-color: #f97316;
+}
+.hm-btn-orange {
+    background-color: #f97316;
+}
+.hm-btn-orange:hover {
+    background-color: #ea580c;
+}
+.hm-switch-orange:checked {
+    background-color: #f97316;
+}
+
+/* 행정 색상 */
+.hm-input-blue {
+    border-color: #3b82f6;
+}
+.hm-btn-blue {
+    background-color: #3b82f6;
+}
+.hm-btn-blue:hover {
+    background-color: #2563eb;
+}
+.hm-switch-blue:checked {
+    background-color: #3b82f6;
 }
