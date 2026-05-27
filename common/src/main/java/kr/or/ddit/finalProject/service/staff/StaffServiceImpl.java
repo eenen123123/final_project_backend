@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import kr.or.ddit.finalProject.dto.employee.DepartmentDto;
+import kr.or.ddit.finalProject.dto.employee.EmployeeDetailDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto;
 import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
@@ -51,6 +52,12 @@ public class StaffServiceImpl implements StaffService{
     @Transactional(rollbackFor = Exception.class)
     public void saveEmployeeSalary(EmployeeSalaryDto employeeSalaryDto) {
         staffMapper.insertEmployeeSalary(employeeSalaryDto);
+    }
+
+    // 직원 리스트 조회
+    @Override
+    public List<EmployeeDetailDto> retrieveEmployeeList() {
+        return staffMapper.selectEmployeeList();
     }
 
 }
