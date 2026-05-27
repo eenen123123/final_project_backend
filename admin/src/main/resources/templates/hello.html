@@ -19,28 +19,32 @@
       <button type="submit">Upload File</button>
     </form>
   </div>
+  <!-- 
+    private Integer atchFileDtlSn; // 첨부파일 상세 ID PK sequence
+    private Integer atchFileId; // 첨부파일 ID
+    private String orgnFileNm; // 원본 파일명
+    private String savePathNm; // 저장 경로
+    private String saveFileNm; // 저장 파일명
+    private String fileExtNm; // 파일 확장자
+    private Long fileSizeCnt; // 파일 사이즈
+    private String fileCn; // 파일 내용
+    private String regDt; // 최초 등록 시점
+    private String rgtrId; // 최초 등록자 ID 
+    private String delYn; // 삭제 여부
+    private String delDt; // 삭제 시점
+    private String delUserId; // 삭제자 ID
+    private Integer dwnldCnt; // 다운로드 횟수  
 
+-->
   <div th:if="${fileResponse != null}">
-    <h2>Uploaded File Details:</h2>
-    <p th:text="'ID: ' + ${fileResponse.id}">ID:</p>
-    <p th:text="'Original Filename: ' + ${fileResponse.originalFilename}">
+    <h2>업로드된 파일 정보</h2>
+    <p th:text="'Original Filename: ' + ${fileResponse.orgnFileNm}">
       Original Filename:
     </p>
-    <p th:text="'Content Type: ' + ${fileResponse.contentType}">
-      Content Type:
-    </p>
-    <p th:text="'File Type: ' + ${fileResponse.fileType}">File Type:</p>
-    <p th:text="'File Size: ' + ${fileResponse.fileSize} + ' bytes'">
+    <p th:text="'Saved Path: ' + ${fileResponse.savePathNm}">Saved Path:</p>
+    <p th:text="'File Size: ' + ${fileResponse.fileSizeCnt} + ' bytes'">
       File Size:
     </p>
-    <p th:text="'URL: ' + ${fileResponse.url}">URL:</p>
-    <p th:text="'View URL: ' + ${fileResponse.viewUrl}">View URL:</p>
-    <p th:text="'Download URL: ' + ${fileResponse.downloadUrl}">
-      Download URL:
-    </p>
-    <p th:text="'Uploaded By: ' + ${fileResponse.uploadedBy}">Uploaded By:</p>
-
-    <p th:text="'Uploaded At: ' + ${fileResponse.uploadedAt}">Uploaded At:</p>
   </div>
 
   <div>

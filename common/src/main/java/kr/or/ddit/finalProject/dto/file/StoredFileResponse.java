@@ -36,14 +36,14 @@ import java.time.LocalDateTime;
  */
 
 public record StoredFileResponse(Long id, // 파일 ID
-                String originalFilename, // 원본 파일 이름
-                String contentType, // 파일의 MIME 타입 (예: image/png, application/pdf 등)
-                String fileType, // 파일 유형 (예: IMAGE, DOCUMENT 등)
-                Long fileSize, // 파일 크기 (바이트 단위)
-                String url, // 파일 접근 URL
-                String viewUrl, // 파일 뷰어 URL
-                String downloadUrl, // 파일 다운로드 URL
-                String uploadedBy, // 업로드한 사용자
-                LocalDateTime uploadedAt // 업로드 시각
+        String originalFilename, // 원본 파일 이름
+        String contentType, // 파일의 MIME 타입 (예: image/png, application/pdf 등)
+        String fileType, // 파일 유형 (예: IMAGE, DOCUMENT 등)
+        Long fileSize, // 파일 크기 (바이트 단위)
+        String url, // 파일 접근 URL
+        String viewUrl, // 파일 뷰어 URL
+        String downloadUrl, // 파일 다운로드 URL
+        String uploadedBy, // 업로드한 사용자
+        LocalDateTime uploadedAt // 업로드 시각
 ) {
 }

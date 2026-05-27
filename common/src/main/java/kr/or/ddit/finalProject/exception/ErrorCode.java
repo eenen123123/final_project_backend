@@ -50,6 +50,10 @@ public enum ErrorCode {
 
     CANT_ACCESS_FILE(HttpStatus.INTERNAL_SERVER_ERROR, "파일에 접근할 수 없습니다."),
 
+    FILE_INFO_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 정보 저장에 실패했습니다."),
+
+    FILE_TYPE_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "PDF, 이미지, 동영상, Zip 파일만 업로드할 수 있습니다."),
+
     // 결제 관련
 
     // KAKAO
