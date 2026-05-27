@@ -1,5 +1,6 @@
 package kr.or.ddit.controller;
 
+import org.springframework.security.core.Authentication;
 import java.util.List;
 
 import org.springframework.stereotype.Controller;
@@ -40,15 +41,16 @@ public class CustomerServiceController {
 
     // ── FAQ ──────────────────────────────
     @GetMapping("/faq/write")
-    public String faqWriteForm(Model model) {
+    public String faqWriteForm(Model model, Authentication authentication) {
         model.addAttribute("pageTitle", "FAQ 등록 | HERMES");
+        model.addAttribute("currentUser", authentication.getName());
         return "admin:/board/faq/faq_write";
     }
 
     @PostMapping("/faq/write")
     public String faqWrite(FaqDto faqDto) {
         faqService.createFaq(faqDto);
-        return "redirect:/admin/board/customer-service";
+        return "redirect:/admin/board/customer-service?tab=tab-faq";
     }
 
     @GetMapping("/faq/edit/{postSn}")
@@ -62,26 +64,27 @@ public class CustomerServiceController {
     public String faqEdit(@PathVariable Long postSn, FaqDto faqDto) {
         faqDto.setPostSn(postSn);
         faqService.updateFaq(faqDto);
-        return "redirect:/admin/board/customer-service";
+        return "redirect:/admin/board/customer-service?tab=tab-faq";
     }
 
     @PostMapping("/faq/delete/{postSn}")
     public String faqDelete(@PathVariable Long postSn) {
         faqService.deleteFaq(postSn);
-        return "redirect:/admin/board/customer-service";
+        return "redirect:/admin/board/customer-service?tab=tab-faq";
     }
 
     // ── 공지사항 ─────────────────────────
     @GetMapping("/notice/write")
-    public String noticeWriteForm(Model model) {
+    public String noticeWriteForm(Model model, Authentication authentication) {
         model.addAttribute("pageTitle", "공지사항 등록 | HERMES");
+        model.addAttribute("currentUser", authentication.getName());
         return "admin:/board/notice/notice_write";
     }
 
     @PostMapping("/notice/write")
     public String noticeWrite(NoticeDto noticeDto) {
         noticeService.createNotice(noticeDto);
-        return "redirect:/admin/board/customer-service";
+        return "redirect:/admin/board/customer-service?tab=tab-notice";
     }
 
     @GetMapping("/notice/edit/{postSn}")
@@ -95,13 +98,13 @@ public class CustomerServiceController {
     public String noticeEdit(@PathVariable Long postSn, NoticeDto noticeDto) {
         noticeDto.setPostSn(postSn);
         noticeService.updateNotice(noticeDto);
-        return "redirect:/admin/board/customer-service";
+        return "redirect:/admin/board/customer-service?tab=tab-notice";
     }
 
     @PostMapping("/notice/delete/{postSn}")
     public String noticeDelete(@PathVariable Long postSn) {
         noticeService.deleteNotice(postSn);
-        return "redirect:/admin/board/customer-service";
+        return "redirect:/admin/board/customer-service?tab=tab-notice";
     }
 
     // ── QnA ──────────────────────────────
@@ -116,12 +119,12 @@ public class CustomerServiceController {
     public String qnaAnswer(@PathVariable Long postSn, QnaDto qnaDto) {
         qnaDto.setPostSn(postSn);
         qnaService.answerQna(qnaDto);
-        return "redirect:/admin/board/customer-service";
+        return "redirect:/admin/board/customer-service?tab=tab-qna";
     }
 
     @PostMapping("/qna/delete/{postSn}")
     public String qnaDelete(@PathVariable Long postSn) {
         qnaService.deleteQna(postSn);
-        return "redirect:/admin/board/customer-service";
+        return "redirect:/admin/board/customer-service?tab=tab-qna";
     }
 }
