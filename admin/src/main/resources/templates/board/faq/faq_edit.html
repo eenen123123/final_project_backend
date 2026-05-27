@@ -82,7 +82,7 @@
 
       <!-- 버튼 -->
       <div class="flex justify-center gap-3">
-        <a href="/admin/board/faq"
+        <a href="/admin/board/customer-service"
            class="px-6 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
           취소
         </a>
@@ -98,28 +98,29 @@
   <input type="hidden" id="currentSubCtg" th:value="${faq.faqSubCtgCd}" />
 </div>
 
+
 <script>
-const SUB_CATEGORIES = {
-  '01': [['01','수강신청'],['02','수강기간'],['03','교재'],['04','환불/취소']],
-  '02': [['05','결제수단'],['06','영수증'],['07','쿠폰/포인트']],
-  '03': [['08','기기등록'],['09','앱설치'],['10','오류']],
-  '04': [['11','플레이어 기능'],['12','플레이어 설치'],['13','플레이어 재생']],
-  '05': [['14','주문'],['15','배송'],['16','반품/교환']],
-};
+  const SUB_CATEGORIES = {
+    '01': [{ val: '01', label: '수강신청' }, { val: '02', label: '수강기간' }, { val: '03', label: '교재' }, { val: '04', label: '환불/취소' }],
+    '02': [{ val: '05', label: '결제수단' }, { val: '06', label: '영수증' }, { val: '07', label: '쿠폰/포인트' }],
+    '03': [{ val: '08', label: '기기등록' }, { val: '09', label: '앱설치' }, { val: '10', label: '오류' }],
+    '04': [{ val: '11', label: '플레이어 기능' }, { val: '12', label: '플레이어 설치' }, { val: '13', label: '플레이어 재생' }],
+    '05': [{ val: '14', label: '주문' }, { val: '15', label: '배송' }, { val: '16', label: '반품/교환' }],
+  };
 
-function updateSubCtg() {
-  const ctg        = document.getElementById('faqCtgCd').value;
-  const subSel     = document.getElementById('faqSubCtgCd');
-  const currentSub = document.getElementById('currentSubCtg').value;
-  subSel.innerHTML = '';
-  (SUB_CATEGORIES[ctg] || []).forEach(([val, label]) => {
-    const opt = document.createElement('option');
-    opt.value = val;
-    opt.textContent = label;
-    if (val === currentSub) opt.selected = true;
-    subSel.appendChild(opt);
-  });
-}
+  function updateSubCtg() {
+    const ctg = document.getElementById('faqCtgCd').value;
+    const subSel = document.getElementById('faqSubCtgCd');
+    const currentSub = document.getElementById('currentSubCtg').value;
+    subSel.innerHTML = '';
+    (SUB_CATEGORIES[ctg] || []).forEach(({ val, label }) => {
+      const opt = document.createElement('option');
+      opt.value = val;
+      opt.textContent = label;
+      if (val === currentSub) opt.selected = true;
+      subSel.appendChild(opt);
+    });
+  }
 
-updateSubCtg();
+  updateSubCtg();
 </script>
