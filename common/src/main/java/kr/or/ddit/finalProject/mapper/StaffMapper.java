@@ -26,4 +26,7 @@ public interface StaffMapper {
 
     // 직원 급여 정보 저장
     void insertEmployeeSalary(EmployeeSalaryDto employeeSalary);
+
+    // 직원 리스트 조회
+    // List<Employee
 }

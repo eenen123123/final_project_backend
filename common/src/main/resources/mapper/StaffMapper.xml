@@ -47,21 +47,43 @@
 
     <insert id="insertEmployeeInfo" parameterType="kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto">
         INSERT INTO EMPLOYEE_INFO (
-            USER_ID, DEPT_CD, JBGR_CD, JOIN_YMD, RETMT_YMD, EMPL_STAT_CD, 
-            ATCH_FILE_ID, CHRG_DUTY_CN, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
+            USER_ID
+            , DEPT_CD
+            , JBGR_CD
+            , JOIN_YMD
+            , RETMT_YMD
+            , EMPL_STAT_CD
+            , ATCH_FILE_ID
+            , CHRG_DUTY_CN
+            , RGTR_ID
+            , LAST_MDFR_ID
+            , REG_DT
+            , MDFCN_DT
+            , EMPT_TYPE_CD
+            , CTRCT_END_YMD
         ) VALUES (
-            #{userId, jdbcType=VARCHAR}, 
-            #{deptCd, jdbcType=CHAR}, 
-            #{jbgrCd, jdbcType=CHAR}, 
-            #{joinYmd, jdbcType=TIMESTAMP}, 
-            #{retmtYmd, jdbcType=TIMESTAMP}, 
-            #{emplStatCd, jdbcType=CHAR}, 
-            #{atchFileId, jdbcType=VARCHAR}, 
-            #{chrgDutyCn, jdbcType=VARCHAR}, 
-            #{rgtrId, jdbcType=VARCHAR}, 
-            #{lastMdfrId, jdbcType=VARCHAR}, 
-            SYSTIMESTAMP, 
-            SYSTIMESTAMP
+            #{userId, jdbcType=VARCHAR}
+            , #{deptCd, jdbcType=CHAR}
+            , #{jbgrCd, jdbcType=CHAR}
+            , TO_DATE(SUBSTR(#{joinYmd, jdbcType=VARCHAR}, 1, 10), 'YYYY-MM-DD')
+            , TO_DATE(SUBSTR(#{retmtYmd, jdbcType=VARCHAR}, 1, 10), 'YYYY-MM-DD')
+            , #{emplStatCd, jdbcType=CHAR}
+            , #{atchFileId, jdbcType=VARCHAR}
+            , #{chrgDutyCn, jdbcType=VARCHAR}
+            , #{rgtrId, jdbcType=VARCHAR}
+            , #{lastMdfrId, jdbcType=VARCHAR}
+            , SYSTIMESTAMP
+            , SYSTIMESTAMP
+            , #{emptTypeCd, jdbcType=CHAR}
+            
+            <choose>
+                <when test="ctrctEndYmd != null and ctrctEndYmd != ''">
+                    , TO_DATE(SUBSTR(#{ctrctEndYmd, jdbcType=VARCHAR}, 1, 10), 'YYYY-MM-DD')
+                </when>
+                <otherwise>
+                    , NULL
+                </otherwise>
+            </choose>
         )
     </insert>
 

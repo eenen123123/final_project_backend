@@ -323,9 +323,15 @@
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">근무 유형</label>
-            <select class="hm-input" id="new-work-type" name="workType">
-              <option>정규직</option><option>계약직</option><option>파트타임</option>
+            <select class="hm-input" id="new-work-type" name="emptTypeCd" onchange="toggleContractPeriod(this.value)">
+              <option value="01">정규직</option>
+              <option value="02">계약직</option>
+              <option value="03">파트타임</option>
             </select>
+          </div>
+          <div id="contract-period-wrap" class="col-span-2 hidden">
+            <label class="text-xs text-slate-500 mb-1 block">계약 종료일 <span class="text-red-400">*</span></label>
+            <input type="date" class="hm-input" id="new-contract-end" name="ctrctEndYmd" />
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">급여 (만원)</label>
@@ -850,6 +856,16 @@ function autoGenLoginId(force) {
   const initials = koreanInitialsToEng(name);
   const serial = String(employees.length + 1).padStart(2, '0');
   idEl.value = year + month + initials + serial;
+}
+
+/* ─── 계약 기간 필드 show/hide ─── */
+function toggleContractPeriod(val) {
+  const wrap = document.getElementById('contract-period-wrap');
+  const end  = document.getElementById('new-contract-end');
+  const show = (val === '02' || val === '03');
+  wrap.classList.toggle('hidden', !show);
+  end.required = show;
+  if (!show) end.value = '';
 }
 
 /* ─── 주민번호에서 생년월일·성별·임시비밀번호 자동 파생 ─── */

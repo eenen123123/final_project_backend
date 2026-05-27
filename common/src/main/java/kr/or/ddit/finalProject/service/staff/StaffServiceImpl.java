@@ -34,18 +34,21 @@ public class StaffServiceImpl implements StaffService{
 
     // 직원 등록
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void registerEmployee(MemberDto memberDto) {
         staffMapper.insertEmployee(memberDto);
     }
 
     // 직원 정보 저장
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void saveEmployeeInfo(EmployeeInfoDto employeeInfoDto) {
         staffMapper.insertEmployeeInfo(employeeInfoDto);
     }
 
     // 직원 급여 정보 저장
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void saveEmployeeSalary(EmployeeSalaryDto employeeSalaryDto) {
         staffMapper.insertEmployeeSalary(employeeSalaryDto);
     }
