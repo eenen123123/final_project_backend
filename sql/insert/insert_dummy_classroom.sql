@@ -13,15 +13,15 @@ insert into classroom (
    reg_dt,
    last_mdfr_id,
    mdfcn_dt
-) values ( 'testinstructor01',
+) values ( 'testuser04',
            2,
            'Java 기초 1기반',
            '20250301',
            '20250831',
            'Y',
-           'testinstructor01',
+           'testuser04',
            sysdate,
-           'testinstructor01',
+           'testuser04',
            sysdate );
 
 -- Java 기초 2기반
@@ -94,7 +94,7 @@ insert into classroom_member (
    last_mdfr_id,
    mdfcn_dt
 ) values ( seq_classroom_member.nextval,
-           4,
+           21,
            'testuser10',
            '01',
            'testinstructor01',
@@ -112,7 +112,7 @@ insert into classroom_member (
    last_mdfr_id,
    mdfcn_dt
 ) values ( seq_classroom_member.nextval,
-           4,
+           21,
            'testuser16',
            '01',
            'testinstructor01',
@@ -130,7 +130,7 @@ insert into classroom_member (
    last_mdfr_id,
    mdfcn_dt
 ) values ( seq_classroom_member.nextval,
-           4,
+           21,
            'testuser22',
            '02',
            'testinstructor01',
