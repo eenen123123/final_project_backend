@@ -215,11 +215,15 @@
         INSERT INTO MESSAGE_CONTENT (
             ROOM_SN,
             SENDR_USER_ID,
-            MSG_CN
+            MSG_TYPE_CD,
+            MSG_CN,
+            ATCH_FILE_ID
         ) VALUES (
             #{roomSn},
             #{sendrUserId},
-            #{msgCn}
+            COALESCE(#{msgTypeCd}, '01'),
+            #{msgCn},
+            #{atchFileId, jdbcType=VARCHAR}<!-- null 전달 시 Oracle이 JdbcType=OTHER를 거부(ORA-17004)하므로 명시 필요 -->
         )
     </insert>
 
@@ -230,10 +234,11 @@
             left join member_role mr on mrm.user_role_cd = mr.user_role_cd
             where mrm.user_id = mc.sendr_user_id
                   and mrm.user_role_cd != 'ROLE_ADMIN'
-        ) as sender_role_name, m.user_name as user_name
+        ) as sender_role_name, m.user_name as user_name,
+        cad.ORGN_FILE_NM as file_nm
         FROM MESSAGE_CONTENT mc
         left join member m on mc.sendr_user_id = m.user_id
-        
+        left join CMMT_ATCH_FILE_DTL cad on cad.ATCH_FILE_DTL_SN = TO_NUMBER(mc.ATCH_FILE_ID)
 
         WHERE mc.ROOM_SN = #{roomSn}
         ORDER BY mc.MSG_SN desc

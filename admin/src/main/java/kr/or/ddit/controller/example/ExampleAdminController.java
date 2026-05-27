@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.or.ddit.finalProject.dto.example.ExampleDto;
+import kr.or.ddit.finalProject.dto.file.FileDto;
 import kr.or.ddit.finalProject.dto.file.StoredFileResponse;
 import kr.or.ddit.finalProject.dto.user.UserDto;
 import kr.or.ddit.finalProject.mapper.TestMapper;
@@ -53,10 +54,11 @@ public class ExampleAdminController {
 
     @PostMapping
     public String postMethodName(@RequestParam MultipartFile file,
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes, Authentication authentication) {
 
         log.info("Received file: {}", file.getOriginalFilename());
-        StoredFileResponse response = fileUploadService.uploadFile(file);
+        String userId = authentication.getName();
+        FileDto response = fileUploadService.uploadFile(file, userId);
         log.info("File uploaded successfully: {}", response);
         redirectAttributes.addFlashAttribute("fileResponse", response);
 

@@ -122,9 +122,13 @@
             ></span>
             <div
               class="chat-bubble-mine px-4 py-2.5 text-sm max-w-xs lg:max-w-sm break-words"
-              th:text="${msg.msgCn}"
             >
-              메시지 내용
+              <span th:if="${msg.msgTypeCd == null or msg.msgTypeCd == '01'}" th:text="${msg.msgCn}"></span>
+              <a th:if="${msg.msgTypeCd == '02'}" th:href="${msg.msgCn}" target="_blank"><img th:src="${msg.msgCn}" class="max-w-full rounded-lg block" loading="lazy" /></a>
+              <a th:if="${msg.msgTypeCd == '03'}" th:href="${msg.msgCn}" target="_blank" class="flex items-center gap-2 hover:underline">
+                <i class="fa-solid fa-file text-sm shrink-0"></i>
+                <span th:text="${msg.fileNm != null ? msg.fileNm : msg.msgCn}" class="truncate"></span>
+              </a>
             </div>
           </div>
         </div>
@@ -155,9 +159,13 @@
           <div class="flex items-end gap-2">
             <div
               class="chat-bubble-other px-4 py-2.5 text-sm max-w-xs lg:max-w-sm break-words"
-              th:text="${msg.msgCn}"
             >
-              메시지 내용
+              <span th:if="${msg.msgTypeCd == null or msg.msgTypeCd == '01'}" th:text="${msg.msgCn}"></span>
+              <a th:if="${msg.msgTypeCd == '02'}" th:href="${msg.msgCn}" target="_blank"><img th:src="${msg.msgCn}" class="max-w-full rounded-lg block" loading="lazy" /></a>
+              <a th:if="${msg.msgTypeCd == '03'}" th:href="${msg.msgCn}" target="_blank" class="flex items-center gap-2 hover:underline">
+                <i class="fa-solid fa-file text-sm shrink-0"></i>
+                <span th:text="${msg.fileNm != null ? msg.fileNm : msg.msgCn}" class="truncate"></span>
+              </a>
             </div>
             <span
               class="text-[10px] text-slate-400 mb-0.5"
@@ -170,9 +178,41 @@
 
     <!-- 메시지 입력창 -->
     <div class="px-4 py-3 border-t border-slate-100 bg-slate-50/50 shrink-0">
+      <!-- 선택된 파일 정보 -->
+      <div
+        id="filePreview"
+        class="hidden items-center gap-2 mb-2 px-3 py-2 bg-violet-50 border border-violet-200 rounded-xl text-xs"
+      >
+        <i class="fa-solid fa-file text-violet-400 shrink-0"></i>
+        <div class="flex-1 min-w-0">
+          <p
+            id="filePreviewName"
+            class="font-semibold text-slate-700 truncate"
+          ></p>
+          <p id="filePreviewSize" class="text-slate-400"></p>
+        </div>
+        <button
+          type="button"
+          onclick="clearFileSelection()"
+          class="cursor-pointer shrink-0 text-slate-400 hover:text-rose-500 transition-colors p-0.5"
+          title="첨부 취소"
+        >
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
       <div
         class="flex items-center gap-2 bg-white rounded-xl border border-slate-200 px-3 py-2 focus-within:border-violet-400 transition-colors"
       >
+        <input type="file" id="fileInput" class="hidden"
+          accept="image/*,application/pdf,video/mp4,video/webm,video/ogg,application/zip,application/x-zip-compressed" />
+        <button
+          type="button"
+          onclick="document.getElementById('fileInput').click()"
+          class="cursor-pointer shrink-0 w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-500 flex items-center justify-center transition-colors"
+          title="파일 첨부"
+        >
+          <i class="fa-solid fa-paperclip text-xs"></i>
+        </button>
         <textarea
           id="messageInput"
           rows="1"
@@ -180,7 +220,8 @@
           class="flex-1 resize-none text-sm text-slate-800 placeholder-slate-400 outline-none bg-transparent max-h-28 overflow-y-auto leading-relaxed py-1"
         ></textarea>
         <button
-          onclick="sendMessage()"
+          data-send
+          onclick="isFileSelected ? uploadAndSendFile() : sendMessage()"
           class="cursor-pointer shrink-0 w-8 h-8 rounded-lg bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white flex items-center justify-center transition-colors"
         >
           <i class="fa-solid fa-paper-plane text-xs"></i>
