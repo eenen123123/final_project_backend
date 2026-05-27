@@ -53,6 +53,12 @@
         FROM MEMBER m
         WHERE m.USER_ID = #{userId}
     </select>
+    <select id="findAdminByUserId" parameterType="string" resultType="kr.or.ddit.finalProject.dto.member.AdminMemberDto">
+        SELECT
+            m.*
+        FROM MEMBER m
+        WHERE m.USER_ID = #{userId}
+    </select>
 
     <insert id="insertMember" parameterType="kr.or.ddit.finalProject.dto.member.MemberDto" useGeneratedKeys="true" keyProperty="userId" keyColumn="USER_ID">
         INSERT INTO MEMBER (USER_ID, USER_ENPSWD, USER_NAME)
