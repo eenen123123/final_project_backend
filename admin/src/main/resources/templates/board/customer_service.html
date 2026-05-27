@@ -24,34 +24,38 @@
       </button>
     </div>
 
-    <!-- ══ FAQ 탭 ══ -->
-    <div id="tab-faq" class="cs-tab-panel active p-6">
-      <div class="flex justify-between items-center mb-4">
-        <div class="flex gap-3">
-          <select id="faq-filter-ctg" onchange="filterFaq()" class="hm-input w-36">
-            <option value="">전체 대분류</option>
-            <option value="01">강의/교재</option>
-            <option value="02">결제</option>
-            <option value="03">학습기기</option>
-            <option value="04">동영상</option>
-            <option value="05">도서</option>
-          </select>
-          <div class="relative">
-            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-            <input type="text" id="faq-search" placeholder="제목 검색..." class="hm-input pl-10 w-56" oninput="filterFaq()" />
-          </div>
+  <!-- ══ FAQ 탭 ══ -->
+  <div id="tab-faq" class="cs-tab-panel active p-6">
+    <div class="flex justify-between items-center mb-4">
+      <div class="flex gap-3">
+        <select id="faq-filter-ctg" onchange="filterFaq()" class="hm-input w-36">
+          <option value="">전체 대분류</option>
+          <option value="01">강의/교재</option>
+          <option value="02">결제</option>
+          <option value="03">학습기기</option>
+          <option value="04">동영상</option>
+          <option value="05">도서</option>
+        </select>
+        <div class="relative">
+          <input type="text" id="faq-search" placeholder="제목 검색..." class="hm-input pr-9" style="width: 300px;"
+            onkeydown="if(event.key==='Enter') filterFaq()" />
+          <button onclick="filterFaq()"
+            class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 transition-colors">
+            <i class="fa-solid fa-magnifying-glass text-sm"></i>
+          </button>
         </div>
-        <a href="/admin/board/faq/write" class="hm-btn-primary text-sm">
-          <i class="fa-solid fa-plus mr-1"></i>FAQ 등록
-        </a>
-      </div>
+      </div> 
+      <a href="/admin/board/faq/write" class="hm-btn-primary text-sm">
+        <i class="fa-solid fa-plus mr-1"></i>FAQ 등록
+      </a>
+    </div> 
 
       <div class="overflow-x-auto rounded-xl border border-slate-100">
         <table class="w-full text-sm">
           <thead>
             <tr class="bg-slate-50 text-slate-500 text-xs">
               <th class="text-center py-3 px-4 font-semibold w-16">번호</th>
-              <th class="text-center py-3 px-4 font-semibold w-24">대분류</th>
+              <th class="text-center py-3 px-4 font-semibold w-32">대분류</th>
               <th class="text-center py-3 px-4 font-semibold w-28">중분류</th>
               <th class="text-left py-3 px-4 font-semibold">제목</th>
               <th class="text-center py-3 px-4 font-semibold w-16">BEST</th>
@@ -76,12 +80,15 @@
               </td>
               <td class="py-3 px-4 text-center text-xs text-slate-400"
                   th:text="${#temporals.format(faq.regDt, 'yyyy-MM-dd')}"></td>
+
+              <!--수정/삭제 버튼  -->
               <td class="py-3 px-4 text-center">
                 <div class="flex items-center justify-center gap-2">
                   <a th:href="@{/admin/board/faq/edit/{postSn}(postSn=${faq.postSn})}"
-                     class="text-xs text-violet-600 font-semibold hover:underline">수정</a>
+                    class="text-xs text-violet-600 font-semibold hover:underline">수정</a>
+                  <span class="text-slate-300 text-xs">|</span>
                   <form th:action="@{/admin/board/faq/delete/{postSn}(postSn=${faq.postSn})}" method="post"
-                        onsubmit="return confirm('삭제하시겠습니까?')">
+                    onsubmit="return confirm('삭제하시겠습니까?')" class="m-0 p-0 flex">
                     <button type="submit" class="text-xs text-red-500 font-semibold hover:underline">삭제</button>
                   </form>
                 </div>
@@ -106,14 +113,18 @@
             <option value="03">점검</option>
           </select>
           <div class="relative">
-            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-            <input type="text" id="notice-search" placeholder="제목 검색..." class="hm-input pl-10 w-56" oninput="filterNotice()" />
+            <input type="text" id="notice-search" placeholder="제목 검색..." class="hm-input pr-9" style="width: 300px;"
+              onkeydown="if(event.key==='Enter') filterNotice()" />
+            <button onclick="filterNotice()"
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 transition-colors">
+              <i class="fa-solid fa-magnifying-glass text-sm"></i>
+            </button>
           </div>
-        </div>
+        </div> 
         <a href="/admin/board/notice/write" class="hm-btn-primary text-sm">
           <i class="fa-solid fa-plus mr-1"></i>공지사항 등록
         </a>
-      </div>
+      </div> 
 
       <div class="overflow-x-auto rounded-xl border border-slate-100">
         <table class="w-full text-sm">
@@ -146,12 +157,15 @@
               </td>
               <td class="py-3 px-4 text-center text-xs text-slate-400"
                   th:text="${#temporals.format(notice.regDt, 'yyyy-MM-dd')}"></td>
+
+              <!--수정/삭제 버튼  -->
               <td class="py-3 px-4 text-center">
                 <div class="flex items-center justify-center gap-2">
                   <a th:href="@{/admin/board/notice/edit/{postSn}(postSn=${notice.postSn})}"
-                     class="text-xs text-violet-600 font-semibold hover:underline">수정</a>
+                    class="text-xs text-violet-600 font-semibold hover:underline">수정</a>
+                  <span class="text-slate-300 text-xs">|</span>
                   <form th:action="@{/admin/board/notice/delete/{postSn}(postSn=${notice.postSn})}" method="post"
-                        onsubmit="return confirm('삭제하시겠습니까?')">
+                    onsubmit="return confirm('삭제하시겠습니까?')" class="m-0 p-0 flex">
                     <button type="submit" class="text-xs text-red-500 font-semibold hover:underline">삭제</button>
                   </form>
                 </div>
@@ -168,20 +182,24 @@
     <!-- ══ QnA 탭 ══ -->
     <div id="tab-qna" class="cs-tab-panel p-6">
       <div class="flex gap-3 mb-4">
-        <select id="qna-filter-stat" onchange="filterQna()" class="hm-input w-36">
+        <select id="qna-filter-stat" onchange="filterQna()" class="hm-input" style="width: 130px;">
           <option value="">전체 상태</option>
           <option value="01">답변대기</option>
           <option value="02">답변완료</option>
         </select>
-        <select id="qna-filter-ctg" onchange="filterQna()" class="hm-input w-36">
+        <select id="qna-filter-ctg" onchange="filterQna()" class="hm-input" style="width: 130px;">
           <option value="">전체 카테고리</option>
           <option value="01">수강문의</option>
           <option value="02">결제문의</option>
           <option value="03">기타</option>
         </select>
         <div class="relative">
-          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-          <input type="text" id="qna-search" placeholder="제목 검색..." class="hm-input pl-10 w-56" oninput="filterQna()" />
+          <input type="text" id="qna-search" placeholder="제목 검색..." class="hm-input pr-9" style="width: 300px;"
+            onkeydown="if(event.key==='Enter') filterQna()" />
+          <button onclick="filterQna()"
+            class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 transition-colors">
+            <i class="fa-solid fa-magnifying-glass text-sm"></i>
+          </button>
         </div>
       </div>
 
@@ -192,7 +210,7 @@
               <th class="text-center py-3 px-4 font-semibold w-16">번호</th>
               <th class="text-center py-3 px-4 font-semibold w-24">카테고리</th>
               <th class="text-left py-3 px-4 font-semibold">제목</th>
-              <th class="text-center py-3 px-4 font-semibold w-16">비공개</th>
+              <th class="text-center py-3 px-4 font-semibold w-20">비공개</th>
               <th class="text-center py-3 px-4 font-semibold w-24">답변상태</th>
               <th class="text-center py-3 px-4 font-semibold w-28">등록일</th>
               <th class="text-center py-3 px-4 font-semibold w-24">관리</th>
@@ -221,17 +239,21 @@
                       class="text-xs bg-emerald-50 text-emerald-600 font-semibold px-2 py-0.5 rounded-full">답변완료</span>
               </td>
               <td class="py-3 px-4 text-center text-xs text-slate-400"
-                  th:text="${#temporals.format(qna.regDt, 'yyyy-MM-dd')}"></td>
+                  th:text="${#temporals.format(qna.regDt, 'yyyy-MM-dd')}"></td>.
+
+              <!--답변/삭제 버튼-->
               <td class="py-3 px-4 text-center">
                 <div class="flex items-center justify-center gap-2">
                   <a th:href="@{/admin/board/qna/{postSn}(postSn=${qna.postSn})}"
-                     class="text-xs text-violet-600 font-semibold hover:underline">답변</a>
+                    class="text-xs text-violet-600 font-semibold hover:underline">답변</a>
+                  <span class="text-slate-300 text-xs">|</span>
                   <form th:action="@{/admin/board/qna/delete/{postSn}(postSn=${qna.postSn})}" method="post"
-                        onsubmit="return confirm('삭제하시겠습니까?')">
+                    onsubmit="return confirm('삭제하시겠습니까?')" class="m-0 p-0 flex">
                     <button type="submit" class="text-xs text-red-500 font-semibold hover:underline">삭제</button>
                   </form>
                 </div>
               </td>
+
             </tr>
             <tr th:if="${#lists.isEmpty(qnaList)}">
               <td colspan="7" class="py-10 text-center text-sm text-slate-400">등록된 QnA가 없습니다.</td>
@@ -250,43 +272,6 @@
   .cs-tab-panel.active { display: block; }
 </style>
 
-<script>
-function switchTab(tabId, btn) {
-  document.querySelectorAll('.cs-tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.cs-tab-panel').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById(tabId).classList.add('active');
-}
-
-function filterFaq() {
-  const ctg   = document.getElementById('faq-filter-ctg').value;
-  const query = document.getElementById('faq-search').value.trim().toLowerCase();
-  document.querySelectorAll('#faq-table-body tr[data-ctg]').forEach(row => {
-    const matchCtg   = !ctg   || row.dataset.ctg === ctg;
-    const matchTitle = !query || row.dataset.title.toLowerCase().includes(query);
-    row.style.display = (matchCtg && matchTitle) ? '' : 'none';
-  });
-}
-
-function filterNotice() {
-  const type  = document.getElementById('notice-filter-type').value;
-  const query = document.getElementById('notice-search').value.trim().toLowerCase();
-  document.querySelectorAll('#notice-table-body tr[data-type]').forEach(row => {
-    const matchType  = !type  || row.dataset.type === type;
-    const matchTitle = !query || row.dataset.title.toLowerCase().includes(query);
-    row.style.display = (matchType && matchTitle) ? '' : 'none';
-  });
-}
-
-function filterQna() {
-  const stat  = document.getElementById('qna-filter-stat').value;
-  const ctg   = document.getElementById('qna-filter-ctg').value;
-  const query = document.getElementById('qna-search').value.trim().toLowerCase();
-  document.querySelectorAll('#qna-table-body tr[data-stat]').forEach(row => {
-    const matchStat  = !stat  || row.dataset.stat === stat;
-    const matchCtg   = !ctg   || row.dataset.ctg === ctg;
-    const matchTitle = !query || row.dataset.title.toLowerCase().includes(query);
-    row.style.display = (matchStat && matchCtg && matchTitle) ? '' : 'none';
-  });
-}
-</script>
+<th:block th:fragment="pageJs">
+  <script th:src="@{/js/board/customer-service.js}"></script>
+</th:block>

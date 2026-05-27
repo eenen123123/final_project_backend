@@ -57,7 +57,7 @@ public class MemberFix {
                 employeeInfoDto.setDeptCd("D300");
                 employeeInfoDto.setJbgrCd("T004");
             }
-            int result = employeeMapper.insertEmployeeInfo(employeeInfoDto);
+            employeeMapper.insertEmployeeInfo(employeeInfoDto);
         }
     }
 }

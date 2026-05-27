@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import kr.or.ddit.finalProject.dto.board.FaqDto;
-import kr.or.ddit.finalProject.service.board.faq.FaqService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
