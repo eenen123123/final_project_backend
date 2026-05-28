@@ -27,11 +27,20 @@ import lombok.extern.slf4j.Slf4j;
 @Controller
 @RequestMapping("/instructor/board")
 @RequiredArgsConstructor
+/**
+ * 강사 게시판 컨트롤러, 강사 게시판 목록 조회, 상세 조회, 등록, 수정, 삭제(소프트), 복구 기능을 제공
+ */
 public class InstructorBoardController {
 
     private final InstructorBoardService instructorBoardService;
     private final CommonCodeMapper commonCodeMapper;
 
+    /**
+     * 강사 게시판 목록 조회
+     *
+     * @param model
+     * @return
+     */
     @GetMapping("/list")
     public String getBoardList(Model model) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -41,6 +50,26 @@ public class InstructorBoardController {
         return "admin:/instructor/boardList";
     }
 
+    /**
+     * 게시판 유형 조회 (AJAX)
+     *
+     * @return
+     */
+    @GetMapping("/boardTypes")
+    @ResponseBody
+    public List<CommonCodeDto> getBoardTypes() {
+        return commonCodeMapper.selectByClCode("100").stream()
+                .filter(c -> !"01".equals(c.getComCd()))
+                .toList();
+    }
+
+    /**
+     * 강사 게시판 상세 조회
+     *
+     * @param postSn
+     * @param model
+     * @return
+     */
     @GetMapping("/detail/{postSn}")
     public String getBoardDetail(@PathVariable Long postSn, Model model) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -52,19 +81,63 @@ public class InstructorBoardController {
         return "admin:/instructor/boardDetail";
     }
 
-    @GetMapping("/boardTypes")
-    @ResponseBody
-    public List<CommonCodeDto> getBoardTypes() {
-        return commonCodeMapper.selectByClCode("100").stream()
-                .filter(c -> !"01".equals(c.getComCd()))
-                .toList();
-    }
-
+    /**
+     * 강사 게시판 등록 폼 조회
+     *
+     * @return
+     */
     @GetMapping("/insertForm")
     public String getInsertForm() {
         return "admin:/instructor/boardInsertForm";
     }
 
+    /**
+     * 강사 게시판 등록
+     *
+     * @param instructorBoardDto
+     * @param error
+     * @param redirectAttributes
+     * @return
+     */
+    @PostMapping("/insert")
+    public String insertBoard(@Validated @ModelAttribute InstructorBoardDto instructorBoardDto, BindingResult error, RedirectAttributes redirectAttributes) {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        instructorBoardDto.setInstrUserId(userId);
+        instructorBoardDto.setWrtrUserId(userId);
+
+        if (error.hasErrors()) {
+            String errorMsg = error.getAllErrors().stream()
+                    .map(e -> e.getDefaultMessage())
+                    .findFirst()
+                    .orElse("입력값을 확인해주세요.");
+            redirectAttributes.addFlashAttribute("board", instructorBoardDto);
+            redirectAttributes.addFlashAttribute("errorMessage", errorMsg);
+            return "redirect:/instructor/board/insertForm";
+        }
+        try {
+            int rowcnt = instructorBoardService.insertInstructorBoard(instructorBoardDto);
+            if (rowcnt > 0) {
+                return "redirect:/instructor/board/detail/" + instructorBoardDto.getPostSn();
+            } else {
+                redirectAttributes.addFlashAttribute("board", instructorBoardDto);
+                redirectAttributes.addFlashAttribute("errorMessage", "게시글 등록에 실패했습니다. 다시 시도해주세요.");
+                return "redirect:/instructor/board/insertForm";
+            }
+        } catch (Exception e) {
+            log.error("게시글 등록 중 오류 발생", e);
+            redirectAttributes.addFlashAttribute("board", instructorBoardDto);
+            redirectAttributes.addFlashAttribute("errorMessage", "게시글 등록 중 오류가 발생했습니다. 다시 시도해주세요.");
+            return "redirect:/instructor/board/insertForm";
+        }
+    }
+
+    /**
+     * 강사 게시판 수정 폼 조회
+     *
+     * @param postSn
+     * @param model
+     * @return
+     */
     @GetMapping("/updateForm/{postSn}")
     public String getUpdateForm(@PathVariable Long postSn, Model model) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -82,6 +155,14 @@ public class InstructorBoardController {
         return "admin:/instructor/boardInsertForm";
     }
 
+    /**
+     * 강사 게시판 수정
+     *
+     * @param instructorBoardDto
+     * @param error
+     * @param redirectAttributes
+     * @return
+     */
     @PostMapping("/update")
     public String updateBoard(@Validated @ModelAttribute InstructorBoardDto instructorBoardDto, BindingResult error, RedirectAttributes redirectAttributes) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -114,36 +195,30 @@ public class InstructorBoardController {
         }
     }
 
-    @PostMapping("/insert")
-    public String insertBoard(@Validated @ModelAttribute InstructorBoardDto instructorBoardDto, BindingResult error, RedirectAttributes redirectAttributes) {
+    /**
+     * 강사 게시판 삭제 (소프트)
+     */
+    @PostMapping("/delete/{postSn}")
+    public String deleteBoard(@PathVariable Long postSn, RedirectAttributes redirectAttributes) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        instructorBoardDto.setInstrUserId(userId);
-        instructorBoardDto.setWrtrUserId(userId);
+        instructorBoardService.deleteInstructorBoard(postSn, userId);
+        redirectAttributes.addFlashAttribute("successMessage", "게시글이 삭제되었습니다.");
+        return "redirect:/instructor/board/detail/" + postSn;
+    }
 
-        if (error.hasErrors()) {
-            String errorMsg = error.getAllErrors().stream()
-                    .map(e -> e.getDefaultMessage())
-                    .findFirst()
-                    .orElse("입력값을 확인해주세요.");
-            redirectAttributes.addFlashAttribute("board", instructorBoardDto);
-            redirectAttributes.addFlashAttribute("errorMessage", errorMsg);
-            return "redirect:/instructor/board/insertForm";
-        }
-        try {
-            int rowcnt = instructorBoardService.insertInstructorBoard(instructorBoardDto);
-            if (rowcnt > 0) {
-                return "redirect:/instructor/board/detail/" + instructorBoardDto.getPostSn();
-            } else {
-                redirectAttributes.addFlashAttribute("board", instructorBoardDto);
-                redirectAttributes.addFlashAttribute("errorMessage", "게시글 등록에 실패했습니다. 다시 시도해주세요.");
-                return "redirect:/instructor/board/insertForm";
-            }
-        } catch (Exception e) {
-            log.error("게시글 등록 중 오류 발생", e);
-            redirectAttributes.addFlashAttribute("board", instructorBoardDto);
-            redirectAttributes.addFlashAttribute("errorMessage", "게시글 등록 중 오류가 발생했습니다. 다시 시도해주세요.");
-            return "redirect:/instructor/board/insertForm";
-        }
+    /**
+     * 강사 게시판 복구
+     *
+     * @param postSn
+     * @param redirectAttributes
+     * @return
+     */
+    @PostMapping("/restore/{postSn}")
+    public String restoreBoard(@PathVariable Long postSn, RedirectAttributes redirectAttributes) {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        instructorBoardService.restoreInstructorBoard(postSn, userId);
+        redirectAttributes.addFlashAttribute("successMessage", "게시글이 복구되었습니다.");
+        return "redirect:/instructor/board/detail/" + postSn;
     }
 
 }

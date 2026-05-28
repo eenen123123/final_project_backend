@@ -28,6 +28,7 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
                             String userName = dto.getMemberDto() != null ? dto.getMemberDto().getUserName() : "";
                             InstructorBoardResponseDto responseDto = new InstructorBoardResponseDto();
                             responseDto.setPostSn(dto.getPostSn());
+                            responseDto.setUseYn(dto.getUseYn());
                             responseDto.setBoardTypeCd(dto.getBoardTypeCd());
                             responseDto.setBoardTypeNm(dto.getBoardTypeNm());
                             responseDto.setUserName(userName);
@@ -53,6 +54,7 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
         String userName = original.getMemberDto() != null ? original.getMemberDto().getUserName() : "";
         return InstructorBoardResponseDto.builder()
                 .postSn(original.getPostSn())
+                .useYn(original.getUseYn())
                 .boardTypeCd(original.getBoardTypeCd())
                 .boardTypeNm(original.getBoardTypeNm())
                 .userName(userName)
@@ -87,8 +89,13 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     }
 
     @Override
-    public int deleteInstructorBoard(Long postSn) {
-        return 0;
+    public int deleteInstructorBoard(Long postSn, String instrUserId) {
+        return instructorBoardMapper.deleteInstructorBoard(postSn, instrUserId);
+    }
+
+    @Override
+    public int restoreInstructorBoard(Long postSn, String instrUserId) {
+        return instructorBoardMapper.restoreInstructorBoard(postSn, instrUserId);
     }
 
 }

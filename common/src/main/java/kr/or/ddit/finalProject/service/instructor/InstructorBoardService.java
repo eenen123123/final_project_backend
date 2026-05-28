@@ -28,7 +28,12 @@ public interface InstructorBoardService {
     int updateInstructorBoard(InstructorBoardDto instructorBoardDto);
 
     /**
-     * 강사 게시판 삭제
+     * 강사 게시판 삭제 (소프트)
      */
-    int deleteInstructorBoard(Long postSn);
+    int deleteInstructorBoard(Long postSn, String instrUserId);
+
+    /**
+     * 강사 게시판 복구
+     */
+    int restoreInstructorBoard(Long postSn, String instrUserId);
 }
