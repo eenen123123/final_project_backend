@@ -13,9 +13,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.or.ddit.finalProject.dto.example.ExampleDto;
 import kr.or.ddit.finalProject.dto.file.FileDto;
-import kr.or.ddit.finalProject.dto.user.UserDto;
+import kr.or.ddit.finalProject.dto.member.MemberDto;
+import kr.or.ddit.finalProject.mapper.MemberMapper;
 import kr.or.ddit.finalProject.mapper.TestMapper;
-import kr.or.ddit.finalProject.mapper.UserMapper;
 import kr.or.ddit.finalProject.service.file.FileUploadService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,7 +27,7 @@ public class ExampleAdminController {
     @Autowired
     private TestMapper testMapper;
     @Autowired
-    private UserMapper userMapper;
+    private MemberMapper memberMapper;
 
     @Autowired
     private FileUploadService fileUploadService;
@@ -45,7 +45,7 @@ public class ExampleAdminController {
 
         log.info("User authorities: {}", authentication.getAuthorities());
 
-        UserDto member = userMapper.findByUserId(userId).orElse(null);
+        MemberDto member = memberMapper.findByUserId(userId).orElse(null);
         model.addAttribute("user", member);
 
         return "admin:/hello";
