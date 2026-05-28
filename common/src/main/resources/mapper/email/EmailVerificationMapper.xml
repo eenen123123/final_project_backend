@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.email.EmailVerificationMapper">
+
+
+    <insert id="insertEmailVerification" parameterType="kr.or.ddit.finalProject.dto.email.EmailVerificationDto">
+            INSERT INTO email_verification (email, code, expires_at)
+            VALUES (#{email}, #{code}, SYSTIMESTAMP + INTERVAL '10' MINUTE)
+    </insert>
+
+
+
+    <!-- selectIdExistingEmailVerificationId -->
+
+    <select id="selectIdExistingEmailVerificationId" parameterType="String" resultType="int">
+        SELECT id FROM email_verification
+            WHERE email = #{email}
+    </select>
+
+    <!-- deleteEmailVerificationByEmail -->
+
+    <delete id="deleteEmailVerificationByEmail" parameterType="String">
+        DELETE FROM email_verification
+        WHERE email = #{email}
+    </delete>
+
+    <!-- deleteEmailVerificationById -->
+
+    <delete id="deleteEmailVerificationById" parameterType="int">
+        DELETE FROM email_verification
+        WHERE id = #{id}
+    </delete>
+
+    <!-- updateEmailVerifiedAt -->
+
+    <update id="updateEmailVerifiedAt" parameterType="int">
+        UPDATE email_verification
+        SET verified_at = SYSTIMESTAMP
+        WHERE id = #{validId}
+    </update>
+
+    <!-- isEmailVerified -->
+
+    <select id="isEmailVerified" parameterType="String" resultType="kr.or.ddit.finalProject.dto.email.EmailVerificationDto">
+        SELECT * FROM email_verification
+        WHERE email = #{email}
+        AND verified_at IS NOT NULL
+    </select>
+
+
+
+    <!-- selectEmailVerificationDtoByEmail -->
+
+    <select id="selectEmailVerificationDtoByEmail" parameterType="String" resultType="kr.or.ddit.finalProject.dto.email.EmailVerificationDto">
+        SELECT * FROM email_verification
+        WHERE email = #{email}
+        AND verified_at IS NULL
+        AND expires_at &gt; SYSTIMESTAMP
+    </select>
+</mapper>

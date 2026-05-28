@@ -44,6 +44,10 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.POST, "/api/member/signup").permitAll()
 
+                        .requestMatchers(HttpMethod.POST, "/api/member/email-code").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/member/email-code/verify")
+                        .permitAll()
+
                         .requestMatchers(HttpMethod.GET, "/api/qna/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/qna").authenticated()
 
