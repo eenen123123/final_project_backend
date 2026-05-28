@@ -30,6 +30,15 @@ public enum ErrorCode {
     EMPLOYEE_REGISTER_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "직원 등록에 실패했습니다."),
     EMPLOYEE_ID_GENERATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "직원 ID 생성에 실패했습니다."),
 
+    USER_ID_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 사용자 ID입니다."),
+
+    EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "이메일 인증이 완료되지 않았습니다."),
+
+    SIGNUP_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "회원 가입에 실패했습니다."),
+
+    BIRTHDATE_ENRNO_MISMATCH(HttpStatus.BAD_REQUEST, "생년월일과 주민등록번호가 일치하지 않습니다."),
+
+    GENDER_MISMATCH(HttpStatus.BAD_REQUEST, "성별과 주민등록번호의 성별 정보가 일치하지 않습니다."),
     // 채팅 관련
 
     CHAT_ROOM_CREATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "채팅방 생성에 실패했습니다."),

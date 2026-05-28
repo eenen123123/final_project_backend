@@ -36,4 +36,24 @@ public class NoticeController {
     public ResponseEntity<NoticeDto> getNoticeById(@PathVariable Long postSn) {
         return ResponseEntity.ok(noticeService.getNoticeById(postSn));
     }
+
+    // 공지사항 이전글
+    // GET /api/notice/{postSn}/prev?
+    @GetMapping("/{postSn}/prev")
+    public ResponseEntity<NoticeDto> getPrevNotice(@PathVariable Long postSn){
+        NoticeDto prev = noticeService.getPrevNotice(postSn);
+        return prev != null ? ResponseEntity.ok(prev) : ResponseEntity.noContent().build();
+    }
+
+    // 공지사항 다음글
+    // GET /api/notice/{postSn}/next?
+    @GetMapping("/{postSn}/next")
+    public ResponseEntity<NoticeDto> getNextNotice(@PathVariable Long postSn){
+        NoticeDto next = noticeService.getNextNotice(postSn);
+        return next != null ? ResponseEntity.ok(next) : ResponseEntity.noContent().build();
+    }
+    
+    
+    
+    
 }

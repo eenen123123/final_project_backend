@@ -25,4 +25,9 @@ public interface NoticeMapper {
     // 공지사항 DELETE
     int deleteNotice(@Param("postSn") Long postSn);
 
+    // 공지사항 이전글
+    NoticeDto findPrevNotice(@Param("postSn") Long postSn);
+
+    // 공지사항 다음글
+    NoticeDto findNextNotice(@Param("postSn") Long postSn);
 }

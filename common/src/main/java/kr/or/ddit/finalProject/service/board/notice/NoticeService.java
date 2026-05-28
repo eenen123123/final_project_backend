@@ -43,4 +43,19 @@ public interface NoticeService {
      */
     void deleteNotice(Long postSn);
 
+    /**
+     * 공지사항 이전글
+     * 
+     * @param postSn 현재 공지사항
+     * @return 이전 공지사항 
+     */
+    NoticeDto getPrevNotice(Long postSn);
+
+    /**
+     * 공지사항 다음글
+     * 
+     * @param postSn 현재 공지사항
+     * @return 다음 공지사항
+     */
+    NoticeDto getNextNotice(Long postSn);
 }

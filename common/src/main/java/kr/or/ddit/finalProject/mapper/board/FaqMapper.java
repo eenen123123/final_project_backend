@@ -25,4 +25,10 @@ public interface FaqMapper {
     // FAQ 삭제
     int deleteFaq(@Param("postSn") Long postSn);
 
+    // FAQ 이전글 (같은 카테고리)
+    FaqDto findPrevFaq(@Param("postSn") Long postSn, @Param("faqCtgCd") String faqCtgCd);
+    
+    // FAQ 다음글 (같은 카테고리)
+    FaqDto findNextFaq(@Param("postSn") Long postSn, @Param("faqCtgCd") String faqCtgCd);
+
 }

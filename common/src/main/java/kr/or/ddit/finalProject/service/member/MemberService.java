@@ -13,8 +13,9 @@ public interface MemberService {
      * 회원 가입 메서드
      * 
      * @param signupRequestRecord 회원 가입 요청 정보를 담은 SignupRequestRecord 객체
+     * @return 회원 가입이 완료된 사용자 정보를 담은 MemberDto 객체
      */
-    void signup(SignupRequestRecord signupRequestRecord);
+    MemberDto signup(SignupRequestRecord signupRequestRecord);
 
     /**
      * 로그인 메서드
@@ -71,4 +72,12 @@ public interface MemberService {
      * @return 발급된 새로운 인증 토큰을 담은 AuthTokens 객체
      */
     AuthTokens reissueToken(String refreshToken);
+
+    /**
+     * 사용자 ID의 중복 여부를 확인하는 메서드
+     * 
+     * @param userId 중복 여부를 확인할 사용자 ID
+     * @return 사용자 ID가 사용 가능한 경우 true, 이미 존재하는 경우 false
+     */
+    boolean isUserIdAvailable(String userId);
 }

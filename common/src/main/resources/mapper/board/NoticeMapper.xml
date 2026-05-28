@@ -86,4 +86,46 @@
         WHERE POST_SN = #{postSn}
     </delete>
 
+    <!-- 공지사항 이전글 -->
+    <select id="findPrevNotice" resultMap="noticeResultMap">
+        SELECT
+            n.POST_SN
+            , n.NOTICE_TYPE_CD
+            , b.POST_SJ
+            , b.POST_CN
+            , b.WRTR_USER_ID
+            , b.TOP_FIX_ORD
+            , b.POPUP_EXPS_YN
+            , b.REG_DT
+            , b.MDFCN_DT
+            , c.COM_CD_NM AS NOTICE_TYPE_NM
+        FROM NOTICE n
+        JOIN BOARD b ON b.POST_SN = n.POST_SN
+        LEFT JOIN COM_CD c ON c.CL_CODE = '103' AND c.COM_CD = n.NOTICE_TYPE_CD
+        WHERE n.POST_SN &lt; #{postSn}
+        ORDER BY n.POST_SN DESC
+        FETCH FIRST 1 ROWS ONLY
+    </select>
+
+    <!-- 공지사항 다음글 -->
+    <select id="findNextNotice" resultMap="noticeResultMap">
+        SELECT
+            n.POST_SN
+            , n.NOTICE_TYPE_CD
+            , b.POST_SJ
+            , b.POST_CN
+            , b.WRTR_USER_ID
+            , b.TOP_FIX_ORD
+            , b.POPUP_EXPS_YN
+            , b.REG_DT
+            , b.MDFCN_DT
+            , c.COM_CD_NM AS NOTICE_TYPE_NM
+        FROM NOTICE n
+        JOIN BOARD b ON b.POST_SN = n.POST_SN
+        LEFT JOIN COM_CD c ON c.CL_CODE = '103' AND c.COM_CD = n.NOTICE_TYPE_CD
+        WHERE n.POST_SN &gt; #{postSn}
+        ORDER BY n.POST_SN ASC
+        FETCH FIRST 1 ROWS ONLY
+    </select>
+
 </mapper>

@@ -33,5 +33,30 @@ public class FaqController {
     @GetMapping("/{postSn}")
     public ResponseEntity<FaqDto> getFaqById(@PathVariable Long postSn) {
         return ResponseEntity.ok(faqService.getFaqById(postSn));
+
     }
+
+    // FAQ 이전글 조회
+    // GET /api/faq/{postSn}/prev?faqCtgCd=01
+    @GetMapping("/{postSn}/prev")
+    public ResponseEntity<FaqDto> getPrevFaq(
+        @PathVariable Long postSn,
+        @RequestParam String faqCtgCd
+    ){
+        FaqDto prev = faqService.getPrevFaq(postSn, faqCtgCd);
+        return prev != null ? ResponseEntity.ok(prev) : ResponseEntity.noContent().build();
+    }
+
+    // FAQ 다음글 조회
+    // GET /api/{postSn}/next?faqCtgCd=01
+    @GetMapping("/{postSn}/next")
+    public ResponseEntity<FaqDto> getNextFaq(
+        @PathVariable Long postSn,
+        @RequestParam String faqCtgCd
+    ){
+        FaqDto next = faqService.getNextFaq(postSn, faqCtgCd);
+        return next != null ? ResponseEntity.ok(next) : ResponseEntity.noContent().build();
+    }
+    
+    
 }

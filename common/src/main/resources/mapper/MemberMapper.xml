@@ -63,8 +63,41 @@
     </select>
 
     <insert id="insertMember" parameterType="kr.or.ddit.finalProject.dto.member.MemberDto" useGeneratedKeys="true" keyProperty="userId" keyColumn="USER_ID">
-        INSERT INTO MEMBER (USER_ID, USER_ENPSWD, USER_NAME)
-        VALUES (#{userId}, #{userEnpswd}, #{userName})
+        INSERT INTO MEMBER 
+            (USER_ID,
+                USER_ENPSWD,
+                USER_NAME,
+                USER_ENRRNO,
+                USER_GNDR_CD,
+                USER_BRDT,
+                JOIN_DT,
+                USER_TELNO,
+                USER_EMAIL_ADDR,
+                USER_ZIP,
+                USER_ADDR,
+                USER_DADDR,
+                REG_DATE,
+                MOD_DATE,
+                ENABLE,
+                USER_ROLE)
+
+        VALUES
+            (#{userId},
+                #{userEnpswd},
+                #{userName},
+                #{userEnrrno},
+                #{userGndrCd},
+                #{userBrdt},
+                SYSTIMESTAMP,
+                #{userTelno},
+                #{userEmailAddr},
+                #{userZip},
+                #{userAddr},
+                #{userDaddr},
+                SYSTIMESTAMP,
+                SYSTIMESTAMP,
+                'Y',
+                'ROLE_USER')
     </insert>
 
     <select id="findAllMembers" resultMap="memberTestResultMap">
