@@ -9,6 +9,7 @@
         <id property="userId" column="M_USER_ID" />
         <result property="deptNm" column="DEPT_NM" />
         <result property="jbgrNm" column="JBGR_NM" />
+        <result property="deptCd" column="DEPT_CD" />
 
         <association property="member" 
                     resultMap="kr.or.ddit.finalProject.mapper.MemberMapper.memberTestResultMap" 
@@ -173,4 +174,13 @@
         ORDER BY m.USER_ID
     </select>
 
+    <!-- checkIdExists --> 
+    <select id="checkIdExists" parameterType="String" resultType="int">
+        SELECT COUNT(*) FROM MEMBER WHERE USER_ID = #{userId}
+    </select>
+
+    <!-- selectMaxUserId --> 
+    <select id="selectMaxUserId" parameterType="String" resultType="String">
+        SELECT MAX(USER_ID) FROM MEMBER WHERE USER_ID LIKE CONCAT(#{baseId}, '%')
+    </select>
 </mapper>

@@ -80,3 +80,60 @@ function filterQna() {
     row.style.display = matchStat && matchCtg && matchTitle ? "" : "none";
   });
 }
+
+// ── FAQ 모달 ──────────────────────────────────────────────
+function openFaqModal(tr) {
+  const d = tr.dataset;
+  document.getElementById("modal-ctgnm").textContent = d.ctgnm;
+  document.getElementById("modal-subctgnm").textContent = d.subctgnm;
+  document.getElementById("modal-title").textContent = d.title;
+  document.getElementById("modal-content").textContent = d.postcn;
+  document.getElementById("modal-writer").textContent = d.wrtruserid;
+  document.getElementById("modal-regdt").textContent = d.regdt;
+
+  const best = document.getElementById("modal-best");
+  best.classList.toggle("hidden", d.topfixyn !== "Y");
+
+  document.getElementById("modal-edit-btn").href =
+    "/admin/board/faq/edit/" + d.postsn;
+  document.getElementById("modal-delete-form").action =
+    "/admin/board/faq/delete/" + d.postsn;
+
+  const modal = document.getElementById("faq-modal");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+function closeFaqModal() {
+  const modal = document.getElementById("faq-modal");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
+
+// ── 공지사항 모달 ─────────────────────────────────────────
+function openNoticeModal(tr) {
+  const d = tr.dataset;
+  document.getElementById("notice-modal-typenm").textContent = d.typenm;
+  document.getElementById("notice-modal-title").textContent = d.title;
+  document.getElementById("notice-modal-content").textContent = d.postcn;
+  document.getElementById("notice-modal-writer").textContent = d.wrtruserid;
+  document.getElementById("notice-modal-regdt").textContent = d.regdt;
+
+  const popup = document.getElementById("notice-modal-popup");
+  popup.classList.toggle("hidden", d.popupexpsyn !== "Y");
+
+  document.getElementById("notice-modal-edit-btn").href =
+    "/admin/board/notice/edit/" + d.postsn;
+  document.getElementById("notice-modal-delete-form").action =
+    "/admin/board/notice/delete/" + d.postsn;
+
+  const modal = document.getElementById("notice-modal");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+function closeNoticeModal() {
+  const modal = document.getElementById("notice-modal");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}

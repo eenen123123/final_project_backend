@@ -30,4 +30,10 @@ public interface StaffMapper {
 
     // 직원 리스트 조회
     List<EmployeeDetailDto> selectEmployeeList();
+
+    // 직원 중복 조회
+    int checkIdExists(String usrId);
+
+    // 아이디 중복 자동 순번 발급 및 중복 회피
+    String selectMaxUserId(String baseId);
 }
