@@ -35,9 +35,15 @@ public class QnaServiceImpl implements QnaService {
     @Override
     @Transactional
     public void createQna(QnaDto qnaDto) {
+        log.info("createQna : {} ", qnaDto.toString());
         // 1. BOARD INSERT → postSn 자동 채번
-        BoardDto boardDto = BoardDto.builder().wrtrUserId(qnaDto.getWrtrUserId())
-                .postSj(qnaDto.getPostSj()).postCn(qnaDto.getPostCn()).build();
+        BoardDto boardDto = BoardDto.builder()
+                .wrtrUserId(qnaDto.getWrtrUserId())
+                .postSj(qnaDto.getPostSj())
+                .postCn(qnaDto.getPostCn())
+                .boardTypeCd("03")
+                .popupExpsYn("N")
+                .build();
         boardService.createPost(boardDto);
 
         // 2. 채번된 postSn QnA에 세팅
