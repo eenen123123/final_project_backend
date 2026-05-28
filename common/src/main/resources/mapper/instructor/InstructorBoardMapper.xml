@@ -94,8 +94,8 @@
                   , #{boardTypeCd}
                   , #{postSj}
                   , #{postCn}
-                  , #{inqCnt}
-                  , #{atchFileId}
+                  , 0
+                  , #{atchFileId, jdbcType=NUMERIC}
                   , SYSDATE
                   , SYSDATE
                   , #{wrtrUserId}
