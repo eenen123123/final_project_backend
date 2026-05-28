@@ -1,6 +1,7 @@
 package kr.or.ddit.finalProject.filter;
 
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.List;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -28,7 +29,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
+
+        Enumeration<String> names = request.getHeaderNames();
+        if (names != null) {
+            while (names.hasMoreElements()) {
+                String n = names.nextElement();
+                log.info("Header: {} = {}", n, request.getHeader(n));
+            }
+        }
         String authorizationHeader = request.getHeader("Authorization");
+        log.info("Authorization header: {}", authorizationHeader);
         // JWT 토큰이 "Bearer "로 시작하는지 확인
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String token = authorizationHeader.substring(7);
