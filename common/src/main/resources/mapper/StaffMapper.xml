@@ -9,22 +9,25 @@
         <id property="userId" column="M_USER_ID" />
         <result property="deptNm" column="DEPT_NM" />
         <result property="jbgrNm" column="JBGR_NM" />
+
         <result property="deptCd" column="DEPT_CD" />
+        <!-- 직원 상태 코드 -->
+        <result property="emplStatCd" column="EMPL_STAT_CD" />
+        <!-- 근무 형태 코드 -->
+        <result property="emplTypeCd" column="EMPL_TYPE_CD" />
 
-        <association property="member" 
-                    resultMap="kr.or.ddit.finalProject.mapper.MemberMapper.memberTestResultMap" 
-                    columnPrefix="M_" />
+        <association property="member" resultMap="kr.or.ddit.finalProject.mapper.MemberMapper.memberTestResultMap" columnPrefix="M_" />
 
-        <association property="employeeInfo" javaType="kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto">
-            <id property="userId" column="EI_USER_ID" />
+        <association property="employeeInfo" javaType="kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto" columnPrefix="EI_">
+            <id property="userId" column="USER_ID" />
             <result property="deptCd" column="DEPT_CD" />
             <result property="jbgrCd" column="JBGR_CD" />
             <result property="joinYmd" column="JOIN_YMD" />
             <result property="retmtYmd" column="RETMT_YMD" />
-            <result property="emplStatCd" column="EMPL_STAT_CD" />
+            <result property="emplStatCd" column="EMPL_STAT_CD" /> 
             <result property="atchFileId" column="ATCH_FILE_ID" />
             <result property="chrgDutyCn" column="CHRG_DUTY_CN" />
-            <result property="emptTypeCd" column="EMPT_TYPE_CD" />
+            <result property="emplTypeCd" column="EMPL_TYPE_CD" />
             <result property="ctrctEndYmd" column="CTRCT_END_YMD" />
         </association>
     </resultMap>
@@ -85,14 +88,14 @@
             , LAST_MDFR_ID
             , REG_DT
             , MDFCN_DT
-            , EMPT_TYPE_CD
+            , EMPL_TYPE_CD
             , CTRCT_END_YMD
         ) VALUES (
             #{userId, jdbcType=VARCHAR}
             , #{deptCd, jdbcType=CHAR}
             , #{jbgrCd, jdbcType=CHAR}
-            , TO_DATE(SUBSTR(#{joinYmd, jdbcType=VARCHAR}, 1, 10), 'YYYY-MM-DD')
-            , TO_DATE(SUBSTR(#{retmtYmd, jdbcType=VARCHAR}, 1, 10), 'YYYY-MM-DD')
+            , #{joinYmd, jdbcType=DATE}
+            , #{retmtYmd, jdbcType=DATE}
             , #{emplStatCd, jdbcType=CHAR}
             , #{atchFileId, jdbcType=VARCHAR}
             , #{chrgDutyCn, jdbcType=VARCHAR}
@@ -100,7 +103,7 @@
             , #{lastMdfrId, jdbcType=VARCHAR}
             , SYSTIMESTAMP
             , SYSTIMESTAMP
-            , #{emptTypeCd, jdbcType=CHAR}
+            , #{emplTypeCd, jdbcType=CHAR}
             
             <choose>
                 <when test="ctrctEndYmd != null and ctrctEndYmd != ''">
@@ -148,17 +151,21 @@
             m.ENABLE AS M_ENABLE,
             m.USER_ROLE AS M_USER_ROLE,
 
+            ei.DEPT_CD,
+            ei.EMPL_STAT_CD,
+            ei.EMPL_TYPE_CD,
+
             /* EMPLOYEE_INFO 테이블 (EI_ 접두사 및 매핑 컬럼) */
             ei.USER_ID AS EI_USER_ID,
-            ei.DEPT_CD,
-            ei.JBGR_CD,
-            ei.JOIN_YMD,
-            ei.RETMT_YMD,
-            ei.EMPL_STAT_CD,
-            ei.ATCH_FILE_ID,
-            ei.CHRG_DUTY_CN,
-            ei.EMPT_TYPE_CD,
-            ei.CTRCT_END_YMD,
+            ei.DEPT_CD AS EI_DEPT_CD,
+            ei.JBGR_CD AS EI_JBGR_CD,
+            ei.JOIN_YMD AS EI_JOIN_YMD,
+            ei.RETMT_YMD AS EI_RETMT_YMD,
+            ei.EMPL_STAT_CD AS EI_EMPL_STAT_CD,
+            ei.ATCH_FILE_ID AS EI_ATCH_FILE_ID,
+            ei.CHRG_DUTY_CN AS EI_CHRG_DUTY_CN,
+            ei.EMPL_TYPE_CD AS EI_EMPL_TYPE_CD,
+            ei.CTRCT_END_YMD AS EI_CTRCT_END_YMD,
 
             /* DEPARTMENT 테이블 */
             d.DEPT_NM,
