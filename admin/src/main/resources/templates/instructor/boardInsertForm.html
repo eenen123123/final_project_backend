@@ -42,7 +42,7 @@
         <select
           id="boardTypeCd"
           name="boardTypeCd"
-          class="hm-input max-w-48 text-base"
+          class="hm-input hm-input-sky max-w-48 text-base"
           th:attr="data-selected=${board?.boardTypeCd}"
         >
           <option value="">-- 선택 --</option>
@@ -64,7 +64,7 @@
           maxlength="300"
           placeholder="제목을 입력하세요."
           th:value="${board?.postSj}"
-          class="hm-input text-base"
+          class="hm-input hm-input-sky text-base"
         />
       </div>
 
@@ -82,7 +82,7 @@
           rows="12"
           maxlength="4000"
           placeholder="내용을 입력하세요."
-          class="hm-input resize-none text-base leading-relaxed"
+          class="hm-input hm-input-sky resize-none text-base leading-relaxed"
           th:text="${board?.postCn}"
         ></textarea>
       </div>
@@ -94,7 +94,7 @@
     >
       <a
         href="/instructor/board/list"
-        class="hm-btn-primary bg-slate-200 text-slate-700 text-base hover:bg-slate-300"
+        class="hm-btn-secondary bg-slate-200 text-slate-700 text-base hover:bg-slate-300"
       >
         취소
       </a>
@@ -107,14 +107,14 @@
 
   <script>
     (function () {
-      const select = document.getElementById('boardTypeCd');
-      const selected = (select.dataset.selected || '').trim();
+      const select = document.getElementById("boardTypeCd");
+      const selected = (select.dataset.selected || "").trim();
 
-      fetch('/instructor/board/boardTypes')
-        .then(res => res.json())
-        .then(codes => {
-          codes.forEach(code => {
-            const opt = document.createElement('option');
+      fetch("/instructor/board/boardTypes")
+        .then((res) => res.json())
+        .then((codes) => {
+          codes.forEach((code) => {
+            const opt = document.createElement("option");
             opt.value = code.comCd;
             opt.textContent = code.comCdNm;
             if (code.comCd === selected) opt.selected = true;
