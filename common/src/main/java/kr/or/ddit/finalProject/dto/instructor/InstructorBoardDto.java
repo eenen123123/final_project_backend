@@ -39,6 +39,8 @@ public class InstructorBoardDto implements Serializable {
     private String rgtrId;
     private String lastMdfrId;
 
+    private String useYn; // 사용여부 (Y: 활성, N: 삭제)
+
     // 조인 컬럼
     private String boardTypeNm; // COM_CD.COM_CD_NM (게시판 분류명)
     private MemberDto memberDto; // 작성자 정보 포함

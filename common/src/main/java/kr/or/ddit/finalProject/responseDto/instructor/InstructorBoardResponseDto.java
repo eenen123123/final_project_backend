@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 public class InstructorBoardResponseDto implements Serializable {
 
     private Long postSn; // 게시글 번호
+    private String useYn; // 사용여부 (Y: 활성, N: 삭제)
     private String boardTypeCd; // 게시판 분류 코드
     private String boardTypeNm; // 게시판 분류명
     private String userName; // 작성자 이름

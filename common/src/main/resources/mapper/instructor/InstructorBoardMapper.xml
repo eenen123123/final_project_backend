@@ -18,6 +18,7 @@
             <result property="rgtrId" column="RGTR_ID"/>
             <result property="lastMdfrId" column="LAST_MDFR_ID"/>
 
+            <result property="useYn" column="USE_YN"/>
             <result property="boardTypeNm" column="BOARD_TYPE_NM"/>
 
             <association property="memberDto" javaType="kr.or.ddit.finalProject.dto.member.MemberDto">
@@ -39,6 +40,7 @@
                   , IB.MDFCN_DT
                   , IB.RGTR_ID
                   , IB.LAST_MDFR_ID
+                  , IB.USE_YN
                   , M.USER_NAME
                   , C.COM_CD_NM AS BOARD_TYPE_NM
             FROM INSTRUCTOR_BOARD IB
@@ -61,6 +63,7 @@
                   , IB.MDFCN_DT
                   , IB.RGTR_ID
                   , IB.LAST_MDFR_ID
+                  , IB.USE_YN
                   , M.USER_NAME
                   , C.COM_CD_NM AS BOARD_TYPE_NM
             FROM INSTRUCTOR_BOARD IB
@@ -70,11 +73,7 @@
                   AND IB.INSTR_USER_ID = #{instrUserId}
       </select>
 
-      <insert id="insertInstructorBoard"
-            parameterType="kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto"
-            useGeneratedKeys="true"
-            keyProperty="postSn"
-            keyColumn="POST_SN">
+      <insert id="insertInstructorBoard" useGeneratedKeys="true" keyProperty="postSn" keyColumn="POST_SN">
             INSERT INTO INSTRUCTOR_BOARD (
                   INSTR_USER_ID
                   , WRTR_USER_ID
@@ -103,16 +102,30 @@
                   )
       </insert>
 
-      <!-- <update id="updateInstructorBoard">
-            UPDATE board
-            SET board_title = #{boardTitle},
-                  board_content = #{boardContent},
-                  board_date = SYSDATE
-            WHERE board_id = #{boardId} 
-      </update> -->
+      <update id="updateInstructorBoard">
+            UPDATE INSTRUCTOR_BOARD
+            SET
+                  BOARD_TYPE_CD = #{boardTypeCd}
+                  , POST_SJ = #{postSj}
+                  , POST_CN = #{postCn}
+                  , ATCH_FILE_ID = #{atchFileId, jdbcType=NUMERIC}
+                  , MDFCN_DT = SYSDATE
+                  , LAST_MDFR_ID = #{lastMdfrId}
+            WHERE POST_SN = #{postSn}
+                  AND INSTR_USER_ID = #{instrUserId} 
+      </update>
 
-      <!-- <delete id="deleteInstructorBoard">
-            DELETE FROM board
-            WHERE board_id = #{boardId} 
-      </delete> -->
+      <update id="deleteInstructorBoard">
+            UPDATE INSTRUCTOR_BOARD
+            SET USE_YN = 'N'
+            WHERE POST_SN = #{postSn}
+                  AND INSTR_USER_ID = #{instrUserId}
+      </update>
+
+      <update id="restoreInstructorBoard">
+            UPDATE INSTRUCTOR_BOARD
+            SET USE_YN = 'Y'
+            WHERE POST_SN = #{postSn}
+                  AND INSTR_USER_ID = #{instrUserId}
+      </update>
 </mapper>

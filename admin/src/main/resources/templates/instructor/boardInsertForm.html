@@ -2,15 +2,15 @@
   <!-- 페이지 헤더 -->
   <div class="mb-6 flex items-center justify-between">
     <div>
-      <h1 class="text-2xl font-bold text-slate-800">게시글 작성</h1>
+      <h1
+        class="text-2xl font-bold text-slate-800"
+        th:text="${board?.postSn != null} ? '게시글 수정' : '게시글 작성'"
+      ></h1>
       <p class="mt-1 text-sm text-slate-500">
         강의 관련 공지, 질문, 자료를 등록합니다.
       </p>
     </div>
-    <a
-      href="/instructor/board/list"
-      class="hm-btn-primary hm-btn-sky text-base"
-    >
+    <a href="/instructor/board/list" class="hm-btn-secondary text-base">
       <i class="fa-solid fa-list"></i>
       목록으로
     </a>
@@ -27,10 +27,16 @@
 
   <!-- 작성 폼 -->
   <form
-    th:action="@{/instructor/board/insert}"
+    th:action="@{${board?.postSn != null ? '/instructor/board/update' : '/instructor/board/insert'}}"
     method="post"
     class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
   >
+    <input
+      type="hidden"
+      name="postSn"
+      th:if="${board?.postSn != null}"
+      th:value="${board?.postSn}"
+    />
     <div class="divide-y divide-slate-100">
       <!-- 게시판 분류 -->
       <div class="flex items-center px-8 py-5">
@@ -100,7 +106,7 @@
       </a>
       <button type="submit" class="hm-btn-primary hm-btn-sky text-base">
         <i class="fa-solid fa-floppy-disk"></i>
-        등록
+        <span th:text="${board?.postSn != null} ? '수정' : '등록'"></span>
       </button>
     </div>
   </form>
