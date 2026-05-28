@@ -9,6 +9,7 @@
         <id property="userId" column="M_USER_ID" />
         <result property="deptNm" column="DEPT_NM" />
         <result property="jbgrNm" column="JBGR_NM" />
+        <result property="deptCd" column="DEPT_CD" />
 
         <association property="member" 
                     resultMap="kr.or.ddit.finalProject.mapper.MemberMapper.memberTestResultMap" 

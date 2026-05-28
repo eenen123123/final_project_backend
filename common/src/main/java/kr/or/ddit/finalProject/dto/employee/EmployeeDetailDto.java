@@ -24,4 +24,7 @@ public class EmployeeDetailDto {
 
     // 4. JOB_GRADE 테이블과의 조인을 통해 도출된 실제 직급명(Text)을 저장해야 한다.
     private String jbgrNm;
+
+    // 5. 추가로, 직원의 현재 상태(재직/휴직/퇴사)를 나타내는 필드를 추가하여 화면에서 쉽게 상태를 구분할 수 있도록 한다.
+    private String deptCd;
 }
