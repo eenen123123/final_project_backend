@@ -72,5 +72,17 @@ public class NoticeServiceImpl implements NoticeService {
         // 2. BOARD 삭제
         boardService.deletePost(postSn);
     }
+    
+    @Override
+    @Transactional
+    public NoticeDto getPrevNotice(Long postSn) {
+      return noticeMapper.findPrevNotice(postSn);
+    }
+
+    @Override
+    @Transactional
+    public NoticeDto getNextNotice(Long postSn) {
+      return noticeMapper.findNextNotice(postSn);
+    }
 
 }
