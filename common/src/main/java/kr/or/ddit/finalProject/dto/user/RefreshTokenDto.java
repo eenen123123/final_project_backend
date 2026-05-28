@@ -1,6 +1,7 @@
 package kr.or.ddit.finalProject.dto.user;
 
 import java.time.Instant;
+import kr.or.ddit.finalProject.dto.member.MemberDto;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,15 +14,15 @@ public class RefreshTokenDto {
 
     private String userId; // RefreshToken과 연관된 User의 로그인 ID
 
-    private UserDto user; // RefreshToken과 연관된 User 정보
+    private MemberDto memberDto; // RefreshToken과 연관된 User 정보
 
     private String token; // 실제 Refresh Token 문자열
 
     private Instant expiredAt; // Refresh Token의 만료 시간
 
-    public RefreshTokenDto(UserDto user, String token, Instant expiredAt) {
-        this.user = user;
-        this.userId = user.getUserId();
+    public RefreshTokenDto(MemberDto memberDto, String token, Instant expiredAt) {
+        this.memberDto = memberDto;
+        this.userId = memberDto.getUserId();
         this.token = token;
         this.expiredAt = expiredAt;
     }

@@ -1,7 +1,7 @@
 package kr.or.ddit.finalProject.filter;
 
 import java.io.IOException;
-import java.util.stream.Collectors;
+import java.util.List;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -11,9 +11,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import kr.or.ddit.finalProject.dto.user.UserDto;
+import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.jwt.JwtTokenProvider;
-import kr.or.ddit.finalProject.service.user.UserService;
+import kr.or.ddit.finalProject.service.member.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,7 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserService userService;
+    // private final UserService userService;
+    private final MemberService memberService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -34,14 +35,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // JWT 토큰이 유효한지 검증
             if (jwtTokenProvider.validateToken(token)) {
-                UserDto user = userService.getUserByToken(token);
+                MemberDto user = memberService.getMemberByToken(token);
                 // 인증 객체 생성 및 SecurityContext에 저장
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(user.getUserId(), null,
                                 // List.of(new SimpleGrantedAuthority(user.getUserRole())));
-                                user.getMemRoles().stream()
-                                        .map(SimpleGrantedAuthority::new)
-                                        .collect(Collectors.toList()));
+                                List.of(new SimpleGrantedAuthority(user.getUserRole())));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }

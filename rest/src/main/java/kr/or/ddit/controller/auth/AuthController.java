@@ -13,13 +13,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import kr.or.ddit.finalProject.dto.auth.AuthTokens;
-import kr.or.ddit.finalProject.dto.user.UserDto;
+import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.dto.user.SigninRequestRecord;
 import kr.or.ddit.finalProject.dto.user.SigninResponseRecord;
 import kr.or.ddit.finalProject.dto.user.SignupRequestRecord;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.user.UserException;
-import kr.or.ddit.finalProject.service.user.UserService;
+import kr.or.ddit.finalProject.service.member.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class AuthController {
-    private final UserService userService;
+    private final MemberService memberService;
 
     /**
      * 회원가입, SignupRequestRecord 객체를 받아서 회원가입을 처리함
@@ -38,7 +38,7 @@ public class AuthController {
      */
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody SignupRequestRecord requestRecord) {
-        userService.signup(requestRecord);
+        memberService.signup(requestRecord);
         return ResponseEntity.status(HttpStatus.CREATED).body("회원가입이 완료되었습니다.");
 
     }
@@ -59,7 +59,7 @@ public class AuthController {
             @Valid @RequestBody SigninRequestRecord requestRecord) {
         log.info("로그인 시도: {}", requestRecord.userId());
 
-        AuthTokens tokens = userService.signin(requestRecord);
+        AuthTokens tokens = memberService.login(requestRecord);
         ResponseCookie refreshCookie = createRefreshTokenCookie(tokens.refreshToken());
         return ResponseEntity.ok().header("Set-Cookie", refreshCookie.toString())
                 .body(new SigninResponseRecord(tokens.grantType(), tokens.accessToken()));
@@ -78,7 +78,7 @@ public class AuthController {
     public ResponseEntity<SigninResponseRecord> refresh(
             @CookieValue(name = "refreshToken") String refreshToken) {
         log.info("리프레시 토큰 갱신 시도: {}", refreshToken);
-        AuthTokens tokens = userService.refresh(refreshToken);
+        AuthTokens tokens = memberService.reissueToken(refreshToken);
         ResponseCookie refreshCookie = createRefreshTokenCookie(tokens.refreshToken());
         return ResponseEntity.ok().header("Set-Cookie", refreshCookie.toString())
                 .body(new SigninResponseRecord(tokens.grantType(), tokens.accessToken()));
@@ -96,7 +96,7 @@ public class AuthController {
      */
     @PostMapping("/logout")
     public ResponseEntity<Void> signout(@CookieValue(name = "refreshToken") String refreshToken) {
-        userService.signout(refreshToken);
+        memberService.logout(refreshToken);
         ResponseCookie deleteCookie = deleteRefreshTokenCookie();
         return ResponseEntity.ok().header("Set-Cookie", deleteCookie.toString()).build();
     }
@@ -107,18 +107,18 @@ public class AuthController {
      * 사용자의 정보를 조회함
      * 
      * @param authorizationHeader 클라이언트에서 전달된 Authorization 헤더 (Bearer 토큰)
-     * @return 현재 로그인한 사용자의 정보를 담은 UserDto 객체를 200 OK 상태로 반환, 실패 시 400 Bad Request
+     * @return 현재 로그인한 사용자의 정보를 담은 MemberDto 객체를 200 OK 상태로 반환, 실패 시 400 Bad Request
      *         상태로 반환
      */
     @GetMapping("/me")
-    public ResponseEntity<UserDto> getCurrentUser(
+    public ResponseEntity<MemberDto> getCurrentUser(
             @RequestHeader("Authorization") String authorizationHeader) {
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             throw new UserException(ErrorCode.INVALID_TOKEN);
         }
 
-        UserDto user = userService.getUserByToken(authorizationHeader.substring(7));
-        UserDto currentUser = UserDto.builder().userId(user.getUserId()).build();
+        MemberDto user = memberService.getMemberByToken(authorizationHeader.substring(7));
+        MemberDto currentUser = MemberDto.builder().userId(user.getUserId()).build();
 
         return ResponseEntity.ok(currentUser);
     }
@@ -135,7 +135,7 @@ public class AuthController {
     private ResponseCookie createRefreshTokenCookie(String refreshToken) {
         return ResponseCookie.from("refreshToken", refreshToken).httpOnly(true).secure(false)
                 .sameSite("Lax").path("/api/auth")
-                .maxAge(Duration.ofMillis(userService.getRefreshTokenExpiration())).build();
+                .maxAge(Duration.ofMillis(memberService.getRefreshTokenExpiration())).build();
     }
 
     /**
