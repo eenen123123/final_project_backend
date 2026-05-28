@@ -70,11 +70,7 @@
                   AND IB.INSTR_USER_ID = #{instrUserId}
       </select>
 
-      <insert id="insertInstructorBoard"
-            parameterType="kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto"
-            useGeneratedKeys="true"
-            keyProperty="postSn"
-            keyColumn="POST_SN">
+      <insert id="insertInstructorBoard" useGeneratedKeys="true" keyProperty="postSn" keyColumn="POST_SN">
             INSERT INTO INSTRUCTOR_BOARD (
                   INSTR_USER_ID
                   , WRTR_USER_ID
@@ -103,13 +99,18 @@
                   )
       </insert>
 
-      <!-- <update id="updateInstructorBoard">
-            UPDATE board
-            SET board_title = #{boardTitle},
-                  board_content = #{boardContent},
-                  board_date = SYSDATE
-            WHERE board_id = #{boardId} 
-      </update> -->
+      <update id="updateInstructorBoard">
+            UPDATE INSTRUCTOR_BOARD
+            SET
+                  BOARD_TYPE_CD = #{boardTypeCd}
+                  , POST_SJ = #{postSj}
+                  , POST_CN = #{postCn}
+                  , ATCH_FILE_ID = #{atchFileId, jdbcType=NUMERIC}
+                  , MDFCN_DT = SYSDATE
+                  , LAST_MDFR_ID = #{lastMdfrId}
+            WHERE POST_SN = #{postSn}
+                  AND INSTR_USER_ID = #{instrUserId} 
+      </update>
 
       <!-- <delete id="deleteInstructorBoard">
             DELETE FROM board

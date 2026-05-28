@@ -65,6 +65,55 @@ public class InstructorBoardController {
         return "admin:/instructor/boardInsertForm";
     }
 
+    @GetMapping("/updateForm/{postSn}")
+    public String getUpdateForm(@PathVariable Long postSn, Model model) {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        InstructorBoardResponseDto responseDto = instructorBoardService.getInstructorBoardDetail(postSn, userId);
+        if (responseDto == null) {
+            return "redirect:/instructor/board/list";
+        }
+        InstructorBoardDto board = InstructorBoardDto.builder()
+                .postSn(responseDto.getPostSn())
+                .boardTypeCd(responseDto.getBoardTypeCd())
+                .postSj(responseDto.getTitle())
+                .postCn(responseDto.getContent())
+                .build();
+        model.addAttribute("board", board);
+        return "admin:/instructor/boardInsertForm";
+    }
+
+    @PostMapping("/update")
+    public String updateBoard(@Validated @ModelAttribute InstructorBoardDto instructorBoardDto, BindingResult error, RedirectAttributes redirectAttributes) {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        instructorBoardDto.setInstrUserId(userId);
+        instructorBoardDto.setLastMdfrId(userId);
+
+        if (error.hasErrors()) {
+            String errorMsg = error.getAllErrors().stream()
+                    .map(e -> e.getDefaultMessage())
+                    .findFirst()
+                    .orElse("입력값을 확인해주세요.");
+            redirectAttributes.addFlashAttribute("board", instructorBoardDto);
+            redirectAttributes.addFlashAttribute("errorMessage", errorMsg);
+            return "redirect:/instructor/board/updateForm/" + instructorBoardDto.getPostSn();
+        }
+        try {
+            int rowcnt = instructorBoardService.updateInstructorBoard(instructorBoardDto);
+            if (rowcnt > 0) {
+                return "redirect:/instructor/board/detail/" + instructorBoardDto.getPostSn();
+            } else {
+                redirectAttributes.addFlashAttribute("board", instructorBoardDto);
+                redirectAttributes.addFlashAttribute("errorMessage", "게시글 수정에 실패했습니다. 다시 시도해주세요.");
+                return "redirect:/instructor/board/updateForm/" + instructorBoardDto.getPostSn();
+            }
+        } catch (Exception e) {
+            log.error("게시글 수정 중 오류 발생", e);
+            redirectAttributes.addFlashAttribute("board", instructorBoardDto);
+            redirectAttributes.addFlashAttribute("errorMessage", "게시글 수정 중 오류가 발생했습니다. 다시 시도해주세요.");
+            return "redirect:/instructor/board/updateForm/" + instructorBoardDto.getPostSn();
+        }
+    }
+
     @PostMapping("/insert")
     public String insertBoard(@Validated @ModelAttribute InstructorBoardDto instructorBoardDto, BindingResult error, RedirectAttributes redirectAttributes) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();

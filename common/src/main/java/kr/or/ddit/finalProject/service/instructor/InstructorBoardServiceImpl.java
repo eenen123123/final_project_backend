@@ -77,7 +77,13 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
 
     @Override
     public int updateInstructorBoard(InstructorBoardDto instructorBoardDto) {
-        return 0;
+        int rowcnt = instructorBoardMapper.updateInstructorBoard(instructorBoardDto);
+        if (rowcnt > 0) {
+            log.info("게시글 수정 성공 : {}", instructorBoardDto);
+        } else {
+            log.warn("게시글 수정 실패 : {}", instructorBoardDto);
+        }
+        return rowcnt;
     }
 
     @Override
