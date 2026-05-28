@@ -137,14 +137,13 @@ public class StaffController {
         //     return "admin/employeeForm"; 
         // }
 
-
         // 로그인한 관리자의 ID를 꺼냄
         String loginAdminId = "SYSTEM"; // 기본값, 실제로는 principal에서 꺼내야 함
         if (principal != null) {
             loginAdminId = principal.getName(); // 세션이나 토큰에 저장된 로그인 ID
         }
-        
-        staffService.registerEmployee(memberDto, employeeInfoDto, employeeSalary, profileImage, loginAdminId); 
+
+        staffService.registerEmployee(memberDto, employeeInfoDto, employeeSalary, profileImage, loginAdminId);
 
         return "redirect:/admin/employees";
     }

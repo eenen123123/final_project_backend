@@ -89,7 +89,7 @@
     </div>
     <div>
       <p class="text-xs text-slate-500">재직 중</p>
-      <p class="text-xl font-bold text-slate-800" th:text="${employeeList != null ? #lists.size(employeeList.?[employeeInfo != null and employeeInfo.emplStatCd == '01']) : 0}">0</p>
+      <p class="text-xl font-bold text-slate-800" th:text="${employeeList != null ? #lists.size(employeeList.?[emplStatCd == '01']) : 0}">0</p>
     </div>
   </div>
   <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
@@ -98,7 +98,7 @@
     </div>
     <div>
       <p class="text-xs text-slate-500">휴직 중</p>
-      <p class="text-xl font-bold text-slate-800" th:text="${employeeList != null ? #lists.size(employeeList.?[employeeInfo != null and employeeInfo.emplStatCd == '02']) : 0}">0</p>
+      <p class="text-xl font-bold text-slate-800" th:text="${employeeList != null ? #lists.size(employeeList.?[emplStatCd == '02']) : 0}">0</p>
     </div>
   </div>
   <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
@@ -107,7 +107,7 @@
     </div>
     <div>
       <p class="text-xs text-slate-500">퇴사</p>
-      <p class="text-xl font-bold text-slate-800" th:text="${employeeList != null ? #lists.size(employeeList.?[employeeInfo != null and employeeInfo.emplStatCd == '03']) : 0}">0</p>
+      <p class="text-xl font-bold text-slate-800" th:text="${employeeList != null ? #lists.size(employeeList.?[emplStatCd == '03']) : 0}">0</p>
     </div>
   </div>
 </div>
@@ -136,9 +136,9 @@
       </div>
       <select class="hm-input w-36" id="emp-status-filter" onchange="filterEmpList()">
         <option value="">전체 상태</option>
-        <option value="재직">재직 중</option>
-        <option value="휴직">휴직 중</option>
-        <option value="퇴사">퇴사</option>
+        <option value="01">재직 중</option>
+        <option value="02">휴직 중</option>
+        <option value="03">퇴사</option>
       </select>
       <select class="hm-input w-36" id="emp-role-filter" onchange="filterEmpList()">
         <option value="">전체 부서</option>
@@ -147,6 +147,12 @@
                 th:value="${dept.deptCd}"
                 th:text="${dept.deptNm}">
         </option>
+      </select>
+      <select class="hm-input w-36" id="emp-type-filter" onchange="filterEmpList()">
+        <option value="">근무 형태</option>
+        <option value="01">정규직</option>
+        <option value="02">계약직</option>
+        <option value="03">파트타임</option>
       </select>
     </div>
 
@@ -163,9 +169,14 @@
             th:data-status="${emp.employeeInfo != null ? (emp.employeeInfo.emplStatCd == '01' ? '재직' : (emp.employeeInfo.emplStatCd == '02' ? '휴직' : '퇴사')) : '미등록'}"
             th:data-dept="${emp.deptCd}"
             th:data-dept-nm="${emp.deptNm}"
-            th:data-jbgr="${emp.jbgrNm}"
-            th:data-id="${emp.member.userId}"
-            onclick="openDetail(this.getAttribute('data-id'))">
+            th:data-jbgr-nm="${emp.jbgrNm}" th:data-id="${emp.member.userId}"
+            th:data-name="${emp.member.userName}"
+            th:data-phone="${emp.member.userTelno}"
+            th:data-email="${emp.member.userEmailAddr}"
+            th:data-addr="${(emp.member.userAddr != null ? emp.member.userAddr : '') + (emp.member.userDaddr != null and not #strings.isEmpty(emp.member.userDaddr) ? ' ' + emp.member.userDaddr : '')}"
+            th:data-join-ymd="${emp.employeeInfo != null and emp.employeeInfo.joinYmd != null ? #temporals.format(emp.employeeInfo.joinYmd, 'yyyy-MM-dd') : ''}"
+            th:data-empl-stat-cd="${emp.employeeInfo != null ? emp.employeeInfo.emplStatCd : ''}"
+            th:data-empl-type-cd="${emp.employeeInfo != null ? emp.employeeInfo.emplTypeCd : ''}" th:data-chrg-duty-cn="${emp.employeeInfo != null ? emp.employeeInfo.chrgDutyCn : ''}" onclick="openDetail(this.getAttribute('data-id'))">
 
         <div class="flex items-center gap-3 mb-3">
           <div class="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center font-bold text-violet-700 text-base flex-shrink-0"
@@ -191,7 +202,7 @@
           </div>
           <div class="flex items-center gap-1.5">
             <i class="fa-solid fa-briefcase w-4 text-center"></i>
-            <span th:text="${emp.employeeInfo != null ? (emp.employeeInfo.emptTypeCd == '01' ? '정규직' : (emp.employeeInfo.emptTypeCd == '02' ? '계약직' : '파트타임')) : '-'}">-</span>
+            <span th:text="${emp.employeeInfo != null ? (emp.employeeInfo.emplTypeCd == '01' ? '정규직' : (emp.employeeInfo.emplTypeCd == '02' ? '계약직' : '파트타임')) : '-'}">-</span>
           </div>
         </div>
 
@@ -253,7 +264,7 @@
             </td>
             <td class="py-3 px-4 text-xs text-slate-600" th:text="${emp.employeeInfo != null ? emp.employeeInfo.joinYmd : '-'}">-</td>
             <td class="py-3 px-4 text-xs text-slate-600"
-                th:text="${emp.employeeInfo != null ? (emp.employeeInfo.emptTypeCd == '01' ? '정규직' : (emp.employeeInfo.emptTypeCd == '02' ? '계약직' : '파트타임')) : '-'}">-</td>
+                th:text="${emp.employeeInfo != null ? (emp.employeeInfo.emplTypeCd == '01' ? '정규직' : (emp.employeeInfo.emplTypeCd == '02' ? '계약직' : '파트타임')) : '-'}">-</td>
             <td class="py-3 px-4 text-xs text-slate-600" th:text="${emp.deptNm}">-</td>
             <td class="py-3 px-4">
               <span class="status-badge"
@@ -391,7 +402,7 @@
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">입사일 <span class="text-red-400">*</span></label>
-            <input type="date" class="hm-input" id="new-entry-date" name="joinYmd" oninput="autoGenLoginId()" />
+            <input type="date" class="hm-input" id="new-entry-date" name="joinYmd" min="2000-01-01" max="2099-12-31" oninput="autoGenLoginId()" />
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">재직 상태 <span class="text-red-400">*</span></label>
@@ -403,7 +414,7 @@
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">근무 유형</label>
-            <select class="hm-input" id="new-work-type" name="emptTypeCd" onchange="toggleContractPeriod(this.value)">
+            <select class="hm-input" id="new-work-type" name="emplTypeCd" onchange="toggleContractPeriod(this.value)">
               <option value="01">정규직</option>
               <option value="02">계약직</option>
               <option value="03">파트타임</option>
@@ -503,11 +514,10 @@
       <div class="mb-4">
         <p class="text-xs font-bold text-violet-600 uppercase tracking-wider mb-2">인사 정보</p>
         <div>
-          <div class="info-row"><span class="info-label">입사일</span><span class="info-value" id="detail-entry">2023-03-02</span></div>
-          <div class="info-row"><span class="info-label">근속 기간</span><span class="info-value" id="detail-tenure">3년 2개월</span></div>
-          <div class="info-row"><span class="info-label">근무 유형</span><span class="info-value" id="detail-work-type">정규직</span></div>
-          <div class="info-row"><span class="info-label">주간 근무시간</span><span class="info-value" id="detail-hours">40시간</span></div>
-          <div class="info-row"><span class="info-label">급여</span><span class="info-value" id="detail-salary">320만원</span></div>
+          <div class="info-row"><span class="info-label">입사일</span><span class="info-value" id="detail-entry">-</span></div>
+          <div class="info-row"><span class="info-label">근속 기간</span><span class="info-value" id="detail-tenure">-</span></div>
+          <div class="info-row"><span class="info-label">근무 유형</span><span class="info-value" id="detail-work-type">-</span></div>
+          <div class="info-row"><span class="info-label">담당 업무</span><span class="info-value" id="detail-duty">-</span></div>
         </div>
       </div>
 
@@ -685,44 +695,33 @@ function renderEmpCards(list) {
 }
 
 /* ─── 필터링 (한글 부서명 매칭 우회 버전) ─── */
-function filterEmpList(selectEl) {
-  const q  = document.getElementById('emp-search').value.trim().toLowerCase();
-  const st = document.getElementById('emp-status-filter').value;
-  
-  // 셀렉트 박스에서 선택된 옵션의 '한글 글자'를 추출합니다 (예: "행정팀")
-  // 아무것도 선택 안 했으면("전체 부서") 빈값("") 처리합니다.
-  let selectedDeptNm = '';
-  if (selectEl && selectEl.selectedIndex > 0) {
-    selectedDeptNm = selectEl.options[selectEl.selectedIndex].text.trim().toLowerCase();
-  } else {
-    // 만약 검색창 입력 등으로 selectEl 없이 함수가 호출되었을 때를 위한 방어 코드
-    const empRoleFilter = document.getElementById('emp-role-filter');
-    if (empRoleFilter && empRoleFilter.selectedIndex > 0) {
-      selectedDeptNm = empRoleFilter.options[empRoleFilter.selectedIndex].text.trim().toLowerCase();
-    }
-  }
+function filterEmpList() {
+  const q        = document.getElementById('emp-search').value.trim().toLowerCase();
+  const stCd     = document.getElementById('emp-status-filter').value;  // '01'|'02'|'03'|''
+  const typeCd   = document.getElementById('emp-type-filter').value;    // '01'|'02'|'03'|''
+
+  // 부서 필터: 선택된 옵션의 한글 부서명으로 비교
+  const roleFilter = document.getElementById('emp-role-filter');
+  const selectedDeptNm = (roleFilter && roleFilter.selectedIndex > 0)
+    ? roleFilter.options[roleFilter.selectedIndex].text.trim().toLowerCase()
+    : '';
 
   let visible = 0;
-  
+
   document.querySelectorAll('#emp-card-grid .emp-card').forEach(card => {
-    const id     = (card.dataset.id     || '').toLowerCase();
-    const deptNm = (card.dataset.deptNm || '').toLowerCase(); // DTO에 들어있는 한글 부서명 (예: "행정팀")
-    const jbgr   = (card.dataset.jbgr   || '').toLowerCase();
-    const status = card.dataset.status || '';
+    const name    = (card.dataset.name   || '').toLowerCase();
+    const deptNm  = (card.dataset.deptNm || '').toLowerCase();
+    const jbgr    = (card.dataset.jbgr   || '').toLowerCase();
+    const statCd  = card.dataset.emplStatCd  || ''; // 상태 코드 ('01'/'02'/'03')
+    const empType = card.dataset.emplTypeCd  || ''; // 근무형태 코드 ('01'/'02'/'03')
 
-    // 1. 검색어 필터링 (한글 부서명 포함 검색 가능)
-    const matchQ    = !q    || id.includes(q) || jbgr.includes(q) || deptNm.includes(q);
-    
-    // 2. 상태 필터링
-    const matchSt   = !st   || status === st;
-    
-    // 3. 부서 필터링: [우회] 선택한 옵션의 '한글 명칭'과 카드의 '한글 부서명'을 직접 비교
-    const matchDept = !selectedDeptNm || deptNm === selectedDeptNm;
+    const matchQ    = !q            || name.includes(q)    || jbgr.includes(q) || deptNm.includes(q);
+    const matchSt   = !stCd         || statCd   === stCd;
+    const matchType = !typeCd       || empType   === typeCd;
+    const matchDept = !selectedDeptNm || deptNm  === selectedDeptNm;
 
-    // 최종 결합
-    const show = matchQ && matchSt && matchDept;
+    const show = matchQ && matchSt && matchType && matchDept;
     card.style.display = show ? '' : 'none';
-    
     if (show) visible++;
   });
 
@@ -803,33 +802,70 @@ function renderDestructionList() {
   `).join('');
 }
 
+/* ─── 전화번호 하이픈 포맷 (표시용) ─── */
+function formatPhoneDisplay(tel) {
+  if (!tel) return '-';
+  const v = tel.replace(/\D/g, '');
+  if (v.length === 11) return v.slice(0,3) + '-' + v.slice(3,7) + '-' + v.slice(7);
+  if (v.length === 10) return v.slice(0,3) + '-' + v.slice(3,6) + '-' + v.slice(6);
+  return tel;
+}
+
 /* ─── 직원 상세 모달 열기 ─── */
 function openDetail(id) {
-  const e = employees.find(x => x.id === id);
-  if (!e) return;
+  // Thymeleaf 카드의 data-* 에서 서버 데이터를 읽는다
+  const card = document.querySelector('.emp-card[data-id="' + id + '"]');
+
+  let e;
+  if (card) {
+    const typeCd = card.dataset.emplTypeCd || '';
+    const statCd = card.dataset.emplStatCd || '';
+    const statusText = statCd === '01' ? '재직' : statCd === '02' ? '휴직' : statCd === '03' ? '퇴사' : (card.dataset.status || '-');
+    const workType   = typeCd === '01' ? '정규직' : typeCd === '02' ? '계약직' : typeCd === '03' ? '파트타임' : '-';
+    e = {
+      id:       id,
+      name:     card.dataset.name     || '-',
+      phone:    formatPhoneDisplay(card.dataset.phone),
+      email:    card.dataset.email    || '-',
+      addr:     (card.dataset.addr    || '-').trim() || '-',
+      status:   statusText,
+      dept:     card.dataset.deptNm   || '-',
+      role:     card.dataset.jbgrNm     || '-',
+      entry:    card.dataset.joinYmd  || '-',
+      workType: workType,
+      duty:     card.dataset.chrgDutyCn || '-',
+    };
+  } else {
+    // 더미 데이터 fallback (카드가 DOM에 없을 때)
+    const dummy = employees.find(x => x.id === id || x.id === Number(id));
+    if (!dummy) return;
+    e = { ...dummy, duty: dummy.duty || '-' };
+  }
+
   selectedEmpId = id;
-  renderEmpCards(employees);
 
-  // 상태 배지
+  // 선택된 카드 강조
+  document.querySelectorAll('.emp-card').forEach(c => c.classList.remove('selected'));
+  if (card) card.classList.add('selected');
+
   const statusClass = { '재직':'status-active', '휴직':'status-leave', '퇴사':'status-resigned' };
-  const roleClass = { '매니저':'role-manager', '행정':'role-staff', '강사':'role-instructor', 'PD':'role-pd' };
+  const roleClass   = { '매니저':'role-manager', '행정':'role-staff', '강사':'role-instructor', 'PD':'role-pd' };
 
-  document.getElementById('detail-title').textContent = e.name + ' · 직원 상세';
-  document.getElementById('detail-avatar').textContent = e.name[0];
-  document.getElementById('detail-name').textContent = e.name;
-  document.getElementById('detail-status-badge').className = 'status-badge ' + statusClass[e.status];
+  document.getElementById('detail-title').textContent        = e.name + ' · 직원 상세';
+  document.getElementById('detail-avatar').textContent       = e.name && e.name !== '-' ? e.name[0] : '?';
+  document.getElementById('detail-name').textContent         = e.name;
+  document.getElementById('detail-status-badge').className   = 'status-badge ' + (statusClass[e.status] || 'status-resigned');
   document.getElementById('detail-status-badge').textContent = e.status;
-  document.getElementById('detail-role-tag').className = 'role-tag ' + roleClass[e.role];
-  document.getElementById('detail-role-tag').textContent = e.role;
-  document.getElementById('detail-dept-tag').textContent = e.dept;
-  document.getElementById('detail-phone').textContent = e.phone;
-  document.getElementById('detail-email').textContent = e.email;
-  document.getElementById('detail-addr').textContent = e.addr;
-  document.getElementById('detail-entry').textContent = e.entry;
-  document.getElementById('detail-tenure').textContent = calcTenure(e.entry);
-  document.getElementById('detail-work-type').textContent = e.workType;
-  document.getElementById('detail-hours').textContent = '주 ' + e.hours + '시간';
-  document.getElementById('detail-salary').textContent = e.salary + '만원';
+  document.getElementById('detail-role-tag').className       = 'role-tag '    + (roleClass[e.role]     || 'role-staff');
+  document.getElementById('detail-role-tag').textContent     = e.role;
+  document.getElementById('detail-dept-tag').textContent     = e.dept;
+  document.getElementById('detail-phone').textContent        = e.phone;
+  document.getElementById('detail-email').textContent        = e.email;
+  document.getElementById('detail-addr').textContent         = e.addr;
+  document.getElementById('detail-entry').textContent        = e.entry;
+  document.getElementById('detail-tenure').textContent       = e.entry && e.entry !== '-' ? calcTenure(e.entry) : '-';
+  document.getElementById('detail-work-type').textContent    = e.workType;
+  document.getElementById('detail-duty').textContent         = e.duty;
 
   // 수정 폼 초기화
   if (detailEditMode) toggleDetailEdit();
@@ -840,10 +876,14 @@ function openDetail(id) {
 
 function calcTenure(entry) {
   const d = new Date(entry);
+  if (isNaN(d.getTime())) return '-';
+  if (d.getFullYear() < 1900 || d > new Date()) return '날짜 오류';
   const now = new Date();
   let y = now.getFullYear() - d.getFullYear();
   let m = now.getMonth() - d.getMonth();
+  if (now.getDate() < d.getDate()) m--;
   if (m < 0) { y--; m += 12; }
+  if (y === 0 && m === 0) return '1개월 미만';
   return y > 0 ? `${y}년 ${m}개월` : `${m}개월`;
 }
 
@@ -1186,12 +1226,18 @@ function validateNewEmp() {
   }
   
   // [입사일 체크]
-  if (!entryEl.value) { 
-    showHermesToast('입사일을 입력해주세요.', 'error'); 
-    entryEl.focus(); 
-    return false; 
+  if (!entryEl.value) {
+    showHermesToast('입사일을 입력해주세요.', 'error');
+    entryEl.focus();
+    return false;
   }
-  
+  const entryYear = new Date(entryEl.value).getFullYear();
+  if (isNaN(entryYear) || entryYear < 2000 || entryYear > 2099) {
+    showHermesToast('입사일 연도를 올바르게 입력해주세요. (2000~2099)', 'error');
+    entryEl.focus();
+    return false;
+  }
+
   // [로그인 ID 체크]
   if (!loginIdEl.value.trim()) { 
     showHermesToast('로그인 ID가 생성되지 않았습니다.', 'error'); 
