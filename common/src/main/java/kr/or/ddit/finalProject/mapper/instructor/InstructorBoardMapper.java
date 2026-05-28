@@ -12,11 +12,11 @@ public interface InstructorBoardMapper {
 
     public List<InstructorBoardDto> selectInstructorBoardList(@Param("instrUserId") String instrUserId);
 
-    public InstructorBoardDto selectInstructorBoardDetail(@Param("postSn") int postSn);
+    public InstructorBoardDto selectInstructorBoardDetail(@Param("postSn") Long postSn, @Param("instrUserId") String instrUserId);
 
     public int insertInstructorBoard(InstructorBoardDto instructorBoardDto);
 
     public int updateInstructorBoard(InstructorBoardDto instructorBoardDto);
 
-    public int deleteInstructorBoard(@Param("postSn") int postSn);
+    public int deleteInstructorBoard(@Param("postSn") Long postSn);
 }

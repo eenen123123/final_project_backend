@@ -18,13 +18,15 @@
             <result property="rgtrId" column="RGTR_ID"/>
             <result property="lastMdfrId" column="LAST_MDFR_ID"/>
 
+            <result property="boardTypeNm" column="BOARD_TYPE_NM"/>
+
             <association property="memberDto" javaType="kr.or.ddit.finalProject.dto.member.MemberDto">
                   <result property="userName" column="USER_NAME"/>
             </association>
       </resultMap>
 
       <select id="selectInstructorBoardList" resultMap="instructorBoardMap">
-            SELECT 
+            SELECT
                   IB.POST_SN
                   , IB.INSTR_USER_ID
                   , IB.WRTR_USER_ID
@@ -38,8 +40,10 @@
                   , IB.RGTR_ID
                   , IB.LAST_MDFR_ID
                   , M.USER_NAME
-            FROM INSTRUCTOR_BOARD IB 
+                  , C.COM_CD_NM AS BOARD_TYPE_NM
+            FROM INSTRUCTOR_BOARD IB
                   INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
+                  LEFT JOIN COM_CD C ON C.CL_CODE = '100' AND C.COM_CD = IB.BOARD_TYPE_CD AND C.USE_YN = 'Y'
             WHERE IB.INSTR_USER_ID = #{instrUserId}
             ORDER BY IB.REG_DT DESC
       </select>
@@ -58,12 +62,19 @@
                   , IB.RGTR_ID
                   , IB.LAST_MDFR_ID
                   , M.USER_NAME
-            FROM INSTRUCTOR_BOARD IB 
+                  , C.COM_CD_NM AS BOARD_TYPE_NM
+            FROM INSTRUCTOR_BOARD IB
                   INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
+                  LEFT JOIN COM_CD C ON C.CL_CODE = '100' AND C.COM_CD = IB.BOARD_TYPE_CD AND C.USE_YN = 'Y'
             WHERE IB.POST_SN = #{postSn}
+                  AND IB.INSTR_USER_ID = #{instrUserId}
       </select>
 
-      <insert id="insertInstructorBoard" parameterType="kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto">
+      <insert id="insertInstructorBoard"
+            parameterType="kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto"
+            useGeneratedKeys="true"
+            keyProperty="postSn"
+            keyColumn="POST_SN">
             INSERT INTO INSTRUCTOR_BOARD (
                   INSTR_USER_ID
                   , WRTR_USER_ID
@@ -87,12 +98,12 @@
                   , #{atchFileId}
                   , SYSDATE
                   , SYSDATE
-                  , #{rgtrId}
-                  , #{lastMdfrId}
+                  , #{wrtrUserId}
+                  , #{wrtrUserId}
                   )
       </insert>
 
-      <!-- <update id="updateInstructorBoard" parameterType="kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto">
+      <!-- <update id="updateInstructorBoard">
             UPDATE board
             SET board_title = #{boardTitle},
                   board_content = #{boardContent},
@@ -100,7 +111,7 @@
             WHERE board_id = #{boardId} 
       </update> -->
 
-      <!-- <delete id="deleteInstructorBoard" parameterType="int">
+      <!-- <delete id="deleteInstructorBoard">
             DELETE FROM board
             WHERE board_id = #{boardId} 
       </delete> -->

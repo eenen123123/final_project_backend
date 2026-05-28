@@ -15,7 +15,7 @@ public interface InstructorBoardService {
     /**
      * 강사 게시판 상세 조회
      */
-    InstructorBoardResponseDto getInstructorBoardDetail(int postSn);
+    InstructorBoardResponseDto getInstructorBoardDetail(Long postSn, String instrUserId);
 
     /**
      * 강사 게시판 등록
@@ -30,5 +30,5 @@ public interface InstructorBoardService {
     /**
      * 강사 게시판 삭제
      */
-    int deleteInstructorBoard(int postSn);
+    int deleteInstructorBoard(Long postSn);
 }

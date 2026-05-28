@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+      "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.common.CommonCodeMapper">
+
+      <select id="selectByClCode" resultType="kr.or.ddit.finalProject.dto.common.CommonCodeDto">
+            SELECT TRIM(COM_CD)   AS COM_CD
+                 , COM_CD_NM
+            FROM COM_CD
+            WHERE TRIM(CL_CODE) = #{clCode}
+              AND USE_YN = 'Y'
+            ORDER BY COM_CD
+      </select>
+
+</mapper>

@@ -16,7 +16,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class InstructorBoardResponseDto implements Serializable {
 
-    private int postSn; // 게시글 번호
+    private Long postSn; // 게시글 번호
+    private String boardTypeCd; // 게시판 분류 코드
+    private String boardTypeNm; // 게시판 분류명
     private String userName; // 작성자 이름
     private String title; // 게시글 제목
     private String content; // 게시글 내용

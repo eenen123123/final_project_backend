@@ -7,10 +7,13 @@
         강의 관련 공지 및 문의사항을 확인합니다.
       </p>
     </div>
-    <button class="hm-btn-primary hm-btn-sky text-base">
+    <a
+      href="/instructor/board/insertForm"
+      class="hm-btn-primary hm-btn-sky text-base"
+    >
       <i class="fa-solid fa-pen-to-square"></i>
       글쓰기
-    </button>
+    </a>
   </div>
 
   <!-- 게시글 테이블 -->
@@ -24,6 +27,11 @@
             class="w-24 px-6 py-4 text-left text-sm font-semibold text-slate-500"
           >
             번호
+          </th>
+          <th
+            class="w-28 px-6 py-4 text-left text-sm font-semibold text-slate-500"
+          >
+            분류
           </th>
           <th class="px-6 py-4 text-left text-sm font-semibold text-slate-500">
             제목
@@ -47,22 +55,45 @@
           class="transition-colors hover:bg-sky-50"
         >
           <td class="text-base text-slate-400">
-            <a th:href="${detailUrl}" class="block px-6 py-4" th:text="${board.postSn}"></a>
+            <a
+              th:href="${detailUrl}"
+              class="block px-6 py-4"
+              th:text="${board.postSn}"
+            ></a>
+          </td>
+          <td class="text-base">
+            <a th:href="${detailUrl}" class="block px-6 py-4">
+              <span th:if="${board.boardTypeCd == '02'}" class="inline-block rounded-full bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-700"    th:text="${board.boardTypeNm}"></span>
+              <span th:if="${board.boardTypeCd == '03'}" class="inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700"  th:text="${board.boardTypeNm}"></span>
+              <span th:if="${board.boardTypeCd == '04'}" class="inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700" th:text="${board.boardTypeNm}"></span>
+            </a>
           </td>
           <td class="text-base font-medium text-slate-800">
-            <a th:href="${detailUrl}" class="block px-6 py-4" th:text="${board.title}"></a>
+            <a
+              th:href="${detailUrl}"
+              class="block px-6 py-4"
+              th:text="${board.title}"
+            ></a>
           </td>
           <td class="text-base text-slate-600">
-            <a th:href="${detailUrl}" class="block px-6 py-4" th:text="${board.userName}"></a>
+            <a
+              th:href="${detailUrl}"
+              class="block px-6 py-4"
+              th:text="${board.userName}"
+            ></a>
           </td>
           <td class="text-base text-slate-500">
-            <a th:href="${detailUrl}" class="block px-6 py-4" th:text="${board.regDt}"></a>
+            <a
+              th:href="${detailUrl}"
+              class="block px-6 py-4"
+              th:text="${board.regDt}"
+            ></a>
           </td>
         </tr>
         <!-- 게시글이 없을 때 -->
         <tr th:if="${#lists.isEmpty(boardList)}">
           <td
-            colspan="4"
+            colspan="5"
             class="px-6 py-16 text-center text-base text-slate-400"
           >
             <i class="fa-regular fa-folder-open mb-2 block text-3xl"></i>
@@ -72,5 +103,4 @@
       </tbody>
     </table>
   </div>
-</table>
 </div>
