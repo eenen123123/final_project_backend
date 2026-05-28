@@ -1,0 +1,132 @@
+<div class="p-6">
+  <!-- 페이지 헤더 -->
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h1
+        class="text-2xl font-bold text-slate-800"
+        th:text="${board?.postSn != null} ? '게시글 수정' : '게시글 작성'"
+      ></h1>
+      <p class="mt-1 text-sm text-slate-500">
+        강의 관련 공지, 질문, 자료를 등록합니다.
+      </p>
+    </div>
+    <a href="/instructor/board/list" class="hm-btn-secondary text-base">
+      <i class="fa-solid fa-list"></i>
+      목록으로
+    </a>
+  </div>
+
+  <!-- 에러 메시지 -->
+  <div
+    th:if="${errorMessage}"
+    class="mb-4 rounded-xl border border-red-200 bg-red-50 px-5 py-3 text-sm text-red-600"
+  >
+    <i class="fa-solid fa-circle-exclamation mr-1"></i>
+    <span th:text="${errorMessage}"></span>
+  </div>
+
+  <!-- 작성 폼 -->
+  <form
+    th:action="@{${board?.postSn != null ? '/instructor/board/update' : '/instructor/board/insert'}}"
+    method="post"
+    class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+  >
+    <input
+      type="hidden"
+      name="postSn"
+      th:if="${board?.postSn != null}"
+      th:value="${board?.postSn}"
+    />
+    <div class="divide-y divide-slate-100">
+      <!-- 게시판 분류 -->
+      <div class="flex items-center px-8 py-5">
+        <label
+          for="boardTypeCd"
+          class="w-28 shrink-0 text-sm font-semibold text-slate-600"
+          >게시판 분류</label
+        >
+        <select
+          id="boardTypeCd"
+          name="boardTypeCd"
+          class="hm-input hm-input-sky max-w-48 text-base"
+          th:attr="data-selected=${board?.boardTypeCd}"
+        >
+          <option value="">-- 선택 --</option>
+        </select>
+      </div>
+
+      <!-- 제목 -->
+      <div class="flex items-center px-8 py-5">
+        <label
+          for="postSj"
+          class="w-28 shrink-0 text-sm font-semibold text-slate-600"
+        >
+          제목 <span class="text-red-400">*</span>
+        </label>
+        <input
+          id="postSj"
+          type="text"
+          name="postSj"
+          maxlength="100"
+          placeholder="제목을 입력하세요."
+          th:value="${board?.postSj}"
+          class="hm-input hm-input-sky text-base"
+        />
+      </div>
+
+      <!-- 내용 -->
+      <div class="flex px-8 py-5">
+        <label
+          for="postCn"
+          class="w-28 shrink-0 pt-1 text-sm font-semibold text-slate-600"
+        >
+          내용 <span class="text-red-400">*</span>
+        </label>
+        <textarea
+          id="postCn"
+          name="postCn"
+          rows="12"
+          maxlength="1333"
+          placeholder="내용을 입력하세요."
+          class="hm-input hm-input-sky resize-none text-base leading-relaxed"
+          th:text="${board?.postCn}"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- 버튼 영역 -->
+    <div
+      class="flex justify-end gap-3 border-t border-slate-100 bg-slate-50 px-8 py-4"
+    >
+      <a
+        href="/instructor/board/list"
+        class="hm-btn-secondary bg-slate-200 text-slate-700 text-base hover:bg-slate-300"
+      >
+        취소
+      </a>
+      <button type="submit" class="hm-btn-primary hm-btn-sky text-base">
+        <i class="fa-solid fa-floppy-disk"></i>
+        <span th:text="${board?.postSn != null} ? '수정' : '등록'"></span>
+      </button>
+    </div>
+  </form>
+
+  <script>
+    (function () {
+      const select = document.getElementById("boardTypeCd");
+      const selected = (select.dataset.selected || "").trim();
+
+      fetch("/instructor/board/boardTypes")
+        .then((res) => res.json())
+        .then((codes) => {
+          codes.forEach((code) => {
+            const opt = document.createElement("option");
+            opt.value = code.comCd;
+            opt.textContent = code.comCdNm;
+            if (code.comCd === selected) opt.selected = true;
+            select.appendChild(opt);
+          });
+        });
+    })();
+  </script>
+</div>
