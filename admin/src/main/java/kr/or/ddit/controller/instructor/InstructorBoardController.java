@@ -72,16 +72,27 @@ public class InstructorBoardController {
         instructorBoardDto.setWrtrUserId(userId);
 
         if (error.hasErrors()) {
+            String errorMsg = error.getAllErrors().stream()
+                    .map(e -> e.getDefaultMessage())
+                    .findFirst()
+                    .orElse("입력값을 확인해주세요.");
             redirectAttributes.addFlashAttribute("board", instructorBoardDto);
-            redirectAttributes.addFlashAttribute("errors", error.getAllErrors());
+            redirectAttributes.addFlashAttribute("errorMessage", errorMsg);
             return "redirect:/instructor/board/insertForm";
         }
-        int rowcnt = instructorBoardService.insertInstructorBoard(instructorBoardDto);
-        if (rowcnt > 0) {
-            return "redirect:/instructor/board/detail/" + instructorBoardDto.getPostSn();
-        } else {
+        try {
+            int rowcnt = instructorBoardService.insertInstructorBoard(instructorBoardDto);
+            if (rowcnt > 0) {
+                return "redirect:/instructor/board/detail/" + instructorBoardDto.getPostSn();
+            } else {
+                redirectAttributes.addFlashAttribute("board", instructorBoardDto);
+                redirectAttributes.addFlashAttribute("errorMessage", "게시글 등록에 실패했습니다. 다시 시도해주세요.");
+                return "redirect:/instructor/board/insertForm";
+            }
+        } catch (Exception e) {
+            log.error("게시글 등록 중 오류 발생", e);
             redirectAttributes.addFlashAttribute("board", instructorBoardDto);
-            redirectAttributes.addFlashAttribute("errorMessage", "게시글 등록에 실패했습니다. 다시 시도해주세요.");
+            redirectAttributes.addFlashAttribute("errorMessage", "게시글 등록 중 오류가 발생했습니다. 다시 시도해주세요.");
             return "redirect:/instructor/board/insertForm";
         }
     }
