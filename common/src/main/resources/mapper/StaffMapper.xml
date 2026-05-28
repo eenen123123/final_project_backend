@@ -173,4 +173,13 @@
         ORDER BY m.USER_ID
     </select>
 
+    <!-- checkIdExists --> 
+    <select id="checkIdExists" parameterType="String" resultType="int">
+        SELECT COUNT(*) FROM MEMBER WHERE USER_ID = #{userId}
+    </select>
+
+    <!-- selectMaxUserId --> 
+    <select id="selectMaxUserId" parameterType="String" resultType="String">
+        SELECT MAX(USER_ID) FROM MEMBER WHERE USER_ID LIKE CONCAT(#{baseId}, '%')
+    </select>
 </mapper>
