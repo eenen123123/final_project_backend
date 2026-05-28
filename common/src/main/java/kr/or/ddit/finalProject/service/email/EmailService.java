@@ -6,7 +6,7 @@ public interface EmailService {
      * 6자리 인증 코드를 생성하여 이메일로 전송하는 메서드
      * 
      * @param to 이메일 수신자
-     * @return 전송된 6자리 인증 코드
+     * @return 
      */
     public String sendEmailSixDigits(String to);
 
