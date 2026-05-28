@@ -71,4 +71,15 @@ public class FaqServiceImpl implements FaqService {
         boardService.deletePost(postSn);
     }
 
+    @Override
+    @Transactional
+    public FaqDto getPrevFaq(Long postSn, String faqCtgCd) {
+        return faqMapper.findPrevFaq(postSn, faqCtgCd);
+    }
+
+    @Override
+    public FaqDto getNextFaq(Long postSn, String faqCtgCd) {
+        return faqMapper.findNextFaq(postSn, faqCtgCd);
+    }
+
 }

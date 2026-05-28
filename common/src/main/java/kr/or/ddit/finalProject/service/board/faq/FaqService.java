@@ -44,4 +44,22 @@ public interface FaqService {
      */
     void deleteFaq(Long postSn);
 
+    /**
+     * FAQ 이전글 조회 (같은 카테고리)
+     *
+     * @param postSn 현재 FAQ PK
+     * @param faqCtgCd 대분류 코드
+     * @return 이전 FAQ
+     */
+    FaqDto getPrevFaq(Long postSn, String faqCtgCd);
+
+    /**
+     * FAQ 다음글 조회 (같은 카테고리)
+     *
+     * @param postSn 현재 FAQ PK
+     * @param faqCtgCd 대분류 코드
+     * @return 다음 FAQ
+     */
+    FaqDto getNextFaq(Long postSn, String faqCtgCd);
+
 }
