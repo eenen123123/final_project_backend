@@ -25,9 +25,12 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
         List<InstructorBoardResponseDto> response
                 = original.stream()
                         .map(dto -> {
+                            String userName = dto.getMemberDto() != null ? dto.getMemberDto().getUserName() : "";
                             InstructorBoardResponseDto responseDto = new InstructorBoardResponseDto();
-                            responseDto.setPostSn(dto.getPostSn().intValue());
-                            responseDto.setUserName(dto.getMemberDto().getUserName()); // 작성자 이름 설정
+                            responseDto.setPostSn(dto.getPostSn());
+                            responseDto.setBoardTypeCd(dto.getBoardTypeCd());
+                            responseDto.setBoardTypeNm(dto.getBoardTypeNm());
+                            responseDto.setUserName(userName);
                             responseDto.setTitle(dto.getPostSj());
                             responseDto.setContent(dto.getPostCn());
                             responseDto.setRegDt(dto.getRegDt() != null ? dto.getRegDt().format(formatter) : null);
@@ -41,24 +44,35 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     }
 
     @Override
-    public InstructorBoardResponseDto getInstructorBoardDetail(int postSn) {
-        InstructorBoardDto original = instructorBoardMapper.selectInstructorBoardDetail(postSn);
+    public InstructorBoardResponseDto getInstructorBoardDetail(Long postSn, String instrUserId) {
+        InstructorBoardDto original = instructorBoardMapper.selectInstructorBoardDetail(postSn, instrUserId);
+        if (original == null) {
+            return null;
+        }
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        InstructorBoardResponseDto responseDto = InstructorBoardResponseDto.builder()
-                .postSn(original.getPostSn().intValue())
-                .userName(original.getMemberDto().getUserName()) // 작성자 이름 설정
+        String userName = original.getMemberDto() != null ? original.getMemberDto().getUserName() : "";
+        return InstructorBoardResponseDto.builder()
+                .postSn(original.getPostSn())
+                .boardTypeCd(original.getBoardTypeCd())
+                .boardTypeNm(original.getBoardTypeNm())
+                .userName(userName)
                 .title(original.getPostSj())
                 .content(original.getPostCn())
                 .regDt(original.getRegDt() != null ? original.getRegDt().format(formatter) : null)
                 .mdfcnDt(original.getMdfcnDt() != null ? original.getMdfcnDt().format(formatter) : null)
                 .atchFileId(original.getAtchFileId() != null ? original.getAtchFileId().toString() : null)
                 .build();
-        return responseDto;
     }
 
     @Override
     public int insertInstructorBoard(InstructorBoardDto instructorBoardDto) {
-        return instructorBoardMapper.insertInstructorBoard(instructorBoardDto);
+        int rowcnt = instructorBoardMapper.insertInstructorBoard(instructorBoardDto);
+        if (rowcnt > 0) {
+            log.info("게시글 등록 성공 : {}", instructorBoardDto);
+        } else {
+            log.warn("게시글 등록 실패 : {}", instructorBoardDto);
+        }
+        return rowcnt;
     }
 
     @Override
@@ -67,7 +81,7 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     }
 
     @Override
-    public int deleteInstructorBoard(int postSn) {
+    public int deleteInstructorBoard(Long postSn) {
         return 0;
     }
 
