@@ -936,17 +936,40 @@ function koreanInitialsToEng(name) {
   return result;
 }
 
-/* ─── 로그인 ID 자동 생성 ─── */
+/* ─── 로그인 ID 자동 생성 (DB 순번 ++ 방식 반영) ─── */
 function autoGenLoginId(force) {
   const name  = document.getElementById('new-name').value.trim();
   const entry = document.getElementById('new-entry-date').value;
   const idEl  = document.getElementById('new-login-id');
-  if (!name || !entry) { if (force) showHermesToast('이름과 입사일을 먼저 입력해주세요.', 'error'); return; }
+  if (!name || !entry) return;
+
   const year  = entry.slice(0, 4);
   const month = entry.slice(5, 7);
   const initials = koreanInitialsToEng(name);
-  const serial = String(employees.length + 1).padStart(2, '0');
-  idEl.value = year + month + initials + serial;
+  
+  // 기준점이 될 앞자리 패턴 (예: "202605KH")
+  const baseId = year + month + initials;
+  
+  // 화면단 기본 일련번호 (예: 기존employees 배열 길이에 기반한 "07")
+  const defaultSerial = String(employees.length + 1).padStart(2, '0'); 
+  const targetId = baseId + defaultSerial;
+
+  // [실시간 중복 조회 및 차기 순번 발급]
+  // 파라미터로 베이스 패턴과 기본 일련번호를 넘겨줍니다.
+  fetch(`/admin/employees/next-id?baseId=${baseId}&defaultSerial=${defaultSerial}`)
+    .then(res => res.text()) // JSON 대신 단순 문자열(ID)을 응답으로 받습니다.
+    .then(nextAvailableId => {
+      
+      // 만약 서버가 준 사용 가능 ID가 처음에 예측한 targetId와 다르다면 중복이 있었다는 뜻입니다.
+      if (targetId !== nextAvailableId) {
+        idEl.value = nextAvailableId; // 자동으로 ++된 ID(예: 202605KH08) 주입
+        showHermesToast(`해당 ID 순번이 중복되어 다음 번호 [${nextAvailableId}]로 자동 지정되었습니다.`, 'info');
+      } else {
+        // 중복이 없다면 원래 예측한 순서대로 노출
+        idEl.value = targetId;
+      }
+    })
+    .catch(err => console.error("ID 생성 중 서버 통신 오류:", err));
 }
 
 /* ─── 계약 기간 필드 show/hide ─── */
@@ -959,27 +982,79 @@ function toggleContractPeriod(val) {
   if (!show) end.value = '';
 }
 
-/* ─── 주민번호에서 생년월일·성별·임시비밀번호 자동 파생 ─── */
+/* ─── 주민번호에서 생년월일·성별·임시비밀번호 자동 파생 및 날짜 유효성 체크 ─── */
+/* ─── 주민번호 입력 시 실시간 날짜 유효성 검증 및 생년월일·성별 자동 파생 ─── */
 function autoFillTempPw() {
+  // 숫자만 추출
   const rrn = document.getElementById('new-rrn').value.replace(/\D/g, '');
 
-  // 임시 비밀번호: 생년월일 앞 6자리
+  // 임시 비밀번호: 생년월일 앞 6자리 자동 설정
   document.getElementById('new-temp-pw').value = rrn.length >= 6 ? rrn.slice(0, 6) : '';
 
-  // 생년월일 파생 (7번째 자리로 세기 결정)
+  // 1. 최소 7 자리가 입력되어 성별 코드가 확인되는 시점부터 분석 시작
   if (rrn.length >= 7) {
-    const genderDigit = parseInt(rrn[6]);
-    const century = (genderDigit === 3 || genderDigit === 4) ? '20' : '19';
-    const yy = rrn.slice(0, 2), mm = rrn.slice(2, 4), dd = rrn.slice(4, 6);
+    const genderDigit = parseInt(rrn[6], 10);
+    const yy = rrn.slice(0, 2);
+    const mm = rrn.slice(2, 4);
+    const dd = rrn.slice(4, 6);
+
+    // 연도 세기 결정 (3, 4 -> 2000년대 / 1, 2 -> 1900년대 / 9, 0 -> 1800년대)
+    let century = '19';
+    if (genderDigit === 3 || genderDigit === 4) {
+      century = '20';
+    } else if (genderDigit === 9 || genderDigit === 0) {
+      century = '18';
+    }
+    
+    const fullYear = parseInt(century + yy, 10);
+    const month = parseInt(mm, 10);
+    const day = parseInt(dd, 10);
+
+    // 2. 실시간 날짜 정규화 체크 (월 범위 검증)
+    if (month < 1 || month > 12) {
+      showHermesToast("주민등록번호의 '월' 입력이 잘못되었습니다. (1월~12월 사이)", "error");
+      clearRrnOutputs();
+      return;
+    }
+
+    // 3. 13자리 전체가 완벽히 입력되었을 때 '일(Day)'과 '윤년' 최종 검증 발동
+    if (rrn.length === 13) {
+      const dateCheck = new Date(fullYear, month - 1, day);
+      
+      // 실제 존재하지 않는 날짜 판별 (예: 2월 30일, 4월 31일 등)
+      if (dateCheck.getFullYear() !== fullYear || 
+          dateCheck.getMonth() !== (month - 1) || 
+          dateCheck.getDate() !== day) {
+        
+        showHermesToast(`존재하지 않는 날짜입니다. 입력된 날짜를 확인해 주세요. (${month}월 ${day}일)`, "error");
+        clearRrnOutputs();
+        return;
+      }
+    }
+
+    // 4. 모든 검증을 통과한 유효한 날짜 포맷일 때만 화면에 반영
     document.getElementById('new-brdt').value = century + yy + '-' + mm + '-' + dd;
 
-    // 성별 파생
+    // 성별 코드 매핑
     const gndrMap = { 1: 'M', 2: 'F', 3: 'M', 4: 'F' };
     document.getElementById('new-gndr').value = gndrMap[genderDigit] || 'U';
+
   } else {
+    // 7자리 미만일 때는 입력값 초기화
     document.getElementById('new-brdt').value = '';
     document.getElementById('new-gndr').value = 'U';
   }
+}
+
+/* ─── 잘못된 주민번호 감지 시 입력 필드를 비우고 포커스를 주는 공통 함수 ─── */
+function clearRrnOutputs() {
+  const rrnEl = document.getElementById('new-rrn');
+  document.getElementById('new-brdt').value = ''; // 생년월일 칸 비움
+  document.getElementById('new-gndr').value = 'U'; // 성별 초기화
+  document.getElementById('new-temp-pw').value = ''; // 임시비밀번호 초기화
+  
+  // 입력되어 있던 잘못된 주민번호를 지우거나 포커스를 주어 수정을 유도합니다.
+  rrnEl.focus();
 }
 
 /* ─── 우편번호 검색 (Daum 우편번호 서비스 연동 준비) ─── */
@@ -1007,25 +1082,113 @@ function searchZipCode() {
   }).open(); // 팝업창을 연다.
 }
 
-/* ─── 신규 직원 등록 submit 전 유효성 검사 ─── */
+/* ─── 신규 직원 등록 submit 전 유효성 검사 (포커스 이동 추가) ─── */
 function validateNewEmp() {
-  const name    = document.getElementById('new-name').value.trim();
-  const rrn     = document.getElementById('new-rrn').value.trim();
-  const phone   = document.getElementById('new-phone').value.trim();
-  const dept    = document.getElementById('new-dept').value;
-  const role    = document.getElementById('new-role').value;
-  const entry   = document.getElementById('new-entry-date').value;
-  const loginId = document.getElementById('new-login-id').value.trim();
-  const addr    = document.getElementById('address').value.trim();
+  const nameEl    = document.getElementById('new-name');
+  const rrnEl     = document.getElementById('new-rrn');
+  const phoneEl   = document.getElementById('new-phone');
+  const deptEl    = document.getElementById('new-dept');
+  const roleEl    = document.getElementById('new-role');
+  const entryEl   = document.getElementById('new-entry-date');
+  const loginIdEl = document.getElementById('new-login-id');
+  const baseSalary = document.getElementById('new-salary');
+  const addrEl    = document.getElementById('address');
+  const brdt      = document.getElementById('new-brdt').value; // 파생된 생년월일 값
+  const chrgDutyCnt = document.getElementById('new-chrg-duty'); // 담당 업무
 
-  if (!name)    { showHermesToast('이름을 입력해주세요.', 'error'); return false; }
-  if (!rrn)     { showHermesToast('주민등록번호를 입력해주세요.', 'error'); return false; }
-  if (!phone)   { showHermesToast('연락처를 입력해주세요.', 'error'); return false; }
-  if (!addr)    { showHermesToast('기본 주소를 입력해주세요.', 'error'); return false; }
-  if (!dept)    { showHermesToast('소속 부서를 선택해주세요.', 'error'); return false; }
-  if (!role)    { showHermesToast('직급을 선택해주세요.', 'error'); return false; }
-  if (!entry)   { showHermesToast('입사일을 입력해주세요.', 'error'); return false; }
-  if (!loginId) { showHermesToast('로그인 ID가 생성되지 않았습니다.', 'error'); return false; }
+  // [이름 체크]
+  if (!nameEl.value.trim()) { 
+    showHermesToast('이름을 입력해주세요.', 'error'); 
+    nameEl.focus(); 
+    return false; 
+  }
+  
+  // [주민등록번호 필수 체크]
+  if (!rrnEl.value.trim()) { 
+    showHermesToast('주민등록번호를 입력해주세요.', 'error'); 
+    rrnEl.focus(); 
+    return false; 
+  }
+  
+  // [주민등록번호 13자리 규격 검증]
+  const rrnDigits = rrnEl.value.replace(/\D/g, '');
+  if (rrnDigits.length !== 13) {
+    showHermesToast('주민등록번호 13자리를 정확하게 입력해주세요.', 'error');
+    rrnEl.focus();
+    return false;
+  }
+
+  // [주민등록번호 날짜 논리성 검증]
+  // 올바르지 않은 날짜일 때 주민번호 칸으로 다시 포커스를 보냅니다.
+  if (!brdt) {
+    showHermesToast('주민등록번호에 기재된 날짜 정보가 유효하지 않습니다.', 'error');
+    rrnEl.focus();
+    return false;
+  }
+
+  // [연락처 체크]
+  if (!phoneEl.value.trim()) { 
+    showHermesToast('연락처를 입력해주세요.', 'error'); 
+    phoneEl.focus(); 
+    return false; 
+  }
+
+  // 중하위 번호가 000-0000이나 111-1111처럼 단순 반복되는 가짜 번호인 경우까지 체크하고 싶다면 패턴을 더 정교화할 수 있습니다.
+  const phoneRegex = /^010-\d{3,4}-\d{4}$/;
+  if (!phoneRegex.test(phoneEl.value.trim())) {
+    showHermesToast('올바른 휴대폰 번호 형식이 아닙니다. (예: 010-1234-5678)', 'error');
+    phoneEl.focus();
+    return false;
+  }
+  
+  // [주소 체크]
+  if (!addrEl.value.trim()) { 
+    showHermesToast('기본 주소를 입력해주세요.', 'error'); 
+    // 주소창은 readonly이므로 우편번호 검색 버튼(또는 상세주소창)으로 포커스를 주면 좋습니다.
+    document.getElementById('postcode').focus(); 
+    return false; 
+  }
+  
+  // [소속 부서 선택 체크]
+  if (!deptEl.value) { 
+    showHermesToast('소속 부서를 선택해주세요.', 'error'); 
+    deptEl.focus(); 
+    return false; 
+  }
+  
+  // [직급 선택 체크]
+  if (!roleEl.value) { 
+    showHermesToast('직급을 선택해주세요.', 'error'); 
+    roleEl.focus(); 
+    return false; 
+  }
+  
+  // [입사일 체크]
+  if (!entryEl.value) { 
+    showHermesToast('입사일을 입력해주세요.', 'error'); 
+    entryEl.focus(); 
+    return false; 
+  }
+  
+  // [로그인 ID 체크]
+  if (!loginIdEl.value.trim()) { 
+    showHermesToast('로그인 ID가 생성되지 않았습니다.', 'error'); 
+    return false; 
+  }
+
+  // [급여 입력 체크]
+  if (!baseSalary.value.trim()) {
+    showHermesToast('급여(기본급)를 입력해주세요.', 'error');
+    baseSalary.focus();
+    return false;
+  }
+
+  // [담당 업무 체크]
+  if (!chrgDutyCnt.value.trim()) {
+    showHermesToast('담당 업무를 입력해주세요.', 'error');
+    chrgDutyCnt.focus();
+    return false;
+  }
 
   return true;
 }
@@ -1037,10 +1200,26 @@ function resetPw(id, name) {
 
 /* ─── 입력 포맷 ─── */
 function formatPhone(el) {
-  let v = el.value.replace(/\D/g, '');
+  let v = el.value.replace(/\D/g, ''); // 숫자만 남기기
   if (v.length > 11) v = v.slice(0, 11);
-  if (v.length >= 8) v = v.slice(0,3) + '-' + v.slice(3,7) + '-' + v.slice(7);
-  else if (v.length >= 4) v = v.slice(0,3) + '-' + v.slice(3);
+
+  // [보완] 최소 3자리가 입력되었을 때 휴대폰 앞자리 형식이 맞는지 체크
+  // 010 외에 012, 015까지 허용하려면 /^(010|012|015)/ 형태로 확장 가능합니다.
+  if (v.length >= 3) {
+    if (!/^010/.test(v)) {
+      showHermesToast('휴대폰 번호는 010으로 시작해야 합니다.', 'error');
+      // 앞자리가 010이 아니면 입력값을 강제로 010으로 초기화하거나 비워줍니다.
+      el.value = '010-';
+      return;
+    }
+  }
+
+  // 하이픈 포맷팅 로직
+  if (v.length >= 8) {
+    v = v.slice(0, 3) + '-' + v.slice(3, 7) + '-' + v.slice(7);
+  } else if (v.length >= 4) {
+    v = v.slice(0, 3) + '-' + v.slice(3);
+  }
   el.value = v;
 }
 
