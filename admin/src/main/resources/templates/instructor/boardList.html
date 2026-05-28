@@ -43,26 +43,21 @@
       <tbody class="divide-y divide-slate-100">
         <tr
           th:each="board : ${boardList}"
-          class="cursor-pointer transition-colors hover:bg-sky-50"
+          th:with="detailUrl=@{/instructor/board/detail/{postSn}(postSn=${board.postSn})}"
+          class="transition-colors hover:bg-sky-50"
         >
-          <td
-            class="px-6 py-4 text-base text-slate-400"
-            th:text="${board.postSn}"
-          ></td>
-          <td class="px-6 py-4">
-            <span
-              class="text-base font-medium text-slate-800"
-              th:text="${board.title}"
-            ></span>
+          <td class="text-base text-slate-400">
+            <a th:href="${detailUrl}" class="block px-6 py-4" th:text="${board.postSn}"></a>
           </td>
-          <td
-            class="px-6 py-4 text-base text-slate-600"
-            th:text="${board.userName}"
-          ></td>
-          <td
-            class="px-6 py-4 text-base text-slate-500"
-            th:text="${board.regDt}"
-          ></td>
+          <td class="text-base font-medium text-slate-800">
+            <a th:href="${detailUrl}" class="block px-6 py-4" th:text="${board.title}"></a>
+          </td>
+          <td class="text-base text-slate-600">
+            <a th:href="${detailUrl}" class="block px-6 py-4" th:text="${board.userName}"></a>
+          </td>
+          <td class="text-base text-slate-500">
+            <a th:href="${detailUrl}" class="block px-6 py-4" th:text="${board.regDt}"></a>
+          </td>
         </tr>
         <!-- 게시글이 없을 때 -->
         <tr th:if="${#lists.isEmpty(boardList)}">
@@ -77,4 +72,5 @@
       </tbody>
     </table>
   </div>
+</table>
 </div>

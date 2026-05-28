@@ -18,9 +18,9 @@
             <result property="rgtrId" column="RGTR_ID"/>
             <result property="lastMdfrId" column="LAST_MDFR_ID"/>
 
-            <collection property="memberDto" ofType="kr.or.ddit.finalProject.dto.member.MemberDto">
+            <association property="memberDto" javaType="kr.or.ddit.finalProject.dto.member.MemberDto">
                   <result property="userName" column="USER_NAME"/>
-            </collection>
+            </association>
       </resultMap>
 
       <select id="selectInstructorBoardList" resultMap="instructorBoardMap">
@@ -44,21 +44,23 @@
             ORDER BY IB.REG_DT DESC
       </select>
 
-      <select id="selectInstructorBoardDetail" resultType="kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto">
-            SELECT POST_SN
-                  , INSTR_USER_ID
-                  , WRTR_USER_ID
-                  , BOARD_TYPE_CD
-                  , POST_SJ
-                  , POST_CN
-                  , INQ_CNT
-                  , ATCH_FILE_ID
-                  , REG_DT
-                  , MDFCN_DT
-                  , RGTR_ID
-                  , LAST_MDFR_ID
-            FROM INSTRUCTOR_BOARD
-            WHERE POST_SN = #{postSn}
+      <select id="selectInstructorBoardDetail" resultMap="instructorBoardMap">
+            SELECT IB.POST_SN
+                  , IB.INSTR_USER_ID
+                  , IB.WRTR_USER_ID
+                  , IB.BOARD_TYPE_CD
+                  , IB.POST_SJ
+                  , IB.POST_CN
+                  , IB.INQ_CNT
+                  , IB.ATCH_FILE_ID
+                  , IB.REG_DT
+                  , IB.MDFCN_DT
+                  , IB.RGTR_ID
+                  , IB.LAST_MDFR_ID
+                  , M.USER_NAME
+            FROM INSTRUCTOR_BOARD IB 
+                  INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
+            WHERE IB.POST_SN = #{postSn}
       </select>
 
       <insert id="insertInstructorBoard" parameterType="kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto">

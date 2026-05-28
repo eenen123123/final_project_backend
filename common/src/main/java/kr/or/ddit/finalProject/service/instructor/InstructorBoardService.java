@@ -15,7 +15,7 @@ public interface InstructorBoardService {
     /**
      * 강사 게시판 상세 조회
      */
-    InstructorBoardDto getInstructorBoardDetail(int postSn);
+    InstructorBoardResponseDto getInstructorBoardDetail(int postSn);
 
     /**
      * 강사 게시판 등록

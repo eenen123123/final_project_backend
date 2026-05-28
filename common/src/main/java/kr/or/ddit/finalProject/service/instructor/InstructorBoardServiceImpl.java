@@ -41,8 +41,19 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     }
 
     @Override
-    public InstructorBoardDto getInstructorBoardDetail(int postSn) {
-        return instructorBoardMapper.selectInstructorBoardDetail(postSn);
+    public InstructorBoardResponseDto getInstructorBoardDetail(int postSn) {
+        InstructorBoardDto original = instructorBoardMapper.selectInstructorBoardDetail(postSn);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        InstructorBoardResponseDto responseDto = InstructorBoardResponseDto.builder()
+                .postSn(original.getPostSn().intValue())
+                .userName(original.getMemberDto().getUserName()) // 작성자 이름 설정
+                .title(original.getPostSj())
+                .content(original.getPostCn())
+                .regDt(original.getRegDt() != null ? original.getRegDt().format(formatter) : null)
+                .mdfcnDt(original.getMdfcnDt() != null ? original.getMdfcnDt().format(formatter) : null)
+                .atchFileId(original.getAtchFileId() != null ? original.getAtchFileId().toString() : null)
+                .build();
+        return responseDto;
     }
 
     @Override

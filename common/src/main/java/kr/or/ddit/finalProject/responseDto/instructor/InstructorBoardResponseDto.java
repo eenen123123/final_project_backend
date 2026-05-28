@@ -2,6 +2,8 @@ package kr.or.ddit.finalProject.responseDto.instructor;
 
 import java.io.Serializable;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,7 +11,9 @@ import lombok.NoArgsConstructor;
  * 강사 게시판 응답 DTO, 강사 게시판 목록 조회 및 상세 조회에 사용
  */
 @Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class InstructorBoardResponseDto implements Serializable {
 
     private int postSn; // 게시글 번호
