@@ -57,6 +57,15 @@
       padding: .65rem 0; border-bottom: 1px solid #f1f5f9;
     }
     .acct-row:last-child { border-bottom: none; }
+
+    .emp-page-btn {
+      min-width: 2rem; height: 2rem; padding: 0 .55rem;
+      font-size: .78rem; font-weight: 600; border-radius: .5rem;
+      border: 1.5px solid #e2e8f0; background: #fff; color: #475569;
+      cursor: pointer; transition: all .15s;
+    }
+    .emp-page-btn:hover { border-color: #7c3aed; color: #7c3aed; }
+    .emp-page-btn.active { background: #7c3aed; border-color: #7c3aed; color: #fff; }
   </style>
 </head>
 <body>
@@ -115,11 +124,11 @@
 <!-- ───────────────── 탭 네비게이션 ───────────────── -->
 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
   <div class="flex border-b border-slate-100 px-6">
-    <button class="emp-tab-btn active py-3.5 px-4 text-sm text-slate-500 -mb-px" data-tab="emp-tab-list" onclick="switchEmpTab('emp-tab-list',this)">
-      <i class="fa-solid fa-list-ul mr-1.5"></i>직원 현황
-    </button>
+    <!-- <button class="emp-tab-btn active py-3.5 px-4 text-sm text-slate-500 -mb-px" data-tab="emp-tab-list" onclick="switchEmpTab('emp-tab-list',this)">
+      <i class="fa-solid fa-id-card mr-1.5"></i>직원 현황
+    </button> -->
     <button class="emp-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px" data-tab="emp-tab-hr" onclick="switchEmpTab('emp-tab-hr',this)">
-      <i class="fa-solid fa-id-card mr-1.5"></i>인사 기록
+      <i class="fa-solid fa-list-ul mr-1.5"></i>인사 기록
     </button>
     <button class="emp-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px" data-tab="emp-tab-account" onclick="switchEmpTab('emp-tab-account',this)">
       <i class="fa-solid fa-shield-halved mr-1.5"></i>계정 관리
@@ -129,9 +138,9 @@
   <!-- ══════ 탭1: 직원 현황 ══════ -->
   <div id="emp-tab-list" class="emp-tab-panel active p-6">
     <!-- 검색 & 필터 -->
-    <div class="flex flex-wrap gap-3 mb-5">
+    <!-- <div class="flex flex-wrap gap-3 mb-5">
       <div class="relative flex-1 min-w-48">
-        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+        <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-2/3 -translate-y-1/2 text-slate-400 text-sm"></i>
         <input type="text" placeholder="이름 또는 직책 검색..." class="hm-input pl-10" oninput="filterEmpList()" id="emp-search" />
       </div>
       <select class="hm-input w-36" id="emp-status-filter" onchange="filterEmpList()">
@@ -142,7 +151,6 @@
       </select>
       <select class="hm-input w-36" id="emp-role-filter" onchange="filterEmpList()">
         <option value="">전체 부서</option>
-
         <option th:each="dept : ${departmentlist}"
                 th:value="${dept.deptCd}"
                 th:text="${dept.deptNm}">
@@ -154,7 +162,7 @@
         <option value="02">계약직</option>
         <option value="03">파트타임</option>
       </select>
-    </div>
+    </div> -->
 
     <!-- 직원 카드 그리드 -->
     <div id="emp-card-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -215,35 +223,53 @@
       </div>
 
     </div>
+    <div id="emp-pagination" class="flex justify-center items-center gap-1.5 mt-6 pb-2"></div>
   </div>
 
   <!-- ══════ 탭2: 인사 기록 ══════ -->
   <div id="emp-tab-hr" class="emp-tab-panel p-6">
     <div class="flex flex-wrap gap-3 mb-5 items-end justify-between">
-      <div class="flex gap-3">
-        <select class="hm-input w-40" id="hr-year">
-          <option>2025</option><option selected>2026</option>
+      <div class="flex gap-3 flex-wrap items-center">
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-2/3 -translate-y-1/2 text-slate-400 text-sm"></i>
+          <input type="text" id="hr-search" placeholder="이름 검색..." class="hm-input pl-9" style="width:11rem" oninput="filterHrList()">
+        </div>
+        <select class="hm-input" id="hr-year" style="width:7rem" onchange="filterHrList()"></select>
+        <select class="hm-input" id="hr-status-filter" style="width:9rem" onchange="filterHrList()">
+          <option value="">전체 상태</option>
+          <option value="01">재직 중</option>
+          <option value="02">휴직 중</option>
+          <option value="03">퇴사</option>
         </select>
-        <select class="hm-input w-36" id="hr-dept">
+        <select class="hm-input" id="hr-dept-filter" style="width:10rem" onchange="filterHrList()">
           <option value="">전체 부서</option>
-          <option>운영팀</option><option>강의팀</option><option>행정팀</option>
+          <option th:each="dept : ${departmentlist}"
+                  th:value="${dept.deptCd}"
+                  th:text="${dept.deptNm}">
+          </option>
+        </select>
+        <select class="hm-input" id="hr-type-filter" style="width:9rem" onchange="filterHrList()">
+          <option value="">근무 형태</option>
+          <option value="01">정규직</option>
+          <option value="02">계약직</option>
+          <option value="03">파트타임</option>
         </select>
       </div>
       <button class="hm-btn-primary text-sm px-4 py-2" onclick="showHermesToast('엑셀로 내보내기 준비 중','info')">
         <i class="fa-solid fa-file-excel mr-1"></i>엑셀 내보내기
       </button>
     </div>
-
-    <div class="overflow-x-auto rounded-xl border border-slate-100">
+    <!-- 테이블 헤드 -->
+    <div class="overflow-x-auto rounded-xl border border-slate-100" style="min-height:32rem">
       <table class="w-full text-sm">
         <thead>
-          <tr class="bg-slate-50 text-slate-500 text-xs">
-            <th class="text-left py-3 px-4 font-semibold">직원ID</th>
-            <th class="text-left py-3 px-4 font-semibold">직급</th>
-            <th class="text-left py-3 px-4 font-semibold">입사일</th>
-            <th class="text-left py-3 px-4 font-semibold">근무 유형</th>
-            <th class="text-left py-3 px-4 font-semibold">소속 부서</th>
-            <th class="text-left py-3 px-4 font-semibold">상태</th>
+          <tr id="hr-thead" class="bg-slate-100 text-slate-500 text-sm">
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="name" onclick="sortHrBy('name')">직원명 <span class="sort-icon text-slate-300">↕</span></th>
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="grade" onclick="sortHrBy('grade')">직급 <span class="sort-icon text-slate-300">↕</span></th>
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="join" onclick="sortHrBy('join')">입사일 <span class="sort-icon text-slate-300">↕</span></th>
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="type" onclick="sortHrBy('type')">근무 유형 <span class="sort-icon text-slate-300">↕</span></th>
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="dept" onclick="sortHrBy('dept')">소속 부서 <span class="sort-icon text-slate-300">↕</span></th>
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="status" onclick="sortHrBy('status')">상태 <span class="sort-icon text-slate-300">↕</span></th>
             <th class="text-left py-3 px-4 font-semibold"></th>
           </tr>
         </thead>
@@ -251,21 +277,28 @@
           <tr th:if="${employeeList == null or #lists.isEmpty(employeeList)}">
             <td colspan="7" class="text-center py-10 text-sm text-slate-400">등록된 직원이 없습니다.</td>
           </tr>
-          <tr th:each="emp : ${employeeList}" class="hover:bg-slate-50 transition-colors">
+          <tr th:each="emp : ${employeeList}" class="hr-data-row hover:bg-slate-50 transition-colors"
+              th:data-name="${emp.member.userName}"
+              th:data-grade="${emp.jbgrNm}"
+              th:data-join="${emp.employeeInfo != null ? emp.employeeInfo.joinYmd : ''}"
+              th:data-type="${emp.employeeInfo != null ? emp.employeeInfo.emplTypeCd : ''}"
+              th:data-dept="${emp.deptCd}"
+              th:data-status="${emp.employeeInfo != null ? emp.employeeInfo.emplStatCd : ''}">
+              <!-- 테이블 내용 -->
             <td class="py-3 px-4">
               <div class="flex items-center gap-2">
                 <div class="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center text-xs font-bold text-violet-700"
                      th:text="${#strings.substring(emp.member.userName, 0, 1)}">?</div>
-                <span class="font-semibold text-slate-800 text-xs" th:text="${emp.member.userName}">-</span>
+                <span class="py-3 px-4 text-sm text-slate-600" th:text="${emp.member.userName}">-</span>
               </div>
             </td>
             <td class="py-3 px-4">
-              <span class="role-tag role-staff" th:text="${emp.jbgrNm}">-</span>
+              <span class="py-3 px-1 text-sm text-slate-600 text-left block" th:text="${emp.jbgrNm}">-</span>
             </td>
-            <td class="py-3 px-4 text-xs text-slate-600" th:text="${emp.employeeInfo != null ? emp.employeeInfo.joinYmd : '-'}">-</td>
-            <td class="py-3 px-4 text-xs text-slate-600"
+            <td class="py-3 px-4 text-sm text-slate-600" th:text="${emp.employeeInfo != null ? emp.employeeInfo.joinYmd : '-'}">-</td>
+            <td class="py-3 px-4 text-sm text-slate-600"
                 th:text="${emp.employeeInfo != null ? (emp.employeeInfo.emplTypeCd == '01' ? '정규직' : (emp.employeeInfo.emplTypeCd == '02' ? '계약직' : '파트타임')) : '-'}">-</td>
-            <td class="py-3 px-4 text-xs text-slate-600" th:text="${emp.deptNm}">-</td>
+            <td class="py-3 px-4 text-sm text-slate-600" th:text="${emp.deptNm}">-</td>
             <td class="py-3 px-4">
               <span class="status-badge"
                     th:classappend="${emp.employeeInfo != null ? (emp.employeeInfo.emplStatCd == '01' ? 'status-active' : (emp.employeeInfo.emplStatCd == '02' ? 'status-leave' : 'status-resigned')) : 'status-resigned'}"
@@ -281,6 +314,7 @@
         </tbody>
       </table>
     </div>
+    <div id="hr-pagination" class="flex justify-center items-center gap-1.5 mt-6 pb-2"></div>
   </div>
 
   <!-- ══════ 탭3: 계정 관리 ══════ -->
@@ -648,6 +682,9 @@ const employees = [
 
 let selectedEmpId = null;
 let detailEditMode = false;
+let currentEmpPage = 1;
+const EMP_SCREEN_SIZE = 9;  // PaginationInfo screenSize (한 페이지 카드 수)
+const EMP_BLOCK_SIZE  = 5;  // PaginationInfo blockSize  (페이지 버튼 수)
 
 /* ─── 탭 전환 ─── */
 function switchEmpTab(tabId, btn) {
@@ -694,39 +731,199 @@ function renderEmpCards(list) {
   `).join('');
 }
 
-/* ─── 필터링 (한글 부서명 매칭 우회 버전) ─── */
+/* ─── 필터 변경 시 1페이지로 리셋 후 재렌더 ─── */
 function filterEmpList() {
-  const q        = document.getElementById('emp-search').value.trim().toLowerCase();
-  const stCd     = document.getElementById('emp-status-filter').value;  // '01'|'02'|'03'|''
-  const typeCd   = document.getElementById('emp-type-filter').value;    // '01'|'02'|'03'|''
+  currentEmpPage = 1;
+  applyEmpPaging();
+}
 
-  // 부서 필터: 선택된 옵션의 한글 부서명으로 비교
+/* ─── 페이징 적용 (PaginationInfo 동일 로직) ─── */
+function applyEmpPaging() {
+  const q        = (document.getElementById('emp-search')?.value || '').trim().toLowerCase();
+  const stCd     = document.getElementById('emp-status-filter')?.value || '';
+  const typeCd   = document.getElementById('emp-type-filter')?.value || '';
+
   const roleFilter = document.getElementById('emp-role-filter');
   const selectedDeptNm = (roleFilter && roleFilter.selectedIndex > 0)
     ? roleFilter.options[roleFilter.selectedIndex].text.trim().toLowerCase()
     : '';
 
-  let visible = 0;
+  const allCards = Array.from(document.querySelectorAll('#emp-card-grid .emp-card'));
 
-  document.querySelectorAll('#emp-card-grid .emp-card').forEach(card => {
+  // 1. 필터 통과한 카드 추출
+  const filtered = allCards.filter(card => {
     const name    = (card.dataset.name   || '').toLowerCase();
     const deptNm  = (card.dataset.deptNm || '').toLowerCase();
-    const jbgr    = (card.dataset.jbgr   || '').toLowerCase();
-    const statCd  = card.dataset.emplStatCd  || ''; // 상태 코드 ('01'/'02'/'03')
-    const empType = card.dataset.emplTypeCd  || ''; // 근무형태 코드 ('01'/'02'/'03')
+    const jbgr    = (card.dataset.jbgrNm || '').toLowerCase();
+    const statCd  = card.dataset.emplStatCd || '';
+    const empType = card.dataset.emplTypeCd || '';
 
-    const matchQ    = !q            || name.includes(q)    || jbgr.includes(q) || deptNm.includes(q);
-    const matchSt   = !stCd         || statCd   === stCd;
-    const matchType = !typeCd       || empType   === typeCd;
+    const matchQ    = !q             || name.includes(q)   || jbgr.includes(q) || deptNm.includes(q);
+    const matchSt   = !stCd          || statCd  === stCd;
+    const matchType = !typeCd        || empType  === typeCd;
     const matchDept = !selectedDeptNm || deptNm  === selectedDeptNm;
-
-    const show = matchQ && matchSt && matchType && matchDept;
-    card.style.display = show ? '' : 'none';
-    if (show) visible++;
+    return matchQ && matchSt && matchType && matchDept;
   });
 
+  // 2. 전체 숨기기
+  allCards.forEach(c => c.style.display = 'none');
+
+  // 3. PaginationInfo.getOffset() = (page-1) * screenSize
+  const offset = (currentEmpPage - 1) * EMP_SCREEN_SIZE;
+  filtered.slice(offset, offset + EMP_SCREEN_SIZE).forEach(c => c.style.display = '');
+
+  // 4. 빈 상태 처리
   const noResult = document.getElementById('emp-no-result');
-  if (noResult) noResult.style.display = visible === 0 ? '' : 'none';
+  if (noResult) noResult.style.display = filtered.length === 0 ? '' : 'none';
+
+  // 5. 페이지 버튼 렌더링
+  renderEmpPagination(filtered.length);
+}
+
+/* ─── 페이지 버튼 렌더링 (PaginationInfo.getStartPage/getEndPage 동일 로직) ─── */
+function renderEmpPagination(totalCount) {
+  const container = document.getElementById('emp-pagination');
+  if (!container) return;
+
+  // getTotalPage()
+  const totalPage = Math.ceil(totalCount / EMP_SCREEN_SIZE);
+  if (totalPage <= 1) { container.innerHTML = ''; return; }
+
+  // getEndPage() = ceil(page / blockSize) * blockSize
+  const endPage   = Math.min(Math.ceil(currentEmpPage / EMP_BLOCK_SIZE) * EMP_BLOCK_SIZE, totalPage);
+  // getStartPage() = endPage - blockSize + 1
+  const startPage = Math.max(endPage - EMP_BLOCK_SIZE + 1, 1);
+
+  let html = '';
+  if (startPage > 1) {
+    html += `<button onclick="goEmpPage(${startPage - 1})" class="emp-page-btn">이전</button>`;
+  }
+  for (let p = startPage; p <= endPage; p++) {
+    html += `<button onclick="goEmpPage(${p})" class="emp-page-btn${p === currentEmpPage ? ' active' : ''}">${p}</button>`;
+  }
+  if (endPage < totalPage) {
+    html += `<button onclick="goEmpPage(${endPage + 1})" class="emp-page-btn">다음</button>`;
+  }
+  container.innerHTML = html;
+}
+
+function goEmpPage(p) {
+  currentEmpPage = p;
+  applyEmpPaging();
+}
+
+/* ═══ 인사 기록 탭 페이징 + 필터 + 정렬 ═══ */
+let currentHrPage = 1;
+const HR_SCREEN_SIZE = 7;
+const HR_BLOCK_SIZE  = 5;
+let hrSortCol = null;
+let hrSortAsc = true;
+let hrFilteredRows = null;
+
+function filterHrList() {
+  const keyword = document.getElementById('hr-search').value.trim().toLowerCase();
+  const year    = document.getElementById('hr-year').value;
+  currentHrPage = 1;
+  const status = document.getElementById('hr-status-filter').value;
+  const dept   = document.getElementById('hr-dept-filter').value;
+  const type   = document.getElementById('hr-type-filter').value;
+  const allRows = Array.from(document.querySelectorAll('#hr-table-body .hr-data-row'));
+
+  hrFilteredRows = allRows.filter(r => {
+    if (keyword && !(r.dataset.name || '').toLowerCase().includes(keyword)) return false;
+    if (year    && !(r.dataset.join || '').startsWith(year)) return false;
+    if (status  && r.dataset.status !== status) return false;
+    if (dept    && r.dataset.dept   !== dept)   return false;
+    if (type    && r.dataset.type   !== type)   return false;
+    return true;
+  });
+
+  if (hrSortCol) applyHrSort(hrFilteredRows);
+  applyHrPaging();
+}
+
+function sortHrBy(col) {
+  if (hrSortCol === col) {
+    hrSortAsc = !hrSortAsc;
+  } else {
+    hrSortCol = col;
+    hrSortAsc = true;
+  }
+  updateHrSortIcons(col);
+  filterHrList();
+}
+
+function applyHrSort(rows) {
+  rows.sort((a, b) => {
+    const va = a.dataset[hrSortCol] || '';
+    const vb = b.dataset[hrSortCol] || '';
+    if (hrSortCol === 'join') {
+      // yyyy-MM-dd 형식은 직접 문자열 비교가 정확함
+      if (va < vb) return hrSortAsc ? -1 : 1;
+      if (va > vb) return hrSortAsc ? 1 : -1;
+      return 0;
+    }
+    return hrSortAsc ? va.localeCompare(vb, 'ko') : vb.localeCompare(va, 'ko');
+  });
+}
+
+function updateHrSortIcons(activeCol) {
+  document.querySelectorAll('#hr-thead th[data-col]').forEach(th => {
+    const icon = th.querySelector('.sort-icon');
+    if (!icon) return;
+    if (th.dataset.col === activeCol) {
+      icon.textContent = hrSortAsc ? '↑' : '↓';
+      icon.classList.replace('text-slate-300', 'text-violet-500');
+    } else {
+      icon.textContent = '↕';
+      icon.classList.replace('text-violet-500', 'text-slate-300');
+    }
+  });
+}
+
+function applyHrPaging() {
+  const tbody = document.getElementById('hr-table-body');
+  const allRows = Array.from(tbody.querySelectorAll('.hr-data-row'));
+  const rows = hrFilteredRows !== null ? hrFilteredRows : allRows;
+
+  // 정렬 순서로 DOM 재배치
+  rows.forEach(r => tbody.appendChild(r));
+  allRows.filter(r => !rows.includes(r)).forEach(r => tbody.appendChild(r));
+
+  // 현재 페이지만 표시
+  allRows.forEach(r => r.style.display = 'none');
+  const offset = (currentHrPage - 1) * HR_SCREEN_SIZE;
+  rows.slice(offset, offset + HR_SCREEN_SIZE).forEach(r => r.style.display = '');
+
+  renderHrPagination(rows.length);
+}
+
+function renderHrPagination(totalCount) {
+  const container = document.getElementById('hr-pagination');
+  if (!container) return;
+
+  const totalPage = Math.ceil(totalCount / HR_SCREEN_SIZE);
+  if (totalPage <= 1) { container.innerHTML = ''; return; }
+
+  const endPage   = Math.min(Math.ceil(currentHrPage / HR_BLOCK_SIZE) * HR_BLOCK_SIZE, totalPage);
+  const startPage = Math.max(endPage - HR_BLOCK_SIZE + 1, 1);
+
+  let html = '';
+  if (startPage > 1) {
+    html += `<button onclick="goHrPage(${startPage - 1})" class="emp-page-btn">이전</button>`;
+  }
+  for (let p = startPage; p <= endPage; p++) {
+    html += `<button onclick="goHrPage(${p})" class="emp-page-btn${p === currentHrPage ? ' active' : ''}">${p}</button>`;
+  }
+  if (endPage < totalPage) {
+    html += `<button onclick="goHrPage(${endPage + 1})" class="emp-page-btn">다음</button>`;
+  }
+  container.innerHTML = html;
+}
+
+function goHrPage(p) {
+  currentHrPage = p;
+  applyHrPaging();
 }
 
 /* ─── 인사 기록 테이블 렌더링 ─── */
@@ -1307,11 +1504,23 @@ document.querySelectorAll('[id^="modal-"]').forEach(m => {
 
 /* ─── 초기 렌더링 ─── */
 (function () {
+  // hr-year 드롭다운 동적 생성 — innerHTML 사용으로 onchange 트리거 방지
+  const currentYear = new Date().getFullYear();
+  const opts = ['<option value="">전체 연도</option>'];
+  for (let y = 2020; y <= currentYear; y++) {
+    opts.push(`<option value="${y}">${y}</option>`);
+  }
+  document.getElementById('hr-year').innerHTML = opts.join('');
+
   renderAcctList();
   renderDestructionList();
 
-  const firstBtn = document.querySelector('.emp-tab-btn[data-tab="emp-tab-list"]');
-  if (firstBtn) switchEmpTab('emp-tab-list', firstBtn);
+  const firstBtn = document.querySelector('.emp-tab-btn[data-tab="emp-tab-hr"]');
+  if (firstBtn) switchEmpTab('emp-tab-hr', firstBtn);
+
+  applyEmpPaging();
+  // Tailwind CDN 스타일 적용 후 실행되도록 다음 이벤트 루프로 지연
+  setTimeout(filterHrList, 0);
 })();
 
 // 사용자가 부서를 바꿨을 때 직급을 필터링하는 자바스크립트 로직
