@@ -44,6 +44,7 @@ public class QnaController {
     // POST /api/qna
     @PostMapping
     public ResponseEntity<Void> createQna(@RequestBody QnaDto qnaDto) {
+        log.info("qna controller : {]", qnaDto.toString());
         qnaService.createQna(qnaDto);
         return ResponseEntity.ok().build();
     }

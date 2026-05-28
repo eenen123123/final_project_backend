@@ -1,10 +1,11 @@
-package kr.or.ddit.controller;
+package kr.or.ddit.controller.staff;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
@@ -87,8 +89,6 @@ public class StaffController {
         // 전체 직원 조회
         List<EmployeeDetailDto> employeeList = staffService.retrieveEmployeeList();
 
-        // log.info("조회된 직원 수: {}", employeeList);
-
         // 부서명 조회
         List<DepartmentDto> departmentlist = staffService.retrieveDepartmentList();
 
@@ -137,53 +137,26 @@ public class StaffController {
         //     return "admin/employeeForm"; 
         // }
 
-        
 
-
-        // ROLE 설정 (예: ROLE_ADMIN)
-        memberDto.setUserRole("ROLE_ADMIN"); // 기본적으로 ROLE_ADMIN으로 설정
-
-        // 비밀번호 암호화
-        memberDto.setUserEnpswd(passwordEncoder.encode(memberDto.getUserEnpswd()));
-        
         // 로그인한 관리자의 ID를 꺼냄
         String loginAdminId = "SYSTEM"; // 기본값, 실제로는 principal에서 꺼내야 함
         if (principal != null) {
             loginAdminId = principal.getName(); // 세션이나 토큰에 저장된 로그인 ID
         }
-
-        // EmployeeInfoDto에 데이터 넣기
-        employeeInfoDto.setRgtrId(loginAdminId); // 최초등록자ID -> 현재 로그인한 관리자 ID
-        employeeInfoDto.setLastMdfrId(loginAdminId); // 최종등록자ID -> 현재 로그인한 관리자 ID
-
-        // EmployeeSalaryDto 데이터 넣기
-        employeeSalary.setUserId(memberDto.getUserId());
-        employeeSalary.setUseYn("Y"); // 첫 등록이므로 현재 사용 여부는 무조건 'Y'로 설정
-        employeeSalary.setApplyYmd(employeeInfoDto.getJoinYmd()); // 급여 적용 시작일은 입사일과 동일하게 설정
-        employeeSalary.setRgtrId(loginAdminId); // 최초등록자ID -> 현재 로그인한 관리자 ID
-        employeeSalary.setLastMdfrId(loginAdminId); // 최종등록자ID -> 현재 로그인한 관리자 ID
-
-        // 프로필 이미지 처리 테스트 (실제 파일 저장 로직은 구현 필요)
-        memberDto.setUserProfile("/images/default-profile.png"); // 기본 프로필 이미지 경로 설정
-
-        // TELNO 하이픈 제거
-        if (memberDto.getUserTelno() != null) {
-            String cleanTelno = memberDto.getUserTelno().replaceAll("-","");
-            memberDto.setUserTelno(cleanTelno);
-        }
-
-        log.info("등록할 직원 정보: {}", memberDto);
-        log.info("등록할 직원 상세 정보: {}", employeeInfoDto);
-        log.info("등록할 직원 급여 정보: {}", employeeSalary);
-
-        // 일괄 트랜잭션 등록 처리
-        staffService.registerEmployee(memberDto); // 직원 등록
-        staffService.saveEmployeeInfo(employeeInfoDto); // 직원 정보 저장
-        staffService.saveEmployeeSalary(employeeSalary); // 직원 급여 정보 저장
+        
+        staffService.registerEmployee(memberDto, employeeInfoDto, employeeSalary, profileImage, loginAdminId); 
 
         return "redirect:/admin/employees";
     }
-    
+
+    // 아이디 중복 자동 순번 발급 및 중복 회피
+    @GetMapping("/employees/next-id")
+    @ResponseBody
+    public ResponseEntity<String> getNextId(@RequestParam String baseId, @RequestParam String defaultSerial) {
+        // 이 메서드 하나가 check-id의 역할까지 포함하여 다음 사용 가능 ID를 보장합니다.
+        String nextId = staffService.getNextAvailableId(baseId, defaultSerial);
+        return ResponseEntity.ok(nextId); 
+    }
 
     /**
      * 근태 및 휴가 관리

@@ -27,6 +27,9 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.POST, "/api/member/signup").permitAll()
 
+                        .requestMatchers(HttpMethod.GET, "/api/qna/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/qna").authenticated()
+
                         .requestMatchers("/").permitAll().anyRequest().authenticated());
         return http.build();
     }
