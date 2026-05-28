@@ -11,28 +11,23 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
 
-        @Bean
-        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                http.cors(Customizer.withDefaults()).csrf(csrf -> csrf.disable())
-                                .headers(headers -> headers.frameOptions(frame -> frame.deny())
-                                                .contentTypeOptions(Customizer.withDefaults())
-                                                .httpStrictTransportSecurity(hsts -> hsts
-                                                                .maxAgeInSeconds(31536000)))
-                                .httpBasic(httpBasic -> httpBasic.disable())
-                                .sessionManagement(session -> session.sessionCreationPolicy(
-                                                SessionCreationPolicy.STATELESS))
-                                .authorizeHttpRequests(auth -> auth
-                                                .requestMatchers(HttpMethod.GET, "/**").permitAll()
-                                                .requestMatchers(HttpMethod.POST, "/api/test/**")
-                                                .permitAll()
-                                                .requestMatchers(HttpMethod.POST,
-                                                                "/api/payments/confirm")
-                                                .permitAll()
-                                                .requestMatchers(HttpMethod.POST, "/api/auth/**")
-                                                .permitAll()
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.cors(Customizer.withDefaults()).csrf(csrf -> csrf.disable())
+                .headers(headers -> headers.frameOptions(frame -> frame.deny())
+                        .contentTypeOptions(Customizer.withDefaults())
+                        .httpStrictTransportSecurity(hsts -> hsts.maxAgeInSeconds(31536000)))
+                .httpBasic(httpBasic -> httpBasic.disable())
+                .sessionManagement(
+                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.GET, "/**")
+                        .permitAll().requestMatchers(HttpMethod.POST, "/api/test/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/payments/confirm").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
 
-                                                .requestMatchers("/").permitAll().anyRequest()
-                                                .authenticated());
-                return http.build();
-        }
+                        .requestMatchers(HttpMethod.POST, "/api/member/signup").permitAll()
+
+                        .requestMatchers("/").permitAll().anyRequest().authenticated());
+        return http.build();
+    }
 }
