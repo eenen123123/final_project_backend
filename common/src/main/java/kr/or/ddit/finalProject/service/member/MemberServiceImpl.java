@@ -1,8 +1,11 @@
 package kr.or.ddit.finalProject.service.member;
 
+import java.time.LocalDate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import kr.or.ddit.finalProject.dto.auth.AuthTokens;
+import kr.or.ddit.finalProject.dto.email.EmailVerificationDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.dto.user.RefreshTokenDto;
 import kr.or.ddit.finalProject.dto.user.SigninRequestRecord;
@@ -12,6 +15,7 @@ import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.jwt.JwtTokenProvider;
 import kr.or.ddit.finalProject.mapper.MemberMapper;
 import kr.or.ddit.finalProject.mapper.RefreshTokenMapper;
+import kr.or.ddit.finalProject.mapper.email.EmailVerificationMapper;
 import kr.or.ddit.finalProject.util.TokenHashUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class MemberServiceImpl implements MemberService {
     private final MemberMapper memberMapper;
+    private final EmailVerificationMapper emailVerificationMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenHashUtil tokenHashUtil;
@@ -30,9 +35,63 @@ public class MemberServiceImpl implements MemberService {
 
 
     @Override
-    public void signup(SignupRequestRecord signupRequestRecord) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'signup'");
+    @Transactional
+    public MemberDto signup(SignupRequestRecord signupRequestRecord) {
+
+        // id 다시 한번 체크
+        String userId = signupRequestRecord.userId();
+        if (!memberMapper.findByUserId(userId).isEmpty()) {
+            throw new FinalProjectException(ErrorCode.USER_ID_ALREADY_EXISTS);
+        }
+
+        // 이메일 인증 됐는지 체크
+
+        String emailAddr = signupRequestRecord.emailAddr();
+
+        EmailVerificationDto emailVerificationDto =
+                emailVerificationMapper.isEmailVerified(emailAddr);
+        if (emailVerificationDto == null) {
+            throw new FinalProjectException(ErrorCode.EMAIL_NOT_VERIFIED);
+        }
+
+        // 생년월일과 주민등록번호, 성별이 일치하는지 체크
+        LocalDate birthDate = signupRequestRecord.birthDate();
+        String userEnrno = signupRequestRecord.userEnrno();
+        String gender = signupRequestRecord.gender();
+
+        if (!isBirthDateMatchingEnrno(birthDate, userEnrno)) {
+            throw new FinalProjectException(ErrorCode.BIRTHDATE_ENRNO_MISMATCH);
+        }
+
+        char enrnoGenderDigit = userEnrno.charAt(7);
+        String enrnoGender = (enrnoGenderDigit == '1' || enrnoGenderDigit == '3') ? "M" : "F";
+        if (!enrnoGender.equalsIgnoreCase(gender)) {
+            throw new FinalProjectException(ErrorCode.GENDER_MISMATCH);
+        }
+
+
+
+        // 회원 가입 처리
+        MemberDto memberDto = new MemberDto();
+        memberDto.setUserId(signupRequestRecord.userId());
+        memberDto.setUserEnpswd(passwordEncoder.encode(signupRequestRecord.password()));
+        memberDto.setUserName(signupRequestRecord.name());
+        memberDto.setUserEmailAddr(signupRequestRecord.emailAddr());
+        memberDto.setUserTelno(signupRequestRecord.telno().replaceAll("-", ""));
+        memberDto.setUserZip(signupRequestRecord.zip());
+        memberDto.setUserAddr(signupRequestRecord.addr());
+        memberDto.setUserDaddr(signupRequestRecord.daddr());
+        memberDto.setUserGndrCd(signupRequestRecord.gender());
+        memberDto.setUserBrdt(signupRequestRecord.birthDate());
+        memberDto.setUserEnrrno(passwordEncoder.encode(signupRequestRecord.userEnrno()));
+
+        memberMapper.insertMember(memberDto);
+
+        // 이메일 인증 정보 삭제
+        emailVerificationMapper.deleteEmailVerificationByEmail(emailAddr);
+
+
+        return memberDto;
     }
 
     @Override
@@ -110,4 +169,21 @@ public class MemberServiceImpl implements MemberService {
 
     }
 
+    @Override
+    public boolean isUserIdAvailable(String userId) {
+        return memberMapper.findByUserId(userId).isEmpty();
+    }
+
+
+    private boolean isBirthDateMatchingEnrno(LocalDate birthDate, String userEnrno) {
+        if (userEnrno.length() != 14 || userEnrno.charAt(6) != '-') {
+            return false; // 주민등록번호 형식이 올바르지 않은 경우
+        }
+
+        String enrnoBirthDatePart = userEnrno.substring(0, 6);
+        String birthDateStr =
+                birthDate.format(java.time.format.DateTimeFormatter.ofPattern("yyMMdd"));
+
+        return enrnoBirthDatePart.equals(birthDateStr);
+    }
 }
