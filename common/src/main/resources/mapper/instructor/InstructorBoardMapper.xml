@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+      "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.instructor.InstructorBoardMapper">
+      <resultMap id="instructorBoardMap" type="kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto">
+            <id property="postSn" column="POST_SN" />
+            <result property="instrUserId" column="INSTR_USER_ID"/>
+            <result property="wrtrUserId" column="WRTR_USER_ID"/>
+            <result property="boardTypeCd" column="BOARD_TYPE_CD"/>
+            <result property="postSj" column="POST_SJ"/>
+            <result property="postCn" column="POST_CN"/>
+            <result property="inqCnt" column="INQ_CNT"/>
+            <result property="atchFileId" column="ATCH_FILE_ID"/>
+            <result property="regDt" column="REG_DT"/>
+            <result property="mdfcnDt" column="MDFCN_DT"/>
+            <result property="rgtrId" column="RGTR_ID"/>
+            <result property="lastMdfrId" column="LAST_MDFR_ID"/>
+
+            <result property="boardTypeNm" column="BOARD_TYPE_NM"/>
+
+            <association property="memberDto" javaType="kr.or.ddit.finalProject.dto.member.MemberDto">
+                  <result property="userName" column="USER_NAME"/>
+            </association>
+      </resultMap>
+
+      <select id="selectInstructorBoardList" resultMap="instructorBoardMap">
+            SELECT
+                  IB.POST_SN
+                  , IB.INSTR_USER_ID
+                  , IB.WRTR_USER_ID
+                  , IB.BOARD_TYPE_CD
+                  , IB.POST_SJ
+                  , IB.POST_CN
+                  , IB.INQ_CNT
+                  , IB.ATCH_FILE_ID
+                  , IB.REG_DT
+                  , IB.MDFCN_DT
+                  , IB.RGTR_ID
+                  , IB.LAST_MDFR_ID
+                  , M.USER_NAME
+                  , C.COM_CD_NM AS BOARD_TYPE_NM
+            FROM INSTRUCTOR_BOARD IB
+                  INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
+                  LEFT JOIN COM_CD C ON C.CL_CODE = '100' AND C.COM_CD = IB.BOARD_TYPE_CD AND C.USE_YN = 'Y'
+            WHERE IB.INSTR_USER_ID = #{instrUserId}
+            ORDER BY IB.REG_DT DESC
+      </select>
+
+      <select id="selectInstructorBoardDetail" resultMap="instructorBoardMap">
+            SELECT IB.POST_SN
+                  , IB.INSTR_USER_ID
+                  , IB.WRTR_USER_ID
+                  , IB.BOARD_TYPE_CD
+                  , IB.POST_SJ
+                  , IB.POST_CN
+                  , IB.INQ_CNT
+                  , IB.ATCH_FILE_ID
+                  , IB.REG_DT
+                  , IB.MDFCN_DT
+                  , IB.RGTR_ID
+                  , IB.LAST_MDFR_ID
+                  , M.USER_NAME
+                  , C.COM_CD_NM AS BOARD_TYPE_NM
+            FROM INSTRUCTOR_BOARD IB
+                  INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
+                  LEFT JOIN COM_CD C ON C.CL_CODE = '100' AND C.COM_CD = IB.BOARD_TYPE_CD AND C.USE_YN = 'Y'
+            WHERE IB.POST_SN = #{postSn}
+                  AND IB.INSTR_USER_ID = #{instrUserId}
+      </select>
+
+      <insert id="insertInstructorBoard"
+            parameterType="kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto"
+            useGeneratedKeys="true"
+            keyProperty="postSn"
+            keyColumn="POST_SN">
+            INSERT INTO INSTRUCTOR_BOARD (
+                  INSTR_USER_ID
+                  , WRTR_USER_ID
+                  , BOARD_TYPE_CD
+                  , POST_SJ
+                  , POST_CN
+                  , INQ_CNT
+                  , ATCH_FILE_ID
+                  , REG_DT
+                  , MDFCN_DT
+                  , RGTR_ID
+                  , LAST_MDFR_ID
+            )
+            VALUES (
+                  #{instrUserId}
+                  , #{wrtrUserId}
+                  , #{boardTypeCd}
+                  , #{postSj}
+                  , #{postCn}
+                  , 0
+                  , #{atchFileId, jdbcType=NUMERIC}
+                  , SYSDATE
+                  , SYSDATE
+                  , #{wrtrUserId}
+                  , #{wrtrUserId}
+                  )
+      </insert>
+
+      <!-- <update id="updateInstructorBoard">
+            UPDATE board
+            SET board_title = #{boardTitle},
+                  board_content = #{boardContent},
+                  board_date = SYSDATE
+            WHERE board_id = #{boardId} 
+      </update> -->
+
+      <!-- <delete id="deleteInstructorBoard">
+            DELETE FROM board
+            WHERE board_id = #{boardId} 
+      </delete> -->
+</mapper>
