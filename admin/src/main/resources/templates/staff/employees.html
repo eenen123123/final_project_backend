@@ -141,11 +141,12 @@
         <option value="퇴사">퇴사</option>
       </select>
       <select class="hm-input w-36" id="emp-role-filter" onchange="filterEmpList()">
-        <option value="">전체 직책</option>
-        <option value="매니저">매니저</option>
-        <option value="강사">강사</option>
-        <option value="행정">행정</option>
-        <option value="PD">PD</option>
+        <option value="">전체 부서</option>
+
+        <option th:each="dept : ${departmentlist}"
+                th:value="${dept.deptCd}"
+                th:text="${dept.deptNm}">
+        </option>
       </select>
     </div>
 
@@ -160,7 +161,8 @@
       <div th:each="emp : ${employeeList}"
             class="emp-card p-4 cursor-pointer"
             th:data-status="${emp.employeeInfo != null ? (emp.employeeInfo.emplStatCd == '01' ? '재직' : (emp.employeeInfo.emplStatCd == '02' ? '휴직' : '퇴사')) : '미등록'}"
-            th:data-dept="${emp.deptNm}"
+            th:data-dept="${emp.deptCd}"
+            th:data-dept-nm="${emp.deptNm}"
             th:data-jbgr="${emp.jbgrNm}"
             th:data-id="${emp.member.userId}"
             onclick="openDetail(this.getAttribute('data-id'))">
@@ -682,25 +684,45 @@ function renderEmpCards(list) {
   `).join('');
 }
 
-/* ─── 필터링 (서버 렌더 카드 DOM 기반) ─── */
-function filterEmpList() {
-  const q    = document.getElementById('emp-search').value.trim().toLowerCase();
-  const st   = document.getElementById('emp-status-filter').value;
-  const role = document.getElementById('emp-role-filter').value;
+/* ─── 필터링 (한글 부서명 매칭 우회 버전) ─── */
+function filterEmpList(selectEl) {
+  const q  = document.getElementById('emp-search').value.trim().toLowerCase();
+  const st = document.getElementById('emp-status-filter').value;
+  
+  // 셀렉트 박스에서 선택된 옵션의 '한글 글자'를 추출합니다 (예: "행정팀")
+  // 아무것도 선택 안 했으면("전체 부서") 빈값("") 처리합니다.
+  let selectedDeptNm = '';
+  if (selectEl && selectEl.selectedIndex > 0) {
+    selectedDeptNm = selectEl.options[selectEl.selectedIndex].text.trim().toLowerCase();
+  } else {
+    // 만약 검색창 입력 등으로 selectEl 없이 함수가 호출되었을 때를 위한 방어 코드
+    const empRoleFilter = document.getElementById('emp-role-filter');
+    if (empRoleFilter && empRoleFilter.selectedIndex > 0) {
+      selectedDeptNm = empRoleFilter.options[empRoleFilter.selectedIndex].text.trim().toLowerCase();
+    }
+  }
 
   let visible = 0;
+  
   document.querySelectorAll('#emp-card-grid .emp-card').forEach(card => {
-    const id     = (card.dataset.id   || '').toLowerCase();
-    const dept   = (card.dataset.dept || '').toLowerCase();
-    const jbgr   = (card.dataset.jbgr || '').toLowerCase();
-    const status =  card.dataset.status || '';
+    const id     = (card.dataset.id     || '').toLowerCase();
+    const deptNm = (card.dataset.deptNm || '').toLowerCase(); // DTO에 들어있는 한글 부서명 (예: "행정팀")
+    const jbgr   = (card.dataset.jbgr   || '').toLowerCase();
+    const status = card.dataset.status || '';
 
-    const matchQ    = !q    || id.includes(q) || dept.includes(q) || jbgr.includes(q);
+    // 1. 검색어 필터링 (한글 부서명 포함 검색 가능)
+    const matchQ    = !q    || id.includes(q) || jbgr.includes(q) || deptNm.includes(q);
+    
+    // 2. 상태 필터링
     const matchSt   = !st   || status === st;
-    const matchRole = !role || jbgr.includes(role.toLowerCase()) || dept.includes(role.toLowerCase());
+    
+    // 3. 부서 필터링: [우회] 선택한 옵션의 '한글 명칭'과 카드의 '한글 부서명'을 직접 비교
+    const matchDept = !selectedDeptNm || deptNm === selectedDeptNm;
 
-    const show = matchQ && matchSt && matchRole;
+    // 최종 결합
+    const show = matchQ && matchSt && matchDept;
     card.style.display = show ? '' : 'none';
+    
     if (show) visible++;
   });
 
