@@ -6,7 +6,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import kr.or.ddit.finalProject.dto.member.MemberRoleDto;
 import kr.or.ddit.finalProject.dto.message.CreateMessageRoomRequestDto;
 import kr.or.ddit.finalProject.dto.message.MessageContentDto;
 import kr.or.ddit.finalProject.dto.message.MessageRoomDto;

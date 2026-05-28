@@ -72,19 +72,19 @@
 
     <!-- FAQ 등록 (BOARD 먼저 INSERT 후 FAQ INSERT) -->
     <insert id="insertFaq" parameterType="FaqDto">
-        INSERT INTO FAQ (
-            POST_SN
-            , FAQ_CTG_CD
-            , FAQ_SUB_CTG_CD
-            , EXPS_ORD
-            , TOP_FIX_YN
-        ) VALUES (
-            #{postSn}
-            , #{faqCtgCd}
-            , #{faqSubCtgCd}
-            , #{expsOrd}
-            , #{topFixYn}
-        )
+    INSERT INTO FAQ (
+        POST_SN
+        , FAQ_CTG_CD
+        , FAQ_SUB_CTG_CD
+        , EXPS_ORD
+        , TOP_FIX_YN
+    ) VALUES (
+        #{postSn}
+        , #{faqCtgCd}
+        , #{faqSubCtgCd}
+        , #{expsOrd, jdbcType=NUMERIC}
+        , #{topFixYn}
+    )
     </insert>
 
     <!-- FAQ 수정 -->
@@ -93,7 +93,7 @@
         SET
             FAQ_CTG_CD = #{faqCtgCd}
             , FAQ_SUB_CTG_CD = #{faqSubCtgCd}
-            , EXPS_ORD = #{expsOrd}
+            , EXPS_ORD = #{expsOrd, jdbcType=NUMERIC}
             , TOP_FIX_YN = #{topFixYn}
         WHERE POST_SN = #{postSn}
     </update>

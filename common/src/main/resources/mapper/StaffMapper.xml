@@ -3,6 +3,31 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="kr.or.ddit.finalProject.mapper.StaffMapper">
+    
+    <resultMap id="EmployeeDetailResultMap" type="kr.or.ddit.finalProject.dto.employee.EmployeeDetailDto">
+
+        <id property="userId" column="M_USER_ID" />
+        <result property="deptNm" column="DEPT_NM" />
+        <result property="jbgrNm" column="JBGR_NM" />
+
+        <association property="member" 
+                    resultMap="kr.or.ddit.finalProject.mapper.MemberMapper.memberTestResultMap" 
+                    columnPrefix="M_" />
+
+        <association property="employeeInfo" javaType="kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto">
+            <id property="userId" column="EI_USER_ID" />
+            <result property="deptCd" column="DEPT_CD" />
+            <result property="jbgrCd" column="JBGR_CD" />
+            <result property="joinYmd" column="JOIN_YMD" />
+            <result property="retmtYmd" column="RETMT_YMD" />
+            <result property="emplStatCd" column="EMPL_STAT_CD" />
+            <result property="atchFileId" column="ATCH_FILE_ID" />
+            <result property="chrgDutyCn" column="CHRG_DUTY_CN" />
+            <result property="emptTypeCd" column="EMPT_TYPE_CD" />
+            <result property="ctrctEndYmd" column="CTRCT_END_YMD" />
+        </association>
+    </resultMap>
+
 
     <select id="selectDepartmentList" resultType="kr.or.ddit.finalProject.dto.employee.DepartmentDto">
         SELECT
@@ -47,21 +72,43 @@
 
     <insert id="insertEmployeeInfo" parameterType="kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto">
         INSERT INTO EMPLOYEE_INFO (
-            USER_ID, DEPT_CD, JBGR_CD, JOIN_YMD, RETMT_YMD, EMPL_STAT_CD, 
-            ATCH_FILE_ID, CHRG_DUTY_CN, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
+            USER_ID
+            , DEPT_CD
+            , JBGR_CD
+            , JOIN_YMD
+            , RETMT_YMD
+            , EMPL_STAT_CD
+            , ATCH_FILE_ID
+            , CHRG_DUTY_CN
+            , RGTR_ID
+            , LAST_MDFR_ID
+            , REG_DT
+            , MDFCN_DT
+            , EMPT_TYPE_CD
+            , CTRCT_END_YMD
         ) VALUES (
-            #{userId, jdbcType=VARCHAR}, 
-            #{deptCd, jdbcType=CHAR}, 
-            #{jbgrCd, jdbcType=CHAR}, 
-            #{joinYmd, jdbcType=TIMESTAMP}, 
-            #{retmtYmd, jdbcType=TIMESTAMP}, 
-            #{emplStatCd, jdbcType=CHAR}, 
-            #{atchFileId, jdbcType=VARCHAR}, 
-            #{chrgDutyCn, jdbcType=VARCHAR}, 
-            #{rgtrId, jdbcType=VARCHAR}, 
-            #{lastMdfrId, jdbcType=VARCHAR}, 
-            SYSTIMESTAMP, 
-            SYSTIMESTAMP
+            #{userId, jdbcType=VARCHAR}
+            , #{deptCd, jdbcType=CHAR}
+            , #{jbgrCd, jdbcType=CHAR}
+            , TO_DATE(SUBSTR(#{joinYmd, jdbcType=VARCHAR}, 1, 10), 'YYYY-MM-DD')
+            , TO_DATE(SUBSTR(#{retmtYmd, jdbcType=VARCHAR}, 1, 10), 'YYYY-MM-DD')
+            , #{emplStatCd, jdbcType=CHAR}
+            , #{atchFileId, jdbcType=VARCHAR}
+            , #{chrgDutyCn, jdbcType=VARCHAR}
+            , #{rgtrId, jdbcType=VARCHAR}
+            , #{lastMdfrId, jdbcType=VARCHAR}
+            , SYSTIMESTAMP
+            , SYSTIMESTAMP
+            , #{emptTypeCd, jdbcType=CHAR}
+            
+            <choose>
+                <when test="ctrctEndYmd != null and ctrctEndYmd != ''">
+                    , TO_DATE(SUBSTR(#{ctrctEndYmd, jdbcType=VARCHAR}, 1, 10), 'YYYY-MM-DD')
+                </when>
+                <otherwise>
+                    , NULL
+                </otherwise>
+            </choose>
         )
     </insert>
 
@@ -77,4 +124,53 @@
             SYSTIMESTAMP
         )
     </insert>
+
+    <!-- selectEmployeeList --> 
+    <select id="selectEmployeeList" resultMap="EmployeeDetailResultMap">
+        SELECT
+            /* MEMBER 테이블 (M_ 접두사) */
+            m.USER_ID AS M_USER_ID,
+            m.USER_ENPSWD AS M_USER_ENPSWD,
+            m.USER_NAME AS M_USER_NAME,
+            m.USER_ENRRNO AS M_USER_ENRRNO,
+            m.USER_GNDR_CD AS M_USER_GNDR_CD,
+            m.USER_BRDT AS M_USER_BRDT,
+            m.JOIN_DT AS M_JOIN_DT,
+            m.USER_TELNO AS M_USER_TELNO,
+            m.USER_EMAIL_ADDR AS M_USER_EMAIL_ADDR,
+            m.USER_ZIP AS M_USER_ZIP,
+            m.USER_ADDR AS M_USER_ADDR,
+            m.USER_DADDR AS M_USER_DADDR,
+            m.USER_PROFILE AS M_USER_PROFILE,
+            m.REG_DATE AS M_REG_DATE,
+            m.MOD_DATE AS M_MOD_DATE,
+            m.ENABLE AS M_ENABLE,
+            m.USER_ROLE AS M_USER_ROLE,
+
+            /* EMPLOYEE_INFO 테이블 (EI_ 접두사 및 매핑 컬럼) */
+            ei.USER_ID AS EI_USER_ID,
+            ei.DEPT_CD,
+            ei.JBGR_CD,
+            ei.JOIN_YMD,
+            ei.RETMT_YMD,
+            ei.EMPL_STAT_CD,
+            ei.ATCH_FILE_ID,
+            ei.CHRG_DUTY_CN,
+            ei.EMPT_TYPE_CD,
+            ei.CTRCT_END_YMD,
+
+            /* DEPARTMENT 테이블 */
+            d.DEPT_NM,
+            
+            /* 만약 직급명도 필요하다면 아래 조인과 함께 추가 */
+            j.JBGR_NM
+        FROM
+            MEMBER m
+        LEFT JOIN EMPLOYEE_INFO ei ON m.USER_ID = ei.USER_ID
+        LEFT JOIN DEPARTMENT d ON ei.DEPT_CD = d.DEPT_CD
+        LEFT JOIN JOB_GRADE j ON ei.JBGR_CD = j.JBGR_CD
+        WHERE m.USER_ROLE = 'ROLE_ADMIN'
+        ORDER BY m.USER_ID
+    </select>
+
 </mapper>

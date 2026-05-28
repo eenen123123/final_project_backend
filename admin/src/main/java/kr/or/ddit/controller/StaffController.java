@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
 import kr.or.ddit.finalProject.dto.employee.DepartmentDto;
+import kr.or.ddit.finalProject.dto.employee.EmployeeDetailDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto;
 import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
@@ -83,11 +84,20 @@ public class StaffController {
     public String getEmployees(Model model) {
         log.info("getEmployees()");
 
+        // 전체 직원 조회
+        List<EmployeeDetailDto> employeeList = staffService.retrieveEmployeeList();
+
+        // log.info("조회된 직원 수: {}", employeeList);
+
+        // 부서명 조회
         List<DepartmentDto> departmentlist = staffService.retrieveDepartmentList();
+
+        // 직급명 조회
         List<JobGradeDto> jobgradelist = staffService.retrieveJobGradeList();
 
         model.addAttribute("departmentlist", departmentlist);
         model.addAttribute("jobgradelist", jobgradelist);
+        model.addAttribute("employeeList", employeeList);
 
         return "admin:/staff/employees";
     }
@@ -127,6 +137,8 @@ public class StaffController {
         //     return "admin/employeeForm"; 
         // }
 
+        
+
 
         // ROLE 설정 (예: ROLE_ADMIN)
         memberDto.setUserRole("ROLE_ADMIN"); // 기본적으로 ROLE_ADMIN으로 설정
@@ -159,6 +171,10 @@ public class StaffController {
             String cleanTelno = memberDto.getUserTelno().replaceAll("-","");
             memberDto.setUserTelno(cleanTelno);
         }
+
+        log.info("등록할 직원 정보: {}", memberDto);
+        log.info("등록할 직원 상세 정보: {}", employeeInfoDto);
+        log.info("등록할 직원 급여 정보: {}", employeeSalary);
 
         // 일괄 트랜잭션 등록 처리
         staffService.registerEmployee(memberDto); // 직원 등록
