@@ -3,6 +3,7 @@ package kr.or.ddit.finalProject.service.staff;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,8 @@ import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto;
 import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
+import kr.or.ddit.finalProject.exception.ErrorCode;
+import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.mapper.StaffMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -89,7 +92,13 @@ public class StaffServiceImpl implements StaffService{
             }
         }
 
-        // 최종적으로 중복이 없는 ID가 확보된 상태에서 memberDtop에 주입합니다.
+        // 100회 시도 후에도 중복 해소 실패 → 예외 발생
+        if (isDuplicate) {
+            log.error("[registerEmployee] ID 생성 실패 - 100회 시도 소진. baseId={}", baseId);
+            throw new FinalProjectException(ErrorCode.EMPLOYEE_ID_GENERATE_FAILED);
+        }
+
+        // 최종적으로 중복이 없는 ID가 확보된 상태에서 memberDto에 주입합니다.
         memberDto.setUserId(generatedId);
 
         // 5. EmployeeInfoDto에 데이터 넣기
@@ -114,9 +123,14 @@ public class StaffServiceImpl implements StaffService{
          * 2. 직원 상세 정보 저장 (EmployeeInfoDto) -> 직원 인사 관리 테이블(EMPLOYEE_INFO)에 INSERT
          * 3. 직원 급여 정보 저장 (EmployeeSalaryDto) -> 직원 급여 테이블(EMPLOYEE_SALARY)에 INSERT
          */
-        staffMapper.insertEmployee(memberDto);
-        staffMapper.insertEmployeeInfo(employeeInfoDto);
-        staffMapper.insertEmployeeSalary(employeeSalaryDto);
+        try {
+            staffMapper.insertEmployee(memberDto);
+            staffMapper.insertEmployeeInfo(employeeInfoDto);
+            staffMapper.insertEmployeeSalary(employeeSalaryDto);
+        } catch (DataAccessException e) {
+            log.error("[registerEmployee] DB INSERT 실패. userId={}, cause={}", memberDto.getUserId(), e.getMessage());
+            throw new FinalProjectException(ErrorCode.EMPLOYEE_REGISTER_FAILED, e);
+        }
     }
 
     // 직원 리스트 조회
@@ -137,13 +151,15 @@ public class StaffServiceImpl implements StaffService{
         }
         
         // 가장 뒤의 2자리 일련번호를 잘라내어 숫자로 변환 후 ++ 해줍니다.
-        String lastTwoDigits = maxId.substring(maxId.length() - 2);
-        int nextSerialInt = Integer.parseInt(lastTwoDigits) + 1;
-        
-        // 다시 2자리 포맷의 문자열로 만듭니다 (예: 8 -> "08")
-        String nextSerial = String.format("%02d", nextSerialInt);
-        
-        return baseId + nextSerial;
+        try {
+            String lastTwoDigits = maxId.substring(maxId.length() - 2);
+            int nextSerialInt = Integer.parseInt(lastTwoDigits) + 1;
+            String nextSerial = String.format("%02d", nextSerialInt);
+            return baseId + nextSerial;
+        } catch (NumberFormatException e) {
+            log.error("[getNextAvailableId] ID 끝 2자리 숫자 파싱 실패. maxId={}", maxId);
+            throw new FinalProjectException(ErrorCode.EMPLOYEE_ID_GENERATE_FAILED, e);
+        }
     }
 
 }
