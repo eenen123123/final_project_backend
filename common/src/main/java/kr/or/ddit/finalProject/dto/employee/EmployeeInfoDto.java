@@ -33,6 +33,9 @@ public class EmployeeInfoDto implements Serializable {
     private LocalDateTime regDt;
     private LocalDateTime mdfcnDt;
 
+    private String emptTypeCd; // 직원 유형 (01:정규직, 02:계약직, 03:파트타임)
+    private String ctrctEndYmd; // 계약 종료 날짜 (정규직은 null 허용)
+
 
     private String deptNm; // 부서명
     private String jbgrNm; // 직급명
