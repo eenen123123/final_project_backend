@@ -3,6 +3,7 @@ package kr.or.ddit.finalProject.dto.instructor;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+import kr.or.ddit.finalProject.dto.member.MemberDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,4 +27,6 @@ public class InstructorBoardDto implements Serializable {
     private LocalDateTime mdfcnDt;
     private String rgtrId;
     private String lastMdfrId;
+
+    private MemberDto memberDto; // 작성자 정보 포함
 }

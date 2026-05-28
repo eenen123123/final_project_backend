@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+      "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.instructor.InstructorBoardMapper">
+      <resultMap id="instructorBoardMap" type="kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto">
+            <id property="postSn" column="POST_SN" />
+            <result property="instrUserId" column="INSTR_USER_ID"/>
+            <result property="wrtrUserId" column="WRTR_USER_ID"/>
+            <result property="boardTypeCd" column="BOARD_TYPE_CD"/>
+            <result property="postSj" column="POST_SJ"/>
+            <result property="postCn" column="POST_CN"/>
+            <result property="inqCnt" column="INQ_CNT"/>
+            <result property="atchFileId" column="ATCH_FILE_ID"/>
+            <result property="regDt" column="REG_DT"/>
+            <result property="mdfcnDt" column="MDFCN_DT"/>
+            <result property="rgtrId" column="RGTR_ID"/>
+            <result property="lastMdfrId" column="LAST_MDFR_ID"/>
+
+            <collection property="memberDto" ofType="kr.or.ddit.finalProject.dto.member.MemberDto">
+                  <result property="userName" column="USER_NAME"/>
+            </collection>
+      </resultMap>
+
+      <select id="selectInstructorBoardList" resultMap="instructorBoardMap">
+            SELECT 
+                  IB.POST_SN
+                  , IB.INSTR_USER_ID
+                  , IB.WRTR_USER_ID
+                  , IB.BOARD_TYPE_CD
+                  , IB.POST_SJ
+                  , IB.POST_CN
+                  , IB.INQ_CNT
+                  , IB.ATCH_FILE_ID
+                  , IB.REG_DT
+                  , IB.MDFCN_DT
+                  , IB.RGTR_ID
+                  , IB.LAST_MDFR_ID
+                  , M.USER_NAME
+            FROM INSTRUCTOR_BOARD IB 
+                  INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
+            WHERE IB.INSTR_USER_ID = #{instrUserId}
+            ORDER BY IB.REG_DT DESC
+      </select>
+
+      <select id="selectInstructorBoardDetail" resultType="kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto">
+            SELECT POST_SN
+                  , INSTR_USER_ID
+                  , WRTR_USER_ID
+                  , BOARD_TYPE_CD
+                  , POST_SJ
+                  , POST_CN
+                  , INQ_CNT
+                  , ATCH_FILE_ID
+                  , REG_DT
+                  , MDFCN_DT
+                  , RGTR_ID
+                  , LAST_MDFR_ID
+            FROM INSTRUCTOR_BOARD
+            WHERE POST_SN = #{postSn}
+      </select>
+
+      <insert id="insertInstructorBoard" parameterType="kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto">
+            INSERT INTO INSTRUCTOR_BOARD (
+                  INSTR_USER_ID
+                  , WRTR_USER_ID
+                  , BOARD_TYPE_CD
+                  , POST_SJ
+                  , POST_CN
+                  , INQ_CNT
+                  , ATCH_FILE_ID
+                  , REG_DT
+                  , MDFCN_DT
+                  , RGTR_ID
+                  , LAST_MDFR_ID
+            )
+            VALUES (
+                  #{instrUserId}
+                  , #{wrtrUserId}
+                  , #{boardTypeCd}
+                  , #{postSj}
+                  , #{postCn}
+                  , #{inqCnt}
+                  , #{atchFileId}
+                  , SYSDATE
+                  , SYSDATE
+                  , #{rgtrId}
+                  , #{lastMdfrId}
+                  )
+      </insert>
+
+      <!-- <update id="updateInstructorBoard" parameterType="kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto">
+            UPDATE board
+            SET board_title = #{boardTitle},
+                  board_content = #{boardContent},
+                  board_date = SYSDATE
+            WHERE board_id = #{boardId} 
+      </update> -->
+
+      <!-- <delete id="deleteInstructorBoard" parameterType="int">
+            DELETE FROM board
+            WHERE board_id = #{boardId} 
+      </delete> -->
+</mapper>

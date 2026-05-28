@@ -1,0 +1,80 @@
+<div class="p-6">
+  <!-- 페이지 헤더 -->
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800">강사 게시판</h1>
+      <p class="mt-1 text-sm text-slate-500">
+        강의 관련 공지 및 문의사항을 확인합니다.
+      </p>
+    </div>
+    <button class="hm-btn-primary hm-btn-sky text-base">
+      <i class="fa-solid fa-pen-to-square"></i>
+      글쓰기
+    </button>
+  </div>
+
+  <!-- 게시글 테이블 -->
+  <div
+    class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+  >
+    <table class="w-full text-base">
+      <thead>
+        <tr class="border-b border-slate-200 bg-slate-50">
+          <th
+            class="w-24 px-6 py-4 text-left text-sm font-semibold text-slate-500"
+          >
+            번호
+          </th>
+          <th class="px-6 py-4 text-left text-sm font-semibold text-slate-500">
+            제목
+          </th>
+          <th
+            class="w-36 px-6 py-4 text-left text-sm font-semibold text-slate-500"
+          >
+            작성자
+          </th>
+          <th
+            class="w-40 px-6 py-4 text-left text-sm font-semibold text-slate-500"
+          >
+            등록일
+          </th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        <tr
+          th:each="board : ${boardList}"
+          class="cursor-pointer transition-colors hover:bg-sky-50"
+        >
+          <td
+            class="px-6 py-4 text-base text-slate-400"
+            th:text="${board.postSn}"
+          ></td>
+          <td class="px-6 py-4">
+            <span
+              class="text-base font-medium text-slate-800"
+              th:text="${board.title}"
+            ></span>
+          </td>
+          <td
+            class="px-6 py-4 text-base text-slate-600"
+            th:text="${board.userName}"
+          ></td>
+          <td
+            class="px-6 py-4 text-base text-slate-500"
+            th:text="${board.regDt}"
+          ></td>
+        </tr>
+        <!-- 게시글이 없을 때 -->
+        <tr th:if="${#lists.isEmpty(boardList)}">
+          <td
+            colspan="4"
+            class="px-6 py-16 text-center text-base text-slate-400"
+          >
+            <i class="fa-regular fa-folder-open mb-2 block text-3xl"></i>
+            등록된 게시글이 없습니다.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
