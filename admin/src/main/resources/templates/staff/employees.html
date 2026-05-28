@@ -229,8 +229,12 @@
   <!-- ══════ 탭2: 인사 기록 ══════ -->
   <div id="emp-tab-hr" class="emp-tab-panel p-6">
     <div class="flex flex-wrap gap-3 mb-5 items-end justify-between">
-      <div class="flex gap-3">
-        <select class="hm-input" id="hr-year" style="width:7rem"></select>
+      <div class="flex gap-3 flex-wrap items-center">
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-2/3 -translate-y-1/2 text-slate-400 text-sm"></i>
+          <input type="text" id="hr-search" placeholder="이름 검색..." class="hm-input pl-9" style="width:11rem" oninput="filterHrList()">
+        </div>
+        <select class="hm-input" id="hr-year" style="width:7rem" onchange="filterHrList()"></select>
         <select class="hm-input" id="hr-status-filter" style="width:9rem" onchange="filterHrList()">
           <option value="">전체 상태</option>
           <option value="01">재직 중</option>
@@ -255,11 +259,11 @@
         <i class="fa-solid fa-file-excel mr-1"></i>엑셀 내보내기
       </button>
     </div>
-
-    <div class="overflow-x-auto rounded-xl border border-slate-100">
+    <!-- 테이블 헤드 -->
+    <div class="overflow-x-auto rounded-xl border border-slate-100" style="min-height:32rem">
       <table class="w-full text-sm">
         <thead>
-          <tr id="hr-thead" class="bg-slate-50 text-slate-500 text-xs">
+          <tr id="hr-thead" class="bg-slate-100 text-slate-500 text-sm">
             <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="name" onclick="sortHrBy('name')">직원명 <span class="sort-icon text-slate-300">↕</span></th>
             <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="grade" onclick="sortHrBy('grade')">직급 <span class="sort-icon text-slate-300">↕</span></th>
             <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="join" onclick="sortHrBy('join')">입사일 <span class="sort-icon text-slate-300">↕</span></th>
@@ -280,20 +284,21 @@
               th:data-type="${emp.employeeInfo != null ? emp.employeeInfo.emplTypeCd : ''}"
               th:data-dept="${emp.deptCd}"
               th:data-status="${emp.employeeInfo != null ? emp.employeeInfo.emplStatCd : ''}">
+              <!-- 테이블 내용 -->
             <td class="py-3 px-4">
               <div class="flex items-center gap-2">
                 <div class="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center text-xs font-bold text-violet-700"
                      th:text="${#strings.substring(emp.member.userName, 0, 1)}">?</div>
-                <span class="font-semibold text-slate-800 text-xs" th:text="${emp.member.userName}">-</span>
+                <span class="py-3 px-4 text-sm text-slate-600" th:text="${emp.member.userName}">-</span>
               </div>
             </td>
             <td class="py-3 px-4">
-              <span class="role-tag role-staff" th:text="${emp.jbgrNm}">-</span>
+              <span class="py-3 px-1 text-sm text-slate-600 text-left block" th:text="${emp.jbgrNm}">-</span>
             </td>
-            <td class="py-3 px-4 text-xs text-slate-600" th:text="${emp.employeeInfo != null ? emp.employeeInfo.joinYmd : '-'}">-</td>
-            <td class="py-3 px-4 text-xs text-slate-600"
+            <td class="py-3 px-4 text-sm text-slate-600" th:text="${emp.employeeInfo != null ? emp.employeeInfo.joinYmd : '-'}">-</td>
+            <td class="py-3 px-4 text-sm text-slate-600"
                 th:text="${emp.employeeInfo != null ? (emp.employeeInfo.emplTypeCd == '01' ? '정규직' : (emp.employeeInfo.emplTypeCd == '02' ? '계약직' : '파트타임')) : '-'}">-</td>
-            <td class="py-3 px-4 text-xs text-slate-600" th:text="${emp.deptNm}">-</td>
+            <td class="py-3 px-4 text-sm text-slate-600" th:text="${emp.deptNm}">-</td>
             <td class="py-3 px-4">
               <span class="status-badge"
                     th:classappend="${emp.employeeInfo != null ? (emp.employeeInfo.emplStatCd == '01' ? 'status-active' : (emp.employeeInfo.emplStatCd == '02' ? 'status-leave' : 'status-resigned')) : 'status-resigned'}"
@@ -734,9 +739,9 @@ function filterEmpList() {
 
 /* ─── 페이징 적용 (PaginationInfo 동일 로직) ─── */
 function applyEmpPaging() {
-  const q        = document.getElementById('emp-search').value.trim().toLowerCase();
-  const stCd     = document.getElementById('emp-status-filter').value;
-  const typeCd   = document.getElementById('emp-type-filter').value;
+  const q        = (document.getElementById('emp-search')?.value || '').trim().toLowerCase();
+  const stCd     = document.getElementById('emp-status-filter')?.value || '';
+  const typeCd   = document.getElementById('emp-type-filter')?.value || '';
 
   const roleFilter = document.getElementById('emp-role-filter');
   const selectedDeptNm = (roleFilter && roleFilter.selectedIndex > 0)
@@ -809,13 +814,15 @@ function goEmpPage(p) {
 
 /* ═══ 인사 기록 탭 페이징 + 필터 + 정렬 ═══ */
 let currentHrPage = 1;
-const HR_SCREEN_SIZE = 10;
+const HR_SCREEN_SIZE = 7;
 const HR_BLOCK_SIZE  = 5;
 let hrSortCol = null;
 let hrSortAsc = true;
 let hrFilteredRows = null;
 
 function filterHrList() {
+  const keyword = document.getElementById('hr-search').value.trim().toLowerCase();
+  const year    = document.getElementById('hr-year').value;
   currentHrPage = 1;
   const status = document.getElementById('hr-status-filter').value;
   const dept   = document.getElementById('hr-dept-filter').value;
@@ -823,9 +830,11 @@ function filterHrList() {
   const allRows = Array.from(document.querySelectorAll('#hr-table-body .hr-data-row'));
 
   hrFilteredRows = allRows.filter(r => {
-    if (status && r.dataset.status !== status) return false;
-    if (dept   && r.dataset.dept   !== dept)   return false;
-    if (type   && r.dataset.type   !== type)   return false;
+    if (keyword && !(r.dataset.name || '').toLowerCase().includes(keyword)) return false;
+    if (year    && !(r.dataset.join || '').startsWith(year)) return false;
+    if (status  && r.dataset.status !== status) return false;
+    if (dept    && r.dataset.dept   !== dept)   return false;
+    if (type    && r.dataset.type   !== type)   return false;
     return true;
   });
 
@@ -1495,16 +1504,13 @@ document.querySelectorAll('[id^="modal-"]').forEach(m => {
 
 /* ─── 초기 렌더링 ─── */
 (function () {
-  // hr-year 드롭다운 동적 생성 (2020 ~ 현재 연도)
-  const hrYearSelect = document.getElementById('hr-year');
+  // hr-year 드롭다운 동적 생성 — innerHTML 사용으로 onchange 트리거 방지
   const currentYear = new Date().getFullYear();
+  const opts = ['<option value="">전체 연도</option>'];
   for (let y = 2020; y <= currentYear; y++) {
-    const opt = document.createElement('option');
-    opt.value = y;
-    opt.textContent = y;
-    if (y === currentYear) opt.selected = true;
-    hrYearSelect.appendChild(opt);
+    opts.push(`<option value="${y}">${y}</option>`);
   }
+  document.getElementById('hr-year').innerHTML = opts.join('');
 
   renderAcctList();
   renderDestructionList();
@@ -1512,8 +1518,9 @@ document.querySelectorAll('[id^="modal-"]').forEach(m => {
   const firstBtn = document.querySelector('.emp-tab-btn[data-tab="emp-tab-hr"]');
   if (firstBtn) switchEmpTab('emp-tab-hr', firstBtn);
 
-  applyEmpPaging(); // 직원 현황 탭 페이징 초기화
-  applyHrPaging();  // 인사 기록 탭 페이징 초기화
+  applyEmpPaging();
+  // Tailwind CDN 스타일 적용 후 실행되도록 다음 이벤트 루프로 지연
+  setTimeout(filterHrList, 0);
 })();
 
 // 사용자가 부서를 바꿨을 때 직급을 필터링하는 자바스크립트 로직
