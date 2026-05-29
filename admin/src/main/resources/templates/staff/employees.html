@@ -9,11 +9,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="/css/admin-core.css" />
   <style>
-    /* HR 필터는 controlInput:null로 검색 input 없이 초기화 → 선택값 표시 위치 고정 */
-    #emp-tab-hr .ts-wrapper .ts-control {
-      padding: 0.65rem 1.75rem 0.65rem 1rem !important;
-    }
-
     .emp-tab-btn { transition: all .18s; }
     .emp-tab-btn.active {
       color: #3b82f6;
@@ -337,34 +332,40 @@
       <div class="flex gap-3 flex-wrap items-center">
         <div class="relative">
           <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-2/3 -translate-y-1/2 text-slate-400 text-sm"></i>
-          <input type="text" id="hr-search" placeholder="이름 검색..." class="hm-input hm-input-blue pl-9" style="width:11rem" oninput="filterHrList()">
+          <input type="text" id="hr-search" placeholder="이름 검색..." class="hm-input hm-input-blue" style="width:10rem; line-height:1rem; padding:0.65rem 1.75rem 0.65rem 1rem" oninput="filterHrList()">
         </div>
 
-        <select class="hm-input hm-input-blue" id="hr-year" style="width:7rem" onchange="filterHrList()" data-ts-defer>
+        <select class="hm-input hm-input-blue" id="hr-year" style="width:10rem" onchange="filterHrList()">
           <option value="">전체 연도</option>
+          <option th:each="year : ${joinYearList}"
+                  th:value="${year}"
+                  th:text="${year + '년'}">
+          </option>
         </select>
 
-        <select class="hm-input hm-input-blue" id="hr-status-filter" style="width:9rem" onchange="filterHrList()" data-ts-defer>
+        <select class="hm-input hm-input-blue" id="hr-status-filter" style="width:10rem" onchange="filterHrList()">
           <option value="">전체 상태</option>
           <option value="01">재직 중</option>
           <option value="02">휴직 중</option>
           <option value="03">퇴사</option>
         </select>
-        <select class="hm-input hm-input-blue" id="hr-dept-filter" style="width:10rem" onchange="filterHrList()" data-ts-defer>
+        
+        <select class="hm-input hm-input-blue" id="hr-dept-filter" style="width:10rem" onchange="onHrDeptChange(this.value)">
           <option value="">전체 부서</option>
           <option th:each="dept : ${departmentlist}"
                   th:value="${dept.deptCd}"
                   th:text="${dept.deptNm}">
           </option>
         </select>
-         <select class="hm-input hm-input-blue" id="hr-role-filter" style="width:10rem" onchange="filterHrList()" data-ts-defer>
+         <select class="hm-input hm-input-blue" id="hr-role-filter" style="width:10rem" onchange="filterHrList()">
             <option value="">전체 직급</option>
             <option th:each="jobGrade : ${jobgradelist}"
             th:value="${jobGrade.jbgrCd}"
-            th:text="${jobGrade.jbgrNm}">
+            th:text="${jobGrade.jbgrNm}"
+            th:data-dept="${jobGrade.deptCd}">
             </option>
          </select>
-        <select class="hm-input hm-input-blue" id="hr-type-filter" style="width:9rem" onchange="filterHrList()" data-ts-defer>
+        <select class="hm-input hm-input-blue" id="hr-type-filter" style="width:10rem" onchange="filterHrList()">
           <option value="">전체 근무형태</option>
           <option value="01">정규직</option>
           <option value="02">계약직</option>
@@ -380,17 +381,27 @@
     </div>
     <!-- 테이블 헤드 -->
     <div class="overflow-x-auto rounded-xl border border-slate-100" style="min-height:32rem">
-      <table class="w-full text-sm">
+      <table class="w-full text-sm table-fixed">
+        <colgroup>
+          <col style="width:17%">
+          <col style="width:13%">
+          <col style="width:11%">
+          <col style="width:13%">
+          <col style="width:11%">
+          <col style="width:14%">
+          <col style="width:13%">
+          <col style="width:8%">
+        </colgroup>
         <thead>
           <tr id="hr-thead" class="bg-slate-100 text-slate-500 text-sm">
-            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="name" onclick="sortHrBy('name')">직원명 <span class="sort-icon text-slate-300">↕</span></th>
-            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="dept" onclick="sortHrBy('dept')">부서 <span class="sort-icon text-slate-300">↕</span></th>
-            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="grade" onclick="sortHrBy('grade')">직급 <span class="sort-icon text-slate-300">↕</span></th>
-            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="join" onclick="sortHrBy('join')">입사일 <span class="sort-icon text-slate-300">↕</span></th>
-            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="type" onclick="sortHrBy('type')">근무 유형 <span class="sort-icon text-slate-300">↕</span></th>
-            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="dept" onclick="sortHrBy('dept')">소속 부서 <span class="sort-icon text-slate-300">↕</span></th>
-            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="status" onclick="sortHrBy('status')">상태 <span class="sort-icon text-slate-300">↕</span></th>
-            <th class="text-left py-3 px-4 font-semibold"></th>
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="name" onclick="sortHrBy('name')">직원명 <span class="sort-icon text-slate-300">↕</span></th>
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="dept" onclick="sortHrBy('dept')">부서 <span class="sort-icon text-slate-300">↕</span></th>
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="grade" onclick="sortHrBy('grade')">직급 <span class="sort-icon text-slate-300">↕</span></th>
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="join" onclick="sortHrBy('join')">입사일 <span class="sort-icon text-slate-300">↕</span></th>
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="type" onclick="sortHrBy('type')">근무 유형 <span class="sort-icon text-slate-300">↕</span></th>
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="dept" onclick="sortHrBy('dept')">소속 부서 <span class="sort-icon text-slate-300">↕</span></th>
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="status" onclick="sortHrBy('status')">상태 <span class="sort-icon text-slate-300">↕</span></th>
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="action" onclick="sortHrBy('action')">상세</tr>
           </tr>
         </thead>
         <tbody id="hr-table-body" class="divide-y divide-slate-50">
@@ -414,7 +425,8 @@
               th:data-addr-detail="${emp.member.userDaddr != null ? emp.member.userDaddr : ''}"
               th:data-addr="${(emp.member.userAddr != null ? emp.member.userAddr : '') + (emp.member.userDaddr != null and not #strings.isEmpty(emp.member.userDaddr) ? ' ' + emp.member.userDaddr : '')}"
               th:data-contract-end="${emp.employeeInfo != null ? emp.employeeInfo.ctrctEndYmd : ''}"
-              th:data-duty="${emp.employeeInfo != null ? emp.employeeInfo.chrgDutyCn : ''}">
+              th:data-duty="${emp.employeeInfo != null ? emp.employeeInfo.chrgDutyCn : ''}"
+              th:data-salary="${emp.baseSalary != null ? emp.baseSalary : ''}">
               <!-- 테이블 내용 -->
             <td class="py-3 px-4">
               <div class="flex items-center gap-2">
@@ -423,14 +435,14 @@
                 <span class="py-3 px-4 text-sm text-slate-600" th:text="${emp.member.userName}">-</span>
               </div>
             </td>
-            <td class="py-3 px-4 text-sm text-slate-600" th:text="${emp.deptNm}">-</td>
+            <td class="py-3 px-4 text-sm text-slate-600 truncate" th:text="${emp.deptNm}">-</td>
             <td class="py-3 px-4">
-              <span class="py-3 px-1 text-sm text-slate-600 text-left block" th:text="${emp.jbgrNm}">-</span>
+              <span class="text-sm text-slate-600 block truncate" th:text="${emp.jbgrNm}">-</span>
             </td>
-            <td class="py-3 px-4 text-sm text-slate-600" th:text="${emp.employeeInfo != null ? emp.employeeInfo.joinYmd : '-'}">-</td>
-            <td class="py-3 px-4 text-sm text-slate-600"
+            <td class="py-3 px-4 text-sm text-slate-600 whitespace-nowrap" th:text="${emp.employeeInfo != null ? emp.employeeInfo.joinYmd : '-'}">-</td>
+            <td class="py-3 px-4 text-sm text-slate-600 whitespace-nowrap"
                 th:text="${emp.employeeInfo != null ? (emp.employeeInfo.emplTypeCd == '01' ? '정규직' : (emp.employeeInfo.emplTypeCd == '02' ? '계약직' : '파트타임')) : '-'}">-</td>
-            <td class="py-3 px-4 text-sm text-slate-600" th:text="${emp.deptNm}">-</td>
+            <td class="py-3 px-4 text-sm text-slate-600 truncate" th:text="${emp.deptNm}">-</td>
             <td class="py-3 px-4">
               <span class="status-badge"
                     th:classappend="${emp.employeeInfo != null ? (emp.employeeInfo.emplStatCd == '01' ? 'status-active' : (emp.employeeInfo.emplStatCd == '02' ? 'status-leave' : 'status-resigned')) : 'status-resigned'}"
@@ -978,16 +990,6 @@ const HR_BLOCK_SIZE  = 5;
 let hrSortCol = null;
 let hrSortAsc = true;
 let hrFilteredRows = null;
-let _hrInitRowOrder = [];
-
-// HR 필터 select 목록
-const HR_SELECT_IDS = ['hr-year', 'hr-status-filter', 'hr-dept-filter', 'hr-role-filter', 'hr-type-filter'];
-
-// 검색 input 없이(controlInput:null) 드롭다운 전용으로 초기화 → 포커스 시 item↔input 교체로 인한 텍스트 밀림 방지
-function initHrTomSelect(el) {
-  if (!el || el.tomselect) return;
-  return new TomSelect(el, { create: false, controlInput: null });
-}
 
 function filterHrList() {
   const keyword = document.getElementById('hr-search').value.trim().toLowerCase();
@@ -1013,20 +1015,34 @@ function filterHrList() {
   applyHrPaging();
 }
 
+// 직급 필터 전체 옵션 원본 저장 (Tom Select 초기화 전에 native select에서 읽음)
+const allRoleOptions = Array.from(
+  document.querySelectorAll('#hr-role-filter option[value]:not([value=""])')
+).map(opt => ({ value: opt.value, text: opt.textContent.trim(), dept: opt.dataset.dept || '' }));
+
+function updateHrRoleFilter(deptCd) {
+  const ts = document.getElementById('hr-role-filter').tomselect;
+  if (!ts) return;
+  ts.clear(true);
+  ts.clearOptions();
+  const filtered = deptCd ? allRoleOptions.filter(o => o.dept === deptCd) : allRoleOptions;
+  filtered.forEach(o => ts.addOption({ value: o.value, text: o.text }));
+  ts.refreshOptions(false);
+}
+
+function onHrDeptChange(deptCd) {
+  updateHrRoleFilter(deptCd);
+  filterHrList();
+}
+
 function resetHrFilter() {
   document.getElementById('hr-search').value = '';
-  HR_SELECT_IDS.forEach(id => {
+  updateHrRoleFilter('');
+  ['hr-year', 'hr-status-filter', 'hr-dept-filter', 'hr-role-filter', 'hr-type-filter'].forEach(id => {
     const el = document.getElementById(id);
-    if (!el) return;
-    if (el.tomselect) {
-      el.tomselect.setValue('', true); // 값만 '전체'로 변경 (silent), 재초기화 불필요
-    } else {
-      el.selectedIndex = 0;
-    }
+    if (el.tomselect) el.tomselect.setValue('');
+    else el.value = '';
   });
-  const tbody = document.getElementById('hr-table-body');
-  _hrInitRowOrder.forEach(r => tbody.appendChild(r));
-  hrFilteredRows = null;
   hrSortCol = null;
   hrSortAsc = true;
   updateHrSortIcons(null);
@@ -1229,9 +1245,9 @@ function openDetail(id) {
     role:     card ? (card.dataset.jbgrNm || '-') : (row.dataset.grade || '-'),
     entry:    card ? (card.dataset.joinYmd || '-') : (row.dataset.join  || '-'),
     workType:    workType,
-    contractEnd: (row ? row.dataset.contractEnd : src.dataset.contractEnd || '').substring(0, 10),
+    contractEnd: ((row ? row.dataset.contractEnd : src.dataset.contractEnd) || '').substring(0, 10),
     duty:        src.dataset.duty   || (card ? card.dataset.chrgDutyCn : '') || '-',
-    salary:      src.dataset.salary || (card ? card.dataset.salary : '') || '-',
+    salary:      (row ? row.dataset.salary : '') || (card ? card.dataset.salary : '') || '-',
   };
 
   selectedEmpId = id;
@@ -1306,6 +1322,7 @@ function toggleDetailEdit() {
       document.getElementById('edit-addr').value       = row.dataset.addrBase  || '';
       document.getElementById('edit-addr-detail').value = row.dataset.addrDetail || '';
       document.getElementById('edit-duty').value       = row.dataset.duty   || '';
+      document.getElementById('edit-salary').value     = row.dataset.salary || '';
     }
   }
 }
@@ -1335,6 +1352,7 @@ function saveDetailEdit() {
   row.dataset.addrDetail = addrDetail;
   row.dataset.addr       = (addrBase + (addrDetail ? ' ' + addrDetail : '')).trim();
   row.dataset.duty     = document.getElementById('edit-duty').value;
+  row.dataset.salary   = document.getElementById('edit-salary').value;
 
   // 카드가 DOM에 있으면 type/status도 동기화 (openDetail에서 stale 값 참조 방지)
   const card = document.querySelector('.emp-card[data-id="' + selectedEmpId + '"]');
@@ -1786,17 +1804,6 @@ document.querySelectorAll('[id^="modal-"]').forEach(m => {
 
 /* ─── 초기 렌더링 ─── */
 (function () {
-  // hr-year 연도 옵션 동적 추가 (전체 연도 기본값은 HTML에 이미 존재)
-  const hrYearSel = document.getElementById('hr-year');
-  const currentYear = new Date().getFullYear();
-  for (let y = 2020; y <= currentYear; y++) {
-    const opt = document.createElement('option');
-    opt.value = y;
-    opt.textContent = y;
-    hrYearSel.appendChild(opt);
-  }
-  _hrInitRowOrder = Array.from(document.querySelectorAll('#hr-table-body .hr-data-row'));
-
   renderAcctList();
   renderDestructionList();
 
@@ -1804,11 +1811,8 @@ document.querySelectorAll('[id^="modal-"]').forEach(m => {
   if (firstBtn) switchEmpTab('emp-tab-hr', firstBtn);
 
   applyEmpPaging();
-  // TomSelect 정의(admin-layout end-of-body) 이후 실행되도록 지연
-  setTimeout(() => {
-    HR_SELECT_IDS.forEach(id => initHrTomSelect(document.getElementById(id)));
-    filterHrList();
-  }, 0);
+  // Tailwind CDN 스타일 적용 후 실행되도록 다음 이벤트 루프로 지연
+  setTimeout(filterHrList, 0);
 })();
 
 // 사용자가 부서를 바꿨을 때 직급을 필터링하는 자바스크립트 로직

@@ -25,6 +25,9 @@ public interface  StaffService {
     // 직원 리스트 조회
     List<EmployeeDetailDto> retrieveEmployeeList();
 
+    // 입사 연도 목록 조회
+    List<Integer> retrieveJoinYearList();
+
     // 아이디 중복 자동 순번 발급 및 중복 회피
     String getNextAvailableId(String baseId, String defaultSerial);
 }
