@@ -350,7 +350,7 @@
           <option value="03">퇴사</option>
         </select>
         
-        <select class="hm-input hm-input-blue" id="hr-dept-filter" style="width:10rem" onchange="filterHrList()">
+        <select class="hm-input hm-input-blue" id="hr-dept-filter" style="width:10rem" onchange="onHrDeptChange(this.value)">
           <option value="">전체 부서</option>
           <option th:each="dept : ${departmentlist}"
                   th:value="${dept.deptCd}"
@@ -361,7 +361,8 @@
             <option value="">전체 직급</option>
             <option th:each="jobGrade : ${jobgradelist}"
             th:value="${jobGrade.jbgrCd}"
-            th:text="${jobGrade.jbgrNm}">
+            th:text="${jobGrade.jbgrNm}"
+            th:data-dept="${jobGrade.deptCd}">
             </option>
          </select>
         <select class="hm-input hm-input-blue" id="hr-type-filter" style="width:10rem" onchange="filterHrList()">
@@ -1003,8 +1004,29 @@ function filterHrList() {
   applyHrPaging();
 }
 
+// 직급 필터 전체 옵션 원본 저장 (Tom Select 초기화 전에 native select에서 읽음)
+const allRoleOptions = Array.from(
+  document.querySelectorAll('#hr-role-filter option[value]:not([value=""])')
+).map(opt => ({ value: opt.value, text: opt.textContent.trim(), dept: opt.dataset.dept || '' }));
+
+function updateHrRoleFilter(deptCd) {
+  const ts = document.getElementById('hr-role-filter').tomselect;
+  if (!ts) return;
+  ts.clear(true);
+  ts.clearOptions();
+  const filtered = deptCd ? allRoleOptions.filter(o => o.dept === deptCd) : allRoleOptions;
+  filtered.forEach(o => ts.addOption({ value: o.value, text: o.text }));
+  ts.refreshOptions(false);
+}
+
+function onHrDeptChange(deptCd) {
+  updateHrRoleFilter(deptCd);
+  filterHrList();
+}
+
 function resetHrFilter() {
   document.getElementById('hr-search').value = '';
+  updateHrRoleFilter('');
   ['hr-year', 'hr-status-filter', 'hr-dept-filter', 'hr-role-filter', 'hr-type-filter'].forEach(id => {
     const el = document.getElementById(id);
     if (el.tomselect) el.tomselect.setValue('');
