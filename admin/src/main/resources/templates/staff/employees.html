@@ -332,10 +332,10 @@
       <div class="flex gap-3 flex-wrap items-center">
         <div class="relative">
           <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-2/3 -translate-y-1/2 text-slate-400 text-sm"></i>
-          <input type="text" id="hr-search" placeholder="이름 검색..." class="hm-input hm-input-blue pl-9" style="width:11rem" oninput="filterHrList()">
+          <input type="text" id="hr-search" placeholder="이름 검색..." class="hm-input hm-input-blue" style="width:10rem; line-height:1rem; padding:0.65rem 1.75rem 0.65rem 1rem" oninput="filterHrList()">
         </div>
 
-        <select class="hm-input hm-input-blue" id="hr-year" style="width:9rem" onchange="filterHrList()">
+        <select class="hm-input hm-input-blue" id="hr-year" style="width:10rem" onchange="filterHrList()">
           <option value="">전체 연도</option>
           <option th:each="year : ${joinYearList}"
                   th:value="${year}"
