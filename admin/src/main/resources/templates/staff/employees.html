@@ -9,6 +9,11 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="/css/admin-core.css" />
   <style>
+    /* HR 필터는 controlInput:null로 검색 input 없이 초기화 → 선택값 표시 위치 고정 */
+    #emp-tab-hr .ts-wrapper .ts-control {
+      padding: 0.65rem 1.75rem 0.65rem 1rem !important;
+    }
+
     .emp-tab-btn { transition: all .18s; }
     .emp-tab-btn.active {
       color: #3b82f6;
@@ -59,7 +64,24 @@
     .info-label { width: 7rem; font-size: .78rem; color: #64748b; flex-shrink: 0; }
     .info-value { font-size: .82rem; color: #1e293b; font-weight: 500; }
 
-    .danger-zone { border: 1.5px solid #fca5a5; border-radius: .75rem; background: #fff7f7; }
+    .danger-zone { 
+      border: 1.5px solid #ef4444;
+      border-radius: .75rem; 
+      background: #fef2f2;        
+    }
+
+    
+    /* 퇴사 및 경고(Danger) 입력창 색상 시스템 */
+    .hm-input-danger {
+      border-color: #ef4444;
+    }
+    .hm-input-danger:focus {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08)
+    }
+    .hm-input-danger:disabled {
+      border-color: #fca5a5;
+    }
 
     .acct-row {
       display: flex; align-items: center; justify-content: space-between;
@@ -76,6 +98,78 @@
     /* [변경] 하단 페이지 버튼 호버 및 활성화 시 행정 파란색(#3b82f6) 적용 */
     .emp-page-btn:hover { border-color: #3b82f6; color: #3b82f6; }
     .emp-page-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+    /* 모달 스크롤바 스타일 */
+    .modal-scroll::-webkit-scrollbar { width: 6px; }
+    .modal-scroll::-webkit-scrollbar-track { background: transparent; }
+    .modal-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    .modal-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    
+    /* ==========================================================================
+      5. 모달 / 폼 공통 컴포넌트
+      ========================================================================== */
+
+    /* 폼 라벨 */
+    .form-label {
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-bottom: 0.25rem;
+      display: block;
+    }
+    .form-label .required {
+      color: #f87171;
+      margin-left: 0.15rem;
+    }
+
+    /* 섹션 제목 */
+    .form-section-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #3b82f6;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75rem;
+    }
+
+    /* 모달 컨테이너 */
+    .hm-modal-inner {
+      background: #ffffff;
+      border-radius: 1rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      width: 100%;
+      max-height: 90vh;
+      overflow: hidden;
+    }
+    .hm-modal-scroll {
+      overflow-y: auto;
+      max-height: 90vh;
+    }
+    .hm-modal-scroll::-webkit-scrollbar { width: 6px; }
+    .hm-modal-scroll::-webkit-scrollbar-track { background: transparent; }
+    .hm-modal-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    .hm-modal-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    /* 모달 헤더 */
+    .hm-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.5rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .hm-modal-header h2 {
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    /* 모달 푸터 */
+    .hm-modal-footer {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+      padding: 1.25rem 1.5rem;
+      border-top: 1px solid #f1f5f9;
+    }
   </style>
 </head>
 <body>
@@ -146,7 +240,7 @@
   </div>
 
   <!-- ══════ 탭1: 직원 현황 ══════ -->
-  <div id="emp-tab-list" class="emp-tab-panel active p-6">
+  <div id="emp-tab-list" class="emp-tab-panel p-6">
     <!-- 검색 & 필터 -->
     <!-- <div class="flex flex-wrap gap-3 mb-5">
       <div class="relative flex-1 min-w-48">
@@ -191,6 +285,7 @@
             th:data-name="${emp.member.userName}"
             th:data-phone="${emp.member.userTelno}"
             th:data-email="${emp.member.userEmailAddr}"
+            th:data-zip="${emp.member.userZip}"
             th:data-addr="${(emp.member.userAddr != null ? emp.member.userAddr : '') + (emp.member.userDaddr != null and not #strings.isEmpty(emp.member.userDaddr) ? ' ' + emp.member.userDaddr : '')}"
             th:data-join-ymd="${emp.employeeInfo != null and emp.employeeInfo.joinYmd != null ? #temporals.format(emp.employeeInfo.joinYmd, 'yyyy-MM-dd') : ''}"
             th:data-empl-stat-cd="${emp.employeeInfo != null ? emp.employeeInfo.emplStatCd : ''}"
@@ -244,26 +339,40 @@
           <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-2/3 -translate-y-1/2 text-slate-400 text-sm"></i>
           <input type="text" id="hr-search" placeholder="이름 검색..." class="hm-input hm-input-blue pl-9" style="width:11rem" oninput="filterHrList()">
         </div>
-        <select class="hm-input hm-input-blue" id="hr-year" style="width:7rem" onchange="filterHrList()"></select>
-        <select class="hm-input hm-input-blue" id="hr-status-filter" style="width:9rem" onchange="filterHrList()">
+
+        <select class="hm-input hm-input-blue" id="hr-year" style="width:7rem" onchange="filterHrList()" data-ts-defer>
+          <option value="">전체 연도</option>
+        </select>
+
+        <select class="hm-input hm-input-blue" id="hr-status-filter" style="width:9rem" onchange="filterHrList()" data-ts-defer>
           <option value="">전체 상태</option>
           <option value="01">재직 중</option>
           <option value="02">휴직 중</option>
           <option value="03">퇴사</option>
         </select>
-        <select class="hm-input hm-input-blue" id="hr-dept-filter" style="width:10rem" onchange="filterHrList()">
+        <select class="hm-input hm-input-blue" id="hr-dept-filter" style="width:10rem" onchange="filterHrList()" data-ts-defer>
           <option value="">전체 부서</option>
           <option th:each="dept : ${departmentlist}"
                   th:value="${dept.deptCd}"
                   th:text="${dept.deptNm}">
           </option>
         </select>
-        <select class="hm-input hm-input-blue" id="hr-type-filter" style="width:9rem" onchange="filterHrList()">
-          <option value="">근무 형태</option>
+         <select class="hm-input hm-input-blue" id="hr-role-filter" style="width:10rem" onchange="filterHrList()" data-ts-defer>
+            <option value="">전체 직급</option>
+            <option th:each="jobGrade : ${jobgradelist}"
+            th:value="${jobGrade.jbgrCd}"
+            th:text="${jobGrade.jbgrNm}">
+            </option>
+         </select>
+        <select class="hm-input hm-input-blue" id="hr-type-filter" style="width:9rem" onchange="filterHrList()" data-ts-defer>
+          <option value="">전체 근무형태</option>
           <option value="01">정규직</option>
           <option value="02">계약직</option>
           <option value="03">파트타임</option>
         </select>
+        <button type="button" onclick="resetHrFilter()" class="hm-btn-secondary text-sm px-3 py-2 whitespace-nowrap">
+          <i class="fa-solid fa-rotate-left mr-1"></i>초기화
+        </button>
       </div>
       <button class="hm-btn-primary hm-btn-blue text-sm px-4 py-2" onclick="showHermesToast('엑셀로 내보내기 준비 중','info')">
         <i class="fa-solid fa-file-excel mr-1"></i>엑셀 내보내기
@@ -275,6 +384,7 @@
         <thead>
           <tr id="hr-thead" class="bg-slate-100 text-slate-500 text-sm">
             <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="name" onclick="sortHrBy('name')">직원명 <span class="sort-icon text-slate-300">↕</span></th>
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="dept" onclick="sortHrBy('dept')">부서 <span class="sort-icon text-slate-300">↕</span></th>
             <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="grade" onclick="sortHrBy('grade')">직급 <span class="sort-icon text-slate-300">↕</span></th>
             <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="join" onclick="sortHrBy('join')">입사일 <span class="sort-icon text-slate-300">↕</span></th>
             <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="type" onclick="sortHrBy('type')">근무 유형 <span class="sort-icon text-slate-300">↕</span></th>
@@ -285,15 +395,26 @@
         </thead>
         <tbody id="hr-table-body" class="divide-y divide-slate-50">
           <tr th:if="${employeeList == null or #lists.isEmpty(employeeList)}">
-            <td colspan="7" class="text-center py-10 text-sm text-slate-400">등록된 직원이 없습니다.</td>
+            <td colspan="8" class="text-center py-10 text-sm text-slate-400">등록된 직원이 없습니다.</td>
           </tr>
           <tr th:each="emp : ${employeeList}" class="hr-data-row hover:bg-slate-50 transition-colors"
+              th:data-id="${emp.member.userId}"
               th:data-name="${emp.member.userName}"
               th:data-grade="${emp.jbgrNm}"
+              th:data-grade-cd="${emp.employeeInfo != null ? emp.employeeInfo.jbgrCd : ''}"
               th:data-join="${emp.employeeInfo != null ? emp.employeeInfo.joinYmd : ''}"
               th:data-type="${emp.employeeInfo != null ? emp.employeeInfo.emplTypeCd : ''}"
               th:data-dept="${emp.deptCd}"
-              th:data-status="${emp.employeeInfo != null ? emp.employeeInfo.emplStatCd : ''}">
+              th:data-dept-nm="${emp.deptNm}"
+              th:data-status="${emp.employeeInfo != null ? emp.employeeInfo.emplStatCd : ''}"
+              th:data-phone="${emp.member.userTelno}"
+              th:data-email="${emp.member.userEmailAddr}"
+              th:data-zip="${emp.member.userZip}"
+              th:data-addr-base="${emp.member.userAddr != null ? emp.member.userAddr : ''}"
+              th:data-addr-detail="${emp.member.userDaddr != null ? emp.member.userDaddr : ''}"
+              th:data-addr="${(emp.member.userAddr != null ? emp.member.userAddr : '') + (emp.member.userDaddr != null and not #strings.isEmpty(emp.member.userDaddr) ? ' ' + emp.member.userDaddr : '')}"
+              th:data-contract-end="${emp.employeeInfo != null ? emp.employeeInfo.ctrctEndYmd : ''}"
+              th:data-duty="${emp.employeeInfo != null ? emp.employeeInfo.chrgDutyCn : ''}">
               <!-- 테이블 내용 -->
             <td class="py-3 px-4">
               <div class="flex items-center gap-2">
@@ -302,6 +423,7 @@
                 <span class="py-3 px-4 text-sm text-slate-600" th:text="${emp.member.userName}">-</span>
               </div>
             </td>
+            <td class="py-3 px-4 text-sm text-slate-600" th:text="${emp.deptNm}">-</td>
             <td class="py-3 px-4">
               <span class="py-3 px-1 text-sm text-slate-600 text-left block" th:text="${emp.jbgrNm}">-</span>
             </td>
@@ -360,157 +482,151 @@
 <!--  MODAL: 신규 직원 등록                             -->
 <!-- ═══════════════════════════════════════════════════ -->
 <div id="modal-new-emp" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-    <div class="flex items-center justify-between p-6 border-b border-slate-100">
-      <h2 class="font-bold text-slate-800"><i class="fa-solid fa-user-plus mr-2 text-[#3b82f6]"></i>신규 직원 등록</h2>
+  <div class="hm-modal-inner max-w-2xl">
+  <div class="hm-modal-scroll">
+    <div class="hm-modal-header">
+      <h2><i class="fa-solid fa-user-plus mr-2 text-[#3b82f6]"></i>신규 직원 등록</h2>
       <button type="button" onclick="closeModal('modal-new-emp')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
     </div>
     <form id="form-new-emp" action="/admin/employees" method="POST" enctype="multipart/form-data" onsubmit="return validateNewEmp()">
     <div class="p-6 space-y-5">
       <!-- 기본 정보 -->
       <div>
-        <p class="text-xs font-bold text-[#3b82f6] uppercase tracking-wider mb-3">기본 정보</p>
+        <p class="form-section-title">기본 정보</p>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-xs text-slate-500 mb-1 block">이름 <span class="text-red-400">*</span></label>
-            <input type="text" class="hm-input-blue" placeholder="홍길동" id="new-name" name="userName" oninput="autoGenLoginId()" />
+            <label class="form-label">이름 <span class="required">*</span></label>
+            <input type="text" class="hm-input hm-input-blue" placeholder="홍길동" id="new-name" name="userName" oninput="autoGenLoginId()" />
           </div>
           <div>
-            <label class="text-xs text-slate-500 mb-1 block">주민등록번호 <span class="text-red-400">*</span></label>
-            <input type="text" class="hm-input-blue" placeholder="000000-0000000" id="new-rrn" name="userEnrrno" maxlength="14" oninput="formatRrn(this); autoFillTempPw()" />
+            <label class="form-label">주민등록번호 <span class="required">*</span></label>
+            <input type="text" class="hm-input hm-input-blue" placeholder="000000-0000000" id="new-rrn" name="userEnrrno" maxlength="14" oninput="formatRrn(this); autoFillTempPw()" />
           </div>
           <div>
-            <label class="text-xs text-slate-500 mb-1 block">생년월일</label>
-            <input type="text" class="hm-input-blue bg-slate-50" id="new-brdt" name="userBrdt" readonly />
+            <label class="form-label">생년월일</label>
+            <input type="text" class="hm-input hm-input-blue bg-slate-50" id="new-brdt" name="userBrdt" readonly />
           </div>
           <div>
-            <label class="text-xs text-slate-500 mb-1 block">성별</label>
-            <select class="hm-input-blue" id="new-gndr" name="userGndrCd">
+            <label class="form-label">성별</label>
+            <select class="hm-input hm-input-blue" id="new-gndr" name="userGndrCd">
               <option value="U">미확인</option>
               <option value="M">남성</option>
               <option value="F">여성</option>
             </select>
           </div>
           <div>
-            <label class="text-xs text-slate-500 mb-1 block">연락처 <span class="text-red-400">*</span></label>
-            <input type="text" class="hm-input-blue" placeholder="010-0000-0000" id="new-phone" name="userTelno" oninput="formatPhone(this)" maxlength="13" />
+            <label class="form-label">연락처 <span class="required">*</span></label>
+            <input type="text" class="hm-input hm-input-blue" placeholder="010-0000-0000" id="new-phone" name="userTelno" oninput="formatPhone(this)" maxlength="13" />
           </div>
           <div>
-            <label class="text-xs text-slate-500 mb-1 block">이메일</label>
-            <input type="email" class="hm-input-blue" placeholder="user@hermes.com" id="new-email" name="userEmailAddr" />
+            <label class="form-label">이메일</label>
+            <input type="email" class="hm-input hm-input-blue" placeholder="user@hermes.com" id="new-email" name="userEmailAddr" />
           </div>
           <div class="col-span-2 flex gap-2">
             <div class="w-36">
-              <label class="text-xs text-slate-500 mb-1 block">우편번호</label>
-              <input type="text" class="hm-input-blue" placeholder="00000" id="postcode" name="userZip" maxlength="5" readonly />
+              <label class="form-label">우편번호</label>
+              <input type="text" class="hm-input hm-input-blue" placeholder="00000" id="postcode" name="userZip" maxlength="5" readonly />
             </div>
             <div class="flex items-end">
               <button type="button" onclick="searchZipCode()" class="hm-btn-primary hm-btn-blue text-xs px-3 py-2.5 whitespace-nowrap">우편번호 검색</button>
             </div>
           </div>
           <div class="col-span-2">
-            <label class="text-xs text-slate-500 mb-1 block">기본 주소 <span class="text-red-400">*</span></label>
-            <input type="text" class="hm-input-blue" placeholder="도로명 주소" id="address" name="userAddr" readonly />
+            <label class="form-label">기본 주소 <span class="required">*</span></label>
+            <input type="text" class="hm-input hm-input-blue" placeholder="도로명 주소" id="address" name="userAddr" readonly />
           </div>
           <div class="col-span-2">
-            <label class="text-xs text-slate-500 mb-1 block">상세 주소</label>
-            <input type="text" class="hm-input-blue" placeholder="상세 주소 (동/호수 등)" id="detailAddress" name="userDaddr" />
+            <label class="form-label">상세 주소</label>
+            <input type="text" class="hm-input hm-input-blue" placeholder="상세 주소 (동/호수 등)" id="detailAddress" name="userDaddr" />
           </div>
         </div>
       </div>
 
       <!-- 인사 정보 -->
       <div>
-        <p class="text-xs font-bold text-[#3b82f6] uppercase tracking-wider mb-3">인사 정보</p>
+        <p class="form-section-title">인사 정보</p>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-xs text-slate-500 mb-1 block">소속 부서 <span class="text-red-400">*</span></label>
-            <select class="hm-input-blue" id="new-dept" name="deptCd">
+            <label class="form-label">소속 부서 <span class="required">*</span></label>
+            <select class="hm-input hm-input-blue" id="new-dept" name="deptCd">
               <option value="">선택</option>
-              <option th:each="dept : ${departmentlist}"
-                    th:value="${dept.deptCd}"
-                    th:text="${dept.deptNm}">
-              </option>
+              <option th:each="dept : ${departmentlist}" th:value="${dept.deptCd}" th:text="${dept.deptNm}"></option>
             </select>
           </div>
           <div>
-            <label class="text-xs text-slate-500 mb-1 block">직급 <span class="text-red-400">*</span></label>
-            <select class="hm-input-blue" id="new-role" name="jbgrCd">
+            <label class="form-label">직급 <span class="required">*</span></label>
+            <select class="hm-input hm-input-blue" id="new-role" name="jbgrCd">
               <option value="">선택</option>
-              <option th:each="jobGrade : ${jobgradelist}"
-                    th:value="${jobGrade.jbgrCd}"
-                    th:text="${jobGrade.jbgrNm}"
-                    th:data-dept="${jobGrade.deptCd}">
-              </option>
+              <option th:each="jobGrade : ${jobgradelist}" th:value="${jobGrade.jbgrCd}" th:text="${jobGrade.jbgrNm}" th:data-dept="${jobGrade.deptCd}"></option>
             </select>
           </div>
           <div>
-            <label class="text-xs text-slate-500 mb-1 block">입사일 <span class="text-red-400">*</span></label>
-            <input type="date" class="hm-input-blue" id="new-entry-date" name="joinYmd" min="2000-01-01" max="2099-12-31" oninput="autoGenLoginId()" />
+            <label class="form-label">입사일 <span class="required">*</span></label>
+            <input type="date" class="hm-input hm-input-blue" id="new-entry-date" name="joinYmd" min="2000-01-01" max="2099-12-31" oninput="autoGenLoginId()" />
           </div>
           <div>
-            <label class="text-xs text-slate-500 mb-1 block">재직 상태 <span class="text-red-400">*</span></label>
-            <select class="hm-input-blue" id="new-empl-stat" name="emplStatCd">
+            <label class="form-label">재직 상태 <span class="required">*</span></label>
+            <select class="hm-input hm-input-blue" id="new-empl-stat" name="emplStatCd">
               <option value="01">재직</option>
               <option value="02">휴직</option>
               <option value="03">퇴사</option>
             </select>
           </div>
           <div>
-            <label class="text-xs text-slate-500 mb-1 block">근무 유형</label>
-            <select class="hm-input-blue" id="new-work-type" name="emplTypeCd" onchange="toggleContractPeriod(this.value)">
+            <label class="form-label">근무 유형</label>
+            <select class="hm-input hm-input-blue" id="new-work-type" name="emplTypeCd" onchange="toggleContractPeriod(this.value)">
               <option value="01">정규직</option>
               <option value="02">계약직</option>
               <option value="03">파트타임</option>
             </select>
           </div>
           <div id="contract-period-wrap" class="col-span-2 hidden">
-            <label class="text-xs text-slate-500 mb-1 block">계약 종료일 <span class="text-red-400">*</span></label>
-            <input type="date" class="hm-input-blue" id="new-contract-end" name="ctrctEndYmd" />
+            <label class="form-label">계약 종료일 <span class="required">*</span></label>
+            <input type="date" class="hm-input hm-input-blue" id="new-contract-end" name="ctrctEndYmd" />
           </div>
           <div>
-            <label class="text-xs text-slate-500 mb-1 block">급여 (만원)</label>
-            <input type="number" class="hm-input-blue" placeholder="300" id="new-salary" name="baseSalary" />
+            <label class="form-label">급여 (만원)</label>
+            <input type="number" class="hm-input hm-input-blue" placeholder="300" id="new-salary" name="baseSalary" />
           </div>
           <div class="col-span-2">
-            <label class="text-xs text-slate-500 mb-1 block">담당 업무</label>
-            <textarea class="hm-input-blue resize-none" rows="2" placeholder="담당 업무 내용을 입력하세요" id="new-chrg-duty" name="chrgDutyCn"></textarea>
+            <label class="form-label">담당 업무</label>
+            <textarea class="hm-input hm-input-blue resize-none" rows="2" placeholder="담당 업무 내용을 입력하세요" id="new-chrg-duty" name="chrgDutyCn"></textarea>
           </div>
           <div class="col-span-2">
-            <label class="text-xs text-slate-500 mb-1 block">프로필 사진</label>
-            <!-- <input type="file" class="hm-input-blue py-1.5 text-xs" id="new-atch-file" name="userProfile" accept="image/*" /> -->
-            <input type="file" class="hm-input-blue py-1.5 text-xs" id="new-atch-file" name="tempuserProfile" accept="image/*" />
+            <label class="form-label">프로필 사진</label>
+            <input type="file" class="hm-input hm-input-blue py-1.5 text-xs" id="new-atch-file" name="tempuserProfile" accept="image/*" />
           </div>
         </div>
       </div>
 
       <!-- 계정 정보 -->
       <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
-        <p class="text-xs font-bold text-[#3b82f6] uppercase tracking-wider mb-3">시스템 계정 초기 설정</p>
+        <p class="form-section-title">시스템 계정 초기 설정</p>
         <div class="grid grid-cols-2 gap-3">
           <div class="col-span-2">
-            <label class="text-xs text-slate-500 mb-1 block">로그인 ID <span class="text-red-400">*</span></label>
+            <label class="form-label">로그인 ID <span class="required">*</span></label>
             <div class="relative">
-              <input type="text" class="hm-input-blue pr-20 bg-slate-50 font-mono text-sm" id="new-login-id" name="userId" placeholder="이름·입사일 입력 시 자동 생성됩니다" readonly />
+              <input type="text" class="hm-input hm-input-blue pr-20 bg-slate-50 font-mono text-sm" id="new-login-id" name="userId" placeholder="이름·입사일 입력 시 자동 생성됩니다" readonly />
               <button type="button" onclick="autoGenLoginId(true)" class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[#3b82f6] font-semibold hover:text-blue-800">재생성</button>
             </div>
             <p class="text-xs text-slate-400 mt-1">입사년도 4자리 + 입사월 2자리 + 이름 영어 초성 + 일련번호 2자리</p>
           </div>
           <div class="col-span-2">
-            <label class="text-xs text-slate-500 mb-1 block">임시 비밀번호</label>
+            <label class="form-label">임시 비밀번호</label>
             <div class="relative">
-              <input type="text" class="hm-input-blue pr-28 bg-slate-50 font-mono" id="new-temp-pw" name="userEnpswd" readonly placeholder="주민등록번호 입력 시 자동 설정됩니다" />
+              <input type="text" class="hm-input hm-input-blue pr-28 bg-slate-50 font-mono" id="new-temp-pw" name="userEnpswd" readonly placeholder="주민등록번호 입력 시 자동 설정됩니다" />
               <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-400">생년월일 앞 6자리</span>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <div class="flex gap-3 justify-end p-6 border-t border-slate-100">
-      <button type="button" onclick="closeModal('modal-new-emp')" class="text-sm text-slate-500 px-5 py-2.5 rounded-xl hover:bg-slate-100 font-semibold">취소</button>
+    <div class="hm-modal-footer">
+      <button type="button" onclick="closeModal('modal-new-emp')" class="hm-btn-secondary px-5 py-2.5">취소</button>
       <button type="submit" class="hm-btn-primary hm-btn-blue px-6 py-2.5">등록 완료</button>
     </div>
     </form>
+  </div>
   </div>
 </div>
 
@@ -518,11 +634,12 @@
 <!--  MODAL: 직원 상세 / 인사기록 수정                  -->
 <!-- ═══════════════════════════════════════════════════ -->
 <div id="modal-emp-detail" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
-    <div class="flex items-center justify-between p-6 border-b border-slate-100">
-      <h2 class="font-bold text-slate-800" id="detail-title">직원 상세 정보</h2>
+  <div class="hm-modal-inner max-w-2xl">
+  <div class="hm-modal-scroll">
+    <div class="hm-modal-header">
+      <h2 id="detail-title">직원 상세 정보</h2>
       <div class="flex gap-2">
-        <button onclick="toggleDetailEdit()" id="detail-edit-btn" class="text-xs text-[#3b82f6] font-semibold border border-blue-300 px-3 py-1.5 rounded-lg hover:bg-blue-50">
+        <button onclick="toggleDetailEdit()" id="detail-edit-btn" class="hm-btn-secondary text-xs px-3 py-1.5">
           <i class="fa-solid fa-pen mr-1"></i>수정
         </button>
         <button onclick="closeModal('modal-emp-detail')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -546,21 +663,23 @@
 
       <!-- 기본 정보 섹션 -->
       <div class="mb-4">
-        <p class="text-xs font-bold text-[#3b82f6] uppercase tracking-wider mb-2">기본 정보</p>
+        <p class="form-section-title">기본 정보</p>
         <div>
-          <div class="info-row"><span class="info-label">연락처</span><span class="info-value" id="detail-phone">010-1234-5678</span></div>
-          <div class="info-row"><span class="info-label">이메일</span><span class="info-value" id="detail-email">kim@hermes.com</span></div>
-          <div class="info-row"><span class="info-label">주소</span><span class="info-value" id="detail-addr">서울시 강남구 역삼동</span></div>
+          <div class="info-row"><span class="info-label">연락처</span><span class="info-value" id="detail-phone">-</span></div>
+          <div class="info-row"><span class="info-label">이메일</span><span class="info-value" id="detail-email">-</span></div>
+          <div class="info-row"><span class="info-label">주소</span><span class="info-value" id="detail-addr">-</span></div>
         </div>
       </div>
 
       <!-- 인사 정보 섹션 -->
       <div class="mb-4">
-        <p class="text-xs font-bold text-[#3b82f6] uppercase tracking-wider mb-2">인사 정보</p>
+        <p class="form-section-title">인사 정보</p>
         <div>
           <div class="info-row"><span class="info-label">입사일</span><span class="info-value" id="detail-entry">-</span></div>
           <div class="info-row"><span class="info-label">근속 기간</span><span class="info-value" id="detail-tenure">-</span></div>
           <div class="info-row"><span class="info-label">근무 유형</span><span class="info-value" id="detail-work-type">-</span></div>
+          <div class="info-row"><span class="info-label">급여 (만원)</span><span class="info-value" id="detail-salary">-</span></div>
+          <div class="info-row hidden" id="detail-contract-end-row"><span class="info-label">계약 종료일</span><span class="info-value" id="detail-contract-end">-</span></div>
           <div class="info-row"><span class="info-label">담당 업무</span><span class="info-value" id="detail-duty">-</span></div>
         </div>
       </div>
@@ -570,67 +689,97 @@
         <p class="text-xs font-bold text-amber-600 uppercase tracking-wider mb-3">인사 기록 수정</p>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-xs text-slate-500 mb-1 block">연락처</label>
-            <input type="text" class="hm-input-blue" id="edit-phone" placeholder="010-0000-0000" />
-          </div>
-          <div>
-            <label class="text-xs text-slate-500 mb-1 block">근무 유형</label>
-            <select class="hm-input-blue" id="edit-work-type">
-              <option>정규직</option><option>계약직</option><option>파트타임</option>
+            <label class="form-label">소속 부서</label>
+            <select class="hm-input hm-input-blue" id="edit-dept" onchange="filterEditRoleByDept()">
+              <option value="">선택</option>
+              <option th:each="dept : ${departmentlist}" th:value="${dept.deptCd}" th:text="${dept.deptNm}"></option>
             </select>
           </div>
           <div>
-            <label class="text-xs text-slate-500 mb-1 block">주간 근무시간</label>
-            <input type="number" class="hm-input-blue" id="edit-hours" placeholder="40" />
+            <label class="form-label">직급</label>
+            <select class="hm-input hm-input-blue" id="edit-role">
+              <option value="">선택</option>
+              <option th:each="jobGrade : ${jobgradelist}" th:value="${jobGrade.jbgrCd}" th:text="${jobGrade.jbgrNm}" th:data-dept="${jobGrade.deptCd}"></option>
+            </select>
           </div>
           <div>
-            <label class="text-xs text-slate-500 mb-1 block">급여 (만원)</label>
-            <input type="number" class="hm-input-blue" id="edit-salary" placeholder="300" />
+            <label class="form-label">입사일</label>
+            <input type="date" class="hm-input hm-input-blue" id="edit-entry-date" min="2000-01-01" max="2099-12-31" />
+          </div>
+          <div>
+            <label class="form-label">재직 상태</label>
+            <select class="hm-input hm-input-blue" id="edit-status">
+              <option value="01">재직</option>
+              <option value="02">휴직</option>
+              <option value="03">퇴사</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">근무 유형</label>
+            <select class="hm-input hm-input-blue" id="edit-work-type" onchange="toggleEditContractPeriod(this.value)">
+              <option value="01">정규직</option>
+              <option value="02">계약직</option>
+              <option value="03">파트타임</option>
+            </select>
+          </div>
+          <div id="edit-contract-period-wrap" class="col-span-2 hidden">
+            <label class="form-label">계약 종료일</label>
+            <input type="date" class="hm-input hm-input-blue" id="edit-contract-end" min="2000-01-01" max="2099-12-31" />
+          </div>
+          <div>
+            <label class="form-label">연락처</label>
+            <input type="text" class="hm-input hm-input-blue" id="edit-phone" placeholder="010-0000-0000" oninput="formatPhone(this)" maxlength="13" />
+          </div>
+          <div>
+            <label class="form-label">급여 (만원)</label>
+            <input type="number" class="hm-input hm-input-blue" id="edit-salary" placeholder="300" />
           </div>
           <div class="col-span-2">
-            <label class="text-xs text-slate-500 mb-1 block">주소</label>
-            <input type="text" class="hm-input-blue" id="edit-addr" placeholder="주소" />
+            <label class="form-label">주소</label>
+            <div class="flex gap-2 mb-1">
+              <input type="text" class="hm-input hm-input-blue" id="edit-zipcode" placeholder="우편번호" readonly style="width:8rem" />
+              <button type="button" onclick="searchDetailZipCode()" class="hm-btn-primary hm-btn-blue text-xs px-3 py-2 whitespace-nowrap">우편번호 검색</button>
+            </div>
+            <input type="text" class="hm-input hm-input-blue mb-1" id="edit-addr" placeholder="기본 주소" readonly />
+            <input type="text" class="hm-input hm-input-blue" id="edit-addr-detail" placeholder="상세 주소" />
           </div>
-          <div>
-            <label class="text-xs text-slate-500 mb-1 block">상태 변경</label>
-            <select class="hm-input-blue" id="edit-status">
-              <option>재직</option><option>휴직</option>
-            </select>
+          <div class="col-span-2">
+            <label class="form-label">담당 업무</label>
+            <textarea class="hm-input hm-input-blue resize-none" rows="2" placeholder="담당 업무 내용을 입력하세요" id="edit-duty"></textarea>
           </div>
-          <div>
-            <label class="text-xs text-slate-500 mb-1 block">소속 부서</label>
-            <select class="hm-input-blue" id="edit-dept">
-              <option>운영팀</option><option>강의팀</option><option>행정팀</option>
-            </select>
+          <div class="col-span-2">
+            <label class="form-label">프로필 사진</label>
+            <input type="file" class="hm-input hm-input-blue py-1.5 text-xs" id="edit-profile" accept="image/*" />
           </div>
         </div>
-        <div class="flex gap-2 mt-4 justify-end">
-          <button onclick="toggleDetailEdit()" class="text-sm text-slate-500 px-4 py-2 rounded-xl hover:bg-slate-100 font-semibold">취소</button>
-          <button onclick="saveDetailEdit()" class="hm-btn-primary px-5 py-2">저장</button>
+        <div class="hm-modal-footer" style="padding:1rem 0 0">
+          <button onclick="toggleDetailEdit()" class="hm-btn-secondary px-4 py-2">취소</button>
+          <button onclick="saveDetailEdit()" class="hm-btn-primary hm-btn-blue px-5 py-2">저장</button>
         </div>
       </div>
 
       <!-- 위험 구역 (퇴사 처리) -->
       <div class="danger-zone p-4 mt-4">
-        <p class="text-xs font-bold text-red-600 mb-2"><i class="fa-solid fa-triangle-exclamation mr-1"></i>퇴사 처리</p>
+        <p class="text-xs font-bold text-[#ef4444] mb-2"><i class="fa-solid fa-triangle-exclamation mr-1"></i>퇴사 처리</p>
         <p class="text-xs text-slate-500 mb-3">퇴사 처리 시 계정이 즉시 비활성화되고 30일 후 개인정보 파기 대상으로 이관됩니다.</p>
         <div class="grid grid-cols-2 gap-2 mb-3">
           <div>
-            <label class="text-xs text-slate-500 mb-1 block">퇴사 사유</label>
-            <select class="hm-input-blue" id="resign-reason">
+            <label class="form-label">퇴사 사유</label>
+            <select class="hm-input hm-input-danger" id="resign-reason">
               <option>개인 사정</option><option>계약 만료</option><option>권고사직</option><option>기타</option>
             </select>
           </div>
           <div>
-            <label class="text-xs text-slate-500 mb-1 block">퇴사일</label>
-            <input type="date" class="hm-input-blue" id="resign-date" />
+            <label class="form-label">퇴사일</label>
+            <input type="date" class="hm-input hm-input-danger" id="resign-date" />
           </div>
         </div>
-        <button onclick="openResignConfirm()" class="w-full text-sm font-bold text-red-600 border border-red-300 rounded-xl py-2.5 hover:bg-red-50 transition-colors">
+        <button onclick="openResignConfirm()" class="hm-btn-danger w-full">
           <i class="fa-solid fa-user-xmark mr-1.5"></i>퇴사 처리 실행
         </button>
       </div>
     </div>
+  </div>
   </div>
 </div>
 
@@ -638,7 +787,7 @@
 <!--  MODAL: 퇴사 최종 확인                             -->
 <!-- ═══════════════════════════════════════════════════ -->
 <div id="modal-resign-confirm" class="fixed inset-0 bg-black/60 z-[60] hidden flex items-center justify-center p-4">
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
+  <div class="hm-modal-inner max-w-sm">
     <div class="p-6 text-center">
       <div class="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
         <i class="fa-solid fa-user-xmark text-red-500 text-2xl"></i>
@@ -648,9 +797,9 @@
         <span class="font-semibold text-slate-700" id="resign-confirm-name">김현정</span> 직원을 퇴사 처리합니다.
       </p>
       <p class="text-xs text-red-500 mb-5">계정이 즉시 비활성화되며, 해당 직원은 시스템에 접근할 수 없게 됩니다.</p>
-      <div class="flex gap-3">
-        <button onclick="closeModal('modal-resign-confirm')" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50">취소</button>
-        <button onclick="executeResign()" class="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600">퇴사 처리</button>
+      <div class="hm-modal-footer" style="padding:0">
+        <button onclick="closeModal('modal-resign-confirm')" class="hm-btn-secondary flex-1">취소</button>
+        <button onclick="executeResign()" class="hm-btn-danger flex-1">퇴사 처리</button>
       </div>
     </div>
   </div>
@@ -829,6 +978,16 @@ const HR_BLOCK_SIZE  = 5;
 let hrSortCol = null;
 let hrSortAsc = true;
 let hrFilteredRows = null;
+let _hrInitRowOrder = [];
+
+// HR 필터 select 목록
+const HR_SELECT_IDS = ['hr-year', 'hr-status-filter', 'hr-dept-filter', 'hr-role-filter', 'hr-type-filter'];
+
+// 검색 input 없이(controlInput:null) 드롭다운 전용으로 초기화 → 포커스 시 item↔input 교체로 인한 텍스트 밀림 방지
+function initHrTomSelect(el) {
+  if (!el || el.tomselect) return;
+  return new TomSelect(el, { create: false, controlInput: null });
+}
 
 function filterHrList() {
   const keyword = document.getElementById('hr-search').value.trim().toLowerCase();
@@ -836,6 +995,7 @@ function filterHrList() {
   currentHrPage = 1;
   const status = document.getElementById('hr-status-filter').value;
   const dept   = document.getElementById('hr-dept-filter').value;
+  const role   = document.getElementById('hr-role-filter').value; 
   const type   = document.getElementById('hr-type-filter').value;
   const allRows = Array.from(document.querySelectorAll('#hr-table-body .hr-data-row'));
 
@@ -844,12 +1004,33 @@ function filterHrList() {
     if (year    && !(r.dataset.join || '').startsWith(year)) return false;
     if (status  && r.dataset.status !== status) return false;
     if (dept    && r.dataset.dept   !== dept)   return false;
+    if (role    && r.dataset.gradeCd !== role)   return false;
     if (type    && r.dataset.type   !== type)   return false;
     return true;
   });
 
   if (hrSortCol) applyHrSort(hrFilteredRows);
   applyHrPaging();
+}
+
+function resetHrFilter() {
+  document.getElementById('hr-search').value = '';
+  HR_SELECT_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.tomselect) {
+      el.tomselect.setValue('', true); // 값만 '전체'로 변경 (silent), 재초기화 불필요
+    } else {
+      el.selectedIndex = 0;
+    }
+  });
+  const tbody = document.getElementById('hr-table-body');
+  _hrInitRowOrder.forEach(r => tbody.appendChild(r));
+  hrFilteredRows = null;
+  hrSortCol = null;
+  hrSortAsc = true;
+  updateHrSortIcons(null);
+  filterHrList();
 }
 
 function sortHrBy(col) {
@@ -1020,34 +1201,38 @@ function formatPhoneDisplay(tel) {
 
 /* ─── 직원 상세 모달 열기 ─── */
 function openDetail(id) {
-  // Thymeleaf 카드의 data-* 에서 서버 데이터를 읽는다
   const card = document.querySelector('.emp-card[data-id="' + id + '"]');
+  const row  = document.querySelector('.hr-data-row[data-id="' + id + '"]');
+  const src  = card || row;
 
-  let e;
-  if (card) {
-    const typeCd = card.dataset.emplTypeCd || '';
-    const statCd = card.dataset.emplStatCd || '';
-    const statusText = statCd === '01' ? '재직' : statCd === '02' ? '휴직' : statCd === '03' ? '퇴사' : (card.dataset.status || '-');
-    const workType   = typeCd === '01' ? '정규직' : typeCd === '02' ? '계약직' : typeCd === '03' ? '파트타임' : '-';
-    e = {
-      id:       id,
-      name:     card.dataset.name     || '-',
-      phone:    formatPhoneDisplay(card.dataset.phone),
-      email:    card.dataset.email    || '-',
-      addr:     (card.dataset.addr    || '-').trim() || '-',
-      status:   statusText,
-      dept:     card.dataset.deptNm   || '-',
-      role:     card.dataset.jbgrNm     || '-',
-      entry:    card.dataset.joinYmd  || '-',
-      workType: workType,
-      duty:     card.dataset.chrgDutyCn || '-',
-    };
-  } else {
-    // 더미 데이터 fallback (카드가 DOM에 없을 때)
-    const dummy = employees.find(x => x.id === id || x.id === Number(id));
-    if (!dummy) return;
-    e = { ...dummy, duty: dummy.duty || '-' };
-  }
+  if (!src) return;
+
+  // row 우선 — 수정 저장 후에도 최신값 반영
+  const typeCd = (row ? row.dataset.type   : card ? card.dataset.emplTypeCd : '') || '';
+  const statCd = (row ? row.dataset.status : card ? card.dataset.emplStatCd : '') || '';
+
+  const statusText = statCd === '01' ? '재직' : statCd === '02' ? '휴직' : statCd === '03' ? '퇴사' : '-';
+  const workType   = typeCd === '01' ? '정규직' : typeCd === '02' ? '계약직' : typeCd === '03' ? '파트타임' : '-';
+
+  const zip  = src.dataset.zip || (card ? card.dataset.zip : '') || '';
+  const addr = (src.dataset.addr || '').trim() || '-';
+  const e = {
+    id:       id,
+    name:     src.dataset.name   || (card ? card.dataset.name   : '') || '-',
+    phone:    formatPhoneDisplay(src.dataset.phone),
+    email:    src.dataset.email  || '-',
+    zip:      zip,
+    addr:     addr,
+    addrFull: zip ? '(' + zip + ') ' + addr : addr,
+    status:   statusText,
+    dept:     src.dataset.deptNm || '-',
+    role:     card ? (card.dataset.jbgrNm || '-') : (row.dataset.grade || '-'),
+    entry:    card ? (card.dataset.joinYmd || '-') : (row.dataset.join  || '-'),
+    workType:    workType,
+    contractEnd: (row ? row.dataset.contractEnd : src.dataset.contractEnd || '').substring(0, 10),
+    duty:        src.dataset.duty   || (card ? card.dataset.chrgDutyCn : '') || '-',
+    salary:      src.dataset.salary || (card ? card.dataset.salary : '') || '-',
+  };
 
   selectedEmpId = id;
 
@@ -1068,10 +1253,14 @@ function openDetail(id) {
   document.getElementById('detail-dept-tag').textContent     = e.dept;
   document.getElementById('detail-phone').textContent        = e.phone;
   document.getElementById('detail-email').textContent        = e.email;
-  document.getElementById('detail-addr').textContent         = e.addr;
+  document.getElementById('detail-addr').textContent         = e.addrFull;
   document.getElementById('detail-entry').textContent        = e.entry;
   document.getElementById('detail-tenure').textContent       = e.entry && e.entry !== '-' ? calcTenure(e.entry) : '-';
   document.getElementById('detail-work-type').textContent    = e.workType;
+  document.getElementById('detail-salary').textContent       = e.salary;
+  const isContract = (typeCd === '02' || typeCd === '03');
+  document.getElementById('detail-contract-end-row').classList.toggle('hidden', !isContract);
+  document.getElementById('detail-contract-end').textContent = e.contractEnd || '-';
   document.getElementById('detail-duty').textContent         = e.duty;
 
   // 수정 폼 초기화
@@ -1100,39 +1289,87 @@ function toggleDetailEdit() {
   const form = document.getElementById('detail-edit-form');
   const btn  = document.getElementById('detail-edit-btn');
   form.classList.toggle('hidden', !detailEditMode);
-  btn.textContent = detailEditMode ? '취소' : '✏ 수정';
+  btn.innerHTML = detailEditMode ? '<i class="fa-solid fa-xmark mr-1"></i>취소' : '<i class="fa-solid fa-pen mr-1"></i>수정';
   if (detailEditMode) {
-    const e = employees.find(x => x.id === selectedEmpId);
-    if (e) {
-      document.getElementById('edit-phone').value     = e.phone;
-      document.getElementById('edit-work-type').value = e.workType;
-      document.getElementById('edit-hours').value     = e.hours;
-      document.getElementById('edit-salary').value    = e.salary;
-      document.getElementById('edit-addr').value      = e.addr;
+    const row = document.querySelector('.hr-data-row[data-id="' + selectedEmpId + '"]');
+    if (row) {
+      document.getElementById('edit-dept').value       = row.dataset.dept   || '';
+      filterEditRoleByDept();
+      document.getElementById('edit-role').value       = row.dataset.gradeCd || '';
+      document.getElementById('edit-entry-date').value = row.dataset.join   || '';
+      document.getElementById('edit-status').value     = row.dataset.status || '01';
+      document.getElementById('edit-work-type').value  = row.dataset.type   || '01';
+      toggleEditContractPeriod(row.dataset.type || '01');
+      document.getElementById('edit-contract-end').value = (row.dataset.contractEnd || '').substring(0, 10);
+      document.getElementById('edit-phone').value      = formatPhoneDisplay(row.dataset.phone);
+      document.getElementById('edit-zipcode').value    = row.dataset.zip        || '';
+      document.getElementById('edit-addr').value       = row.dataset.addrBase  || '';
+      document.getElementById('edit-addr-detail').value = row.dataset.addrDetail || '';
+      document.getElementById('edit-duty').value       = row.dataset.duty   || '';
     }
   }
 }
 
 function saveDetailEdit() {
-  const e = employees.find(x => x.id === selectedEmpId);
-  if (!e) return;
-  e.phone    = document.getElementById('edit-phone').value || e.phone;
-  e.workType = document.getElementById('edit-work-type').value;
-  e.hours    = parseInt(document.getElementById('edit-hours').value) || e.hours;
-  e.salary   = parseInt(document.getElementById('edit-salary').value) || e.salary;
-  e.addr     = document.getElementById('edit-addr').value || e.addr;
-  e.status   = document.getElementById('edit-status').value;
-  e.dept     = document.getElementById('edit-dept').value;
+  const row = document.querySelector('.hr-data-row[data-id="' + selectedEmpId + '"]');
+  if (!row) return;
+
+  const deptVal  = document.getElementById('edit-dept').value;
+  const deptOpt  = document.querySelector('#edit-dept option[value="' + deptVal + '"]');
+  const gradeVal = document.getElementById('edit-role').value;
+  const gradeOpt = document.querySelector('#edit-role option[value="' + gradeVal + '"]');
+  const addrDetail = (document.getElementById('edit-addr-detail').value || '').trim();
+
+  row.dataset.dept     = deptVal;
+  row.dataset.deptNm   = deptOpt  ? deptOpt.text  : row.dataset.deptNm;
+  row.dataset.gradeCd  = gradeVal;
+  row.dataset.grade    = gradeOpt ? gradeOpt.text : row.dataset.grade;
+  row.dataset.join     = document.getElementById('edit-entry-date').value;
+  row.dataset.status   = document.getElementById('edit-status').value;
+  row.dataset.type        = document.getElementById('edit-work-type').value;
+  row.dataset.contractEnd = document.getElementById('edit-contract-end').value;
+  const addrBase = document.getElementById('edit-addr').value.trim();
+  row.dataset.phone      = document.getElementById('edit-phone').value.replace(/-/g, '');
+  row.dataset.zip        = document.getElementById('edit-zipcode').value;
+  row.dataset.addrBase   = addrBase;
+  row.dataset.addrDetail = addrDetail;
+  row.dataset.addr       = (addrBase + (addrDetail ? ' ' + addrDetail : '')).trim();
+  row.dataset.duty     = document.getElementById('edit-duty').value;
+
+  // 카드가 DOM에 있으면 type/status도 동기화 (openDetail에서 stale 값 참조 방지)
+  const card = document.querySelector('.emp-card[data-id="' + selectedEmpId + '"]');
+  if (card) {
+    card.dataset.emplTypeCd = row.dataset.type;
+    card.dataset.emplStatCd = row.dataset.status;
+  }
+
   toggleDetailEdit();
-  openDetail(e.id);
-  renderHrTable();
+  openDetail(selectedEmpId);
   showHermesToast('인사 기록이 수정되었습니다.', 'success');
+}
+
+function filterEditRoleByDept() {
+  const selectedDept = document.getElementById('edit-dept').value;
+  const roleSelect   = document.getElementById('edit-role');
+  roleSelect.value = '';
+  roleSelect.querySelectorAll('option').forEach(opt => {
+    if (!opt.value) { opt.style.display = ''; return; }
+    opt.style.display = (!selectedDept || opt.dataset.dept === selectedDept) ? '' : 'none';
+  });
+}
+
+function toggleEditContractPeriod(val) {
+  const wrap = document.getElementById('edit-contract-period-wrap');
+  const end  = document.getElementById('edit-contract-end');
+  const show = (val === '02' || val === '03');
+  wrap.classList.toggle('hidden', !show);
+  if (!show) end.value = '';
 }
 
 /* ─── 퇴사 처리 ─── */
 function openResignConfirm() {
-  document.getElementById('resign-confirm-name').textContent =
-    employees.find(x => x.id === selectedEmpId)?.name || '';
+  const row = document.querySelector('.hr-data-row[data-id="' + selectedEmpId + '"]');
+  document.getElementById('resign-confirm-name').textContent = row ? (row.dataset.name || '') : '';
   openModal('modal-resign-confirm');
 }
 
@@ -1143,17 +1380,16 @@ function openResignConfirmDirect(id, name) {
 }
 
 function executeResign() {
-  const e = employees.find(x => x.id === selectedEmpId);
-  if (e) {
-    e.status   = '퇴사';
-    e.loginId += 'Disabled';
+  // HR 행 상태를 퇴사(03)로 업데이트
+  const row = document.querySelector('.hr-data-row[data-id="' + selectedEmpId + '"]');
+  if (row) {
+    row.dataset.status = '03';
+    const card = document.querySelector('.emp-card[data-id="' + selectedEmpId + '"]');
+    if (card) card.dataset.emplStatCd = '03';
   }
   closeModal('modal-resign-confirm');
   closeModal('modal-emp-detail');
-  renderEmpCards(employees);
-  renderHrTable();
-  renderAcctList();
-  renderDestructionList();
+  filterHrList(); // 실제 DOM 데이터 기반으로 HR 테이블 갱신
   showHermesToast('퇴사 처리 및 계정이 비활성화되었습니다.', 'success');
 }
 
@@ -1351,6 +1587,17 @@ function searchZipCode() {
   }).open(); // 팝업창을 연다.
 }
 
+function searchDetailZipCode() {
+  new daum.Postcode({
+    oncomplete: function(data) {
+      const addr = data.userSelectedType === 'R' ? data.roadAddress : data.jibunAddress;
+      document.getElementById('edit-zipcode').value = data.zonecode;
+      document.getElementById('edit-addr').value    = addr;
+      document.getElementById('edit-addr-detail').focus();
+    }
+  }).open();
+}
+
 /* ─── 신규 직원 등록 submit 전 유효성 검사 (포커스 이동 추가) ─── */
 function validateNewEmp() {
   const nameEl    = document.getElementById('new-name');
@@ -1508,19 +1755,47 @@ function formatRrn(el) {
 /* ─── 모달 공통 ─── */
 function openModal(id)  { document.getElementById(id).classList.remove('hidden'); }
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+function showWarningToast(message) {
+  let container = document.getElementById('hm-toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'hm-toast-container';
+    container.className = 'fixed bottom-6 right-6 z-50 space-y-3 pointer-events-none';
+    document.body.appendChild(container);
+  }
+  const toast = document.createElement('div');
+  toast.className = 'px-5 py-3.5 rounded-xl shadow-xl text-xs font-bold text-white bg-amber-500 transition-all duration-300 transform translate-y-4 opacity-0 flex items-center gap-3 pointer-events-auto';
+  toast.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-sm"></i> <span>' + message + '</span>';
+  container.appendChild(toast);
+  setTimeout(() => toast.classList.remove('translate-y-4', 'opacity-0'), 10);
+  setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-4'); setTimeout(() => toast.remove(), 300); }, 3000);
+}
 document.querySelectorAll('[id^="modal-"]').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); });
+  let mousedownOnBackdrop = false;
+  m.addEventListener('mousedown', e => { mousedownOnBackdrop = (e.target === m); });
+  m.addEventListener('click', e => {
+    if (!(e.target === m && mousedownOnBackdrop)) return;
+    if (m.id === 'modal-emp-detail' && detailEditMode) {
+      showWarningToast('수정 중입니다. X 버튼으로 닫거나 취소를 눌러주세요.');
+      return;
+    }
+    m.classList.add('hidden');
+  });
 });
 
 /* ─── 초기 렌더링 ─── */
 (function () {
-  // hr-year 드롭다운 동적 생성 — innerHTML 사용으로 onchange 트리거 방지
+  // hr-year 연도 옵션 동적 추가 (전체 연도 기본값은 HTML에 이미 존재)
+  const hrYearSel = document.getElementById('hr-year');
   const currentYear = new Date().getFullYear();
-  const opts = ['<option value="">전체 연도</option>'];
   for (let y = 2020; y <= currentYear; y++) {
-    opts.push(`<option value="${y}">${y}</option>`);
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    hrYearSel.appendChild(opt);
   }
-  document.getElementById('hr-year').innerHTML = opts.join('');
+  _hrInitRowOrder = Array.from(document.querySelectorAll('#hr-table-body .hr-data-row'));
 
   renderAcctList();
   renderDestructionList();
@@ -1529,32 +1804,35 @@ document.querySelectorAll('[id^="modal-"]').forEach(m => {
   if (firstBtn) switchEmpTab('emp-tab-hr', firstBtn);
 
   applyEmpPaging();
-  // Tailwind CDN 스타일 적용 후 실행되도록 다음 이벤트 루프로 지연
-  setTimeout(filterHrList, 0);
+  // TomSelect 정의(admin-layout end-of-body) 이후 실행되도록 지연
+  setTimeout(() => {
+    HR_SELECT_IDS.forEach(id => initHrTomSelect(document.getElementById(id)));
+    filterHrList();
+  }, 0);
 })();
 
 // 사용자가 부서를 바꿨을 때 직급을 필터링하는 자바스크립트 로직
 document.getElementById('new-dept').addEventListener('change', function() {
-    const selectedDept = this.value;
-    const roleSelect = document.getElementById('new-role');
-    const roleOptions = roleSelect.querySelectorAll('option');
+  const selectedDept = this.value;
+  const roleSelect = document.getElementById('new-role');
+  const roleOptions = roleSelect.querySelectorAll('option');
 
-    roleSelect.value = ""; // 초기화
+  roleSelect.value = ""; // 초기화
 
-    roleOptions.forEach(option => {
-        if (option.value === "") {
-            option.style.display = "block";
-            return;
-        }
+  roleOptions.forEach(option => {
+      if (option.value === "") {
+          option.style.display = "block";
+          return;
+      }
 
-        const targetDept = option.getAttribute('data-dept');
+      const targetDept = option.getAttribute('data-dept');
 
-        if (selectedDept === targetDept) {
-            option.style.display = "block";
-        } else {
-            option.style.display = "none";
-        }
-    });
+      if (selectedDept === targetDept) {
+          option.style.display = "block";
+      } else {
+          option.style.display = "none";
+      }
+  });
 });
 </script>
 
