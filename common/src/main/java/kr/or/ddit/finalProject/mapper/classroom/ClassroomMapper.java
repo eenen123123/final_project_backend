@@ -5,13 +5,11 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import kr.or.ddit.finalProject.dto.classroom.ClassroomDto;
-import kr.or.ddit.finalProject.dto.classroom.ClassroomMemberDto;
+import kr.or.ddit.finalProject.dto.classroom.ClassroomListResponse;
 
 @Mapper
 public interface ClassroomMapper {
 
-    ClassroomDto selectClassroomById(@Param("classId") Long classId);
+    List<ClassroomListResponse> selectClassroomListByInstructor(@Param("instrUserId") String instrUserId);
 
-    List<ClassroomMemberDto> selectMembersByClassId(@Param("classId") Long classId, @Param("enrlStatCd") String enrlStatCd);
 }

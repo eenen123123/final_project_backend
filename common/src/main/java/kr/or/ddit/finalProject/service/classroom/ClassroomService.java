@@ -2,12 +2,10 @@ package kr.or.ddit.finalProject.service.classroom;
 
 import java.util.List;
 
-import kr.or.ddit.finalProject.dto.classroom.ClassroomDto;
-import kr.or.ddit.finalProject.dto.classroom.ClassroomMemberDto;
+import kr.or.ddit.finalProject.dto.classroom.ClassroomListResponse;
 
 public interface ClassroomService {
 
-    ClassroomDto retrieveClassroom(Long classId);
+    List<ClassroomListResponse> retrieveClassroomList(String instrUserId);
 
-    List<ClassroomMemberDto> retrieveMembers(Long classId, boolean includeAll, String requesterId);
 }
