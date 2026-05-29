@@ -46,7 +46,7 @@ public class StaffServiceImpl implements StaffService{
 
     // 직원 등록, 직원 정보 저장, 직원 급여 정보 저장
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = Exception.class) // 예외 발생시 롤백
     public void registerEmployee(MemberDto memberDto, EmployeeInfoDto employeeInfoDto, EmployeeSalaryDto employeeSalaryDto, MultipartFile profileImage, String loginAdminId) {
 
         // 1. ROLE 및 기본 프로필 설정

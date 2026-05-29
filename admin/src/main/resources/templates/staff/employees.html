@@ -11,8 +11,8 @@
   <style>
     .emp-tab-btn { transition: all .18s; }
     .emp-tab-btn.active {
-      color: #7c3aed;
-      border-bottom: 2px solid #7c3aed;
+      color: #3b82f6;
+      border-bottom: 2px solid #3b82f6;
       font-weight: 700;
     }
     .emp-tab-panel { display: none; }
@@ -24,8 +24,16 @@
       border: 1.5px solid #e2e8f0;
       transition: box-shadow .18s, border-color .18s;
     }
-    .emp-card:hover { box-shadow: 0 4px 16px rgba(124,58,237,.09); border-color: #c4b5fd; }
-    .emp-card.selected { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.12); }
+    /* [변경] 카드 호버 시 파란색 계열 은은한 그림자와 테두리 적용 */
+    .emp-card:hover { 
+      box-shadow: 0 4px 16px rgba(59, 130, 246, .09); 
+      border-color: #93c5fd; 
+    }
+    /* [변경] 카드 선택 시 테두리와 외곽선 음영을 행정 파란색으로 변경 */
+    .emp-card.selected { 
+      border-color: #3b82f6; 
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, .12); 
+    }
 
     .status-badge {
       display: inline-flex; align-items: center; gap: .3rem;
@@ -36,14 +44,15 @@
     .status-resigned { background: #fee2e2; color: #991b1b; }
     .status-leave    { background: #fef9c3; color: #854d0e; }
 
+    /* 역할 태그는 기존의 직책별 고유 색상 시스템을 그대로 유지합니다 */
     .role-tag {
       font-size: .68rem; font-weight: 700; padding: .15rem .55rem;
       border-radius: .4rem;
     }
-    .role-manager  { background: #ede9fe; color: #6d28d9; }
-    .role-staff    { background: #dbeafe; color: #1d4ed8; }
-    .role-instructor { background: #e0f2fe; color: #0369a1; }
-    .role-pd       { background: #ffedd5; color: #c2410c; }
+    .role-manager  { background: #ede9fe; color: #10b981; } /* 실장(보라) */
+    .role-staff    { background: #dbeafe; color: #3b82f6; } /* 행정(파랑) */
+    .role-instructor { background: #e0f2fe; color: #0ea5e9; } /* 강사(하늘) */
+    .role-pd       { background: #ffedd5; color: #f97316; } /* PD(오렌지) */
 
     .info-row { display: flex; padding: .55rem 0; border-bottom: 1px solid #f1f5f9; }
     .info-row:last-child { border-bottom: none; }
@@ -64,8 +73,9 @@
       border: 1.5px solid #e2e8f0; background: #fff; color: #475569;
       cursor: pointer; transition: all .15s;
     }
-    .emp-page-btn:hover { border-color: #7c3aed; color: #7c3aed; }
-    .emp-page-btn.active { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+    /* [변경] 하단 페이지 버튼 호버 및 활성화 시 행정 파란색(#3b82f6) 적용 */
+    .emp-page-btn:hover { border-color: #3b82f6; color: #3b82f6; }
+    .emp-page-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
   </style>
 </head>
 <body>
@@ -76,7 +86,7 @@
     <h1 class="text-xl font-bold text-slate-800">직원 정보 및 계정 관리</h1>
     <p class="text-sm text-slate-500 mt-0.5">인사 기록 조회, 계정 생성, 퇴사 처리를 관리합니다.</p>
   </div>
-  <button onclick="openModal('modal-new-emp')" class="hm-btn-primary">
+  <button onclick="openModal('modal-new-emp')" class="hm-btn-primary hm-btn-blue">
     <i class="fa-solid fa-user-plus"></i> 신규 직원 등록
   </button>
 </div>
@@ -84,8 +94,8 @@
 <!-- ───────────────── 요약 카드 4개 ───────────────── -->
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
   <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
-    <div class="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
-      <i class="fa-solid fa-users text-violet-600"></i>
+    <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+      <i class="fa-solid fa-users text-[#3b82f6]"></i>
     </div>
     <div>
       <p class="text-xs text-slate-500">전체 직원</p>
@@ -141,22 +151,22 @@
     <!-- <div class="flex flex-wrap gap-3 mb-5">
       <div class="relative flex-1 min-w-48">
         <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-2/3 -translate-y-1/2 text-slate-400 text-sm"></i>
-        <input type="text" placeholder="이름 또는 직책 검색..." class="hm-input pl-10" oninput="filterEmpList()" id="emp-search" />
+        <input type="text" placeholder="이름 또는 직책 검색..." class="hm-input-blue pl-10" oninput="filterEmpList()" id="emp-search" />
       </div>
-      <select class="hm-input w-36" id="emp-status-filter" onchange="filterEmpList()">
+      <select class="hm-input-blue w-36" id="emp-status-filter" onchange="filterEmpList()">
         <option value="">전체 상태</option>
         <option value="01">재직 중</option>
         <option value="02">휴직 중</option>
         <option value="03">퇴사</option>
       </select>
-      <select class="hm-input w-36" id="emp-role-filter" onchange="filterEmpList()">
+      <select class="hm-input-blue w-36" id="emp-role-filter" onchange="filterEmpList()">
         <option value="">전체 부서</option>
         <option th:each="dept : ${departmentlist}"
                 th:value="${dept.deptCd}"
                 th:text="${dept.deptNm}">
         </option>
       </select>
-      <select class="hm-input w-36" id="emp-type-filter" onchange="filterEmpList()">
+      <select class="hm-input-blue w-36" id="emp-type-filter" onchange="filterEmpList()">
         <option value="">근무 형태</option>
         <option value="01">정규직</option>
         <option value="02">계약직</option>
@@ -187,7 +197,7 @@
             th:data-empl-type-cd="${emp.employeeInfo != null ? emp.employeeInfo.emplTypeCd : ''}" th:data-chrg-duty-cn="${emp.employeeInfo != null ? emp.employeeInfo.chrgDutyCn : ''}" onclick="openDetail(this.getAttribute('data-id'))">
 
         <div class="flex items-center gap-3 mb-3">
-          <div class="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center font-bold text-violet-700 text-base flex-shrink-0"
+          <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center font-bold text-[#3b82f6] text-base flex-shrink-0"
                th:text="${#strings.substring(emp.member.userName, 0, 1)}">?</div>
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
@@ -218,7 +228,7 @@
           <button type="button"
                   th:data-id="${emp.member.userId}"
                   onclick="event.stopPropagation(); openDetail(this.getAttribute('data-id'))"
-                  class="flex-1 text-xs text-violet-600 font-semibold border border-violet-200 py-1.5 rounded-lg hover:bg-violet-50">상세보기</button>
+                  class="flex-1 text-xs text-[#3b82f6] font-semibold border border-blue-200 py-1.5 rounded-lg hover:bg-blue-50">상세보기</button>
         </div>
       </div>
 
@@ -232,30 +242,30 @@
       <div class="flex gap-3 flex-wrap items-center">
         <div class="relative">
           <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-2/3 -translate-y-1/2 text-slate-400 text-sm"></i>
-          <input type="text" id="hr-search" placeholder="이름 검색..." class="hm-input pl-9" style="width:11rem" oninput="filterHrList()">
+          <input type="text" id="hr-search" placeholder="이름 검색..." class="hm-input hm-input-blue pl-9" style="width:11rem" oninput="filterHrList()">
         </div>
-        <select class="hm-input" id="hr-year" style="width:7rem" onchange="filterHrList()"></select>
-        <select class="hm-input" id="hr-status-filter" style="width:9rem" onchange="filterHrList()">
+        <select class="hm-input hm-input-blue" id="hr-year" style="width:7rem" onchange="filterHrList()"></select>
+        <select class="hm-input hm-input-blue" id="hr-status-filter" style="width:9rem" onchange="filterHrList()">
           <option value="">전체 상태</option>
           <option value="01">재직 중</option>
           <option value="02">휴직 중</option>
           <option value="03">퇴사</option>
         </select>
-        <select class="hm-input" id="hr-dept-filter" style="width:10rem" onchange="filterHrList()">
+        <select class="hm-input hm-input-blue" id="hr-dept-filter" style="width:10rem" onchange="filterHrList()">
           <option value="">전체 부서</option>
           <option th:each="dept : ${departmentlist}"
                   th:value="${dept.deptCd}"
                   th:text="${dept.deptNm}">
           </option>
         </select>
-        <select class="hm-input" id="hr-type-filter" style="width:9rem" onchange="filterHrList()">
+        <select class="hm-input hm-input-blue" id="hr-type-filter" style="width:9rem" onchange="filterHrList()">
           <option value="">근무 형태</option>
           <option value="01">정규직</option>
           <option value="02">계약직</option>
           <option value="03">파트타임</option>
         </select>
       </div>
-      <button class="hm-btn-primary text-sm px-4 py-2" onclick="showHermesToast('엑셀로 내보내기 준비 중','info')">
+      <button class="hm-btn-primary hm-btn-blue text-sm px-4 py-2" onclick="showHermesToast('엑셀로 내보내기 준비 중','info')">
         <i class="fa-solid fa-file-excel mr-1"></i>엑셀 내보내기
       </button>
     </div>
@@ -287,7 +297,7 @@
               <!-- 테이블 내용 -->
             <td class="py-3 px-4">
               <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center text-xs font-bold text-violet-700"
+                <div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-xs font-bold text-[#3b82f6]"
                      th:text="${#strings.substring(emp.member.userName, 0, 1)}">?</div>
                 <span class="py-3 px-4 text-sm text-slate-600" th:text="${emp.member.userName}">-</span>
               </div>
@@ -308,7 +318,7 @@
               <button type="button"
                       th:data-id="${emp.member.userId}"
                       onclick="openDetail(this.getAttribute('data-id'))"
-                      class="text-xs text-violet-600 hover:underline font-semibold">상세</button>
+                      class="text-xs text-[#3b82f6] hover:underline font-semibold">상세</button>
             </td>
           </tr>
         </tbody>
@@ -320,9 +330,9 @@
   <!-- ══════ 탭3: 계정 관리 ══════ -->
   <div id="emp-tab-account" class="emp-tab-panel p-6">
     <!-- 안내 배너 -->
-    <div class="bg-violet-50 border border-violet-200 rounded-xl px-4 py-3 flex items-start gap-3 mb-5">
-      <i class="fa-solid fa-circle-info text-violet-500 mt-0.5"></i>
-      <p class="text-xs text-violet-700 leading-relaxed">
+    <div class="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex items-start gap-3 mb-5">
+      <i class="fa-solid fa-circle-info text-[#3b82f6] mt-0.5"></i>
+      <p class="text-xs text-[#3b82f6] leading-relaxed">
         계정 생성 시 임시 비밀번호가 자동 부여되며 첫 로그인 시 변경을 요구합니다. 퇴사 직원 계정 비활성화 후 30일 경과 시 개인정보 파기 대상으로 분류됩니다.
       </p>
     </div>
@@ -352,30 +362,30 @@
 <div id="modal-new-emp" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
     <div class="flex items-center justify-between p-6 border-b border-slate-100">
-      <h2 class="font-bold text-slate-800"><i class="fa-solid fa-user-plus mr-2 text-violet-500"></i>신규 직원 등록</h2>
+      <h2 class="font-bold text-slate-800"><i class="fa-solid fa-user-plus mr-2 text-[#3b82f6]"></i>신규 직원 등록</h2>
       <button type="button" onclick="closeModal('modal-new-emp')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
     </div>
     <form id="form-new-emp" action="/admin/employees" method="POST" enctype="multipart/form-data" onsubmit="return validateNewEmp()">
     <div class="p-6 space-y-5">
       <!-- 기본 정보 -->
       <div>
-        <p class="text-xs font-bold text-violet-600 uppercase tracking-wider mb-3">기본 정보</p>
+        <p class="text-xs font-bold text-[#3b82f6] uppercase tracking-wider mb-3">기본 정보</p>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="text-xs text-slate-500 mb-1 block">이름 <span class="text-red-400">*</span></label>
-            <input type="text" class="hm-input" placeholder="홍길동" id="new-name" name="userName" oninput="autoGenLoginId()" />
+            <input type="text" class="hm-input-blue" placeholder="홍길동" id="new-name" name="userName" oninput="autoGenLoginId()" />
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">주민등록번호 <span class="text-red-400">*</span></label>
-            <input type="text" class="hm-input" placeholder="000000-0000000" id="new-rrn" name="userEnrrno" maxlength="14" oninput="formatRrn(this); autoFillTempPw()" />
+            <input type="text" class="hm-input-blue" placeholder="000000-0000000" id="new-rrn" name="userEnrrno" maxlength="14" oninput="formatRrn(this); autoFillTempPw()" />
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">생년월일</label>
-            <input type="text" class="hm-input bg-slate-50" id="new-brdt" name="userBrdt" readonly />
+            <input type="text" class="hm-input-blue bg-slate-50" id="new-brdt" name="userBrdt" readonly />
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">성별</label>
-            <select class="hm-input" id="new-gndr" name="userGndrCd">
+            <select class="hm-input-blue" id="new-gndr" name="userGndrCd">
               <option value="U">미확인</option>
               <option value="M">남성</option>
               <option value="F">여성</option>
@@ -383,39 +393,39 @@
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">연락처 <span class="text-red-400">*</span></label>
-            <input type="text" class="hm-input" placeholder="010-0000-0000" id="new-phone" name="userTelno" oninput="formatPhone(this)" maxlength="13" />
+            <input type="text" class="hm-input-blue" placeholder="010-0000-0000" id="new-phone" name="userTelno" oninput="formatPhone(this)" maxlength="13" />
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">이메일</label>
-            <input type="email" class="hm-input" placeholder="user@hermes.com" id="new-email" name="userEmailAddr" />
+            <input type="email" class="hm-input-blue" placeholder="user@hermes.com" id="new-email" name="userEmailAddr" />
           </div>
           <div class="col-span-2 flex gap-2">
             <div class="w-36">
               <label class="text-xs text-slate-500 mb-1 block">우편번호</label>
-              <input type="text" class="hm-input" placeholder="00000" id="postcode" name="userZip" maxlength="5" readonly />
+              <input type="text" class="hm-input-blue" placeholder="00000" id="postcode" name="userZip" maxlength="5" readonly />
             </div>
             <div class="flex items-end">
-              <button type="button" onclick="searchZipCode()" class="hm-btn-primary text-xs px-3 py-2.5 whitespace-nowrap">우편번호 검색</button>
+              <button type="button" onclick="searchZipCode()" class="hm-btn-primary hm-btn-blue text-xs px-3 py-2.5 whitespace-nowrap">우편번호 검색</button>
             </div>
           </div>
           <div class="col-span-2">
             <label class="text-xs text-slate-500 mb-1 block">기본 주소 <span class="text-red-400">*</span></label>
-            <input type="text" class="hm-input" placeholder="도로명 주소" id="address" name="userAddr" readonly />
+            <input type="text" class="hm-input-blue" placeholder="도로명 주소" id="address" name="userAddr" readonly />
           </div>
           <div class="col-span-2">
             <label class="text-xs text-slate-500 mb-1 block">상세 주소</label>
-            <input type="text" class="hm-input" placeholder="상세 주소 (동/호수 등)" id="detailAddress" name="userDaddr" />
+            <input type="text" class="hm-input-blue" placeholder="상세 주소 (동/호수 등)" id="detailAddress" name="userDaddr" />
           </div>
         </div>
       </div>
 
       <!-- 인사 정보 -->
       <div>
-        <p class="text-xs font-bold text-violet-600 uppercase tracking-wider mb-3">인사 정보</p>
+        <p class="text-xs font-bold text-[#3b82f6] uppercase tracking-wider mb-3">인사 정보</p>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="text-xs text-slate-500 mb-1 block">소속 부서 <span class="text-red-400">*</span></label>
-            <select class="hm-input" id="new-dept" name="deptCd">
+            <select class="hm-input-blue" id="new-dept" name="deptCd">
               <option value="">선택</option>
               <option th:each="dept : ${departmentlist}"
                     th:value="${dept.deptCd}"
@@ -425,7 +435,7 @@
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">직급 <span class="text-red-400">*</span></label>
-            <select class="hm-input" id="new-role" name="jbgrCd">
+            <select class="hm-input-blue" id="new-role" name="jbgrCd">
               <option value="">선택</option>
               <option th:each="jobGrade : ${jobgradelist}"
                     th:value="${jobGrade.jbgrCd}"
@@ -436,11 +446,11 @@
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">입사일 <span class="text-red-400">*</span></label>
-            <input type="date" class="hm-input" id="new-entry-date" name="joinYmd" min="2000-01-01" max="2099-12-31" oninput="autoGenLoginId()" />
+            <input type="date" class="hm-input-blue" id="new-entry-date" name="joinYmd" min="2000-01-01" max="2099-12-31" oninput="autoGenLoginId()" />
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">재직 상태 <span class="text-red-400">*</span></label>
-            <select class="hm-input" id="new-empl-stat" name="emplStatCd">
+            <select class="hm-input-blue" id="new-empl-stat" name="emplStatCd">
               <option value="01">재직</option>
               <option value="02">휴직</option>
               <option value="03">퇴사</option>
@@ -448,7 +458,7 @@
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">근무 유형</label>
-            <select class="hm-input" id="new-work-type" name="emplTypeCd" onchange="toggleContractPeriod(this.value)">
+            <select class="hm-input-blue" id="new-work-type" name="emplTypeCd" onchange="toggleContractPeriod(this.value)">
               <option value="01">정규직</option>
               <option value="02">계약직</option>
               <option value="03">파트타임</option>
@@ -456,40 +466,40 @@
           </div>
           <div id="contract-period-wrap" class="col-span-2 hidden">
             <label class="text-xs text-slate-500 mb-1 block">계약 종료일 <span class="text-red-400">*</span></label>
-            <input type="date" class="hm-input" id="new-contract-end" name="ctrctEndYmd" />
+            <input type="date" class="hm-input-blue" id="new-contract-end" name="ctrctEndYmd" />
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">급여 (만원)</label>
-            <input type="number" class="hm-input" placeholder="300" id="new-salary" name="baseSalary" />
+            <input type="number" class="hm-input-blue" placeholder="300" id="new-salary" name="baseSalary" />
           </div>
           <div class="col-span-2">
             <label class="text-xs text-slate-500 mb-1 block">담당 업무</label>
-            <textarea class="hm-input resize-none" rows="2" placeholder="담당 업무 내용을 입력하세요" id="new-chrg-duty" name="chrgDutyCn"></textarea>
+            <textarea class="hm-input-blue resize-none" rows="2" placeholder="담당 업무 내용을 입력하세요" id="new-chrg-duty" name="chrgDutyCn"></textarea>
           </div>
           <div class="col-span-2">
             <label class="text-xs text-slate-500 mb-1 block">프로필 사진</label>
-            <!-- <input type="file" class="hm-input py-1.5 text-xs" id="new-atch-file" name="userProfile" accept="image/*" /> -->
-            <input type="file" class="hm-input py-1.5 text-xs" id="new-atch-file" name="tempuserProfile" accept="image/*" />
+            <!-- <input type="file" class="hm-input-blue py-1.5 text-xs" id="new-atch-file" name="userProfile" accept="image/*" /> -->
+            <input type="file" class="hm-input-blue py-1.5 text-xs" id="new-atch-file" name="tempuserProfile" accept="image/*" />
           </div>
         </div>
       </div>
 
       <!-- 계정 정보 -->
-      <div class="bg-violet-50 border border-violet-200 rounded-xl p-4">
-        <p class="text-xs font-bold text-violet-600 uppercase tracking-wider mb-3">시스템 계정 초기 설정</p>
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+        <p class="text-xs font-bold text-[#3b82f6] uppercase tracking-wider mb-3">시스템 계정 초기 설정</p>
         <div class="grid grid-cols-2 gap-3">
           <div class="col-span-2">
             <label class="text-xs text-slate-500 mb-1 block">로그인 ID <span class="text-red-400">*</span></label>
             <div class="relative">
-              <input type="text" class="hm-input pr-20 bg-slate-50 font-mono text-sm" id="new-login-id" name="userId" placeholder="이름·입사일 입력 시 자동 생성됩니다" readonly />
-              <button type="button" onclick="autoGenLoginId(true)" class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-violet-600 font-semibold hover:text-violet-800">재생성</button>
+              <input type="text" class="hm-input-blue pr-20 bg-slate-50 font-mono text-sm" id="new-login-id" name="userId" placeholder="이름·입사일 입력 시 자동 생성됩니다" readonly />
+              <button type="button" onclick="autoGenLoginId(true)" class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[#3b82f6] font-semibold hover:text-blue-800">재생성</button>
             </div>
             <p class="text-xs text-slate-400 mt-1">입사년도 4자리 + 입사월 2자리 + 이름 영어 초성 + 일련번호 2자리</p>
           </div>
           <div class="col-span-2">
             <label class="text-xs text-slate-500 mb-1 block">임시 비밀번호</label>
             <div class="relative">
-              <input type="text" class="hm-input pr-28 bg-slate-50 font-mono" id="new-temp-pw" name="userEnpswd" readonly placeholder="주민등록번호 입력 시 자동 설정됩니다" />
+              <input type="text" class="hm-input-blue pr-28 bg-slate-50 font-mono" id="new-temp-pw" name="userEnpswd" readonly placeholder="주민등록번호 입력 시 자동 설정됩니다" />
               <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-400">생년월일 앞 6자리</span>
             </div>
           </div>
@@ -498,7 +508,7 @@
     </div>
     <div class="flex gap-3 justify-end p-6 border-t border-slate-100">
       <button type="button" onclick="closeModal('modal-new-emp')" class="text-sm text-slate-500 px-5 py-2.5 rounded-xl hover:bg-slate-100 font-semibold">취소</button>
-      <button type="submit" class="hm-btn-primary px-6 py-2.5">등록 완료</button>
+      <button type="submit" class="hm-btn-primary hm-btn-blue px-6 py-2.5">등록 완료</button>
     </div>
     </form>
   </div>
@@ -512,7 +522,7 @@
     <div class="flex items-center justify-between p-6 border-b border-slate-100">
       <h2 class="font-bold text-slate-800" id="detail-title">직원 상세 정보</h2>
       <div class="flex gap-2">
-        <button onclick="toggleDetailEdit()" id="detail-edit-btn" class="text-xs text-violet-600 font-semibold border border-violet-300 px-3 py-1.5 rounded-lg hover:bg-violet-50">
+        <button onclick="toggleDetailEdit()" id="detail-edit-btn" class="text-xs text-[#3b82f6] font-semibold border border-blue-300 px-3 py-1.5 rounded-lg hover:bg-blue-50">
           <i class="fa-solid fa-pen mr-1"></i>수정
         </button>
         <button onclick="closeModal('modal-emp-detail')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -521,7 +531,7 @@
     <div class="p-6" id="detail-body">
       <!-- 직원 헤더 -->
       <div class="flex items-center gap-4 mb-5">
-        <div class="w-14 h-14 rounded-2xl bg-violet-100 flex items-center justify-center text-2xl font-bold text-violet-700" id="detail-avatar">김</div>
+        <div class="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center text-2xl font-bold text-[#3b82f6]" id="detail-avatar">김</div>
         <div>
           <div class="flex items-center gap-2">
             <span class="font-bold text-lg text-slate-800" id="detail-name">김현정</span>
@@ -536,7 +546,7 @@
 
       <!-- 기본 정보 섹션 -->
       <div class="mb-4">
-        <p class="text-xs font-bold text-violet-600 uppercase tracking-wider mb-2">기본 정보</p>
+        <p class="text-xs font-bold text-[#3b82f6] uppercase tracking-wider mb-2">기본 정보</p>
         <div>
           <div class="info-row"><span class="info-label">연락처</span><span class="info-value" id="detail-phone">010-1234-5678</span></div>
           <div class="info-row"><span class="info-label">이메일</span><span class="info-value" id="detail-email">kim@hermes.com</span></div>
@@ -546,7 +556,7 @@
 
       <!-- 인사 정보 섹션 -->
       <div class="mb-4">
-        <p class="text-xs font-bold text-violet-600 uppercase tracking-wider mb-2">인사 정보</p>
+        <p class="text-xs font-bold text-[#3b82f6] uppercase tracking-wider mb-2">인사 정보</p>
         <div>
           <div class="info-row"><span class="info-label">입사일</span><span class="info-value" id="detail-entry">-</span></div>
           <div class="info-row"><span class="info-label">근속 기간</span><span class="info-value" id="detail-tenure">-</span></div>
@@ -561,35 +571,35 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="text-xs text-slate-500 mb-1 block">연락처</label>
-            <input type="text" class="hm-input" id="edit-phone" placeholder="010-0000-0000" />
+            <input type="text" class="hm-input-blue" id="edit-phone" placeholder="010-0000-0000" />
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">근무 유형</label>
-            <select class="hm-input" id="edit-work-type">
+            <select class="hm-input-blue" id="edit-work-type">
               <option>정규직</option><option>계약직</option><option>파트타임</option>
             </select>
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">주간 근무시간</label>
-            <input type="number" class="hm-input" id="edit-hours" placeholder="40" />
+            <input type="number" class="hm-input-blue" id="edit-hours" placeholder="40" />
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">급여 (만원)</label>
-            <input type="number" class="hm-input" id="edit-salary" placeholder="300" />
+            <input type="number" class="hm-input-blue" id="edit-salary" placeholder="300" />
           </div>
           <div class="col-span-2">
             <label class="text-xs text-slate-500 mb-1 block">주소</label>
-            <input type="text" class="hm-input" id="edit-addr" placeholder="주소" />
+            <input type="text" class="hm-input-blue" id="edit-addr" placeholder="주소" />
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">상태 변경</label>
-            <select class="hm-input" id="edit-status">
+            <select class="hm-input-blue" id="edit-status">
               <option>재직</option><option>휴직</option>
             </select>
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">소속 부서</label>
-            <select class="hm-input" id="edit-dept">
+            <select class="hm-input-blue" id="edit-dept">
               <option>운영팀</option><option>강의팀</option><option>행정팀</option>
             </select>
           </div>
@@ -607,13 +617,13 @@
         <div class="grid grid-cols-2 gap-2 mb-3">
           <div>
             <label class="text-xs text-slate-500 mb-1 block">퇴사 사유</label>
-            <select class="hm-input" id="resign-reason">
+            <select class="hm-input-blue" id="resign-reason">
               <option>개인 사정</option><option>계약 만료</option><option>권고사직</option><option>기타</option>
             </select>
           </div>
           <div>
             <label class="text-xs text-slate-500 mb-1 block">퇴사일</label>
-            <input type="date" class="hm-input" id="resign-date" />
+            <input type="date" class="hm-input-blue" id="resign-date" />
           </div>
         </div>
         <button onclick="openResignConfirm()" class="w-full text-sm font-bold text-red-600 border border-red-300 rounded-xl py-2.5 hover:bg-red-50 transition-colors">
@@ -703,7 +713,7 @@ function renderEmpCards(list) {
   grid.innerHTML = list.map(e => `
     <div class="emp-card p-4 cursor-pointer${selectedEmpId===e.id?' selected':''}" onclick="openDetail(${e.id})">
       <div class="flex items-center gap-3 mb-3">
-        <div class="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center font-bold text-violet-700 text-base flex-shrink-0">${e.name[0]}</div>
+        <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center font-bold text-[#3b82f6] text-base flex-shrink-0">${e.name[0]}</div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 flex-wrap">
             <span class="font-bold text-sm text-slate-800">${e.name}</span>
@@ -721,7 +731,7 @@ function renderEmpCards(list) {
         <div class="flex items-center gap-1.5"><i class="fa-solid fa-clock w-4 text-center"></i>주 ${e.hours}시간 · ${e.workType}</div>
       </div>
       <div class="mt-3 pt-3 border-t border-slate-100 flex gap-2">
-        <button onclick="event.stopPropagation(); openDetail(${e.id})" class="flex-1 text-xs text-violet-600 font-semibold border border-violet-200 py-1.5 rounded-lg hover:bg-violet-50">상세보기</button>
+        <button onclick="event.stopPropagation(); openDetail(${e.id})" class="flex-1 text-xs text-[#3b82f6] font-semibold border border-blue-200 py-1.5 rounded-lg hover:bg-blue-50">상세보기</button>
         ${e.status!=='퇴사'
           ? `<button onclick="event.stopPropagation(); openDetail(${e.id})" class="flex-1 text-xs text-slate-600 font-semibold border border-slate-200 py-1.5 rounded-lg hover:bg-slate-50">수정</button>`
           : `<button onclick="event.stopPropagation(); openDestroyConfirm(${e.id})" class="flex-1 text-xs text-red-500 font-semibold border border-red-200 py-1.5 rounded-lg hover:bg-red-50">정보 파기</button>`
@@ -873,10 +883,10 @@ function updateHrSortIcons(activeCol) {
     if (!icon) return;
     if (th.dataset.col === activeCol) {
       icon.textContent = hrSortAsc ? '↑' : '↓';
-      icon.classList.replace('text-slate-300', 'text-violet-500');
+      icon.classList.replace('text-slate-300', 'text-[#3b82f6]');
     } else {
       icon.textContent = '↕';
-      icon.classList.replace('text-violet-500', 'text-slate-300');
+      icon.classList.replace('text-[#3b82f6]', 'text-slate-300');
     }
   });
 }
@@ -934,7 +944,7 @@ function renderHrTable() {
     <tr class="hover:bg-slate-50 transition-colors">
       <td class="py-3 px-4">
         <div class="flex items-center gap-2">
-          <div class="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center text-xs font-bold text-violet-700">${e.name[0]}</div>
+          <div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-xs font-bold text-[#3b82f6]">${e.name[0]}</div>
           <span class="font-semibold text-slate-800 text-xs">${e.name}</span>
         </div>
       </td>
@@ -945,7 +955,7 @@ function renderHrTable() {
       <td class="py-3 px-4 text-xs text-slate-600">${e.dept}</td>
       <td class="py-3 px-4"><span class="status-badge ${statusClass[e.status]}">${e.status}</span></td>
       <td class="py-3 px-4">
-        <button onclick="openDetail(${e.id})" class="text-xs text-violet-600 hover:underline font-semibold">상세</button>
+        <button onclick="openDetail(${e.id})" class="text-xs text-[#3b82f6] hover:underline font-semibold">상세</button>
       </td>
     </tr>
   `).join('');
@@ -958,7 +968,7 @@ function renderAcctList() {
     <div class="bg-white border border-slate-100 rounded-xl p-4 shadow-sm">
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center text-sm font-bold text-violet-700">${e.name[0]}</div>
+          <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-sm font-bold text-[#3b82f6]">${e.name[0]}</div>
           <div>
             <p class="font-bold text-sm text-slate-800">${e.name}</p>
             <p class="text-xs text-slate-400">ID: ${e.loginId}</p>
