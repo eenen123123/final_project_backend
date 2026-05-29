@@ -1,4 +1,4 @@
-package kr.or.ddit.finalProject.responseDto.instructor;
+package kr.or.ddit.finalProject.dto.instructor;
 
 import java.io.Serializable;
 
@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class InstructorBoardResponseDto implements Serializable {
+public class InstructorBoardResponse implements Serializable {
 
     private Long postSn; // 게시글 번호
     private String useYn; // 사용여부 (Y: 활성, N: 삭제)
