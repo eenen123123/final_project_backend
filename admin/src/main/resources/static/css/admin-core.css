@@ -246,11 +246,11 @@ body {
   background: transparent;
   min-height: unset;
   position: relative;
-  display: flex;
-  align-items: center;
-  flex-wrap: nowrap;
+  display: flex !important;       /* Tom Select 의 더 높은 특이성 선택자에 덮어쓰이지 않도록 */
+  align-items: center !important;
+  flex-wrap: nowrap !important;
 }
-/* 내부 검색 input — readonly 로 타이핑 차단, width:0 으로 공간 미점유
+/* 내부 검색 input — readonly 로 타이핑 차단
    ※ 단일 선택 전용. select[multiple] 에는 이 CSS 가 적합하지 않음 */
 .ts-wrapper .ts-control input {
   border: none;
@@ -258,9 +258,13 @@ body {
   background: transparent;
   caret-color: transparent;
   cursor: default;
-  width: 0;
-  min-width: 0;
-  flex: 0 0 0;
+  flex: 1; /* 기본: 선택 전 placeholder 표시를 위해 공간 확보 */
+}
+/* 항목이 선택된 상태(has-items)에서만 input 을 숨기고 .item 이 공간을 차지하도록 함 */
+.ts-wrapper.single.has-items .ts-control input {
+  width: 0 !important;
+  min-width: 0 !important;
+  flex: 0 0 0 !important;
 }
 /* 선택된 항목: 긴 텍스트는 말줄임 처리 */
 .ts-wrapper.single .ts-control .item {
