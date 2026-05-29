@@ -139,6 +139,12 @@ public class StaffServiceImpl implements StaffService{
         return staffMapper.selectEmployeeList();
     }
 
+    // 입사 연도 목록 조회
+    @Override
+    public List<Integer> retrieveJoinYearList() {
+        return staffMapper.selectJoinYearList();
+    }
+
     // 아이디 중복 자동 순번 발급 및 중복 회피
     @Override
     public String getNextAvailableId(String baseId, String defaultSerial) {

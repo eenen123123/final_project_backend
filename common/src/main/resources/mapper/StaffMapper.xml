@@ -181,7 +181,15 @@
         ORDER BY m.USER_ID
     </select>
 
-    <!-- checkIdExists --> 
+    <!-- selectJoinYearList -->
+    <select id="selectJoinYearList" resultType="int">
+        SELECT DISTINCT TO_CHAR(JOIN_YMD, 'YYYY') AS JOIN_YEAR
+        FROM EMPLOYEE_INFO
+        WHERE JOIN_YMD IS NOT NULL
+        ORDER BY JOIN_YEAR
+    </select>
+
+    <!-- checkIdExists -->
     <select id="checkIdExists" parameterType="String" resultType="int">
         SELECT COUNT(*) FROM MEMBER WHERE USER_ID = #{userId}
     </select>

@@ -9,11 +9,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="/css/admin-core.css" />
   <style>
-    /* HR 필터는 controlInput:null로 검색 input 없이 초기화 → 선택값 표시 위치 고정 */
-    #emp-tab-hr .ts-wrapper .ts-control {
-      padding: 0.65rem 1.75rem 0.65rem 1rem !important;
-    }
-
     .emp-tab-btn { transition: all .18s; }
     .emp-tab-btn.active {
       color: #3b82f6;
@@ -340,31 +335,36 @@
           <input type="text" id="hr-search" placeholder="이름 검색..." class="hm-input hm-input-blue pl-9" style="width:11rem" oninput="filterHrList()">
         </div>
 
-        <select class="hm-input hm-input-blue" id="hr-year" style="width:7rem" onchange="filterHrList()" data-ts-defer>
+        <select class="hm-input hm-input-blue" id="hr-year" style="width:9rem" onchange="filterHrList()">
           <option value="">전체 연도</option>
+          <option th:each="year : ${joinYearList}"
+                  th:value="${year}"
+                  th:text="${year + '년'}">
+          </option>
         </select>
 
-        <select class="hm-input hm-input-blue" id="hr-status-filter" style="width:9rem" onchange="filterHrList()" data-ts-defer>
+        <select class="hm-input hm-input-blue" id="hr-status-filter" style="width:10rem" onchange="filterHrList()">
           <option value="">전체 상태</option>
           <option value="01">재직 중</option>
           <option value="02">휴직 중</option>
           <option value="03">퇴사</option>
         </select>
-        <select class="hm-input hm-input-blue" id="hr-dept-filter" style="width:10rem" onchange="filterHrList()" data-ts-defer>
+        
+        <select class="hm-input hm-input-blue" id="hr-dept-filter" style="width:10rem" onchange="filterHrList()">
           <option value="">전체 부서</option>
           <option th:each="dept : ${departmentlist}"
                   th:value="${dept.deptCd}"
                   th:text="${dept.deptNm}">
           </option>
         </select>
-         <select class="hm-input hm-input-blue" id="hr-role-filter" style="width:10rem" onchange="filterHrList()" data-ts-defer>
+         <select class="hm-input hm-input-blue" id="hr-role-filter" style="width:10rem" onchange="filterHrList()">
             <option value="">전체 직급</option>
             <option th:each="jobGrade : ${jobgradelist}"
             th:value="${jobGrade.jbgrCd}"
             th:text="${jobGrade.jbgrNm}">
             </option>
          </select>
-        <select class="hm-input hm-input-blue" id="hr-type-filter" style="width:9rem" onchange="filterHrList()" data-ts-defer>
+        <select class="hm-input hm-input-blue" id="hr-type-filter" style="width:10rem" onchange="filterHrList()">
           <option value="">전체 근무형태</option>
           <option value="01">정규직</option>
           <option value="02">계약직</option>
@@ -978,16 +978,6 @@ const HR_BLOCK_SIZE  = 5;
 let hrSortCol = null;
 let hrSortAsc = true;
 let hrFilteredRows = null;
-let _hrInitRowOrder = [];
-
-// HR 필터 select 목록
-const HR_SELECT_IDS = ['hr-year', 'hr-status-filter', 'hr-dept-filter', 'hr-role-filter', 'hr-type-filter'];
-
-// 검색 input 없이(controlInput:null) 드롭다운 전용으로 초기화 → 포커스 시 item↔input 교체로 인한 텍스트 밀림 방지
-function initHrTomSelect(el) {
-  if (!el || el.tomselect) return;
-  return new TomSelect(el, { create: false, controlInput: null });
-}
 
 function filterHrList() {
   const keyword = document.getElementById('hr-search').value.trim().toLowerCase();
@@ -1014,23 +1004,7 @@ function filterHrList() {
 }
 
 function resetHrFilter() {
-  document.getElementById('hr-search').value = '';
-  HR_SELECT_IDS.forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    if (el.tomselect) {
-      el.tomselect.setValue('', true); // 값만 '전체'로 변경 (silent), 재초기화 불필요
-    } else {
-      el.selectedIndex = 0;
-    }
-  });
-  const tbody = document.getElementById('hr-table-body');
-  _hrInitRowOrder.forEach(r => tbody.appendChild(r));
-  hrFilteredRows = null;
-  hrSortCol = null;
-  hrSortAsc = true;
-  updateHrSortIcons(null);
-  filterHrList();
+  location.reload();
 }
 
 function sortHrBy(col) {
@@ -1786,17 +1760,6 @@ document.querySelectorAll('[id^="modal-"]').forEach(m => {
 
 /* ─── 초기 렌더링 ─── */
 (function () {
-  // hr-year 연도 옵션 동적 추가 (전체 연도 기본값은 HTML에 이미 존재)
-  const hrYearSel = document.getElementById('hr-year');
-  const currentYear = new Date().getFullYear();
-  for (let y = 2020; y <= currentYear; y++) {
-    const opt = document.createElement('option');
-    opt.value = y;
-    opt.textContent = y;
-    hrYearSel.appendChild(opt);
-  }
-  _hrInitRowOrder = Array.from(document.querySelectorAll('#hr-table-body .hr-data-row'));
-
   renderAcctList();
   renderDestructionList();
 
@@ -1804,11 +1767,8 @@ document.querySelectorAll('[id^="modal-"]').forEach(m => {
   if (firstBtn) switchEmpTab('emp-tab-hr', firstBtn);
 
   applyEmpPaging();
-  // TomSelect 정의(admin-layout end-of-body) 이후 실행되도록 지연
-  setTimeout(() => {
-    HR_SELECT_IDS.forEach(id => initHrTomSelect(document.getElementById(id)));
-    filterHrList();
-  }, 0);
+  // Tailwind CDN 스타일 적용 후 실행되도록 다음 이벤트 루프로 지연
+  setTimeout(filterHrList, 0);
 })();
 
 // 사용자가 부서를 바꿨을 때 직급을 필터링하는 자바스크립트 로직
