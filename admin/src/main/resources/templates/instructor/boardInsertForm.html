@@ -104,8 +104,9 @@
         <select
           id="boardTypeCd"
           name="boardTypeCd"
-          class="hm-input hm-input-sky max-w-48 text-base"
+          class="hm-input hm-input-sky max-w-56 text-base"
           th:attr="data-selected=${board?.boardTypeCd}"
+          data-ts-defer
         >
           <option value="">-- 선택 --</option>
         </select>
@@ -174,6 +175,7 @@
 
   <script>
     // 게시판 분류 드롭다운 로드
+    // data-ts-defer 로 전역 초기화를 건너뛰고 fetch 완료 후 직접 초기화
     (function () {
       const select = document.getElementById("boardTypeCd");
       const selected = (select.dataset.selected || "").trim();
@@ -188,6 +190,8 @@
             if (code.comCd === selected) opt.selected = true;
             select.appendChild(opt);
           });
+          // data-ts-defer 로 전역 초기화를 건너뛰었으므로 여기서 단독 초기화
+          window.initTomSelect(select);
         });
     })();
   </script>

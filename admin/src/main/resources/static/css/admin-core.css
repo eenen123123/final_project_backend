@@ -201,60 +201,120 @@ body {
      전역 초기화 스크립트가 자동으로 Tom Select 를 적용합니다.
        <select class="hm-input">...</select>
        <select class="hm-input hm-input-sky">...</select>
+     options 를 fetch 등으로 비동기 로드하는 경우 data-ts-defer 속성 추가 후
+     fetch 완료 시점에 window.initTomSelect(el) 을 직접 호출합니다.
 
    [폼 전송]
      초기화 후에도 원본 <select> 는 숨겨진 채로 유지되어 폼 submit 시
      값이 그대로 전송되므로 백엔드 코드 변경은 불필요합니다.
+
+   [CSS 로딩 순서]
+     admin-layout.html 에서 tom-select.css 를 이 파일보다 먼저 로드합니다.
+     덕분에 아래 규칙들이 !important 없이 Tom Select 기본 스타일을 덮어씁니다.
    ========================================================================== */
+
+/* --- 컨테이너 --- */
 .ts-wrapper.hm-input {
   padding: 0;
 }
-.ts-wrapper.hm-input.focus .ts-control {
+.ts-wrapper.hm-input.focus {
+  outline: none;
   border-color: var(--color-brand-primary);
   box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.08);
 }
+
+/* --- 컨트롤 (선택된 값 표시 영역) --- */
 .ts-control {
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0.65rem 1rem !important;
-  border-radius: 0.75rem !important;
-  font-size: 0.875rem !important;
-  font-family: "Noto Sans KR", sans-serif !important;
-  background: transparent !important;
-  min-height: unset !important;
+  border: none;
+  box-shadow: none;
+  padding: 0.65rem 2.5rem 0.65rem 1rem; /* 오른쪽: 화살표 공간 */
+  font-size: 0.875rem;
+  font-family: "Noto Sans KR", sans-serif;
+  color: #1e293b;
+  background: transparent;
+  min-height: unset;
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
 }
+/* 내부 검색 input: readonly 로 타이핑 차단 (JS), 커서만 추가로 숨김 */
+.ts-control input {
+  font-family: "Noto Sans KR", sans-serif;
+  font-size: 0.875rem;
+  color: #1e293b;
+  caret-color: transparent;
+  cursor: default;
+}
+.ts-control input::placeholder {
+  color: #94a3b8;
+}
+/* 선택된 항목: 긴 텍스트는 말줄임 처리 */
+.ts-wrapper.single .ts-control .item {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- 드롭다운 화살표 --- */
+.ts-wrapper.single .ts-control::after {
+  content: "";
+  display: block;
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  margin-top: -3px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 5px 4px 0 4px;
+  border-color: #94a3b8 transparent transparent transparent;
+  pointer-events: none;
+}
+.ts-wrapper.single.focus .ts-control::after {
+  border-color: var(--color-brand-primary) transparent transparent transparent;
+}
+
+/* --- 드롭다운 목록 --- */
 .ts-dropdown {
   border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
-  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.08);
   font-size: 0.875rem;
   font-family: "Noto Sans KR", sans-serif;
-  margin-top: 4px;
+  margin-top: 6px;
+  padding: 4px;
   overflow: hidden;
+  z-index: 100;
 }
 .ts-dropdown .option {
-  padding: 0.6rem 1rem;
-  color: #1e293b;
+  padding: 0.55rem 0.875rem;
+  color: #475569;
+  border-radius: 0.5rem;
+  transition: background-color 0.15s, color 0.15s;
 }
-.ts-dropdown .option:hover,
-.ts-dropdown .option.active {
-  background-color: #f0f9ff;
-  color: #0284c7;
-}
+.ts-dropdown .option:hover       { background-color: #f1f5f9; color: #1e293b; }
+.ts-dropdown .option.selected    { background-color: #f0f9ff; color: #0284c7; font-weight: 500; }
+.ts-dropdown .option.active      { background-color: #e0f2fe; color: #0284c7; }
 
-/* 색상 변형별 포커스 오버라이드 */
-.ts-wrapper.hm-input-sky.focus .ts-control { border-color: #0ea5e9 !important; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08) !important; }
-.ts-wrapper.hm-input-sky .ts-dropdown .option:hover,
-.ts-wrapper.hm-input-sky .ts-dropdown .option.active { background-color: #f0f9ff; color: #0284c7; }
+/* --- 색상 변형별 포커스 & 화살표 & 드롭다운 옵션 --- */
+.ts-wrapper.hm-input-sky.focus     { border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08); }
+.ts-wrapper.hm-input-emerald.focus { border-color: #10b981; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08); }
+.ts-wrapper.hm-input-orange.focus  { border-color: #f97316; box-shadow: 0 0 0 4px rgba(249, 115, 22,  0.08); }
+.ts-wrapper.hm-input-blue.focus    { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,  130, 246, 0.08); }
 
-.ts-wrapper.hm-input-emerald.focus .ts-control { border-color: #10b981 !important; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08) !important; }
+.ts-wrapper.single.hm-input-sky.focus     .ts-control::after { border-color: #0ea5e9 transparent transparent transparent; }
+.ts-wrapper.single.hm-input-emerald.focus .ts-control::after { border-color: #10b981 transparent transparent transparent; }
+.ts-wrapper.single.hm-input-orange.focus  .ts-control::after { border-color: #f97316 transparent transparent transparent; }
+.ts-wrapper.single.hm-input-blue.focus    .ts-control::after { border-color: #3b82f6 transparent transparent transparent; }
+
+.ts-wrapper.hm-input-sky     .ts-dropdown .option:hover,
+.ts-wrapper.hm-input-sky     .ts-dropdown .option.active { background-color: #f0f9ff; color: #0284c7; }
 .ts-wrapper.hm-input-emerald .ts-dropdown .option:hover,
 .ts-wrapper.hm-input-emerald .ts-dropdown .option.active { background-color: #f0fdf4; color: #059669; }
-
-.ts-wrapper.hm-input-orange.focus .ts-control { border-color: #f97316 !important; box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.08) !important; }
-.ts-wrapper.hm-input-orange .ts-dropdown .option:hover,
-.ts-wrapper.hm-input-orange .ts-dropdown .option.active { background-color: #fff7ed; color: #ea580c; }
-
-.ts-wrapper.hm-input-blue.focus .ts-control { border-color: #3b82f6 !important; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08) !important; }
-.ts-wrapper.hm-input-blue .ts-dropdown .option:hover,
-.ts-wrapper.hm-input-blue .ts-dropdown .option.active { background-color: #eff6ff; color: #2563eb; }
+.ts-wrapper.hm-input-orange  .ts-dropdown .option:hover,
+.ts-wrapper.hm-input-orange  .ts-dropdown .option.active { background-color: #fff7ed; color: #ea580c; }
+.ts-wrapper.hm-input-blue    .ts-dropdown .option:hover,
+.ts-wrapper.hm-input-blue    .ts-dropdown .option.active { background-color: #eff6ff; color: #2563eb; }

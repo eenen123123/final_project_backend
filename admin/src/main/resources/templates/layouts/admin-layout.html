@@ -18,9 +18,10 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
 
+    <!-- tom-select.css 를 먼저 로드해야 admin-core.css 의 오버라이드가 !important 없이 동작함 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" />
     <link rel="stylesheet" th:href="@{/css/admin-core.css}" />
     <link rel="stylesheet" th:href="@{/css/sidebar-admin.css}" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" />
   </head>
 
   <body class="h-screen flex flex-col overflow-hidden">
@@ -40,8 +41,20 @@
     <script th:src="@{/js/sidebar-admin.js}" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
     <script>
-      document.querySelectorAll("select.hm-input").forEach(function (el) {
-        new TomSelect(el, { create: false });
+      // 전역 Tom Select 초기화 함수 — data-ts-defer 없는 select 에 자동 적용,
+      // fetch 등으로 options 를 비동기 로드하는 경우 data-ts-defer 속성 추가 후 직접 호출
+      window.initTomSelect = function (el) {
+        return new TomSelect(el, {
+          create: false,
+          onInitialize: function () {
+            // 드롭다운 전용으로 사용하므로 타이핑 입력 차단
+            this.control_input.setAttribute("readonly", "readonly");
+          },
+        });
+      };
+
+      document.querySelectorAll("select.hm-input:not([data-ts-defer])").forEach(function (el) {
+        window.initTomSelect(el);
       });
     </script>
   </body>
