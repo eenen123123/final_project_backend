@@ -153,7 +153,7 @@ public class InstructorBoardController {
                 .postSn(responseDto.getPostSn())
                 .boardTypeCd(responseDto.getBoardTypeCd())
                 .postSj(responseDto.getTitle())
-                .postCn(responseDto.getContent())
+                .postCn(sanitize(responseDto.getContent()))
                 .build();
         model.addAttribute("board", board);
         return "admin:/instructor/boardInsertForm";
@@ -226,19 +226,20 @@ public class InstructorBoardController {
         return "redirect:/instructor/board/detail/" + postSn;
     }
 
-    // Toast UI Editor 가 생성한 HTML 에서 허용된 태그만 남기고 나머지 제거 (XSS 방어)
+    // Toast UI Editor 허용 태그 목록 — 매 호출마다 재생성하지 않도록 static 상수로 선언
+    private static final Safelist TOAST_SAFELIST = Safelist.relaxed()
+            .addTags("del", "s", "hr", "input")          // relaxed 기본 목록에 없는 태그
+            .addAttributes("input", "type", "checked", "disabled") // 체크리스트
+            .addAttributes("span", "style")              // color-syntax 인라인 색상
+            .addAttributes("p",  "style")
+            .addAttributes("h1", "style").addAttributes("h2", "style")
+            .addAttributes("h3", "style").addAttributes("h4", "style")
+            .addAttributes("h5", "style").addAttributes("h6", "style");
+
+    // XSS 방어: 허용 태그만 남기고 나머지 제거
     private String sanitize(String html) {
         if (html == null) return null;
-        return Jsoup.clean(html, Safelist.relaxed()
-                // Toast UI Editor 가 사용하지만 relaxed 기본 목록에 없는 태그 추가
-                .addTags("del", "s", "hr")
-                .addAttributes("input", "type", "checked", "disabled")
-                // color-syntax 플러그인 인라인 색상 및 정렬 스타일
-                .addAttributes("span", "style")
-                .addAttributes("p", "style")
-                .addAttributes("h1", "style").addAttributes("h2", "style")
-                .addAttributes("h3", "style").addAttributes("h4", "style")
-                .addAttributes("h5", "style").addAttributes("h6", "style"));
+        return Jsoup.clean(html, TOAST_SAFELIST);
     }
 
 }
