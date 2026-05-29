@@ -32,10 +32,4 @@ public class CourseDto implements Serializable {
     private LocalDateTime mdfcnDt;
     private Long subjClId;
 
-    // 조회 시 JOIN으로 가져오는 부가 정보
-    private String curriculumTitle;
-    private String subjNm;
-    private String subjClNm;
-    private int classCount;
-    private Long firstClassSn; // 첫 번째 클래스룸 CLASS_SN (클래스룸 입장 버튼용)
 }
