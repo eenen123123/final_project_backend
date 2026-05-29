@@ -1004,7 +1004,16 @@ function filterHrList() {
 }
 
 function resetHrFilter() {
-  location.reload();
+  document.getElementById('hr-search').value = '';
+  ['hr-year', 'hr-status-filter', 'hr-dept-filter', 'hr-role-filter', 'hr-type-filter'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el.tomselect) el.tomselect.setValue('');
+    else el.value = '';
+  });
+  hrSortCol = null;
+  hrSortAsc = true;
+  updateHrSortIcons(null);
+  filterHrList();
 }
 
 function sortHrBy(col) {
