@@ -28,6 +28,9 @@ public interface MemberMapper {
      */
     int isAllExistUsers(List<String> userIds);
 
-    List<AdminMemberDto> getAdminUsers(@Param("excludeUserId") String excludeUserId);
+    List<AdminMemberDto> getAdminUsers(@Param("excludeUserId")
+    String excludeUserId);
+
+    AdminMemberDto getAdminUserById(String userId);
 
 }

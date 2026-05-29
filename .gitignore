@@ -1,3 +1,4 @@
 .env
 .vscode/
 .bkit/
+.DS_Store

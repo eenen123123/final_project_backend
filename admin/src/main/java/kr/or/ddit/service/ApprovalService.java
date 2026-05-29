@@ -1,0 +1,205 @@
+package kr.or.ddit.service;
+
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import kr.or.ddit.finalProject.dto.approval.ApprovalLineDto;
+import kr.or.ddit.finalProject.dto.approval.ApprovalMasterDto;
+import kr.or.ddit.finalProject.dto.approval.ApprovalTemplateDto;
+import kr.or.ddit.finalProject.dto.approval.ApprovalDocProgressEnum;
+import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
+import kr.or.ddit.finalProject.dto.member.AdminMemberDto;
+import kr.or.ddit.finalProject.dto.member.MemberDto;
+import kr.or.ddit.finalProject.exception.ErrorCode;
+import kr.or.ddit.finalProject.exception.FinalProjectException;
+import kr.or.ddit.finalProject.service.member.MemberService;
+import kr.or.ddit.mapper.ApprovalMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class ApprovalService {
+
+    private final ApprovalMapper approvalMapper;
+    private final MemberService memberService;
+    private final AdminEmployeeService adminEmployeeService;
+    private final ObjectMapper objectMapper;
+
+    /**
+     * 결재 양식 리스트 조회
+     * 
+     * @return 결재 양식 리스트
+     */
+    public List<ApprovalTemplateDto> getApprovalTemplateList() {
+        log.info("Fetching approval template list");
+        return approvalMapper.selectApprovalTemplateList();
+    }
+
+    public int insertApprovalTemplate(String tmplCd, MultipartFile tmplCn, String tmplNm,
+            String rgtrId) {
+        log.info("Inserting new approval template: tmplCd={}, tmplNm={}, tmplCn={}", tmplCd, tmplNm,
+                tmplCn.getOriginalFilename());
+        if (tmplCn.isEmpty()) {
+            log.warn("Template content file is empty for tmplCd={}", tmplCd);
+            return 0; // 파일이 비어있으면 삽입하지 않음
+        }
+        // html 파일이 아닐 경우 저장 안함
+        if (!tmplCn.getOriginalFilename().endsWith(".html")) {
+            log.warn("Uploaded file is not an HTML file for tmplCd={}", tmplCd);
+            return 0; // html 파일이 아니면 삽입하지 않음
+        }
+
+        ApprovalTemplateDto approvalTemplateDto = new ApprovalTemplateDto();
+        approvalTemplateDto.setTmplCd(tmplCd.trim());
+        approvalTemplateDto.setTmplNm(tmplNm);
+        try {
+            approvalTemplateDto.setTmplCn(new String(tmplCn.getBytes(), "UTF-8")); // 실제 html 파일의 내용을 저장
+        } catch (Exception e) {
+            log.error("Error reading template content", e);
+            throw new FinalProjectException(ErrorCode.FILE_READ_ERROR);
+        }
+        approvalTemplateDto.setRgtrId(rgtrId);
+        approvalTemplateDto.setLastMdfrId(rgtrId); // 최초 등록자와 최종 수정자를 동일하게 설정
+        approvalTemplateDto.setUseYn("Y"); // 기본값으로 사용 여부를 'Y'로 설정
+        return approvalMapper.insertApprovalTemplate(approvalTemplateDto);
+    }
+
+    public ApprovalTemplateDto getApprovalTemplateById(String tmplCd) {
+        log.info("Fetching approval template by ID: tmplCd={}", tmplCd);
+        return approvalMapper.selectApprovalTemplateById(tmplCd);
+    }
+
+    public List<ApprovalLineDto> getDefaultApprovalLinesByUserId(String userId) {
+        // 기본 결재선은 일단은 팀장 - 원장
+        // 팀의 코드로 팀장을 구함
+        AdminMemberDto memberDto = memberService.getAdminUserById(userId);
+        String deptCd = memberDto.getEmployeeInfo().getDeptCd();
+        EmployeeInfoDto teamLeader = adminEmployeeService.getTeamLeaderByDeptCd(deptCd);
+        List<ApprovalLineDto> approvalLines = new LinkedList<>();
+        if (teamLeader != null) {
+            ApprovalLineDto teamLeaderLine = new ApprovalLineDto();
+            teamLeaderLine.setAprvrUserId(teamLeader.getUserId());
+            teamLeaderLine.setApproverName(teamLeader.getUserId()); // 실제로는 이름을 가져와야 하지만, 일단은 userId로 설정
+            teamLeaderLine.setAprvlOrdr(1l); // 팀장이 첫 번째 결재자
+            teamLeaderLine.setAprvlPrgrsCd("WAITING");
+            teamLeaderLine.setJbgrNm(teamLeader.getJbgrNm()); // 직급명 설정
+            approvalLines.add(teamLeaderLine);
+        }
+        // 원장
+        ApprovalLineDto directorLine = new ApprovalLineDto();
+        MemberDto director = memberService.getMemberByUserId("testuser01"); // 원장 계정은 일단 하드코딩
+        directorLine.setAprvrUserId(director.getUserId());
+        directorLine.setApproverName(director.getUserName()); // 실제로는 이름
+        directorLine.setAprvlOrdr(2l); // 원장이 두 번째 결재자
+        directorLine.setAprvlPrgrsCd("WAITING");
+        directorLine.setJbgrNm("원장"); // 직급명도 하드코딩
+        approvalLines.add(directorLine);
+
+
+        return approvalLines;
+    }
+
+    public Map<String, Object> getApprovalDashboard(String userId) {
+        List<ApprovalMasterDto> myDocs = approvalMapper.selectMyDocs(userId);
+        List<ApprovalLineDto> myPendingLines = approvalMapper.selectMyPendingLines(userId);
+
+        List<ApprovalMasterDto> draftDocs = myDocs.stream()
+                .filter(d -> ApprovalDocProgressEnum.DRAFT.name().equals(d.getAprvlPrgrsCd()))
+                .collect(Collectors.toList());
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("myDocs", myDocs);
+        data.put("myPendingLines", myPendingLines);
+        data.put("draftDocs", draftDocs);
+        data.put("totalCount", myDocs.size());
+        data.put("pendingCount",
+                myDocs.stream().filter(
+                        d -> ApprovalDocProgressEnum.PENDING.name().equals(d.getAprvlPrgrsCd()))
+                        .count());
+        data.put("approvedCount",
+                myDocs.stream().filter(
+                        d -> ApprovalDocProgressEnum.APPROVED.name().equals(d.getAprvlPrgrsCd()))
+                        .count());
+        data.put("rejectedCount",
+                myDocs.stream().filter(
+                        d -> ApprovalDocProgressEnum.REJECTED.name().equals(d.getAprvlPrgrsCd()))
+                        .count());
+        data.put("myApprovalCount", myPendingLines.size());
+        data.put("draftCount", draftDocs.size());
+        return data;
+    }
+
+    @Transactional
+    public Long submitApproval(String userId, ApprovalMasterDto master, String approvalLineJson) {
+        master.setDrftUserId(userId);
+        approvalMapper.insertApprovalMaster(master);
+
+        try {
+            List<Map<String, Object>> lineData = objectMapper.readValue(approvalLineJson,
+                    new TypeReference<List<Map<String, Object>>>() {});
+            boolean isPending = "PENDING".equals(master.getAprvlPrgrsCd());
+            for (int i = 0; i < lineData.size(); i++) {
+                Map<String, Object> data = lineData.get(i);
+                ApprovalLineDto line = new ApprovalLineDto();
+                line.setAprvlDocSn(master.getAprvlDocSn());
+                line.setAprvrUserId((String) data.get("aprvrUserId"));
+                line.setAprvlOrdr((long) (i + 1));
+                line.setAprvlPrgrsCd(isPending && i == 0 ? "IN_PROGRESS" : "WAITING");
+                approvalMapper.insertApprovalLine(line);
+            }
+        } catch (Exception e) {
+            throw new FinalProjectException(ErrorCode.FILE_READ_ERROR);
+        }
+
+        return master.getAprvlDocSn();
+    }
+
+
+    @Transactional
+    public void updateApproval(String userId, ApprovalMasterDto master, String approvalLineJson) {
+        ApprovalMasterDto existing = approvalMapper.selectApprovalMasterById(master.getAprvlDocSn());
+        if (existing == null || !existing.getDrftUserId().equals(userId)) {
+            throw new FinalProjectException(ErrorCode.APPROVAL_NOT_FOUND);
+        }
+        approvalMapper.updateApprovalMaster(master);
+        approvalMapper.deleteApprovalLinesByDocSn(master.getAprvlDocSn());
+
+        try {
+            List<Map<String, Object>> lineData = objectMapper.readValue(approvalLineJson,
+                    new TypeReference<List<Map<String, Object>>>() {});
+            boolean isPending = "PENDING".equals(master.getAprvlPrgrsCd());
+            for (int i = 0; i < lineData.size(); i++) {
+                Map<String, Object> data = lineData.get(i);
+                ApprovalLineDto line = new ApprovalLineDto();
+                line.setAprvlDocSn(master.getAprvlDocSn());
+                line.setAprvrUserId((String) data.get("aprvrUserId"));
+                line.setAprvlOrdr((long) (i + 1));
+                line.setAprvlPrgrsCd(isPending && i == 0 ? "IN_PROGRESS" : "WAITING");
+                approvalMapper.insertApprovalLine(line);
+            }
+        } catch (Exception e) {
+            throw new FinalProjectException(ErrorCode.FILE_READ_ERROR);
+        }
+    }
+
+    public ApprovalMasterDto getApprovalDetail(Long aprvlDocSn) {
+        ApprovalMasterDto master = approvalMapper.selectApprovalMasterById(aprvlDocSn);
+        if (master == null) {
+            throw new FinalProjectException(ErrorCode.APPROVAL_NOT_FOUND);
+        }
+        return master;
+    }
+
+    public List<ApprovalLineDto> getApprovalLines(Long aprvlDocSn) {
+        return approvalMapper.selectApprovalLinesByDocSn(aprvlDocSn);
+    }
+}
