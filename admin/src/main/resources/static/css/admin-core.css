@@ -216,18 +216,29 @@ body {
 /* --- 컨테이너 --- */
 .ts-wrapper.hm-input {
   padding: 0;
+  border-radius: 0.75rem !important; /* Tom Select JS/CSS 가 상태에 따라 변경해도 항상 유지 */
 }
 .ts-wrapper.hm-input.focus {
   outline: none;
   border-color: var(--color-brand-primary);
   box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.08);
 }
+/* Tom Select 가 focus/input-active/dropdown-active 상태에서 .ts-control 에 적용하는
+   outline, box-shadow, border 를 모두 제거 */
+.ts-wrapper.focus .ts-control,
+.ts-wrapper.input-active .ts-control,
+.ts-wrapper.dropdown-active .ts-control {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
 
 /* --- 컨트롤 (선택된 값 표시 영역) --- */
-.ts-control {
+/* 특이성 (0,2,0) 으로 Tom Select 의 기본 .ts-control 규칙보다 우선 적용 */
+.ts-wrapper .ts-control {
   border: none;
   box-shadow: none;
-  padding: 0.65rem 2.5rem 0.65rem 1rem; /* 오른쪽: 화살표 공간 */
+  padding: 0.65rem 1.75rem 0.65rem 1rem; /* 오른쪽: 화살표(right:14px + width:8px + 여유) */
   font-size: 0.875rem;
   font-family: "Noto Sans KR", sans-serif;
   color: #1e293b;
@@ -238,16 +249,17 @@ body {
   align-items: center;
   flex-wrap: nowrap;
 }
-/* 내부 검색 input: readonly 로 타이핑 차단 (JS), 커서만 추가로 숨김 */
-.ts-control input {
-  font-family: "Noto Sans KR", sans-serif;
-  font-size: 0.875rem;
-  color: #1e293b;
+/* 내부 검색 input — readonly 로 타이핑 차단, width:0 으로 공간 미점유
+   ※ 단일 선택 전용. select[multiple] 에는 이 CSS 가 적합하지 않음 */
+.ts-wrapper .ts-control input {
+  border: none;
+  outline: none;
+  background: transparent;
   caret-color: transparent;
   cursor: default;
-}
-.ts-control input::placeholder {
-  color: #94a3b8;
+  width: 0;
+  min-width: 0;
+  flex: 0 0 0;
 }
 /* 선택된 항목: 긴 텍스트는 말줄임 처리 */
 .ts-wrapper.single .ts-control .item {
@@ -287,7 +299,7 @@ body {
   margin-top: 6px;
   padding: 4px;
   overflow: hidden;
-  z-index: 100;
+  z-index: 100; /* 모달 등 z-index > 100 인 요소 위에서 열릴 경우 이 값을 높여야 함 */
 }
 .ts-dropdown .option {
   padding: 0.55rem 0.875rem;

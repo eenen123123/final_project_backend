@@ -41,8 +41,10 @@
     <script th:src="@{/js/sidebar-admin.js}" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
     <script>
-      // 전역 Tom Select 초기화 함수 — data-ts-defer 없는 select 에 자동 적용,
-      // fetch 등으로 options 를 비동기 로드하는 경우 data-ts-defer 속성 추가 후 직접 호출
+      // 전역 Tom Select 초기화 함수
+      // - data-ts-defer 없는 select.hm-input 에 페이지 로드 시 자동 적용
+      // - options 를 fetch 등으로 비동기 로드하는 경우: data-ts-defer 추가 후 fetch 완료 시 직접 호출
+      // - 페이지 로드 후 동적으로 추가한 select 는 자동 적용 안 됨: window.initTomSelect(el) 수동 호출 필요
       window.initTomSelect = function (el) {
         return new TomSelect(el, {
           create: false,
