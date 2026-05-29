@@ -1,56 +1,98 @@
-<div class="p-6">
+<div class="space-y-6">
   <!-- 페이지 헤더 -->
-  <div class="mb-6 flex items-center justify-between">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
     <div>
-      <h1 class="text-2xl font-bold text-slate-800">담당 클래스 관리</h1>
-      <p class="mt-1 text-sm text-slate-500">담당 클래스룸 목록과 수강 현황을 확인합니다.</p>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+        <i class="fa-solid fa-chalkboard text-sky-500"></i>
+        <span>담당 클래스 관리</span>
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">담당 클래스룸 목록과 수강 현황을 확인합니다.</p>
     </div>
-    <span class="flex items-center gap-1.5 rounded-full bg-sky-100 px-3 py-1.5 text-xs font-semibold text-sky-700">
-      <i class="fa-solid fa-chalkboard"></i>
-      총 <span th:text="${#lists.size(classroomList)}">0</span>개 클래스룸
-    </span>
   </div>
 
-  <!-- 클래스룸 테이블 -->
-  <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-    <table class="w-full text-base">
-      <thead>
-        <tr class="border-b border-slate-200 bg-slate-50">
-          <th class="px-6 py-4 text-left text-sm font-semibold text-slate-500">클래스룸 이름</th>
-          <th class="px-6 py-4 text-left text-sm font-semibold text-slate-500">강좌명</th>
-          <th class="w-28 px-6 py-4 text-left text-sm font-semibold text-slate-500">상태</th>
-          <th class="w-32 px-6 py-4 text-left text-sm font-semibold text-slate-500">수강중 학생</th>
-          <th class="w-44 px-6 py-4 text-left text-sm font-semibold text-slate-500">생성일</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-slate-100">
-        <tr th:each="classroom : ${classroomList}"
-            class="transition-colors hover:bg-sky-50">
-          <td class="px-6 py-4 font-medium text-slate-800" th:text="${classroom.classNm}"></td>
-          <td class="px-6 py-4 text-sm text-slate-500" th:text="${classroom.courseNm}"></td>
-          <td class="px-6 py-4">
-            <span th:if="${classroom.classStatCd == '01'}"
-                  class="inline-block rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-semibold text-sky-700">모집중</span>
-            <span th:if="${classroom.classStatCd == '02'}"
-                  class="inline-block rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">운영중</span>
-            <span th:if="${classroom.classStatCd == '03'}"
-                  class="inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-500">종료</span>
-            <span th:if="${classroom.classStatCd == '04'}"
-                  class="inline-block rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700">대기</span>
-          </td>
-          <td class="px-6 py-4 text-sm text-slate-600">
-            <span th:text="${classroom.studentCount}">0</span>명
-          </td>
-          <td class="px-6 py-4 text-sm text-slate-500" th:text="${classroom.formattedRegDt}"></td>
-        </tr>
-        <!-- 클래스룸이 없을 때 -->
-        <tr th:if="${#lists.isEmpty(classroomList)}">
-          <td colspan="5" class="px-6 py-16 text-center text-sm text-slate-400">
-            <i class="fa-solid fa-chalkboard mb-2 block text-3xl text-slate-200"></i>
-            담당 클래스룸이 없습니다.
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <!-- 클래스룸 없을 때 -->
+  <div
+    th:if="${#lists.isEmpty(classroomList)}"
+    class="bg-white rounded-2xl border border-slate-100 shadow-sm p-16 flex flex-col items-center justify-center text-center gap-3"
+  >
+    <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-2xl">
+      <i class="fa-solid fa-chalkboard"></i>
+    </div>
+    <p class="text-sm font-medium text-slate-500">담당 클래스룸이 없습니다.</p>
+  </div>
+
+  <!-- 클래스룸 목록 -->
+  <div
+    th:unless="${#lists.isEmpty(classroomList)}"
+    class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
+  >
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider uppercase">
+            <th class="py-4 px-6 pl-20">클래스룸</th>
+            <th class="py-4 px-6">상태</th>
+            <th class="py-4 px-6">수강중 학생</th>
+            <th class="py-4 px-6">생성일</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+          <tr
+            th:each="classroom : ${classroomList}"
+            class="hover:bg-slate-50/50 transition-colors"
+          >
+            <!-- 클래스룸 이름 + 강좌명 -->
+            <td class="py-4 px-6">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-sky-500 text-base shrink-0">
+                  <i class="fa-solid fa-chalkboard"></i>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900" th:text="${classroom.classNm}">클래스룸 이름</p>
+                  <p class="text-xs text-slate-400 mt-0.5" th:text="${classroom.courseNm}">강좌명</p>
+                </div>
+              </div>
+            </td>
+
+            <!-- 상태 배지 -->
+            <td class="py-4 px-6">
+              <span th:if="${classroom.classStatCd == '01'}"
+                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-50 text-sky-600">
+                <i class="fa-solid fa-circle-dot text-[8px]"></i> 모집중
+              </span>
+              <span th:if="${classroom.classStatCd == '02'}"
+                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600">
+                <i class="fa-solid fa-circle-dot text-[8px]"></i> 운영중
+              </span>
+              <span th:if="${classroom.classStatCd == '03'}"
+                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500">
+                <i class="fa-solid fa-circle text-[8px]"></i> 종료
+              </span>
+              <span th:if="${classroom.classStatCd == '04'}"
+                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-600">
+                <i class="fa-solid fa-circle-dot text-[8px]"></i> 대기
+              </span>
+            </td>
+
+            <!-- 수강중 학생 수 -->
+            <td class="py-4 px-6">
+              <span class="text-sm font-medium text-slate-700" th:text="${classroom.studentCount} + '명'">0명</span>
+            </td>
+
+            <!-- 생성일 -->
+            <td class="py-4 px-6 text-xs text-slate-400 font-mono" th:text="${classroom.formattedRegDt}">-</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 목록 하단 요약 -->
+    <div class="border-t border-slate-100 px-6 py-3 bg-slate-50/50">
+      <p class="text-xs text-slate-400">
+        전체
+        <span class="font-semibold text-slate-600" th:text="${#lists.size(classroomList)}">0</span>개
+        클래스룸
+      </p>
+    </div>
   </div>
 </div>
