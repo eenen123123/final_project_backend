@@ -29,7 +29,6 @@ public class InstructorBoardDto implements Serializable {
     private String postSj;
 
     @NotBlank
-    @Size(max = 1333, message = "내용은 1333자를 초과할 수 없습니다.")
     private String postCn;
 
     private Long inqCnt;

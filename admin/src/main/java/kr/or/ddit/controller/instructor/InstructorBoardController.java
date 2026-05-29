@@ -2,6 +2,8 @@ package kr.or.ddit.controller.instructor;
 
 import java.util.List;
 
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -77,6 +79,7 @@ public class InstructorBoardController {
         if (board == null) {
             return "redirect:/instructor/board/list";
         }
+        board.setContent(sanitize(board.getContent()));
         model.addAttribute("board", board);
         return "admin:/instructor/boardDetail";
     }
@@ -104,6 +107,7 @@ public class InstructorBoardController {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         instructorBoardDto.setInstrUserId(userId);
         instructorBoardDto.setWrtrUserId(userId);
+        instructorBoardDto.setPostCn(sanitize(instructorBoardDto.getPostCn()));
 
         if (error.hasErrors()) {
             String errorMsg = error.getAllErrors().stream()
@@ -168,6 +172,7 @@ public class InstructorBoardController {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         instructorBoardDto.setInstrUserId(userId);
         instructorBoardDto.setLastMdfrId(userId);
+        instructorBoardDto.setPostCn(sanitize(instructorBoardDto.getPostCn()));
 
         if (error.hasErrors()) {
             String errorMsg = error.getAllErrors().stream()
@@ -219,6 +224,21 @@ public class InstructorBoardController {
         instructorBoardService.restoreInstructorBoard(postSn, userId);
         redirectAttributes.addFlashAttribute("successMessage", "게시글이 복구되었습니다.");
         return "redirect:/instructor/board/detail/" + postSn;
+    }
+
+    // Toast UI Editor 가 생성한 HTML 에서 허용된 태그만 남기고 나머지 제거 (XSS 방어)
+    private String sanitize(String html) {
+        if (html == null) return null;
+        return Jsoup.clean(html, Safelist.relaxed()
+                // Toast UI Editor 가 사용하지만 relaxed 기본 목록에 없는 태그 추가
+                .addTags("del", "s", "hr")
+                .addAttributes("input", "type", "checked", "disabled")
+                // color-syntax 플러그인 인라인 색상 및 정렬 스타일
+                .addAttributes("span", "style")
+                .addAttributes("p", "style")
+                .addAttributes("h1", "style").addAttributes("h2", "style")
+                .addAttributes("h3", "style").addAttributes("h4", "style")
+                .addAttributes("h5", "style").addAttributes("h6", "style"));
     }
 
 }
