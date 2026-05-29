@@ -381,16 +381,26 @@
     </div>
     <!-- 테이블 헤드 -->
     <div class="overflow-x-auto rounded-xl border border-slate-100" style="min-height:32rem">
-      <table class="w-full text-sm">
+      <table class="w-full text-sm table-fixed">
+        <colgroup>
+          <col style="width:17%">
+          <col style="width:13%">
+          <col style="width:11%">
+          <col style="width:13%">
+          <col style="width:11%">
+          <col style="width:14%">
+          <col style="width:13%">
+          <col style="width:8%">
+        </colgroup>
         <thead>
           <tr id="hr-thead" class="bg-slate-100 text-slate-500 text-sm">
-            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="name" onclick="sortHrBy('name')">직원명 <span class="sort-icon text-slate-300">↕</span></th>
-            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="dept" onclick="sortHrBy('dept')">부서 <span class="sort-icon text-slate-300">↕</span></th>
-            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="grade" onclick="sortHrBy('grade')">직급 <span class="sort-icon text-slate-300">↕</span></th>
-            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="join" onclick="sortHrBy('join')">입사일 <span class="sort-icon text-slate-300">↕</span></th>
-            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="type" onclick="sortHrBy('type')">근무 유형 <span class="sort-icon text-slate-300">↕</span></th>
-            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="dept" onclick="sortHrBy('dept')">소속 부서 <span class="sort-icon text-slate-300">↕</span></th>
-            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none" data-col="status" onclick="sortHrBy('status')">상태 <span class="sort-icon text-slate-300">↕</span></th>
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="name" onclick="sortHrBy('name')">직원명 <span class="sort-icon text-slate-300">↕</span></th>
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="dept" onclick="sortHrBy('dept')">부서 <span class="sort-icon text-slate-300">↕</span></th>
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="grade" onclick="sortHrBy('grade')">직급 <span class="sort-icon text-slate-300">↕</span></th>
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="join" onclick="sortHrBy('join')">입사일 <span class="sort-icon text-slate-300">↕</span></th>
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="type" onclick="sortHrBy('type')">근무 유형 <span class="sort-icon text-slate-300">↕</span></th>
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="dept" onclick="sortHrBy('dept')">소속 부서 <span class="sort-icon text-slate-300">↕</span></th>
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="status" onclick="sortHrBy('status')">상태 <span class="sort-icon text-slate-300">↕</span></th>
             <th class="text-left py-3 px-4 font-semibold"></th>
           </tr>
         </thead>
@@ -424,14 +434,14 @@
                 <span class="py-3 px-4 text-sm text-slate-600" th:text="${emp.member.userName}">-</span>
               </div>
             </td>
-            <td class="py-3 px-4 text-sm text-slate-600" th:text="${emp.deptNm}">-</td>
+            <td class="py-3 px-4 text-sm text-slate-600 truncate" th:text="${emp.deptNm}">-</td>
             <td class="py-3 px-4">
-              <span class="py-3 px-1 text-sm text-slate-600 text-left block" th:text="${emp.jbgrNm}">-</span>
+              <span class="text-sm text-slate-600 block truncate" th:text="${emp.jbgrNm}">-</span>
             </td>
-            <td class="py-3 px-4 text-sm text-slate-600" th:text="${emp.employeeInfo != null ? emp.employeeInfo.joinYmd : '-'}">-</td>
-            <td class="py-3 px-4 text-sm text-slate-600"
+            <td class="py-3 px-4 text-sm text-slate-600 whitespace-nowrap" th:text="${emp.employeeInfo != null ? emp.employeeInfo.joinYmd : '-'}">-</td>
+            <td class="py-3 px-4 text-sm text-slate-600 whitespace-nowrap"
                 th:text="${emp.employeeInfo != null ? (emp.employeeInfo.emplTypeCd == '01' ? '정규직' : (emp.employeeInfo.emplTypeCd == '02' ? '계약직' : '파트타임')) : '-'}">-</td>
-            <td class="py-3 px-4 text-sm text-slate-600" th:text="${emp.deptNm}">-</td>
+            <td class="py-3 px-4 text-sm text-slate-600 truncate" th:text="${emp.deptNm}">-</td>
             <td class="py-3 px-4">
               <span class="status-badge"
                     th:classappend="${emp.employeeInfo != null ? (emp.employeeInfo.emplStatCd == '01' ? 'status-active' : (emp.employeeInfo.emplStatCd == '02' ? 'status-leave' : 'status-resigned')) : 'status-resigned'}"
