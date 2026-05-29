@@ -231,6 +231,7 @@ body {
   outline: none !important;
   box-shadow: none !important;
   border: none !important;
+  border-radius: 0.75rem !important; /* outline 이 남아있어도 둥글게 따라가도록 유지 */
 }
 
 /* --- 컨트롤 (선택된 값 표시 영역) --- */
