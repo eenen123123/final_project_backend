@@ -41,7 +41,7 @@
           <td class="px-6 py-4 text-sm text-slate-600">
             <span th:text="${classroom.studentCount}">0</span>명
           </td>
-          <td class="px-6 py-4 text-sm text-slate-500" th:text="${classroom.regDt}"></td>
+          <td class="px-6 py-4 text-sm text-slate-500" th:text="${classroom.formattedRegDt}"></td>
         </tr>
         <!-- 클래스룸이 없을 때 -->
         <tr th:if="${#lists.isEmpty(classroomList)}">
