@@ -1,4 +1,57 @@
 <div class="p-6">
+  <!-- 에디터 코어 CSS -->
+  <link
+    rel="stylesheet"
+    href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css"
+  />
+  <!-- color-syntax 플러그인 CSS -->
+  <link
+    rel="stylesheet"
+    href="https://uicdn.toast.com/tui-color-picker/latest/tui-color-picker.min.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https://uicdn.toast.com/editor-plugin-color-syntax/latest/toastui-editor-plugin-color-syntax.min.css"
+  />
+  <!-- code-syntax-highlight 플러그인 CSS -->
+  <link
+    rel="stylesheet"
+    href="https://uicdn.toast.com/editor-plugin-code-syntax-highlight/latest/toastui-editor-plugin-code-syntax-highlight.min.css"
+  />
+  <!-- table-merged-cell 플러그인 CSS -->
+  <link
+    rel="stylesheet"
+    href="https://uicdn.toast.com/editor-plugin-table-merged-cell/latest/toastui-editor-plugin-table-merged-cell.min.css"
+  />
+  <!-- chart 플러그인 CSS -->
+  <link
+    rel="stylesheet"
+    href="https://uicdn.toast.com/chart/latest/toastui-chart.min.css"
+  />
+
+  <!-- hm-input-sky 스타일 통일 + 페이지 폰트(Noto Sans KR) 적용 -->
+  <style>
+    .toastui-editor-defaultUI {
+      border: 1px solid #0ea5e9;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .toastui-editor-defaultUI:focus-within {
+      border-color: #0ea5e9;
+      box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08);
+    }
+    .toastui-editor-toolbar {
+      border-radius: 0.75rem 0.75rem 0 0;
+    }
+    /* 에디터 입력 영역 폰트를 페이지 폰트(Noto Sans KR)로 통일 */
+    .toastui-editor-contents,
+    .toastui-editor .ProseMirror {
+      font-family: "Noto Sans KR", sans-serif;
+    }
+  </style>
+
   <!-- 페이지 헤더 -->
   <div class="mb-6 flex items-center justify-between">
     <div>
@@ -37,6 +90,9 @@
       th:if="${board?.postSn != null}"
       th:value="${board?.postSn}"
     />
+    <!-- 에디터 내용을 폼 전송에 사용하는 hidden input -->
+    <input type="hidden" name="postCn" id="postCnHidden" />
+
     <div class="divide-y divide-slate-100">
       <!-- 게시판 분류 -->
       <div class="flex items-center px-8 py-5">
@@ -74,23 +130,12 @@
         />
       </div>
 
-      <!-- 내용 -->
+      <!-- 내용: textarea 대신 에디터 마운트 div 사용 -->
       <div class="flex px-8 py-5">
-        <label
-          for="postCn"
-          class="w-28 shrink-0 pt-1 text-sm font-semibold text-slate-600"
-        >
+        <label class="w-28 shrink-0 pt-1 text-sm font-semibold text-slate-600">
           내용 <span class="text-red-400">*</span>
         </label>
-        <textarea
-          id="postCn"
-          name="postCn"
-          rows="12"
-          maxlength="1333"
-          placeholder="내용을 입력하세요."
-          class="hm-input hm-input-sky resize-none text-base leading-relaxed"
-          th:text="${board?.postCn}"
-        ></textarea>
+        <div id="editor" class="flex-1"></div>
       </div>
     </div>
 
@@ -111,7 +156,24 @@
     </div>
   </form>
 
+  <!-- 에디터 코어 JS -->
+  <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+  <!-- 한국어 언어팩 -->
+  <script src="https://uicdn.toast.com/editor/latest/i18n/ko-kr.min.js"></script>
+  <!-- color-syntax 플러그인 JS -->
+  <script src="https://uicdn.toast.com/tui-color-picker/latest/tui-color-picker.min.js"></script>
+  <script src="https://uicdn.toast.com/editor-plugin-color-syntax/latest/toastui-editor-plugin-color-syntax.min.js"></script>
+  <!-- code-syntax-highlight 플러그인 JS (주요 언어 모두 포함 번들) -->
+  <script src="https://uicdn.toast.com/editor-plugin-code-syntax-highlight/latest/toastui-editor-plugin-code-syntax-highlight-all.min.js"></script>
+  <!-- table-merged-cell 플러그인 JS -->
+  <script src="https://uicdn.toast.com/editor-plugin-table-merged-cell/latest/toastui-editor-plugin-table-merged-cell.min.js"></script>
+  <!-- chart 플러그인 의존 라이브러리 (chart 플러그인보다 먼저 로드해야 함) -->
+  <script src="https://uicdn.toast.com/chart/latest/toastui-chart.min.js"></script>
+  <!-- chart 플러그인 JS -->
+  <script src="https://uicdn.toast.com/editor-plugin-chart/latest/toastui-editor-plugin-chart.min.js"></script>
+
   <script>
+    // 게시판 분류 드롭다운 로드
     (function () {
       const select = document.getElementById("boardTypeCd");
       const selected = (select.dataset.selected || "").trim();
@@ -128,5 +190,38 @@
           });
         });
     })();
+  </script>
+
+  <script th:inline="javascript">
+    const { Editor } = toastui;
+    const { colorSyntax, codeSyntaxHighlight, tableMergedCell, chart } =
+      Editor.plugin;
+
+    const editor = new Editor({
+      el: document.querySelector("#editor"),
+      height: "500px",
+      initialEditType: "wysiwyg",
+      previewStyle: "tab",
+      language: "ko-KR",
+      placeholder: "내용을 입력하세요...",
+      usageStatistics: false,
+      plugins: [
+        colorSyntax,
+        codeSyntaxHighlight,
+        tableMergedCell,
+        chart,
+      ].filter(Boolean),
+    });
+
+    // 수정 모드: 기존 저장된 내용을 에디터에 로드
+    const savedContent = /*[[${board?.postCn}]]*/ null;
+    if (savedContent) {
+      editor.setHTML(savedContent);
+    }
+
+    // 폼 submit 시 에디터 HTML 내용을 hidden input에 복사
+    document.querySelector("form").addEventListener("submit", function () {
+      document.getElementById("postCnHidden").value = editor.getHTML();
+    });
   </script>
 </div>
