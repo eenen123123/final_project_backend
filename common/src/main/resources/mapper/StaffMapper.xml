@@ -15,6 +15,8 @@
         <result property="emplStatCd" column="EMPL_STAT_CD" />
         <!-- 근무 형태 코드 -->
         <result property="emplTypeCd" column="EMPL_TYPE_CD" />
+        <!-- 현재 적용 급여 -->
+        <result property="baseSalary" column="BASE_SALARY" />
 
         <association property="member" resultMap="kr.or.ddit.finalProject.mapper.MemberMapper.memberTestResultMap" columnPrefix="M_" />
 
@@ -170,13 +172,17 @@
             /* DEPARTMENT 테이블 */
             d.DEPT_NM,
             
-            /* 만약 직급명도 필요하다면 아래 조인과 함께 추가 */
-            j.JBGR_NM
+            /* 직급명 */
+            j.JBGR_NM,
+
+            /* 현재 적용 중인 급여 (USE_YN = 'Y') */
+            es.BASE_SALARY
         FROM
             MEMBER m
         LEFT JOIN EMPLOYEE_INFO ei ON m.USER_ID = ei.USER_ID
         LEFT JOIN DEPARTMENT d ON ei.DEPT_CD = d.DEPT_CD
         LEFT JOIN JOB_GRADE j ON ei.JBGR_CD = j.JBGR_CD
+        LEFT JOIN EMPLOYEE_SALARY es ON m.USER_ID = es.USER_ID AND es.USE_YN = 'Y'
         WHERE m.USER_ROLE = 'ROLE_ADMIN'
         ORDER BY m.USER_ID
     </select>

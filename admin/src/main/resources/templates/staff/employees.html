@@ -401,7 +401,7 @@
             <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="type" onclick="sortHrBy('type')">근무 유형 <span class="sort-icon text-slate-300">↕</span></th>
             <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="dept" onclick="sortHrBy('dept')">소속 부서 <span class="sort-icon text-slate-300">↕</span></th>
             <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="status" onclick="sortHrBy('status')">상태 <span class="sort-icon text-slate-300">↕</span></th>
-            <th class="text-left py-3 px-4 font-semibold"></th>
+            <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="action" onclick="sortHrBy('action')">상세</tr>
           </tr>
         </thead>
         <tbody id="hr-table-body" class="divide-y divide-slate-50">
@@ -425,7 +425,8 @@
               th:data-addr-detail="${emp.member.userDaddr != null ? emp.member.userDaddr : ''}"
               th:data-addr="${(emp.member.userAddr != null ? emp.member.userAddr : '') + (emp.member.userDaddr != null and not #strings.isEmpty(emp.member.userDaddr) ? ' ' + emp.member.userDaddr : '')}"
               th:data-contract-end="${emp.employeeInfo != null ? emp.employeeInfo.ctrctEndYmd : ''}"
-              th:data-duty="${emp.employeeInfo != null ? emp.employeeInfo.chrgDutyCn : ''}">
+              th:data-duty="${emp.employeeInfo != null ? emp.employeeInfo.chrgDutyCn : ''}"
+              th:data-salary="${emp.baseSalary != null ? emp.baseSalary : ''}">
               <!-- 테이블 내용 -->
             <td class="py-3 px-4">
               <div class="flex items-center gap-2">
@@ -1244,9 +1245,9 @@ function openDetail(id) {
     role:     card ? (card.dataset.jbgrNm || '-') : (row.dataset.grade || '-'),
     entry:    card ? (card.dataset.joinYmd || '-') : (row.dataset.join  || '-'),
     workType:    workType,
-    contractEnd: (row ? row.dataset.contractEnd : src.dataset.contractEnd || '').substring(0, 10),
+    contractEnd: ((row ? row.dataset.contractEnd : src.dataset.contractEnd) || '').substring(0, 10),
     duty:        src.dataset.duty   || (card ? card.dataset.chrgDutyCn : '') || '-',
-    salary:      src.dataset.salary || (card ? card.dataset.salary : '') || '-',
+    salary:      (row ? row.dataset.salary : '') || (card ? card.dataset.salary : '') || '-',
   };
 
   selectedEmpId = id;
@@ -1321,6 +1322,7 @@ function toggleDetailEdit() {
       document.getElementById('edit-addr').value       = row.dataset.addrBase  || '';
       document.getElementById('edit-addr-detail').value = row.dataset.addrDetail || '';
       document.getElementById('edit-duty').value       = row.dataset.duty   || '';
+      document.getElementById('edit-salary').value     = row.dataset.salary || '';
     }
   }
 }
@@ -1350,6 +1352,7 @@ function saveDetailEdit() {
   row.dataset.addrDetail = addrDetail;
   row.dataset.addr       = (addrBase + (addrDetail ? ' ' + addrDetail : '')).trim();
   row.dataset.duty     = document.getElementById('edit-duty').value;
+  row.dataset.salary   = document.getElementById('edit-salary').value;
 
   // 카드가 DOM에 있으면 type/status도 동기화 (openDetail에서 stale 값 참조 방지)
   const card = document.querySelector('.emp-card[data-id="' + selectedEmpId + '"]');
