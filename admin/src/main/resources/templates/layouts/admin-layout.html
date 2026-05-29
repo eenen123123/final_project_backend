@@ -20,6 +20,7 @@
 
     <link rel="stylesheet" th:href="@{/css/admin-core.css}" />
     <link rel="stylesheet" th:href="@{/css/sidebar-admin.css}" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" />
   </head>
 
   <body class="h-screen flex flex-col overflow-hidden">
@@ -37,5 +38,11 @@
 
     <script th:src="@{/js/admin-core.js}" defer></script>
     <script th:src="@{/js/sidebar-admin.js}" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
+    <script>
+      document.querySelectorAll("select.hm-input").forEach(function (el) {
+        new TomSelect(el, { create: false });
+      });
+    </script>
   </body>
 </html>

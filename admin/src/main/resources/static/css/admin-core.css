@@ -34,7 +34,7 @@ body {
 .hm-input {
   width: 100%;
   border: 1px solid #e2e8f0;
-  border-radius: 0.75rem; /* rounded-xl */
+  border-radius: 0.75rem;
   padding: 0.65rem 1rem;
   font-size: 0.875rem;
   color: #1e293b;
@@ -74,9 +74,10 @@ body {
 .hm-btn-primary:active {
   transform: scale(0.98);
 }
+
 .hm-btn-secondary {
-  background-color: #e2e8f0; /* slate-200 */
-  color: #475569; /* slate-600 */
+  background-color: #e2e8f0;
+  color: #475569;
   font-weight: 700;
   font-size: 0.8125rem;
   padding: 0.75rem 1.25rem;
@@ -90,13 +91,14 @@ body {
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 .hm-btn-secondary:hover {
-  background-color: #cbd5e1; /* slate-300 */
+  background-color: #cbd5e1;
 }
 .hm-btn-secondary:active {
   transform: scale(0.98);
 }
+
 .hm-btn-danger {
-  background-color: #ef4444; /* red-500 */
+  background-color: #ef4444;
   color: #ffffff;
   font-weight: 700;
   font-size: 0.8125rem;
@@ -110,11 +112,12 @@ body {
   cursor: pointer;
 }
 .hm-btn-danger:hover {
-  background-color: #dc2626; /* red-600 */
+  background-color: #dc2626;
 }
 .hm-btn-danger:active {
   transform: scale(0.98);
 }
+
 .hm-switch {
   width: 2.5rem;
   height: 1.25rem;
@@ -144,90 +147,114 @@ body {
 }
 
 /* ==========================================================================
-   4. 특정 UI 컴포넌트 디자인 시스템
+   4. 색상 변형 (역할별 브랜드 컬러)
    ========================================================================== */
-/* hm-btn-primary 색상 변형 */
 
-/* 강사 색상 */
-.hm-input-sky {
-  border-color: #0ea5e9;
+/* 강사 — sky */
+.hm-input-sky { border-color: #0ea5e9; }
+.hm-input-sky:focus { border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08); }
+.hm-input-sky:disabled { border-color: #bae6fd; }
+.hm-btn-sky { background-color: #0ea5e9; }
+.hm-btn-sky:hover { background-color: #0284c7; }
+.hm-switch-sky:checked { background-color: #0ea5e9; }
+
+/* 행정팀장(실장) — emerald */
+.hm-input-emerald { border-color: #10b981; }
+.hm-input-emerald:focus { border-color: #10b981; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08); }
+.hm-input-emerald:disabled { border-color: #6ee7b7; }
+.hm-btn-emerald { background-color: #10b981; }
+.hm-btn-emerald:hover { background-color: #059669; }
+.hm-switch-emerald:checked { background-color: #10b981; }
+
+/* pd — orange */
+.hm-input-orange { border-color: #f97316; }
+.hm-input-orange:focus { border-color: #f97316; box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.08); }
+.hm-input-orange:disabled { border-color: #fdba74; }
+.hm-btn-orange { background-color: #f97316; }
+.hm-btn-orange:hover { background-color: #ea580c; }
+.hm-switch-orange:checked { background-color: #f97316; }
+
+/* 행정 — blue */
+.hm-input-blue { border-color: #3b82f6; }
+.hm-input-blue:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08); }
+.hm-input-blue:disabled { border-color: #93c5fd; }
+.hm-btn-blue { background-color: #3b82f6; }
+.hm-btn-blue:hover { background-color: #2563eb; }
+.hm-switch-blue:checked { background-color: #3b82f6; }
+
+/* ==========================================================================
+   5. Tom Select 오버라이드 (select.hm-input 에 자동 적용)
+   --------------------------------------------------------------------------
+   Tom Select는 네이티브 <select> 의 드롭다운 목록을 커스텀 UI로 대체하는
+   경량 JS 라이브러리(~25KB, 의존성 없음)입니다.
+   네이티브 <select> 의 드롭다운은 OS가 직접 그리기 때문에 CSS가 적용되지
+   않는데, Tom Select는 원본 <select> 를 숨기고 그 자리에 div 구조를 생성해
+   이 문제를 해결합니다.
+
+   [DOM 구조]
+     .ts-wrapper   — 전체 컨테이너 (hm-input 클래스 상속)
+       .ts-control — 선택된 값 표시 영역
+       .ts-dropdown — 옵션 목록 (클릭 시 표시)
+
+   [사용법]
+     select 태그에 hm-input 클래스만 추가하면 admin-layout.html 의
+     전역 초기화 스크립트가 자동으로 Tom Select 를 적용합니다.
+       <select class="hm-input">...</select>
+       <select class="hm-input hm-input-sky">...</select>
+
+   [폼 전송]
+     초기화 후에도 원본 <select> 는 숨겨진 채로 유지되어 폼 submit 시
+     값이 그대로 전송되므로 백엔드 코드 변경은 불필요합니다.
+   ========================================================================== */
+.ts-wrapper.hm-input {
+  padding: 0;
 }
-.hm-input-sky:focus {
-  border-color: #0ea5e9;
-  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08);
+.ts-wrapper.hm-input.focus .ts-control {
+  border-color: var(--color-brand-primary);
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.08);
 }
-.hm-input-sky:disabled {
-  border-color: #bae6fd;
+.ts-control {
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0.65rem 1rem !important;
+  border-radius: 0.75rem !important;
+  font-size: 0.875rem !important;
+  font-family: "Noto Sans KR", sans-serif !important;
+  background: transparent !important;
+  min-height: unset !important;
 }
-.hm-btn-sky {
-  background-color: #0ea5e9;
+.ts-dropdown {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.08);
+  font-size: 0.875rem;
+  font-family: "Noto Sans KR", sans-serif;
+  margin-top: 4px;
+  overflow: hidden;
 }
-.hm-btn-sky:hover {
-  background-color: #0284c7;
+.ts-dropdown .option {
+  padding: 0.6rem 1rem;
+  color: #1e293b;
 }
-.hm-switch-sky:checked {
-  background-color: #0ea5e9;
+.ts-dropdown .option:hover,
+.ts-dropdown .option.active {
+  background-color: #f0f9ff;
+  color: #0284c7;
 }
 
-/* 행정팀장(실장) 색상 */
-.hm-input-emerald {
-  border-color: #10b981;
-}
-.hm-input-emerald:focus {
-  border-color: #10b981;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08);
-}
-.hm-input-emerald:disabled {
-  border-color: #6ee7b7;
-}
-.hm-btn-emerald {
-  background-color: #10b981;
-}
-.hm-btn-emerald:hover {
-  background-color: #059669;
-}
-.hm-switch-emerald:checked {
-  background-color: #10b981;
-}
+/* 색상 변형별 포커스 오버라이드 */
+.ts-wrapper.hm-input-sky.focus .ts-control { border-color: #0ea5e9 !important; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08) !important; }
+.ts-wrapper.hm-input-sky .ts-dropdown .option:hover,
+.ts-wrapper.hm-input-sky .ts-dropdown .option.active { background-color: #f0f9ff; color: #0284c7; }
 
-/* pd 색상 */
-.hm-input-orange {
-  border-color: #f97316;
-}
-.hm-input-orange:focus {
-  border-color: #f97316;
-  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.08);
-}
-.hm-input-orange:disabled {
-  border-color: #fdba74;
-}
-.hm-btn-orange {
-  background-color: #f97316;
-}
-.hm-btn-orange:hover {
-  background-color: #ea580c;
-}
-.hm-switch-orange:checked {
-  background-color: #f97316;
-}
+.ts-wrapper.hm-input-emerald.focus .ts-control { border-color: #10b981 !important; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08) !important; }
+.ts-wrapper.hm-input-emerald .ts-dropdown .option:hover,
+.ts-wrapper.hm-input-emerald .ts-dropdown .option.active { background-color: #f0fdf4; color: #059669; }
 
-/* 행정 색상 */
-.hm-input-blue {
-  border-color: #3b82f6;
-}
-.hm-input-blue:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
-}
-.hm-input-blue:disabled {
-  border-color: #93c5fd;
-}
-.hm-btn-blue {
-  background-color: #3b82f6;
-}
-.hm-btn-blue:hover {
-  background-color: #2563eb;
-}
-.hm-switch-blue:checked {
-  background-color: #3b82f6;
-}
+.ts-wrapper.hm-input-orange.focus .ts-control { border-color: #f97316 !important; box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.08) !important; }
+.ts-wrapper.hm-input-orange .ts-dropdown .option:hover,
+.ts-wrapper.hm-input-orange .ts-dropdown .option.active { background-color: #fff7ed; color: #ea580c; }
+
+.ts-wrapper.hm-input-blue.focus .ts-control { border-color: #3b82f6 !important; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08) !important; }
+.ts-wrapper.hm-input-blue .ts-dropdown .option:hover,
+.ts-wrapper.hm-input-blue .ts-dropdown .option.active { background-color: #eff6ff; color: #2563eb; }
