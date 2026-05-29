@@ -1309,12 +1309,17 @@ function toggleDetailEdit() {
   if (detailEditMode) {
     const row = document.querySelector('.hr-data-row[data-id="' + selectedEmpId + '"]');
     if (row) {
-      document.getElementById('edit-dept').value       = row.dataset.dept   || '';
-      filterEditRoleByDept();
-      document.getElementById('edit-role').value       = row.dataset.gradeCd || '';
+      const deptEl = document.getElementById('edit-dept');
+      if (deptEl.tomselect) deptEl.tomselect.setValue(row.dataset.dept || '');
+      else deptEl.value = row.dataset.dept || '';
+      filterEditRoleByDept(row.dataset.gradeCd || '');
       document.getElementById('edit-entry-date').value = row.dataset.join   || '';
-      document.getElementById('edit-status').value     = row.dataset.status || '01';
-      document.getElementById('edit-work-type').value  = row.dataset.type   || '01';
+      const statusEl   = document.getElementById('edit-status');
+      const workTypeEl = document.getElementById('edit-work-type');
+      if (statusEl.tomselect)   statusEl.tomselect.setValue(row.dataset.status || '01');
+      else statusEl.value = row.dataset.status || '01';
+      if (workTypeEl.tomselect) workTypeEl.tomselect.setValue(row.dataset.type || '01');
+      else workTypeEl.value = row.dataset.type || '01';
       toggleEditContractPeriod(row.dataset.type || '01');
       document.getElementById('edit-contract-end').value = (row.dataset.contractEnd || '').substring(0, 10);
       document.getElementById('edit-phone').value      = formatPhoneDisplay(row.dataset.phone);
@@ -1366,14 +1371,21 @@ function saveDetailEdit() {
   showHermesToast('인사 기록이 수정되었습니다.', 'success');
 }
 
-function filterEditRoleByDept() {
-  const selectedDept = document.getElementById('edit-dept').value;
-  const roleSelect   = document.getElementById('edit-role');
-  roleSelect.value = '';
-  roleSelect.querySelectorAll('option').forEach(opt => {
-    if (!opt.value) { opt.style.display = ''; return; }
-    opt.style.display = (!selectedDept || opt.dataset.dept === selectedDept) ? '' : 'none';
-  });
+// edit-role 전체 옵션 원본 저장
+const allEditRoleOptions = Array.from(
+  document.querySelectorAll('#edit-role option[value]:not([value=""])')
+).map(opt => ({ value: opt.value, text: opt.textContent.trim(), dept: opt.dataset.dept || '' }));
+
+function filterEditRoleByDept(selectValue) {
+  const deptCd = document.getElementById('edit-dept').value;
+  const ts = document.getElementById('edit-role').tomselect;
+  if (!ts) return;
+  ts.clear(true);
+  ts.clearOptions();
+  const filtered = deptCd ? allEditRoleOptions.filter(o => o.dept === deptCd) : allEditRoleOptions;
+  filtered.forEach(o => ts.addOption({ value: o.value, text: o.text }));
+  ts.refreshOptions(false);
+  if (selectValue) ts.setValue(selectValue);
 }
 
 function toggleEditContractPeriod(val) {
