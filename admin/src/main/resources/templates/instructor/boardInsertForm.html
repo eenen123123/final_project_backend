@@ -1,16 +1,47 @@
 <div class="p-6">
+  <!-- Toast UI Editor CSS (로컬) -->
+  <link rel="stylesheet" th:href="@{/css/vendor/toast-ui/toastui-editor.min.css}" />
+  <link rel="stylesheet" th:href="@{/css/vendor/toast-ui/tui-color-picker.min.css}" />
+  <link rel="stylesheet" th:href="@{/css/vendor/toast-ui/toastui-editor-plugin-color-syntax.min.css}" />
+  <link rel="stylesheet" th:href="@{/css/vendor/toast-ui/toastui-editor-plugin-code-syntax-highlight.min.css}" />
+  <link rel="stylesheet" th:href="@{/css/vendor/toast-ui/toastui-editor-plugin-table-merged-cell.min.css}" />
+  <link rel="stylesheet" th:href="@{/css/vendor/toast-ui/toastui-chart.min.css}" />
+
+  <!-- hm-input-sky 스타일 통일 + 페이지 폰트(Noto Sans KR) 적용 -->
+  <style>
+    .toastui-editor-defaultUI {
+      border: 1px solid #0ea5e9;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .toastui-editor-defaultUI:focus-within {
+      border-color: #0ea5e9;
+      box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08);
+    }
+    .toastui-editor-toolbar {
+      border-radius: 0.75rem 0.75rem 0 0;
+    }
+    /* 에디터 입력 영역 폰트를 페이지 폰트(Noto Sans KR)로 통일 */
+    .toastui-editor-contents,
+    .toastui-editor .ProseMirror {
+      font-family: "Noto Sans KR", sans-serif;
+    }
+  </style>
+
   <!-- 페이지 헤더 -->
   <div class="mb-6 flex items-center justify-between">
     <div>
-      <h1 class="text-2xl font-bold text-slate-800">게시글 작성</h1>
+      <h1
+        class="text-2xl font-bold text-slate-800"
+        th:text="${board?.postSn != null} ? '게시글 수정' : '게시글 작성'"
+      ></h1>
       <p class="mt-1 text-sm text-slate-500">
         강의 관련 공지, 질문, 자료를 등록합니다.
       </p>
     </div>
-    <a
-      href="/instructor/board/list"
-      class="hm-btn-primary hm-btn-sky text-base"
-    >
+    <a href="/instructor/board/list" class="hm-btn-secondary text-base">
       <i class="fa-solid fa-list"></i>
       목록으로
     </a>
@@ -27,10 +58,19 @@
 
   <!-- 작성 폼 -->
   <form
-    th:action="@{/instructor/board/insert}"
+    th:action="@{${board?.postSn != null ? '/instructor/board/update' : '/instructor/board/insert'}}"
     method="post"
     class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
   >
+    <input
+      type="hidden"
+      name="postSn"
+      th:if="${board?.postSn != null}"
+      th:value="${board?.postSn}"
+    />
+    <!-- 에디터 내용을 폼 전송에 사용하는 hidden input -->
+    <input type="hidden" name="postCn" id="postCnHidden" />
+
     <div class="divide-y divide-slate-100">
       <!-- 게시판 분류 -->
       <div class="flex items-center px-8 py-5">
@@ -42,10 +82,15 @@
         <select
           id="boardTypeCd"
           name="boardTypeCd"
-          class="hm-input hm-input-sky max-w-48 text-base"
-          th:attr="data-selected=${board?.boardTypeCd}"
+          class="hm-input hm-input-sky max-w-56 text-base"
         >
           <option value="">-- 선택 --</option>
+          <option
+            th:each="type : ${boardTypes}"
+            th:value="${type.comCd}"
+            th:text="${type.comCdNm}"
+            th:selected="${type.comCd == board?.boardTypeCd}"
+          ></option>
         </select>
       </div>
 
@@ -68,23 +113,12 @@
         />
       </div>
 
-      <!-- 내용 -->
+      <!-- 내용: textarea 대신 에디터 마운트 div 사용 -->
       <div class="flex px-8 py-5">
-        <label
-          for="postCn"
-          class="w-28 shrink-0 pt-1 text-sm font-semibold text-slate-600"
-        >
+        <label class="w-28 shrink-0 pt-1 text-sm font-semibold text-slate-600">
           내용 <span class="text-red-400">*</span>
         </label>
-        <textarea
-          id="postCn"
-          name="postCn"
-          rows="12"
-          maxlength="1333"
-          placeholder="내용을 입력하세요."
-          class="hm-input hm-input-sky resize-none text-base leading-relaxed"
-          th:text="${board?.postCn}"
-        ></textarea>
+        <div id="editor" class="flex-1"></div>
       </div>
     </div>
 
@@ -100,27 +134,54 @@
       </a>
       <button type="submit" class="hm-btn-primary hm-btn-sky text-base">
         <i class="fa-solid fa-floppy-disk"></i>
-        등록
+        <span th:text="${board?.postSn != null} ? '수정' : '등록'"></span>
       </button>
     </div>
   </form>
 
-  <script>
-    (function () {
-      const select = document.getElementById("boardTypeCd");
-      const selected = (select.dataset.selected || "").trim();
+  <!-- Toast UI Editor JS (defer: HTML 파싱과 병렬 다운로드, Tom Select 블로킹 방지) -->
+  <script defer th:src="@{/js/vendor/toast-ui/toastui-editor-all.min.js}"></script>
+  <script defer th:src="@{/js/vendor/toast-ui/ko-kr.min.js}"></script>
+  <script defer th:src="@{/js/vendor/toast-ui/tui-color-picker.min.js}"></script>
+  <script defer th:src="@{/js/vendor/toast-ui/toastui-editor-plugin-color-syntax.min.js}"></script>
+  <script defer th:src="@{/js/vendor/toast-ui/toastui-editor-plugin-code-syntax-highlight-all.min.js}"></script>
+  <script defer th:src="@{/js/vendor/toast-ui/toastui-editor-plugin-table-merged-cell.min.js}"></script>
+  <script defer th:src="@{/js/vendor/toast-ui/toastui-chart.min.js}"></script>
+  <script defer th:src="@{/js/vendor/toast-ui/toastui-editor-plugin-chart.min.js}"></script>
 
-      fetch("/instructor/board/boardTypes")
-        .then((res) => res.json())
-        .then((codes) => {
-          codes.forEach((code) => {
-            const opt = document.createElement("option");
-            opt.value = code.comCd;
-            opt.textContent = code.comCdNm;
-            if (code.comCd === selected) opt.selected = true;
-            select.appendChild(opt);
-          });
-        });
-    })();
+  <script th:inline="javascript">
+    // defer 스크립트는 DOMContentLoaded 직전에 실행되므로
+    // 이 시점에 모든 에디터 스크립트가 준비됨
+    document.addEventListener("DOMContentLoaded", function () {
+      const { Editor } = toastui;
+      const { colorSyntax, codeSyntaxHighlight, tableMergedCell, chart } =
+        Editor.plugin;
+
+      const editor = new Editor({
+        el: document.querySelector("#editor"),
+        height: "500px",
+        initialEditType: "wysiwyg",
+        previewStyle: "tab",
+        language: "ko-KR",
+        usageStatistics: false,
+        plugins: [
+          colorSyntax,
+          codeSyntaxHighlight,
+          tableMergedCell,
+          chart,
+        ].filter(Boolean),
+      });
+
+      // 수정 모드: 기존 저장된 내용을 에디터에 로드
+      const savedContent = /*[[${board?.postCn}]]*/ null;
+      if (savedContent) {
+        editor.setHTML(savedContent);
+      }
+
+      // 폼 submit 시 에디터 HTML 내용을 hidden input에 복사
+      document.querySelector("form").addEventListener("submit", function () {
+        document.getElementById("postCnHidden").value = editor.getHTML();
+      });
+    });
   </script>
 </div>

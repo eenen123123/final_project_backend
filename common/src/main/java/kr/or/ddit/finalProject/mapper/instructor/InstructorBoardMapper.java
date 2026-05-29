@@ -18,5 +18,7 @@ public interface InstructorBoardMapper {
 
     public int updateInstructorBoard(InstructorBoardDto instructorBoardDto);
 
-    public int deleteInstructorBoard(@Param("postSn") Long postSn);
+    public int deleteInstructorBoard(@Param("postSn") Long postSn, @Param("instrUserId") String instrUserId);
+
+    public int restoreInstructorBoard(@Param("postSn") Long postSn, @Param("instrUserId") String instrUserId);
 }

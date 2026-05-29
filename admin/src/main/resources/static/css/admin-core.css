@@ -34,7 +34,7 @@ body {
 .hm-input {
   width: 100%;
   border: 1px solid #e2e8f0;
-  border-radius: 0.75rem; /* rounded-xl */
+  border-radius: 0.75rem;
   padding: 0.65rem 1rem;
   font-size: 0.875rem;
   color: #1e293b;
@@ -74,9 +74,10 @@ body {
 .hm-btn-primary:active {
   transform: scale(0.98);
 }
+
 .hm-btn-secondary {
-  background-color: #e2e8f0; /* slate-200 */
-  color: #475569; /* slate-600 */
+  background-color: #e2e8f0;
+  color: #475569;
   font-weight: 700;
   font-size: 0.8125rem;
   padding: 0.75rem 1.25rem;
@@ -90,8 +91,33 @@ body {
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 .hm-btn-secondary:hover {
-  background-color: #cbd5e1; /* slate-300 */
+  background-color: #cbd5e1;
 }
+.hm-btn-secondary:active {
+  transform: scale(0.98);
+}
+
+.hm-btn-danger {
+  background-color: #ef4444;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.75rem;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.hm-btn-danger:hover {
+  background-color: #dc2626;
+}
+.hm-btn-danger:active {
+  transform: scale(0.98);
+}
+
 .hm-switch {
   width: 2.5rem;
   height: 1.25rem;
@@ -121,90 +147,191 @@ body {
 }
 
 /* ==========================================================================
-   4. 특정 UI 컴포넌트 디자인 시스템
+   4. 색상 변형 (역할별 브랜드 컬러)
    ========================================================================== */
-/* hm-btn-primary 색상 변형 */
 
-/* 강사 색상 */
-.hm-input-sky {
-  border-color: #0ea5e9;
+/* 강사 — sky */
+.hm-input-sky { border-color: #0ea5e9; }
+.hm-input-sky:focus { border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08); }
+.hm-input-sky:disabled { border-color: #bae6fd; }
+.hm-btn-sky { background-color: #0ea5e9; }
+.hm-btn-sky:hover { background-color: #0284c7; }
+.hm-switch-sky:checked { background-color: #0ea5e9; }
+
+/* 행정팀장(실장) — emerald */
+.hm-input-emerald { border-color: #10b981; }
+.hm-input-emerald:focus { border-color: #10b981; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08); }
+.hm-input-emerald:disabled { border-color: #6ee7b7; }
+.hm-btn-emerald { background-color: #10b981; }
+.hm-btn-emerald:hover { background-color: #059669; }
+.hm-switch-emerald:checked { background-color: #10b981; }
+
+/* pd — orange */
+.hm-input-orange { border-color: #f97316; }
+.hm-input-orange:focus { border-color: #f97316; box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.08); }
+.hm-input-orange:disabled { border-color: #fdba74; }
+.hm-btn-orange { background-color: #f97316; }
+.hm-btn-orange:hover { background-color: #ea580c; }
+.hm-switch-orange:checked { background-color: #f97316; }
+
+/* 행정 — blue */
+.hm-input-blue { border-color: #3b82f6; }
+.hm-input-blue:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08); }
+.hm-input-blue:disabled { border-color: #93c5fd; }
+.hm-btn-blue { background-color: #3b82f6; }
+.hm-btn-blue:hover { background-color: #2563eb; }
+.hm-switch-blue:checked { background-color: #3b82f6; }
+
+/* ==========================================================================
+   5. Tom Select 오버라이드 (select.hm-input 에 자동 적용)
+   --------------------------------------------------------------------------
+   Tom Select는 네이티브 <select> 의 드롭다운 목록을 커스텀 UI로 대체하는
+   경량 JS 라이브러리(~25KB, 의존성 없음)입니다.
+   네이티브 <select> 의 드롭다운은 OS가 직접 그리기 때문에 CSS가 적용되지
+   않는데, Tom Select는 원본 <select> 를 숨기고 그 자리에 div 구조를 생성해
+   이 문제를 해결합니다.
+
+   [DOM 구조]
+     .ts-wrapper   — 전체 컨테이너 (hm-input 클래스 상속)
+       .ts-control — 선택된 값 표시 영역
+       .ts-dropdown — 옵션 목록 (클릭 시 표시)
+
+   [사용법]
+     select 태그에 hm-input 클래스만 추가하면 admin-layout.html 의
+     전역 초기화 스크립트가 자동으로 Tom Select 를 적용합니다.
+       <select class="hm-input">...</select>
+       <select class="hm-input hm-input-sky">...</select>
+     options 를 fetch 등으로 비동기 로드하는 경우 data-ts-defer 속성 추가 후
+     fetch 완료 시점에 window.initTomSelect(el) 을 직접 호출합니다.
+
+   [폼 전송]
+     초기화 후에도 원본 <select> 는 숨겨진 채로 유지되어 폼 submit 시
+     값이 그대로 전송되므로 백엔드 코드 변경은 불필요합니다.
+
+   [CSS 로딩 순서]
+     admin-layout.html 에서 tom-select.css 를 이 파일보다 먼저 로드합니다.
+     덕분에 아래 규칙들이 !important 없이 Tom Select 기본 스타일을 덮어씁니다.
+   ========================================================================== */
+
+/* --- 컨테이너 --- */
+.ts-wrapper.hm-input {
+  padding: 0;
+  border-radius: 0.75rem !important; /* Tom Select JS/CSS 가 상태에 따라 변경해도 항상 유지 */
 }
-.hm-input-sky:focus {
-  border-color: #0ea5e9;
-  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08);
+.ts-wrapper.hm-input.focus {
+  outline: none;
+  border-color: var(--color-brand-primary);
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.08);
 }
-.hm-input-sky:disabled {
-  border-color: #bae6fd;
-}
-.hm-btn-sky {
-  background-color: #0ea5e9;
-}
-.hm-btn-sky:hover {
-  background-color: #0284c7;
-}
-.hm-switch-sky:checked {
-  background-color: #0ea5e9;
+/* Tom Select 가 focus/input-active/dropdown-active 상태에서 .ts-control 에 적용하는
+   outline, box-shadow, border 를 모두 제거 */
+.ts-wrapper.focus .ts-control,
+.ts-wrapper.input-active .ts-control,
+.ts-wrapper.dropdown-active .ts-control {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0.75rem !important; /* outline 이 남아있어도 둥글게 따라가도록 유지 */
 }
 
-/* 행정팀장(실장) 색상 */
-.hm-input-emerald {
-  border-color: #10b981;
+/* --- 컨트롤 (선택된 값 표시 영역) --- */
+/* 특이성 (0,2,0) 으로 Tom Select 의 기본 .ts-control 규칙보다 우선 적용 */
+.ts-wrapper .ts-control {
+  border: none;
+  box-shadow: none;
+  padding: 0.65rem 1.75rem 0.65rem 1rem; /* 오른쪽: 화살표(right:14px + width:8px + 여유) */
+  font-size: 0.875rem;
+  font-family: "Noto Sans KR", sans-serif;
+  color: #1e293b;
+  background: transparent;
+  min-height: unset;
+  position: relative;
+  display: flex !important;       /* Tom Select 의 더 높은 특이성 선택자에 덮어쓰이지 않도록 */
+  align-items: center !important;
+  flex-wrap: nowrap !important;
 }
-.hm-input-emerald:focus {
-  border-color: #10b981;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08);
+/* 내부 검색 input — readonly 로 타이핑 차단
+   ※ 단일 선택 전용. select[multiple] 에는 이 CSS 가 적합하지 않음 */
+.ts-wrapper .ts-control input {
+  border: none;
+  outline: none;
+  background: transparent;
+  caret-color: transparent;
+  cursor: default;
+  flex: 1; /* 기본: 선택 전 placeholder 표시를 위해 공간 확보 */
 }
-.hm-input-emerald:disabled {
-  border-color: #6ee7b7;
+/* 항목이 선택된 상태(has-items)에서만 input 을 숨기고 .item 이 공간을 차지하도록 함 */
+.ts-wrapper.single.has-items .ts-control input {
+  width: 0 !important;
+  min-width: 0 !important;
+  flex: 0 0 0 !important;
 }
-.hm-btn-emerald {
-  background-color: #10b981;
-}
-.hm-btn-emerald:hover {
-  background-color: #059669;
-}
-.hm-switch-emerald:checked {
-  background-color: #10b981;
+/* 선택된 항목: 긴 텍스트는 말줄임 처리 */
+.ts-wrapper.single .ts-control .item {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* pd 색상 */
-.hm-input-orange {
-  border-color: #f97316;
+/* --- 드롭다운 화살표 --- */
+.ts-wrapper.single .ts-control::after {
+  content: "";
+  display: block;
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  margin-top: -3px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 5px 4px 0 4px;
+  border-color: #94a3b8 transparent transparent transparent;
+  pointer-events: none;
 }
-.hm-input-orange:focus {
-  border-color: #f97316;
-  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.08);
-}
-.hm-input-orange:disabled {
-  border-color: #fdba74;
-}
-.hm-btn-orange {
-  background-color: #f97316;
-}
-.hm-btn-orange:hover {
-  background-color: #ea580c;
-}
-.hm-switch-orange:checked {
-  background-color: #f97316;
+.ts-wrapper.single.focus .ts-control::after {
+  border-color: var(--color-brand-primary) transparent transparent transparent;
 }
 
-/* 행정 색상 */
-.hm-input-blue {
-  border-color: #3b82f6;
+/* --- 드롭다운 목록 --- */
+.ts-dropdown {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.08);
+  font-size: 0.875rem;
+  font-family: "Noto Sans KR", sans-serif;
+  margin-top: 6px;
+  padding: 4px;
+  overflow: hidden;
+  z-index: 100; /* 모달 등 z-index > 100 인 요소 위에서 열릴 경우 이 값을 높여야 함 */
 }
-.hm-input-blue:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
+.ts-dropdown .option {
+  padding: 0.55rem 0.875rem;
+  color: #475569;
+  border-radius: 0.5rem;
+  transition: background-color 0.15s, color 0.15s;
 }
-.hm-input-blue:disabled {
-  border-color: #93c5fd;
-}
-.hm-btn-blue {
-  background-color: #3b82f6;
-}
-.hm-btn-blue:hover {
-  background-color: #2563eb;
-}
-.hm-switch-blue:checked {
-  background-color: #3b82f6;
-}
+.ts-dropdown .option:hover       { background-color: #f1f5f9; color: #1e293b; }
+.ts-dropdown .option.selected    { background-color: #f0f9ff; color: #0284c7; font-weight: 500; }
+.ts-dropdown .option.active      { background-color: #e0f2fe; color: #0284c7; }
+
+/* --- 색상 변형별 포커스 & 화살표 & 드롭다운 옵션 --- */
+.ts-wrapper.hm-input-sky.focus     { border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08); }
+.ts-wrapper.hm-input-emerald.focus { border-color: #10b981; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08); }
+.ts-wrapper.hm-input-orange.focus  { border-color: #f97316; box-shadow: 0 0 0 4px rgba(249, 115, 22,  0.08); }
+.ts-wrapper.hm-input-blue.focus    { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,  130, 246, 0.08); }
+
+.ts-wrapper.single.hm-input-sky.focus     .ts-control::after { border-color: #0ea5e9 transparent transparent transparent; }
+.ts-wrapper.single.hm-input-emerald.focus .ts-control::after { border-color: #10b981 transparent transparent transparent; }
+.ts-wrapper.single.hm-input-orange.focus  .ts-control::after { border-color: #f97316 transparent transparent transparent; }
+.ts-wrapper.single.hm-input-blue.focus    .ts-control::after { border-color: #3b82f6 transparent transparent transparent; }
+
+.ts-wrapper.hm-input-sky     .ts-dropdown .option:hover,
+.ts-wrapper.hm-input-sky     .ts-dropdown .option.active { background-color: #f0f9ff; color: #0284c7; }
+.ts-wrapper.hm-input-emerald .ts-dropdown .option:hover,
+.ts-wrapper.hm-input-emerald .ts-dropdown .option.active { background-color: #f0fdf4; color: #059669; }
+.ts-wrapper.hm-input-orange  .ts-dropdown .option:hover,
+.ts-wrapper.hm-input-orange  .ts-dropdown .option.active { background-color: #fff7ed; color: #ea580c; }
+.ts-wrapper.hm-input-blue    .ts-dropdown .option:hover,
+.ts-wrapper.hm-input-blue    .ts-dropdown .option.active { background-color: #eff6ff; color: #2563eb; }
