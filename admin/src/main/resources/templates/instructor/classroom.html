@@ -40,15 +40,77 @@
     </div>
   </div>
 
-  <!-- 학생 명단 없을 때 -->
+  <!-- 강의 목록 없을 때 -->
   <div
-    th:if="${#lists.isEmpty(classroom.members)}"
+    th:if="${#lists.isEmpty(classroom.lectures)}"
     class="bg-white rounded-2xl border border-slate-100 shadow-sm p-16 flex flex-col items-center justify-center text-center gap-3"
   >
     <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-2xl">
-      <i class="fa-solid fa-user-graduate"></i>
+      <i class="fa-solid fa-chalkboard-user"></i>
     </div>
-    <p class="text-sm font-medium text-slate-500">등록된 학생이 없습니다.</p>
+    <p class="text-sm font-medium text-slate-500">등록된 강의가 없습니다.</p>
+  </div>
+
+  <!-- 강의 목록 -->
+  <div
+    th:unless="${#lists.isEmpty(classroom.lectures)}"
+    class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
+  >
+    <div class="px-6 py-4 border-b border-slate-100">
+      <h2 class="text-sm font-bold text-slate-700">강의 목록</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider uppercase">
+            <th class="py-4 px-6">연도</th>
+            <th class="py-4 px-6">기간</th>
+            <th class="py-4 px-6">수강 인원</th>
+            <th class="py-4 px-6">학습 시간</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+          <tr
+            th:each="lecture : ${classroom.lectures}"
+            class="hover:bg-slate-50/50 transition-colors"
+          >
+            <td class="py-4 px-6 font-semibold text-slate-900" th:text="${lecture.lectYear}">-</td>
+            <td class="py-4 px-6 text-xs text-slate-500 font-mono">
+              <th:block th:text="${lecture.lectStrtYmd}">-</th:block>
+              ~
+              <th:block th:text="${lecture.lectEndYmd != null ? lecture.lectEndYmd : '미정'}">-</th:block>
+            </td>
+            <td class="py-4 px-6">
+              <span class="text-sm font-medium text-slate-700" th:text="${lecture.curEnrlCnt} + '명'">0명</span>
+            </td>
+            <td class="py-4 px-6 text-xs text-slate-400 font-mono" th:text="${lecture.lrnTimeCnt}">-</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="border-t border-slate-100 px-6 py-3 bg-slate-50/50">
+      <p class="text-xs text-slate-400">
+        전체
+        <span class="font-semibold text-slate-600" th:text="${#lists.size(classroom.lectures)}">0</span>개
+        강의
+      </p>
+    </div>
+  </div>
+
+  <!-- 학생 명단 없을 때 -->
+  <div
+    th:if="${#lists.isEmpty(classroom.members)}"
+    class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
+  >
+    <div class="px-6 py-4 border-b border-slate-100">
+      <h2 class="text-sm font-bold text-slate-700">학생 명단</h2>
+    </div>
+    <div class="p-16 flex flex-col items-center justify-center text-center gap-3">
+      <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-2xl">
+        <i class="fa-solid fa-user-graduate"></i>
+      </div>
+      <p class="text-sm font-medium text-slate-500">등록된 학생이 없습니다.</p>
+    </div>
   </div>
 
   <!-- 학생 명단 -->
@@ -56,6 +118,9 @@
     th:unless="${#lists.isEmpty(classroom.members)}"
     class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
   >
+    <div class="px-6 py-4 border-b border-slate-100">
+      <h2 class="text-sm font-bold text-slate-700">학생 명단</h2>
+    </div>
     <div class="overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>

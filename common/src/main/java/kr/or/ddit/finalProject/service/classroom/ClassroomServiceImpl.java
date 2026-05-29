@@ -9,8 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomListResponse;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomMemberListResponse;
+import kr.or.ddit.finalProject.dto.lecture.LectureListResponse;
 import kr.or.ddit.finalProject.mapper.classroom.ClassroomMapper;
 import kr.or.ddit.finalProject.mapper.classroom.ClassroomMemberMapper;
+import kr.or.ddit.finalProject.mapper.lecture.LectureMapper;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -22,6 +24,7 @@ public class ClassroomServiceImpl implements ClassroomService {
 
     private final ClassroomMapper classroomMapper;
     private final ClassroomMemberMapper classroomMemberMapper;
+    private final LectureMapper lectureMapper;
 
     @Override
     public List<ClassroomListResponse> retrieveClassroomList(String instrUserId) {
@@ -45,6 +48,13 @@ public class ClassroomServiceImpl implements ClassroomService {
         List<ClassroomMemberListResponse> members = classroomMemberMapper.selectMembersByClassSn(classSn);
         members.forEach(m -> m.setFormattedRegDt(m.getRegDt().format(REG_DT_FORMAT)));
         detail.setMembers(members);
+
+        List<LectureListResponse> lectures = lectureMapper.selectLecturesByClassSn(classSn);
+        lectures.forEach(l -> {
+            l.setLectStrtYmd(formatYmd(l.getLectStrtYmd()));
+            if (l.getLectEndYmd() != null) l.setLectEndYmd(formatYmd(l.getLectEndYmd()));
+        });
+        detail.setLectures(lectures);
 
         return detail;
     }
