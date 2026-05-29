@@ -95,8 +95,12 @@ public class StaffController {
         // 직급명 조회
         List<JobGradeDto> jobgradelist = staffService.retrieveJobGradeList();
 
+        // 입사 연도 목록 조회
+        List<Integer> joinYearList = staffService.retrieveJoinYearList();
+
         model.addAttribute("departmentlist", departmentlist);
         model.addAttribute("jobgradelist", jobgradelist);
+        model.addAttribute("joinYearList", joinYearList);
         model.addAttribute("employeeList", employeeList);
 
         return "admin:/staff/employees";

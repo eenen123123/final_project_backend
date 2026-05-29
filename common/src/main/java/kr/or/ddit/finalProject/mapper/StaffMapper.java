@@ -31,6 +31,9 @@ public interface StaffMapper {
     // 직원 리스트 조회
     List<EmployeeDetailDto> selectEmployeeList();
 
+    // 입사 연도 목록 조회 (중복 제거)
+    List<Integer> selectJoinYearList();
+
     // 직원 중복 조회
     int checkIdExists(String usrId);
 

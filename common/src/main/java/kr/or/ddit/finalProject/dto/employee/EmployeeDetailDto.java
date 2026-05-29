@@ -33,4 +33,7 @@ public class EmployeeDetailDto {
 
     // 7. 직원의 근무 형태(정규직, 계약직, 파트타임)
     private String emplTypeCd;
+
+    // 8. 현재 적용 중인 기본 급여 (만원)
+    private Integer baseSalary;
 }
