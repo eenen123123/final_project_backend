@@ -1,8 +1,8 @@
--- CLASS: CLASS_STAT_CD → USE_YN 으로 교체
+-- CLASS: USE_YN → CLASS_STAT_CD 로 교체
 --    (데이터 없으니 DROP 후 재추가가 제일 깔끔)
-alter table classroom drop column class_stat_cd;
-alter table classroom add use_yn char(1) default 'Y' not null;
-comment on column classroom.use_yn is
-   '운영 여부 (Y: 운영중, N: 종료)';
+ALTER TABLE classroom DROP COLUMN use_yn;
+ALTER TABLE classroom ADD class_stat_cd CHAR(2) DEFAULT '04' NOT NULL;
+COMMENT ON COLUMN classroom.class_stat_cd IS
+    '클래스룸 상태코드 (01=모집중, 02=운영중, 03=종료, 04=대기)';
 
-commit;
+COMMIT;
