@@ -125,6 +125,15 @@ public class StaffEmployeesController {
         String nextId = staffService.getNextAvailableId(baseId, defaultSerial);
         return ResponseEntity.ok(nextId); 
     }
+
+    // 직원 정보 수정
+    @PostMapping("/employees/update")
+    public String postMethodName(@RequestBody String entity) {
+        //TODO: process POST request
+        
+        return entity;
+    }
+    
     
     
 
