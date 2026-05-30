@@ -116,8 +116,10 @@ public class CustomerServiceController {
     }
 
     @PostMapping("/qna/{postSn}/answer")
-    public String qnaAnswer(@PathVariable Long postSn, QnaDto qnaDto) {
+    public String qnaAnswer(@PathVariable Long postSn, QnaDto qnaDto,
+            Authentication authentication) {
         qnaDto.setPostSn(postSn);
+        qnaDto.setAnswrUserId(authentication.getName());
         qnaService.answerQna(qnaDto);
         return "redirect:/admin/board/customer-service?tab=tab-qna";
     }
