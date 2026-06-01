@@ -34,6 +34,9 @@ public class LectureServiceImpl implements LectureService {
         if (original == null) {
             throw new IllegalArgumentException("존재하지 않는 강의입니다.");
         }
+        if (!currentUserId.equals(original.getRgtrId())) {
+            throw new SecurityException("본인이 작성한 강의만 수정할 수 있습니다.");
+        }
         lectureDto.setLastMdfrId(currentUserId);
         lectureMapper.updateLecture(lectureDto);
     }
@@ -44,6 +47,9 @@ public class LectureServiceImpl implements LectureService {
         LectureDto original = lectureMapper.selectLectureBySn(lectureSn);
         if (original == null) {
             throw new IllegalArgumentException("존재하지 않는 강의입니다.");
+        }
+        if (!currentUserId.equals(original.getRgtrId())) {
+            throw new SecurityException("본인이 작성한 강의만 삭제할 수 있습니다.");
         }
         lectureMapper.deleteLecture(lectureSn);
     }

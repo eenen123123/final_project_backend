@@ -95,4 +95,8 @@
     DELETE FROM COURSE WHERE COURSE_SN = #{courseSn}
   </delete>
 
+  <select id="countLectureByCourse" resultType="int">
+    SELECT COUNT(*) FROM LECTURE WHERE COURSE_SN = #{courseSn}
+  </select>
+
 </mapper>

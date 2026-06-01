@@ -51,6 +51,10 @@ public class CourseServiceImpl implements CourseService {
         if (!currentUserId.equals(original.getInstrUserId())) {
             throw new SecurityException("본인이 작성한 강좌만 삭제할 수 있습니다.");
         }
+        int lectureCount = courseMapper.countLectureByCourse(courseSn);
+        if (lectureCount > 0) {
+            throw new IllegalArgumentException("강의가 존재하는 강좌는 삭제할 수 없습니다. 강의를 먼저 삭제해 주세요.");
+        }
         courseMapper.deleteCourse(courseSn);
     }
 

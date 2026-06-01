@@ -20,4 +20,6 @@ public interface CourseMapper {
 
     int deleteCourse(@Param("courseSn") Long courseSn);
 
+    int countLectureByCourse(@Param("courseSn") Long courseSn);
+
 }

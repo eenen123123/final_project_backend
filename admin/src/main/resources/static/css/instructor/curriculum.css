@@ -7,8 +7,8 @@
 .panel-card {
     background: #ffffff;
     border-radius: 0.75rem;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
 }
 
 .panel-header {
@@ -16,7 +16,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.625rem 1rem;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #e2e8f0;
     background-color: #f8fafc;
     font-size: 0.8125rem;
     font-weight: 700;
@@ -46,6 +46,10 @@
     font-size: 0.8125rem;
     text-align: center;
     padding: 2rem;
+}
+
+.panel-placeholder.hidden {
+    display: none;
 }
 
 .panel-empty-state {
@@ -209,7 +213,7 @@
 /* ── Inline forms ──────────────────────────────────────────── */
 
 .panel-form {
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid #e2e8f0;
     padding: 0.75rem 1rem;
     background-color: #fafafa;
     flex-shrink: 0;
