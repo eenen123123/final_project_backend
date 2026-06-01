@@ -104,12 +104,12 @@
     </update>
 
     <!-- QnA 답변 등록 -->
-    <update id="updateQnaAnswer" parameterType="QnaDto">
+   <update id="updateQnaAnswer" parameterType="QnaDto">
         UPDATE QNA
         SET
             ANSW_STAT_CD = '02'
-            , ANSW_CN = #{answCn}
-            , ANSWR_USER_ID = #{answrUserId}
+            , ANSW_CN = #{answCn, jdbcType=VARCHAR}
+            , ANSWR_USER_ID = #{answrUserId, jdbcType=VARCHAR}
             , ANSW_DT = CURRENT_TIMESTAMP
         WHERE POST_SN = #{postSn}
     </update>

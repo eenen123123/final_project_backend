@@ -3,6 +3,7 @@ package kr.or.ddit.controller.board.qna;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -55,6 +56,14 @@ public class QnaController {
     public ResponseEntity<Void> updateQna(@PathVariable Long postSn, @RequestBody QnaDto qnaDto) {
         qnaDto.setPostSn(postSn);
         qnaService.updateQna(qnaDto);
+        return ResponseEntity.ok().build();
+    }
+
+    // QnA 삭제 (사용자) => 나중에 update 로 바꿔야함.
+    // DELETE /api/qna/{postSn}
+    @DeleteMapping("/{postSn}")
+    public ResponseEntity<Void> deleteQna(@PathVariable Long postSn){
+        qnaService.deleteQna(postSn);
         return ResponseEntity.ok().build();
     }
 }
