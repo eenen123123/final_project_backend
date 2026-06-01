@@ -13,22 +13,22 @@
     ></div>
 
     <div
-      sec:authorize="hasAuthority('D100') and hasAuthority('A001')"
+      sec:authorize="hasAuthority('D100') and hasAuthority('A001') or hasAuthority('D400')"
       th:replace="~{fragments/sidebars/menus/menu_manager}"
     ></div>
 
     <div
-      sec:authorize="hasAuthority('D100')"
+      sec:authorize="hasAuthority('D100') or hasAuthority('D400')"
       th:replace="~{fragments/sidebars/menus/menu_staff}"
     ></div>
 
     <div
-      sec:authorize="hasAuthority('D200')"
+      sec:authorize="hasAuthority('D200') or hasAuthority('D400')"
       th:replace="~{fragments/sidebars/menus/menu_pd}"
     ></div>
 
     <div
-      sec:authorize="hasAuthority('D300')"
+      sec:authorize="hasAuthority('D300') or hasAuthority('D400')"
       th:replace="~{fragments/sidebars/menus/menu_instructor}"
     ></div>
   </nav>
