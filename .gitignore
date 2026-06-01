@@ -2,3 +2,6 @@
 .vscode/
 .bkit/
 .DS_Store
+
+.understand-anything/
+data/
