@@ -53,6 +53,7 @@
         <result property="aprvlOrdr" column="aprvl_ordr"/>
         <result property="aprvrUserId" column="aprvr_user_id"/>
         <result property="aprvlPrgrsCd" column="aprvl_prgrs_cd"/>
+        <result property="aprvlDt" column="aprvl_dt"/>
         <association property="doc" javaType="kr.or.ddit.finalProject.dto.approval.ApprovalMasterDto">
             <result property="aprvlDocSn" column="aprvl_doc_sn"/>
             <result property="aprvlDocSj" column="aprvl_doc_sj"/>
@@ -80,6 +81,7 @@
                al.aprvl_ordr,
                al.aprvr_user_id,
                al.aprvl_prgrs_cd,
+               al.aprvl_dt,
                am.aprvl_doc_sj,
                am.tmpl_cd,
                am.drft_user_id,
@@ -90,6 +92,26 @@
         WHERE  al.aprvr_user_id  = #{userId}
           AND  al.aprvl_prgrs_cd = 'IN_PROGRESS'
         ORDER BY am.drft_reg_dt DESC
+    </select>
+
+    <!-- selectMyProcessedLines: 내가 처리한 결재 (APPROVED / REJECTED) -->
+    <select id="selectMyProcessedLines" parameterType="string" resultMap="pendingLineMap">
+        SELECT al.aprvl_line_sn,
+               al.aprvl_doc_sn,
+               al.aprvl_ordr,
+               al.aprvr_user_id,
+               al.aprvl_prgrs_cd,
+               al.aprvl_dt,
+               am.aprvl_doc_sj,
+               am.tmpl_cd,
+               am.drft_user_id,
+               am.drft_reg_dt,
+               am.aprvl_prgrs_cd AS doc_prgrs_cd
+        FROM   APPROVAL_LINE   al
+        JOIN   APPROVAL_MASTER am ON al.aprvl_doc_sn = am.aprvl_doc_sn
+        WHERE  al.aprvr_user_id  = #{userId}
+          AND  al.aprvl_prgrs_cd IN ('APPROVED', 'REJECTED')
+        ORDER BY al.aprvl_dt DESC
     </select>
 
     <!-- insertApprovalMaster -->
@@ -121,7 +143,7 @@
     </select>
 
 
-    <select id="selectApprovalMasterById" resultType="kr.or.ddit.finalProject.dto.approval.ApprovalMasterDto" parameterType="Long">
+    <select id="selectApprovalMasterByDocSn" resultType="kr.or.ddit.finalProject.dto.approval.ApprovalMasterDto" parameterType="Long">
         SELECT *
         FROM approval_master
         WHERE aprvl_doc_sn = #{aprvlDocSn}
@@ -138,6 +160,7 @@
         JOIN   EMPLOYEE_INFO   ei ON al.aprvr_user_id = ei.user_id
         JOIN   JOB_GRADE       jg ON ei.jbgr_cd       = jg.jbgr_cd
         WHERE  al.aprvl_doc_sn = #{aprvlDocSn}
+          AND  al.aprvl_prgrs_cd != 'CANCELED'
         ORDER BY al.aprvl_ordr
     </select>
 
@@ -157,7 +180,7 @@
 
     <update id="deleteApprovalLinesByDocSn" parameterType="map">
         UPDATE APPROVAL_LINE
-        SET aprvl_prgrs_cd = #{aprvlPrgrsCd}
+        SET aprvl_prgrs_cd = #{aprvl_status}
         WHERE aprvl_doc_sn = #{aprvlDocSn}
     </update>
 
@@ -165,7 +188,21 @@
 
     <update id="deleteApprovalMaster" parameterType="map">
         UPDATE APPROVAL_MASTER
-        SET aprvl_prgrs_cd = #{aprvlPrgrsCd}
+        SET aprvl_prgrs_cd = #{aprvl_status}
         WHERE aprvl_doc_sn = #{aprvlDocSn}
+    </update>
+
+    <!-- updateApprovalLine -->
+
+    <update id="updateApprovalLine" parameterType="kr.or.ddit.finalProject.dto.approval.ApprovalLineDto">
+    UPDATE approval_line
+    SET aprvl_prgrs_cd = #{aprvlPrgrsCd,jdbcType=VARCHAR},
+        aprvl_dt       = CASE 
+                            WHEN #{aprvlPrgrsCd} IN ('APPROVED','REJECTED') 
+                            THEN CURRENT_TIMESTAMP 
+                            ELSE aprvl_dt 
+                        END,
+        aprvl_rsn_cn   = #{aprvlRsnCn,jdbcType=VARCHAR}
+    WHERE aprvl_line_sn = #{aprvlLineSn}
     </update>
 </mapper>

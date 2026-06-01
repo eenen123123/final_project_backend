@@ -20,7 +20,7 @@ import kr.or.ddit.finalProject.dto.file.FileDto;
 import kr.or.ddit.finalProject.dto.file.StoredFileResponse;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
-import kr.or.ddit.finalProject.mapper.FileUploadMapper;
+import kr.or.ddit.finalProject.mapper.FileMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,12 +34,21 @@ public class FileUploadService {
     private String fileServerPath;
 
     private final RestClient restClient = RestClient.create();
-    private final FileUploadMapper fileUploadMapper;
+    private final FileMapper fileUploadMapper;
 
     /*  
         파일 서버에서 처리하는 컨트롤러는 아래와 같다
     
         
+     // 공통 접근 검증
+    private void validateAccess(long id, String token, String apiKey) {
+        if (apiKey != null && apiKey.equals(this.apiKey))
+            return;
+        if (token != null && tokenService.validate(token, id))
+            return;
+        throw new AccessDeniedException("파일에 접근할 권한이 없습니다.");
+    }
+    
     @PostMapping
     public ResponseEntity<StoredFileResponse> upload(
             @RequestParam MultipartFile file,
@@ -52,25 +61,66 @@ public class FileUploadService {
         return ResponseEntity.ok(storedFileService.findById(id));
     }
     
+    @GetMapping("/my")
+    public ResponseEntity<List<StoredFileResponse>> findMy(Authentication authentication) {
+        return ResponseEntity.ok(storedFileService.findByUploadedBy(authentication.getName()));
+    }
+    
     @GetMapping("/{id}/view")
-    public ResponseEntity<?> view(
+    public ResponseEntity<StreamingResponseBody> view(
             @PathVariable long id,
+            @RequestParam(required = false) String token,
+            @RequestHeader(value = "X-API-Key", required = false) String apiKey,
             @RequestHeader HttpHeaders headers) throws IOException {
+        validateAccess(id, token, apiKey);
         StoredFile file = storedFileService.findEntityById(id);
         Resource resource = storedFileService.loadResource(file);
         MediaType mediaType = MediaType.parseMediaType(file.getContentType());
+        long contentLength = resource.contentLength();
     
-        if (!headers.getRange().isEmpty()) {
-            ResourceRegion region = resourceRegion(resource, headers.getRange().getFirst());
-            return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
+        if (headers.getRange().isEmpty()) {
+            return ResponseEntity.ok()
                     .contentType(mediaType)
-                    .body(region);
+                    .contentLength(contentLength)
+                    .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, inlineDisposition(file.getOriginalFilename()))
+                    .body(out -> {
+                        try (InputStream in = resource.getInputStream()) {
+                            in.transferTo(out);
+                        }
+                    });
         }
     
-        return ResponseEntity.ok()
+        HttpRange range = headers.getRange().getFirst();
+        long start = range.getRangeStart(contentLength);
+        long end = range.getRangeEnd(contentLength);
+        long rangeLength = Math.min(VIDEO_REGION_SIZE, end - start + 1);
+        long actualEnd = start + rangeLength - 1;
+    
+        return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
                 .contentType(mediaType)
+                .contentLength(rangeLength)
+                .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+                .header(HttpHeaders.CONTENT_RANGE, "bytes " + start + "-" + actualEnd + "/" + contentLength)
+                .body(out -> {
+                    try (InputStream in = resource.getInputStream()) {
+                        StreamUtils.copyRange(in, out, start, actualEnd);
+                    }
+                });
+    }
+    
+    @GetMapping("/{id}/download")
+    public ResponseEntity<Resource> download(
+            @PathVariable long id,
+            @RequestParam(required = false) String token,
+            @RequestHeader(value = "X-API-Key", required = false) String apiKey) throws IOException {
+        validateAccess(id, token, apiKey);
+        StoredFile file = storedFileService.findEntityById(id);
+        Resource resource = storedFileService.loadResource(file);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(file.getContentType()))
                 .contentLength(resource.contentLength())
-                .header(HttpHeaders.CONTENT_DISPOSITION, inlineDisposition(file.getOriginalFilename()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, attachmentDisposition(file.getOriginalFilename()))
                 .body(resource);
     }
     
@@ -243,7 +293,8 @@ public class FileUploadService {
      * atchFileId를 파라미터로 받도록 변경했습니다.
      * 기존 uploadFile(file, userId) 오버로드는 1을 넘겨 이전 동작을 유지합니다.
      */
-    private FileDto insertFileInfoToDatabase(StoredFileResponse fileResponse, String userId, int atchFileId) {
+    private FileDto insertFileInfoToDatabase(StoredFileResponse fileResponse, String userId,
+            int atchFileId) {
 
         FileDto fileDto = FileDto.builder().atchFileId(atchFileId)
                 .orgnFileNm(fileResponse.originalFilename()).savePathNm(fileResponse.url())

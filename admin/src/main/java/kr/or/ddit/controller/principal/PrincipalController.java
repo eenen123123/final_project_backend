@@ -13,15 +13,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RequestMapping("/admin")
 public class PrincipalController {
     
-    /**
-     * 관리자 권한 설정
-     * @return
-     */
-    @GetMapping("/settings/permissions")
-    public String getPermissions() {
-        log.info("getPermissions");
-        return "admin:/principal/permission_management";
-    }
 
     /**
      * 학생 관리 최종 승인

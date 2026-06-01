@@ -26,6 +26,7 @@ import lombok.NoArgsConstructor;
 public class FileDto implements Serializable {
 
     private Integer atchFileDtlSn; // 첨부파일 상세 ID PK sequence
+    private Long fileServerId; // 파일 서버 ID (파일서버 DB PK)
     private Integer atchFileId; // 첨부파일 ID
     private String orgnFileNm; // 원본 파일명
     private String savePathNm; // 저장 경로
@@ -39,4 +40,7 @@ public class FileDto implements Serializable {
     private String delDt; // 삭제 시점
     private String delUserId; // 삭제자 ID
     private Integer dwnldCnt; // 다운로드 횟수
+
+    private FileCtxType fileCtxType; // 파일 컨텍스트 타입
+    private Long fileCtxId; // 파일 컨텍스트 ID (예: 강의 ID, 채팅방 ID 등)
 }
