@@ -33,7 +33,7 @@ public class InstructorClassroomController {
     public String classroomDetail(@PathVariable Long classSn, Model model) {
         ClassroomDetailResponse classroom = classroomService.retrieveClassroomDetail(classSn);
         model.addAttribute("classroom", classroom);
-        return "admin:/instructor/classroom";
+        return "instructor/classroom";
     }
 
 }
