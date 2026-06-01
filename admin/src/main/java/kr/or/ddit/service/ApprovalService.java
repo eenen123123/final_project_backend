@@ -91,7 +91,7 @@ public class ApprovalService {
             teamLeaderLine.setAprvrUserId(teamLeader.getUserId());
             teamLeaderLine.setApproverName(teamLeader.getUserId()); // 실제로는 이름을 가져와야 하지만, 일단은 userId로 설정
             teamLeaderLine.setAprvlOrdr(1l); // 팀장이 첫 번째 결재자
-            teamLeaderLine.setAprvlPrgrsCd("WAITING");
+            teamLeaderLine.setAprvlPrgrsCd(ApprovalLineProgressEnum.WAITING);
             teamLeaderLine.setJbgrNm(teamLeader.getJbgrNm()); // 직급명 설정
             approvalLines.add(teamLeaderLine);
         }
@@ -101,7 +101,7 @@ public class ApprovalService {
         directorLine.setAprvrUserId(director.getUserId());
         directorLine.setApproverName(director.getUserName()); // 실제로는 이름
         directorLine.setAprvlOrdr(2l); // 원장이 두 번째 결재자
-        directorLine.setAprvlPrgrsCd("WAITING");
+        directorLine.setAprvlPrgrsCd(ApprovalLineProgressEnum.WAITING);
         directorLine.setJbgrNm("원장"); // 직급명도 하드코딩
         approvalLines.add(directorLine);
 
@@ -114,7 +114,7 @@ public class ApprovalService {
         List<ApprovalLineDto> myPendingLines = approvalMapper.selectMyPendingLines(userId);
 
         List<ApprovalMasterDto> draftDocs = myDocs.stream()
-                .filter(d -> ApprovalDocProgressEnum.DRAFT.name().equals(d.getAprvlPrgrsCd()))
+                .filter(d -> ApprovalDocProgressEnum.DRAFT.equals(d.getAprvlPrgrsCd()))
                 .collect(Collectors.toList());
 
         Map<String, Object> data = new HashMap<>();
@@ -122,18 +122,12 @@ public class ApprovalService {
         data.put("myPendingLines", myPendingLines);
         data.put("draftDocs", draftDocs);
         data.put("totalCount", myDocs.size());
-        data.put("pendingCount",
-                myDocs.stream().filter(
-                        d -> ApprovalDocProgressEnum.PENDING.name().equals(d.getAprvlPrgrsCd()))
-                        .count());
-        data.put("approvedCount",
-                myDocs.stream().filter(
-                        d -> ApprovalDocProgressEnum.APPROVED.name().equals(d.getAprvlPrgrsCd()))
-                        .count());
-        data.put("rejectedCount",
-                myDocs.stream().filter(
-                        d -> ApprovalDocProgressEnum.REJECTED.name().equals(d.getAprvlPrgrsCd()))
-                        .count());
+        data.put("pendingCount", myDocs.stream()
+                .filter(d -> ApprovalDocProgressEnum.PENDING.equals(d.getAprvlPrgrsCd())).count());
+        data.put("approvedCount", myDocs.stream()
+                .filter(d -> ApprovalDocProgressEnum.APPROVED.equals(d.getAprvlPrgrsCd())).count());
+        data.put("rejectedCount", myDocs.stream()
+                .filter(d -> ApprovalDocProgressEnum.REJECTED.equals(d.getAprvlPrgrsCd())).count());
         data.put("myApprovalCount", myPendingLines.size());
         data.put("draftCount", draftDocs.size());
         return data;
@@ -147,14 +141,15 @@ public class ApprovalService {
         try {
             List<Map<String, Object>> lineData = objectMapper.readValue(approvalLineJson,
                     new TypeReference<List<Map<String, Object>>>() {});
-            boolean isPending = "PENDING".equals(master.getAprvlPrgrsCd());
+            boolean isPending = ApprovalDocProgressEnum.PENDING.equals(master.getAprvlPrgrsCd());
             for (int i = 0; i < lineData.size(); i++) {
                 Map<String, Object> data = lineData.get(i);
                 ApprovalLineDto line = new ApprovalLineDto();
                 line.setAprvlDocSn(master.getAprvlDocSn());
                 line.setAprvrUserId((String) data.get("aprvrUserId"));
                 line.setAprvlOrdr((long) (i + 1));
-                line.setAprvlPrgrsCd(isPending && i == 0 ? "IN_PROGRESS" : "WAITING");
+                line.setAprvlPrgrsCd(isPending && i == 0 ? ApprovalLineProgressEnum.IN_PROGRESS
+                        : ApprovalLineProgressEnum.WAITING);
                 approvalMapper.insertApprovalLine(line);
             }
         } catch (Exception e) {
@@ -168,7 +163,7 @@ public class ApprovalService {
     @Transactional
     public void updateApproval(String userId, ApprovalMasterDto master, String approvalLineJson) {
         ApprovalMasterDto existing =
-                approvalMapper.selectApprovalMasterById(master.getAprvlDocSn());
+                approvalMapper.selectApprovalMasterByDocSn(master.getAprvlDocSn());
         if (existing == null || !existing.getDrftUserId().equals(userId)) {
             throw new FinalProjectException(ErrorCode.APPROVAL_NOT_FOUND);
         }
@@ -179,14 +174,15 @@ public class ApprovalService {
         try {
             List<Map<String, Object>> lineData = objectMapper.readValue(approvalLineJson,
                     new TypeReference<List<Map<String, Object>>>() {});
-            boolean isPending = "PENDING".equals(master.getAprvlPrgrsCd());
+            boolean isPending = ApprovalDocProgressEnum.PENDING.equals(master.getAprvlPrgrsCd());
             for (int i = 0; i < lineData.size(); i++) {
                 Map<String, Object> data = lineData.get(i);
                 ApprovalLineDto line = new ApprovalLineDto();
                 line.setAprvlDocSn(master.getAprvlDocSn());
                 line.setAprvrUserId((String) data.get("aprvrUserId"));
                 line.setAprvlOrdr((long) (i + 1));
-                line.setAprvlPrgrsCd(isPending && i == 0 ? "IN_PROGRESS" : "WAITING");
+                line.setAprvlPrgrsCd(isPending && i == 0 ? ApprovalLineProgressEnum.IN_PROGRESS
+                        : ApprovalLineProgressEnum.WAITING);
                 approvalMapper.insertApprovalLine(line);
             }
         } catch (Exception e) {
@@ -195,7 +191,7 @@ public class ApprovalService {
     }
 
     public ApprovalMasterDto getApprovalDetail(Long aprvlDocSn) {
-        ApprovalMasterDto master = approvalMapper.selectApprovalMasterById(aprvlDocSn);
+        ApprovalMasterDto master = approvalMapper.selectApprovalMasterByDocSn(aprvlDocSn);
         if (master == null) {
             throw new FinalProjectException(ErrorCode.APPROVAL_NOT_FOUND);
         }
@@ -207,26 +203,78 @@ public class ApprovalService {
     }
 
     @Transactional
-    public void deleteApproval(String name, Long aprvlDocSn) {
+    public void deleteApproval(String userId, Long aprvlDocSn) {
 
-        ApprovalMasterDto existing = approvalMapper.selectApprovalMasterById(aprvlDocSn);
+        ApprovalMasterDto existing = approvalMapper.selectApprovalMasterByDocSn(aprvlDocSn);
+        List<ApprovalLineDto> lines = approvalMapper.selectApprovalLinesByDocSn(aprvlDocSn);
 
         // 기존 문서가 존재하지 않거나, 현재 사용자가 기안자가 아닌 경우 예외 발생
-        if (existing == null || !existing.getDrftUserId().equals(name)) {
+        if (existing == null || !existing.getDrftUserId().equals(userId)) {
             throw new FinalProjectException(ErrorCode.APPROVAL_NOT_FOUND);
+
+        }
+
+        // 문서가 DRAFT 상태가 아닌 경우 예외 발생
+        if (!existing.getAprvlPrgrsCd().equals(ApprovalDocProgressEnum.DRAFT)) {
+            throw new FinalProjectException(ErrorCode.APPROVAL_NOT_DRAFT);
         }
 
         int result = approvalMapper.deleteApprovalMaster(aprvlDocSn,
                 ApprovalDocProgressEnum.CANCELED.name());
         if (result == 0) {
+            throw new FinalProjectException(ErrorCode.APPROVAL_DELETE_FAILED);
+        }
+
+        List<ApprovalLineDto> activeLines = lines.stream()
+                .filter(line -> !line.getAprvlPrgrsCd().equals(ApprovalLineProgressEnum.CANCELED))
+                .collect(Collectors.toList());
+        if (activeLines.size() > 0) {
+            int resultLines = approvalMapper.deleteApprovalLinesByDocSn(aprvlDocSn,
+                    ApprovalLineProgressEnum.CANCELED.name());
+            if (resultLines == 0) {
+                throw new FinalProjectException(ErrorCode.APPROVAL_DELETE_FAILED);
+            }
+        }
+
+    }
+
+    @Transactional
+    public void cancelApproval(String name, Long aprvlDocSn) {
+        // 결재 문서가 존재해야 하고, 본인의 결재여야 하며,  아무도 결재를 승인하지 않은 상태여야 함
+        ApprovalMasterDto existing = approvalMapper.selectApprovalMasterByDocSn(aprvlDocSn);
+        if (existing == null) {
             throw new FinalProjectException(ErrorCode.APPROVAL_NOT_FOUND);
         }
 
-        int resultLines = approvalMapper.deleteApprovalLinesByDocSn(aprvlDocSn,
-                ApprovalLineProgressEnum.CANCELED.name());
-        if (resultLines == 0) {
-            throw new FinalProjectException(ErrorCode.APPROVAL_NOT_FOUND);
+        if (!existing.getDrftUserId().equals(name)) {
+            throw new FinalProjectException(ErrorCode.APPROVAL_NOT_AUTHORIZED);
         }
 
+        if (!ApprovalDocProgressEnum.PENDING.equals(existing.getAprvlPrgrsCd())) {
+            throw new FinalProjectException(ErrorCode.CANNOT_CANCEL_APPROVAL);
+        }
+
+        List<ApprovalLineDto> lines = approvalMapper.selectApprovalLinesByDocSn(aprvlDocSn);
+
+        boolean hasApproved = lines.stream()
+                .anyMatch(line -> line.getAprvlPrgrsCd().equals(ApprovalLineProgressEnum.APPROVED));
+
+        if (hasApproved) {
+            throw new FinalProjectException(ErrorCode.CANNOT_CANCEL_APPROVAL);
+        }
+
+        int result = approvalMapper.deleteApprovalMaster(aprvlDocSn,
+                ApprovalDocProgressEnum.CANCELED.name());
+
+        if (result == 0) {
+            throw new FinalProjectException(ErrorCode.APPROVAL_DELETE_FAILED);
+        }
+        if (lines.size() > 0) {
+            int resultLines = approvalMapper.deleteApprovalLinesByDocSn(aprvlDocSn,
+                    ApprovalLineProgressEnum.CANCELED.name());
+            if (resultLines == 0) {
+                throw new FinalProjectException(ErrorCode.APPROVAL_DELETE_FAILED);
+            }
+        }
     }
 }

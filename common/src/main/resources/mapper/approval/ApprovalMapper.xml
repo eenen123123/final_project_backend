@@ -121,7 +121,7 @@
     </select>
 
 
-    <select id="selectApprovalMasterById" resultType="kr.or.ddit.finalProject.dto.approval.ApprovalMasterDto" parameterType="Long">
+    <select id="selectApprovalMasterByDocSn" resultType="kr.or.ddit.finalProject.dto.approval.ApprovalMasterDto" parameterType="Long">
         SELECT *
         FROM approval_master
         WHERE aprvl_doc_sn = #{aprvlDocSn}
@@ -138,6 +138,7 @@
         JOIN   EMPLOYEE_INFO   ei ON al.aprvr_user_id = ei.user_id
         JOIN   JOB_GRADE       jg ON ei.jbgr_cd       = jg.jbgr_cd
         WHERE  al.aprvl_doc_sn = #{aprvlDocSn}
+          AND  al.aprvl_prgrs_cd != 'CANCELED'
         ORDER BY al.aprvl_ordr
     </select>
 
@@ -157,7 +158,7 @@
 
     <update id="deleteApprovalLinesByDocSn" parameterType="map">
         UPDATE APPROVAL_LINE
-        SET aprvl_prgrs_cd = #{aprvlPrgrsCd}
+        SET aprvl_prgrs_cd = #{aprvl_status}
         WHERE aprvl_doc_sn = #{aprvlDocSn}
     </update>
 
@@ -165,7 +166,7 @@
 
     <update id="deleteApprovalMaster" parameterType="map">
         UPDATE APPROVAL_MASTER
-        SET aprvl_prgrs_cd = #{aprvlPrgrsCd}
+        SET aprvl_prgrs_cd = #{aprvl_status}
         WHERE aprvl_doc_sn = #{aprvlDocSn}
     </update>
 </mapper>

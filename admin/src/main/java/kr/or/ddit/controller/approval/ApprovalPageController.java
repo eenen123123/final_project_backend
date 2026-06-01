@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import kr.or.ddit.finalProject.dto.approval.ApprovalDocProgressEnum;
 import kr.or.ddit.finalProject.dto.approval.ApprovalLineDto;
 import kr.or.ddit.finalProject.dto.approval.ApprovalLineProgressEnum;
 import kr.or.ddit.finalProject.dto.approval.ApprovalMasterDto;
@@ -60,8 +61,8 @@ public class ApprovalPageController {
     }
 
     @GetMapping("/{aprvlDocSn}")
-    public String getApprovalDetail(@PathVariable
-    Long aprvlDocSn, Model model, Authentication authentication) {
+    public String getApprovalDetail(@PathVariable Long aprvlDocSn, Model model,
+            Authentication authentication) {
         log.info("Fetching approval detail for docSn={}", aprvlDocSn);
         ApprovalMasterDto approvalDetail = approvalService.getApprovalDetail(aprvlDocSn);
         List<ApprovalLineDto> approvalLines = approvalService.getApprovalLines(aprvlDocSn);
@@ -83,11 +84,12 @@ public class ApprovalPageController {
 
         // 내가 기안자이면서 아무도 결재를 승인/반려 중이지 않다면 취소 가능
         boolean canCancel = isDrafter && approvalLines.stream()
-                .noneMatch(line -> statusesToCheck.contains(line.getAprvlPrgrsCd()));
+                .noneMatch(line -> statusesToCheck.contains(line.getAprvlPrgrsCd().name()));
 
 
         // 내가 기안자이면서 아직 DRAFT 상태라면 삭제 가능
-        boolean canDelete = isDrafter && approvalDetail.getAprvlPrgrsCd().equals("DRAFT");
+        boolean canDelete =
+                isDrafter && ApprovalDocProgressEnum.DRAFT.equals(approvalDetail.getAprvlPrgrsCd());
 
         log.info("isApprover={}, isDrafter={}, canCancel={}, canDelete={}", isApprover, isDrafter,
                 canCancel, canDelete);
@@ -103,12 +105,14 @@ public class ApprovalPageController {
         model.addAttribute("canDelete", canDelete);
 
 
+        log.info("line size : {}", approvalLines.size());
+
         return "admin:/approval_template/approval_detail";
     }
 
     @GetMapping("/{aprvlDocSn}/edit")
-    public String editApproval(@PathVariable
-    Long aprvlDocSn, Model model, Authentication authentication) {
+    public String editApproval(@PathVariable Long aprvlDocSn, Model model,
+            Authentication authentication) {
         String userId = authentication.getName();
         ApprovalMasterDto doc = approvalService.getApprovalDetail(aprvlDocSn);
         if (!doc.getDrftUserId().equals(userId)) {
@@ -133,8 +137,7 @@ public class ApprovalPageController {
     @ResponseBody
     @GetMapping(value = "/{aprvlDocSn}/content", produces = MediaType.TEXT_HTML_VALUE
             + ";charset=UTF-8")
-    public String getApprovalContent(@PathVariable
-    Long aprvlDocSn) {
+    public String getApprovalContent(@PathVariable Long aprvlDocSn) {
         ApprovalMasterDto doc = approvalService.getApprovalDetail(aprvlDocSn);
         String content = doc.getAprvlDocCn();
         return content != null ? content : "";

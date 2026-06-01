@@ -223,7 +223,7 @@
               </td>
               <td class="py-3 px-3">
                 <span
-                  th:classappend="${'status-' + doc.aprvlPrgrsCd.toLowerCase()}"
+                  th:classappend="${'status-' + doc.aprvlPrgrsCd.name().toLowerCase()}"
                   th:text="${doc.aprvlPrgrsCd}"
                   class="px-2.5 py-0.5 rounded-full text-xs font-bold"
                   >상태</span

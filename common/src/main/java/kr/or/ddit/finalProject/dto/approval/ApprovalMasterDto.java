@@ -28,7 +28,7 @@ public class ApprovalMasterDto implements Serializable {
     private String atchFileId; // 공통첨부파일분류
     private String drftUserId; // MEMBER.USER_ID 참조 (FK)
     private LocalDateTime drftRegDt; // 데이터 생성 시점 (자동갱신)
-    private String aprvlPrgrsCd; // COM_CD 공통코드 참조
+    private ApprovalDocProgressEnum aprvlPrgrsCd; // COM_CD 공통코드 참조
     private LocalDateTime mdfcnDt; // 데이터 수정 시점 (자동갱신)
     private String tmplCd; // COM_CD 공통코드 참조
 

@@ -12,6 +12,8 @@ import kr.or.ddit.finalProject.dto.approval.ApprovalMasterDto;
 import kr.or.ddit.service.ApprovalService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @Slf4j
 @Controller
@@ -39,10 +41,19 @@ public class ApprovalController {
         return "redirect:/admin/approval/" + aprvlDocSn;
     }
 
-    @GetMapping("/{aprvlDocSn}/delete")
+    @PostMapping("/{aprvlDocSn}/delete")
     public String deleteApproval(@PathVariable Long aprvlDocSn, Authentication authentication) {
         approvalService.deleteApproval(authentication.getName(), aprvlDocSn);
 
         return "redirect:/admin/approval";
     }
+
+    @PostMapping("/cancel/{aprvlDocSn}")
+    public String cancelApproval(@PathVariable Long aprvlDocSn, Authentication authentication) {
+        approvalService.cancelApproval(authentication.getName(), aprvlDocSn);
+
+
+        return "redirect:/admin/approval";
+    }
+
 }

@@ -71,6 +71,13 @@ public enum ErrorCode {
 
     APPROVAL_NOT_FOUND(HttpStatus.NOT_FOUND, "결재 문서를 찾을 수 없습니다."),
 
+    APPROVAL_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "결재 문서 삭제에 실패했습니다."),
+
+    APPROVAL_NOT_DRAFT(HttpStatus.BAD_REQUEST, "결재 문서가 DRAFT 상태가 아닙니다."),
+
+    APPROVAL_NOT_AUTHORIZED(HttpStatus.FORBIDDEN, "결재 문서에 대한 권한이 없습니다."),
+
+    CANNOT_CANCEL_APPROVAL(HttpStatus.BAD_REQUEST, "결재 문서를 취소할 수 없습니다."),
 
     // 결제 관련
 

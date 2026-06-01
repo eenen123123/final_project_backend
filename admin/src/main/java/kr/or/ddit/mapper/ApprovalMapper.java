@@ -25,14 +25,15 @@ public interface ApprovalMapper {
 
     List<ApprovalLineDto> selectApprovalLinesByUserId(String userId);
 
-    ApprovalMasterDto selectApprovalMasterById(Long aprvlDocSn);
+    ApprovalMasterDto selectApprovalMasterByDocSn(Long aprvlDocSn);
 
     List<ApprovalLineDto> selectApprovalLinesByDocSn(Long aprvlDocSn);
 
     int updateApprovalMaster(ApprovalMasterDto approvalMasterDto);
 
     int deleteApprovalLinesByDocSn(@Param("aprvlDocSn") Long aprvlDocSn,
-            @Param("status") String status);
+            @Param("aprvl_status") String aprvlStatus);
 
-    int deleteApprovalMaster(@Param("aprvlDocSn") Long aprvlDocSn, @Param("status") String status);
+    int deleteApprovalMaster(@Param("aprvlDocSn") Long aprvlDocSn,
+            @Param("aprvl_status") String aprvlStatus);
 }
