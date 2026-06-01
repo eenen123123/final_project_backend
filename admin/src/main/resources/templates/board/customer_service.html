@@ -10,61 +10,58 @@
   <!-- 탭 -->
   <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
     <div class="flex border-b border-slate-100 px-6">
-      <button class="cs-tab-btn active py-3.5 px-4 text-sm text-slate-500 -mb-px"
-              onclick="switchTab('tab-faq', this)">
+      <button class="cs-tab-btn active py-3.5 px-4 text-sm text-slate-500 -mb-px" onclick="switchTab('tab-faq', this)">
         <i class="fa-solid fa-circle-question mr-1.5"></i>FAQ
       </button>
-      <button class="cs-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px"
-              onclick="switchTab('tab-notice', this)">
+      <button class="cs-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px" onclick="switchTab('tab-notice', this)">
         <i class="fa-solid fa-bullhorn mr-1.5"></i>공지사항
       </button>
-      <button class="cs-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px"
-              onclick="switchTab('tab-qna', this)">
+      <button class="cs-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px" onclick="switchTab('tab-qna', this)">
         <i class="fa-solid fa-comments mr-1.5"></i>QnA
       </button>
     </div>
 
-  <!-- ══ FAQ 탭 ══ -->
-  <div id="tab-faq" class="cs-tab-panel active p-6">
-    <div class="flex justify-between items-center mb-4">
-      <div class="flex gap-3">
-        <select id="faq-filter-ctg" onchange="filterFaq()" class="hm-input" style="width: 130px;">
-          <option value="">전체 대분류</option>
-          <option value="01">강의/교재</option>
-          <option value="02">결제</option>
-          <option value="03">학습기기</option>
-          <option value="04">동영상</option>
-          <option value="05">도서</option>
-        </select>
-        <div class="relative">
-          <input type="text" id="faq-search" placeholder="제목 검색..." class="hm-input pr-9" style="width: 300px;"
-            onkeydown="if(event.key==='Enter') filterFaq()" />
-          <button onclick="filterFaq()"
-            class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 transition-colors">
-            <i class="fa-solid fa-magnifying-glass text-sm"></i>
-          </button>
+    <!-- ══ FAQ 탭 ══ -->
+    <div id="tab-faq" class="cs-tab-panel active p-6">
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex gap-3">
+          <select id="faq-filter-ctg" onchange="filterFaq()" class="hm-input" style="width: 130px;">
+            <option value="">전체 대분류</option>
+            <option value="01">강의/교재</option>
+            <option value="02">결제</option>
+            <option value="03">학습기기</option>
+            <option value="04">동영상</option>
+            <option value="05">도서</option>
+          </select>
+          <div class="relative">
+            <input type="text" id="faq-search" placeholder="제목 검색..." class="hm-input pr-9" style="width: 300px;"
+              onkeydown="if(event.key==='Enter') filterFaq()" />
+            <button onclick="filterFaq()"
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 transition-colors">
+              <i class="fa-solid fa-magnifying-glass text-sm"></i>
+            </button>
+          </div>
         </div>
+        <a href="/admin/board/faq/write" class="hm-btn-primary text-sm">
+          <i class="fa-solid fa-plus mr-1"></i>FAQ 등록
+        </a>
       </div>
-      <a href="/admin/board/faq/write" class="hm-btn-primary text-sm">
-        <i class="fa-solid fa-plus mr-1"></i>FAQ 등록
-      </a>
-    </div>
-  
-    <div class="overflow-x-auto rounded-xl border border-slate-100">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="bg-slate-50 text-slate-500 text-xs">
-            <th class="text-center py-3 px-4 font-semibold w-16">번호</th>
-            <th class="text-center py-3 px-4 font-semibold w-32">대분류</th>
-            <th class="text-center py-3 px-4 font-semibold w-28">중분류</th>
-            <th class="text-left py-3 px-4 font-semibold">제목</th>
-            <th class="text-center py-3 px-4 font-semibold w-16">BEST</th>
-            <th class="text-center py-3 px-4 font-semibold w-28">등록일</th>
-            <th class="text-center py-3 px-4 font-semibold w-24">관리</th>
-          </tr>
-        </thead>
-        <tbody id="faq-table-body" class="divide-y divide-slate-50">
-          <tr th:each="faq : ${faqList}" th:attr="data-ctg=${faq.faqCtgCd},
+
+      <div class="overflow-x-auto rounded-xl border border-slate-100">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-slate-50 text-slate-500 text-xs">
+              <th class="text-center py-3 px-4 font-semibold w-16">번호</th>
+              <th class="text-center py-3 px-4 font-semibold w-32">대분류</th>
+              <th class="text-center py-3 px-4 font-semibold w-28">중분류</th>
+              <th class="text-left py-3 px-4 font-semibold">제목</th>
+              <th class="text-center py-3 px-4 font-semibold w-16">BEST</th>
+              <th class="text-center py-3 px-4 font-semibold w-28">등록일</th>
+              <th class="text-center py-3 px-4 font-semibold w-24">관리</th>
+            </tr>
+          </thead>
+          <tbody id="faq-table-body" class="divide-y divide-slate-50">
+            <tr th:each="faq : ${faqList}" th:attr="data-ctg=${faq.faqCtgCd},
                        data-title=${faq.postSj},
                        data-postsn=${faq.postSn},
                        data-ctgnm=${faq.faqCtgNm},
@@ -73,93 +70,85 @@
                        data-topfixyn=${faq.topFixYn},
                        data-regdt=${#temporals.format(faq.regDt, 'yyyy-MM-dd')},
                        data-wrtruserid=${faq.wrtrUserId}" class="hover:bg-slate-50 transition-colors">
-            <td class="py-3 px-4 text-center text-xs text-slate-400" th:text="${faq.postSn}"></td>
-            <td class="py-3 px-4 text-center">
-              <span class="text-xs bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded-full"
-                th:text="${faq.faqCtgNm}"></span>
-            </td>
-            <td class="py-3 px-4 text-center text-xs text-slate-500" th:text="${faq.faqSubCtgNm}"></td>
-            <td class="py-3 px-4 text-slate-800 font-medium">
-              <span th:text="${faq.postSj}" onclick="openFaqModal(this.closest('tr'))"
-                class="hover:text-violet-600 cursor-pointer transition-colors"></span>
-            </td>
-            <td class="py-3 px-4 text-center">
-              <span th:if="${faq.topFixYn == 'Y'}"
-                class="inline-block bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">BEST</span>
-              <span th:unless="${faq.topFixYn == 'Y'}" class="text-xs text-slate-300">-</span>
-            </td>
-            <td class="py-3 px-4 text-center text-xs text-slate-400"
-              th:text="${#temporals.format(faq.regDt, 'yyyy-MM-dd')}"></td>
-            <td class="py-3 px-4 text-center">
-              <div class="flex items-center justify-center gap-2">
-                <a th:href="@{/admin/board/faq/edit/{postSn}(postSn=${faq.postSn})}"
-                  class="text-xs text-violet-600 font-semibold hover:underline">수정</a>
-                <span class="text-slate-300 text-xs">|</span>
-                <form th:action="@{/admin/board/faq/delete/{postSn}(postSn=${faq.postSn})}" method="post"
-                  onsubmit="return confirm('삭제하시겠습니까?')" class="m-0 p-0 flex">
-                  <button type="submit" class="text-xs text-red-500 font-semibold hover:underline">삭제</button>
-                </form>
-              </div>
-            </td>
-          </tr>
-          <tr th:if="${#lists.isEmpty(faqList)}">
-            <td colspan="7" class="py-10 text-center text-sm text-slate-400">등록된 FAQ가 없습니다.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-  
-  <!-- FAQ 상세 모달 -->
-  <div id="faq-modal" class="fixed inset-0 z-50 hidden items-center justify-center">
-    <div class="absolute inset-0 bg-black/40" onclick="closeFaqModal()"></div>
-    <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 p-8 flex flex-col overflow-y-auto"
-      style="min-height: 600px; max-height: 90vh;">
-  
-      <!-- 헤더 -->
-      <div class="flex items-center justify-between mb-6">
-        <div class="flex items-center gap-2">
-          <span id="modal-ctgnm" class="text-xs bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded-full"></span>
-          <span id="modal-subctgnm" class="text-xs text-slate-500"></span>
-          <span id="modal-best"
-            class="hidden text-[10px] bg-blue-600 text-white font-bold px-1.5 py-0.5 rounded">BEST</span>
-        </div>
-        <button onclick="closeFaqModal()" class="text-slate-400 hover:text-slate-700 transition-colors">
-          <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
+              <td class="py-3 px-4 text-center text-xs text-slate-400" th:text="${faq.postSn}"></td>
+              <td class="py-3 px-4 text-center">
+                <span class="text-xs bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded-full"
+                  th:text="${faq.faqCtgNm}"></span>
+              </td>
+              <td class="py-3 px-4 text-center text-xs text-slate-500" th:text="${faq.faqSubCtgNm}"></td>
+              <td class="py-3 px-4 text-slate-800 font-medium">
+                <span th:text="${faq.postSj}" onclick="openFaqModal(this.closest('tr'))"
+                  class="hover:text-violet-600 cursor-pointer transition-colors"></span>
+              </td>
+              <td class="py-3 px-4 text-center">
+                <span th:if="${faq.topFixYn == 'Y'}"
+                  class="inline-block bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">BEST</span>
+                <span th:unless="${faq.topFixYn == 'Y'}" class="text-xs text-slate-300">-</span>
+              </td>
+              <td class="py-3 px-4 text-center text-xs text-slate-400"
+                th:text="${#temporals.format(faq.regDt, 'yyyy-MM-dd')}"></td>
+              <td class="py-3 px-4 text-center">
+                <div class="flex items-center justify-center gap-2">
+                  <a th:href="@{/admin/board/faq/edit/{postSn}(postSn=${faq.postSn})}"
+                    class="text-xs text-violet-600 font-semibold hover:underline">수정</a>
+                  <span class="text-slate-300 text-xs">|</span>
+                  <form th:action="@{/admin/board/faq/delete/{postSn}(postSn=${faq.postSn})}" method="post"
+                    onsubmit="return confirm('삭제하시겠습니까?')" class="m-0 p-0 flex">
+                    <button type="submit" class="text-xs text-red-500 font-semibold hover:underline">삭제</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(faqList)}">
+              <td colspan="7" class="py-10 text-center text-sm text-slate-400">등록된 FAQ가 없습니다.</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-  
-      <!-- 제목 -->
-      <h2 id="modal-title" class="text-lg font-bold text-slate-800 mb-4"></h2>
-  
-      <!-- 내용 -->
-    <div id="modal-content"
-      class="text-sm text-slate-600 leading-relaxed bg-slate-50 rounded-xl p-4 mb-6 whitespace-pre-line overflow-y-auto flex-1">
     </div>
-  
-      <!-- 하단 정보 + 버튼 -->
-      <div class="flex items-center justify-between">
-        <div class="text-xs text-slate-400">
-          작성자: <span id="modal-writer" class="font-semibold text-slate-600"></span>
-          &nbsp;·&nbsp;
-          등록일: <span id="modal-regdt"></span>
+
+    <!-- FAQ 상세 모달 -->
+    <div id="faq-modal" class="fixed inset-0 z-50 hidden items-center justify-center">
+      <div class="absolute inset-0 bg-black/40" onclick="closeFaqModal()"></div>
+      <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 p-8 flex flex-col overflow-y-auto"
+        style="min-height: 600px; max-height: 90vh;">
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center gap-2">
+            <span id="modal-ctgnm"
+              class="text-xs bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded-full"></span>
+            <span id="modal-subctgnm" class="text-xs text-slate-500"></span>
+            <span id="modal-best"
+              class="hidden text-[10px] bg-blue-600 text-white font-bold px-1.5 py-0.5 rounded">BEST</span>
+          </div>
+          <button onclick="closeFaqModal()" class="text-slate-400 hover:text-slate-700 transition-colors">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
         </div>
-        <div class="flex gap-2">
-          <a id="modal-edit-btn" href="#"
-            class="px-4 py-2 text-xs font-semibold text-violet-600 border border-violet-200 rounded-xl hover:bg-violet-50 transition-colors">
-            수정
-          </a>
-          <form id="modal-delete-form" method="post" onsubmit="return confirm('삭제하시겠습니까?')" class="m-0">
-            <button type="submit"
-              class="px-4 py-2 text-xs font-semibold text-red-500 border border-red-200 rounded-xl hover:bg-red-50 transition-colors">
-              삭제
-            </button>
-          </form>
+        <h2 id="modal-title" class="text-lg font-bold text-slate-800 mb-4"></h2>
+        <div id="modal-content"
+          class="text-sm text-slate-600 leading-relaxed bg-slate-50 rounded-xl p-4 mb-6 whitespace-pre-line overflow-y-auto flex-1">
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="text-xs text-slate-400">
+            작성자: <span id="modal-writer" class="font-semibold text-slate-600"></span>
+            &nbsp;·&nbsp;
+            등록일: <span id="modal-regdt"></span>
+          </div>
+          <div class="flex gap-2">
+            <a id="modal-edit-btn" href="#"
+              class="px-4 py-2 text-xs font-semibold text-violet-600 border border-violet-200 rounded-xl hover:bg-violet-50 transition-colors">
+              수정
+            </a>
+            <form id="modal-delete-form" method="post" onsubmit="return confirm('삭제하시겠습니까?')" class="m-0">
+              <button type="submit"
+                class="px-4 py-2 text-xs font-semibold text-red-500 border border-red-200 rounded-xl hover:bg-red-50 transition-colors">
+                삭제
+              </button>
+            </form>
+          </div>
         </div>
       </div>
-  
     </div>
-  </div>
 
     <!-- ══ 공지사항 탭 ══ -->
     <div id="tab-notice" class="cs-tab-panel p-6">
@@ -179,12 +168,12 @@
               <i class="fa-solid fa-magnifying-glass text-sm"></i>
             </button>
           </div>
-        </div> 
+        </div>
         <a href="/admin/board/notice/write" class="hm-btn-primary text-sm">
           <i class="fa-solid fa-plus mr-1"></i>공지사항 등록
         </a>
       </div>
-    
+
       <div class="overflow-x-auto rounded-xl border border-slate-100">
         <table class="w-full text-sm">
           <thead>
@@ -199,13 +188,13 @@
           </thead>
           <tbody id="notice-table-body" class="divide-y divide-slate-50">
             <tr th:each="notice : ${noticeList}" th:attr="data-type=${notice.noticeTypeCd},
-                         data-title=${notice.postSj},
-                         data-postsn=${notice.postSn},
-                         data-typenm=${notice.noticeTypeNm},
-                         data-postcn=${notice.postCn},
-                         data-popupexpsyn=${notice.popupExpsYn},
-                         data-regdt=${#temporals.format(notice.regDt, 'yyyy-MM-dd')},
-                         data-wrtruserid=${notice.wrtrUserId}" class="hover:bg-slate-50 transition-colors">
+                       data-title=${notice.postSj},
+                       data-postsn=${notice.postSn},
+                       data-typenm=${notice.noticeTypeNm},
+                       data-postcn=${notice.postCn},
+                       data-popupexpsyn=${notice.popupExpsYn},
+                       data-regdt=${#temporals.format(notice.regDt, 'yyyy-MM-dd')},
+                       data-wrtruserid=${notice.wrtrUserId}" class="hover:bg-slate-50 transition-colors">
               <td class="py-3 px-4 text-center text-xs text-slate-400" th:text="${notice.postSn}"></td>
               <td class="py-3 px-4 text-center">
                 <span th:switch="${notice.noticeTypeCd}">
@@ -247,14 +236,12 @@
         </table>
       </div>
     </div>
-    
+
     <!-- 공지사항 상세 모달 -->
     <div id="notice-modal" class="fixed inset-0 z-50 hidden items-center justify-center">
       <div class="absolute inset-0 bg-black/40" onclick="closeNoticeModal()"></div>
       <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 p-8 flex flex-col overflow-y-auto"
         style="min-height: 600px; max-height: 90vh;">
-    
-        <!-- 헤더 -->
         <div class="flex items-center justify-between mb-6">
           <div class="flex items-center gap-2">
             <span id="notice-modal-typenm"
@@ -266,16 +253,10 @@
             <i class="fa-solid fa-xmark text-lg"></i>
           </button>
         </div>
-    
-        <!-- 제목 -->
         <h2 id="notice-modal-title" class="text-lg font-bold text-slate-800 mb-4"></h2>
-    
-        <!-- 내용 -->
         <div id="notice-modal-content"
           class="text-sm text-slate-600 leading-relaxed bg-slate-50 rounded-xl p-4 mb-6 whitespace-pre-line overflow-y-auto flex-1">
         </div>
-    
-        <!-- 하단 정보 + 버튼 -->
         <div class="flex items-center justify-between">
           <div class="text-xs text-slate-400">
             작성자: <span id="notice-modal-writer" class="font-semibold text-slate-600"></span>
@@ -295,7 +276,6 @@
             </form>
           </div>
         </div>
-    
       </div>
     </div>
 
@@ -333,63 +313,143 @@
               <th class="text-center py-3 px-4 font-semibold w-20">비공개</th>
               <th class="text-center py-3 px-4 font-semibold w-24">답변상태</th>
               <th class="text-center py-3 px-4 font-semibold w-28">등록일</th>
-              <th class="text-center py-3 px-4 font-semibold w-24">관리</th>
             </tr>
           </thead>
           <tbody id="qna-table-body" class="divide-y divide-slate-50">
-            <tr th:each="qna : ${qnaList}"
-                th:attr="data-stat=${qna.answStatCd}, data-ctg=${qna.qnaCtgCd}, data-title=${qna.postSj}">
+            <tr th:each="qna : ${qnaList}" th:attr="data-stat=${qna.answStatCd},
+                       data-ctg=${qna.qnaCtgCd},
+                       data-title=${qna.postSj},
+                       data-postsn=${qna.postSn},
+                       data-ctgnm=${qna.qnaCtgNm},
+                       data-postcn=${qna.postCn},
+                       data-secr=${qna.secrYn},
+                       data-answstatcd=${qna.answStatCd},
+                       data-answcn=${qna.answCn},
+                       data-answdt=${qna.answDt},
+                       data-regdt=${#temporals.format(qna.regDt, 'yyyy-MM-dd')},
+                       data-wrtruserid=${qna.wrtrUserId}" class="hover:bg-slate-50 transition-colors">
               <td class="py-3 px-4 text-center text-xs text-slate-400" th:text="${qna.postSn}"></td>
               <td class="py-3 px-4 text-center">
                 <span class="text-xs bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded-full"
-                      th:text="${qna.qnaCtgNm}"></span>
+                  th:text="${qna.qnaCtgNm}"></span>
               </td>
-              <td class="py-3 px-4 text-slate-800 font-medium" th:text="${qna.postSj}"></td>
+              <td class="py-3 px-4 text-slate-800 font-medium">
+                <span th:text="${qna.postSj}" onclick="openQnaModal(this.closest('tr'))"
+                  class="hover:text-violet-600 cursor-pointer transition-colors"></span>
+              </td>
               <td class="py-3 px-4 text-center">
                 <span th:if="${qna.secrYn == 'Y'}"
-                      class="text-xs bg-slate-100 text-slate-500 font-semibold px-2 py-0.5 rounded-full">
+                  class="text-xs bg-slate-100 text-slate-500 font-semibold px-2 py-0.5 rounded-full">
                   <i class="fa-solid fa-lock text-[10px]"></i>
                 </span>
                 <span th:unless="${qna.secrYn == 'Y'}" class="text-xs text-slate-300">-</span>
               </td>
               <td class="py-3 px-4 text-center">
                 <span th:if="${qna.answStatCd == '01'}"
-                      class="text-xs bg-amber-50 text-amber-600 font-semibold px-2 py-0.5 rounded-full">답변대기</span>
+                  class="text-xs bg-amber-50 text-amber-600 font-semibold px-2 py-0.5 rounded-full">답변대기</span>
                 <span th:if="${qna.answStatCd == '02'}"
-                      class="text-xs bg-emerald-50 text-emerald-600 font-semibold px-2 py-0.5 rounded-full">답변완료</span>
+                  class="text-xs bg-emerald-50 text-emerald-600 font-semibold px-2 py-0.5 rounded-full">답변완료</span>
               </td>
               <td class="py-3 px-4 text-center text-xs text-slate-400"
-                  th:text="${#temporals.format(qna.regDt, 'yyyy-MM-dd')}"></td>.
-
-              <!--답변/삭제 버튼-->
-              <td class="py-3 px-4 text-center">
-                <div class="flex items-center justify-center gap-2">
-                  <a th:href="@{/admin/board/qna/{postSn}(postSn=${qna.postSn})}"
-                    class="text-xs text-violet-600 font-semibold hover:underline">답변</a>
-                  <span class="text-slate-300 text-xs">|</span>
-                  <form th:action="@{/admin/board/qna/delete/{postSn}(postSn=${qna.postSn})}" method="post"
-                    onsubmit="return confirm('삭제하시겠습니까?')" class="m-0 p-0 flex">
-                    <button type="submit" class="text-xs text-red-500 font-semibold hover:underline">삭제</button>
-                  </form>
-                </div>
-              </td>
-
+                th:text="${#temporals.format(qna.regDt, 'yyyy-MM-dd')}"></td>
             </tr>
             <tr th:if="${#lists.isEmpty(qnaList)}">
-              <td colspan="7" class="py-10 text-center text-sm text-slate-400">등록된 QnA가 없습니다.</td>
+              <td colspan="6" class="py-10 text-center text-sm text-slate-400">등록된 QnA가 없습니다.</td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
+
+    <!-- QnA 상세 모달 -->
+    <div id="qna-modal" class="fixed inset-0 z-50 hidden items-center justify-center">
+      <div class="absolute inset-0 bg-black/40" onclick="closeQnaModal()"></div>
+      <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 p-8 flex flex-col overflow-y-auto"
+        style="min-height: 600px; max-height: 90vh;">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <span id="qna-modal-ctgnm"
+              class="text-xs bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded-full"></span>
+            <span id="qna-modal-secr"
+              class="hidden text-xs bg-slate-100 text-slate-500 font-semibold px-2 py-0.5 rounded-full">
+              <i class="fa-solid fa-lock text-[10px]"></i> 비공개
+            </span>
+            <span id="qna-modal-stat-wait"
+              class="hidden text-xs bg-amber-50 text-amber-600 font-semibold px-2 py-0.5 rounded-full">답변대기</span>
+            <span id="qna-modal-stat-done"
+              class="hidden text-xs bg-emerald-50 text-emerald-600 font-semibold px-2 py-0.5 rounded-full">답변완료</span>
+          </div>
+          <button onclick="closeQnaModal()" class="text-slate-400 hover:text-slate-700 transition-colors">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+        <h2 id="qna-modal-title" class="text-lg font-bold text-slate-800 mb-4"></h2>
+        <div id="qna-modal-content"
+          class="text-sm text-slate-600 leading-relaxed bg-slate-50 rounded-xl p-4 mb-4 whitespace-pre-line overflow-y-auto flex-1">
+        </div>
+
+        <!-- 답변 영역 (답변완료일 때) -->
+        <div id="qna-modal-answer-area" class="hidden mb-4">
+          <div class="bg-blue-50 rounded-xl p-4">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-xs font-bold text-blue-600">관리자 답변</span>
+              <span id="qna-modal-answdt" class="text-xs text-slate-400"></span>
+            </div>
+            <div id="qna-modal-answcn" class="text-sm text-slate-600 leading-relaxed whitespace-pre-line"></div>
+          </div>
+        </div>
+
+        <!-- 답변 입력 폼 (답변대기일 때) -->
+        <div id="qna-modal-answer-form" class="hidden mb-4">
+          <form id="qna-answer-form" method="post">
+            <label class="block text-xs font-semibold text-slate-700 mb-1.5">답변 내용</label>
+            <textarea id="qna-modal-answer-input" name="answCn" rows="5" placeholder="답변 내용을 입력하세요."
+              class="w-full hm-input resize-none mb-3"></textarea>
+          </form>
+        </div>
+        
+        <!-- 하단 정보 + 버튼 -->
+        <div class="flex items-center justify-between">
+          <div class="text-xs text-slate-400">
+            작성자: <span id="qna-modal-writer" class="font-semibold text-slate-600"></span>
+            &nbsp;·&nbsp;
+            등록일: <span id="qna-modal-regdt"></span>
+          </div>
+          <div class="flex gap-2">
+            <button id="qna-modal-answer-submit" type="button" onclick="document.getElementById('qna-answer-form').submit()"
+              class="hidden hm-btn-primary text-sm">
+              답변 등록
+            </button>
+            <form id="qna-modal-delete-form" method="post" onsubmit="return confirm('삭제하시겠습니까?')" class="m-0">
+              <button type="submit"
+                class="px-4 py-2 text-xs font-semibold text-red-500 border border-red-200 rounded-xl hover:bg-red-50 transition-colors">
+                삭제
+              </button>
+            </form>
+          </div>
+        </div>
+
   </div>
 </div>
 
 <style>
-  .cs-tab-btn { transition: all .18s; }
-  .cs-tab-btn.active { color: #7c3aed; border-bottom: 2px solid #7c3aed; font-weight: 700; }
-  .cs-tab-panel { display: none; }
-  .cs-tab-panel.active { display: block; }
+  .cs-tab-btn {
+    transition: all .18s;
+  }
+
+  .cs-tab-btn.active {
+    color: #7c3aed;
+    border-bottom: 2px solid #7c3aed;
+    font-weight: 700;
+  }
+
+  .cs-tab-panel {
+    display: none;
+  }
+
+  .cs-tab-panel.active {
+    display: block;
+  }
 </style>
 
 <th:block th:fragment="pageJs">
