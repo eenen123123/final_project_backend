@@ -2,6 +2,8 @@ package kr.or.ddit.controller.instructor;
 
 import java.util.List;
 
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -77,6 +79,7 @@ public class InstructorBoardController {
         if (board == null) {
             return "redirect:/instructor/board/list";
         }
+        board.setContent(sanitize(board.getContent()));
         model.addAttribute("board", board);
         return "admin:/instructor/boardDetail";
     }
@@ -87,7 +90,8 @@ public class InstructorBoardController {
      * @return
      */
     @GetMapping("/insertForm")
-    public String getInsertForm() {
+    public String getInsertForm(Model model) {
+        model.addAttribute("boardTypes", getBoardTypeList());
         return "admin:/instructor/boardInsertForm";
     }
 
@@ -104,6 +108,7 @@ public class InstructorBoardController {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         instructorBoardDto.setInstrUserId(userId);
         instructorBoardDto.setWrtrUserId(userId);
+        instructorBoardDto.setPostCn(sanitize(instructorBoardDto.getPostCn()));
 
         if (error.hasErrors()) {
             String errorMsg = error.getAllErrors().stream()
@@ -149,10 +154,17 @@ public class InstructorBoardController {
                 .postSn(responseDto.getPostSn())
                 .boardTypeCd(responseDto.getBoardTypeCd())
                 .postSj(responseDto.getTitle())
-                .postCn(responseDto.getContent())
+                .postCn(sanitize(responseDto.getContent()))
                 .build();
         model.addAttribute("board", board);
+        model.addAttribute("boardTypes", getBoardTypeList());
         return "admin:/instructor/boardInsertForm";
+    }
+
+    private List<CommonCodeDto> getBoardTypeList() {
+        return commonCodeMapper.selectByClCode("100").stream()
+                .filter(c -> !"01".equals(c.getComCd()))
+                .toList();
     }
 
     /**
@@ -168,6 +180,7 @@ public class InstructorBoardController {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         instructorBoardDto.setInstrUserId(userId);
         instructorBoardDto.setLastMdfrId(userId);
+        instructorBoardDto.setPostCn(sanitize(instructorBoardDto.getPostCn()));
 
         if (error.hasErrors()) {
             String errorMsg = error.getAllErrors().stream()
@@ -219,6 +232,22 @@ public class InstructorBoardController {
         instructorBoardService.restoreInstructorBoard(postSn, userId);
         redirectAttributes.addFlashAttribute("successMessage", "게시글이 복구되었습니다.");
         return "redirect:/instructor/board/detail/" + postSn;
+    }
+
+    // Toast UI Editor 허용 태그 목록 — 매 호출마다 재생성하지 않도록 static 상수로 선언
+    private static final Safelist TOAST_SAFELIST = Safelist.relaxed()
+            .addTags("del", "s", "hr", "input")          // relaxed 기본 목록에 없는 태그
+            .addAttributes("input", "type", "checked", "disabled") // 체크리스트
+            .addAttributes("span", "style")              // color-syntax 인라인 색상
+            .addAttributes("p",  "style")
+            .addAttributes("h1", "style").addAttributes("h2", "style")
+            .addAttributes("h3", "style").addAttributes("h4", "style")
+            .addAttributes("h5", "style").addAttributes("h6", "style");
+
+    // XSS 방어: 허용 태그만 남기고 나머지 제거
+    private String sanitize(String html) {
+        if (html == null) return null;
+        return Jsoup.clean(html, TOAST_SAFELIST);
     }
 
 }

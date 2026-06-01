@@ -137,3 +137,66 @@ function closeNoticeModal() {
   modal.classList.add("hidden");
   modal.classList.remove("flex");
 }
+// ── QnA 모달 ──────────────────────────────────────────────
+function openQnaModal(tr) {
+  const d = tr.dataset;
+  document.getElementById("qna-modal-ctgnm").textContent = d.ctgnm;
+  document.getElementById("qna-modal-title").textContent = d.title;
+  document.getElementById("qna-modal-content").textContent = d.postcn;
+  document.getElementById("qna-modal-writer").textContent = d.wrtruserid;
+  document.getElementById("qna-modal-regdt").textContent = d.regdt;
+
+  // 비공개 여부
+  document
+    .getElementById("qna-modal-secr")
+    .classList.toggle("hidden", d.secr !== "Y");
+
+  // 답변 상태
+  document
+    .getElementById("qna-modal-stat-wait")
+    .classList.toggle("hidden", d.answstatcd !== "01");
+  document
+    .getElementById("qna-modal-stat-done")
+    .classList.toggle("hidden", d.answstatcd !== "02");
+
+  // 답변 완료 - 내용 표시
+  const answerArea = document.getElementById("qna-modal-answer-area");
+  if (d.answstatcd === "02" && d.answcn) {
+    answerArea.classList.remove("hidden");
+    document.getElementById("qna-modal-answcn").textContent = d.answcn;
+    document.getElementById("qna-modal-answdt").textContent =
+      d.answdt?.slice(0, 10) ?? "";
+  } else {
+    answerArea.classList.add("hidden");
+  }
+
+  // 답변 폼 처리
+  const answerForm = document.getElementById("qna-modal-answer-form");
+  const answerFormEl = document.getElementById("qna-answer-form");
+  const answerSubmit = document.getElementById("qna-modal-answer-submit");
+
+  answerForm.classList.remove("hidden");
+  answerSubmit.classList.remove("hidden");
+  answerFormEl.action = "/admin/board/qna/" + d.postsn + "/answer";
+
+  if (d.answstatcd === "01") {
+    answerSubmit.textContent = "답변 등록";
+    document.getElementById("qna-modal-answer-input").value = "";
+  } else {
+    answerSubmit.textContent = "답변 수정";
+    document.getElementById("qna-modal-answer-input").value = d.answcn ?? "";
+  }
+
+  document.getElementById("qna-modal-delete-form").action =
+    "/admin/board/qna/delete/" + d.postsn;
+
+  const modal = document.getElementById("qna-modal");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+function closeQnaModal() {
+  const modal = document.getElementById("qna-modal");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
