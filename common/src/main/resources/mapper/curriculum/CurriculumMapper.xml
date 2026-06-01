@@ -36,7 +36,7 @@
 
   <insert id="insert" parameterType="kr.or.ddit.finalProject.dto.curriculum.CurriculumDto">
     <selectKey keyProperty="curriculumId" resultType="long" order="BEFORE">
-      SELECT SEQ_CURRICULUM_MASTER.NEXTVAL FROM DUAL
+      SELECT SEQ_CURRICULUM.NEXTVAL FROM DUAL
     </selectKey>
     INSERT INTO CURRICULUM (
       CURRICULUM_ID, TITLE, INSTRUCTOR_ID, USE_YN,
