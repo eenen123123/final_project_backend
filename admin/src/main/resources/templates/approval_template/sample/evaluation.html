@@ -1,0 +1,148 @@
+<div class="doc-wrap">
+<style>
+  .doc-wrap { font-family: '맑은 고딕', 'Malgun Gothic', dotum, sans-serif; font-size: 13px; color: #000; }
+  .doc-title { text-align: center; font-size: 22px; font-weight: bold; letter-spacing: 4px; margin: 4px 0 16px; }
+  .doc-table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
+  .doc-table th, .doc-table td { border: 1px solid #000; padding: 5px 8px; vertical-align: middle; }
+  .th { background: #ddd; font-weight: bold; text-align: center; white-space: nowrap; }
+  .tc { text-align: center; }
+  .tr { text-align: right; }
+  .doc-input { width: 100%; border: none; outline: none; background: transparent; font-family: inherit; font-size: 13px; }
+  .doc-input-score { width: 50px; border: none; outline: none; background: transparent; font-family: inherit; font-size: 13px; text-align: center; }
+  .note { font-size: 12px; color: #555; margin: 4px 0; }
+</style>
+
+<div class="doc-title">계약직 및 파견도급직 평가표</div>
+
+<table class="doc-table">
+  <colgroup><col width="13%"><col width="20%"><col width="13%"><col width="20%"><col width="13%"><col></colgroup>
+  <tr>
+    <td class="th">문서번호</td>
+    <td><input class="doc-input" type="text" name="docNo"></td>
+    <td class="th">보존연한</td>
+    <td><input class="doc-input" type="text" name="preservePeriod" placeholder="5년"></td>
+    <td class="th">작성일</td>
+    <td><input class="doc-input" type="date" name="writeDate"></td>
+  </tr>
+  <tr>
+    <td class="th">부서</td>
+    <td><input class="doc-input" type="text" name="dept"></td>
+    <td class="th">작성자</td>
+    <td colspan="3"><input class="doc-input" type="text" name="writer"></td>
+  </tr>
+</table>
+
+<p style="font-weight:bold; margin:6px 0 4px;">평가 대상자</p>
+<table class="doc-table">
+  <colgroup><col width="13%"><col width="20%"><col width="13%"><col width="20%"><col width="13%"><col></colgroup>
+  <tr>
+    <td class="th">성명</td>
+    <td><input class="doc-input" type="text" name="evalName"></td>
+    <td class="th">소속</td>
+    <td><input class="doc-input" type="text" name="evalDept"></td>
+    <td class="th">입사일</td>
+    <td><input class="doc-input" type="date" name="joinDate"></td>
+  </tr>
+  <tr>
+    <td class="th">계약만료일</td>
+    <td><input class="doc-input" type="date" name="contractEnd"></td>
+    <td class="th">생년월일</td>
+    <td><input class="doc-input" type="date" name="birthDate"></td>
+    <td class="th">근속</td>
+    <td><input class="doc-input" type="text" name="tenure" placeholder="1년"></td>
+  </tr>
+</table>
+
+<table class="doc-table">
+  <colgroup><col width="12%"><col width="6%"><col width="30%"><col width="13%"><col width="13%"></colgroup>
+  <thead>
+    <tr>
+      <td class="th">항목</td>
+      <td class="th">비중</td>
+      <td class="th">내용</td>
+      <td class="th">1차 심사<br><span style="font-size:11px;">(40%)</span></td>
+      <td class="th">2차 심사<br><span style="font-size:11px;">(60%)</span></td>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="tc">직무지식</td>
+      <td class="tc">2</td>
+      <td>전공지식을 충분히 접목해 활동하는가?</td>
+      <td class="tc"><input class="doc-input-score" type="number" name="s1_1" min="1" max="5" oninput="calcEval()"></td>
+      <td class="tc"><input class="doc-input-score" type="number" name="s2_1" min="1" max="5" oninput="calcEval()"></td>
+    </tr>
+    <tr>
+      <td class="tc">개인과제 완수</td>
+      <td class="tc">2</td>
+      <td>개인적으로 부여된 과제를 충실히 완수하는가?</td>
+      <td class="tc"><input class="doc-input-score" type="number" name="s1_2" min="1" max="5" oninput="calcEval()"></td>
+      <td class="tc"><input class="doc-input-score" type="number" name="s2_2" min="1" max="5" oninput="calcEval()"></td>
+    </tr>
+    <tr>
+      <td class="tc">일처리</td>
+      <td class="tc">2</td>
+      <td>주어진 Task에 대한 기한을 넘기지 않고 처리하는가?</td>
+      <td class="tc"><input class="doc-input-score" type="number" name="s1_3" min="1" max="5" oninput="calcEval()"></td>
+      <td class="tc"><input class="doc-input-score" type="number" name="s2_3" min="1" max="5" oninput="calcEval()"></td>
+    </tr>
+    <tr>
+      <td class="tc">성과달성</td>
+      <td class="tc">2</td>
+      <td>주어진 Task에 대한 완성도와 성과달성을 조직적 기여하는가?</td>
+      <td class="tc"><input class="doc-input-score" type="number" name="s1_4" min="1" max="5" oninput="calcEval()"></td>
+      <td class="tc"><input class="doc-input-score" type="number" name="s2_4" min="1" max="5" oninput="calcEval()"></td>
+    </tr>
+    <tr>
+      <td class="tc">창의적사고</td>
+      <td class="tc">1</td>
+      <td>무단 결근, 지각 회사를 불이익을 끼치지 않고 처리하는가?</td>
+      <td class="tc"><input class="doc-input-score" type="number" name="s1_5" min="1" max="5" oninput="calcEval()"></td>
+      <td class="tc"><input class="doc-input-score" type="number" name="s2_5" min="1" max="5" oninput="calcEval()"></td>
+    </tr>
+    <tr>
+      <td class="tc">과제의식</td>
+      <td class="tc">1</td>
+      <td>개인의 이해관계에 얽매이지 않으며, 회사의 이익을 우선으로 생각하는가?</td>
+      <td class="tc"><input class="doc-input-score" type="number" name="s1_6" min="1" max="5" oninput="calcEval()"></td>
+      <td class="tc"><input class="doc-input-score" type="number" name="s2_6" min="1" max="5" oninput="calcEval()"></td>
+    </tr>
+    <tr>
+      <td colspan="3" class="th tc">합 계</td>
+      <td class="tc" style="font-weight:bold;" id="total1"></td>
+      <td class="tc" style="font-weight:bold;" id="total2"></td>
+    </tr>
+  </tbody>
+</table>
+
+<p class="note">* 1차 및 2차 심사는 1~5점의 평가 등급을 기입하십시오. 2차 심사는 아래 총점합산 기입 후 확인해 주십시오.(평가비준에 유념할 것)</p>
+
+<table class="doc-table">
+  <colgroup><col width="20%"><col></colgroup>
+  <tr>
+    <td class="th">총점(100점 만점)</td>
+    <td><b id="finalScore">0</b>점</td>
+  </tr>
+  <tr>
+    <td class="th">처우결정</td>
+    <td>
+      <label><input type="radio" name="decision" value="계약직전환"> 계약직전환</label>&nbsp;&nbsp;
+      <label><input type="radio" name="decision" value="재계약"> 재계약</label>&nbsp;&nbsp;
+      <label><input type="radio" name="decision" value="파견도급계약종료"> 파견도급계약종료</label>
+    </td>
+  </tr>
+</table>
+
+<script>
+  function calcEval() {
+    const fields1 = ['s1_1','s1_2','s1_3','s1_4','s1_5','s1_6'];
+    const fields2 = ['s2_1','s2_2','s2_3','s2_4','s2_5','s2_6'];
+    let t1 = 0, t2 = 0;
+    fields1.forEach(f => t1 += parseFloat(document.querySelector(`[name="${f}"]`)?.value||0));
+    fields2.forEach(f => t2 += parseFloat(document.querySelector(`[name="${f}"]`)?.value||0));
+    document.getElementById('total1').textContent = t1;
+    document.getElementById('total2').textContent = t2;
+    document.getElementById('finalScore').textContent = Math.round(t1 * 0.4 * 10 + t2 * 0.6 * 10);
+  }
+</script>
+</div>

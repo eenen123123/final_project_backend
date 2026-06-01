@@ -25,7 +25,7 @@ public enum ErrorCode {
     ACCOUNT_UNUSABLE(HttpStatus.FORBIDDEN, "사용할 수 없는 계정입니다."),
 
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
-  
+
     USER_ID_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 사용자 ID입니다."),
 
     EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "이메일 인증이 완료되지 않았습니다."),
@@ -63,6 +63,15 @@ public enum ErrorCode {
 
     FILE_TYPE_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "PDF, 이미지, 동영상, Zip 파일만 업로드할 수 있습니다."),
 
+    FILE_READ_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "파일 내용을 읽는 중 오류가 발생했습니다."),
+
+
+    // 결재 관련
+    APPROVAL_TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "결재 양식을 찾을 수 없습니다."),
+
+    APPROVAL_NOT_FOUND(HttpStatus.NOT_FOUND, "결재 문서를 찾을 수 없습니다."),
+
+
     // 결제 관련
 
     // KAKAO
@@ -77,10 +86,11 @@ public enum ErrorCode {
 
     // UTIL
     JSON_PROCESSING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "JSON 처리에 실패했습니다."),
-    
+
     // 직원 관련
-    EMPLOYEE_REGISTER_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "직원 등록에 실패했습니다."),
-    EMPLOYEE_ID_GENERATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "직원 ID 생성에 실패했습니다."),;
+    EMPLOYEE_REGISTER_FAILED(HttpStatus.INTERNAL_SERVER_ERROR,
+            "직원 등록에 실패했습니다."), EMPLOYEE_ID_GENERATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "직원 ID 생성에 실패했습니다."),;
 
     // =============================
 

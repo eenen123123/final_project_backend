@@ -1,0 +1,99 @@
+<div class="doc-wrap">
+<style>
+  .doc-wrap { font-family: '맑은 고딕', 'Malgun Gothic', dotum, sans-serif; font-size: 13px; color: #000; }
+  .doc-title { text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 4px; margin: 4px 0 16px; }
+  .doc-table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
+  .doc-table th, .doc-table td { border: 1px solid #000; padding: 5px 8px; vertical-align: middle; }
+  .th { background: #ddd; font-weight: bold; text-align: center; white-space: nowrap; }
+  .tc { text-align: center; }
+  .doc-input { width: 100%; border: none; outline: none; background: transparent; font-family: inherit; font-size: 13px; }
+  .note { font-size: 12px; color: #333; margin: 6px 0; }
+</style>
+
+<div class="doc-title">사무용품 신청서</div>
+
+<table class="doc-table">
+  <colgroup><col width="13%"><col width="20%"><col width="13%"><col width="20%"><col width="13%"><col></colgroup>
+  <tr>
+    <td class="th">기안부서</td>
+    <td><input class="doc-input" type="text" name="dept"></td>
+    <td class="th">기 안 일</td>
+    <td><input class="doc-input" type="date" name="draftDate"></td>
+    <td class="th">문서번호</td>
+    <td><input class="doc-input" type="text" name="docNo"></td>
+  </tr>
+  <tr>
+    <td class="th">기 안 자</td>
+    <td><input class="doc-input" type="text" name="drafter"></td>
+    <td class="th">보존연한</td>
+    <td><input class="doc-input" type="text" name="preservePeriod" placeholder="5년"></td>
+    <td class="th">비밀등급</td>
+    <td><input class="doc-input" type="text" name="securityLevel" placeholder="1등급"></td>
+  </tr>
+  <tr>
+    <td class="th">합의</td>
+    <td colspan="5"><input class="doc-input" type="text" name="agreement"></td>
+  </tr>
+  <tr>
+    <td class="th">제목</td>
+    <td colspan="5"><input class="doc-input" type="text" name="subject"></td>
+  </tr>
+</table>
+
+<p class="note">* 아래 정보를 기입하신 후, 신청기한을 준수하여 경영기획팀에 제출하여 주십시오.</p>
+<p class="note">* 급하게 받아야 할 물품의 경우 신청서 제출 후 담당자와 꼭 확인하시기 바랍니다.</p>
+
+<table class="doc-table">
+  <colgroup><col width="13%"><col width="37%"><col width="13%"><col></colgroup>
+  <tr>
+    <td class="th">신청일자</td>
+    <td><input class="doc-input" type="date" name="requestDate"></td>
+    <td class="th">신청기한</td>
+    <td><input class="doc-input" type="date" name="deadline"></td>
+  </tr>
+  <tr>
+    <td class="th">팀/그룹</td>
+    <td><input class="doc-input" type="text" name="team"></td>
+    <td class="th">신청자</td>
+    <td><input class="doc-input" type="text" name="requester"></td>
+  </tr>
+  <tr>
+    <td class="th">연락처(내선)</td>
+    <td><input class="doc-input" type="text" name="phone"></td>
+    <td class="th">배송희망일</td>
+    <td><input class="doc-input" type="date" name="deliveryDate"></td>
+  </tr>
+</table>
+
+<table class="doc-table">
+  <colgroup><col width="6%"><col width="30%"><col width="14%"><col width="10%"><col width="14%"><col></colgroup>
+  <thead>
+    <tr>
+      <td class="th">NO</td>
+      <td class="th">신청항목</td>
+      <td class="th">규격</td>
+      <td class="th">단위</td>
+      <td class="th">신청수량</td>
+      <td class="th">비고</td>
+    </tr>
+  </thead>
+  <tbody>
+    <tr th:each="i : ${#numbers.sequence(1,10)}">
+      <td class="tc">1</td><td><input class="doc-input" type="text" name="item1"></td><td><input class="doc-input" type="text" name="spec1"></td><td><input class="doc-input" type="text" name="unit1"></td><td><input class="doc-input" type="number" name="qty1" style="text-align:right;"></td><td><input class="doc-input" type="text" name="note1"></td>
+    </tr>
+    <tr><td class="tc">2</td><td><input class="doc-input" type="text" name="item2"></td><td><input class="doc-input" type="text" name="spec2"></td><td><input class="doc-input" type="text" name="unit2"></td><td><input class="doc-input" type="number" name="qty2" style="text-align:right;"></td><td><input class="doc-input" type="text" name="note2"></td></tr>
+    <tr><td class="tc">3</td><td><input class="doc-input" type="text" name="item3"></td><td><input class="doc-input" type="text" name="spec3"></td><td><input class="doc-input" type="text" name="unit3"></td><td><input class="doc-input" type="number" name="qty3" style="text-align:right;"></td><td><input class="doc-input" type="text" name="note3"></td></tr>
+    <tr><td class="tc">4</td><td><input class="doc-input" type="text" name="item4"></td><td><input class="doc-input" type="text" name="spec4"></td><td><input class="doc-input" type="text" name="unit4"></td><td><input class="doc-input" type="number" name="qty4" style="text-align:right;"></td><td><input class="doc-input" type="text" name="note4"></td></tr>
+    <tr><td class="tc">5</td><td><input class="doc-input" type="text" name="item5"></td><td><input class="doc-input" type="text" name="spec5"></td><td><input class="doc-input" type="text" name="unit5"></td><td><input class="doc-input" type="number" name="qty5" style="text-align:right;"></td><td><input class="doc-input" type="text" name="note5"></td></tr>
+    <tr><td class="tc">6</td><td><input class="doc-input" type="text" name="item6"></td><td><input class="doc-input" type="text" name="spec6"></td><td><input class="doc-input" type="text" name="unit6"></td><td><input class="doc-input" type="number" name="qty6" style="text-align:right;"></td><td><input class="doc-input" type="text" name="note6"></td></tr>
+    <tr><td class="tc">7</td><td><input class="doc-input" type="text" name="item7"></td><td><input class="doc-input" type="text" name="spec7"></td><td><input class="doc-input" type="text" name="unit7"></td><td><input class="doc-input" type="number" name="qty7" style="text-align:right;"></td><td><input class="doc-input" type="text" name="note7"></td></tr>
+    <tr><td class="tc">8</td><td><input class="doc-input" type="text" name="item8"></td><td><input class="doc-input" type="text" name="spec8"></td><td><input class="doc-input" type="text" name="unit8"></td><td><input class="doc-input" type="number" name="qty8" style="text-align:right;"></td><td><input class="doc-input" type="text" name="note8"></td></tr>
+    <tr><td class="tc">9</td><td><input class="doc-input" type="text" name="item9"></td><td><input class="doc-input" type="text" name="spec9"></td><td><input class="doc-input" type="text" name="unit9"></td><td><input class="doc-input" type="number" name="qty9" style="text-align:right;"></td><td><input class="doc-input" type="text" name="note9"></td></tr>
+    <tr><td class="tc">10</td><td><input class="doc-input" type="text" name="item10"></td><td><input class="doc-input" type="text" name="spec10"></td><td><input class="doc-input" type="text" name="unit10"></td><td><input class="doc-input" type="number" name="qty10" style="text-align:right;"></td><td><input class="doc-input" type="text" name="note10"></td></tr>
+  </tbody>
+</table>
+
+<p class="note">신청제한 품목<br>
+- 개인용도의 사용물품 및 한도금액(12만원이상)제한<br>
+- 예시 : 노트북거치대, 고가의 외장하드, 모니터보호필름 등</p>
+</div>

@@ -1,0 +1,639 @@
+<th:block th:fragment="pageCss">
+  <style>
+    button {
+      cursor: pointer;
+    }
+
+    .line-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      min-width: 5rem;
+    }
+    .line-step-circle {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border: 2px solid #e2e8f0;
+      color: #94a3b8;
+      background: #f8fafc;
+      transition: all 0.2s;
+    }
+    .line-connector {
+      flex: 1;
+      height: 2px;
+      background: #e2e8f0;
+      margin-top: 1.25rem;
+    }
+
+    .drop-zone {
+      transition: all 0.2s ease;
+    }
+    .drop-zone.drag-over {
+      border-color: #7c3aed;
+      background: rgba(124, 58, 237, 0.04);
+    }
+  </style>
+</th:block>
+
+<title
+  th:fragment="pageTitle"
+  th:text="${doc != null ? '기안 수정 | HERMES' : '기안 작성 | HERMES'}"
+>
+  기안 작성 | HERMES
+</title>
+
+<div class="space-y-5 pb-64 max-w-7xl mx-auto">
+  <!-- ───────── 브레드크럼 + 헤더 ───────── -->
+  <div class="flex items-center gap-2 text-md text-slate-400">
+    <a href="/admin/approval" class="hover:text-violet-600 transition-colors"
+      >전자결재</a
+    >
+    <i class="fa-solid fa-chevron-right text-xs"></i>
+    <span
+      class="text-slate-600 font-medium"
+      th:text="${doc != null ? '기안 수정' : '기안 작성'}"
+      >기안 작성</span
+    >
+  </div>
+
+  <div class="flex items-center justify-between">
+    <h1
+      class="text-2xl font-bold text-slate-900 tracking-tight"
+      th:text="${doc != null ? '결재 기안 수정' : '결재 기안 작성'}"
+    >
+      결재 기안 작성
+    </h1>
+    <p class="text-xs text-slate-400">
+      <i class="fa-solid fa-circle-info mr-1"></i>임시저장 후 결재선을 확인하고
+      상신하세요.
+    </p>
+  </div>
+
+  <form
+    th:action="${doc != null ? '/admin/approval/' + doc.aprvlDocSn + '/update' : '/admin/approval'}"
+    method="post"
+    id="approvalForm"
+    class="space-y-5"
+  >
+    <!-- ───── 문서 기본 정보 ───── -->
+    <div
+      class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4"
+    >
+      <h2 class="text-sm font-bold text-slate-700 flex items-center gap-2">
+        <i class="fa-solid fa-file-lines text-violet-500"></i> 문서 정보
+      </h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5"
+            >문서 유형 <span class="text-red-400">*</span></label
+          >
+          <select class="hm-input" name="tmplCd" id="tmplCd" required>
+            <option value="">유형 선택</option>
+            <option
+              th:each="tmpl : ${templates}"
+              th:value="${tmpl.tmplCd}"
+              th:text="${tmpl.tmplNm}"
+              th:selected="${doc != null and doc.tmplCd == tmpl.tmplCd}"
+            >
+              유형명
+            </option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5"
+            >기안일</label
+          >
+          <input
+            type="text"
+            class="hm-input bg-slate-50 text-slate-400 cursor-not-allowed"
+            th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}"
+            readonly
+          />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5"
+          >문서 제목 <span class="text-red-400">*</span></label
+        >
+        <input
+          type="text"
+          class="hm-input"
+          name="aprvlDocSj"
+          id="aprvlDocSj"
+          th:value="${doc?.aprvlDocSj}"
+          placeholder="결재 문서 제목을 입력하세요"
+          required
+        />
+      </div>
+
+      <!-- 문서 양식 영역 -->
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5"
+          >문서 양식 <span class="text-red-400">*</span></label
+        >
+        <!-- 양식 미선택 안내 -->
+        <div
+          id="templatePlaceholder"
+          class="border-2 border-dashed border-slate-200 rounded-xl p-10 text-center text-slate-300 text-sm"
+        >
+          <i class="fa-solid fa-file-circle-plus text-3xl mb-2 block"></i>
+          위에서 문서 유형을 선택하면 양식이 표시됩니다.
+        </div>
+        <!-- 로딩 -->
+        <div
+          id="templateLoading"
+          class="hidden border rounded-xl p-10 text-center text-slate-400 text-sm"
+        >
+          <i
+            class="fa-solid fa-spinner animate-spin text-2xl mb-2 block text-violet-400"
+          ></i>
+          양식 불러오는 중...
+        </div>
+        <!-- 양식 컨테이너 -->
+        <div
+          id="templateContainer"
+          class="hidden border border-slate-200 rounded-xl p-6 bg-white overflow-x-auto max-w-3xl mx-auto"
+        ></div>
+        <!-- 실제 전송값 -->
+        <input type="hidden" name="aprvlDocCn" id="aprvlDocCn" />
+      </div>
+    </div>
+
+    <!-- ───── 첨부파일 ───── -->
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+      <h2 class="text-sm font-bold text-slate-700 flex items-center gap-2 mb-4">
+        <i class="fa-solid fa-paperclip text-violet-500"></i> 첨부파일
+      </h2>
+      <div
+        class="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-violet-300 transition-colors cursor-pointer drop-zone"
+        id="dropZone"
+        onclick="document.getElementById('fileInput').click()"
+      >
+        <i
+          class="fa-solid fa-cloud-arrow-up text-2xl text-slate-300 mb-2 block"
+        ></i>
+        <p class="text-xs text-slate-400">클릭하거나 파일을 드래그하세요</p>
+        <p class="text-xs text-slate-300 mt-0.5">
+          PDF, 이미지, Word, Excel (최대 10MB)
+        </p>
+      </div>
+      <input
+        type="file"
+        id="fileInput"
+        class="hidden"
+        multiple
+        onchange="handleFiles(this.files)"
+      />
+      <ul id="fileList" class="mt-3 space-y-1.5"></ul>
+    </div>
+
+    <!-- ───── 결재선 ───── -->
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-sm font-bold text-slate-700 flex items-center gap-2">
+          <i class="fa-solid fa-route text-violet-500"></i> 결재선
+        </h2>
+        <button
+          type="button"
+          onclick="toggleLineEdit()"
+          class="text-xs font-semibold text-violet-600 bg-violet-50 hover:bg-violet-100 px-3 py-1.5 rounded-lg transition-colors"
+        >
+          <i class="fa-solid fa-pen mr-1" id="editIcon"></i>
+          <span id="editBtnText">결재선 수정</span>
+        </button>
+      </div>
+
+      <!-- 결재선 시각화 -->
+      <div class="flex items-start gap-0 mb-4" id="linePreview">
+        <div class="line-step">
+          <div
+            class="line-step-circle"
+            style="border-color: #7c3aed; color: #7c3aed; background: #f5f3ff"
+          >
+            <i class="fa-solid fa-pen-to-square"></i>
+          </div>
+          <p class="text-xs font-semibold text-slate-700">기안</p>
+          <p class="text-xs text-slate-400" th:text="${currentUserName}">나</p>
+        </div>
+        <div id="lineSteps" class="flex items-start flex-1"></div>
+        <div class="line-step">
+          <div class="line-step-circle">
+            <i class="fa-solid fa-flag-checkered"></i>
+          </div>
+          <p class="text-xs font-semibold text-slate-300">완료</p>
+        </div>
+      </div>
+
+      <!-- 결재선 수정 영역 (기본 숨김) -->
+      <div
+        id="lineEditArea"
+        class="hidden border border-dashed border-violet-200 rounded-xl p-6 space-y-3 bg-violet-50/30 max-w-md mx-auto"
+      >
+        <p class="text-xs text-slate-500">
+          <i class="fa-solid fa-circle-info mr-1 text-violet-400"></i>
+          결재자를 추가하거나 삭제할 수 있습니다. 순서는 위에서 아래 순으로
+          결재됩니다.
+        </p>
+        <div id="lineEditList" class="space-y-2"></div>
+        <div class="flex gap-2 pt-1">
+          <select
+            id="approverSelect"
+            class="flex-1 text-sm border border-slate-200 rounded-xl px-3 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-300"
+          >
+            <option value="">결재자 선택</option>
+          </select>
+          <button
+            type="button"
+            onclick="addApprover()"
+            class="cursor-pointer px-4 py-2 text-xs font-semibold text-violet-500 border border-dashed border-violet-300 rounded-xl hover:bg-violet-50 transition-colors whitespace-nowrap"
+          >
+            <i class="fa-solid fa-plus mr-1"></i>추가
+          </button>
+        </div>
+      </div>
+
+      <input type="hidden" name="approvalLine" id="approvalLineJson" />
+    </div>
+
+    <!-- ───── 하단 버튼 ───── -->
+    <div class="flex items-center justify-between pt-2 pb-6">
+      <a
+        href="/admin/approval"
+        class="px-5 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+      >
+        <i class="fa-solid fa-arrow-left mr-1"></i>목록으로
+      </a>
+      <div class="flex gap-3">
+        <button
+          type="button"
+          onclick="saveDraft()"
+          class="px-5 py-2.5 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+        >
+          <i class="fa-solid fa-floppy-disk mr-1"></i>임시저장
+        </button>
+        <button type="button" onclick="submitApproval()" class="hm-btn-primary">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>결재 상신</span>
+        </button>
+      </div>
+    </div>
+  </form>
+  <script th:inline="javascript">
+    let approvalLine = [];
+    const APPROVER_CANDIDATES = /*[[${approverCandidates}]]*/ [];
+    const EXISTING_DOC_SN = /*[[${doc?.aprvlDocSn}]]*/ null;
+    const EXISTING_LINES = /*[[${existingLines}]]*/ [];
+
+    const AUTO_USER_NM = /*[[${currentUserName}]]*/ "";
+    const AUTO_DEPT_NM = /*[[${currentDeptNm}]]*/ "";
+    const AUTO_DRAFT_DT = new Date().toISOString().split("T")[0];
+
+    /* ── 템플릿 로드 ── */
+    document.getElementById("tmplCd").addEventListener("change", function () {
+      const tmplCd = this.value;
+      if (!tmplCd) {
+        document
+          .getElementById("templatePlaceholder")
+          .classList.remove("hidden");
+        document.getElementById("templateLoading").classList.add("hidden");
+        document.getElementById("templateContainer").classList.add("hidden");
+        return;
+      }
+      document.getElementById("templatePlaceholder").classList.add("hidden");
+      document.getElementById("templateLoading").classList.remove("hidden");
+      document.getElementById("templateContainer").classList.add("hidden");
+
+      fetch(`/admin/approval/template/${tmplCd}`)
+        .then((r) => r.text())
+        .then((html) => {
+          const container = document.getElementById("templateContainer");
+          container.innerHTML = html;
+          fillAutoFields(container);
+          document.getElementById("templateLoading").classList.add("hidden");
+          container.classList.remove("hidden");
+        })
+        .catch(() => {
+          document.getElementById("templateLoading").classList.add("hidden");
+          document
+            .getElementById("templatePlaceholder")
+            .classList.remove("hidden");
+          alert("양식을 불러오지 못했습니다.");
+        });
+    });
+
+    /* ── 고정 필드 자동 채움 ── */
+    function fillAutoFields(container) {
+      const fill = (name, value, readonly = true) => {
+        container.querySelectorAll(`[name="${name}"]`).forEach((el) => {
+          el.value = value;
+          if (readonly) {
+            el.readOnly = true;
+            el.style.background = "#f5f5f5";
+            el.style.cursor = "not-allowed";
+          }
+        });
+      };
+      fill("drafter", AUTO_USER_NM);
+      fill("dept", AUTO_DEPT_NM);
+      fill("draftDate", AUTO_DRAFT_DT);
+      fill("docNo", "저장 후 자동생성");
+    }
+
+    /* ── 템플릿 innerHTML 캡처 ── */
+    function captureTemplate() {
+      const container = document.getElementById("templateContainer");
+      if (
+        !container.classList.contains("hidden") &&
+        container.innerHTML.trim()
+      ) {
+        // DOM 프로퍼티 → HTML attribute 동기화 (innerHTML은 attribute만 직렬화함)
+        container.querySelectorAll("input, textarea, select").forEach((el) => {
+          if (el.type === "checkbox" || el.type === "radio") {
+            el.checked
+              ? el.setAttribute("checked", "")
+              : el.removeAttribute("checked");
+          } else if (el.tagName === "TEXTAREA") {
+            el.textContent = el.value;
+          } else if (el.tagName === "SELECT") {
+            el.querySelectorAll("option").forEach((opt) => {
+              opt.selected
+                ? opt.setAttribute("selected", "")
+                : opt.removeAttribute("selected");
+            });
+          } else {
+            el.setAttribute("value", el.value);
+          }
+        });
+        document.getElementById("aprvlDocCn").value = container.innerHTML;
+        return true;
+      }
+      return false;
+    }
+
+    function renderLinePreview() {
+      const container = document.getElementById("lineSteps");
+      container.innerHTML =
+        approvalLine
+          .map(
+            (a, i) => `
+        <div class="flex items-start flex-1">
+          <div class="line-connector"></div>
+          <div class="line-step">
+            <div class="line-step-circle" style="border-color:#6366f1; color:#6366f1; background:#eef2ff;">
+              <span>${i + 1}</span>
+            </div>
+            <p class="text-xs font-semibold text-slate-700">${a.stepLabel || "결재"}</p>
+            <p class="text-xs text-slate-500">${a.approverName || a.aprvrUserId} (${a.jbgrNm || ""}) </p>
+          </div>
+        </div>
+      `,
+          )
+          .join("") + `<div class="line-connector"></div>`;
+    }
+
+    function renderLineEdit() {
+      const list = document.getElementById("lineEditList");
+      list.innerHTML = approvalLine
+        .map(
+          (a, i) => `
+        <div class="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-2.5">
+          <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold flex items-center justify-center shrink-0">${i + 1}</span>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-slate-700">${a.approverName || a.aprvrUserId}</p>
+            <p class="text-xs text-slate-400">${a.jbgrNm || ""}</p>
+          </div>
+          <button type="button" onclick="removeApprover(${i})"
+                  class="text-slate-300 hover:text-red-400 transition-colors text-sm">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      `,
+        )
+        .join("");
+      const hasDirector = approvalLine.some((a) => a.jbgrNm === "원장");
+      document.getElementById("approverSelect").disabled = hasDirector;
+      document.querySelector('button[onclick="addApprover()"]').disabled =
+        hasDirector;
+    }
+
+    function toggleLineEdit() {
+      const area = document.getElementById("lineEditArea");
+      const icon = document.getElementById("editIcon");
+      const text = document.getElementById("editBtnText");
+      const isHidden = area.classList.contains("hidden");
+      area.classList.toggle("hidden", !isHidden);
+      icon.className = isHidden
+        ? "fa-solid fa-xmark mr-1"
+        : "fa-solid fa-pen mr-1";
+      text.textContent = isHidden ? "수정 닫기" : "결재선 수정";
+      if (isHidden) renderLineEdit();
+    }
+
+    function removeApprover(index) {
+      // 결재선을 지울때 결재선은 최소 1명 이상이어야 한다는 제약 제거
+      // if (approvalLine.length <= 1) {
+      //   alert("결재자는 최소 1명 이상이어야 합니다.");
+      //   return;
+      // }
+      approvalLine.splice(index, 1);
+      renderLinePreview();
+      renderLineEdit();
+    }
+
+    function buildApproverSelect() {
+      const select = document.getElementById("approverSelect");
+      const byDept = {};
+      APPROVER_CANDIDATES.forEach((c) => {
+        if (!byDept[c.deptNm]) byDept[c.deptNm] = [];
+        byDept[c.deptNm].push(c);
+      });
+      Object.entries(byDept).forEach(([deptNm, members]) => {
+        const og = document.createElement("optgroup");
+        og.label = deptNm;
+        members.forEach((m) => {
+          const opt = document.createElement("option");
+          opt.value = m.userId;
+          opt.dataset.name = m.userName;
+          opt.dataset.jbgr = m.jbgrNm;
+          opt.dataset.sortOrd = m.sortOrd;
+          opt.textContent = `${m.userName} (${m.jbgrNm})`;
+          og.appendChild(opt);
+        });
+        select.appendChild(og);
+      });
+    }
+    buildApproverSelect();
+
+    function addApprover() {
+      if (approvalLine.some((a) => a.jbgrNm === "원장")) {
+        alert("원장이 결재선에 포함되어 있으면 추가할 수 없습니다.");
+        return;
+      }
+      const select = document.getElementById("approverSelect");
+      const opt = select.options[select.selectedIndex];
+      if (!opt.value) {
+        alert("결재자를 선택하세요.");
+        return;
+      }
+      if (approvalLine.some((a) => a.aprvrUserId === opt.value)) {
+        alert("이미 추가된 결재자입니다.");
+        return;
+      }
+      const newSortOrd = parseInt(opt.dataset.sortOrd);
+      const isDirector = opt.dataset.jbgr === "원장";
+      if (!isDirector) {
+        const minSortOrd =
+          approvalLine.length > 0
+            ? Math.min(
+                ...approvalLine
+                  .filter((a) => a.jbgrNm !== "원장")
+                  .map((a) => a.sortOrd),
+              )
+            : Infinity;
+        if (newSortOrd >= minSortOrd) {
+          alert("이미 추가된 결재자보다 높은 직급만 추가할 수 있습니다.");
+          return;
+        }
+      }
+      approvalLine.push({
+        aprvrUserId: opt.value,
+        approverName: opt.dataset.name,
+        jbgrNm: opt.dataset.jbgr,
+        sortOrd: newSortOrd,
+      });
+      renderLinePreview();
+      renderLineEdit();
+    }
+
+    const dropZone = document.getElementById("dropZone");
+    dropZone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropZone.classList.add("drag-over");
+    });
+    dropZone.addEventListener("dragleave", () =>
+      dropZone.classList.remove("drag-over"),
+    );
+    dropZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropZone.classList.remove("drag-over");
+      handleFiles(e.dataTransfer.files);
+    });
+
+    let selectedFiles = [];
+    function handleFiles(files) {
+      selectedFiles = [...selectedFiles, ...files];
+      const list = document.getElementById("fileList");
+      list.innerHTML = selectedFiles
+        .map(
+          (f, i) => `
+        <li class="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 rounded-lg px-3 py-2">
+          <i class="fa-solid fa-paperclip text-slate-300"></i>
+          <span class="flex-1 truncate">${f.name}</span>
+          <span class="text-slate-300">${(f.size / 1024).toFixed(1)} KB</span>
+          <button type="button" onclick="removeFile(${i})" class="text-slate-300 hover:text-red-400">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </li>
+      `,
+        )
+        .join("");
+    }
+    function removeFile(i) {
+      selectedFiles.splice(i, 1);
+      handleFiles([]);
+    }
+
+    function saveDraft() {
+      const tmplCd = document.getElementById("tmplCd").value;
+      if (!tmplCd) {
+        alert("문서 유형을 선택해 주세요.");
+        return;
+      }
+      if (!captureTemplate()) {
+        alert("문서 양식을 불러와 주세요.");
+        return;
+      }
+      document.getElementById("approvalLineJson").value =
+        JSON.stringify(approvalLine);
+      const form = document.getElementById("approvalForm");
+      const statusInput = document.createElement("input");
+      statusInput.type = "hidden";
+      statusInput.name = "aprvlPrgrsCd";
+      statusInput.value = "DRAFT";
+      form.appendChild(statusInput);
+      form.submit();
+    }
+
+    function submitApproval() {
+      const title = document.getElementById("aprvlDocSj").value.trim();
+      const tmplCd = document.getElementById("tmplCd").value;
+      if (!tmplCd) {
+        alert("문서 유형을 선택해 주세요.");
+        return;
+      }
+      if (!title) {
+        alert("문서 제목을 입력해 주세요.");
+        return;
+      }
+      if (!captureTemplate()) {
+        alert("문서 양식을 불러와 주세요.");
+        return;
+      }
+      if (approvalLine.length === 0) {
+        alert("결재자가 없습니다.");
+        return;
+      }
+      if (
+        !confirm(
+          "결재를 상신하시겠습니까? 상신 후에는 내용을 수정할 수 없습니다.",
+        )
+      )
+        return;
+
+      document.getElementById("approvalLineJson").value =
+        JSON.stringify(approvalLine);
+      const form = document.getElementById("approvalForm");
+      const statusInput = document.createElement("input");
+      statusInput.type = "hidden";
+      statusInput.name = "aprvlPrgrsCd";
+      statusInput.value = "PENDING";
+      form.appendChild(statusInput);
+      form.submit();
+    }
+
+    renderLinePreview();
+
+    // 편집 모드: 기존 결재선 + 문서 내용 복원
+    if (EXISTING_DOC_SN) {
+      approvalLine = EXISTING_LINES.map((l) => ({
+        aprvrUserId: l.aprvrUserId,
+        approverName: l.approverName || l.aprvrUserId,
+        jbgrNm: l.jbgrNm || "",
+        sortOrd: l.sortOrd || 0,
+      }));
+      renderLinePreview();
+      renderLineEdit();
+
+      fetch(`/admin/approval/${EXISTING_DOC_SN}/content`)
+        .then((r) => r.text())
+        .then((html) => {
+          const container = document.getElementById("templateContainer");
+          container.innerHTML = html;
+          document
+            .getElementById("templatePlaceholder")
+            .classList.add("hidden");
+          document.getElementById("templateLoading").classList.add("hidden");
+          container.classList.remove("hidden");
+        });
+    }
+  </script>
+</div>
