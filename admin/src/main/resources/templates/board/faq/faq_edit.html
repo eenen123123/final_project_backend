@@ -12,7 +12,8 @@
 
   <!-- 수정 폼 -->
   <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-8">
-    <form th:action="@{/admin/board/faq/edit/{postSn}(postSn=${faq.postSn})}" method="post">
+    <form th:action="@{/admin/board/faq/edit/{postSn}(postSn=${faq.postSn})}" method="post"
+      onsubmit="return confirm('변경사항을 저장하시겠습니까?')">
 
       <div class="grid grid-cols-2 gap-6 mb-6">
         <!-- 대분류 -->
@@ -82,11 +83,11 @@
 
       <!-- 버튼 -->
       <div class="flex justify-center gap-3">
-        <a href="/admin/board/customer-service"
-           class="px-6 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
+        <a href="/admin/board/customer-service?tab=tab-faq" onclick="return confirm('변경사항은 저장되지 않습니다.\n취소하시겠습니까?')"
+          class="px-6 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer">
           취소
         </a>
-        <button type="submit" class="hm-btn-primary px-8 py-2.5">
+        <button type="submit" class="hm-btn-primary px-8 py-2.5 cursor-pointer">
           수정 완료
         </button>
       </div>
