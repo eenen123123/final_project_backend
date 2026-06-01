@@ -34,4 +34,9 @@ public interface LoginLogService {
      * @return
      */
     List<LoginLogDto> getLastLoginPerUser();
+
+    /**
+     * 서버 재시작 시 미처리 세션 일괄 정리
+     */
+    void closeAllOpenSessions();
 }

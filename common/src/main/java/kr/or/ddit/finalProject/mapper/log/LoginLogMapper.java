@@ -1,6 +1,7 @@
 package kr.or.ddit.finalProject.mapper.log;
 
 import java.util.List;
+import java.util.Map;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import kr.or.ddit.finalProject.dto.log.LoginLogDto;
@@ -35,4 +36,12 @@ public interface LoginLogMapper {
      * @return
      */
     List<LoginLogDto> selectLastLoginPerUser();
+
+    /**
+     * 서버 재시작 시 미처리(LOGOUT_DT IS NULL) 세션 일괄 정리
+     */
+    void closeAllOpenSessions();
+
+    // 현재 활성 세션이 있는 USER_ID 목록 조회 (중복 로그인 허용 환경용)
+    List<Map<String, String>> selectOnlineStatusPerUser();
 }
