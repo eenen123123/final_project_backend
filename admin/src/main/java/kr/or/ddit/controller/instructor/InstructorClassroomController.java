@@ -33,7 +33,20 @@ public class InstructorClassroomController {
     public String classroomDetail(@PathVariable Long classSn, Model model) {
         ClassroomDetailResponse classroom = classroomService.retrieveClassroomDetail(classSn);
         model.addAttribute("classroom", classroom);
-        return "instructor/classroom";
+
+        //임시로 넣어두는 데이터들
+        model.addAttribute("calendarPadding", List.of());
+        model.addAttribute("calendarDays", List.of());
+        model.addAttribute("weeklyData", List.of());
+        model.addAttribute("achievements", List.of());
+        model.addAttribute("weeklyCompareText", "");
+        model.addAttribute("noticeCount", 0);
+        model.addAttribute("assignmentCount", 0);
+        model.addAttribute("calendarYear", 2026);
+        model.addAttribute("calendarMonth", 6);
+        // todayQuestion, recentNotice는 안 담아도 됨
+
+        return "instructor/classroom-home";
     }
 
 }

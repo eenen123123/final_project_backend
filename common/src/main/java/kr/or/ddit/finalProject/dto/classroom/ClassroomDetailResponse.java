@@ -24,4 +24,8 @@ public class ClassroomDetailResponse {
     private List<ClassroomMemberListResponse> members;  // 서비스에서 세팅
     private List<LectureListResponse> lectures;          // 서비스에서 세팅
 
+    // 임시 데이터
+    private String instrNm;
+    private int memberCount;
+
 }
