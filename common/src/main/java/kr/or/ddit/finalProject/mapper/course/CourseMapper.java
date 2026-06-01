@@ -12,6 +12,8 @@ public interface CourseMapper {
 
     List<CourseDto> selectCourseByCurriculumId(@Param("curriculumId") Long curriculumId);
 
+    List<CourseDto> selectCoursesByInstructor(@Param("instrUserId") String instrUserId);
+
     CourseDto selectCourseBySn(@Param("courseSn") Long courseSn);
 
     int insertCourse(CourseDto courseDto);
@@ -21,5 +23,7 @@ public interface CourseMapper {
     int deleteCourse(@Param("courseSn") Long courseSn);
 
     int countLectureByCourse(@Param("courseSn") Long courseSn);
+
+    int updateCourseAtchFileId(@Param("courseSn") Long courseSn, @Param("atchFileId") String atchFileId);
 
 }

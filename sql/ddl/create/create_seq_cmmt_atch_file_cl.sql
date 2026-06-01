@@ -1,0 +1,1 @@
+create sequence seq_cmmt_atch_file_cl start with 1000 increment by 1 nocache;

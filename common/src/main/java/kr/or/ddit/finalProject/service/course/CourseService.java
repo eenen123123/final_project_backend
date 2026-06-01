@@ -8,6 +8,12 @@ public interface CourseService {
 
     List<CourseDto> retrieveCourseByCurriculumId(Long curriculumId);
 
+    List<CourseDto> retrieveCoursesByInstructor(String instrUserId);
+
+    CourseDto retrieveCourseBySn(Long courseSn);
+
+    void updateCourseAtchFileId(Long courseSn, String atchFileId);
+
     boolean createCourse(CourseDto courseDto);
 
     void modifyCourse(CourseDto courseDto, String currentUserId);

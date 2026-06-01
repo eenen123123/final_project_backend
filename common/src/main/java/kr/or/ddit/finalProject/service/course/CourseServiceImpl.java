@@ -22,6 +22,22 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    public List<CourseDto> retrieveCoursesByInstructor(String instrUserId) {
+        return courseMapper.selectCoursesByInstructor(instrUserId);
+    }
+
+    @Override
+    public CourseDto retrieveCourseBySn(Long courseSn) {
+        return courseMapper.selectCourseBySn(courseSn);
+    }
+
+    @Override
+    @Transactional
+    public void updateCourseAtchFileId(Long courseSn, String atchFileId) {
+        courseMapper.updateCourseAtchFileId(courseSn, atchFileId);
+    }
+
+    @Override
     @Transactional
     public boolean createCourse(CourseDto courseDto) {
         return courseMapper.insertCourse(courseDto) > 0;

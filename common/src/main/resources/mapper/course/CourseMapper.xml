@@ -27,6 +27,21 @@
     <result property="mdfcnDt"        column="MDFCN_DT" />
   </resultMap>
 
+  <resultMap id="courseWithTitleMap" type="kr.or.ddit.finalProject.dto.course.CourseDto" extends="courseMap">
+    <result property="curriculumTitle" column="CURRICULUM_TITLE" />
+  </resultMap>
+
+  <select id="selectCoursesByInstructor" resultMap="courseWithTitleMap">
+    SELECT
+      c.COURSE_SN, c.CURRICULUM_ID, c.INSTR_USER_ID, c.COURSE_NM,
+      c.COURSE_EXPLN_CN, c.OPNN_YN, c.SORT_ORD, c.REG_DT,
+      cur.TITLE AS CURRICULUM_TITLE
+    FROM COURSE c
+    LEFT JOIN CURRICULUM cur ON c.CURRICULUM_ID = cur.CURRICULUM_ID
+    WHERE c.INSTR_USER_ID = #{instrUserId}
+    ORDER BY cur.TITLE NULLS LAST, c.SORT_ORD ASC, c.COURSE_SN ASC
+  </select>
+
   <select id="selectCourseByCurriculumId" resultMap="courseMap">
     SELECT
       COURSE_SN, CURRICULUM_ID, SUBJ_ID, SUBJ_CL_ID,
@@ -98,5 +113,9 @@
   <select id="countLectureByCourse" resultType="int">
     SELECT COUNT(*) FROM LECTURE WHERE COURSE_SN = #{courseSn}
   </select>
+
+  <update id="updateCourseAtchFileId">
+    UPDATE COURSE SET ATCH_FILE_ID = #{atchFileId} WHERE COURSE_SN = #{courseSn}
+  </update>
 
 </mapper>

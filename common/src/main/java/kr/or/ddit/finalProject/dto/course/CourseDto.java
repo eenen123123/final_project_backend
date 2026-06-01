@@ -34,4 +34,7 @@ public class CourseDto implements Serializable {
     private Integer sortOrd;
     private Long prereqCourseSn;
 
+    // JOIN 전용 필드 (DB 컬럼 없음)
+    private String curriculumTitle;
+
 }
