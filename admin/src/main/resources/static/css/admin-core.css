@@ -326,6 +326,7 @@ body {
 .ts-wrapper.single.hm-input-emerald.focus .ts-control::after { border-color: #10b981 transparent transparent transparent; }
 .ts-wrapper.single.hm-input-orange.focus  .ts-control::after { border-color: #f97316 transparent transparent transparent; }
 .ts-wrapper.single.hm-input-blue.focus    .ts-control::after { border-color: #3b82f6 transparent transparent transparent; }
+.ts-wrapper.single.hm-input-danger.focus  .ts-control::after { border-color: #ef4444 transparent transparent transparent; }
 
 .ts-wrapper.hm-input-sky     .ts-dropdown .option:hover,
 .ts-wrapper.hm-input-sky     .ts-dropdown .option.active { background-color: #f0f9ff; color: #0284c7; }
