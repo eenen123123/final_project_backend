@@ -82,7 +82,8 @@ public class ChatMessageController {
                 : "03";
 
         MessageContentDto msg = MessageContentDto.builder().roomSn(Long.parseLong(roomSn))
-                .sendrUserId(userId).msgTypeCd(msgTypeCd).msgCn(fileDto.getSavePathNm())
+                .sendrUserId(userId).msgTypeCd(msgTypeCd)
+                .msgCn("/admin/files/" + fileDto.getFileServerId() + "/view")
                 .atchFileId(String.valueOf(fileDto.getAtchFileDtlSn())).build();
 
         chatService.sendMessage(msg);

@@ -82,7 +82,10 @@
             th:text="${doc.tmplCd}"
             >유형</span
           >
-          <span th:switch="${doc.aprvlPrgrsCd}">
+          <span
+            th:switch="${doc.aprvlPrgrsCd.name()}"
+            class="flex items-center gap-1"
+          >
             <span
               th:case="'DRAFT'"
               class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-500"
@@ -132,7 +135,7 @@
             ></span
           >
           <span
-            th:if="${doc.aprvlPrgrsCd == 'APPROVED' or doc.aprvlPrgrsCd == 'REJECTED'}"
+            th:if="${doc.aprvlPrgrsCd.name() == 'APPROVED' or doc.aprvlPrgrsCd.name() == 'REJECTED'}"
           >
             <i class="fa-regular fa-calendar-check mr-1"></i>처리일:
             <span
@@ -146,7 +149,7 @@
 
       <!-- 기안자 회수 버튼 -->
       <form
-        th:if="${isDrafter and doc.aprvlPrgrsCd == 'PENDING' and canCancel}"
+        th:if="${isDrafter and doc.aprvlPrgrsCd.name() == 'PENDING' and canCancel}"
         th:action="@{/admin/approval/{sn}/cancel(sn=${doc.aprvlDocSn})}"
         method="post"
       >
@@ -161,7 +164,7 @@
 
       <!-- 기안자 삭제 버튼 -->
       <form
-        th:if="${isDrafter and doc.aprvlPrgrsCd == 'DRAFT' and canDelete}"
+        th:if="${isDrafter and doc.aprvlPrgrsCd.name() == 'DRAFT' and canDelete}"
         th:action="@{/admin/approval/{sn}/delete(sn=${doc.aprvlDocSn})}"
         method="post"
       >
@@ -199,19 +202,19 @@
 
       <th:block th:each="line, stat : ${lines}">
         <div
-          th:classappend="${line.aprvlPrgrsCd == 'APPROVED' ? 'connector-done' : 'connector-wait'}"
+          th:classappend="${line.aprvlPrgrsCd.name() == 'APPROVED' ? 'connector-done' : 'connector-wait'}"
           class="line-connector shrink-0"
         ></div>
         <div class="line-step shrink-0">
           <div
-            th:classappend="${'step-' + line.aprvlPrgrsCd.toLowerCase()}"
+            th:classappend="${'step-' + line.aprvlPrgrsCd.name().toLowerCase()}"
             class="line-step-circle"
           >
             <i
-              th:class="${line.aprvlPrgrsCd == 'APPROVED'    ? 'fa-solid fa-check'                      :
-                           line.aprvlPrgrsCd == 'IN_PROGRESS' ? 'fa-solid fa-hourglass-half animate-pulse' :
-                           line.aprvlPrgrsCd == 'REJECTED'    ? 'fa-solid fa-xmark'                      :
-                           line.aprvlPrgrsCd == 'SKIPPED'     ? 'fa-solid fa-minus'                      :
+              th:class="${line.aprvlPrgrsCd.name() == 'APPROVED'    ? 'fa-solid fa-check'                      :
+                           line.aprvlPrgrsCd.name() == 'IN_PROGRESS' ? 'fa-solid fa-hourglass-half animate-pulse' :
+                           line.aprvlPrgrsCd.name() == 'REJECTED'    ? 'fa-solid fa-xmark'                      :
+                           line.aprvlPrgrsCd.name() == 'SKIPPED'     ? 'fa-solid fa-minus'                      :
                                                                  'fa-solid fa-clock'}"
             ></i>
           </div>
@@ -234,10 +237,10 @@
           <p
             th:if="${line.aprvlDt == null}"
             class="text-xs"
-            th:classappend="${line.aprvlPrgrsCd == 'IN_PROGRESS' ? 'text-violet-400 font-semibold' : 'text-slate-300'}"
-            th:text="${line.aprvlPrgrsCd == 'IN_PROGRESS' ? '결재 대기' :
-                        line.aprvlPrgrsCd == 'WAITING'     ? '대기'     :
-                        line.aprvlPrgrsCd == 'SKIPPED'     ? '스킵'     : ''}"
+            th:classappend="${line.aprvlPrgrsCd.name() == 'IN_PROGRESS' ? 'text-violet-400 font-semibold' : 'text-slate-300'}"
+            th:text="${line.aprvlPrgrsCd.name() == 'IN_PROGRESS' ? '결재 대기' :
+                        line.aprvlPrgrsCd.name() == 'WAITING'     ? '대기'     :
+                        line.aprvlPrgrsCd.name() == 'SKIPPED'     ? '스킵'     : ''}"
           >
             대기
           </p>
@@ -245,18 +248,18 @@
       </th:block>
 
       <div
-        th:classappend="${doc.aprvlPrgrsCd == 'APPROVED' ? 'connector-done' : 'connector-wait'}"
+        th:classappend="${doc.aprvlPrgrsCd.name() == 'APPROVED' ? 'connector-done' : 'connector-wait'}"
         class="line-connector shrink-0"
       ></div>
       <div class="line-step shrink-0">
         <div
-          th:classappend="${doc.aprvlPrgrsCd == 'APPROVED' ? 'step-approved' : 'step-waiting'}"
+          th:classappend="${doc.aprvlPrgrsCd.name() == 'APPROVED' ? 'step-approved' : 'step-waiting'}"
           class="line-step-circle"
         >
           <i class="fa-solid fa-flag-checkered"></i>
         </div>
         <p
-          th:classappend="${doc.aprvlPrgrsCd == 'APPROVED' ? 'text-slate-700' : 'text-slate-300'}"
+          th:classappend="${doc.aprvlPrgrsCd.name() == 'APPROVED' ? 'text-slate-700' : 'text-slate-300'}"
           class="text-xs font-semibold"
         >
           완료
@@ -269,7 +272,7 @@
       <th:block th:each="line : ${lines}">
         <div
           th:if="${line.aprvlRsnCn != null and !#strings.isEmpty(line.aprvlRsnCn)}"
-          th:classappend="${line.aprvlPrgrsCd == 'REJECTED' ? 'bg-red-50 border-red-100 text-red-700' : 'bg-slate-50 border-slate-100 text-slate-600'}"
+          th:classappend="${line.aprvlPrgrsCd.name() == 'REJECTED' ? 'bg-red-50 border-red-100 text-red-700' : 'bg-slate-50 border-slate-100 text-slate-600'}"
           class="border rounded-xl px-4 py-3 text-sm"
         >
           <p
@@ -302,7 +305,7 @@
 
   <!-- ───────── 결재 처리 영역 (내 차례일 때만 표시) ───────── -->
   <div
-    th:if="${isApprover and myLine != null and myLine.aprvlPrgrsCd == 'IN_PROGRESS'}"
+    th:if="${isApprover and myLine != null and myLine.aprvlPrgrsCd.name() == 'IN_PROGRESS'}"
     class="bg-white rounded-2xl border-2 border-violet-200 shadow-sm p-6"
   >
     <h2 class="text-sm font-bold text-violet-700 flex items-center gap-2 mb-4">
@@ -348,7 +351,7 @@
       <i class="fa-solid fa-arrow-left mr-1"></i>목록으로
     </a>
     <a
-      th:if="${doc.aprvlPrgrsCd == 'DRAFT'}"
+      th:if="${doc.aprvlPrgrsCd.name() == 'DRAFT'}"
       th:href="@{/admin/approval/{sn}/edit(sn=${doc.aprvlDocSn})}"
       class="hm-btn-primary"
     >

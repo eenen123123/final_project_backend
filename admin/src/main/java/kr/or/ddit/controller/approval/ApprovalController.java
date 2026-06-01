@@ -1,5 +1,7 @@
 package kr.or.ddit.controller.approval;
 
+import java.util.Map;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +14,8 @@ import kr.or.ddit.finalProject.dto.approval.ApprovalMasterDto;
 import kr.or.ddit.service.ApprovalService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @Slf4j
 @Controller
@@ -39,10 +43,34 @@ public class ApprovalController {
         return "redirect:/admin/approval/" + aprvlDocSn;
     }
 
-    @GetMapping("/{aprvlDocSn}/delete")
+    @PostMapping("/{aprvlDocSn}/delete")
     public String deleteApproval(@PathVariable Long aprvlDocSn, Authentication authentication) {
         approvalService.deleteApproval(authentication.getName(), aprvlDocSn);
 
         return "redirect:/admin/approval";
     }
+
+    @PostMapping("/{aprvlDocSn}/cancel")
+    public String cancelApproval(@PathVariable Long aprvlDocSn, Authentication authentication) {
+        approvalService.cancelApproval(authentication.getName(), aprvlDocSn);
+
+
+        return "redirect:/admin/approval";
+    }
+
+    @PostMapping("/{aprvlDocSn}/approve")
+    public ResponseEntity<Void> approveApproval(@PathVariable Long aprvlDocSn,
+            @RequestBody Map<String, String> payload, Authentication authentication) {
+        String aprvlRsnCn = payload.get("aprvlRsnCn");
+        log.info("reason : {}", aprvlRsnCn);
+
+        approvalService.approveApproval(authentication.getName(), aprvlDocSn,
+                aprvlRsnCn == null ? "" : aprvlRsnCn);
+
+
+
+        return ResponseEntity.ok().build();
+    }
+
+
 }
