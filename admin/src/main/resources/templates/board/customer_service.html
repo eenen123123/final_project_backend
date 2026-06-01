@@ -3,7 +3,7 @@
   <div class="flex items-center justify-between mb-6">
     <div>
       <h1 class="text-xl font-bold text-slate-800">고객센터 관리</h1>
-      <p class="text-sm text-slate-500 mt-0.5">FAQ, 공지사항, QnA를 통합 관리합니다.</p>
+      <p class="text-sm text-slate-500 mt-0.5">FAQ, 공지사항, QnA, 자료실을 통합 관리합니다.</p>
     </div>
   </div>
 
@@ -18,6 +18,9 @@
       </button>
       <button class="cs-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px" onclick="switchTab('tab-qna', this)">
         <i class="fa-solid fa-comments mr-1.5"></i>QnA
+      </button>
+      <button class="cs-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px" onclick="switchTab('tab-dataroom', this)">
+        <i class="fa-solid fa-folder-open mr-1.5"></i>자료실
       </button>
     </div>
 
@@ -128,7 +131,7 @@
         </div>
         <h2 id="modal-title" class="text-lg font-bold text-slate-800 mb-4"></h2>
         <div id="modal-content"
-          class="text-sm text-slate-600 leading-relaxed bg-slate-50 rounded-xl p-4 mb-6 whitespace-pre-line overflow-y-auto flex-1">
+          class="text-sm text-slate-600 leading-relaxed bg-slate-50 rounded-xl p-4 mb-6 overflow-y-auto flex-1">
         </div>
         <div class="flex items-center justify-between">
           <div class="text-xs text-slate-400">
@@ -257,7 +260,7 @@
         </div>
         <h2 id="notice-modal-title" class="text-lg font-bold text-slate-800 mb-4"></h2>
         <div id="notice-modal-content"
-          class="text-sm text-slate-600 leading-relaxed bg-slate-50 rounded-xl p-4 mb-6 whitespace-pre-line overflow-y-auto flex-1">
+          class="text-sm text-slate-600 leading-relaxed bg-slate-50 rounded-xl p-4 mb-6 overflow-y-auto flex-1">
         </div>
         <div class="flex items-center justify-between">
           <div class="text-xs text-slate-400">
@@ -421,7 +424,6 @@
             등록일: <span id="qna-modal-regdt"></span>
           </div>
           <div class="flex gap-2">
-            <!-- 답변완료일 때만 수정 버튼 노출 -->
             <a id="qna-modal-edit-btn" href="#"
               class="hidden px-4 py-2 text-xs font-semibold text-violet-600 border border-violet-200 rounded-xl hover:bg-violet-50 transition-colors"
               onclick="return confirm('수정 페이지로 이동하시겠습니까?')">
@@ -433,7 +435,165 @@
             </form>
           </div>
         </div>
+      </div>
+    </div>
 
+    <!-- ══ 자료실 탭 ══ -->
+    <div id="tab-dataroom" class="cs-tab-panel p-6">
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex gap-3">
+          <select id="dataroom-filter-ctg" onchange="filterDataRoom()" class="hm-input" style="width: 130px;">
+            <option value="">전체 카테고리</option>
+            <option value="01">공지/안내자료</option>
+            <option value="02">입시정보</option>
+            <option value="03">학습자료</option>
+            <option value="04">기타</option>
+          </select>
+          <select id="dataroom-filter-accs" onchange="filterDataRoom()" class="hm-input" style="width: 130px;">
+            <option value="">전체 접근권한</option>
+            <option value="01">전체공개</option>
+            <option value="02">회원전용</option>
+          </select>
+          <div class="relative">
+            <input type="text" id="dataroom-search" placeholder="제목 검색..." class="hm-input pr-9" style="width: 300px;"
+              onkeydown="if(event.key==='Enter') filterDataRoom()" />
+            <button onclick="filterDataRoom()"
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 transition-colors cursor-pointer">
+              <i class="fa-solid fa-magnifying-glass text-sm"></i>
+            </button>
+          </div>
+        </div>
+        <a href="/admin/board/dataroom/write" class="hm-btn-primary text-sm">
+          <i class="fa-solid fa-plus mr-1"></i>자료실 등록
+        </a>
+      </div>
+
+      <div class="overflow-x-auto rounded-xl border border-slate-100">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-slate-50 text-slate-500 text-xs">
+              <th class="text-center py-3 px-4 font-semibold w-16">번호</th>
+              <th class="text-center py-3 px-4 font-semibold w-28">카테고리</th>
+              <th class="text-left py-3 px-4 font-semibold">제목</th>
+              <th class="text-center py-3 px-4 font-semibold w-24">접근권한</th>
+              <th class="text-center py-3 px-4 font-semibold w-20">첨부파일</th>
+              <th class="text-center py-3 px-4 font-semibold w-28">등록일</th>
+              <th class="text-center py-3 px-4 font-semibold w-24">관리</th>
+            </tr>
+          </thead>
+          <tbody id="dataroom-table-body" class="divide-y divide-slate-50">
+            <tr th:each="dataRoom : ${dataRoomList}"
+                th:attr="data-ctg=${dataRoom.dataCtg},
+                       data-accs=${dataRoom.accsLmtCd},
+                       data-title=${dataRoom.postSj},
+                       data-postsn=${dataRoom.postSn},
+                       data-ctgnm=${dataRoom.dataCtgNm},
+                       data-accsnm=${dataRoom.accsLmtNm},
+                       data-postcn=${dataRoom.postCn},
+                       data-wrtruserid=${dataRoom.wrtrUserId},
+                       data-orgnfilenm=${dataRoom.orgnFileNm},
+                       data-savepath=${dataRoom.savePathNm},
+                       data-regdt=${#temporals.format(dataRoom.regDt, 'yyyy-MM-dd')}"
+              class="hover:bg-slate-50 transition-colors">
+              <td class="py-3 px-4 text-center text-xs text-slate-400" th:text="${dataRoom.postSn}"></td>
+              <td class="py-3 px-4 text-center">
+                <span class="text-xs bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded-full"
+                  th:text="${dataRoom.dataCtgNm}"></span>
+              </td>
+              <td class="py-3 px-4 text-slate-800 font-medium">
+                <span th:text="${dataRoom.postSj}" onclick="openDataRoomModal(this.closest('tr'))"
+                  class="hover:text-violet-600 cursor-pointer transition-colors"></span>
+              </td>
+              <td class="py-3 px-4 text-center">
+                <span th:if="${dataRoom.accsLmtCd == '01'}"
+                  class="text-xs bg-emerald-50 text-emerald-600 font-semibold px-2 py-0.5 rounded-full">전체공개</span>
+                <span th:if="${dataRoom.accsLmtCd == '02'}"
+                  class="text-xs bg-amber-50 text-amber-600 font-semibold px-2 py-0.5 rounded-full">회원전용</span>
+              </td>
+              <td class="py-3 px-4 text-center">
+                <span th:if="${dataRoom.orgnFileNm != null}"
+                  class="text-xs bg-slate-100 text-slate-600 font-semibold px-2 py-0.5 rounded-full">
+                  <i class="fa-solid fa-paperclip text-[10px]"></i>
+                </span>
+                <span th:unless="${dataRoom.orgnFileNm != null}" class="text-xs text-slate-300">-</span>
+              </td>
+              <td class="py-3 px-4 text-center text-xs text-slate-400"
+                th:text="${#temporals.format(dataRoom.regDt, 'yyyy-MM-dd')}"></td>
+              <td class="py-3 px-4 text-center">
+                <div class="flex items-center justify-center gap-2">
+                  <a th:href="@{/admin/board/dataroom/edit/{postSn}(postSn=${dataRoom.postSn})}"
+                    class="text-xs text-violet-600 font-semibold hover:underline">수정</a>
+                  <span class="text-slate-300 text-xs">|</span>
+                  <form th:action="@{/admin/board/dataroom/delete/{postSn}(postSn=${dataRoom.postSn})}" method="post"
+                    onsubmit="return confirm('삭제하시겠습니까?')" class="m-0 p-0 flex">
+                    <button type="submit"
+                      class="text-xs text-red-500 font-semibold hover:underline cursor-pointer">삭제</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(dataRoomList)}">
+              <td colspan="7" class="py-10 text-center text-sm text-slate-400">등록된 자료가 없습니다.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 자료실 상세 모달 -->
+    <div id="dataroom-modal" class="fixed inset-0 z-50 hidden items-center justify-center">
+      <div class="absolute inset-0 bg-black/40" onclick="closeDataRoomModal()"></div>
+      <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 p-8 flex flex-col overflow-y-auto"
+        style="min-height: 600px; max-height: 90vh;">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <span id="dataroom-modal-ctgnm"
+              class="text-xs bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded-full"></span>
+            <span id="dataroom-modal-accsnm"
+              class="text-xs bg-emerald-50 text-emerald-600 font-semibold px-2 py-0.5 rounded-full"></span>
+          </div>
+          <button onclick="closeDataRoomModal()"
+            class="text-slate-400 hover:text-slate-700 transition-colors cursor-pointer">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+        <h2 id="dataroom-modal-title" class="text-lg font-bold text-slate-800 mb-4"></h2>
+        <div id="dataroom-modal-content"
+          class="text-sm text-slate-600 leading-relaxed bg-slate-50 rounded-xl p-4 mb-4 overflow-y-auto flex-1">
+        </div>
+
+        <!-- 첨부파일 영역 -->
+        <div id="dataroom-modal-file-area" class="hidden mb-4">
+          <div class="bg-slate-50 rounded-xl p-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-paperclip text-slate-400"></i>
+              <span id="dataroom-modal-filenm" class="text-sm text-slate-600 font-medium"></span>
+            </div>
+            <a id="dataroom-modal-fileurl" href="#" target="_blank"
+              class="text-xs font-semibold text-violet-600 border border-violet-200 rounded-xl px-3 py-1.5 hover:bg-violet-50 transition-colors">
+              <i class="fa-solid fa-download mr-1"></i>다운로드
+            </a>
+          </div>
+        </div>
+
+        <!-- 하단 정보 + 버튼 -->
+        <div class="flex items-center justify-between">
+          <div class="text-xs text-slate-400">
+            작성자: <span id="dataroom-modal-writer" class="font-semibold text-slate-600"></span>
+            &nbsp;·&nbsp;
+            등록일: <span id="dataroom-modal-regdt"></span>
+          </div>
+          <div class="flex gap-2">
+            <a id="dataroom-modal-edit-btn" href="#"
+              class="px-4 py-2 text-xs font-semibold text-violet-600 border border-violet-200 rounded-xl hover:bg-violet-50 transition-colors">
+              수정
+            </a>
+            <form id="dataroom-modal-delete-form" method="post" onsubmit="return confirm('삭제하시겠습니까?')" class="m-0">
+              <button type="submit"
+                class="px-4 py-2 text-xs font-semibold text-red-500 border border-red-200 rounded-xl hover:bg-red-50 transition-colors cursor-pointer">삭제</button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
 

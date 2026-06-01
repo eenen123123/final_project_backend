@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.finalProject.mapper.board.DataRoomMapper">
+
+    <!-- 자료실 목록 조회 -->
+    <select id="findDataRoomList" resultType="kr.or.ddit.finalProject.dto.board.DataRoomDto">
+        SELECT
+            b.POST_SN,
+            b.POST_SJ,
+            b.POST_CN,
+            b.WRTR_USER_ID,
+            b.ATCH_FILE_ID,
+            b.INQ_CNT,
+            b.REG_DT,
+            b.MDFCN_DT,
+            d.DATA_CTG,
+            d.EXPS_ORD,
+            d.ACCS_LMT_CD,
+            c1.COM_CD_NM AS DATA_CTG_NM,
+            c2.COM_CD_NM AS ACCS_LMT_NM
+        FROM BOARD b
+        JOIN DATA_ROOM d ON b.POST_SN = d.POST_SN
+        LEFT JOIN COM_CD c1 ON c1.COM_CD = d.DATA_CTG AND c1.CL_CODE = '106'
+        LEFT JOIN COM_CD c2 ON c2.COM_CD = d.ACCS_LMT_CD AND c2.CL_CODE = '107'
+        WHERE b.BOARD_TYPE_CD = '04'
+        <if test="dataCtg != null and dataCtg != ''">
+            AND d.DATA_CTG = #{dataCtg}
+        </if>
+        ORDER BY b.REG_DT DESC
+    </select>
+
+    <!-- 자료실 단건 조회 -->
+    <select id="findDataRoomById" resultType="kr.or.ddit.finalProject.dto.board.DataRoomDto">
+        SELECT
+            b.POST_SN,
+            b.POST_SJ,
+            b.POST_CN,
+            b.WRTR_USER_ID,
+            b.ATCH_FILE_ID,
+            b.INQ_CNT,
+            b.REG_DT,
+            b.MDFCN_DT,
+            d.DATA_CTG,
+            d.EXPS_ORD,
+            d.ACCS_LMT_CD,
+            c1.COM_CD_NM AS DATA_CTG_NM,
+            c2.COM_CD_NM AS ACCS_LMT_NM,
+            f.ORGN_FILE_NM,
+            f.SAVE_PATH_NM,
+            f.FILE_EXT_NM,
+            f.FILE_SIZE_CNT
+        FROM BOARD b
+        JOIN DATA_ROOM d ON b.POST_SN = d.POST_SN
+        LEFT JOIN COM_CD c1 ON c1.COM_CD = d.DATA_CTG AND c1.CL_CODE = '106'
+        LEFT JOIN COM_CD c2 ON c2.COM_CD = d.ACCS_LMT_CD AND c2.CL_CODE = '107'
+        LEFT JOIN CMMT_ATCH_FILE_DTL f ON f.ATCH_FILE_DTL_SN = b.ATCH_FILE_ID
+        WHERE b.POST_SN = #{postSn}
+    </select>
+
+    <!-- 자료실 등록 - BOARD INSERT -->
+    <insert id="insertBoard" parameterType="kr.or.ddit.finalProject.dto.board.DataRoomDto">
+        INSERT INTO BOARD (
+            POST_SN,
+            WRTR_USER_ID,
+            BOARD_TYPE_CD,
+            POST_SJ,
+            POST_CN,
+            ATCH_FILE_ID,
+            INQ_CNT,
+            REG_DT,
+            MDFCN_DT
+        ) VALUES (
+            "TEAM1_202512AF"."ISEQ$$_433495".nextval,
+            #{wrtrUserId},
+            '04',
+            #{postSj},
+            #{postCn},
+            #{atchFileId, jdbcType=NUMERIC},
+            0,
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+        )
+        <selectKey keyProperty="postSn" resultType="Long" order="AFTER">
+            SELECT "TEAM1_202512AF"."ISEQ$$_433495".currval FROM DUAL
+        </selectKey>
+    </insert>
+
+    <!-- 자료실 등록 - DATA_ROOM INSERT -->
+    <insert id="insertDataRoom" parameterType="kr.or.ddit.finalProject.dto.board.DataRoomDto">
+        INSERT INTO DATA_ROOM (
+            POST_SN,
+            DATA_CTG,
+            EXPS_ORD,
+            ACCS_LMT_CD
+        ) VALUES (
+            #{postSn},
+            #{dataCtg},
+            #{expsOrd, jdbcType=NUMERIC},
+            #{accsLmtCd}
+        )
+    </insert>
+
+    <!-- 자료실 수정 - BOARD UPDATE -->
+    <update id="updateBoard" parameterType="kr.or.ddit.finalProject.dto.board.DataRoomDto">
+        UPDATE BOARD SET
+            POST_SJ     = #{postSj},
+            POST_CN     = #{postCn},
+            ATCH_FILE_ID = #{atchFileId, jdbcType=NUMERIC},
+            LAST_MDFR_ID = #{wrtrUserId},
+            MDFCN_DT    = CURRENT_TIMESTAMP
+        WHERE POST_SN = #{postSn}
+    </update>
+
+    <!-- 자료실 수정 - DATA_ROOM UPDATE -->
+    <update id="updateDataRoom" parameterType="kr.or.ddit.finalProject.dto.board.DataRoomDto">
+        UPDATE DATA_ROOM SET
+            DATA_CTG    = #{dataCtg},
+            ACCS_LMT_CD = #{accsLmtCd}
+        WHERE POST_SN = #{postSn}
+    </update>
+
+    <!-- 자료실 삭제 - DATA_ROOM DELETE -->
+    <delete id="deleteDataRoom">
+        DELETE FROM DATA_ROOM WHERE POST_SN = #{postSn}
+    </delete>
+
+    <!-- 자료실 삭제 - BOARD DELETE -->
+    <delete id="deleteBoard">
+        DELETE FROM BOARD WHERE POST_SN = #{postSn}
+    </delete>
+
+</mapper>
