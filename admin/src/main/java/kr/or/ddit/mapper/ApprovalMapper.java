@@ -13,8 +13,7 @@ public interface ApprovalMapper {
 
     List<ApprovalTemplateDto> selectApprovalTemplateList();
 
-    ApprovalTemplateDto selectApprovalTemplateById(@Param("tmplCd")
-    String tmplCd);
+    ApprovalTemplateDto selectApprovalTemplateById(@Param("tmplCd") String tmplCd);
 
     int insertApprovalMaster(ApprovalMasterDto approvalMasterDto);
 
@@ -32,5 +31,8 @@ public interface ApprovalMapper {
 
     int updateApprovalMaster(ApprovalMasterDto approvalMasterDto);
 
-    int deleteApprovalLinesByDocSn(Long aprvlDocSn);
+    int deleteApprovalLinesByDocSn(@Param("aprvlDocSn") Long aprvlDocSn,
+            @Param("status") String status);
+
+    int deleteApprovalMaster(@Param("aprvlDocSn") Long aprvlDocSn, @Param("status") String status);
 }

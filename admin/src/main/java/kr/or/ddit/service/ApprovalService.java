@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.or.ddit.finalProject.dto.approval.ApprovalLineDto;
+import kr.or.ddit.finalProject.dto.approval.ApprovalLineProgressEnum;
 import kr.or.ddit.finalProject.dto.approval.ApprovalMasterDto;
 import kr.or.ddit.finalProject.dto.approval.ApprovalTemplateDto;
 import kr.or.ddit.finalProject.dto.approval.ApprovalDocProgressEnum;
@@ -166,12 +167,14 @@ public class ApprovalService {
 
     @Transactional
     public void updateApproval(String userId, ApprovalMasterDto master, String approvalLineJson) {
-        ApprovalMasterDto existing = approvalMapper.selectApprovalMasterById(master.getAprvlDocSn());
+        ApprovalMasterDto existing =
+                approvalMapper.selectApprovalMasterById(master.getAprvlDocSn());
         if (existing == null || !existing.getDrftUserId().equals(userId)) {
             throw new FinalProjectException(ErrorCode.APPROVAL_NOT_FOUND);
         }
         approvalMapper.updateApprovalMaster(master);
-        approvalMapper.deleteApprovalLinesByDocSn(master.getAprvlDocSn());
+        approvalMapper.deleteApprovalLinesByDocSn(master.getAprvlDocSn(),
+                ApprovalLineProgressEnum.CANCELED.name());
 
         try {
             List<Map<String, Object>> lineData = objectMapper.readValue(approvalLineJson,
@@ -201,5 +204,29 @@ public class ApprovalService {
 
     public List<ApprovalLineDto> getApprovalLines(Long aprvlDocSn) {
         return approvalMapper.selectApprovalLinesByDocSn(aprvlDocSn);
+    }
+
+    @Transactional
+    public void deleteApproval(String name, Long aprvlDocSn) {
+
+        ApprovalMasterDto existing = approvalMapper.selectApprovalMasterById(aprvlDocSn);
+
+        // 기존 문서가 존재하지 않거나, 현재 사용자가 기안자가 아닌 경우 예외 발생
+        if (existing == null || !existing.getDrftUserId().equals(name)) {
+            throw new FinalProjectException(ErrorCode.APPROVAL_NOT_FOUND);
+        }
+
+        int result = approvalMapper.deleteApprovalMaster(aprvlDocSn,
+                ApprovalDocProgressEnum.CANCELED.name());
+        if (result == 0) {
+            throw new FinalProjectException(ErrorCode.APPROVAL_NOT_FOUND);
+        }
+
+        int resultLines = approvalMapper.deleteApprovalLinesByDocSn(aprvlDocSn,
+                ApprovalLineProgressEnum.CANCELED.name());
+        if (resultLines == 0) {
+            throw new FinalProjectException(ErrorCode.APPROVAL_NOT_FOUND);
+        }
+
     }
 }

@@ -65,11 +65,12 @@
 
     <!-- selectMyDocs: 내가 기안한 전체 문서 (CLOB 제외) -->
     <select id="selectMyDocs" parameterType="string" resultType="kr.or.ddit.finalProject.dto.approval.ApprovalMasterDto">
-        SELECT aprvl_doc_sn, aprvl_doc_sj, tmpl_cd, drft_user_id,
-               drft_reg_dt, aprvl_prgrs_cd, mdfcn_dt
-        FROM   APPROVAL_MASTER
-        WHERE  drft_user_id = #{userId}
-        ORDER BY drft_reg_dt DESC
+        SELECT am.aprvl_doc_sn, am.aprvl_doc_sj, am.tmpl_cd, am.drft_user_id,
+               am.drft_reg_dt, am.aprvl_prgrs_cd, am.mdfcn_dt, atm.tmpl_nm
+        FROM   APPROVAL_MASTER am
+          join approval_template atm ON am.tmpl_cd = atm.tmpl_cd
+        WHERE  am.drft_user_id = #{userId}
+        ORDER BY am.drft_reg_dt DESC
     </select>
 
     <!-- selectMyPendingLines: 내가 결재해야 하는 라인 (IN_PROGRESS) -->
@@ -126,8 +127,7 @@
         WHERE aprvl_doc_sn = #{aprvlDocSn}
     </select>
 
-    <select id="selectApprovalLinesByDocSn" parameterType="long"
-            resultType="kr.or.ddit.finalProject.dto.approval.ApprovalLineDto">
+    <select id="selectApprovalLinesByDocSn" parameterType="long" resultType="kr.or.ddit.finalProject.dto.approval.ApprovalLineDto">
         SELECT al.aprvl_line_sn, al.aprvl_doc_sn, al.aprvl_ordr, al.aprvr_user_id,
                al.aprvl_dt, al.aprvl_prgrs_cd, al.aprvl_rsn_cn,
                m.user_name  AS approver_name,
@@ -155,9 +155,17 @@
 
     <!-- deleteApprovalLinesByDocSn -->
 
-    <delete id="deleteApprovalLinesByDocSn" parameterType="long">
-        DELETE FROM APPROVAL_LINE
+    <update id="deleteApprovalLinesByDocSn" parameterType="map">
+        UPDATE APPROVAL_LINE
+        SET aprvl_prgrs_cd = #{aprvlPrgrsCd}
         WHERE aprvl_doc_sn = #{aprvlDocSn}
-    </delete>
+    </update>
 
+    <!-- deleteApprovalMaster -->
+
+    <update id="deleteApprovalMaster" parameterType="map">
+        UPDATE APPROVAL_MASTER
+        SET aprvl_prgrs_cd = #{aprvlPrgrsCd}
+        WHERE aprvl_doc_sn = #{aprvlDocSn}
+    </update>
 </mapper>

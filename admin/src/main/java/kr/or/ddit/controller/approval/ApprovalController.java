@@ -2,6 +2,7 @@ package kr.or.ddit.controller.approval;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,8 +22,7 @@ public class ApprovalController {
     private final ApprovalService approvalService;
 
     @PostMapping
-    public String postApproval(
-            @ModelAttribute ApprovalMasterDto masterDto,
+    public String postApproval(@ModelAttribute ApprovalMasterDto masterDto,
             @RequestParam(required = false, defaultValue = "[]") String approvalLine,
             Authentication authentication) {
         approvalService.submitApproval(authentication.getName(), masterDto, approvalLine);
@@ -30,8 +30,7 @@ public class ApprovalController {
     }
 
     @PostMapping("/{aprvlDocSn}/update")
-    public String updateApproval(
-            @PathVariable Long aprvlDocSn,
+    public String updateApproval(@PathVariable Long aprvlDocSn,
             @ModelAttribute ApprovalMasterDto masterDto,
             @RequestParam(required = false, defaultValue = "[]") String approvalLine,
             Authentication authentication) {
@@ -40,4 +39,10 @@ public class ApprovalController {
         return "redirect:/admin/approval/" + aprvlDocSn;
     }
 
+    @GetMapping("/{aprvlDocSn}/delete")
+    public String deleteApproval(@PathVariable Long aprvlDocSn, Authentication authentication) {
+        approvalService.deleteApproval(authentication.getName(), aprvlDocSn);
+
+        return "redirect:/admin/approval";
+    }
 }

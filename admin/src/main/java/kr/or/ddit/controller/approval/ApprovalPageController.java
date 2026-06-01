@@ -107,8 +107,8 @@ public class ApprovalPageController {
     }
 
     @GetMapping("/{aprvlDocSn}/edit")
-    public String editApproval(@PathVariable Long aprvlDocSn, Model model,
-            Authentication authentication) {
+    public String editApproval(@PathVariable
+    Long aprvlDocSn, Model model, Authentication authentication) {
         String userId = authentication.getName();
         ApprovalMasterDto doc = approvalService.getApprovalDetail(aprvlDocSn);
         if (!doc.getDrftUserId().equals(userId)) {
@@ -117,7 +117,8 @@ public class ApprovalPageController {
         AdminMemberDto adminMember = memberService.getAdminUserById(userId);
         List<ApprovalLineDto> existingLines = approvalService.getApprovalLines(aprvlDocSn);
         List<ApprovalTemplateDto> templates = approvalService.getApprovalTemplateList();
-        List<EmployeeInfoDto> approverCandidates = adminEmployeeService.getApproverCandidates(userId);
+        List<EmployeeInfoDto> approverCandidates =
+                adminEmployeeService.getApproverCandidates(userId);
 
         model.addAttribute("doc", doc);
         model.addAttribute("existingLines", existingLines);
@@ -130,8 +131,10 @@ public class ApprovalPageController {
     }
 
     @ResponseBody
-    @GetMapping(value = "/{aprvlDocSn}/content", produces = MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
-    public String getApprovalContent(@PathVariable Long aprvlDocSn) {
+    @GetMapping(value = "/{aprvlDocSn}/content", produces = MediaType.TEXT_HTML_VALUE
+            + ";charset=UTF-8")
+    public String getApprovalContent(@PathVariable
+    Long aprvlDocSn) {
         ApprovalMasterDto doc = approvalService.getApprovalDetail(aprvlDocSn);
         String content = doc.getAprvlDocCn();
         return content != null ? content : "";
