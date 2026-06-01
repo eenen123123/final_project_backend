@@ -85,4 +85,21 @@ public interface MemberService {
     MemberDto getMemberByUserId(String userId);
 
     AdminMemberDto getAdminUserById(String userId);
+
+    /**
+     * 비밀번호 확인 메서드
+     *
+     * @param userId 비밀번호를 확인할 사용자 ID
+     * @param password 확인할 비밀번호 (평문)
+     * @return 비밀번호가 일치하면 true, 일치하지 않으면 false
+     */
+    boolean verifyPassword(String userId, String password);
+
+    /**
+     * 회원 정보 수정 메서드
+     *
+     * @param memberDto 수정할 회원 정보를 담은 MemberDto 객체
+     */
+    void updateMember(MemberDto memberDto);
+
 }
