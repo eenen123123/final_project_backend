@@ -24,6 +24,4 @@ public class CurriculumMasterDto {
     private String lastMdfrId;
     private LocalDate mdfcnDt;
 
-    private CurriculumDetailDto curriculumDetail;
-
 }

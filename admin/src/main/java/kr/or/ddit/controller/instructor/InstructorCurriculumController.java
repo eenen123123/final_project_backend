@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import kr.or.ddit.finalProject.dto.curriculum.CurriculumDetailDto;
 import kr.or.ddit.finalProject.dto.curriculum.CurriculumMasterDto;
 import kr.or.ddit.finalProject.service.curriculum.CurriculumService;
 import lombok.RequiredArgsConstructor;
@@ -39,16 +38,6 @@ public class InstructorCurriculumController {
         return "admin:/instructor/curriculum";
     }
 
-    @GetMapping("/detail/{curriculumId}")
-    @ResponseBody
-    public ResponseEntity<List<CurriculumDetailDto>> getCurriculumDetail(@PathVariable Long curriculumId,
-            Authentication authentication) {
-        String loginInstructorId = resolveLoginUserId(authentication);
-
-        List<CurriculumDetailDto> detailList = curriculumService.retrieveDetailList(curriculumId, loginInstructorId);
-        return ResponseEntity.ok(detailList);
-    }
-
     @PostMapping("/save")
     @ResponseBody
     public ResponseEntity<String> saveCurriculum(@RequestBody CurriculumSaveRequest request,
@@ -61,9 +50,7 @@ public class InstructorCurriculumController {
         masterDto.setRgtrId(loginInstructorId);
         masterDto.setLastMdfrId(loginInstructorId);
 
-        applyAuditInfo(request.getDetailList(), loginInstructorId);
-
-        boolean created = curriculumService.createCurriculum(masterDto, request.getDetailList());
+        boolean created = curriculumService.createCurriculum(masterDto);
         if (!created) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("FAIL");
         }
@@ -81,11 +68,8 @@ public class InstructorCurriculumController {
         CurriculumMasterDto masterDto = new CurriculumMasterDto();
         masterDto.setCurriculumId(curriculumId);
         masterDto.setTitle(request.getTitle());
-        masterDto.setLastMdfrId(loginInstructorId);
 
-        applyAuditInfo(request.getDetailList(), loginInstructorId);
-
-        curriculumService.modifyCurriculum(masterDto, request.getDetailList(), loginInstructorId);
+        curriculumService.modifyCurriculum(masterDto, loginInstructorId);
         return ResponseEntity.ok("SUCCESS");
     }
 
@@ -106,20 +90,8 @@ public class InstructorCurriculumController {
         return authentication.getName();
     }
 
-    private void applyAuditInfo(List<CurriculumDetailDto> detailList, String currentUserId) {
-        if (detailList == null) {
-            return;
-        }
-        for (CurriculumDetailDto detail : detailList) {
-            detail.setRgtrId(currentUserId);
-            detail.setLastMdfrId(currentUserId);
-        }
-    }
-
     @lombok.Data
     public static class CurriculumSaveRequest {
-
         private String title;
-        private List<CurriculumDetailDto> detailList;
     }
 }
