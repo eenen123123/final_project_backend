@@ -31,6 +31,12 @@ body {
 /* ==========================================================================
    3. 공통 UI 컴포넌트 디자인 시스템 (어느 페이지든 즉시 통일)
    ========================================================================== */
+
+/* 모든 버튼에 커서 포인터 적용 */
+button {
+  cursor: pointer;
+}
+
 .hm-input {
   width: 100%;
   border: 1px solid #e2e8f0;
@@ -151,36 +157,88 @@ body {
    ========================================================================== */
 
 /* 강사 — sky */
-.hm-input-sky { border-color: #0ea5e9; }
-.hm-input-sky:focus { border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08); }
-.hm-input-sky:disabled { border-color: #bae6fd; }
-.hm-btn-sky { background-color: #0ea5e9; }
-.hm-btn-sky:hover { background-color: #0284c7; }
-.hm-switch-sky:checked { background-color: #0ea5e9; }
+.hm-input-sky {
+  border-color: #0ea5e9;
+}
+.hm-input-sky:focus {
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08);
+}
+.hm-input-sky:disabled {
+  border-color: #bae6fd;
+}
+.hm-btn-sky {
+  background-color: #0ea5e9;
+}
+.hm-btn-sky:hover {
+  background-color: #0284c7;
+}
+.hm-switch-sky:checked {
+  background-color: #0ea5e9;
+}
 
 /* 행정팀장(실장) — emerald */
-.hm-input-emerald { border-color: #10b981; }
-.hm-input-emerald:focus { border-color: #10b981; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08); }
-.hm-input-emerald:disabled { border-color: #6ee7b7; }
-.hm-btn-emerald { background-color: #10b981; }
-.hm-btn-emerald:hover { background-color: #059669; }
-.hm-switch-emerald:checked { background-color: #10b981; }
+.hm-input-emerald {
+  border-color: #10b981;
+}
+.hm-input-emerald:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08);
+}
+.hm-input-emerald:disabled {
+  border-color: #6ee7b7;
+}
+.hm-btn-emerald {
+  background-color: #10b981;
+}
+.hm-btn-emerald:hover {
+  background-color: #059669;
+}
+.hm-switch-emerald:checked {
+  background-color: #10b981;
+}
 
 /* pd — orange */
-.hm-input-orange { border-color: #f97316; }
-.hm-input-orange:focus { border-color: #f97316; box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.08); }
-.hm-input-orange:disabled { border-color: #fdba74; }
-.hm-btn-orange { background-color: #f97316; }
-.hm-btn-orange:hover { background-color: #ea580c; }
-.hm-switch-orange:checked { background-color: #f97316; }
+.hm-input-orange {
+  border-color: #f97316;
+}
+.hm-input-orange:focus {
+  border-color: #f97316;
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.08);
+}
+.hm-input-orange:disabled {
+  border-color: #fdba74;
+}
+.hm-btn-orange {
+  background-color: #f97316;
+}
+.hm-btn-orange:hover {
+  background-color: #ea580c;
+}
+.hm-switch-orange:checked {
+  background-color: #f97316;
+}
 
 /* 행정 — blue */
-.hm-input-blue { border-color: #3b82f6; }
-.hm-input-blue:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08); }
-.hm-input-blue:disabled { border-color: #93c5fd; }
-.hm-btn-blue { background-color: #3b82f6; }
-.hm-btn-blue:hover { background-color: #2563eb; }
-.hm-switch-blue:checked { background-color: #3b82f6; }
+.hm-input-blue {
+  border-color: #3b82f6;
+}
+.hm-input-blue:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
+}
+.hm-input-blue:disabled {
+  border-color: #93c5fd;
+}
+.hm-btn-blue {
+  background-color: #3b82f6;
+}
+.hm-btn-blue:hover {
+  background-color: #2563eb;
+}
+.hm-switch-blue:checked {
+  background-color: #3b82f6;
+}
 
 /* ==========================================================================
    5. Tom Select 오버라이드 (select.hm-input 에 자동 적용)
@@ -246,7 +304,7 @@ body {
   background: transparent;
   min-height: unset;
   position: relative;
-  display: flex !important;       /* Tom Select 의 더 높은 특이성 선택자에 덮어쓰이지 않도록 */
+  display: flex !important; /* Tom Select 의 더 높은 특이성 선택자에 덮어쓰이지 않도록 */
   align-items: center !important;
   flex-wrap: nowrap !important;
 }
@@ -310,17 +368,41 @@ body {
   padding: 0.55rem 0.875rem;
   color: #475569;
   border-radius: 0.5rem;
-  transition: background-color 0.15s, color 0.15s;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
 }
-.ts-dropdown .option:hover       { background-color: #f1f5f9; color: #1e293b; }
-.ts-dropdown .option.selected    { background-color: #f0f9ff; color: #0284c7; font-weight: 500; }
-.ts-dropdown .option.active      { background-color: #e0f2fe; color: #0284c7; }
+.ts-dropdown .option:hover {
+  background-color: #f1f5f9;
+  color: #1e293b;
+}
+.ts-dropdown .option.selected {
+  background-color: #f0f9ff;
+  color: #0284c7;
+  font-weight: 500;
+}
+.ts-dropdown .option.active {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
 
 /* --- 색상 변형별 포커스 & 화살표 & 드롭다운 옵션 --- */
-.ts-wrapper.hm-input-sky.focus     { border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08); }
-.ts-wrapper.hm-input-emerald.focus { border-color: #10b981; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08); }
-.ts-wrapper.hm-input-orange.focus  { border-color: #f97316; box-shadow: 0 0 0 4px rgba(249, 115, 22,  0.08); }
-.ts-wrapper.hm-input-blue.focus    { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,  130, 246, 0.08); }
+.ts-wrapper.hm-input-sky.focus {
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08);
+}
+.ts-wrapper.hm-input-emerald.focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08);
+}
+.ts-wrapper.hm-input-orange.focus {
+  border-color: #f97316;
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.08);
+}
+.ts-wrapper.hm-input-blue.focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
+}
 
 .ts-wrapper.single.hm-input-sky.focus     .ts-control::after { border-color: #0ea5e9 transparent transparent transparent; }
 .ts-wrapper.single.hm-input-emerald.focus .ts-control::after { border-color: #10b981 transparent transparent transparent; }
@@ -328,11 +410,23 @@ body {
 .ts-wrapper.single.hm-input-blue.focus    .ts-control::after { border-color: #3b82f6 transparent transparent transparent; }
 .ts-wrapper.single.hm-input-danger.focus  .ts-control::after { border-color: #ef4444 transparent transparent transparent; }
 
-.ts-wrapper.hm-input-sky     .ts-dropdown .option:hover,
-.ts-wrapper.hm-input-sky     .ts-dropdown .option.active { background-color: #f0f9ff; color: #0284c7; }
+.ts-wrapper.hm-input-sky .ts-dropdown .option:hover,
+.ts-wrapper.hm-input-sky .ts-dropdown .option.active {
+  background-color: #f0f9ff;
+  color: #0284c7;
+}
 .ts-wrapper.hm-input-emerald .ts-dropdown .option:hover,
-.ts-wrapper.hm-input-emerald .ts-dropdown .option.active { background-color: #f0fdf4; color: #059669; }
-.ts-wrapper.hm-input-orange  .ts-dropdown .option:hover,
-.ts-wrapper.hm-input-orange  .ts-dropdown .option.active { background-color: #fff7ed; color: #ea580c; }
-.ts-wrapper.hm-input-blue    .ts-dropdown .option:hover,
-.ts-wrapper.hm-input-blue    .ts-dropdown .option.active { background-color: #eff6ff; color: #2563eb; }
+.ts-wrapper.hm-input-emerald .ts-dropdown .option.active {
+  background-color: #f0fdf4;
+  color: #059669;
+}
+.ts-wrapper.hm-input-orange .ts-dropdown .option:hover,
+.ts-wrapper.hm-input-orange .ts-dropdown .option.active {
+  background-color: #fff7ed;
+  color: #ea580c;
+}
+.ts-wrapper.hm-input-blue .ts-dropdown .option:hover,
+.ts-wrapper.hm-input-blue .ts-dropdown .option.active {
+  background-color: #eff6ff;
+  color: #2563eb;
+}

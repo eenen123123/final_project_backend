@@ -3,19 +3,19 @@ package kr.or.ddit.finalProject.service.instructor;
 import java.util.List;
 
 import kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto;
-import kr.or.ddit.finalProject.responseDto.instructor.InstructorBoardResponseDto;
+import kr.or.ddit.finalProject.dto.instructor.InstructorBoardResponse;
 
 public interface InstructorBoardService {
 
     /**
      * 강사 게시판 목록 조회
      */
-    List<InstructorBoardResponseDto> getInstructorBoardList(String instrUserId);
+    List<InstructorBoardResponse> getInstructorBoardList(String instrUserId);
 
     /**
      * 강사 게시판 상세 조회
      */
-    InstructorBoardResponseDto getInstructorBoardDetail(Long postSn, String instrUserId);
+    InstructorBoardResponse getInstructorBoardDetail(Long postSn, String instrUserId);
 
     /**
      * 강사 게시판 등록

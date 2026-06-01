@@ -1,0 +1,114 @@
+<!-- 
+    private String tmplCd; // 기본키(PK) · 양식코드
+    private String tmplNm; // 결재 양식명
+    private String tmplCn; // 결재 양식 내용
+    private String useYn; // DEFAULT 'Y' 권장
+    private String rgtrId; // 최초등록자
+    private String lastMdfrId; // 최종수정자
+    private LocalDateTime regDt; // 데이터 생성 시점 (자동갱신)
+    private LocalDateTime mdfcnDt; // 데이터 수정 시점 (자동갱신)
+    private String atchFileId; // 공통첨부파일분류 
+-->
+
+<div>
+  <h1>Approval Templates</h1>
+
+  <div class="mb-6">
+    <div
+      th:each="template : ${approvalTemplates}"
+      class="bg-slate-200 p-4 mb-4 rounded"
+    >
+      <div class="border p-2 rounded flex items-center justify-between">
+        <p th:text="${template.tmplCd}">Template Code</p>
+        <h2 th:text="${template.tmplNm}">Template Name</h2>
+        <button class="bg-blue-500 text-white p-2 rounded cursor-pointer">
+          View
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <h1>미리보기</h1>
+    <iframe src="" frameborder="0" class="w-full h-96"></iframe>
+  </div>
+
+  <div>
+    <h2>Add New Template</h2>
+
+    <pre>
+
+MEETING	        회의록	              meeting.html
+EXPENSE_REQ	    지출품의서	          expense_request.html
+OFFICE_SUPPLY	  사무용품 신청서	      office_supply.html
+BOOK_PURCHASE	  도서구입신청서	      book_purchase.html
+LEAVE	          휴가원	              leave.html
+OVERTIME	      휴일/연장 근무신청서	overtime.html
+TELECOM_EXP	    지출결의서(통신비)	  telecom_expense.html
+EMPLOYMENT_CERT	재직증명서	          employment_cert.html
+TARDINESS	      지각/불참사유서	      tardiness.html
+APOLOGY	        시말서	              apology.html
+EARLY_LEAVE	    조퇴신청서	          early_leave.html
+RESIGNATION	    사직서	              resignation.html
+DRAFT	          기안용지	            draft.html
+EVALUATION	    계약직 평가표	        evaluation.html
+
+    </pre>
+
+    <form
+      method="post"
+      enctype="multipart/form-data"
+      class="bg-slate-400 p-4 rounded"
+    >
+      <label for="tmplCd">Template Code:</label>
+      <input
+        type="text"
+        id="tmplCd"
+        name="tmplCd"
+        required
+        class="border p-2 rounded"
+      />
+
+      <label for="tmplNm">Template Name:</label>
+      <input
+        type="text"
+        id="tmplNm"
+        name="tmplNm"
+        required
+        class="border p-2 rounded"
+      />
+
+      <label for="tmplCn">Template Content:</label>
+      <input
+        type="file"
+        id="tmplCn"
+        name="tmplCn"
+        required
+        class="border p-2 rounded"
+      />
+
+      <button type="submit" class="bg-blue-500 text-white p-2 rounded">
+        Add Template
+      </button>
+    </form>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const viewButtons = document.querySelectorAll("button");
+
+      viewButtons.forEach((button) => {
+        button.addEventListener("click", function () {
+          const tmplCd = this.closest(".border").querySelector("p").textContent;
+          fetch(`/admin/approval/template/view?tmplCd=${tmplCd}`)
+            .then((response) => response.text())
+            .then((data) => {
+              const iframe = document.querySelector("iframe");
+              iframe.srcdoc = data;
+            })
+            .catch((error) => console.error("Error fetching template:", error));
+        });
+      });
+    });
+  </script>
+</div>

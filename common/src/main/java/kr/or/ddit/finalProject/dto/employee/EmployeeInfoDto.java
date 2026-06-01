@@ -40,4 +40,6 @@ public class EmployeeInfoDto implements Serializable {
 
     private String deptNm; // 부서명
     private String jbgrNm; // 직급명
+    private Integer sortOrd; // 직급 정렬순서 (낮을수록 상위직급)
+    private String userName; // 사용자명 (MEMBER.USER_NAME)
 }

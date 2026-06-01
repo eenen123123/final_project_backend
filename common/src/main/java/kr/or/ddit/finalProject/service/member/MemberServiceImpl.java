@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import kr.or.ddit.finalProject.dto.auth.AuthTokens;
 import kr.or.ddit.finalProject.dto.email.EmailVerificationDto;
+import kr.or.ddit.finalProject.dto.member.AdminMemberDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.dto.user.RefreshTokenDto;
 import kr.or.ddit.finalProject.dto.user.SigninRequestRecord;
@@ -189,5 +190,16 @@ public class MemberServiceImpl implements MemberService {
                 birthDate.format(java.time.format.DateTimeFormatter.ofPattern("yyMMdd"));
 
         return enrnoBirthDatePart.equals(birthDateStr);
+    }
+
+    @Override
+    public MemberDto getMemberByUserId(String userId) {
+        return memberMapper.findByUserId(userId)
+                .orElseThrow(() -> new FinalProjectException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    @Override
+    public AdminMemberDto getAdminUserById(String userId) {
+        return memberMapper.getAdminUserById(userId);
     }
 }

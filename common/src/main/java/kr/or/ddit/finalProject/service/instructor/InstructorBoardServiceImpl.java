@@ -6,8 +6,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto;
+import kr.or.ddit.finalProject.dto.instructor.InstructorBoardResponse;
 import kr.or.ddit.finalProject.mapper.instructor.InstructorBoardMapper;
-import kr.or.ddit.finalProject.responseDto.instructor.InstructorBoardResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,14 +19,14 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     private final InstructorBoardMapper instructorBoardMapper;
 
     @Override
-    public List<InstructorBoardResponseDto> getInstructorBoardList(String instrUserId) {
+    public List<InstructorBoardResponse> getInstructorBoardList(String instrUserId) {
         List<InstructorBoardDto> original = instructorBoardMapper.selectInstructorBoardList(instrUserId);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        List<InstructorBoardResponseDto> response
+        List<InstructorBoardResponse> response
                 = original.stream()
                         .map(dto -> {
                             String userName = dto.getMemberDto() != null ? dto.getMemberDto().getUserName() : "";
-                            InstructorBoardResponseDto responseDto = new InstructorBoardResponseDto();
+                            InstructorBoardResponse responseDto = new InstructorBoardResponse();
                             responseDto.setPostSn(dto.getPostSn());
                             responseDto.setUseYn(dto.getUseYn());
                             responseDto.setBoardTypeCd(dto.getBoardTypeCd());
@@ -45,14 +45,14 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     }
 
     @Override
-    public InstructorBoardResponseDto getInstructorBoardDetail(Long postSn, String instrUserId) {
+    public InstructorBoardResponse getInstructorBoardDetail(Long postSn, String instrUserId) {
         InstructorBoardDto original = instructorBoardMapper.selectInstructorBoardDetail(postSn, instrUserId);
         if (original == null) {
             return null;
         }
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String userName = original.getMemberDto() != null ? original.getMemberDto().getUserName() : "";
-        return InstructorBoardResponseDto.builder()
+        return InstructorBoardResponse.builder()
                 .postSn(original.getPostSn())
                 .useYn(original.getUseYn())
                 .boardTypeCd(original.getBoardTypeCd())
