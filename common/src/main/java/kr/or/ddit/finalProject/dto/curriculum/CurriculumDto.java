@@ -7,22 +7,21 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-@EqualsAndHashCode(of = "detailId")
+@EqualsAndHashCode(of = "curriculumId")
 @Data
-public class CurriculumDetailDto {
+public class CurriculumDto {
 
     @NotNull
-    private Integer detailId;
-    @NotNull
-    private Integer curriculumId;
-    @NotNull
-    private Integer rowOrder;
-    private String weekInfo;
-    private String topic;
-    private String content;
+    private Long curriculumId;
+    @NotBlank
+    private String title;
+    @NotBlank
+    private String instructorId;
+    private String useYn;
     @NotBlank
     private String rgtrId;
     private LocalDate regDt;
     private String lastMdfrId;
     private LocalDate mdfcnDt;
+
 }

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.classroom.ClassroomMemberMapper">
+
+  <resultMap id="classroomMemberListResponseMap" type="kr.or.ddit.finalProject.dto.classroom.ClassroomMemberListResponse">
+    <result property="userId"      column="USER_ID" />
+    <result property="userName"    column="USER_NAME" />
+    <result property="enrlStatCd"  column="ENRL_STAT_CD" />
+    <result property="regDt"       column="REG_DT" />
+  </resultMap>
+
+  <select id="selectMembersByClassSn" resultMap="classroomMemberListResponseMap">
+    SELECT
+        cm.USER_ID,
+        m.USER_NAME,
+        cm.ENRL_STAT_CD,
+        cm.REG_DT
+    FROM CLASSROOM_MEMBER cm
+    JOIN MEMBER m ON cm.USER_ID = m.USER_ID
+    WHERE cm.CLASS_SN = #{classSn}
+    ORDER BY cm.REG_DT ASC
+  </select>
+
+</mapper>

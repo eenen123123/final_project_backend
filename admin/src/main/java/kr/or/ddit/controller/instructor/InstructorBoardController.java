@@ -19,8 +19,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.or.ddit.finalProject.dto.common.CommonCodeDto;
 import kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto;
+import kr.or.ddit.finalProject.dto.instructor.InstructorBoardResponse;
 import kr.or.ddit.finalProject.mapper.common.CommonCodeMapper;
-import kr.or.ddit.finalProject.responseDto.instructor.InstructorBoardResponseDto;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +47,7 @@ public class InstructorBoardController {
     public String getBoardList(Model model) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         log.info("유저아이디 : {}", userId);
-        List<InstructorBoardResponseDto> boardList = instructorBoardService.getInstructorBoardList(userId);
+        List<InstructorBoardResponse> boardList = instructorBoardService.getInstructorBoardList(userId);
         model.addAttribute("boardList", boardList);
         return "admin:/instructor/boardList";
     }
@@ -75,7 +75,7 @@ public class InstructorBoardController {
     @GetMapping("/detail/{postSn}")
     public String getBoardDetail(@PathVariable Long postSn, Model model) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        InstructorBoardResponseDto board = instructorBoardService.getInstructorBoardDetail(postSn, userId);
+        InstructorBoardResponse board = instructorBoardService.getInstructorBoardDetail(postSn, userId);
         if (board == null) {
             return "redirect:/instructor/board/list";
         }
@@ -146,7 +146,7 @@ public class InstructorBoardController {
     @GetMapping("/updateForm/{postSn}")
     public String getUpdateForm(@PathVariable Long postSn, Model model) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        InstructorBoardResponseDto responseDto = instructorBoardService.getInstructorBoardDetail(postSn, userId);
+        InstructorBoardResponse responseDto = instructorBoardService.getInstructorBoardDetail(postSn, userId);
         if (responseDto == null) {
             return "redirect:/instructor/board/list";
         }
@@ -236,17 +236,19 @@ public class InstructorBoardController {
 
     // Toast UI Editor 허용 태그 목록 — 매 호출마다 재생성하지 않도록 static 상수로 선언
     private static final Safelist TOAST_SAFELIST = Safelist.relaxed()
-            .addTags("del", "s", "hr", "input")          // relaxed 기본 목록에 없는 태그
+            .addTags("del", "s", "hr", "input") // relaxed 기본 목록에 없는 태그
             .addAttributes("input", "type", "checked", "disabled") // 체크리스트
-            .addAttributes("span", "style")              // color-syntax 인라인 색상
-            .addAttributes("p",  "style")
+            .addAttributes("span", "style") // color-syntax 인라인 색상
+            .addAttributes("p", "style")
             .addAttributes("h1", "style").addAttributes("h2", "style")
             .addAttributes("h3", "style").addAttributes("h4", "style")
             .addAttributes("h5", "style").addAttributes("h6", "style");
 
     // XSS 방어: 허용 태그만 남기고 나머지 제거
     private String sanitize(String html) {
-        if (html == null) return null;
+        if (html == null) {
+            return null;
+        }
         return Jsoup.clean(html, TOAST_SAFELIST);
     }
 

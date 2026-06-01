@@ -5,8 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import kr.or.ddit.finalProject.dto.curriculum.CurriculumDetailDto;
-import kr.or.ddit.finalProject.dto.curriculum.CurriculumMasterDto;
+import kr.or.ddit.finalProject.dto.curriculum.CurriculumDto;
 import kr.or.ddit.finalProject.mapper.curriculum.CurriculumMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,82 +19,46 @@ public class CurriculumServiceImpl implements CurriculumService {
     private final CurriculumMapper curriculumMapper;
 
     @Override
-    public List<CurriculumMasterDto> retrieveMasterList(String instructorId) {
-        return curriculumMapper.selectMasterList(instructorId);
-    }
-
-    @Override
-    public List<CurriculumDetailDto> retrieveDetailList(Long curriculumId, String instructorId) {
-        CurriculumMasterDto master = curriculumMapper.selectMasterById(curriculumId);
-
-        if (master == null || !"Y".equals(master.getUseYn())) {
-            throw new IllegalArgumentException("존재하지 않거나 삭제된 커리큘럼입니다.");
-        }
-
-        if (!master.getInstructorId().equals(instructorId)) {
-            throw new SecurityException("해당 커리큘럼을 조회할 권한이 없습니다.");
-        }
-
-        return curriculumMapper.selectDetailList(curriculumId);
+    public List<CurriculumDto> retrieveList(String instructorId) {
+        return curriculumMapper.selectList(instructorId);
     }
 
     @Override
     @Transactional
-    public boolean createCurriculum(CurriculumMasterDto masterDto, List<CurriculumDetailDto> detailList) {
-        int masterResult = curriculumMapper.insertMaster(masterDto);
-
-        if (masterResult > 0 && detailList != null && !detailList.isEmpty()) {
-            Long generatedId = masterDto.getCurriculumId();
-            String rgtrId = masterDto.getRgtrId();
-
-            for (int i = 0; i < detailList.size(); i++) {
-                CurriculumDetailDto d = detailList.get(i);
-                curriculumMapper.insertDetail(generatedId, i, d.getWeekInfo(), d.getTopic(), d.getContent(), rgtrId);
-            }
-            return true;
-        }
-
-        return false;
+    public boolean createCurriculum(CurriculumDto curriculumDto) {
+        return curriculumMapper.insert(curriculumDto) > 0;
     }
 
     @Override
     @Transactional
-    public void modifyCurriculum(CurriculumMasterDto masterDto, List<CurriculumDetailDto> detailList, String currentUserId) {
-        CurriculumMasterDto originalMaster = curriculumMapper.selectMasterById(masterDto.getCurriculumId());
+    public void modifyCurriculum(CurriculumDto curriculumDto, String currentUserId) {
+        CurriculumDto original = curriculumMapper.selectById(curriculumDto.getCurriculumId());
 
-        if (originalMaster == null || !"Y".equals(originalMaster.getUseYn())) {
+        if (original == null || !"Y".equals(original.getUseYn())) {
             throw new IllegalArgumentException("수정하려는 커리큘럼이 존재하지 않습니다.");
         }
 
-        if (!originalMaster.getInstructorId().equals(currentUserId)) {
+        if (!original.getInstructorId().equals(currentUserId)) {
             throw new SecurityException("본인이 작성한 커리큘럼만 수정할 수 있습니다.");
         }
 
-        masterDto.setLastMdfrId(currentUserId);
-        curriculumMapper.updateMaster(masterDto);
-        curriculumMapper.deleteDetailsByMasterId(masterDto.getCurriculumId());
-
-        if (detailList != null && !detailList.isEmpty()) {
-            for (int i = 0; i < detailList.size(); i++) {
-                CurriculumDetailDto d = detailList.get(i);
-                curriculumMapper.insertDetail(masterDto.getCurriculumId(), i, d.getWeekInfo(), d.getTopic(), d.getContent(), currentUserId);
-            }
-        }
+        curriculumDto.setLastMdfrId(currentUserId);
+        curriculumMapper.update(curriculumDto);
     }
 
     @Override
     @Transactional
     public void removeCurriculumLogically(Long curriculumId, String currentUserId) {
-        CurriculumMasterDto originalMaster = curriculumMapper.selectMasterById(curriculumId);
+        CurriculumDto original = curriculumMapper.selectById(curriculumId);
 
-        if (originalMaster == null) {
+        if (original == null) {
             throw new IllegalArgumentException("삭제하려는 커리큘럼이 존재하지 않습니다.");
         }
 
-        if (!originalMaster.getInstructorId().equals(currentUserId)) {
+        if (!original.getInstructorId().equals(currentUserId)) {
             throw new SecurityException("본인이 작성한 커리큘럼만 삭제할 수 있습니다.");
         }
 
-        curriculumMapper.deleteMasterLogically(curriculumId, currentUserId);
+        curriculumMapper.deleteLogically(curriculumId, currentUserId);
     }
 }
