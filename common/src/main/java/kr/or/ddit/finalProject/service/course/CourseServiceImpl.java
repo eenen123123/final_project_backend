@@ -34,6 +34,9 @@ public class CourseServiceImpl implements CourseService {
         if (original == null) {
             throw new IllegalArgumentException("존재하지 않는 강좌입니다.");
         }
+        if (!currentUserId.equals(original.getInstrUserId())) {
+            throw new SecurityException("본인이 작성한 강좌만 수정할 수 있습니다.");
+        }
         courseDto.setLastMdfrId(currentUserId);
         courseMapper.updateCourse(courseDto);
     }
@@ -44,6 +47,9 @@ public class CourseServiceImpl implements CourseService {
         CourseDto original = courseMapper.selectCourseBySn(courseSn);
         if (original == null) {
             throw new IllegalArgumentException("존재하지 않는 강좌입니다.");
+        }
+        if (!currentUserId.equals(original.getInstrUserId())) {
+            throw new SecurityException("본인이 작성한 강좌만 삭제할 수 있습니다.");
         }
         courseMapper.deleteCourse(courseSn);
     }

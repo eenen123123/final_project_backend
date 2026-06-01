@@ -238,6 +238,18 @@ public class InstructorCurriculumController {
         return authentication.getName();
     }
 
+    @org.springframework.web.bind.annotation.ExceptionHandler(IllegalArgumentException.class)
+    @ResponseBody
+    public ResponseEntity<String> handleNotFound(IllegalArgumentException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(SecurityException.class)
+    @ResponseBody
+    public ResponseEntity<String> handleForbidden(SecurityException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+    }
+
     @lombok.Data
     public static class CurriculumSaveRequest {
         private String title;
