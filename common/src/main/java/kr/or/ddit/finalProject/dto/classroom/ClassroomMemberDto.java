@@ -23,8 +23,4 @@ public class ClassroomMemberDto implements Serializable {
     private String lastMdfrId;
     private LocalDateTime mdfcnDt;
 
-    // JOIN fields from MEMBER
-    private String userName;
-    private String userEmailAddr;
-    private String userProfile;
 }

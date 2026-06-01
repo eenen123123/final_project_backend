@@ -2,18 +2,15 @@ package kr.or.ddit.finalProject.service.curriculum;
 
 import java.util.List;
 
-import kr.or.ddit.finalProject.dto.curriculum.CurriculumDetailDto;
-import kr.or.ddit.finalProject.dto.curriculum.CurriculumMasterDto;
+import kr.or.ddit.finalProject.dto.curriculum.CurriculumDto;
 
 public interface CurriculumService {
 
-    List<CurriculumMasterDto> retrieveMasterList(String instructorId);
+    List<CurriculumDto> retrieveList(String instructorId);
 
-    List<CurriculumDetailDto> retrieveDetailList(Long curriculumId, String instructorId);
+    boolean createCurriculum(CurriculumDto curriculumDto);
 
-    boolean createCurriculum(CurriculumMasterDto masterDto, List<CurriculumDetailDto> detailList);
-
-    void modifyCurriculum(CurriculumMasterDto masterDto, List<CurriculumDetailDto> detailList, String currentUserId);
+    void modifyCurriculum(CurriculumDto curriculumDto, String currentUserId);
 
     void removeCurriculumLogically(Long curriculumId, String currentUserId);
 }

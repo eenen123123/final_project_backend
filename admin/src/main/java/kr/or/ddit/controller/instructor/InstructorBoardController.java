@@ -19,8 +19,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.or.ddit.finalProject.dto.common.CommonCodeDto;
 import kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto;
+import kr.or.ddit.finalProject.dto.instructor.InstructorBoardResponse;
 import kr.or.ddit.finalProject.mapper.common.CommonCodeMapper;
-import kr.or.ddit.finalProject.responseDto.instructor.InstructorBoardResponseDto;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +47,7 @@ public class InstructorBoardController {
     public String getBoardList(Model model) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         log.info("유저아이디 : {}", userId);
-        List<InstructorBoardResponseDto> boardList =
+        List<InstructorBoardResponse> boardList =
                 instructorBoardService.getInstructorBoardList(userId);
         model.addAttribute("boardList", boardList);
         return "admin:/instructor/boardList";
@@ -75,7 +75,7 @@ public class InstructorBoardController {
     @GetMapping("/detail/{postSn}")
     public String getBoardDetail(@PathVariable Long postSn, Model model) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        InstructorBoardResponseDto board =
+        InstructorBoardResponse board =
                 instructorBoardService.getInstructorBoardDetail(postSn, userId);
         if (board == null) {
             return "redirect:/instructor/board/list";
@@ -146,7 +146,7 @@ public class InstructorBoardController {
     @GetMapping("/updateForm/{postSn}")
     public String getUpdateForm(@PathVariable Long postSn, Model model) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        InstructorBoardResponseDto responseDto =
+        InstructorBoardResponse responseDto =
                 instructorBoardService.getInstructorBoardDetail(postSn, userId);
         if (responseDto == null) {
             return "redirect:/instructor/board/list";

@@ -181,4 +181,31 @@
     </select>
 
 
+    <!-- getAdminUserById -->
+
+    <select id="getAdminUserById" parameterType="string" resultMap="adminMemberResultMap">
+        SELECT
+            m.USER_ID, m.USER_ENPSWD, m.USER_NAME, m.USER_ENRRNO,
+            m.USER_GNDR_CD, m.USER_BRDT, m.JOIN_DT, m.USER_TELNO,
+            m.USER_EMAIL_ADDR, m.USER_ZIP, m.USER_ADDR, m.USER_DADDR,
+            m.USER_PROFILE, m.REG_DATE, m.MOD_DATE, m.ENABLE, m.USER_ROLE,
+            ei.USER_ID    AS EI_USER_ID,
+            ei.DEPT_CD, ei.JBGR_CD, ei.JOIN_YMD, ei.RETMT_YMD,
+            ei.EMPL_STAT_CD,
+            ei.ATCH_FILE_ID AS EI_ATCH_FILE_ID,
+            ei.CHRG_DUTY_CN, ei.RGTR_ID, ei.LAST_MDFR_ID,
+            ei.REG_DT     AS EI_REG_DT,
+            ei.MDFCN_DT   AS EI_MDFCN_DT,
+            d.DEPT_NM AS DEPT_NM,
+            j.JBGR_NM AS JBGR_NM
+        FROM member m
+        INNER JOIN employee_info ei ON m.user_id = ei.user_id
+        inner join department d on ei.dept_cd = d.dept_cd
+        inner join job_grade j on ei.jbgr_cd = j.jbgr_cd
+        WHERE m.user_role = 'ROLE_ADMIN'
+        AND m.user_id = #{userId}
+        ORDER BY m.user_id
+
+
+    </select>
 </mapper>

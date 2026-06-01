@@ -104,7 +104,6 @@ public class StaffEmployeesController {
         if (principal != null) {
             loginAdminId = principal.getName(); // 세션이나 토큰에 저장된 로그인 ID
         }
-
         staffService.registerEmployee(memberDto, employeeInfoDto, employeeSalary, profileImage, loginAdminId);
 
         return "redirect:/admin/employees";
