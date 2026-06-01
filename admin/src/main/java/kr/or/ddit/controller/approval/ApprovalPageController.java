@@ -91,10 +91,9 @@ public class ApprovalPageController {
         boolean canDelete =
                 isDrafter && ApprovalDocProgressEnum.DRAFT.equals(approvalDetail.getAprvlPrgrsCd());
 
-        log.info("isApprover={}, isDrafter={}, canCancel={}, canDelete={}", isApprover, isDrafter,
-                canCancel, canDelete);
+        // log.info("isApprover={}, isDrafter={}, canCancel={}, canDelete={}", isApprover, isDrafter,
+        //         canCancel, canDelete);
 
-        approvalLines.stream().forEach(line -> log.info("Approval line: {}", line));
 
         model.addAttribute("isApprover", isApprover);
         model.addAttribute("doc", approvalDetail);
@@ -105,7 +104,6 @@ public class ApprovalPageController {
         model.addAttribute("canDelete", canDelete);
 
 
-        log.info("line size : {}", approvalLines.size());
 
         return "admin:/approval_template/approval_detail";
     }

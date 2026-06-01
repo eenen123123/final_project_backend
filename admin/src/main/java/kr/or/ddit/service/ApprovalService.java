@@ -41,7 +41,6 @@ public class ApprovalService {
      * @return 결재 양식 리스트
      */
     public List<ApprovalTemplateDto> getApprovalTemplateList() {
-        log.info("Fetching approval template list");
         return approvalMapper.selectApprovalTemplateList();
     }
 
