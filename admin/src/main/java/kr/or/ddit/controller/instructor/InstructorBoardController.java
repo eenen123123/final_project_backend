@@ -47,7 +47,8 @@ public class InstructorBoardController {
     public String getBoardList(Model model) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         log.info("유저아이디 : {}", userId);
-        List<InstructorBoardResponseDto> boardList = instructorBoardService.getInstructorBoardList(userId);
+        List<InstructorBoardResponseDto> boardList =
+                instructorBoardService.getInstructorBoardList(userId);
         model.addAttribute("boardList", boardList);
         return "admin:/instructor/boardList";
     }
@@ -61,8 +62,7 @@ public class InstructorBoardController {
     @ResponseBody
     public List<CommonCodeDto> getBoardTypes() {
         return commonCodeMapper.selectByClCode("100").stream()
-                .filter(c -> !"01".equals(c.getComCd()))
-                .toList();
+                .filter(c -> !"01".equals(c.getComCd())).toList();
     }
 
     /**
@@ -75,7 +75,8 @@ public class InstructorBoardController {
     @GetMapping("/detail/{postSn}")
     public String getBoardDetail(@PathVariable Long postSn, Model model) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        InstructorBoardResponseDto board = instructorBoardService.getInstructorBoardDetail(postSn, userId);
+        InstructorBoardResponseDto board =
+                instructorBoardService.getInstructorBoardDetail(postSn, userId);
         if (board == null) {
             return "redirect:/instructor/board/list";
         }
@@ -104,17 +105,16 @@ public class InstructorBoardController {
      * @return
      */
     @PostMapping("/insert")
-    public String insertBoard(@Validated @ModelAttribute InstructorBoardDto instructorBoardDto, BindingResult error, RedirectAttributes redirectAttributes) {
+    public String insertBoard(@Validated @ModelAttribute InstructorBoardDto instructorBoardDto,
+            BindingResult error, RedirectAttributes redirectAttributes) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         instructorBoardDto.setInstrUserId(userId);
         instructorBoardDto.setWrtrUserId(userId);
         instructorBoardDto.setPostCn(sanitize(instructorBoardDto.getPostCn()));
 
         if (error.hasErrors()) {
-            String errorMsg = error.getAllErrors().stream()
-                    .map(e -> e.getDefaultMessage())
-                    .findFirst()
-                    .orElse("입력값을 확인해주세요.");
+            String errorMsg = error.getAllErrors().stream().map(e -> e.getDefaultMessage())
+                    .findFirst().orElse("입력값을 확인해주세요.");
             redirectAttributes.addFlashAttribute("board", instructorBoardDto);
             redirectAttributes.addFlashAttribute("errorMessage", errorMsg);
             return "redirect:/instructor/board/insertForm";
@@ -146,16 +146,14 @@ public class InstructorBoardController {
     @GetMapping("/updateForm/{postSn}")
     public String getUpdateForm(@PathVariable Long postSn, Model model) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        InstructorBoardResponseDto responseDto = instructorBoardService.getInstructorBoardDetail(postSn, userId);
+        InstructorBoardResponseDto responseDto =
+                instructorBoardService.getInstructorBoardDetail(postSn, userId);
         if (responseDto == null) {
             return "redirect:/instructor/board/list";
         }
-        InstructorBoardDto board = InstructorBoardDto.builder()
-                .postSn(responseDto.getPostSn())
-                .boardTypeCd(responseDto.getBoardTypeCd())
-                .postSj(responseDto.getTitle())
-                .postCn(sanitize(responseDto.getContent()))
-                .build();
+        InstructorBoardDto board = InstructorBoardDto.builder().postSn(responseDto.getPostSn())
+                .boardTypeCd(responseDto.getBoardTypeCd()).postSj(responseDto.getTitle())
+                .postCn(sanitize(responseDto.getContent())).build();
         model.addAttribute("board", board);
         model.addAttribute("boardTypes", getBoardTypeList());
         return "admin:/instructor/boardInsertForm";
@@ -163,8 +161,7 @@ public class InstructorBoardController {
 
     private List<CommonCodeDto> getBoardTypeList() {
         return commonCodeMapper.selectByClCode("100").stream()
-                .filter(c -> !"01".equals(c.getComCd()))
-                .toList();
+                .filter(c -> !"01".equals(c.getComCd())).toList();
     }
 
     /**
@@ -176,17 +173,16 @@ public class InstructorBoardController {
      * @return
      */
     @PostMapping("/update")
-    public String updateBoard(@Validated @ModelAttribute InstructorBoardDto instructorBoardDto, BindingResult error, RedirectAttributes redirectAttributes) {
+    public String updateBoard(@Validated @ModelAttribute InstructorBoardDto instructorBoardDto,
+            BindingResult error, RedirectAttributes redirectAttributes) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         instructorBoardDto.setInstrUserId(userId);
         instructorBoardDto.setLastMdfrId(userId);
         instructorBoardDto.setPostCn(sanitize(instructorBoardDto.getPostCn()));
 
         if (error.hasErrors()) {
-            String errorMsg = error.getAllErrors().stream()
-                    .map(e -> e.getDefaultMessage())
-                    .findFirst()
-                    .orElse("입력값을 확인해주세요.");
+            String errorMsg = error.getAllErrors().stream().map(e -> e.getDefaultMessage())
+                    .findFirst().orElse("입력값을 확인해주세요.");
             redirectAttributes.addFlashAttribute("board", instructorBoardDto);
             redirectAttributes.addFlashAttribute("errorMessage", errorMsg);
             return "redirect:/instructor/board/updateForm/" + instructorBoardDto.getPostSn();
@@ -235,18 +231,18 @@ public class InstructorBoardController {
     }
 
     // Toast UI Editor 허용 태그 목록 — 매 호출마다 재생성하지 않도록 static 상수로 선언
-    private static final Safelist TOAST_SAFELIST = Safelist.relaxed()
-            .addTags("del", "s", "hr", "input")          // relaxed 기본 목록에 없는 태그
-            .addAttributes("input", "type", "checked", "disabled") // 체크리스트
-            .addAttributes("span", "style")              // color-syntax 인라인 색상
-            .addAttributes("p",  "style")
-            .addAttributes("h1", "style").addAttributes("h2", "style")
-            .addAttributes("h3", "style").addAttributes("h4", "style")
-            .addAttributes("h5", "style").addAttributes("h6", "style");
+    private static final Safelist TOAST_SAFELIST = Safelist.relaxed().preserveRelativeLinks(true)
+            .addTags("del", "s", "hr", "input")
+            .addAttributes("input", "type", "checked", "disabled").addAttributes("span", "style")
+            .addAttributes("p", "style").addAttributes("h1", "style").addAttributes("h2", "style")
+            .addAttributes("h3", "style").addAttributes("h4", "style").addAttributes("h5", "style")
+            .addAttributes("h6", "style").addAttributes("img", "src")
+            .addProtocols("img", "src", "http", "https", "data");
 
     // XSS 방어: 허용 태그만 남기고 나머지 제거
     private String sanitize(String html) {
-        if (html == null) return null;
+        if (html == null)
+            return null;
         return Jsoup.clean(html, TOAST_SAFELIST);
     }
 

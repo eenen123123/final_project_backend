@@ -17,7 +17,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const tab = params.get("tab");
   if (tab) {
     const panel = document.getElementById(tab);
-    const idx = ["tab-faq", "tab-notice", "tab-qna"].indexOf(tab);
+    const idx = ["tab-faq", "tab-notice", "tab-qna", "tab-dataroom"].indexOf(
+      tab,
+    );
     const btn = document.querySelectorAll(".cs-tab-btn")[idx];
     if (panel && btn) {
       document
@@ -81,13 +83,32 @@ function filterQna() {
   });
 }
 
+// ── 자료실 필터 ───────────────────────────────────────────
+function filterDataRoom() {
+  const ctg = document.getElementById("dataroom-filter-ctg").value;
+  const accs = document.getElementById("dataroom-filter-accs").value;
+  const query = document
+    .getElementById("dataroom-search")
+    .value.trim()
+    .toLowerCase();
+  document
+    .querySelectorAll("#dataroom-table-body tr[data-ctg]")
+    .forEach((row) => {
+      const matchCtg = !ctg || row.dataset.ctg === ctg;
+      const matchAccs = !accs || row.dataset.accs === accs;
+      const matchTitle =
+        !query || row.dataset.title.toLowerCase().includes(query);
+      row.style.display = matchCtg && matchAccs && matchTitle ? "" : "none";
+    });
+}
+
 // ── FAQ 모달 ──────────────────────────────────────────────
 function openFaqModal(tr) {
   const d = tr.dataset;
   document.getElementById("modal-ctgnm").textContent = d.ctgnm;
   document.getElementById("modal-subctgnm").textContent = d.subctgnm;
   document.getElementById("modal-title").textContent = d.title;
-  document.getElementById("modal-content").textContent = d.postcn;
+  document.getElementById("modal-content").innerHTML = d.postcn || "";
   document.getElementById("modal-writer").textContent = d.wrtruserid;
   document.getElementById("modal-regdt").textContent = d.regdt;
 
@@ -115,7 +136,7 @@ function openNoticeModal(tr) {
   const d = tr.dataset;
   document.getElementById("notice-modal-typenm").textContent = d.typenm;
   document.getElementById("notice-modal-title").textContent = d.title;
-  document.getElementById("notice-modal-content").textContent = d.postcn;
+  document.getElementById("notice-modal-content").innerHTML = d.postcn || "";
   document.getElementById("notice-modal-writer").textContent = d.wrtruserid;
   document.getElementById("notice-modal-regdt").textContent = d.regdt;
 
@@ -137,6 +158,7 @@ function closeNoticeModal() {
   modal.classList.add("hidden");
   modal.classList.remove("flex");
 }
+
 // ── QnA 모달 ──────────────────────────────────────────────
 function openQnaModal(tr) {
   const d = tr.dataset;
@@ -204,6 +226,53 @@ function openQnaModal(tr) {
 
 function closeQnaModal() {
   const modal = document.getElementById("qna-modal");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
+
+// ── 자료실 모달 ───────────────────────────────────────────
+function openDataRoomModal(tr) {
+  const d = tr.dataset;
+  document.getElementById("dataroom-modal-ctgnm").textContent = d.ctgnm;
+  document.getElementById("dataroom-modal-title").textContent = d.title;
+  document.getElementById("dataroom-modal-content").innerHTML = d.postcn || "";
+  document.getElementById("dataroom-modal-writer").textContent = d.wrtruserid;
+  document.getElementById("dataroom-modal-regdt").textContent = d.regdt;
+
+  // 접근권한 배지 색상 처리
+  const accsnm = document.getElementById("dataroom-modal-accsnm");
+  accsnm.textContent = d.accsnm;
+  if (d.accs === "02") {
+    accsnm.className =
+      "text-xs bg-amber-50 text-amber-600 font-semibold px-2 py-0.5 rounded-full";
+  } else {
+    accsnm.className =
+      "text-xs bg-emerald-50 text-emerald-600 font-semibold px-2 py-0.5 rounded-full";
+  }
+
+  // 첨부파일 영역
+  const fileArea = document.getElementById("dataroom-modal-file-area");
+  if (d.orgnfilenm) {
+    fileArea.classList.remove("hidden");
+    document.getElementById("dataroom-modal-filenm").textContent = d.orgnfilenm;
+    document.getElementById("dataroom-modal-fileurl").href = d.savepath;
+  } else {
+    fileArea.classList.add("hidden");
+  }
+
+  // 수정/삭제 버튼
+  document.getElementById("dataroom-modal-edit-btn").href =
+    "/admin/board/dataroom/edit/" + d.postsn;
+  document.getElementById("dataroom-modal-delete-form").action =
+    "/admin/board/dataroom/delete/" + d.postsn;
+
+  const modal = document.getElementById("dataroom-modal");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+function closeDataRoomModal() {
+  const modal = document.getElementById("dataroom-modal");
   modal.classList.add("hidden");
   modal.classList.remove("flex");
 }
