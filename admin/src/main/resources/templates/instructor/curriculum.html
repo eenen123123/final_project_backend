@@ -50,13 +50,13 @@
                 <span
                     id="masterCountBadge"
                     class="text-xs font-semibold bg-sky-100 text-sky-700 rounded-full px-2 py-0.5"
-                    th:text="${#lists.size(masterList)}"
+                    th:text="${#lists.size(curriculumList)}"
                     >0</span
                 >
             </div>
             <ul class="flex-1 overflow-y-auto no-scrollbar p-2 space-y-1">
                 <li
-                    th:if="${#lists.isEmpty(masterList)}"
+                    th:if="${#lists.isEmpty(curriculumList)}"
                     class="flex flex-col items-center justify-center py-12 text-center"
                 >
                     <div
@@ -72,9 +72,9 @@
                     </p>
                 </li>
                 <li
-                    th:each="master : ${masterList}"
-                    th:id="'master-item-' + ${master.curriculumId}"
-                    th:attr="onclick=|loadCurriculumDetail(${master.curriculumId}, '${#strings.escapeJavaScript(master.title)}')|"
+                    th:each="curriculum : ${curriculumList}"
+                    th:id="'curriculum-item-' + ${curriculum.curriculumId}"
+                    th:attr="onclick=|loadCurriculumDetail(${curriculum.curriculumId}, '${#strings.escapeJavaScript(curriculum.title)}')|"
                     class="curriculum-list-item group p-3 rounded-lg border border-transparent hover:bg-sky-50 hover:border-sky-200 cursor-pointer transition-all duration-150"
                 >
                     <div class="flex items-start gap-2">
@@ -84,7 +84,7 @@
                         <div class="overflow-hidden">
                             <div
                                 class="font-semibold text-slate-700 text-sm truncate group-hover:text-sky-700 transition-colors"
-                                th:text="${master.title}"
+                                th:text="${curriculum.title}"
                             >
                                 과정 타이틀
                             </div>
@@ -95,7 +95,7 @@
                                     class="fa-regular fa-calendar text-[10px]"
                                 ></i>
                                 <span
-                                    th:text="${#strings.substring(master.regDt, 0, 10)}"
+                                    th:text="${#strings.substring(curriculum.regDt, 0, 10)}"
                                     >2026-05-26</span
                                 >
                             </div>
