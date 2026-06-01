@@ -53,25 +53,25 @@
 
     <insert id="insertEmployee" parameterType="kr.or.ddit.finalProject.dto.member.MemberDto">
         INSERT INTO MEMBER (
-            USER_ID, USER_ENPSWD, USER_NAME, USER_ENRRNO, USER_GNDR_CD, USER_BRDT, 
-            JOIN_DT, USER_TELNO, USER_EMAIL_ADDR, USER_ZIP, USER_ADDR, USER_DADDR, 
+            USER_ID, USER_ENPSWD, USER_NAME, USER_ENRRNO, USER_GNDR_CD, USER_BRDT,
+            JOIN_DT, USER_TELNO, USER_EMAIL_ADDR, USER_ZIP, USER_ADDR, USER_DADDR,
             USER_PROFILE, REG_DATE, MOD_DATE, ENABLE, USER_ROLE
         ) VALUES (
-            #{userId, jdbcType=VARCHAR}, 
-            #{userEnpswd, jdbcType=VARCHAR}, 
-            #{userName, jdbcType=VARCHAR}, 
-            #{userEnrrno, jdbcType=VARCHAR}, 
-            #{userGndrCd, jdbcType=CHAR}, 
-            #{userBrdt, jdbcType=DATE}, 
-            CURRENT_TIMESTAMP, 
-            #{userTelno, jdbcType=VARCHAR}, 
-            #{userEmailAddr, jdbcType=VARCHAR}, 
-            #{userZip, jdbcType=VARCHAR}, 
-            #{userAddr, jdbcType=VARCHAR}, 
-            #{userDaddr, jdbcType=VARCHAR}, 
-            #{userProfile, jdbcType=VARCHAR}, CURRENT_TIMESTAMP, 
-            CURRENT_TIMESTAMP, 
-            '1', 
+            #{userId, jdbcType=VARCHAR},
+            #{userEnpswd, jdbcType=VARCHAR},
+            #{userName, jdbcType=VARCHAR},
+            #{userEnrrno, jdbcType=VARCHAR},
+            #{userGndrCd, jdbcType=CHAR},
+            #{userBrdt, jdbcType=DATE},
+            CURRENT_TIMESTAMP,
+            #{userTelno, jdbcType=VARCHAR},
+            #{userEmailAddr, jdbcType=VARCHAR},
+            #{userZip, jdbcType=VARCHAR},
+            #{userAddr, jdbcType=VARCHAR},
+            #{userDaddr, jdbcType=VARCHAR},
+            #{userProfile, jdbcType=VARCHAR}, CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP,
+            'Y',
             #{userRole, jdbcType=VARCHAR}
         )
     </insert>
@@ -122,11 +122,11 @@
         INSERT INTO EMPLOYEE_SALARY (
             USER_ID, BASE_SALARY, APPLY_YMD, USE_YN, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
         ) VALUES (
-            #{userId, jdbcType=VARCHAR}, 
-            #{baseSalary, jdbcType=NUMERIC}, #{applyYmd, jdbcType=DATE},     #{useYn, jdbcType=CHAR}, 
-            #{rgtrId, jdbcType=VARCHAR}, 
-            #{lastMdfrId, jdbcType=VARCHAR}, 
-            SYSTIMESTAMP, 
+            #{userId, jdbcType=VARCHAR},
+            #{baseSalary, jdbcType=NUMERIC}, #{applyYmd, jdbcType=DATE},     #{useYn, jdbcType=CHAR},
+            #{rgtrId, jdbcType=VARCHAR},
+            #{lastMdfrId, jdbcType=VARCHAR},
+            SYSTIMESTAMP,
             SYSTIMESTAMP
         )
     </insert>
@@ -200,8 +200,92 @@
         SELECT COUNT(*) FROM MEMBER WHERE USER_ID = #{userId}
     </select>
 
-    <!-- selectMaxUserId --> 
+    <!-- selectMaxUserId -->
     <select id="selectMaxUserId" parameterType="String" resultType="String">
         SELECT MAX(USER_ID) FROM MEMBER WHERE USER_ID LIKE CONCAT(#{baseId}, '%')
     </select>
+
+    <!-- updateMember -->
+    <update id="updateMember" parameterType="kr.or.ddit.finalProject.dto.member.MemberDto">
+        UPDATE MEMBER SET
+            USER_NAME       = #{userName, jdbcType=VARCHAR},
+            USER_GNDR_CD    = #{userGndrCd, jdbcType=CHAR},
+            USER_BRDT       = #{userBrdt, jdbcType=DATE},
+            USER_TELNO      = #{userTelno, jdbcType=VARCHAR},
+            USER_EMAIL_ADDR = #{userEmailAddr, jdbcType=VARCHAR},
+            USER_ZIP        = #{userZip, jdbcType=VARCHAR},
+            USER_ADDR       = #{userAddr, jdbcType=VARCHAR},
+            USER_DADDR      = #{userDaddr, jdbcType=VARCHAR},
+            USER_PROFILE    = #{userProfile, jdbcType=VARCHAR},
+            MOD_DATE        = CURRENT_TIMESTAMP
+        WHERE USER_ID = #{userId, jdbcType=VARCHAR}
+    </update>
+
+    <!-- updateEmployeeInfo -->
+    <update id="updateEmployeeInfo" parameterType="kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto">
+        UPDATE EMPLOYEE_INFO SET
+            DEPT_CD         = #{deptCd, jdbcType=CHAR},
+            JBGR_CD         = #{jbgrCd, jdbcType=CHAR},
+            JOIN_YMD        = #{joinYmd, jdbcType=DATE},
+            EMPL_STAT_CD    = #{emplStatCd, jdbcType=CHAR},
+            EMPL_TYPE_CD    = #{emplTypeCd, jdbcType=CHAR},
+            CTRCT_END_YMD   = <choose>
+                                <when test="ctrctEndYmd != null and ctrctEndYmd != ''">TO_DATE(SUBSTR(#{ctrctEndYmd, jdbcType=VARCHAR}, 1, 10), 'YYYY-MM-DD')</when>
+                                <otherwise>NULL</otherwise>
+                              </choose>,
+            CHRG_DUTY_CN    = #{chrgDutyCn, jdbcType=VARCHAR},
+            LAST_MDFR_ID    = #{lastMdfrId, jdbcType=VARCHAR},
+            MDFCN_DT        = SYSTIMESTAMP
+        WHERE USER_ID = #{userId, jdbcType=VARCHAR}
+    </update>
+
+    <!-- selectCurrentSalary -->
+    <select id="selectCurrentSalary" parameterType="String" resultType="kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto">
+        SELECT BASE_SALARY
+        FROM EMPLOYEE_SALARY
+        WHERE USER_ID = #{userId}
+          AND USE_YN = 'Y'
+    </select>
+    
+
+    <!-- deactivateCurrentSalary: 현재 적용 급여를 이력으로 전환 -->
+    <update id="deactivateCurrentSalary" parameterType="String">
+        UPDATE EMPLOYEE_SALARY SET
+            USE_YN   = 'N',
+            MDFCN_DT = SYSTIMESTAMP
+        WHERE USER_ID = #{userId, jdbcType=VARCHAR}
+          AND USE_YN = 'Y'
+    </update>
+
+    <!-- 퇴사: MEMBER 계정 비활성화 --> 
+    <update id="updateMemberDisabled" parameterType="String">
+        UPDATE MEMBER SET
+            ENABLE   = 'N',
+            MOD_DATE = SYSTIMESTAMP
+        WHERE USER_ID = #{userId}
+          AND ENABLE = 'Y'
+    </update>
+
+    <!-- 퇴사: EMPLOYEE_INFO 상태, 퇴사일, 퇴사사유 변경 --> 
+    <update id="updateEmployeeRetired">
+        UPDATE EMPLOYEE_INFO SET
+            EMPL_STAT_CD = '03',
+            RETMT_YMD    = SYSTIMESTAMP,
+            RETMT_RSN    = #{retmtRsn},
+            LAST_MDFR_ID = #{loginUserId},
+            MDFCN_DT     = SYSTIMESTAMP       
+        WHERE USER_ID = #{userId}
+          AND NVL(EMPL_STAT_CD, '00') != '03' 
+    </update>
+
+    <!-- 퇴사: EMPLOYEE_SALARY 현재 급여 비활성화 --> 
+    <update id="updateEmployeeSalaryInactive">
+        UPDATE EMPLOYEE_SALARY SET
+            USE_YN       = 'N',
+            LAST_MDFR_ID = #{loginUserId},
+            MDFCN_DT     = SYSTIMESTAMP
+        WHERE USER_ID = #{userId}
+          AND USE_YN = 'Y'                
+    </update>
+    
 </mapper>
