@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.exception.ErrorCode;
+import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.exception.user.UserException;
 import kr.or.ddit.finalProject.mapper.EmployeeMapper;
 import kr.or.ddit.finalProject.mapper.MemberMapper;
@@ -30,9 +31,14 @@ public class AdminUserDetailsService implements UserDetailsService {
     private EmployeeMapper employeeMapper;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String username)  {
         MemberDto user = memberMapper.findByUserId(username)
                 .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
+        if (user.getEnable().equals("N")) {
+            // TODO: 여기서 발생한 예외를 AdminExceptionHandler에서 잡지 못하고
+            // w.a.UsernamePasswordAuthenticationFilter 여기서 새로운 예외가 던져짐
+            throw new FinalProjectException(ErrorCode.ACCOUNT_UNUSABLE);
+        }
         EmployeeInfoDto employeeInfo = employeeMapper.selectEmployeeInfoByUserId(username);
 
         List<String> roles = new ArrayList<>();

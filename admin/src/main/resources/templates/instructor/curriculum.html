@@ -1,216 +1,173 @@
 <div class="curriculum-container">
-    <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css"
-    />
-    <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css"
-    />
     <link rel="stylesheet" th:href="@{/css/instructor/curriculum.css}" />
-    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
 
     <!-- 페이지 헤더 -->
     <div class="flex justify-between items-start mb-6">
         <div>
             <div class="flex items-center gap-2 mb-1">
                 <div class="w-1 h-7 rounded-full bg-sky-500"></div>
-                <h1 class="text-2xl font-bold text-slate-800">
-                    나의 커리큘럼 관리
-                </h1>
+                <h1 class="text-2xl font-bold text-slate-800">나의 커리큘럼 관리</h1>
             </div>
-            <p class="text-sm text-slate-500 ml-3">
-                강사 본인이 작성한 커리큘럼 표를 조회하고 유연하게 편집할 수
-                있습니다.
-            </p>
+            <p class="text-sm text-slate-500 ml-3">커리큘럼 &gt; 강좌 &gt; 강의 순으로 구성을 관리할 수 있습니다.</p>
         </div>
-        <button
-            type="button"
-            onclick="createNewCurriculum()"
-            class="hm-btn-primary hm-btn-sky shrink-0"
-        >
-            <i class="fa-solid fa-plus"></i> 새 커리큘럼 작성
-        </button>
     </div>
 
-    <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
-        <!-- 좌측: 작성 목록 패널 -->
-        <div
-            class="xl:col-span-1 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden"
-        >
-            <div
-                class="px-4 py-3 border-b border-slate-100 bg-slate-50 flex items-center justify-between"
-            >
-                <h2
-                    class="text-sm font-bold text-slate-600 uppercase tracking-wide flex items-center gap-1.5"
-                >
-                    <i class="fa-solid fa-layer-group text-sky-500"></i> 작성
-                    목록
-                </h2>
-                <span
-                    id="masterCountBadge"
-                    class="text-xs font-semibold bg-sky-100 text-sky-700 rounded-full px-2 py-0.5"
-                    th:text="${#lists.size(masterList)}"
-                    >0</span
-                >
+    <!-- 3-panel layout -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 curriculum-panels">
+
+        <!-- ── Panel 1: 커리큘럼 ───────────────────────────── -->
+        <div class="panel-card flex flex-col overflow-hidden">
+            <div class="panel-header">
+                <div class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-layer-group text-sky-500 text-xs"></i>
+                    <span>커리큘럼</span>
+                    <span id="curriculum-badge" class="panel-badge"
+                          th:text="${#lists.size(curriculumList)}">0</span>
+                </div>
+                <button onclick="showCurriculumForm()" class="btn-panel-add" title="새 커리큘럼 추가">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
             </div>
-            <ul class="flex-1 overflow-y-auto no-scrollbar p-2 space-y-1">
-                <li
-                    th:if="${#lists.isEmpty(masterList)}"
-                    class="flex flex-col items-center justify-center py-12 text-center"
-                >
-                    <div
-                        class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3"
-                    >
-                        <i class="fa-solid fa-inbox text-slate-300 text-xl"></i>
-                    </div>
-                    <p class="text-sm text-slate-400 font-medium">
-                        등록된 커리큘럼이 없습니다.
-                    </p>
-                    <p class="text-xs text-slate-300 mt-1">
-                        새 커리큘럼을 작성해보세요.
-                    </p>
+
+            <ul id="curriculum-list" class="flex-1 overflow-y-auto no-scrollbar p-2 space-y-1">
+                <li th:if="${#lists.isEmpty(curriculumList)}" class="panel-empty-state">
+                    <i class="fa-solid fa-inbox text-slate-300 text-2xl mb-2"></i>
+                    <p>등록된 커리큘럼이 없습니다.</p>
                 </li>
-                <li
-                    th:each="master : ${masterList}"
-                    th:id="'master-item-' + ${master.curriculumId}"
-                    th:attr="onclick=|loadCurriculumDetail(${master.curriculumId}, '${#strings.escapeJavaScript(master.title)}')|"
-                    class="curriculum-list-item group p-3 rounded-lg border border-transparent hover:bg-sky-50 hover:border-sky-200 cursor-pointer transition-all duration-150"
-                >
-                    <div class="flex items-start gap-2">
-                        <div
-                            class="mt-0.5 w-2 h-2 rounded-full bg-sky-400 shrink-0 group-hover:bg-sky-600 transition-colors"
-                        ></div>
-                        <div class="overflow-hidden">
-                            <div
-                                class="font-semibold text-slate-700 text-sm truncate group-hover:text-sky-700 transition-colors"
-                                th:text="${master.title}"
-                            >
-                                과정 타이틀
-                            </div>
-                            <div
-                                class="text-xs text-slate-400 mt-0.5 flex items-center gap-1"
-                            >
-                                <i
-                                    class="fa-regular fa-calendar text-[10px]"
-                                ></i>
-                                <span
-                                    th:text="${#strings.substring(master.regDt, 0, 10)}"
-                                    >2026-05-26</span
-                                >
-                            </div>
-                        </div>
+                <li th:each="curriculum : ${curriculumList}"
+                    th:id="'curriculum-item-' + ${curriculum.curriculumId}"
+                    th:data-title="${curriculum.title}"
+                    class="curriculum-item panel-item"
+                    th:onclick="|selectCurriculum(${curriculum.curriculumId})|">
+                    <div class="min-w-0 flex-1">
+                        <div class="item-title" th:text="${curriculum.title}">커리큘럼 제목</div>
+                        <div class="item-meta" th:text="${#strings.substring(curriculum.regDt, 0, 10)}">날짜</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-icon"
+                                th:onclick="|editCurriculum(event, ${curriculum.curriculumId})|"
+                                title="수정">
+                            <i class="fa-solid fa-pen text-[10px]"></i>
+                        </button>
+                        <button class="btn-icon btn-icon-danger"
+                                th:onclick="|deleteCurriculum(event, ${curriculum.curriculumId})|"
+                                title="삭제">
+                            <i class="fa-solid fa-trash text-[10px]"></i>
+                        </button>
                     </div>
                 </li>
             </ul>
-        </div>
 
-        <!-- 우측: 편집 패널 -->
-        <div
-            class="xl:col-span-3 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden"
-        >
-            <!-- 툴바 영역 -->
-            <div class="px-5 py-4 border-b border-slate-100 bg-slate-50">
-                <label
-                    class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5"
-                    >커리큘럼 타이틀</label
-                >
-                <div class="flex flex-wrap items-center gap-2">
-                    <input
-                        type="text"
-                        id="curriculumTitle"
-                        placeholder="과정 제목을 입력하세요 (예: Java 백엔드 개발자 양성과정)"
-                        class="hm-input flex-1 min-w-[240px]"
-                        disabled
-                    />
-                    <div class="flex items-center gap-2 shrink-0">
-                        <button
-                            type="button"
-                            onclick="onAddRow()"
-                            id="btnDetailAction"
-                            class="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-700 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                            disabled
-                        >
-                            <i class="fa-solid fa-plus"></i> 행 추가
-                        </button>
-                        <button
-                            type="button"
-                            onclick="onRemoveSelectedRow()"
-                            id="btnDetailActionDel"
-                            class="inline-flex items-center gap-1.5 px-3 py-2 bg-rose-500 text-white rounded-lg text-xs font-semibold hover:bg-rose-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                            disabled
-                        >
-                            <i class="fa-solid fa-trash"></i> 선택 삭제
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- AG Grid 영역 -->
-            <div class="px-5 pt-4 pb-2">
-                <!-- 초기 안내 (그리드 숨김 상태일 때 표시) -->
-                <div
-                    id="gridPlaceholder"
-                    class="rounded-xl bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center"
-                    style="height: 420px"
-                >
-                    <div
-                        class="w-16 h-16 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mb-4 shadow-sm"
-                    >
-                        <i
-                            class="fa-solid fa-table-list text-2xl text-sky-400"
-                        ></i>
-                    </div>
-                    <p class="text-sm font-semibold text-slate-600">
-                        커리큘럼을 선택하거나 새로 작성하세요
-                    </p>
-                    <p class="text-xs text-slate-400 mt-1.5">
-                        좌측 목록에서 항목을 클릭하거나, 상단의 '새 커리큘럼
-                        작성' 버튼을 누르세요.
-                    </p>
-                </div>
-                <!-- AG Grid (초기에는 숨김) -->
-                <div
-                    id="myGrid"
-                    class="ag-theme-alpine w-full"
-                    style="height: 420px; display: none"
-                ></div>
-            </div>
-
-            <!-- 하단 액션 버튼 -->
-            <div
-                class="flex justify-between items-center gap-2 px-5 py-4 mt-2 border-t border-slate-100"
-            >
-                <div
-                    id="editStatusBadge"
-                    style="display: none"
-                    class="text-xs font-medium text-sky-600 bg-sky-50 border border-sky-200 rounded-full px-3 py-1 flex items-center gap-1.5"
-                >
-                    <i class="fa-solid fa-pen-to-square text-[10px]"></i>
-                    <span id="editStatusText">편집 중</span>
-                </div>
-                <div class="flex gap-2 ml-auto">
-                    <button
-                        type="button"
-                        id="btnDeleteMain"
-                        onclick="deleteCurriculum()"
-                        style="display: none"
-                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-red-50 text-red-600 border border-red-200 font-semibold rounded-lg text-sm hover:bg-red-100 transition-colors"
-                    >
-                        <i class="fa-solid fa-trash-can"></i> 전체 삭제
-                    </button>
-                    <button
-                        type="button"
-                        id="btnSaveMain"
-                        onclick="saveCurriculumData()"
-                        style="display: none"
-                        class="hm-btn-primary hm-btn-sky"
-                    >
-                        <i class="fa-solid fa-floppy-disk"></i> 데이터 저장
-                    </button>
+            <!-- Curriculum add/edit form -->
+            <div id="curriculum-form" class="panel-form hidden">
+                <input type="text" id="curriculum-title-input"
+                       class="hm-input w-full text-sm"
+                       placeholder="커리큘럼 제목을 입력하세요" />
+                <div class="flex gap-2 mt-2">
+                    <button onclick="submitCurriculumForm()" class="btn-form-save flex-1">저장</button>
+                    <button onclick="hideCurriculumForm()" class="btn-form-cancel">취소</button>
                 </div>
             </div>
         </div>
+
+        <!-- ── Panel 2: 강좌 ──────────────────────────────── -->
+        <div class="panel-card flex flex-col overflow-hidden">
+            <div class="panel-header">
+                <div class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-book-open text-emerald-500 text-xs"></i>
+                    <span>강좌</span>
+                    <span id="course-badge" class="panel-badge hidden">0</span>
+                </div>
+                <button id="btn-add-course" onclick="showCourseForm()" class="btn-panel-add" title="새 강좌 추가" disabled>
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+            </div>
+
+            <div id="course-placeholder" class="panel-placeholder">
+                <i class="fa-solid fa-arrow-left text-slate-200 text-3xl mb-3"></i>
+                <p class="font-medium">커리큘럼을 선택하세요</p>
+            </div>
+
+            <ul id="course-list" class="flex-1 overflow-y-auto no-scrollbar p-2 space-y-1 hidden"></ul>
+
+            <!-- Course add/edit form -->
+            <div id="course-form" class="panel-form hidden">
+                <input type="text" id="course-nm-input"
+                       class="hm-input w-full text-sm"
+                       placeholder="강좌명 *" />
+                <textarea id="course-expln-input"
+                          class="hm-input w-full text-sm mt-1.5"
+                          rows="2"
+                          placeholder="강좌 설명 (선택)"></textarea>
+                <select id="course-opnn-input" class="hm-input w-full text-sm mt-1.5">
+                    <option value="Y">공개</option>
+                    <option value="N">비공개</option>
+                </select>
+                <div class="flex gap-2 mt-2">
+                    <button onclick="submitCourseForm()" class="btn-form-save flex-1">저장</button>
+                    <button onclick="hideCourseForm()" class="btn-form-cancel">취소</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Panel 3: 강의 ──────────────────────────────── -->
+        <div class="panel-card flex flex-col overflow-hidden">
+            <div class="panel-header">
+                <div class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-play-circle text-violet-500 text-xs"></i>
+                    <span>강의</span>
+                    <span id="lecture-badge" class="panel-badge hidden">0</span>
+                </div>
+                <button id="btn-add-lecture" onclick="showLectureForm()" class="btn-panel-add" title="새 강의 추가" disabled>
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+            </div>
+
+            <div id="lecture-placeholder" class="panel-placeholder">
+                <i class="fa-solid fa-arrow-left text-slate-200 text-3xl mb-3"></i>
+                <p class="font-medium">강좌를 선택하세요</p>
+            </div>
+
+            <ul id="lecture-list" class="flex-1 overflow-y-auto no-scrollbar p-2 space-y-1 hidden"></ul>
+
+            <!-- Lecture add/edit form -->
+            <div id="lecture-form" class="panel-form hidden">
+                <input type="text" id="lecture-nm-input"
+                       class="hm-input w-full text-sm"
+                       placeholder="강의명 *" />
+                <div class="grid grid-cols-2 gap-1.5 mt-1.5">
+                    <select id="lecture-type-input" class="hm-input text-sm">
+                        <option value="">유형 선택</option>
+                        <option value="VIDEO">영상</option>
+                        <option value="LIVE">라이브</option>
+                        <option value="DOC">자료</option>
+                        <option value="QUIZ">퀴즈</option>
+                    </select>
+                    <input type="number" id="lecture-duration-input"
+                           class="hm-input text-sm"
+                           placeholder="시간(분)" min="1" />
+                </div>
+                <textarea id="lecture-expln-input"
+                          class="hm-input w-full text-sm mt-1.5"
+                          rows="2"
+                          placeholder="강의 설명 (선택)"></textarea>
+                <div class="grid grid-cols-2 gap-1.5 mt-1.5">
+                    <select id="lecture-opnn-input" class="hm-input text-sm">
+                        <option value="Y">공개</option>
+                        <option value="N">비공개</option>
+                    </select>
+                    <select id="lecture-lock-input" class="hm-input text-sm">
+                        <option value="N">잠금 해제</option>
+                        <option value="Y">잠금</option>
+                    </select>
+                </div>
+                <div class="flex gap-2 mt-2">
+                    <button onclick="submitLectureForm()" class="btn-form-save flex-1">저장</button>
+                    <button onclick="hideLectureForm()" class="btn-form-cancel">취소</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script th:src="@{/js/instructor/curriculum.js}" defer></script>

@@ -402,18 +402,11 @@ button {
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
 }
 
-.ts-wrapper.single.hm-input-sky.focus .ts-control::after {
-  border-color: #0ea5e9 transparent transparent transparent;
-}
-.ts-wrapper.single.hm-input-emerald.focus .ts-control::after {
-  border-color: #10b981 transparent transparent transparent;
-}
-.ts-wrapper.single.hm-input-orange.focus .ts-control::after {
-  border-color: #f97316 transparent transparent transparent;
-}
-.ts-wrapper.single.hm-input-blue.focus .ts-control::after {
-  border-color: #3b82f6 transparent transparent transparent;
-}
+.ts-wrapper.single.hm-input-sky.focus     .ts-control::after { border-color: #0ea5e9 transparent transparent transparent; }
+.ts-wrapper.single.hm-input-emerald.focus .ts-control::after { border-color: #10b981 transparent transparent transparent; }
+.ts-wrapper.single.hm-input-orange.focus  .ts-control::after { border-color: #f97316 transparent transparent transparent; }
+.ts-wrapper.single.hm-input-blue.focus    .ts-control::after { border-color: #3b82f6 transparent transparent transparent; }
+.ts-wrapper.single.hm-input-danger.focus  .ts-control::after { border-color: #ef4444 transparent transparent transparent; }
 
 .ts-wrapper.hm-input-sky .ts-dropdown .option:hover,
 .ts-wrapper.hm-input-sky .ts-dropdown .option.active {

@@ -7,40 +7,62 @@
 
   <resultMap id="courseMap" type="kr.or.ddit.finalProject.dto.course.CourseDto">
     <id property="courseSn" column="COURSE_SN" />
-    <result property="curriculumId" column="CURRICULUM_ID" />
-    <result property="subjId" column="SUBJ_ID" />
-    <result property="subjClId" column="SUBJ_CL_ID" />
-    <result property="instrUserId" column="INSTR_USER_ID" />
-    <result property="courseNm" column="COURSE_NM" />
-    <result property="courseExplnCn" column="COURSE_EXPLN_CN" />
-    <result property="thmbImg" column="THMB_IMG" />
-    <result property="totLrnTimeCnt" column="TOT_LRN_TIME_CNT" />
-    <result property="opnnYn" column="OPNN_YN" />
-    <result property="atchFileId" column="ATCH_FILE_ID" />
-    <result property="prodMthdCd" column="PROD_MTHD_CD" />
-    <result property="coursePrice" column="COURSE_PRICE" />
-    <result property="rgtrId" column="RGTR_ID" />
-    <result property="lastMdfrId" column="LAST_MDFR_ID" />
-    <result property="regDt" column="REG_DT" />
-    <result property="mdfcnDt" column="MDFCN_DT" />
-    <result property="curriculumTitle" column="CURRICULUM_TITLE" />
-    <result property="classCount" column="CLASS_COUNT" />
-    <result property="firstClassSn" column="FIRST_CLASS_SN" />
+    <result property="curriculumId"   column="CURRICULUM_ID" />
+    <result property="subjId"         column="SUBJ_ID" />
+    <result property="subjClId"       column="SUBJ_CL_ID" />
+    <result property="instrUserId"    column="INSTR_USER_ID" />
+    <result property="courseNm"       column="COURSE_NM" />
+    <result property="courseExplnCn"  column="COURSE_EXPLN_CN" />
+    <result property="thmbImg"        column="THMB_IMG" />
+    <result property="totLrnTimeCnt"  column="TOT_LRN_TIME_CNT" />
+    <result property="opnnYn"         column="OPNN_YN" />
+    <result property="atchFileId"     column="ATCH_FILE_ID" />
+    <result property="prodMthdCd"     column="PROD_MTHD_CD" />
+    <result property="coursePrice"    column="COURSE_PRICE" />
+    <result property="sortOrd"        column="SORT_ORD" />
+    <result property="prereqCourseSn" column="PREREQ_COURSE_SN" />
+    <result property="rgtrId"         column="RGTR_ID" />
+    <result property="lastMdfrId"     column="LAST_MDFR_ID" />
+    <result property="regDt"          column="REG_DT" />
+    <result property="mdfcnDt"        column="MDFCN_DT" />
   </resultMap>
 
-  <select id="selectCourseListByInstructor" resultMap="courseMap">
+  <resultMap id="courseWithTitleMap" type="kr.or.ddit.finalProject.dto.course.CourseDto" extends="courseMap">
+    <result property="curriculumTitle" column="CURRICULUM_TITLE" />
+  </resultMap>
+
+  <select id="selectCoursesByInstructor" resultMap="courseWithTitleMap">
     SELECT
-      C.COURSE_SN, C.CURRICULUM_ID, C.SUBJ_ID, C.SUBJ_CL_ID,
-      C.INSTR_USER_ID, C.COURSE_NM, C.COURSE_EXPLN_CN, C.THMB_IMG,
-      C.TOT_LRN_TIME_CNT, C.OPNN_YN, C.ATCH_FILE_ID, C.PROD_MTHD_CD,
-      C.COURSE_PRICE, C.RGTR_ID, C.LAST_MDFR_ID, C.REG_DT, C.MDFCN_DT,
-      CM.TITLE AS CURRICULUM_TITLE,
-      (SELECT COUNT(*) FROM CLASSROOM CL WHERE CL.COURSE_SN = C.COURSE_SN) AS CLASS_COUNT,
-      (SELECT MIN(CLASS_SN) FROM CLASSROOM CL WHERE CL.COURSE_SN = C.COURSE_SN) AS FIRST_CLASS_SN
-    FROM COURSE C
-    LEFT JOIN CURRICULUM_MASTER CM ON C.CURRICULUM_ID = CM.CURRICULUM_ID
-    WHERE C.INSTR_USER_ID = #{instrUserId}
-    ORDER BY C.REG_DT DESC
+      c.COURSE_SN, c.CURRICULUM_ID, c.INSTR_USER_ID, c.COURSE_NM,
+      c.COURSE_EXPLN_CN, c.OPNN_YN, c.SORT_ORD, c.REG_DT,
+      cur.TITLE AS CURRICULUM_TITLE
+    FROM COURSE c
+    LEFT JOIN CURRICULUM cur ON c.CURRICULUM_ID = cur.CURRICULUM_ID
+    WHERE c.INSTR_USER_ID = #{instrUserId}
+    ORDER BY cur.TITLE NULLS LAST, c.SORT_ORD ASC, c.COURSE_SN ASC
+  </select>
+
+  <select id="selectCourseByCurriculumId" resultMap="courseMap">
+    SELECT
+      COURSE_SN, CURRICULUM_ID, SUBJ_ID, SUBJ_CL_ID,
+      INSTR_USER_ID, COURSE_NM, COURSE_EXPLN_CN, THMB_IMG,
+      TOT_LRN_TIME_CNT, OPNN_YN, ATCH_FILE_ID, PROD_MTHD_CD,
+      COURSE_PRICE, SORT_ORD, PREREQ_COURSE_SN,
+      RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
+    FROM COURSE
+    WHERE CURRICULUM_ID = #{curriculumId}
+    ORDER BY SORT_ORD ASC, REG_DT ASC
+  </select>
+
+  <select id="selectCourseBySn" resultMap="courseMap">
+    SELECT
+      COURSE_SN, CURRICULUM_ID, SUBJ_ID, SUBJ_CL_ID,
+      INSTR_USER_ID, COURSE_NM, COURSE_EXPLN_CN, THMB_IMG,
+      TOT_LRN_TIME_CNT, OPNN_YN, ATCH_FILE_ID, PROD_MTHD_CD,
+      COURSE_PRICE, SORT_ORD, PREREQ_COURSE_SN,
+      RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
+    FROM COURSE
+    WHERE COURSE_SN = #{courseSn}
   </select>
 
   <insert id="insertCourse" parameterType="kr.or.ddit.finalProject.dto.course.CourseDto">
@@ -48,6 +70,7 @@
       CURRICULUM_ID, SUBJ_ID, SUBJ_CL_ID, INSTR_USER_ID,
       COURSE_NM, COURSE_EXPLN_CN, THMB_IMG, TOT_LRN_TIME_CNT,
       OPNN_YN, PROD_MTHD_CD, COURSE_PRICE,
+      SORT_ORD, PREREQ_COURSE_SN,
       RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
     ) VALUES (
       #{curriculumId, jdbcType=NUMERIC},
@@ -59,12 +82,40 @@
       #{thmbImg, jdbcType=VARCHAR},
       #{totLrnTimeCnt, jdbcType=VARCHAR},
       NVL(#{opnnYn, jdbcType=CHAR}, 'Y'),
-      #{prodMthdCd, jdbcType=CHAR}, NVL(#{coursePrice,jdbcType=NUMERIC}, 0),
-      #{rgtrId, jdbcType=VARCHAR},
+      #{prodMthdCd, jdbcType=CHAR},
+      NVL(#{coursePrice, jdbcType=NUMERIC}, 0),
+      NVL(#{sortOrd, jdbcType=NUMERIC}, 0),
+      #{prereqCourseSn, jdbcType=NUMERIC},
+      #{rgtrId},
       CURRENT_TIMESTAMP,
-      #{lastMdfrId, jdbcType=VARCHAR},
+      #{lastMdfrId},
       CURRENT_TIMESTAMP
     )
   </insert>
+
+  <update id="updateCourse" parameterType="kr.or.ddit.finalProject.dto.course.CourseDto">
+    UPDATE COURSE
+    SET
+      COURSE_NM       = #{courseNm},
+      COURSE_EXPLN_CN = #{courseExplnCn, jdbcType=VARCHAR},
+      OPNN_YN         = #{opnnYn, jdbcType=CHAR},
+      SORT_ORD        = #{sortOrd, jdbcType=NUMERIC},
+      PREREQ_COURSE_SN = #{prereqCourseSn, jdbcType=NUMERIC},
+      LAST_MDFR_ID    = #{lastMdfrId},
+      MDFCN_DT        = CURRENT_TIMESTAMP
+    WHERE COURSE_SN = #{courseSn}
+  </update>
+
+  <delete id="deleteCourse">
+    DELETE FROM COURSE WHERE COURSE_SN = #{courseSn}
+  </delete>
+
+  <select id="countLectureByCourse" resultType="int">
+    SELECT COUNT(*) FROM LECTURE WHERE COURSE_SN = #{courseSn}
+  </select>
+
+  <update id="updateCourseAtchFileId">
+    UPDATE COURSE SET ATCH_FILE_ID = #{atchFileId} WHERE COURSE_SN = #{courseSn}
+  </update>
 
 </mapper>
