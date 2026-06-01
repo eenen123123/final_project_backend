@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="kr.or.ddit.finalProject.mapper.FileUploadMapper">
+<mapper namespace="kr.or.ddit.finalProject.mapper.FileMapper">
     <!-- FileDto
     private Integer atchFileDtlSn; // 첨부파일 상세 ID PK sequence
     private Integer atchFileId; // 첨부파일 ID
@@ -28,12 +28,23 @@
     <insert id="insertFileInfo" parameterType="kr.or.ddit.finalProject.dto.file.FileDto" useGeneratedKeys="true" keyProperty="atchFileDtlSn" keyColumn="ATCH_FILE_DTL_SN">
         insert into 
             CMMT_ATCH_FILE_DTL
-            (ATCH_FILE_ID, ORGN_FILE_NM, SAVE_PATH_NM, SAVE_FILE_NM, FILE_EXT_NM, FILE_SIZE_CNT, RGTR_ID, DEL_YN, DWNLD_CNT)
+            (ATCH_FILE_ID, FILE_SERVER_ID, ORGN_FILE_NM, SAVE_PATH_NM, SAVE_FILE_NM, FILE_EXT_NM, FILE_SIZE_CNT, RGTR_ID, DEL_YN, DWNLD_CNT)
         values
-            (#{atchFileId}, #{orgnFileNm}, #{savePathNm}, #{saveFileNm}, #{fileExtNm}, #{fileSizeCnt}, #{rgtrId}, #{delYn}, #{dwnldCnt})
+            (#{atchFileId}, #{fileServerId}, #{orgnFileNm}, #{savePathNm}, #{saveFileNm}, #{fileExtNm}, #{fileSizeCnt}, #{rgtrId}, #{delYn}, #{dwnldCnt})
     </insert>
 
 
 
 
+    <!-- findContextByFileId -->
+
+    <select id="findContextByFileId" resultType="kr.or.ddit.finalProject.dto.file.FileDto">
+        select 
+            ctx_type as fileCtxType,
+            ctx_id as fileCtxId
+        from    
+            CMMT_ATCH_FILE_DTL
+        where 
+            file_server_id = #{fileId}
+    </select>
 </mapper>
