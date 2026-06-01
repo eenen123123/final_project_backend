@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Param;
 import kr.or.ddit.finalProject.dto.file.FileDto;
 
 @Mapper
-public interface FileUploadMapper {
+public interface BackupFileUploadMapper {
 
     int insertFileInfo(FileDto fileDto);
 

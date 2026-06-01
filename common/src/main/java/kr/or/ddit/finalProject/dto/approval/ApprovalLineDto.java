@@ -27,7 +27,7 @@ public class ApprovalLineDto implements Serializable {
     private Long aprvlOrdr; // 결재자 순서 (1부터 시작)
     private String aprvrUserId; // MEMBER.USER_ID 참조
     private LocalDateTime aprvlDt; // 결재 처리 시점 (자동갱신)
-    private String aprvlPrgrsCd; // COM_CD 공통코드 참조
+    private ApprovalLineProgressEnum aprvlPrgrsCd; // COM_CD 공통코드 참조
     private String aprvlRsnCn; // 승인·반려 사유 메모
 
     private String approverName; // 결재자 이름 (화면 표시용)
