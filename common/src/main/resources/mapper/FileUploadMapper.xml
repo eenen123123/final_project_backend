@@ -26,14 +26,84 @@
                 .fileSizeCnt(fileResponse.fileSize()).rgtrId(userId).delYn("N").dwnldCnt(0).build();
     -->
     <insert id="insertFileInfo" parameterType="kr.or.ddit.finalProject.dto.file.FileDto" useGeneratedKeys="true" keyProperty="atchFileDtlSn" keyColumn="ATCH_FILE_DTL_SN">
-        insert into 
+        insert into
             CMMT_ATCH_FILE_DTL
             (ATCH_FILE_ID, ORGN_FILE_NM, SAVE_PATH_NM, SAVE_FILE_NM, FILE_EXT_NM, FILE_SIZE_CNT, RGTR_ID, DEL_YN, DWNLD_CNT)
         values
             (#{atchFileId}, #{orgnFileNm}, #{savePathNm}, #{saveFileNm}, #{fileExtNm}, #{fileSizeCnt}, #{rgtrId}, #{delYn}, #{dwnldCnt})
     </insert>
 
+    <!--
+        [강좌 자료 관리 기능 추가로 인해 삽입된 쿼리들입니다]
 
+        배경:
+          CMMT_ATCH_FILE_DTL.ATCH_FILE_ID 컬럼은 CMMT_ATCH_FILE_CL.ATCH_FILE_ID를
+          참조하는 FK(FK_CMMT_ATCH_FILE_CL_TO_CMMT_ATCH_FILE_DTL_1)가 걸려 있습니다.
+          따라서 파일을 CMMT_ATCH_FILE_DTL에 저장하기 전에 CMMT_ATCH_FILE_CL에 부모 행이
+          반드시 존재해야 합니다.
 
+          강좌 자료 관리에서는 강좌(COURSE)마다 파일 그룹을 하나 생성하고,
+          그 그룹 ID를 COURSE.ATCH_FILE_ID에 저장한 뒤, 이후 업로드되는 파일은
+          모두 해당 그룹 ID로 CMMT_ATCH_FILE_DTL에 삽입합니다.
+
+          CMMT_ATCH_FILE_CL.ATCH_FILE_ID는 IDENTITY 컬럼이 아니므로,
+          SEQ_CMMT_ATCH_FILE_CL 시퀀스를 이용해 채번합니다.
+          (DB에서 CREATE SEQUENCE SEQ_CMMT_ATCH_FILE_CL 실행이 선행되어야 합니다.)
+
+        추가된 쿼리 목적:
+          selectNextFileGroupId - 시퀀스에서 다음 그룹 ID를 조회합니다.
+          insertFileGroup       - CMMT_ATCH_FILE_CL에 새 파일 그룹 행을 삽입합니다.
+          selectFilesByGroupId  - 그룹 ID로 해당 강좌의 파일 목록을 조회합니다.
+          softDeleteFile        - 파일을 물리 삭제하지 않고 DEL_YN='Y'로 논리 삭제합니다.
+    -->
+
+    <!-- 강좌 자료 관리: CMMT_ATCH_FILE_CL 신규 그룹 ID 채번 -->
+    <select id="selectNextFileGroupId" resultType="int">
+        SELECT SEQ_CMMT_ATCH_FILE_CL.NEXTVAL FROM DUAL
+    </select>
+
+    <!-- 강좌 자료 관리: CMMT_ATCH_FILE_CL에 파일 그룹 행 삽입 (FK 제약 충족용) -->
+    <insert id="insertFileGroup">
+        INSERT INTO CMMT_ATCH_FILE_CL (ATCH_FILE_ID, CRET_DT, USE_YN)
+        VALUES (#{atchFileId}, CURRENT_TIMESTAMP, 'Y')
+    </insert>
+
+    <!--
+        강좌 자료 관리: 특정 파일 그룹(강좌)에 속한 파일 목록 조회
+        groupId = COURSE.ATCH_FILE_ID (강좌에 연결된 CMMT_ATCH_FILE_CL PK)
+        DEL_YN='N' 조건으로 논리 삭제된 파일은 제외합니다.
+        REG_DT는 'YYYY-MM-DD HH24:MI' 형식 문자열로 변환해 반환합니다.
+    -->
+    <select id="selectFilesByGroupId" resultType="kr.or.ddit.finalProject.dto.file.FileDto">
+        SELECT
+            ATCH_FILE_DTL_SN   AS atchFileDtlSn,
+            ATCH_FILE_ID        AS atchFileId,
+            ORGN_FILE_NM        AS orgnFileNm,
+            SAVE_PATH_NM        AS savePathNm,
+            SAVE_FILE_NM        AS saveFileNm,
+            FILE_EXT_NM         AS fileExtNm,
+            FILE_SIZE_CNT       AS fileSizeCnt,
+            TO_CHAR(REG_DT, 'YYYY-MM-DD HH24:MI') AS regDt,
+            RGTR_ID             AS rgtrId,
+            DEL_YN              AS delYn,
+            DWNLD_CNT           AS dwnldCnt
+        FROM CMMT_ATCH_FILE_DTL
+        WHERE ATCH_FILE_ID = #{groupId}
+          AND DEL_YN = 'N'
+        ORDER BY ATCH_FILE_DTL_SN DESC
+    </select>
+
+    <!--
+        강좌 자료 관리: 파일 논리 삭제
+        외부 파일 서버의 파일은 삭제되지 않으므로 DB 행만 DEL_YN='Y'로 처리합니다.
+        DEL_DT와 DEL_USER_ID도 함께 기록합니다.
+    -->
+    <update id="softDeleteFile">
+        UPDATE CMMT_ATCH_FILE_DTL
+        SET DEL_YN = 'Y',
+            DEL_DT = CURRENT_TIMESTAMP,
+            DEL_USER_ID = #{delUserId}
+        WHERE ATCH_FILE_DTL_SN = #{atchFileDtlSn}
+    </update>
 
 </mapper>

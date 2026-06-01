@@ -31,5 +31,10 @@ public class CourseDto implements Serializable {
     private LocalDateTime regDt;
     private LocalDateTime mdfcnDt;
     private Long subjClId;
+    private Integer sortOrd;
+    private Long prereqCourseSn;
+
+    // JOIN 전용 필드 (DB 컬럼 없음)
+    private String curriculumTitle;
 
 }
