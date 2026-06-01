@@ -2,6 +2,22 @@
 -- COM_CL 공통 코드 사용
 -- 공지사항 유형 => CL_CODE: 103
 
+-- ** board.post_cn VARCHAR2(4000) → CLOB 타입 변경
+alter table board modify
+   post_cn clob;
+
+alter table board add post_cn_temp clob;
+
+update board
+   set
+   post_cn_temp = post_cn;
+
+alter table board drop column post_cn;
+
+alter table board rename column post_cn_temp to post_cn;
+
+commit;
+
 create table notice (
    post_sn        number(20,0) not null,notice_type_cd char(2) null,constraint pk_notice primary key ( post_sn )
 );
