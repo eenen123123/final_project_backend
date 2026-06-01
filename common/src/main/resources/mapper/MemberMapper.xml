@@ -208,4 +208,24 @@
 
 
     </select>
+
+    <update id="updateMember" parameterType="kr.or.ddit.finalProject.dto.member.MemberDto">
+    UPDATE MEMBER
+    SET
+        USER_TELNO      = #{userTelno},
+        USER_EMAIL_ADDR = #{userEmailAddr},
+        USER_ZIP        = #{userZip},
+        USER_ADDR       = #{userAddr},
+        USER_DADDR      = #{userDaddr},
+        MOD_DATE        = SYSTIMESTAMP
+        <if test="userEnpswd != null and userEnpswd != ''">
+            , USER_ENPSWD = #{userEnpswd}
+        </if>
+        <if test="userProfile != null and userProfile != ''">
+            , USER_PROFILE = #{userProfile}
+        </if>
+    WHERE USER_ID = #{userId}
+</update>
+
+
 </mapper>
