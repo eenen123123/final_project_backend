@@ -202,4 +202,17 @@ public class MemberServiceImpl implements MemberService {
     public AdminMemberDto getAdminUserById(String userId) {
         return memberMapper.getAdminUserById(userId);
     }
+
+    @Override
+    public boolean verifyPassword(String userId, String password) {
+        MemberDto memberDto = memberMapper.findByUserId(userId)
+                .orElseThrow(() -> new FinalProjectException(ErrorCode.USER_NOT_FOUND));
+        return passwordEncoder.matches(password, memberDto.getUserEnpswd());
+    }
+
+    @Override
+    @Transactional
+    public void updateMember(MemberDto memberDto) {
+        memberMapper.updateMember(memberDto);
+    }
 }
