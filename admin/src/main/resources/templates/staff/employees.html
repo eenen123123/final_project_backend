@@ -150,6 +150,14 @@
       border-color: #fca5a5;
     }
 
+    /* TomSelect danger 오버라이드 */
+    .ts-wrapper.hm-input-danger { border-color: #ef4444; }
+    .ts-wrapper.hm-input-danger.focus { border-color: #ef4444; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08); }
+
+    /* 퇴사 사유 select: 모달 하단에 있어 옵션이 위로 펼쳐지게 한다 */
+    .ts-dropup .ts-dropdown { top: auto; bottom: 100%; margin-top: 0; margin-bottom: 6px; }
+    .ts-dropup.dropdown-active .ts-control::after { transform: rotate(180deg); }
+
     input.hm-input.hm-input-blue[placeholder]:not(:placeholder-shown) { background-color: #eff6ff; }
     .hm-input.hm-input-blue.filled { background-color: #eff6ff; }
 
@@ -368,16 +376,16 @@
   <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
     <div class="flex border-b border-slate-100 px-6">
       <!-- <button class="emp-tab-btn active py-3.5 px-4 text-sm text-slate-500 -mb-px" data-tab="emp-tab-list" onclick="switchEmpTab('emp-tab-list',this)">
-      <i class="fa-solid fa-id-card mr-1.5"></i>직원 현황
-    </button> -->
+        <i class="fa-solid fa-id-card mr-1.5"></i>직원 현황
+      </button> -->
       <button class="emp-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px" data-tab="emp-tab-hr"
         onclick="switchEmpTab('emp-tab-hr',this)">
         <i class="fa-solid fa-list-ul mr-1.5"></i>인사 기록
       </button>
-      <button class="emp-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px" data-tab="emp-tab-account"
+      <!-- <button class="emp-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px" data-tab="emp-tab-account"
         onclick="switchEmpTab('emp-tab-account',this)">
         <i class="fa-solid fa-shield-halved mr-1.5"></i>계정 관리
-      </button>
+      </button> -->
     </div>
 
     <!-- ══════ 탭1: 직원 현황 ══════ -->
@@ -670,7 +678,7 @@
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label class="form-label">이름 <span class="required">*</span></label>
-                  <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="홍길동" id="new-name" name="userName" oninput="autoGenLoginId()" />
+                  <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="홍길동" id="new-name" name="userName" oninput="formatName(this); autoGenLoginId()" onblur="blurValidateName(this)" />
                 </div>
                 <div>
                   <label class="form-label">주민등록번호 <span class="required">*</span></label>
@@ -693,12 +701,12 @@
                 </div>
                 <div>
                   <label class="form-label">연락처 <span class="required">*</span></label>
-                  <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="010-0000-0000" id="new-phone" name="userTelno" oninput="formatPhone(this)" maxlength="13" />
+                  <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="010-0000-0000" id="new-phone" name="userTelno" oninput="formatPhone(this)" maxlength="13" onblur="blurValidatePhone(this)" />
                 </div>
                 <div>
                   <label class="form-label">이메일</label>
                   <input type="email" class="hm-input hm-input-blue hm-lg" placeholder="user@hermes.com" id="new-email"
-                    name="userEmailAddr" />
+                    name="userEmailAddr" onblur="blurValidateEmail(this)" />
                 </div>
                 <div class="col-span-2 flex gap-2">
                   <div class="w-36">
@@ -1019,27 +1027,31 @@
             </div>
             <div class="hm-modal-footer" style="padding:1rem 0 0">
               <button onclick="toggleDetailEdit()" class="hm-btn-secondary px-4 py-2">취소</button>
-              <button onclick="saveDetailEdit()" class="hm-btn-primary hm-btn-blue px-5 py-2">저장</button>
+              <button onclick="saveDetailEdit()" class="hm-btn-primary hm-btn-blue px-5 py-2">수정 저장</button>
             </div>
             <!-- 위험 구역 (퇴사 처리) -->
             <div class="danger-zone p-4 mt-4">
-              <p class="text-xs font-bold text-[#ef4444] mb-2"><i class="fa-solid fa-triangle-exclamation mr-1"></i>퇴사
-                처리</p>
+              <p class="text-xs font-bold text-[#ef4444] mb-2"><i class="fa-solid fa-triangle-exclamation mr-1"></i>퇴사 처리</p>
               <p class="text-xs text-slate-500 mb-3">퇴사 처리 시 계정이 즉시 비활성화되고 30일 후 개인정보 파기 대상으로 이관됩니다.</p>
               <div class="grid grid-cols-2 gap-2 mb-3">
                 <div>
                   <label class="form-label">퇴사 사유
-                    <select class="hm-input hm-input-danger hm-lg" id="resign-reason">
-                      <option>개인 사정</option>
-                      <option>계약 만료</option>
-                      <option>권고사직</option>
-                      <option>기타</option>
+                    <select class="hm-input hm-input-danger hm-lg" id="resign-reason"
+                      onchange="onResignReasonChange(this)">
+                      <option value="">선택</option>
+                      <option value="개인 사정">개인 사정</option>
+                      <option value="계약 만료">계약 만료</option>
+                      <option value="권고사직">권고사직</option>
+                      <option value="기타">기타</option>
                     </select>
+                    <textarea id="resign-reason-detail" class="hm-input hm-input-danger mt-1 text-sm resize-none hidden"
+                      rows="2" maxlength="1000" placeholder="기타 사유를 직접 입력해주세요."></textarea>
                   </label>
                 </div>
                 <div>
                   <label class="form-label">퇴사일
-                    <input type="date" class="hm-input hm-input-danger" id="resign-date" />
+                    <input type="date" class="hm-input hm-input-danger" id="resign-date"
+                      onfocus="this.scrollIntoView({behavior:'smooth', block:'nearest'})" />
                   </label>
                 </div>
               </div>
@@ -1063,11 +1075,12 @@
         <div class="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
           <i class="fa-solid fa-user-xmark text-red-500 text-2xl"></i>
         </div>
-        <h3 class="font-bold text-slate-800 mb-2">퇴사 처리 최종 확인</h3>
-        <p class="text-sm text-slate-500 mb-1">
+        <h3 class="font-bold text-slate-800 mb-2 text-lg">퇴사 처리 최종 확인</h3>
+        <p class="text-base text-slate-500 mb-1">
           <span class="font-semibold text-slate-700" id="resign-confirm-name">김현정</span> 직원을 퇴사 처리합니다.
         </p>
-        <p class="text-xs text-red-500 mb-5">계정이 즉시 비활성화되며, 해당 직원은 시스템에 접근할 수 없게 됩니다.</p>
+        <p class="text-sm text-red-500 mb-5">계정이 즉시 비활성화되며, <br>
+          해당 직원은 시스템에 접근할 수 없게 됩니다.</p>
         <div class="hm-modal-footer" style="padding:0">
           <button onclick="closeModal('modal-resign-confirm')" class="hm-btn-secondary flex-1">취소</button>
           <button onclick="executeResign()" class="hm-btn-danger flex-1">퇴사 처리</button>
@@ -1646,9 +1659,43 @@
         card.dataset.emplStatCd = row.dataset.status;
       }
 
-      toggleDetailEdit();
-      openDetail(selectedEmpId);
-      showHermesToast('인사 기록이 수정되었습니다.', 'success');
+      const payload = {
+        userId:      selectedEmpId,
+        userName:    document.getElementById('edit-name').value.trim(),
+        userGndrCd:  document.getElementById('edit-gender').value,
+        userBrdt:    document.getElementById('edit-birthdate').value,
+        userTelno:   document.getElementById('edit-phone').value,
+        userEmailAddr: document.getElementById('edit-email').value.trim(),
+        userZip:     document.getElementById('edit-zipcode').value.trim(),
+        userAddr:    document.getElementById('edit-addr').value.trim(),
+        userDaddr:   addrDetail,
+        userProfile: document.getElementById('edit-profile-path').value.trim(),
+        deptCd:      deptVal,
+        jbgrCd:      gradeVal,
+        joinYmd:     document.getElementById('edit-entry-date').value,
+        emplStatCd:  document.getElementById('edit-status').value,
+        emplTypeCd:  document.getElementById('edit-work-type').value,
+        ctrctEndYmd: document.getElementById('edit-contract-end').value,
+        chrgDutyCn:  document.getElementById('edit-duty').value.trim(),
+        baseSalary:  document.getElementById('edit-salary').value,
+      };
+
+      fetch('/admin/employees/update', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.result === 'success') {
+          toggleDetailEdit();
+          openDetail(selectedEmpId);
+          showHermesToast('인사 기록이 수정되었습니다.', 'success');
+        } else {
+          showHermesToast('수정 실패: ' + (data.message || '서버 오류'), 'error');
+        }
+      })
+      .catch(() => showHermesToast('수정 요청 중 오류가 발생했습니다.', 'error'));
     }
 
     // edit-role 전체 옵션 원본 저장
@@ -1678,6 +1725,24 @@
 
     /* ─── 퇴사 처리 ─── */
     function openResignConfirm() {
+      const reason = document.getElementById('resign-reason');
+      const reasonVal = reason && reason.tomselect ? reason.tomselect.getValue() : (reason ? reason.value : '');
+      const detail = document.getElementById('resign-reason-detail');
+      const date = document.getElementById('resign-date');
+
+      if (!reasonVal) {
+        showHermesToast('퇴사 사유를 선택해주세요.', 'error');
+        return;
+      }
+      if (reasonVal === '기타' && (!detail || !detail.value.trim())) {
+        showHermesToast('기타 사유를 입력해주세요.', 'error');
+        return;
+      }
+      if (!date || !date.value) {
+        showHermesToast('퇴사일을 입력해주세요.', 'error');
+        return;
+      }
+
       const row = document.querySelector('.hr-data-row[data-id="' + selectedEmpId + '"]');
       document.getElementById('resign-confirm-name').textContent = row ? (row.dataset.name || '') : '';
       openModal('modal-resign-confirm');
@@ -1689,18 +1754,63 @@
       openModal('modal-resign-confirm');
     }
 
-    function executeResign() {
-      // HR 행 상태를 퇴사(03)로 업데이트
-      const row = document.querySelector('.hr-data-row[data-id="' + selectedEmpId + '"]');
-      if (row) {
-        row.dataset.status = '03';
-        const card = document.querySelector('.emp-card[data-id="' + selectedEmpId + '"]');
-        if (card) card.dataset.emplStatCd = '03';
+    function onResignReasonChange(elOrVal) {
+      const val = (typeof elOrVal === 'string') ? elOrVal : (elOrVal.value || '');
+      const detail = document.getElementById('resign-reason-detail');
+      if (val === '기타') {
+        detail.classList.remove('hidden');
+        detail.focus();
+      } else {
+        detail.classList.add('hidden');
+        detail.value = '';
       }
-      closeModal('modal-resign-confirm');
-      closeModal('modal-emp-detail');
-      filterHrList(); // 실제 DOM 데이터 기반으로 HR 테이블 갱신
-      showHermesToast('퇴사 처리 및 계정이 비활성화되었습니다.', 'success');
+    }
+
+    function executeResign() {
+      const reasonSelectEl = document.getElementById('resign-reason');
+      const reasonDetail = document.getElementById('resign-reason-detail');
+      const selectedVal = reasonSelectEl.tomselect ? reasonSelectEl.tomselect.getValue() : reasonSelectEl.value;
+      let retmtRsn = selectedVal === '기타'
+        ? (reasonDetail.value || '').trim()
+        : selectedVal;
+
+      if (!retmtRsn) {
+        showHermesToast(selectedVal === '기타' ? '기타 사유를 입력해주세요.' : '퇴사 사유를 선택해주세요.', 'error');
+        return;
+      }
+      if (selectedVal === '기타') retmtRsn = '기타: ' + retmtRsn;
+      if (!retmtRsn) {
+        showHermesToast('퇴사 사유를 입력해주세요.', 'error');
+        return;
+      }
+
+      fetch('/admin/employees/' + selectedEmpId + '/retirement', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ retmtRsn })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.result === 'success') {
+          const row = document.querySelector('.hr-data-row[data-id="' + selectedEmpId + '"]');
+          if (row) {
+            row.dataset.status = '03';
+            const card = document.querySelector('.emp-card[data-id="' + selectedEmpId + '"]');
+            if (card) card.dataset.emplStatCd = '03';
+          }
+          closeModal('modal-resign-confirm');
+          closeModal('modal-emp-detail');
+          const rsEl = document.getElementById('resign-reason');
+          if (rsEl.tomselect) rsEl.tomselect.setValue(''); else rsEl.value = '';
+          document.getElementById('resign-reason-detail').value = '';
+          document.getElementById('resign-reason-detail').classList.add('hidden');
+          filterHrList();
+          showHermesToast('퇴사 처리 및 계정이 비활성화되었습니다.', 'success');
+        } else {
+          showHermesToast('퇴사 처리 실패: ' + (data.message || '서버 오류'), 'error');
+        }
+      })
+      .catch(() => showHermesToast('퇴사 처리 요청 중 오류가 발생했습니다.', 'error'));
     }
 
     /* ─── 개인정보 파기 ─── */
@@ -1913,119 +2023,72 @@
       }).open();
     }
 
-    /* ─── 신규 직원 등록 submit 전 유효성 검사 (포커스 이동 추가) ─── */
+    /* ─── 신규 직원 등록 submit 전 유효성 검사 (SignupRequestRecord 기준 통일) ─── */
     function validateNewEmp() {
-      const nameEl = document.getElementById('new-name');
-      const rrnEl = document.getElementById('new-rrn');
-      const rrnDisplayEl = document.getElementById('new-rrn-display');
-      const phoneEl = document.getElementById('new-phone');
-      const deptEl = document.getElementById('new-dept');
-      const roleEl = document.getElementById('new-role');
-      const entryEl = document.getElementById('new-entry-date');
-      const loginIdEl = document.getElementById('new-login-id');
-      const baseSalary = document.getElementById('new-salary');
-      const addrEl = document.getElementById('address');
-      const brdt = document.getElementById('new-brdt').value; // 파생된 생년월일 값
-      const chrgDutyCnt = document.getElementById('new-chrg-duty'); // 담당 업무
+      const nameEl      = document.getElementById('new-name');
+      const rrnEl       = document.getElementById('new-rrn');
+      const rrnDisplayEl= document.getElementById('new-rrn-display');
+      const phoneEl     = document.getElementById('new-phone');
+      const emailEl     = document.getElementById('new-email');
+      const postcodeEl  = document.getElementById('postcode');
+      const addrEl      = document.getElementById('address');
+      const deptEl      = document.getElementById('new-dept');
+      const roleEl      = document.getElementById('new-role');
+      const entryEl     = document.getElementById('new-entry-date');
+      const loginIdEl   = document.getElementById('new-login-id');
+      const baseSalary  = document.getElementById('new-salary');
+      const chrgDutyCnt = document.getElementById('new-chrg-duty');
+      const brdt        = document.getElementById('new-brdt').value;
 
-      // [이름 체크]
-      if (!nameEl.value.trim()) {
-        showHermesToast('이름을 입력해주세요.', 'error');
-        nameEl.focus();
-        return false;
-      }
+      // [이름] NotBlank, Size(2~50), 한글·영문만
+      const name = nameEl.value.trim();
+      if (!name) { showHermesToast('이름을 입력해주세요.', 'error'); nameEl.focus(); return false; }
+      if (name.length < 2 || name.length > 50) { showHermesToast('이름은 2자 이상 50자 이하로 입력해주세요.', 'error'); nameEl.focus(); return false; }
+      if (!/^[가-힣a-zA-Z]+$/.test(name)) { showHermesToast('이름은 한글 또는 영문만 입력 가능합니다.', 'error'); nameEl.focus(); return false; }
 
-      // [주민등록번호 필수 체크]
-      if (!rrnEl.value.trim()) {
-        showHermesToast('주민등록번호를 입력해주세요.', 'error');
-        rrnDisplayEl.focus();
-        return false;
-      }
+      // [주민등록번호] NotBlank, Pattern ^\d{6}-\d{7}$
+      if (!rrnEl.value.trim()) { showHermesToast('주민등록번호를 입력해주세요.', 'error'); rrnDisplayEl.focus(); return false; }
+      if (!/^\d{6}-\d{7}$/.test(rrnEl.value)) { showHermesToast('주민등록번호는 000000-0000000 형식이어야 합니다.', 'error'); rrnDisplayEl.focus(); return false; }
+      if (!brdt) { showHermesToast('주민등록번호에 기재된 날짜 정보가 유효하지 않습니다.', 'error'); rrnDisplayEl.focus(); return false; }
 
-      // [주민등록번호 13자리 규격 검증]
-      const rrnDigits = rrnEl.value.replace(/\D/g, '');
-      if (rrnDigits.length !== 13) {
-        showHermesToast('주민등록번호 13자리를 정확하게 입력해주세요.', 'error');
-        rrnDisplayEl.focus();
-        return false;
-      }
+      // [연락처] NotBlank, Pattern ^010-\d{3,4}-\d{4}$
+      if (!phoneEl.value.trim()) { showHermesToast('연락처를 입력해주세요.', 'error'); phoneEl.focus(); return false; }
+      if (!/^010-\d{3,4}-\d{4}$/.test(phoneEl.value.trim())) { showHermesToast('올바른 휴대폰 번호 형식이 아닙니다. (예: 010-1234-5678)', 'error'); phoneEl.focus(); return false; }
 
-      // [주민등록번호 날짜 논리성 검증]
-      if (!brdt) {
-        showHermesToast('주민등록번호에 기재된 날짜 정보가 유효하지 않습니다.', 'error');
-        rrnDisplayEl.focus();
-        return false;
-      }
+      // [이메일] NotBlank, Email 형식, Size(max=100)
+      const email = emailEl.value.trim();
+      if (!email) { showHermesToast('이메일을 입력해주세요.', 'error'); emailEl.focus(); return false; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showHermesToast('유효한 이메일 형식이 아닙니다.', 'error'); emailEl.focus(); return false; }
+      if (email.length > 100) { showHermesToast('이메일은 100자 이하로 입력해주세요.', 'error'); emailEl.focus(); return false; }
 
-      // [연락처 체크]
-      if (!phoneEl.value.trim()) {
-        showHermesToast('연락처를 입력해주세요.', 'error');
-        phoneEl.focus();
-        return false;
-      }
+      // [우편번호] NotBlank, Size(5~10)
+      const zip = postcodeEl.value.trim();
+      if (!zip) { showHermesToast('우편번호 검색을 해주세요.', 'error'); return false; }
 
-      // 중하위 번호가 000-0000이나 111-1111처럼 단순 반복되는 가짜 번호인 경우까지 체크하고 싶다면 패턴을 더 정교화할 수 있습니다.
-      const phoneRegex = /^010-\d{3,4}-\d{4}$/;
-      if (!phoneRegex.test(phoneEl.value.trim())) {
-        showHermesToast('올바른 휴대폰 번호 형식이 아닙니다. (예: 010-1234-5678)', 'error');
-        phoneEl.focus();
-        return false;
-      }
+      // [주소] NotBlank, Size(max=200)
+      const addr = addrEl.value.trim();
+      if (!addr) { showHermesToast('기본 주소를 입력해주세요.', 'error'); return false; }
+      if (addr.length > 200) { showHermesToast('주소는 200자 이하로 입력해주세요.', 'error'); return false; }
 
-      // [주소 체크]
-      if (!addrEl.value.trim()) {
-        showHermesToast('기본 주소를 입력해주세요.', 'error');
-        // 주소창은 readonly이므로 우편번호 검색 버튼(또는 상세주소창)으로 포커스를 주면 좋습니다.
-        document.getElementById('postcode').focus();
-        return false;
-      }
+      // [소속 부서] 필수
+      if (!deptEl.value) { showHermesToast('소속 부서를 선택해주세요.', 'error'); deptEl.focus(); return false; }
 
-      // [소속 부서 선택 체크]
-      if (!deptEl.value) {
-        showHermesToast('소속 부서를 선택해주세요.', 'error');
-        deptEl.focus();
-        return false;
-      }
+      // [직급] 필수
+      if (!roleEl.value) { showHermesToast('직급을 선택해주세요.', 'error'); roleEl.focus(); return false; }
 
-      // [직급 선택 체크]
-      if (!roleEl.value) {
-        showHermesToast('직급을 선택해주세요.', 'error');
-        roleEl.focus();
-        return false;
-      }
-
-      // [입사일 체크]
-      if (!entryEl.value) {
-        showHermesToast('입사일을 입력해주세요.', 'error');
-        entryEl.focus();
-        return false;
-      }
+      // [입사일] 필수, 연도 범위
+      if (!entryEl.value) { showHermesToast('입사일을 입력해주세요.', 'error'); entryEl.focus(); return false; }
       const entryYear = new Date(entryEl.value).getFullYear();
-      if (isNaN(entryYear) || entryYear < 2000 || entryYear > 2099) {
-        showHermesToast('입사일 연도를 올바르게 입력해주세요. (2000~2099)', 'error');
-        entryEl.focus();
-        return false;
-      }
+      if (isNaN(entryYear) || entryYear < 2000 || entryYear > 2099) { showHermesToast('입사일 연도를 올바르게 입력해주세요. (2000~2099)', 'error'); entryEl.focus(); return false; }
 
-      // [로그인 ID 체크]
-      if (!loginIdEl.value.trim()) {
-        showHermesToast('로그인 ID가 생성되지 않았습니다.', 'error');
-        return false;
-      }
+      // [로그인 ID] 자동 생성 — 생성 여부만 확인
+      if (!loginIdEl.value.trim()) { showHermesToast('로그인 ID가 생성되지 않았습니다.', 'error'); return false; }
 
-      // [급여 입력 체크]
-      if (!baseSalary.value.trim()) {
-        showHermesToast('급여(기본급)를 입력해주세요.', 'error');
-        baseSalary.focus();
-        return false;
-      }
+      // [급여] 필수
+      if (!baseSalary.value.trim()) { showHermesToast('급여(기본급)를 입력해주세요.', 'error'); baseSalary.focus(); return false; }
 
-      // [담당 업무 체크]
-      if (!chrgDutyCnt.value.trim()) {
-        showHermesToast('담당 업무를 입력해주세요.', 'error');
-        chrgDutyCnt.focus();
-        return false;
-      }
+      // [담당 업무] 필수
+      if (!chrgDutyCnt.value.trim()) { showHermesToast('담당 업무를 입력해주세요.', 'error'); chrgDutyCnt.focus(); return false; }
 
       return true;
     }
@@ -2202,6 +2265,43 @@
       icon.className = rrnEyeOpen ? 'fa-regular fa-eye text-sm' : 'fa-regular fa-eye-slash text-sm';
       displayEl.value = rrnEyeOpen ? rrnRealValue : maskRrn(rrnRealValue);
     }
+
+    /* ─── 이름 실시간 포맷 (한글 외 즉시 제거) ─── */
+    function formatName(el) {
+      const before = el.value;
+      // ㄱ-ㅎ, ㅏ-ㅣ: IME 조합 중 임시 자모 허용
+      el.value = before.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z]/g, '');
+      if (el.value !== before) showHermesToast('이름은 한글 또는 영문만 입력 가능합니다.', 'error');
+    }
+
+    /* ─── 실시간 blur 검증 ─── */
+    function blurValidateName(el) {
+      const v = el.value.trim();
+      if (!v) return;
+      if (v.length < 2 || v.length > 50) { showHermesToast('이름은 2자 이상 50자 이하로 입력해주세요.', 'error'); return; }
+      if (!/^[가-힣a-zA-Z]+$/.test(v)) showHermesToast('이름은 한글 또는 영문만 입력 가능합니다.', 'error');
+    }
+
+    function blurValidatePhone(el) {
+      const v = el.value.trim();
+      if (!v) return;
+      if (!/^010-\d{3,4}-\d{4}$/.test(v)) showHermesToast('올바른 휴대폰 번호 형식이 아닙니다. (예: 010-1234-5678)', 'error');
+    }
+
+    function blurValidateEmail(el) {
+      const v = el.value.trim();
+      if (!v) return;
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) showHermesToast('유효한 이메일 형식이 아닙니다.', 'error');
+      else if (v.length > 100) showHermesToast('이메일은 100자 이하로 입력해주세요.', 'error');
+    }
+
+    /* ─── 퇴사 사유 select: 모달 하단에 있어 드롭다운을 위로 펼치게 한다 ───
+       TomSelect 라이브러리/전역 init 이후 실행되도록 DOMContentLoaded 에서
+       기존 인스턴스의 wrapper 에 ts-dropup 클래스만 부여한다. */
+    document.addEventListener('DOMContentLoaded', function() {
+      const ts = document.getElementById('resign-reason') && document.getElementById('resign-reason').tomselect;
+      if (ts) ts.wrapper.classList.add('ts-dropup');
+    });
   </script>
 
 </body>

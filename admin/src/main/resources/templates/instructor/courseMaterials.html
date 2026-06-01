@@ -1,0 +1,224 @@
+<div class="materials-container">
+    <link rel="stylesheet" th:href="@{/css/instructor/curriculum.css}" />
+
+    <!-- 페이지 헤더 -->
+    <div class="flex justify-between items-start mb-6">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <div class="w-1 h-7 rounded-full bg-sky-500"></div>
+                <h1 class="text-2xl font-bold text-slate-800">강좌 자료 관리</h1>
+            </div>
+            <p class="text-sm text-slate-500 ml-3">강좌를 선택하면 첨부된 자료를 확인하고 업로드할 수 있습니다.</p>
+        </div>
+    </div>
+
+    <!-- 2-panel layout -->
+    <div class="grid grid-cols-1 xl:grid-cols-5 gap-4" style="height: 640px;">
+
+        <!-- ── Panel 1: 강좌 목록 ──────────────────────────── -->
+        <div class="xl:col-span-2 panel-card flex flex-col overflow-hidden">
+            <div class="panel-header">
+                <div class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-book-open text-sky-500 text-xs"></i>
+                    <span>강좌 목록</span>
+                    <span id="course-badge" class="panel-badge"
+                          th:text="${#lists.size(courseList)}">0</span>
+                </div>
+            </div>
+
+            <ul id="course-list" class="flex-1 overflow-y-auto no-scrollbar p-2 space-y-1">
+                <li th:if="${#lists.isEmpty(courseList)}" class="panel-empty-state">
+                    <i class="fa-solid fa-inbox text-slate-300 text-2xl mb-2"></i>
+                    <p>등록된 강좌가 없습니다.</p>
+                </li>
+                <li th:each="course : ${courseList}"
+                    th:id="'course-item-' + ${course.courseSn}"
+                    class="panel-item"
+                    th:onclick="|selectCourse(${course.courseSn}, this)|">
+                    <div class="min-w-0 flex-1">
+                        <div class="item-title" th:text="${course.courseNm}">강좌명</div>
+                        <div class="item-meta"
+                             th:text="${course.curriculumTitle != null ? course.curriculumTitle : '커리큘럼 미지정'}">
+                            커리큘럼명
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1 flex-shrink-0">
+                        <span th:if="${course.opnnYn == 'Y'}" class="badge-opnn badge-opnn-open">공개</span>
+                        <span th:if="${course.opnnYn != 'Y'}" class="badge-opnn badge-opnn-closed">비공개</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- ── Panel 2: 자료 목록 ──────────────────────────── -->
+        <div class="xl:col-span-3 panel-card flex flex-col overflow-hidden">
+            <!-- placeholder -->
+            <div id="files-placeholder" class="panel-placeholder">
+                <i class="fa-solid fa-folder-open text-slate-300 text-3xl mb-3"></i>
+                <p class="font-medium text-slate-400">강좌를 선택하세요</p>
+                <p class="text-xs text-slate-300 mt-1">선택한 강좌의 첨부 자료가 표시됩니다.</p>
+            </div>
+
+            <!-- 자료 패널 (강좌 선택 시 표시) -->
+            <div id="files-panel" class="flex flex-col h-full" style="display:none;">
+                <div class="panel-header">
+                    <div class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-folder-open text-sky-500 text-xs"></i>
+                        <span id="files-panel-title" class="truncate max-w-[200px]">자료 목록</span>
+                        <span id="files-badge" class="panel-badge">0</span>
+                    </div>
+                </div>
+
+                <!-- 업로드 영역 -->
+                <div class="panel-form">
+                    <div class="flex items-center gap-2">
+                        <label class="flex-1 flex items-center gap-2 px-3 py-2 border border-dashed border-slate-300
+                                      rounded-lg cursor-pointer hover:border-sky-400 hover:bg-sky-50 transition-colors">
+                            <i class="fa-solid fa-cloud-arrow-up text-slate-400 text-sm"></i>
+                            <span id="file-label" class="text-xs text-slate-500 truncate">파일을 선택하세요</span>
+                            <input type="file" id="file-input" class="hidden" onchange="onFileSelected(this)" />
+                        </label>
+                        <button onclick="uploadMaterial()" class="btn-form-save whitespace-nowrap">
+                            <i class="fa-solid fa-upload mr-1"></i>업로드
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 파일 목록 -->
+                <ul id="file-list" class="flex-1 overflow-y-auto no-scrollbar p-2 space-y-1">
+                    <li id="file-loading" class="panel-loading hidden">불러오는 중...</li>
+                    <li id="file-empty" class="panel-empty-state hidden">
+                        <i class="fa-solid fa-file-circle-xmark text-slate-300 text-2xl mb-2"></i>
+                        <p>등록된 자료가 없습니다.</p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let selectedCourseSn = null;
+
+        function selectCourse(courseSn, el) {
+            // 활성 스타일 교체
+            document.querySelectorAll('#course-list .panel-item').forEach(li => li.classList.remove('active'));
+            el.classList.add('active');
+
+            selectedCourseSn = courseSn;
+            const courseNm = el.querySelector('.item-title').textContent;
+
+            document.getElementById('files-placeholder').classList.add('hidden');
+            document.getElementById('files-panel').style.display = 'flex';
+            document.getElementById('files-panel-title').textContent = courseNm;
+
+            loadFiles(courseSn);
+        }
+
+        function loadFiles(courseSn) {
+            const list = document.getElementById('file-list');
+            const loading = document.getElementById('file-loading');
+            const empty = document.getElementById('file-empty');
+
+            loading.classList.remove('hidden');
+            empty.classList.add('hidden');
+            // 기존 파일 항목 제거
+            list.querySelectorAll('.file-item').forEach(el => el.remove());
+
+            fetch(`/instructor/course/materials/${courseSn}/files`)
+                .then(r => r.json())
+                .then(files => {
+                    loading.classList.add('hidden');
+                    document.getElementById('files-badge').textContent = files.length;
+                    if (files.length === 0) {
+                        empty.classList.remove('hidden');
+                        return;
+                    }
+                    files.forEach(f => list.insertBefore(buildFileItem(f), loading));
+                })
+                .catch(() => {
+                    loading.classList.add('hidden');
+                    empty.classList.remove('hidden');
+                });
+        }
+
+        function buildFileItem(f) {
+            const li = document.createElement('li');
+            li.className = 'file-item panel-item';
+            li.innerHTML = `
+                <i class="fa-solid fa-file text-slate-400 text-sm flex-shrink-0"></i>
+                <div class="min-w-0 flex-1">
+                    <div class="item-title">${escHtml(f.orgnFileNm)}</div>
+                    <div class="item-meta">${formatSize(f.fileSizeCnt)} · ${f.regDt ?? ''}</div>
+                </div>
+                <div class="item-actions">
+                    <a href="${escHtml(f.savePathNm)}" target="_blank"
+                       class="btn-icon" title="보기/다운로드" onclick="event.stopPropagation()">
+                        <i class="fa-solid fa-arrow-down text-[10px]"></i>
+                    </a>
+                    <button class="btn-icon btn-icon-danger" title="삭제"
+                            onclick="event.stopPropagation(); deleteMaterial(${f.atchFileDtlSn})">
+                        <i class="fa-solid fa-trash text-[10px]"></i>
+                    </button>
+                </div>`;
+            return li;
+        }
+
+        function onFileSelected(input) {
+            const label = document.getElementById('file-label');
+            label.textContent = input.files[0] ? input.files[0].name : '파일을 선택하세요';
+        }
+
+        function uploadMaterial() {
+            if (!selectedCourseSn) return;
+            const input = document.getElementById('file-input');
+            if (!input.files[0]) {
+                alert('파일을 선택해 주세요.');
+                return;
+            }
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+
+            fetch(`/instructor/course/materials/${selectedCourseSn}/files`, {
+                method: 'POST',
+                body: formData,
+                headers: {'X-Requested-With': 'XMLHttpRequest'}
+            })
+            .then(r => {
+                if (!r.ok) throw new Error('업로드 실패');
+                return r.json();
+            })
+            .then(() => {
+                input.value = '';
+                document.getElementById('file-label').textContent = '파일을 선택하세요';
+                loadFiles(selectedCourseSn);
+            })
+            .catch(e => alert(e.message));
+        }
+
+        function deleteMaterial(atchFileDtlSn) {
+            if (!confirm('자료를 삭제하시겠습니까?')) return;
+            fetch(`/instructor/course/materials/files/${atchFileDtlSn}?courseSn=${selectedCourseSn}`, {
+                method: 'DELETE',
+                headers: {'X-Requested-With': 'XMLHttpRequest'}
+            })
+            .then(r => {
+                if (!r.ok) throw new Error('삭제 실패');
+                loadFiles(selectedCourseSn);
+            })
+            .catch(e => alert(e.message));
+        }
+
+        function formatSize(bytes) {
+            if (!bytes) return '0 B';
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function escHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+    </script>
+</div>

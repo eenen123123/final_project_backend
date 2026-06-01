@@ -1,6 +1,7 @@
 package kr.or.ddit.finalProject.service.file;
 
 import java.io.IOException;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
@@ -116,7 +117,30 @@ public class FileUploadService {
      *     UploadedAt: "2026-05-18T14:32:53.214345536"
      * </pre>
      */
+    /**
+     * 기존 호출부(ChatMessageController 등) 하위 호환용 오버로드입니다.
+     * atchFileId를 지정하지 않는 기존 코드는 이 메서드를 그대로 사용하시면 됩니다.
+     *
+     * [변경 이유] 강좌 자료 관리(/instructor/course/materials) 기능 추가 시,
+     * 파일을 특정 강좌의 파일 그룹(CMMT_ATCH_FILE_CL)에 귀속시켜야 했습니다.
+     * 기존 uploadFile은 atchFileId를 001(임시값)으로 하드코딩했는데,
+     * 이를 atchFileId를 인수로 받는 오버로드로 분리하고 기존 메서드는 1을 넘기도록 변경했습니다.
+     */
     public FileDto uploadFile(MultipartFile file, String userId) {
+        return uploadFile(file, userId, 1);
+    }
+
+    /**
+     * atchFileId를 명시적으로 지정해 파일을 특정 그룹에 귀속시키는 업로드 메서드입니다.
+     *
+     * [추가 이유] 강좌 자료 관리에서 CMMT_ATCH_FILE_DTL.ATCH_FILE_ID에는
+     * CMMT_ATCH_FILE_CL의 PK가 들어가야 합니다(FK 제약조건이 존재합니다).
+     * 강좌마다 파일 그룹을 만들고 그 ID를 COURSE.ATCH_FILE_ID에 저장한 뒤,
+     * 이 메서드를 호출해 해당 그룹 ID로 파일을 저장합니다.
+     *
+     * @param atchFileId CMMT_ATCH_FILE_CL.ATCH_FILE_ID (파일 그룹 PK)
+     */
+    public FileDto uploadFile(MultipartFile file, String userId, int atchFileId) {
         if (file.isEmpty()) {
             throw new FinalProjectException(ErrorCode.FILE_EMPTY);
         }
@@ -125,12 +149,11 @@ public class FileUploadService {
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
             body.add("file", multipartResource(file));
 
-
             StoredFileResponse fileResponse =
                     restClient.post().uri(fileServerPath).contentType(MediaType.MULTIPART_FORM_DATA)
                             .headers(this::relayAuthorizationHeader).body(body).retrieve()
                             .body(StoredFileResponse.class);
-            return insertFileInfoToDatabase(fileResponse, userId);
+            return insertFileInfoToDatabase(fileResponse, userId, atchFileId);
         } catch (RestClientResponseException e) {
             log.error("파일 서버 업로드 실패. status={}, body={}", e.getStatusCode(),
                     e.getResponseBodyAsString(), e);
@@ -142,6 +165,45 @@ public class FileUploadService {
         } catch (IOException e) {
             log.error("파일 처리 중 오류 발생", e);
             throw new FinalProjectException(ErrorCode.FILE_UPLOAD_FAILED, e);
+        }
+    }
+
+    /**
+     * CMMT_ATCH_FILE_CL에 새 파일 그룹 행을 삽입하고 생성된 ID를 반환합니다.
+     *
+     * [추가 이유] CMMT_ATCH_FILE_DTL.ATCH_FILE_ID는 CMMT_ATCH_FILE_CL.ATCH_FILE_ID를
+     * 참조하는 FK이므로, 파일을 저장하기 전에 반드시 그룹 행이 먼저 존재해야 합니다.
+     * CMMT_ATCH_FILE_CL.ATCH_FILE_ID는 IDENTITY 컬럼이 아니어서
+     * SEQ_CMMT_ATCH_FILE_CL 시퀀스로 채번한 뒤 직접 INSERT합니다.
+     *
+     * @return 새로 생성된 CMMT_ATCH_FILE_CL.ATCH_FILE_ID
+     */
+    public int createFileGroup() {
+        int groupId = fileUploadMapper.selectNextFileGroupId();
+        fileUploadMapper.insertFileGroup(groupId);
+        return groupId;
+    }
+
+    /**
+     * 특정 파일 그룹에 속한 파일 목록을 조회합니다 (DEL_YN='N'인 것만).
+     *
+     * [추가 이유] 강좌 자료 관리에서 강좌별 자료 목록을 조회하기 위해 추가했습니다.
+     * groupId = COURSE.ATCH_FILE_ID (강좌에 귀속된 파일 그룹 ID)
+     */
+    public List<FileDto> retrieveFilesByGroupId(int groupId) {
+        return fileUploadMapper.selectFilesByGroupId(groupId);
+    }
+
+    /**
+     * CMMT_ATCH_FILE_DTL 행을 논리 삭제(DEL_YN='Y')합니다.
+     *
+     * [추가 이유] 강좌 자료 관리에서 파일 삭제 기능 구현을 위해 추가했습니다.
+     * 물리 삭제 시 외부 파일 서버의 파일은 그대로 남으므로 논리 삭제 방식을 선택했습니다.
+     */
+    public void removeFile(Integer atchFileDtlSn, String userId) {
+        int result = fileUploadMapper.softDeleteFile(atchFileDtlSn, userId);
+        if (result <= 0) {
+            throw new FinalProjectException(ErrorCode.FILE_INFO_SAVE_FAILED);
         }
     }
 
@@ -175,10 +237,15 @@ public class FileUploadService {
         }
     }
 
-    // 파일 업로드 후 반환되는 객체를 DB에 저장하는 메서드
-    private FileDto insertFileInfoToDatabase(StoredFileResponse fileResponse, String userId) {
+    /**
+     * [변경 이유] 기존에는 atchFileId가 001(=1)로 하드코딩되어 있었습니다.
+     * 강좌 자료 관리 기능에서 파일 그룹 ID를 호출부에서 결정해야 했으므로
+     * atchFileId를 파라미터로 받도록 변경했습니다.
+     * 기존 uploadFile(file, userId) 오버로드는 1을 넘겨 이전 동작을 유지합니다.
+     */
+    private FileDto insertFileInfoToDatabase(StoredFileResponse fileResponse, String userId, int atchFileId) {
 
-        FileDto fileDto = FileDto.builder().atchFileId(001) // 임시값
+        FileDto fileDto = FileDto.builder().atchFileId(atchFileId)
                 .orgnFileNm(fileResponse.originalFilename()).savePathNm(fileResponse.url())
                 .saveFileNm(fileResponse.url()).fileExtNm(fileResponse.contentType())
                 .fileSizeCnt(fileResponse.fileSize()).rgtrId(userId).delYn("N").dwnldCnt(0).build();
