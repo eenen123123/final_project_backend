@@ -116,9 +116,26 @@ public class CustomerServiceController {
     }
 
     @PostMapping("/qna/{postSn}/answer")
-    public String qnaAnswer(@PathVariable Long postSn, QnaDto qnaDto) {
+    public String qnaAnswer(@PathVariable Long postSn, QnaDto qnaDto,
+            Authentication authentication) {
         qnaDto.setPostSn(postSn);
+        qnaDto.setAnswrUserId(authentication.getName());
         qnaService.answerQna(qnaDto);
+        return "redirect:/admin/board/customer-service?tab=tab-qna";
+    }
+
+    @GetMapping("/qna/edit/{postSn}")
+    public String qnaEditForm(@PathVariable Long postSn, Model model) {
+        model.addAttribute("pageTitle", "QnA 답변 수정 | HERMES");
+        model.addAttribute("qna", qnaService.getQnaById(postSn));
+        return "admin:/board/qna/qna_edit";
+    }
+
+    @PostMapping("/qna/edit/{postSn}")
+    public String qnaEdit(@PathVariable Long postSn, QnaDto qnaDto, Authentication authentication) {
+        qnaDto.setPostSn(postSn);
+        qnaDto.setAnswrUserId(authentication.getName());
+        qnaService.answerQna(qnaDto); // 기존 메서드 재사용
         return "redirect:/admin/board/customer-service?tab=tab-qna";
     }
 

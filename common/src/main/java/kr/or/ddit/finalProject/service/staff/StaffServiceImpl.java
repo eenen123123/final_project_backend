@@ -46,7 +46,7 @@ public class StaffServiceImpl implements StaffService{
 
     // 직원 등록, 직원 정보 저장, 직원 급여 정보 저장
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = Exception.class) // 예외 발생시 롤백
     public void registerEmployee(MemberDto memberDto, EmployeeInfoDto employeeInfoDto, EmployeeSalaryDto employeeSalaryDto, MultipartFile profileImage, String loginAdminId) {
 
         // 1. ROLE 및 기본 프로필 설정
@@ -137,6 +137,12 @@ public class StaffServiceImpl implements StaffService{
     @Override
     public List<EmployeeDetailDto> retrieveEmployeeList() {
         return staffMapper.selectEmployeeList();
+    }
+
+    // 입사 연도 목록 조회
+    @Override
+    public List<Integer> retrieveJoinYearList() {
+        return staffMapper.selectJoinYearList();
     }
 
     // 아이디 중복 자동 순번 발급 및 중복 회피

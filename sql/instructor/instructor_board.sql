@@ -1,3 +1,19 @@
-alter table instructor_board add use_yn char(1) default 'Y' not null;
--- 기존 데이터는 DEFAULT 'Y'로 자동 설정됨
-commit;
+-- USE_YN 컬럼 추가 (기존 데이터는 DEFAULT 'Y' 로 자동 설정)
+ALTER TABLE INSTRUCTOR_BOARD ADD USE_YN CHAR(1) DEFAULT 'Y' NOT NULL;
+
+-- POST_CN 컬럼을 VARCHAR2(4000) → CLOB 으로 변경
+-- Oracle은 VARCHAR2 → CLOB 직접 MODIFY 불가하므로 아래 4단계로 처리
+-- 1) CLOB 타입 임시 컬럼 추가
+ALTER TABLE INSTRUCTOR_BOARD ADD POST_CN_CLOB CLOB;
+
+-- 2) 기존 데이터 복사
+UPDATE INSTRUCTOR_BOARD SET POST_CN_CLOB = POST_CN;
+COMMIT;
+
+-- 3) 기존 VARCHAR2 컬럼 삭제
+ALTER TABLE INSTRUCTOR_BOARD DROP COLUMN POST_CN;
+
+-- 4) 임시 컬럼 이름을 원래 이름으로 변경
+ALTER TABLE INSTRUCTOR_BOARD RENAME COLUMN POST_CN_CLOB TO POST_CN;
+
+COMMIT;

@@ -137,3 +137,73 @@ function closeNoticeModal() {
   modal.classList.add("hidden");
   modal.classList.remove("flex");
 }
+// ── QnA 모달 ──────────────────────────────────────────────
+function openQnaModal(tr) {
+  const d = tr.dataset;
+  document.getElementById("qna-modal-ctgnm").textContent = d.ctgnm;
+  document.getElementById("qna-modal-title").textContent = d.title;
+  document.getElementById("qna-modal-content").textContent = d.postcn;
+  document.getElementById("qna-modal-writer").textContent = d.wrtruserid;
+  document.getElementById("qna-modal-regdt").textContent = d.regdt;
+
+  // 비공개 여부
+  document
+    .getElementById("qna-modal-secr")
+    .classList.toggle("hidden", d.secr !== "Y");
+
+  // 답변 상태
+  document
+    .getElementById("qna-modal-stat-wait")
+    .classList.toggle("hidden", d.answstatcd !== "01");
+  document
+    .getElementById("qna-modal-stat-done")
+    .classList.toggle("hidden", d.answstatcd !== "02");
+
+  // 답변 완료 - 내용 표시
+  const answerArea = document.getElementById("qna-modal-answer-area");
+  if (d.answstatcd === "02" && d.answcn) {
+    answerArea.classList.remove("hidden");
+    document.getElementById("qna-modal-answcn").textContent = d.answcn;
+    document.getElementById("qna-modal-answdt").textContent =
+      d.answdt?.slice(0, 10) ?? "";
+  } else {
+    answerArea.classList.add("hidden");
+  }
+
+  // 답변 폼 처리
+  const answerForm = document.getElementById("qna-modal-answer-form");
+
+  if (d.answstatcd === "01") {
+    // 답변대기 → 모달에서 답변 입력
+    answerForm.classList.remove("hidden");
+    document.getElementById("qna-answer-form").action =
+      "/admin/board/qna/" + d.postsn + "/answer";
+    document.getElementById("qna-modal-answer-input").value = "";
+  } else {
+    // 답변완료 → 폼 숨김
+    answerForm.classList.add("hidden");
+  }
+
+  // 수정 버튼 처리 (답변완료일 때만 노출)
+  const editBtn = document.getElementById("qna-modal-edit-btn");
+  if (d.answstatcd === "02") {
+    editBtn.href = "/admin/board/qna/edit/" + d.postsn;
+    editBtn.classList.remove("hidden");
+  } else {
+    editBtn.classList.add("hidden");
+  }
+
+  // 삭제 폼
+  document.getElementById("qna-modal-delete-form").action =
+    "/admin/board/qna/delete/" + d.postsn;
+
+  const modal = document.getElementById("qna-modal");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+function closeQnaModal() {
+  const modal = document.getElementById("qna-modal");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
