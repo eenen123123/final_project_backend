@@ -79,6 +79,11 @@ public enum ErrorCode {
 
     CANNOT_CANCEL_APPROVAL(HttpStatus.BAD_REQUEST, "결재 문서를 취소할 수 없습니다."),
 
+    CANNOT_APPROVE_APPROVAL(HttpStatus.BAD_REQUEST, "결재 문서를 승인할 수 없습니다."),
+
+    FAILED_TO_APPROVE_APPROVAL(HttpStatus.INTERNAL_SERVER_ERROR, "결재 승인 처리에 실패했습니다."),
+
+
     // 결제 관련
 
     // KAKAO

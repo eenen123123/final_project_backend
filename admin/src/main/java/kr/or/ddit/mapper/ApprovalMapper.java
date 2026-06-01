@@ -23,6 +23,8 @@ public interface ApprovalMapper {
 
     List<ApprovalLineDto> selectMyPendingLines(String userId);
 
+    List<ApprovalLineDto> selectMyProcessedLines(String userId);
+
     List<ApprovalLineDto> selectApprovalLinesByUserId(String userId);
 
     ApprovalMasterDto selectApprovalMasterByDocSn(Long aprvlDocSn);
@@ -36,4 +38,6 @@ public interface ApprovalMapper {
 
     int deleteApprovalMaster(@Param("aprvlDocSn") Long aprvlDocSn,
             @Param("aprvl_status") String aprvlStatus);
+
+    int updateApprovalLine(ApprovalLineDto myLine);
 }

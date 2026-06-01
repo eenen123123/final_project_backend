@@ -167,6 +167,13 @@
           >0</span
         >
       </button>
+      <button
+        class="ap-tab-btn px-4 py-2.5 text-sm"
+        data-tab="tab-processed"
+        onclick="switchTab('tab-processed', this)"
+      >
+        <i class="fa-solid fa-clock-rotate-left mr-1.5"></i>처리한 결재
+      </button>
     </div>
 
     <!-- ── 탭 1: 내 기안 목록 ── -->
@@ -342,6 +349,43 @@
         >
           임시저장된 문서가 없습니다.
         </div>
+      </div>
+    </div>
+    <!-- ── 탭 4: 처리한 결재 ── -->
+    <div id="tab-processed" class="ap-tab-panel p-5">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-100">
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">문서 제목</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">문서 양식</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">기안자</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">처리일시</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">처리결과</th>
+              <th class="py-2 px-3"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="line : ${myProcessedLines}" class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+              <td class="py-3 px-3 font-medium text-slate-800" th:text="${line.doc.aprvlDocSj}">문서 제목</td>
+              <td class="py-3 px-3 text-xs text-slate-500" th:text="${line.doc.tmplCd}">양식</td>
+              <td class="py-3 px-3 text-sm text-slate-500" th:text="${line.doc.drftUserId}">기안자</td>
+              <td class="py-3 px-3 text-sm text-slate-500 whitespace-nowrap" th:text="${#temporals.format(line.aprvlDt, 'yyyy-MM-dd HH:mm')}">-</td>
+              <td class="py-3 px-3">
+                <span th:if="${line.aprvlPrgrsCd.name() == 'APPROVED'}" class="px-2.5 py-0.5 rounded-full text-xs font-bold status-approved">승인</span>
+                <span th:if="${line.aprvlPrgrsCd.name() == 'REJECTED'}" class="px-2.5 py-0.5 rounded-full text-xs font-bold status-rejected">반려</span>
+              </td>
+              <td class="py-3 px-3">
+                <a th:href="@{/admin/approval/{sn}(sn=${line.doc.aprvlDocSn})}" class="text-violet-500 hover:text-violet-700 text-xs font-semibold">
+                  <i class="fa-solid fa-eye"></i> 보기
+                </a>
+              </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(myProcessedLines)}">
+              <td colspan="6" class="py-10 text-center text-slate-300 text-sm">처리한 결재 내역이 없습니다.</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>

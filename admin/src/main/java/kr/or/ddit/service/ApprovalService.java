@@ -111,6 +111,7 @@ public class ApprovalService {
     public Map<String, Object> getApprovalDashboard(String userId) {
         List<ApprovalMasterDto> myDocs = approvalMapper.selectMyDocs(userId);
         List<ApprovalLineDto> myPendingLines = approvalMapper.selectMyPendingLines(userId);
+        List<ApprovalLineDto> myProcessedLines = approvalMapper.selectMyProcessedLines(userId);
 
         List<ApprovalMasterDto> draftDocs = myDocs.stream()
                 .filter(d -> ApprovalDocProgressEnum.DRAFT.equals(d.getAprvlPrgrsCd()))
@@ -129,6 +130,7 @@ public class ApprovalService {
                 .filter(d -> ApprovalDocProgressEnum.REJECTED.equals(d.getAprvlPrgrsCd())).count());
         data.put("myApprovalCount", myPendingLines.size());
         data.put("draftCount", draftDocs.size());
+        data.put("myProcessedLines", myProcessedLines);
         return data;
     }
 
@@ -275,5 +277,60 @@ public class ApprovalService {
                 throw new FinalProjectException(ErrorCode.APPROVAL_DELETE_FAILED);
             }
         }
+    }
+
+    @Transactional
+    public void approveApproval(String name, Long aprvlDocSn, String aprvlRsnCn) {
+        ApprovalMasterDto master = approvalMapper.selectApprovalMasterByDocSn(aprvlDocSn);
+        if (master == null) {
+            throw new FinalProjectException(ErrorCode.APPROVAL_NOT_FOUND);
+        }
+
+        if (!ApprovalDocProgressEnum.PENDING.equals(master.getAprvlPrgrsCd())) {
+            throw new FinalProjectException(ErrorCode.CANNOT_APPROVE_APPROVAL);
+        }
+
+        List<ApprovalLineDto> lines = approvalMapper.selectApprovalLinesByDocSn(aprvlDocSn);
+
+        ApprovalLineDto myLine = lines.stream()
+                .filter(line -> line.getAprvrUserId().equals(name)
+                        && ApprovalLineProgressEnum.IN_PROGRESS.equals(line.getAprvlPrgrsCd()))
+                .findFirst().orElse(null);
+
+        if (myLine == null) {
+            throw new FinalProjectException(ErrorCode.CANNOT_APPROVE_APPROVAL);
+        }
+
+        // 현재 결재선을 승인으로 변경
+        myLine.setAprvlPrgrsCd(ApprovalLineProgressEnum.APPROVED);
+        myLine.setAprvlRsnCn(aprvlRsnCn);
+        int result = approvalMapper.updateApprovalLine(myLine);
+        if (result == 0) {
+            throw new FinalProjectException(ErrorCode.FAILED_TO_APPROVE_APPROVAL);
+        }
+
+        // 다음 결재선이 있다면, 다음 결재선을 진행중으로 변경
+        for (int i = 0; i < lines.size(); i++) {
+            if (lines.get(i).getAprvlLineSn().equals(myLine.getAprvlLineSn())) {
+                if (i + 1 < lines.size()) {
+                    ApprovalLineDto nextLine = lines.get(i + 1);
+                    nextLine.setAprvlPrgrsCd(ApprovalLineProgressEnum.IN_PROGRESS);
+                    int resultNext = approvalMapper.updateApprovalLine(nextLine);
+                    if (resultNext == 0) {
+                        throw new FinalProjectException(ErrorCode.FAILED_TO_APPROVE_APPROVAL);
+                    }
+                } else {
+                    // 더 이상 결재선이 없으면, 문서 상태를 승인으로 변경
+                    master.setAprvlPrgrsCd(ApprovalDocProgressEnum.APPROVED);
+                    int resultMaster = approvalMapper.updateApprovalMaster(master);
+                    if (resultMaster == 0) {
+                        throw new FinalProjectException(ErrorCode.FAILED_TO_APPROVE_APPROVAL);
+                    }
+                }
+                break;
+            }
+        }
+
+
     }
 }
