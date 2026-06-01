@@ -9,7 +9,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(of = "curriculumId")
 @Data
-public class CurriculumMasterDto {
+public class CurriculumDto {
 
     @NotNull
     private Long curriculumId;

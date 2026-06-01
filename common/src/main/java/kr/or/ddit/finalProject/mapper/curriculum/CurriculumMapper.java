@@ -5,19 +5,19 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import kr.or.ddit.finalProject.dto.curriculum.CurriculumMasterDto;
+import kr.or.ddit.finalProject.dto.curriculum.CurriculumDto;
 
 @Mapper
 public interface CurriculumMapper {
 
-    List<CurriculumMasterDto> selectMasterList(@Param("instructorId") String instructorId);
+    List<CurriculumDto> selectList(@Param("instructorId") String instructorId);
 
-    CurriculumMasterDto selectMasterById(@Param("curriculumId") Long curriculumId);
+    CurriculumDto selectById(@Param("curriculumId") Long curriculumId);
 
-    int insertMaster(CurriculumMasterDto masterDto);
+    int insert(CurriculumDto curriculumDto);
 
-    int updateMaster(CurriculumMasterDto masterDto);
+    int update(CurriculumDto curriculumDto);
 
-    int deleteMasterLogically(@Param("curriculumId") Long curriculumId,
+    int deleteLogically(@Param("curriculumId") Long curriculumId,
             @Param("lastMdfrId") String lastMdfrId);
 }

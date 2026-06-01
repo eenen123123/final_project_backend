@@ -5,7 +5,7 @@
 
 <mapper namespace="kr.or.ddit.finalProject.mapper.curriculum.CurriculumMapper">
 
-  <resultMap id="curriculumMasterMap" type="kr.or.ddit.finalProject.dto.curriculum.CurriculumMasterDto">
+  <resultMap id="curriculumMap" type="kr.or.ddit.finalProject.dto.curriculum.CurriculumDto">
     <id property="curriculumId" column="CURRICULUM_ID" />
     <result property="title" column="TITLE" />
     <result property="instructorId" column="INSTRUCTOR_ID" />
@@ -16,7 +16,7 @@
     <result property="mdfcnDt" column="MDFCN_DT" />
   </resultMap>
 
-  <select id="selectMasterList" resultMap="curriculumMasterMap">
+  <select id="selectList" resultMap="curriculumMap">
     SELECT
       CURRICULUM_ID, TITLE, INSTRUCTOR_ID, USE_YN,
       RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
@@ -26,7 +26,7 @@
     ORDER BY REG_DT DESC
   </select>
 
-  <select id="selectMasterById" resultMap="curriculumMasterMap">
+  <select id="selectById" resultMap="curriculumMap">
     SELECT
       CURRICULUM_ID, TITLE, INSTRUCTOR_ID, USE_YN,
       RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
@@ -34,7 +34,7 @@
     WHERE CURRICULUM_ID = #{curriculumId}
   </select>
 
-  <insert id="insertMaster" parameterType="kr.or.ddit.finalProject.dto.curriculum.CurriculumMasterDto">
+  <insert id="insert" parameterType="kr.or.ddit.finalProject.dto.curriculum.CurriculumDto">
     <selectKey keyProperty="curriculumId" resultType="long" order="BEFORE">
       SELECT SEQ_CURRICULUM_MASTER.NEXTVAL FROM DUAL
     </selectKey>
@@ -47,13 +47,13 @@
     )
   </insert>
 
-  <update id="updateMaster" parameterType="kr.or.ddit.finalProject.dto.curriculum.CurriculumMasterDto">
+  <update id="update" parameterType="kr.or.ddit.finalProject.dto.curriculum.CurriculumDto">
     UPDATE CURRICULUM
     SET TITLE = #{title}, LAST_MDFR_ID = #{lastMdfrId}, MDFCN_DT = SYSDATE
     WHERE CURRICULUM_ID = #{curriculumId}
   </update>
 
-  <update id="deleteMasterLogically">
+  <update id="deleteLogically">
     UPDATE CURRICULUM
     SET USE_YN = 'N', LAST_MDFR_ID = #{lastMdfrId}, MDFCN_DT = SYSDATE
     WHERE CURRICULUM_ID = #{curriculumId}
