@@ -37,7 +37,7 @@
             <input type="text" id="faq-search" placeholder="제목 검색..." class="hm-input pr-9" style="width: 300px;"
               onkeydown="if(event.key==='Enter') filterFaq()" />
             <button onclick="filterFaq()"
-              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 transition-colors">
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 transition-colors cursor-pointer">
               <i class="fa-solid fa-magnifying-glass text-sm"></i>
             </button>
           </div>
@@ -94,7 +94,8 @@
                   <span class="text-slate-300 text-xs">|</span>
                   <form th:action="@{/admin/board/faq/delete/{postSn}(postSn=${faq.postSn})}" method="post"
                     onsubmit="return confirm('삭제하시겠습니까?')" class="m-0 p-0 flex">
-                    <button type="submit" class="text-xs text-red-500 font-semibold hover:underline">삭제</button>
+                    <button type="submit"
+                      class="text-xs text-red-500 font-semibold hover:underline cursor-pointer">삭제</button>
                   </form>
                 </div>
               </td>
@@ -120,7 +121,8 @@
             <span id="modal-best"
               class="hidden text-[10px] bg-blue-600 text-white font-bold px-1.5 py-0.5 rounded">BEST</span>
           </div>
-          <button onclick="closeFaqModal()" class="text-slate-400 hover:text-slate-700 transition-colors">
+          <button onclick="closeFaqModal()"
+            class="text-slate-400 hover:text-slate-700 transition-colors cursor-pointer">
             <i class="fa-solid fa-xmark text-lg"></i>
           </button>
         </div>
@@ -141,9 +143,7 @@
             </a>
             <form id="modal-delete-form" method="post" onsubmit="return confirm('삭제하시겠습니까?')" class="m-0">
               <button type="submit"
-                class="px-4 py-2 text-xs font-semibold text-red-500 border border-red-200 rounded-xl hover:bg-red-50 transition-colors">
-                삭제
-              </button>
+                class="px-4 py-2 text-xs font-semibold text-red-500 border border-red-200 rounded-xl hover:bg-red-50 transition-colors cursor-pointer">삭제</button>
             </form>
           </div>
         </div>
@@ -164,7 +164,7 @@
             <input type="text" id="notice-search" placeholder="제목 검색..." class="hm-input pr-9" style="width: 300px;"
               onkeydown="if(event.key==='Enter') filterNotice()" />
             <button onclick="filterNotice()"
-              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 transition-colors">
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 transition-colors cursor-pointer">
               <i class="fa-solid fa-magnifying-glass text-sm"></i>
             </button>
           </div>
@@ -224,7 +224,8 @@
                   <span class="text-slate-300 text-xs">|</span>
                   <form th:action="@{/admin/board/notice/delete/{postSn}(postSn=${notice.postSn})}" method="post"
                     onsubmit="return confirm('삭제하시겠습니까?')" class="m-0 p-0 flex">
-                    <button type="submit" class="text-xs text-red-500 font-semibold hover:underline">삭제</button>
+                    <button type="submit"
+                      class="text-xs text-red-500 font-semibold hover:underline cursor-pointer">삭제</button>
                   </form>
                 </div>
               </td>
@@ -249,7 +250,8 @@
             <span id="notice-modal-popup"
               class="hidden text-xs bg-violet-50 text-violet-600 font-semibold px-2 py-0.5 rounded-full">팝업노출</span>
           </div>
-          <button onclick="closeNoticeModal()" class="text-slate-400 hover:text-slate-700 transition-colors">
+          <button onclick="closeNoticeModal()"
+            class="text-slate-400 hover:text-slate-700 transition-colors cursor-pointer">
             <i class="fa-solid fa-xmark text-lg"></i>
           </button>
         </div>
@@ -270,9 +272,7 @@
             </a>
             <form id="notice-modal-delete-form" method="post" onsubmit="return confirm('삭제하시겠습니까?')" class="m-0">
               <button type="submit"
-                class="px-4 py-2 text-xs font-semibold text-red-500 border border-red-200 rounded-xl hover:bg-red-50 transition-colors">
-                삭제
-              </button>
+                class="px-4 py-2 text-xs font-semibold text-red-500 border border-red-200 rounded-xl hover:bg-red-50 transition-colors cursor-pointer">삭제</button>
             </form>
           </div>
         </div>
@@ -297,7 +297,7 @@
           <input type="text" id="qna-search" placeholder="제목 검색..." class="hm-input pr-9" style="width: 300px;"
             onkeydown="if(event.key==='Enter') filterQna()" />
           <button onclick="filterQna()"
-            class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 transition-colors">
+            class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 transition-colors cursor-pointer">
             <i class="fa-solid fa-magnifying-glass text-sm"></i>
           </button>
         </div>
@@ -379,7 +379,8 @@
             <span id="qna-modal-stat-done"
               class="hidden text-xs bg-emerald-50 text-emerald-600 font-semibold px-2 py-0.5 rounded-full">답변완료</span>
           </div>
-          <button onclick="closeQnaModal()" class="text-slate-400 hover:text-slate-700 transition-colors">
+          <button onclick="closeQnaModal()"
+            class="text-slate-400 hover:text-slate-700 transition-colors cursor-pointer">
             <i class="fa-solid fa-xmark text-lg"></i>
           </button>
         </div>
@@ -404,10 +405,14 @@
           <form id="qna-answer-form" method="post">
             <label class="block text-xs font-semibold text-slate-700 mb-1.5">답변 내용</label>
             <textarea id="qna-modal-answer-input" name="answCn" rows="5" placeholder="답변 내용을 입력하세요."
-              class="w-full hm-input resize-none mb-3"></textarea>
+              class="w-full hm-input resize-none mb-3" required oninvalid="this.setCustomValidity('답변 내용을 입력해주세요.')"
+              oninput="this.setCustomValidity('')"></textarea>
+            <div class="flex justify-end">
+              <button type="submit" class="hm-btn-primary text-sm cursor-pointer">답변 등록</button>
+            </div>
           </form>
         </div>
-        
+
         <!-- 하단 정보 + 버튼 -->
         <div class="flex items-center justify-between">
           <div class="text-xs text-slate-400">
@@ -416,18 +421,21 @@
             등록일: <span id="qna-modal-regdt"></span>
           </div>
           <div class="flex gap-2">
-            <button id="qna-modal-answer-submit" type="button" onclick="document.getElementById('qna-answer-form').submit()"
-              class="hidden hm-btn-primary text-sm">
-              답변 등록
-            </button>
+            <!-- 답변완료일 때만 수정 버튼 노출 -->
+            <a id="qna-modal-edit-btn" href="#"
+              class="hidden px-4 py-2 text-xs font-semibold text-violet-600 border border-violet-200 rounded-xl hover:bg-violet-50 transition-colors"
+              onclick="return confirm('수정 페이지로 이동하시겠습니까?')">
+              수정
+            </a>
             <form id="qna-modal-delete-form" method="post" onsubmit="return confirm('삭제하시겠습니까?')" class="m-0">
               <button type="submit"
-                class="px-4 py-2 text-xs font-semibold text-red-500 border border-red-200 rounded-xl hover:bg-red-50 transition-colors">
-                삭제
-              </button>
+                class="px-4 py-2 text-xs font-semibold text-red-500 border border-red-200 rounded-xl hover:bg-red-50 transition-colors cursor-pointer">삭제</button>
             </form>
           </div>
         </div>
+
+      </div>
+    </div>
 
   </div>
 </div>

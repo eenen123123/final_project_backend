@@ -1,0 +1,96 @@
+<div>
+  <!-- 페이지 헤더 -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-xl font-bold text-slate-800">QnA 답변 수정</h1>
+      <p class="text-sm text-slate-500 mt-0.5">답변 내용과 답변 상태를 수정합니다.</p>
+    </div>
+    <a href="/admin/board/customer-service?tab=tab-qna" class="text-sm text-slate-500 hover:text-slate-700 font-semibold">
+      <i class="fa-solid fa-arrow-left mr-1"></i> 목록으로
+    </a>
+  </div>
+
+  <!-- 수정 폼 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-8">
+    <form th:action="@{/admin/board/qna/edit/{postSn}(postSn=${qna.postSn})}" method="post"
+      onsubmit="return confirm('변경사항을 저장하시겠습니까?')">
+
+      <!-- 질문 정보 (읽기 전용) -->
+      <div class="mb-6 pb-6 border-b border-slate-100">
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">질문 정보</p>
+
+        <div class="grid grid-cols-2 gap-6 mb-6">
+          <!-- 카테고리 -->
+          <div>
+            <label class="text-xs font-semibold text-slate-600 mb-1.5 block">카테고리</label>
+            <input type="text" class="hm-input bg-slate-50"
+                   th:value="${qna.qnaCtgNm}" readonly />
+          </div>
+
+          <!-- 답변 상태 -->
+          <div>
+            <label class="text-xs font-semibold text-slate-600 mb-1.5 block">답변 상태 <span class="text-red-400">*</span></label>
+            <select name="answStatCd" class="hm-input">
+              <option value="01" th:selected="${qna.answStatCd == '01'}">답변대기</option>
+              <option value="02" th:selected="${qna.answStatCd == '02'}">답변완료</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6 mb-6">
+          <!-- 작성자 -->
+          <div>
+            <label class="text-xs font-semibold text-slate-600 mb-1.5 block">작성자</label>
+            <input type="text" class="hm-input bg-slate-50"
+                   th:value="${qna.wrtrUserId}" readonly />
+          </div>
+
+          <!-- 등록일 -->
+          <div>
+            <label class="text-xs font-semibold text-slate-600 mb-1.5 block">등록일</label>
+            <input type="text" class="hm-input bg-slate-50"
+                   th:value="${#temporals.format(qna.regDt, 'yyyy-MM-dd')}" readonly />
+          </div>
+        </div>
+
+        <!-- 질문 제목 -->
+        <div class="mb-6">
+          <label class="text-xs font-semibold text-slate-600 mb-1.5 block">질문 제목</label>
+          <input type="text" class="hm-input bg-slate-50"
+                 th:value="${qna.postSj}" readonly />
+        </div>
+
+        <!-- 질문 내용 -->
+        <div>
+          <label class="text-xs font-semibold text-slate-600 mb-1.5 block">질문 내용</label>
+          <textarea rows="5" class="hm-input bg-slate-50 resize-none"
+                    th:text="${qna.postCn}" readonly></textarea>
+        </div>
+      </div>
+
+      <!-- 답변 내용 (수정 가능) -->
+      <div class="mt-6 mb-8">
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">답변 작성</p>
+        <label class="text-xs font-semibold text-slate-600 mb-1.5 block">
+          답변 내용 <span class="text-red-400">*</span>
+        </label>
+        <textarea name="answCn" rows="10"
+                  placeholder="답변 내용을 입력하세요."
+                  class="hm-input resize-none"
+                  th:text="${qna.answCn}" required></textarea>
+      </div>
+
+      <!-- 버튼 -->
+      <div class="flex justify-center gap-3">
+        <a href="/admin/board/customer-service?tab=tab-qna" onclick="return confirm('변경사항은 저장되지 않습니다.\n취소하시겠습니까?')"
+          class="px-6 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer">
+          취소
+        </a>
+        <button type="submit" class="hm-btn-primary px-8 py-2.5 cursor-pointer">
+          수정 완료
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

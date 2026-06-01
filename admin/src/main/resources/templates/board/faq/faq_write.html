@@ -12,7 +12,7 @@
 
   <!-- 등록 폼 -->
   <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-8">
-    <form action="/admin/board/faq/write" method="post">
+    <form action="/admin/board/faq/write" method="post" onsubmit="return confirm('FAQ를 등록하시겠습니까?')">
 
       <div class="grid grid-cols-2 gap-6 mb-6">
         <!-- 대분류 -->
@@ -79,11 +79,11 @@
 
       <!-- 버튼 -->
       <div class="flex justify-center gap-3">
-      <a href="/admin/board/customer-service"
-        class="px-6 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
-        취소
-      </a>
-        <button type="submit" class="hm-btn-primary px-8 py-2.5">
+        <a href="/admin/board/customer-service?tab=tab-faq" onclick="return confirm('작성한 내용이 모두 사라집니다.\n취소하시겠습니까?')"
+          class="px-6 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer">
+          취소
+        </a>
+        <button type="submit" class="hm-btn-primary px-8 py-2.5 cursor-pointer">
           등록
         </button>
       </div>

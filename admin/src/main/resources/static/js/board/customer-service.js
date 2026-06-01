@@ -172,21 +172,28 @@ function openQnaModal(tr) {
 
   // 답변 폼 처리
   const answerForm = document.getElementById("qna-modal-answer-form");
-  const answerFormEl = document.getElementById("qna-answer-form");
-  const answerSubmit = document.getElementById("qna-modal-answer-submit");
-
-  answerForm.classList.remove("hidden");
-  answerSubmit.classList.remove("hidden");
-  answerFormEl.action = "/admin/board/qna/" + d.postsn + "/answer";
 
   if (d.answstatcd === "01") {
-    answerSubmit.textContent = "답변 등록";
+    // 답변대기 → 모달에서 답변 입력
+    answerForm.classList.remove("hidden");
+    document.getElementById("qna-answer-form").action =
+      "/admin/board/qna/" + d.postsn + "/answer";
     document.getElementById("qna-modal-answer-input").value = "";
   } else {
-    answerSubmit.textContent = "답변 수정";
-    document.getElementById("qna-modal-answer-input").value = d.answcn ?? "";
+    // 답변완료 → 폼 숨김
+    answerForm.classList.add("hidden");
   }
 
+  // 수정 버튼 처리 (답변완료일 때만 노출)
+  const editBtn = document.getElementById("qna-modal-edit-btn");
+  if (d.answstatcd === "02") {
+    editBtn.href = "/admin/board/qna/edit/" + d.postsn;
+    editBtn.classList.remove("hidden");
+  } else {
+    editBtn.classList.add("hidden");
+  }
+
+  // 삭제 폼
   document.getElementById("qna-modal-delete-form").action =
     "/admin/board/qna/delete/" + d.postsn;
 
