@@ -175,14 +175,21 @@
             /* 직급명 */
             j.JBGR_NM,
 
-            /* 현재 적용 중인 급여 (USE_YN = 'Y') */
+            /* 재직/휴직: 현재 급여(USE_YN='Y'), 퇴사자: 마지막으로 받은 급여 */
             es.BASE_SALARY
         FROM
             MEMBER m
         LEFT JOIN EMPLOYEE_INFO ei ON m.USER_ID = ei.USER_ID
         LEFT JOIN DEPARTMENT d ON ei.DEPT_CD = d.DEPT_CD
         LEFT JOIN JOB_GRADE j ON ei.JBGR_CD = j.JBGR_CD
-        LEFT JOIN EMPLOYEE_SALARY es ON m.USER_ID = es.USER_ID AND es.USE_YN = 'Y'
+        LEFT JOIN EMPLOYEE_SALARY es ON m.USER_ID = es.USER_ID
+            AND (
+                (NVL(ei.EMPL_STAT_CD, '01') != '03' AND es.USE_YN = 'Y')
+                OR
+                (ei.EMPL_STAT_CD = '03' AND es.APPLY_YMD = (
+                    SELECT MAX(APPLY_YMD) FROM EMPLOYEE_SALARY WHERE USER_ID = m.USER_ID
+                ))
+            )
         WHERE m.USER_ROLE = 'ROLE_ADMIN'
         ORDER BY m.USER_ID
     </select>
