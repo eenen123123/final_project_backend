@@ -3,6 +3,7 @@ package kr.or.ddit.finalProject.mapper;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import kr.or.ddit.finalProject.dto.employee.DepartmentDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeDetailDto;
@@ -52,5 +53,12 @@ public interface StaffMapper {
     // 현재 적용 급여를 비활성화 (USE_YN = 'N')
     void deactivateCurrentSalary(String userId);
 
-    // 직원 퇴사 
+    // 퇴사 처리: MEMBER.ENABLE = 'N'
+    int updateMemberDisabled(String userId);
+
+    // 퇴사 처리: EMPLOYEE_INFO 상태, 퇴사일, 퇴사사유 변경
+    int updateEmployeeRetired(@Param("userId") String userId, @Param("retmtRsn") String retmtRsn, @Param("loginUserId") String loginUserId);
+
+    // 퇴사 처리: EMPLOYEE_SALARY 현재 급여 비활성화
+    int updateEmployeeSalaryInactive(@Param("userId") String userId, @Param("loginUserId") String loginUserId);
 }

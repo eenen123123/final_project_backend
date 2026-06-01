@@ -252,4 +252,45 @@ public class StaffServiceImpl implements StaffService{
         }
     }
 
+    /**
+     * 직원 퇴사 처리 (MEMBER + EMPLOYEE_INFO + EMPLOYEE_SALARY 비활성화)
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void retireEmployee(String userId, String retmtRsn, String loginUserId) {
+        if (userId == null || userId.isBlank()) {
+            throw new FinalProjectException(ErrorCode.BAD_REQUEST);
+        }
+        if (retmtRsn == null || retmtRsn.isBlank() || retmtRsn.length() > 1000) {
+            throw new FinalProjectException(ErrorCode.BAD_REQUEST);
+        }
+
+        try {
+            // MEMBER.ENABLE = 'N'
+            int memberResult = staffMapper.updateMemberDisabled(userId);
+            if (memberResult != 1) {
+                // 이미 퇴사된 직원
+                throw new FinalProjectException(ErrorCode.EMPLOYEE_ALREADY_RETIRED);
+            }
+
+            int infoResult = staffMapper.updateEmployeeRetired(userId, retmtRsn, loginUserId);
+            if (infoResult != 1) {
+                // 이미 퇴사된 직원
+                throw new FinalProjectException(ErrorCode.EMPLOYEE_ALREADY_RETIRED);
+            }
+
+            int salaryResult = staffMapper.updateEmployeeSalaryInactive(userId, loginUserId);
+            if (salaryResult > 1) {
+                // 직원 퇴사 처리 실패
+                throw new FinalProjectException(ErrorCode.EMPLOYEE_RETIRE_FAILED);
+            }
+
+            log.info("[retirEmployee] 퇴사 처리 완료. userId={}", userId);
+        } catch (DataAccessException e) {
+            log.error("[retireEmployee] DB 처리 실패. userId={}, cause={}", userId, e.getMessage());
+            throw new FinalProjectException(ErrorCode.EMPLOYEE_RETIRE_FAILED, e);
+        }
+
+    }
+
 }

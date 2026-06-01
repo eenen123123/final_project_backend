@@ -33,4 +33,7 @@ public interface  StaffService {
 
     // 직원 계정 수정 (MEMBER + EMPLOYEE_INFO + EMPLOYEE_SALARY 트랜잭션)
     void updateEmployee(MemberDto memberDto, EmployeeInfoDto employeeInfoDto, EmployeeSalaryDto employeeSalaryDto, String loginAdminId);
+
+    // 직원 퇴사 처리 (MEMBER + EMPLOYEE_INFO + EMPLOYEE_SALARY 비활성화)
+    void retireEmployee(String userId, String retmtRsn, String loginUserId);
 }

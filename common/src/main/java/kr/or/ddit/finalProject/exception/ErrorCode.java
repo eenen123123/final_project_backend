@@ -80,7 +80,10 @@ public enum ErrorCode {
     
     // 직원 관련
     EMPLOYEE_REGISTER_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "직원 등록에 실패했습니다."),
-    EMPLOYEE_ID_GENERATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "직원 ID 생성에 실패했습니다."),;
+    EMPLOYEE_ID_GENERATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "직원 ID 생성에 실패했습니다."),
+    EMPLOYEE_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "직원 정보 수정에 실패했습니다."),
+    EMPLOYEE_RETIRE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "직원 퇴사 처리에 실패했습니다."),
+    EMPLOYEE_ALREADY_RETIRED(HttpStatus.BAD_REQUEST, "이미 퇴사 처리된 직원입니다.");
 
     // =============================
 

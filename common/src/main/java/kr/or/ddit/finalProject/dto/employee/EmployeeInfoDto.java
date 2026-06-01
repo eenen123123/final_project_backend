@@ -25,6 +25,7 @@ public class EmployeeInfoDto implements Serializable {
     private LocalDate joinYmd; // 실제 출근 시작 날짜 (시/분/초 제외)
 
     private LocalDateTime retmtYmd;
+    private String retmtRsn; // 퇴사 사유 (최대 1000자)
     private String emplStatCd; // 재직,휴직,퇴사 등 상태값 (01:재직 02:휴직 03:퇴사)
     private String atchFileId; // 공통첨부파일분류
     private String chrgDutyCn;
