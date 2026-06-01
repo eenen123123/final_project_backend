@@ -1,0 +1,114 @@
+<div class="doc-wrap">
+<style>
+  .doc-wrap { font-family: '맑은 고딕', 'Malgun Gothic', dotum, sans-serif; font-size: 13px; color: #000; }
+  .doc-title { text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 4px; margin: 4px 0 16px; }
+  .doc-table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
+  .doc-table th, .doc-table td { border: 1px solid #000; padding: 5px 8px; vertical-align: middle; }
+  .th { background: #ddd; font-weight: bold; text-align: center; white-space: nowrap; }
+  .doc-input { width: 100%; border: none; outline: none; background: transparent; font-family: inherit; font-size: 13px; }
+  .doc-textarea { width: 100%; border: none; outline: none; background: transparent; font-family: inherit; font-size: 13px; resize: vertical; min-height: 60px; }
+  .btn-sm { padding: 2px 8px; font-size: 12px; cursor: pointer; border: 1px solid #999; background: #f5f5f5; border-radius: 3px; }
+  .note { font-size: 12px; color: #555; text-align: center; padding: 6px; }
+  .alert { color: #dc2626; font-weight: bold; text-align: center; padding: 6px; }
+</style>
+
+<div class="doc-title">휴일 / 연장 근무신청서</div>
+
+<div style="display:flex; gap:20px; margin-bottom:10px;">
+  <table class="doc-table" style="width:320px; flex-shrink:0;">
+    <colgroup><col width="90px"><col></colgroup>
+    <tr>
+      <td class="th">문서번호</td>
+      <td><input class="doc-input" type="text" name="docNo"></td>
+    </tr>
+    <tr>
+      <td class="th">작성일자</td>
+      <td><input class="doc-input" type="date" name="writeDate"></td>
+    </tr>
+    <tr>
+      <td class="th">작성부서</td>
+      <td><input class="doc-input" type="text" name="dept"></td>
+    </tr>
+    <tr>
+      <td class="th">작성자</td>
+      <td><input class="doc-input" type="text" name="writer"></td>
+    </tr>
+  </table>
+</div>
+
+<table class="doc-table">
+  <colgroup><col width="15%"><col width="35%"><col width="15%"><col></colgroup>
+  <tr>
+    <td class="th">연장근무 신청자</td>
+    <td><input class="doc-input" type="text" name="applicant"></td>
+    <td class="th">사번</td>
+    <td><input class="doc-input" type="text" name="empNo"></td>
+  </tr>
+</table>
+
+<p style="text-align:center; margin:8px 0;">아래와 같이 휴일/연장 근무를 신청합니다.</p>
+
+<div style="text-align:right; margin-bottom:4px;">
+  <button type="button" class="btn-sm" onclick="addOtRow()">+ 날짜 추가</button>
+  <button type="button" class="btn-sm" onclick="removeOtRow()" style="background:#fee2e2; border-color:#fca5a5;">- 삭제</button>
+</div>
+
+<table class="doc-table">
+  <colgroup><col width="12%"><col width="22%"><col width="30%"><col></colgroup>
+  <thead>
+    <tr>
+      <td class="th" rowspan="2">근무시간</td>
+      <td class="th">날짜</td>
+      <td class="th">시간</td>
+      <td class="th">총 연장근무 시간</td>
+    </tr>
+  </thead>
+  <tbody id="otBody">
+    <tr>
+      <td><input class="doc-input" type="date" name="workDate[]"></td>
+      <td>
+        <input class="doc-input" type="time" name="workFrom[]" style="width:auto; display:inline-block;">
+        &nbsp;~&nbsp;
+        <input class="doc-input" type="time" name="workTo[]" style="width:auto; display:inline-block;">
+      </td>
+      <td><input class="doc-input" type="text" name="workTotal[]" placeholder="00시 00분"></td>
+    </tr>
+  </tbody>
+</table>
+
+<p class="note">※ 18:00시 부터 30분단위로 신청 가능, 날짜/시각/총 연장근무 시간 기입.</p>
+
+<table class="doc-table">
+  <colgroup><col width="13%"><col></colgroup>
+  <tr>
+    <td class="th" style="vertical-align:top; padding-top:8px;">근무사유</td>
+    <td><textarea class="doc-textarea" name="workReason" rows="4"></textarea></td>
+  </tr>
+  <tr>
+    <td class="th" style="vertical-align:top; padding-top:8px;">특이사항</td>
+    <td><textarea class="doc-textarea" name="specialNote" rows="3"></textarea></td>
+  </tr>
+</table>
+
+<p class="alert">※ 연장근무(휴일 포함)는 주 12시간을 초과할 수 없습니다.</p>
+
+<script>
+  function addOtRow() {
+    const tbody = document.getElementById('otBody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input class="doc-input" type="date" name="workDate[]"></td>
+      <td>
+        <input class="doc-input" type="time" name="workFrom[]" style="width:auto; display:inline-block;">
+        &nbsp;~&nbsp;
+        <input class="doc-input" type="time" name="workTo[]" style="width:auto; display:inline-block;">
+      </td>
+      <td><input class="doc-input" type="text" name="workTotal[]" placeholder="00시 00분"></td>`;
+    tbody.appendChild(tr);
+  }
+  function removeOtRow() {
+    const tbody = document.getElementById('otBody');
+    if (tbody.rows.length > 1) tbody.deleteRow(tbody.rows.length - 1);
+  }
+</script>
+</div>

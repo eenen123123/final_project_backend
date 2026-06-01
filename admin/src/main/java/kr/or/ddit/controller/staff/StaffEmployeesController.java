@@ -5,10 +5,8 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import kr.or.ddit.finalProject.dto.employee.DepartmentDto;
@@ -24,8 +22,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.validation.Valid;
-
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -35,12 +31,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 @Controller
 @RequestMapping("/admin")
 public class StaffEmployeesController {
-    @Autowired
-    PasswordEncoder passwordEncoder;
 
     @Autowired
     StaffService staffService;
-
 
     /**
      * 직원 정보 및 계정 관리
@@ -111,7 +104,6 @@ public class StaffEmployeesController {
         if (principal != null) {
             loginAdminId = principal.getName(); // 세션이나 토큰에 저장된 로그인 ID
         }
-
         staffService.registerEmployee(memberDto, employeeInfoDto, employeeSalary, profileImage, loginAdminId);
 
         return "redirect:/admin/employees";
@@ -129,7 +121,6 @@ public class StaffEmployeesController {
     // 직원 정보 수정
     @PostMapping("/employees/update")
     public String postMethodName(@RequestBody String entity) {
-        //TODO: process POST request
         
         return entity;
     }
