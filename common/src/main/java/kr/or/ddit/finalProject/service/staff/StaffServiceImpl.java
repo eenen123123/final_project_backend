@@ -56,13 +56,16 @@ public class StaffServiceImpl implements StaffService{
         // 2. 비밀번호 암호화
         memberDto.setUserEnpswd(passwordEncoder.encode(memberDto.getUserEnpswd()));
 
-        // 3. 연락처 하이픈 제거
+        // 3. 주민등록번호 암호화
+        memberDto.setUserEnrrno(passwordEncoder.encode(memberDto.getUserEnrrno()));
+
+        // 4. 연락처 하이픈 제거
         if (memberDto.getUserTelno() != null) {
             String cleanTelno = memberDto.getUserTelno().replaceAll("-","");
             memberDto.setUserTelno(cleanTelno);
         }
 
-        // 4. ID 중복 체크
+        // 5. ID 중복 체크
         String generatedId = memberDto.getUserId();// 화면에서 넘어온 최초 생성 ID (예: 202605KH07)
         String baseId = generatedId.substring(0, 10); // "년월+초성" 패턴 분리 (예: 202605KH)
 
@@ -101,11 +104,11 @@ public class StaffServiceImpl implements StaffService{
         // 최종적으로 중복이 없는 ID가 확보된 상태에서 memberDto에 주입합니다.
         memberDto.setUserId(generatedId);
 
-        // 5. EmployeeInfoDto에 데이터 넣기
+        // 6. EmployeeInfoDto에 데이터 넣기
         employeeInfoDto.setRgtrId(loginAdminId); // 최초등록자ID -> 현재 로그인한 관리자 ID
         employeeInfoDto.setLastMdfrId(loginAdminId); // 최종등록자ID -> 현재 로그인한 관리자 ID
 
-        // 6. EmployeeSalaryDto 데이터 넣기
+        // 7. EmployeeSalaryDto 데이터 넣기
         employeeSalaryDto.setUserId(memberDto.getUserId());
         employeeSalaryDto.setUseYn("Y"); // 첫 등록이므로 현재 사용 여부는 무조건 'Y'로 설정
         employeeSalaryDto.setApplyYmd(employeeInfoDto.getJoinYmd()); // 급여 적용 시작일은 입사일과 동일하게 설정
