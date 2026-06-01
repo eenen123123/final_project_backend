@@ -22,7 +22,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 
@@ -104,7 +108,12 @@ public class StaffEmployeesController {
         if (principal != null) {
             loginAdminId = principal.getName(); // 세션이나 토큰에 저장된 로그인 ID
         }
-        staffService.registerEmployee(memberDto, employeeInfoDto, employeeSalary, profileImage, loginAdminId);
+        try {
+            staffService.registerEmployee(memberDto, employeeInfoDto, employeeSalary, profileImage, loginAdminId);
+        } catch (IllegalArgumentException e) {
+            log.warn("[createEmployee] 유효성 검사 실패: {}", e.getMessage());
+            return "redirect:/admin/employees?error=" + java.net.URLEncoder.encode(e.getMessage(), java.nio.charset.StandardCharsets.UTF_8);
+        }
 
         return "redirect:/admin/employees";
     }
@@ -118,11 +127,66 @@ public class StaffEmployeesController {
         return ResponseEntity.ok(nextId); 
     }
 
-    // 직원 정보 수정
-    @PostMapping("/employees/update")
-    public String postMethodName(@RequestBody String entity) {
-        
-        return entity;
+    /**
+     * 직원 정보 수정
+     * @param body // 수정할 직원 정보가 담긴 JSON 요청 본문
+     * @param principal // 현재 로그인한 관리자 정보
+     * @return
+     */
+    @PutMapping("/employees/update")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> updateEmployee(
+            @RequestBody Map<String, Object> body,
+            Principal principal
+    ) {
+
+        String loginAdminId = principal != null ? principal.getName() : "SYSTEM";
+
+        MemberDto memberDto = new MemberDto();
+        memberDto.setUserId((String) body.get("userId"));
+        memberDto.setUserName((String) body.get("userName"));
+        memberDto.setUserGndrCd((String) body.get("userGndrCd"));
+        memberDto.setUserTelno((String) body.get("userTelno"));
+        memberDto.setUserEmailAddr((String) body.get("userEmailAddr"));
+        memberDto.setUserZip((String) body.get("userZip"));
+        memberDto.setUserAddr((String) body.get("userAddr"));
+        memberDto.setUserDaddr((String) body.get("userDaddr"));
+        memberDto.setUserProfile((String) body.get("userProfile"));
+        String brdtStr = (String) body.get("userBrdt");
+        if (brdtStr != null && !brdtStr.isBlank()) {
+            memberDto.setUserBrdt(java.time.LocalDate.parse(brdtStr.substring(0, 10)));
+        }
+
+        EmployeeInfoDto employeeInfoDto = new EmployeeInfoDto();
+        employeeInfoDto.setUserId(memberDto.getUserId());
+        employeeInfoDto.setDeptCd((String) body.get("deptCd"));
+        employeeInfoDto.setJbgrCd((String) body.get("jbgrCd"));
+        employeeInfoDto.setEmplStatCd((String) body.get("emplStatCd"));
+        employeeInfoDto.setEmplTypeCd((String) body.get("emplTypeCd"));
+        employeeInfoDto.setChrgDutyCn((String) body.get("chrgDutyCn"));
+        String joinYmdStr = (String) body.get("joinYmd");
+        if (joinYmdStr != null && !joinYmdStr.isBlank()) {
+            employeeInfoDto.setJoinYmd(java.time.LocalDate.parse(joinYmdStr.substring(0, 10)));
+        }
+        String ctrctEndStr = (String) body.get("ctrctEndYmd");
+        if (ctrctEndStr != null && !ctrctEndStr.isBlank()) {
+            employeeInfoDto.setCtrctEndYmd(ctrctEndStr.substring(0, 10));
+        }
+
+        EmployeeSalaryDto employeeSalaryDto = new EmployeeSalaryDto();
+        Object salary = body.get("baseSalary");
+        if (salary != null) {
+            employeeSalaryDto.setBaseSalary(Integer.parseInt(salary.toString()));
+        }
+
+        try {
+            staffService.updateEmployee(memberDto, employeeInfoDto, employeeSalaryDto, loginAdminId);
+            return ResponseEntity.ok(Map.of("result", "success"));
+        } catch (Exception e) {
+            log.error("[updateEmployee] 수정 실패. userId={}, cause={}", memberDto.getUserId(), e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("result", "error", "message", e.getMessage()));
+        }
     }
     
     

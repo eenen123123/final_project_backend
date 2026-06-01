@@ -39,4 +39,18 @@ public interface StaffMapper {
 
     // 아이디 중복 자동 순번 발급 및 중복 회피
     String selectMaxUserId(String baseId);
+
+    // 직원 계정 수정 (MEMBER)
+    void updateMember(MemberDto memberDto);
+
+    // 직원 인사 정보 수정 (EMPLOYEE_INFO)
+    void updateEmployeeInfo(EmployeeInfoDto employeeInfoDto);
+
+    // 현재 적용 급여 조회 (USE_YN = 'Y')
+    EmployeeSalaryDto selectCurrentSalary(String userId);
+
+    // 현재 적용 급여를 비활성화 (USE_YN = 'N')
+    void deactivateCurrentSalary(String userId);
+
+    // 직원 퇴사 
 }

@@ -30,4 +30,7 @@ public interface  StaffService {
 
     // 아이디 중복 자동 순번 발급 및 중복 회피
     String getNextAvailableId(String baseId, String defaultSerial);
+
+    // 직원 계정 수정 (MEMBER + EMPLOYEE_INFO + EMPLOYEE_SALARY 트랜잭션)
+    void updateEmployee(MemberDto memberDto, EmployeeInfoDto employeeInfoDto, EmployeeSalaryDto employeeSalaryDto, String loginAdminId);
 }
