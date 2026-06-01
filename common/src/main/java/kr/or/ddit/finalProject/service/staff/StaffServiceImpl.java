@@ -9,12 +9,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.validation.Validator;
 import kr.or.ddit.finalProject.dto.employee.DepartmentDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeDetailDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto;
 import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
+import kr.or.ddit.finalProject.dto.user.SignupRequestRecord;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.mapper.StaffMapper;
@@ -30,24 +32,36 @@ public class StaffServiceImpl implements StaffService{
     @Autowired
     PasswordEncoder passwordEncoder;
 
+    @Autowired
+    Validator validator;
+
     private final StaffMapper staffMapper;
 
-    // 부서 리스트 조회
+    /**
+     * 부서 리스트 조회
+     */
     @Override
     public List<DepartmentDto> retrieveDepartmentList() {
         return staffMapper.selectDepartmentList();
     }
 
-    // 직급 리스트 조회
+    /**
+     * 직급 리스트 조회
+     */
     @Override
     public List<JobGradeDto> retrieveJobGradeList() {
         return staffMapper.selectJobGradeList();
     }
 
-    // 직원 등록, 직원 정보 저장, 직원 급여 정보 저장
+    /**
+     * 직원 등록, 직원 정보 저장, 직원 급여 정보 저장
+     */
     @Override
     @Transactional(rollbackFor = Exception.class) // 예외 발생시 롤백
     public void registerEmployee(MemberDto memberDto, EmployeeInfoDto employeeInfoDto, EmployeeSalaryDto employeeSalaryDto, MultipartFile profileImage, String loginAdminId) {
+
+        // 0. 유효성 검사 (암호화·가공 이전 원본값 기준)
+        validateMemberInput(memberDto);
 
         // 1. ROLE 및 기본 프로필 설정
         memberDto.setUserRole("ROLE_ADMIN"); // 기본적으로 ROLE_ADMIN으로 설정
@@ -136,19 +150,25 @@ public class StaffServiceImpl implements StaffService{
         }
     }
 
-    // 직원 리스트 조회
+    /**
+     * 직원 리스트 조회
+     */
     @Override
     public List<EmployeeDetailDto> retrieveEmployeeList() {
         return staffMapper.selectEmployeeList();
     }
 
-    // 입사 연도 목록 조회
+    /**
+     * 입사 연도 목록 조회
+     */
     @Override
     public List<Integer> retrieveJoinYearList() {
         return staffMapper.selectJoinYearList();
     }
 
-    // 아이디 중복 자동 순번 발급 및 중복 회피
+    /**
+     * 아이디 중복 자동 순번 발급 및 중복 회피
+     */
     @Override
     public String getNextAvailableId(String baseId, String defaultSerial) {
         // DB에서 가장 큰 ID 조회 (예: "202605KH07")
@@ -169,6 +189,108 @@ public class StaffServiceImpl implements StaffService{
             log.error("[getNextAvailableId] ID 끝 2자리 숫자 파싱 실패. maxId={}", maxId);
             throw new FinalProjectException(ErrorCode.EMPLOYEE_ID_GENERATE_FAILED, e);
         }
+    }
+
+    /**
+     * 직원 계정 수정 (MEMBER + EMPLOYEE_INFO + EMPLOYEE_SALARY 트랜잭션)
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateEmployee(MemberDto memberDto, EmployeeInfoDto employeeInfoDto, EmployeeSalaryDto employeeSalaryDto, String loginAdminId) {
+        // 연락처 하이픈 제거
+        if (memberDto.getUserTelno() != null) {
+            memberDto.setUserTelno(memberDto.getUserTelno().replaceAll("-", ""));
+        }
+
+        employeeInfoDto.setLastMdfrId(loginAdminId);
+
+        try {
+            staffMapper.updateMember(memberDto);
+
+            staffMapper.updateEmployeeInfo(employeeInfoDto);
+
+            // 급여 변경 시에만 이력 적립
+            EmployeeSalaryDto currentSalary = staffMapper.selectCurrentSalary(memberDto.getUserId());
+            boolean salaryChanged = currentSalary == null || !employeeSalaryDto.getBaseSalary().equals(currentSalary.getBaseSalary());
+
+            if(salaryChanged) {
+                employeeSalaryDto.setUserId(memberDto.getUserId());
+                employeeSalaryDto.setUseYn("Y");
+                employeeSalaryDto.setApplyYmd(java.time.LocalDate.now());
+                employeeSalaryDto.setRgtrId(loginAdminId);
+                employeeSalaryDto.setLastMdfrId(loginAdminId);
+
+                staffMapper.deactivateCurrentSalary(memberDto.getUserId());
+                staffMapper.insertEmployeeSalary(employeeSalaryDto);
+            }
+        } catch (DataAccessException e) {
+            log.error("[updateEmployee] DB 수정 실패. userId={}, cause={}", memberDto.getUserId(), e.getMessage());
+            throw new FinalProjectException(ErrorCode.EMPLOYEE_REGISTER_FAILED, e);
+        }
+    }
+
+    private void validateMemberInput(MemberDto dto) {
+        SignupRequestRecord record = new SignupRequestRecord(
+            dto.getUserId(),
+            dto.getUserEnpswd(),
+            dto.getUserName(),
+            dto.getUserGndrCd(),
+            dto.getUserBrdt(),
+            dto.getUserTelno(),
+            dto.getUserEmailAddr(),
+            dto.getUserZip(),
+            dto.getUserAddr(),
+            dto.getUserDaddr(),
+            dto.getUserEnrrno()
+        );
+
+        var violations = validator.validate(record);
+        if (!violations.isEmpty()) {
+            String message = violations.iterator().next().getMessage();
+            log.warn("[registerEmployee] 유효성 검사 실패: {}", message);
+            throw new IllegalArgumentException(message);
+        }
+    }
+
+    /**
+     * 직원 퇴사 처리 (MEMBER + EMPLOYEE_INFO + EMPLOYEE_SALARY 비활성화)
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void retireEmployee(String userId, String retmtRsn, String loginUserId) {
+        if (userId == null || userId.isBlank()) {
+            throw new FinalProjectException(ErrorCode.BAD_REQUEST);
+        }
+        if (retmtRsn == null || retmtRsn.isBlank() || retmtRsn.length() > 1000) {
+            throw new FinalProjectException(ErrorCode.BAD_REQUEST);
+        }
+
+        try {
+            // MEMBER.ENABLE = 'N'
+            int memberResult = staffMapper.updateMemberDisabled(userId);
+            if (memberResult != 1) {
+                // 이미 퇴사된 직원
+                throw new FinalProjectException(ErrorCode.EMPLOYEE_ALREADY_RETIRED);
+            }
+
+            int infoResult = staffMapper.updateEmployeeRetired(userId, retmtRsn, loginUserId);
+            if (infoResult != 1) {
+                // 이미 퇴사된 직원
+                throw new FinalProjectException(ErrorCode.EMPLOYEE_ALREADY_RETIRED);
+            }
+
+            int salaryResult = staffMapper.updateEmployeeSalaryInactive(userId, loginUserId);
+            if (salaryResult > 1) {
+                // 직원 퇴사 처리 실패
+                throw new FinalProjectException(ErrorCode.EMPLOYEE_RETIRE_FAILED);
+            }
+
+            log.info("[retirEmployee] 퇴사 처리 완료. userId={}", userId);
+        } catch (DataAccessException e) {
+            log.error("[retireEmployee] DB 처리 실패. userId={}, cause={}", userId, e.getMessage());
+            throw new FinalProjectException(ErrorCode.EMPLOYEE_RETIRE_FAILED, e);
+        }
+
     }
 
 }

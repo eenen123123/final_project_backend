@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequestMapping("/api/dataroom")
 @RequiredArgsConstructor
-public class DataRoomApiController {
+public class DataRoomController {
 
     private final DataRoomService dataRoomService;
 
