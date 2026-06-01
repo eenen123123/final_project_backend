@@ -10,7 +10,14 @@ import kr.or.ddit.finalProject.dto.course.CourseDto;
 @Mapper
 public interface CourseMapper {
 
-    List<CourseDto> selectCourseListByInstructor(@Param("instrUserId") String instrUserId);
+    List<CourseDto> selectCourseByCurriculumId(@Param("curriculumId") Long curriculumId);
+
+    CourseDto selectCourseBySn(@Param("courseSn") Long courseSn);
 
     int insertCourse(CourseDto courseDto);
+
+    int updateCourse(CourseDto courseDto);
+
+    int deleteCourse(@Param("courseSn") Long courseSn);
+
 }
