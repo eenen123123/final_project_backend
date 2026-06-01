@@ -40,7 +40,7 @@ button {
 .hm-input {
   width: 100%;
   border: 1px solid #e2e8f0;
-  border-radius: 0.75rem; /* rounded-xl */
+  border-radius: 0.75rem;
   padding: 0.65rem 1rem;
   font-size: 0.875rem;
   color: #1e293b;
@@ -80,9 +80,10 @@ button {
 .hm-btn-primary:active {
   transform: scale(0.98);
 }
+
 .hm-btn-secondary {
-  background-color: #e2e8f0; /* slate-200 */
-  color: #475569; /* slate-600 */
+  background-color: #e2e8f0;
+  color: #475569;
   font-weight: 700;
   font-size: 0.8125rem;
   padding: 0.75rem 1.25rem;
@@ -96,13 +97,14 @@ button {
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 .hm-btn-secondary:hover {
-  background-color: #cbd5e1; /* slate-300 */
+  background-color: #cbd5e1;
 }
 .hm-btn-secondary:active {
   transform: scale(0.98);
 }
+
 .hm-btn-danger {
-  background-color: #ef4444; /* red-500 */
+  background-color: #ef4444;
   color: #ffffff;
   font-weight: 700;
   font-size: 0.8125rem;
@@ -116,11 +118,12 @@ button {
   cursor: pointer;
 }
 .hm-btn-danger:hover {
-  background-color: #dc2626; /* red-600 */
+  background-color: #dc2626;
 }
 .hm-btn-danger:active {
   transform: scale(0.98);
 }
+
 .hm-switch {
   width: 2.5rem;
   height: 1.25rem;
@@ -267,18 +270,26 @@ button {
      admin-layout.html 에서 tom-select.css 를 이 파일보다 먼저 로드합니다.
      덕분에 아래 규칙들이 !important 없이 Tom Select 기본 스타일을 덮어씁니다.
    ========================================================================== */
-/* hm-btn-primary 색상 변형 */
 
-/* 강사 색상 */
-.hm-input-sky {
-  border-color: #0ea5e9;
+/* --- 컨테이너 --- */
+.ts-wrapper.hm-input {
+  padding: 0;
+  border-radius: 0.75rem !important; /* Tom Select JS/CSS 가 상태에 따라 변경해도 항상 유지 */
 }
-.hm-input-sky:focus {
-  border-color: #0ea5e9;
-  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08);
+.ts-wrapper.hm-input.focus {
+  outline: none;
+  border-color: var(--color-brand-primary);
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.08);
 }
-.hm-input-sky:disabled {
-  border-color: #bae6fd;
+/* Tom Select 가 focus/input-active/dropdown-active 상태에서 .ts-control 에 적용하는
+   outline, box-shadow, border 를 모두 제거 */
+.ts-wrapper.focus .ts-control,
+.ts-wrapper.input-active .ts-control,
+.ts-wrapper.dropdown-active .ts-control {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0.75rem !important; /* outline 이 남아있어도 둥글게 따라가도록 유지 */
 }
 
 /* --- 컨트롤 (선택된 값 표시 영역) --- */
@@ -321,11 +332,24 @@ button {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.hm-btn-sky:hover {
-  background-color: #0284c7;
+
+/* --- 드롭다운 화살표 --- */
+.ts-wrapper.single .ts-control::after {
+  content: "";
+  display: block;
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  margin-top: -3px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 5px 4px 0 4px;
+  border-color: #94a3b8 transparent transparent transparent;
+  pointer-events: none;
 }
-.hm-switch-sky:checked {
-  background-color: #0ea5e9;
+.ts-wrapper.single.focus .ts-control::after {
+  border-color: var(--color-brand-primary) transparent transparent transparent;
 }
 
 /* --- 드롭다운 목록 --- */
