@@ -14,12 +14,22 @@ public interface DataRoomMapper {
     // 자료실 단건 조회
     DataRoomDto findDataRoomById(@Param("postSn") Long postSn);
 
-    // 자료실 게시글 등록
-    int insertDataRoom(DataRoomDto dataRoomdto);
+    // 자료실 등록 - BOARD INSERT
+    int insertBoard(DataRoomDto dataRoomDto);
 
-    // 자료실 게시글 수정
-    int updateDataRoom(DataRoomDto dataRoomdto);
+    // 자료실 등록 - DATA_ROOM INSERT
+    int insertDataRoom(DataRoomDto dataRoomDto);
 
-    // 자료실 게시글 삭제
+    // 자료실 수정 - BOARD UPDATE
+    int updateBoard(DataRoomDto dataRoomDto);
+
+    // 자료실 수정 - DATA_ROOM UPDATE
+    int updateDataRoom(DataRoomDto dataRoomDto);
+
+    // 자료실 삭제 - DATA_ROOM DELETE (FK 때문에 먼저)
     int deleteDataRoom(@Param("postSn") Long postSn);
+
+    // 자료실 삭제 - BOARD DELETE
+    int deleteBoard(@Param("postSn") Long postSn);
+
 }

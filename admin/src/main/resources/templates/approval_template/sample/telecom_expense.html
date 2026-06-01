@@ -1,0 +1,129 @@
+<div class="doc-wrap">
+<style>
+  .doc-wrap { font-family: '맑은 고딕', 'Malgun Gothic', dotum, sans-serif; font-size: 13px; color: #000; }
+  .doc-title { text-align: center; font-size: 22px; font-weight: bold; margin: 4px 0 16px; }
+  .doc-table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
+  .doc-table th, .doc-table td { border: 1px solid #000; padding: 5px 8px; vertical-align: middle; }
+  .th { background: #ddd; font-weight: bold; text-align: center; white-space: nowrap; }
+  .tc { text-align: center; }
+  .tr { text-align: right; }
+  .doc-input { width: 100%; border: none; outline: none; background: transparent; font-family: inherit; font-size: 13px; }
+  .btn-sm { padding: 2px 8px; font-size: 12px; cursor: pointer; border: 1px solid #999; background: #f5f5f5; border-radius: 3px; }
+  .note { font-size: 12px; color: #333; margin-top: 8px; }
+</style>
+
+<div class="doc-title">지출결의서 (통신비 지원)</div>
+
+<table class="doc-table">
+  <colgroup><col width="13%"><col width="20%"><col width="13%"><col width="20%"><col width="13%"><col></colgroup>
+  <tr>
+    <td class="th">기안부서</td>
+    <td><input class="doc-input" type="text" name="dept"></td>
+    <td class="th">기 안 일</td>
+    <td><input class="doc-input" type="date" name="draftDate"></td>
+    <td class="th">문서번호</td>
+    <td><input class="doc-input" type="text" name="docNo"></td>
+  </tr>
+  <tr>
+    <td class="th">기 안 자</td>
+    <td><input class="doc-input" type="text" name="drafter"></td>
+    <td class="th">보존연한</td>
+    <td><input class="doc-input" type="text" name="preservePeriod" placeholder="5년"></td>
+    <td class="th">비밀등급</td>
+    <td><input class="doc-input" type="text" name="securityLevel" placeholder="1등급"></td>
+  </tr>
+  <tr>
+    <td class="th">합의</td>
+    <td colspan="5"><input class="doc-input" type="text" name="agreement"></td>
+  </tr>
+  <tr>
+    <td class="th">제목</td>
+    <td colspan="5"><input class="doc-input" type="text" name="subject" placeholder="통신비 지원을 신청합니다."></td>
+  </tr>
+</table>
+
+<p style="font-weight:bold; margin:6px 0 4px;">신청자 정보</p>
+<table class="doc-table">
+  <colgroup><col width="13%"><col width="37%"><col width="13%"><col></colgroup>
+  <tr>
+    <td class="th">팀/그룹</td>
+    <td><input class="doc-input" type="text" name="team"></td>
+    <td class="th">성명</td>
+    <td><input class="doc-input" type="text" name="name"></td>
+  </tr>
+  <tr>
+    <td class="th">사번</td>
+    <td><input class="doc-input" type="text" name="empNo"></td>
+    <td class="th">직위</td>
+    <td><input class="doc-input" type="text" name="position"></td>
+  </tr>
+  <tr>
+    <td class="th">연락처</td>
+    <td><input class="doc-input" type="text" name="phone"></td>
+    <td class="th">신청일</td>
+    <td><input class="doc-input" type="date" name="requestDate"></td>
+  </tr>
+</table>
+
+<div style="text-align:right; margin-bottom:4px;">
+  <button type="button" class="btn-sm" onclick="addTelecomRow()">+ 추가</button>
+  <button type="button" class="btn-sm" onclick="removeTelecomRow()" style="background:#fee2e2; border-color:#fca5a5;">- 삭제</button>
+</div>
+
+<table class="doc-table">
+  <colgroup><col width="12%"><col width="12%"><col width="18%"><col width="18%"><col width="15%"><col></colgroup>
+  <thead>
+    <tr>
+      <td class="th">팀/그룹</td>
+      <td class="th">사원번호</td>
+      <td class="th">직위/성명</td>
+      <td class="th">휴대폰번호</td>
+      <td class="th">지원금액</td>
+      <td class="th">비고</td>
+    </tr>
+  </thead>
+  <tbody id="telecomBody">
+    <tr>
+      <td><input class="doc-input" type="text" name="tTeam[]"></td>
+      <td><input class="doc-input" type="text" name="tEmpNo[]"></td>
+      <td><input class="doc-input" type="text" name="tPositionName[]"></td>
+      <td><input class="doc-input" type="text" name="tPhone[]"></td>
+      <td><input class="doc-input" type="number" name="tAmount[]" oninput="calcTelecomTotal()" style="text-align:right;"></td>
+      <td><input class="doc-input" type="text" name="tNote[]"></td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" class="th tc">합계</td>
+      <td id="telecomTotal" style="text-align:right; font-weight:bold; padding:5px 8px;"></td>
+      <td></td>
+    </tr>
+  </tfoot>
+</table>
+
+<p class="note">- 지원대상 : 팀장 및 그룹장, 지원대상 팀원(합부금, 개인 물품구입대, 유료 부가서비스 등 제외)</p>
+
+<script>
+  function calcTelecomTotal() {
+    let total = 0;
+    document.querySelectorAll('[name="tAmount[]"]').forEach(el => total += parseFloat(el.value)||0);
+    document.getElementById('telecomTotal').textContent = total.toLocaleString();
+  }
+  function addTelecomRow() {
+    const tbody = document.getElementById('telecomBody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input class="doc-input" type="text" name="tTeam[]"></td>
+      <td><input class="doc-input" type="text" name="tEmpNo[]"></td>
+      <td><input class="doc-input" type="text" name="tPositionName[]"></td>
+      <td><input class="doc-input" type="text" name="tPhone[]"></td>
+      <td><input class="doc-input" type="number" name="tAmount[]" oninput="calcTelecomTotal()" style="text-align:right;"></td>
+      <td><input class="doc-input" type="text" name="tNote[]"></td>`;
+    tbody.appendChild(tr);
+  }
+  function removeTelecomRow() {
+    const tbody = document.getElementById('telecomBody');
+    if (tbody.rows.length > 1) { tbody.deleteRow(tbody.rows.length-1); calcTelecomTotal(); }
+  }
+</script>
+</div>

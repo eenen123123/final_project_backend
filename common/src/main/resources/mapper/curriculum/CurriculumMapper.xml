@@ -5,7 +5,7 @@
 
 <mapper namespace="kr.or.ddit.finalProject.mapper.curriculum.CurriculumMapper">
 
-  <resultMap id="curriculumMasterMap" type="kr.or.ddit.finalProject.dto.curriculum.CurriculumMasterDto">
+  <resultMap id="curriculumMap" type="kr.or.ddit.finalProject.dto.curriculum.CurriculumDto">
     <id property="curriculumId" column="CURRICULUM_ID" />
     <result property="title" column="TITLE" />
     <result property="instructorId" column="INSTRUCTOR_ID" />
@@ -16,52 +16,29 @@
     <result property="mdfcnDt" column="MDFCN_DT" />
   </resultMap>
 
-  <resultMap id="curriculumDetailMap" type="kr.or.ddit.finalProject.dto.curriculum.CurriculumDetailDto">
-    <id property="detailId" column="DETAIL_ID" />
-    <result property="curriculumId" column="CURRICULUM_ID" />
-    <result property="rowOrder" column="ROW_ORDER" />
-    <result property="weekInfo" column="WEEK_INFO" />
-    <result property="topic" column="TOPIC" />
-    <result property="content" column="CONTENT" />
-    <result property="rgtrId" column="RGTR_ID" />
-    <result property="regDt" column="REG_DT" />
-    <result property="lastMdfrId" column="LAST_MDFR_ID" />
-    <result property="mdfcnDt" column="MDFCN_DT" />
-  </resultMap>
-
-  <select id="selectMasterList" resultMap="curriculumMasterMap">
+  <select id="selectList" resultMap="curriculumMap">
     SELECT
       CURRICULUM_ID, TITLE, INSTRUCTOR_ID, USE_YN,
       RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
-    FROM CURRICULUM_MASTER
+    FROM CURRICULUM
     WHERE INSTRUCTOR_ID = #{instructorId}
       AND USE_YN = 'Y'
     ORDER BY REG_DT DESC
   </select>
 
-  <select id="selectMasterById" resultMap="curriculumMasterMap">
+  <select id="selectById" resultMap="curriculumMap">
     SELECT
       CURRICULUM_ID, TITLE, INSTRUCTOR_ID, USE_YN,
       RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
-    FROM CURRICULUM_MASTER
+    FROM CURRICULUM
     WHERE CURRICULUM_ID = #{curriculumId}
   </select>
 
-  <select id="selectDetailList" resultMap="curriculumDetailMap">
-    SELECT
-      DETAIL_ID, CURRICULUM_ID, ROW_ORDER,
-      WEEK_INFO, TOPIC, CONTENT,
-      RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
-    FROM CURRICULUM_DETAIL
-    WHERE CURRICULUM_ID = #{curriculumId}
-    ORDER BY ROW_ORDER ASC
-  </select>
-
-  <insert id="insertMaster" parameterType="kr.or.ddit.finalProject.dto.curriculum.CurriculumMasterDto">
+  <insert id="insert" parameterType="kr.or.ddit.finalProject.dto.curriculum.CurriculumDto">
     <selectKey keyProperty="curriculumId" resultType="long" order="BEFORE">
-      SELECT SEQ_CURRICULUM_MASTER.NEXTVAL FROM DUAL
+      SELECT SEQ_CURRICULUM.NEXTVAL FROM DUAL
     </selectKey>
-    INSERT INTO CURRICULUM_MASTER (
+    INSERT INTO CURRICULUM (
       CURRICULUM_ID, TITLE, INSTRUCTOR_ID, USE_YN,
       RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
     ) VALUES (
@@ -70,35 +47,16 @@
     )
   </insert>
 
-  <!-- INSERT ALL + NEXTVAL 조합은 Oracle에서 NEXTVAL이 문장당 1회만 증가하므로
-       동일한 DETAIL_ID가 중복 발급되어 ORA-00001이 발생합니다. -->
-  <insert id="insertDetail">
-    INSERT INTO CURRICULUM_DETAIL (
-      DETAIL_ID, CURRICULUM_ID, ROW_ORDER,
-      WEEK_INFO, TOPIC, CONTENT,
-      RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
-    ) VALUES (
-      SEQ_CURRICULUM_DETAIL.NEXTVAL,
-      #{curriculumId}, #{rowOrder},
-      #{weekInfo}, #{topic}, #{content},
-      #{rgtrId}, SYSDATE, NULL, SYSDATE
-    )
-  </insert>
-
-  <update id="updateMaster" parameterType="kr.or.ddit.finalProject.dto.curriculum.CurriculumMasterDto">
-    UPDATE CURRICULUM_MASTER
+  <update id="update" parameterType="kr.or.ddit.finalProject.dto.curriculum.CurriculumDto">
+    UPDATE CURRICULUM
     SET TITLE = #{title}, LAST_MDFR_ID = #{lastMdfrId}, MDFCN_DT = SYSDATE
     WHERE CURRICULUM_ID = #{curriculumId}
   </update>
 
-  <update id="deleteMasterLogically">
-    UPDATE CURRICULUM_MASTER
+  <update id="deleteLogically">
+    UPDATE CURRICULUM
     SET USE_YN = 'N', LAST_MDFR_ID = #{lastMdfrId}, MDFCN_DT = SYSDATE
     WHERE CURRICULUM_ID = #{curriculumId}
   </update>
-
-  <delete id="deleteDetailsByMasterId">
-    DELETE FROM CURRICULUM_DETAIL WHERE CURRICULUM_ID = #{curriculumId}
-  </delete>
 
 </mapper>

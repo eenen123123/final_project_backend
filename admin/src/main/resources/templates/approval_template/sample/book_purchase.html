@@ -1,0 +1,134 @@
+<div class="doc-wrap">
+<style>
+  .doc-wrap { font-family: '맑은 고딕', 'Malgun Gothic', dotum, sans-serif; font-size: 13px; color: #000; }
+  .doc-title { font-size: 26px; font-weight: bold; margin: 4px 0 12px; }
+  .doc-table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
+  .doc-table th, .doc-table td { border: 1px solid #000; padding: 5px 8px; vertical-align: middle; }
+  .th { background: #ddd; font-weight: bold; text-align: center; white-space: nowrap; }
+  .tc { text-align: center; }
+  .tr { text-align: right; }
+  .doc-input { width: 100%; border: none; outline: none; background: transparent; font-family: inherit; font-size: 13px; }
+</style>
+
+<div class="doc-title">도서구입신청서</div>
+
+<table class="doc-table">
+  <colgroup><col width="13%"><col width="20%"><col width="13%"><col width="20%"><col width="13%"><col></colgroup>
+  <tr>
+    <td class="th">문서번호</td>
+    <td><input class="doc-input" type="text" name="docNo"></td>
+    <td class="th">보안등급</td>
+    <td><input class="doc-input" type="text" name="securityLevel" placeholder="1등급"></td>
+    <td class="th">기안일시</td>
+    <td><input class="doc-input" type="date" name="draftDate"></td>
+  </tr>
+  <tr>
+    <td class="th">기안자</td>
+    <td><input class="doc-input" type="text" name="drafter"></td>
+    <td class="th">부서</td>
+    <td><input class="doc-input" type="text" name="dept"></td>
+    <td class="th">보존연한</td>
+    <td><input class="doc-input" type="text" name="preservePeriod" placeholder="5년"></td>
+  </tr>
+  <tr>
+    <td class="th">협조</td>
+    <td colspan="5"><input class="doc-input" type="text" name="collaborator"></td>
+  </tr>
+</table>
+
+<table class="doc-table">
+  <colgroup><col width="13%"><col></colgroup>
+  <tr>
+    <td class="th">제목</td>
+    <td><input class="doc-input" type="text" name="subject"></td>
+  </tr>
+  <tr>
+    <td class="th">구입사유</td>
+    <td><input class="doc-input" type="text" name="purchaseReason"></td>
+  </tr>
+</table>
+
+<table class="doc-table" id="bookTable">
+  <colgroup><col width="6%"><col width="28%"><col width="16%"><col width="16%"><col width="8%"><col width="13%"><col></colgroup>
+  <thead>
+    <tr>
+      <td class="th">No.</td>
+      <td class="th">도서명</td>
+      <td class="th">저자</td>
+      <td class="th">출판사</td>
+      <td class="th">수량</td>
+      <td class="th">예상단가</td>
+      <td class="th">금액</td>
+    </tr>
+  </thead>
+  <tbody id="bookBody">
+    <tr>
+      <td class="tc">1.</td>
+      <td><input class="doc-input" type="text" name="bookName[]"></td>
+      <td><input class="doc-input" type="text" name="author[]"></td>
+      <td><input class="doc-input" type="text" name="publisher[]"></td>
+      <td><input class="doc-input" type="number" name="bookQty[]" min="0" oninput="calcBook(this)" style="text-align:right;"></td>
+      <td><input class="doc-input" type="number" name="bookPrice[]" min="0" oninput="calcBook(this)" style="text-align:right;"></td>
+      <td><input class="doc-input" type="text" name="bookAmount[]" readonly style="text-align:right; background:#f9f9f9;"></td>
+    </tr>
+    <tr>
+      <td class="tc">2.</td>
+      <td><input class="doc-input" type="text" name="bookName[]"></td>
+      <td><input class="doc-input" type="text" name="author[]"></td>
+      <td><input class="doc-input" type="text" name="publisher[]"></td>
+      <td><input class="doc-input" type="number" name="bookQty[]" min="0" oninput="calcBook(this)" style="text-align:right;"></td>
+      <td><input class="doc-input" type="number" name="bookPrice[]" min="0" oninput="calcBook(this)" style="text-align:right;"></td>
+      <td><input class="doc-input" type="text" name="bookAmount[]" readonly style="text-align:right; background:#f9f9f9;"></td>
+    </tr>
+    <tr>
+      <td class="tc">3.</td>
+      <td><input class="doc-input" type="text" name="bookName[]"></td>
+      <td><input class="doc-input" type="text" name="author[]"></td>
+      <td><input class="doc-input" type="text" name="publisher[]"></td>
+      <td><input class="doc-input" type="number" name="bookQty[]" min="0" oninput="calcBook(this)" style="text-align:right;"></td>
+      <td><input class="doc-input" type="number" name="bookPrice[]" min="0" oninput="calcBook(this)" style="text-align:right;"></td>
+      <td><input class="doc-input" type="text" name="bookAmount[]" readonly style="text-align:right; background:#f9f9f9;"></td>
+    </tr>
+    <tr>
+      <td class="tc">4.</td>
+      <td><input class="doc-input" type="text" name="bookName[]"></td>
+      <td><input class="doc-input" type="text" name="author[]"></td>
+      <td><input class="doc-input" type="text" name="publisher[]"></td>
+      <td><input class="doc-input" type="number" name="bookQty[]" min="0" oninput="calcBook(this)" style="text-align:right;"></td>
+      <td><input class="doc-input" type="number" name="bookPrice[]" min="0" oninput="calcBook(this)" style="text-align:right;"></td>
+      <td><input class="doc-input" type="text" name="bookAmount[]" readonly style="text-align:right; background:#f9f9f9;"></td>
+    </tr>
+    <tr>
+      <td class="tc">5.</td>
+      <td><input class="doc-input" type="text" name="bookName[]"></td>
+      <td><input class="doc-input" type="text" name="author[]"></td>
+      <td><input class="doc-input" type="text" name="publisher[]"></td>
+      <td><input class="doc-input" type="number" name="bookQty[]" min="0" oninput="calcBook(this)" style="text-align:right;"></td>
+      <td><input class="doc-input" type="number" name="bookPrice[]" min="0" oninput="calcBook(this)" style="text-align:right;"></td>
+      <td><input class="doc-input" type="text" name="bookAmount[]" readonly style="text-align:right; background:#f9f9f9;"></td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" class="th tc">합 계</td>
+      <td id="totalBookQty" class="tc" style="font-weight:bold;"></td>
+      <td class="th tc">금액</td>
+      <td id="totalBookAmount" style="text-align:right; font-weight:bold; padding:5px 8px;"></td>
+    </tr>
+  </tfoot>
+</table>
+
+<script>
+  function calcBook(input) {
+    const row = input.closest('tr');
+    const qty = parseFloat(row.querySelector('[name="bookQty[]"]').value) || 0;
+    const price = parseFloat(row.querySelector('[name="bookPrice[]"]').value) || 0;
+    row.querySelector('[name="bookAmount[]"]').value = (qty * price).toLocaleString();
+    let totalQty = 0, totalAmt = 0;
+    document.querySelectorAll('[name="bookQty[]"]').forEach(el => totalQty += parseFloat(el.value)||0);
+    document.querySelectorAll('[name="bookAmount[]"]').forEach(el => totalAmt += parseFloat(el.value.replace(/,/g,''))||0);
+    document.getElementById('totalBookQty').textContent = totalQty;
+    document.getElementById('totalBookAmount').textContent = totalAmt.toLocaleString();
+  }
+</script>
+</div>

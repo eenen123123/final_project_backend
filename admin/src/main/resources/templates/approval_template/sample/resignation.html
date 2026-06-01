@@ -1,0 +1,90 @@
+<div class="doc-wrap">
+<style>
+  .doc-wrap { font-family: '맑은 고딕', 'Malgun Gothic', dotum, sans-serif; font-size: 13px; color: #000; }
+  .doc-title { text-align: center; font-size: 26px; font-weight: bold; letter-spacing: 8px; margin: 4px 0 16px; }
+  .doc-table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
+  .doc-table th, .doc-table td { border: 1px solid #000; padding: 5px 8px; vertical-align: middle; }
+  .th { background: #ddd; font-weight: bold; text-align: center; white-space: nowrap; }
+  .tc { text-align: center; }
+  .doc-input { width: 100%; border: none; outline: none; background: transparent; font-family: inherit; font-size: 13px; }
+  .doc-textarea { width: 100%; border: none; outline: none; background: transparent; font-family: inherit; font-size: 13px; resize: vertical; min-height: 60px; }
+</style>
+
+<div class="doc-title">사 직 서</div>
+
+<table class="doc-table">
+  <colgroup><col width="13%"><col width="20%"><col width="13%"><col width="20%"><col width="13%"><col></colgroup>
+  <tr>
+    <td class="th">문서번호</td>
+    <td><input class="doc-input" type="text" name="docNo"></td>
+    <td class="th">기안팀</td>
+    <td><input class="doc-input" type="text" name="dept"></td>
+    <td class="th">기안자</td>
+    <td><input class="doc-input" type="text" name="drafter"></td>
+  </tr>
+  <tr>
+    <td class="th">기안일</td>
+    <td><input class="doc-input" type="date" name="draftDate"></td>
+    <td class="th">공개여부</td>
+    <td><input class="doc-input" type="text" name="disclosure" placeholder="사내공개"></td>
+    <td class="th">보존기간</td>
+    <td><input class="doc-input" type="text" name="preservePeriod" placeholder="5년"></td>
+  </tr>
+  <tr>
+    <td class="th">합의</td>
+    <td colspan="5"><input class="doc-input" type="text" name="agreement"></td>
+  </tr>
+  <tr>
+    <td class="th">제목</td>
+    <td colspan="5"><input class="doc-input" type="text" name="subject" placeholder="사직서"></td>
+  </tr>
+</table>
+
+<table class="doc-table">
+  <colgroup><col width="13%"><col width="20%"><col width="13%"><col width="20%"><col width="13%"><col></colgroup>
+  <tr>
+    <td class="th">사번</td>
+    <td><input class="doc-input" type="text" name="empNo"></td>
+    <td class="th">성명</td>
+    <td><input class="doc-input" type="text" name="name"></td>
+    <td class="th">근무부서</td>
+    <td><input class="doc-input" type="text" name="workDept"></td>
+  </tr>
+  <tr>
+    <td class="th">근무기간</td>
+    <td>
+      <input class="doc-input" type="date" name="workFrom" style="width:auto; display:inline-block;">
+      &nbsp;~&nbsp;
+      <input class="doc-input" type="date" name="workTo" style="width:auto; display:inline-block;">
+    </td>
+    <td class="th">직급</td>
+    <td colspan="3"><input class="doc-input" type="text" name="jobGrade"></td>
+  </tr>
+</table>
+
+<table class="doc-table">
+  <colgroup><col width="13%"><col></colgroup>
+  <tr>
+    <td class="th">사직예정일</td>
+    <td><input class="doc-input" type="date" name="resignDate"></td>
+  </tr>
+  <tr>
+    <td class="th" style="vertical-align:top; padding-top:8px;">사직사유</td>
+    <td><textarea class="doc-textarea" name="resignReason" rows="5"></textarea></td>
+  </tr>
+  <tr>
+    <td class="th" style="vertical-align:top; padding-top:8px;">인수인계 계획</td>
+    <td><textarea class="doc-textarea" name="handoverPlan" rows="4" placeholder="인수인계 대상자, 일정, 내용 등을 기재하세요."></textarea></td>
+  </tr>
+  <tr>
+    <td class="th">비상연락처</td>
+    <td><input class="doc-input" type="text" name="emergencyContact"></td>
+  </tr>
+  <tr>
+    <td class="th" style="vertical-align:top; padding-top:8px;">비고</td>
+    <td><textarea class="doc-textarea" name="note" rows="3"></textarea></td>
+  </tr>
+</table>
+
+<p style="font-size:12px; text-align:center; margin-top:8px;">상기와 같이 사직하고자 하오니 처리하여 주시기 바랍니다.</p>
+</div>

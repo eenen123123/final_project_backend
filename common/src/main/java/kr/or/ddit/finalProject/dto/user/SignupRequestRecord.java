@@ -11,6 +11,7 @@ import jakarta.validation.constraints.Size;
 /**
  * 회원 가입 요청을 위한 DTO 클래스
  */
+// @formatter:off
 public record SignupRequestRecord(
 
         @NotBlank(message = "ID는 필수입니다.")
@@ -59,7 +60,5 @@ public record SignupRequestRecord(
 
 
 ) {
-
-
-
+// @formatter:on
 }

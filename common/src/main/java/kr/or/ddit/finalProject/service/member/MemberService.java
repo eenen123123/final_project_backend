@@ -1,6 +1,7 @@
 package kr.or.ddit.finalProject.service.member;
 
 import kr.or.ddit.finalProject.dto.auth.AuthTokens;
+import kr.or.ddit.finalProject.dto.member.AdminMemberDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.dto.user.SigninRequestRecord;
 import kr.or.ddit.finalProject.dto.user.SignupRequestRecord;
@@ -80,4 +81,8 @@ public interface MemberService {
      * @return 사용자 ID가 사용 가능한 경우 true, 이미 존재하는 경우 false
      */
     boolean isUserIdAvailable(String userId);
+
+    MemberDto getMemberByUserId(String userId);
+
+    AdminMemberDto getAdminUserById(String userId);
 }

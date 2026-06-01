@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.lecture.LectureMapper">
+
+  <resultMap id="lectureListResponseMap" type="kr.or.ddit.finalProject.dto.lecture.LectureListResponse">
+    <result property="lectSn"      column="LECT_SN" />
+    <result property="lectYear"    column="LECT_YEAR" />
+    <result property="lectStatCd"  column="LECT_STAT_CD" />
+    <result property="lectStrtYmd" column="LECT_STRT_YMD" />
+    <result property="lectEndYmd"  column="LECT_END_YMD" />
+    <result property="curEnrlCnt"  column="CUR_ENRL_CNT" />
+    <result property="lrnTimeCnt"  column="LRN_TIME_CNT" />
+  </resultMap>
+
+  <select id="selectLecturesByClassSn" resultMap="lectureListResponseMap">
+    SELECT
+        l.LECT_SN,
+        l.LECT_YEAR,
+        l.LECT_STAT_CD,
+        l.LECT_STRT_YMD,
+        l.LECT_END_YMD,
+        l.CUR_ENRL_CNT,
+        l.LRN_TIME_CNT
+    FROM LECTURE l
+    WHERE l.COURSE_SN = (
+        SELECT COURSE_SN FROM CLASSROOM WHERE CLASS_SN = #{classSn}
+    )
+    ORDER BY l.LECT_STRT_YMD DESC
+  </select>
+
+</mapper>
