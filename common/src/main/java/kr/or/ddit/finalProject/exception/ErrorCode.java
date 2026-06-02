@@ -34,11 +34,15 @@ public enum ErrorCode {
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."),
     DOTENV_FILE_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR,
             "환경 변수 파일(.env)을 찾을 수 없습니다. .env.example 파일을 복사하여 .env 파일을 생성하고, 필요한 환경 변수를 설정해주세요."),
+    // 게시글 관련
+    POST_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "게시글 저장에 실패했습니다."),
+    POST_NOT_FOUND(HttpStatus.NOT_FOUND, "게시글을 찾을 수 없습니다."),
     // File
     FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다."),
     FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "파일을 찾을 수 없습니다."),
     FILE_EMPTY(HttpStatus.BAD_REQUEST, "업로드할 파일이 없습니다."),
     CANT_ACCESS_FILE(HttpStatus.INTERNAL_SERVER_ERROR, "파일에 접근할 수 없습니다."),
+    FILE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "파일에 대한 접근 권한이 없습니다."),
     FILE_INFO_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 정보 저장에 실패했습니다."),
     INVALID_FILE_TYPE_TO_CLOUDINARY(HttpStatus.BAD_REQUEST,
             "Cloudinary에 업로드할 수 없는 파일 형식입니다. PDF, 이미지 파일만 업로드할 수 있습니다."),
