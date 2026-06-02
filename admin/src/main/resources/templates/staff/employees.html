@@ -467,7 +467,7 @@
             <div class="flex items-center gap-1.5">
               <i class="fa-solid fa-briefcase w-4 text-center"></i>
               <span
-                th:text="${emp.employeeInfo != null ? (emp.employeeInfo.emplTypeCd == '01' ? '정규직' : (emp.employeeInfo.emplTypeCd == '02' ? '계약직' : '파트타임')) : '-'}">-</span>
+                th:text="${emp.employeeInfo != null ? (emp.employeeInfo.emplTypeCd == '01' ? '정규직' : (emp.employeeInfo.emplTypeCd == '02' ? '계약직' : (emp.employeeInfo.emplTypeCd == '03' ? '파트타임' : '-'))) : '-'}">-</span>
             </div>
           </div>
 
@@ -489,7 +489,7 @@
           <div class="relative">
             <i
               class="fa-solid fa-magnifying-glass absolute right-3.5 top-2/3 -translate-y-1/2 text-slate-400 text-sm"></i>
-            <input type="text" id="hr-search" placeholder="이름 검색..." class="hm-input hm-input-blue"
+            <input type="text" id="hr-search" placeholder="직원명 검색..." class="hm-input hm-input-blue"
               style="width:10rem; line-height:1rem; padding:0.65rem 1.75rem 0.65rem 1rem" oninput="filterHrList()">
           </div>
 
@@ -536,29 +536,29 @@
       <div class="overflow-x-auto rounded-xl border border-slate-100" style="min-height:32rem">
         <table class="w-full text-sm table-fixed">
           <colgroup>
-            <col style="width:17%">
-            <col style="width:13%">
-            <col style="width:11%">
-            <col style="width:13%">
-            <col style="width:11%">
-            <col style="width:14%">
-            <col style="width:13%">
+            <col style="width:10%">
+            <col style="width:9%">
+            <col style="width:10%">
+            <col style="width:10%">
+            <col style="width:10%">
+            <col style="width:10%">
+            <col style="width:8%">
             <col style="width:8%">
           </colgroup>
           <thead>
             <tr id="hr-thead" class="bg-slate-100 text-slate-500 text-sm">
-              <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="name"
+              <th class="text-left py-3 px-4 pl-8 font-semibold cursor-pointer select-none truncate" data-col="name"
                 onclick="sortHrBy('name')">직원명 <span class="sort-icon text-slate-300">↕</span></th>
               <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="dept"
                 onclick="sortHrBy('dept')">부서 <span class="sort-icon text-slate-300">↕</span></th>
               <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="grade"
                 onclick="sortHrBy('grade')">직급 <span class="sort-icon text-slate-300">↕</span></th>
-              <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="join"
-                onclick="sortHrBy('join')">입사일 <span class="sort-icon text-slate-300">↕</span></th>
               <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="type"
                 onclick="sortHrBy('type')">근무 유형 <span class="sort-icon text-slate-300">↕</span></th>
-              <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="dept"
-                onclick="sortHrBy('dept')">소속 부서 <span class="sort-icon text-slate-300">↕</span></th>
+              <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="join"
+                onclick="sortHrBy('join')">입사일 <span class="sort-icon text-slate-300">↕</span></th>
+              <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="contractEnd"
+                onclick="sortHrBy('contractEnd')">계약 기간 <span class="sort-icon text-slate-300">↕</span></th>
               <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="status"
                 onclick="sortHrBy('status')">상태 <span class="sort-icon text-slate-300">↕</span></th>
               <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="action"
@@ -576,7 +576,7 @@
               th:data-grade="${emp.jbgrNm}"
               th:data-grade-cd="${emp.employeeInfo != null ? emp.employeeInfo.jbgrCd : ''}"
               th:data-join="${emp.employeeInfo != null ? emp.employeeInfo.joinYmd : ''}"
-              th:data-type="${emp.employeeInfo != null ? emp.employeeInfo.emplTypeCd : ''}" 
+              th:data-type="${emp.employeeInfo != null and emp.employeeInfo.emplTypeCd != null ? #strings.trim(emp.employeeInfo.emplTypeCd) : ''}"
               th:data-dept="${emp.deptCd}"
               th:data-dept-nm="${emp.deptNm}"
               th:data-status="${emp.employeeInfo != null ? emp.employeeInfo.emplStatCd : ''}"
@@ -601,7 +601,11 @@
                   <div th:unless="${emp.member.userProfile != null and emp.member.userProfile != ''}"
                     class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-xs font-bold text-[#3b82f6]"
                     th:text="${#strings.substring(emp.member.userName, 0, 1)}">?</div>
-                  <span class="py-3 px-4 text-sm text-slate-600" th:text="${emp.member.userName}">-</span>
+
+                  <div>
+                      <p class="font-bold text-slate-800" th:text="${emp.member.userName}"></p>
+                      <p class="text-xs text-slate-400" th:text="${emp.userId}"></p>
+                  </div>
                 </div>
               </td>
               <td class="py-3 px-4 text-sm text-slate-600 truncate" th:text="${emp.deptNm}">-</td>
@@ -609,11 +613,10 @@
                 <span class="text-sm text-slate-600 block truncate" th:text="${emp.jbgrNm}">-</span>
               </td>
               <td class="py-3 px-4 text-sm text-slate-600 whitespace-nowrap"
-                th:text="${emp.employeeInfo != null ? emp.employeeInfo.joinYmd : '-'}">-</td>
-              <td class="py-3 px-4 text-sm text-slate-600 whitespace-nowrap"
-                th:text="${emp.employeeInfo != null ? (emp.employeeInfo.emplTypeCd == '01' ? '정규직' : (emp.employeeInfo.emplTypeCd == '02' ? '계약직' : '파트타임')) : '-'}">
-                -</td>
-              <td class="py-3 px-4 text-sm text-slate-600 truncate" th:text="${emp.deptNm}">-</td>
+              th:text="${emp.employeeInfo != null ? (emp.employeeInfo.emplTypeCd == '01' ? '정규직' : (emp.employeeInfo.emplTypeCd == '02' ? '계약직' : (emp.employeeInfo.emplTypeCd == '03' ? '파트타임' : '-'))) : '-'}">
+              -</td>
+              <td class="py-3 px-4 text-sm text-slate-600 whitespace-nowrap" th:text="${emp.employeeInfo != null ? emp.employeeInfo.joinYmd : '-'}">-</td>
+              <td class="py-3 px-4 text-sm text-slate-600 truncate" th:text="${emp.employeeInfo != null and emp.employeeInfo.ctrctEndYmd != null and !#strings.isEmpty(emp.employeeInfo.ctrctEndYmd) ? #strings.substring(emp.employeeInfo.ctrctEndYmd, 0, 10) : '-'}">-</td>
               <td class="py-3 px-4">
                 <span class="status-badge"
                   th:classappend="${emp.employeeInfo != null ? (emp.employeeInfo.emplStatCd == '01' ? 'status-active' : (emp.employeeInfo.emplStatCd == '02' ? 'status-leave' : 'status-resigned')) : 'status-resigned'}"
@@ -1283,7 +1286,7 @@
         if (status && r.dataset.status !== status) return false;
         if (dept && r.dataset.dept !== dept) return false;
         if (role && r.dataset.gradeCd !== role) return false;
-        if (type && r.dataset.type !== type) return false;
+        if (type && (r.dataset.type || '').trim() !== type) return false;
         return true;
       });
 
@@ -1340,8 +1343,10 @@
       rows.sort((a, b) => {
         const va = a.dataset[hrSortCol] || '';
         const vb = b.dataset[hrSortCol] || '';
-        if (hrSortCol === 'join') {
-          // yyyy-MM-dd 형식은 직접 문자열 비교가 정확함
+        if (hrSortCol === 'join' || hrSortCol === 'contractEnd') {
+          if (!va && !vb) return 0;
+          if (!va) return 1;
+          if (!vb) return -1;
           if (va < vb) return hrSortAsc ? -1 : 1;
           if (va > vb) return hrSortAsc ? 1 : -1;
           return 0;
