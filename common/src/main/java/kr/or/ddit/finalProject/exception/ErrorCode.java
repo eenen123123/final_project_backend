@@ -104,7 +104,12 @@ public enum ErrorCode {
     EMPLOYEE_ID_GENERATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "직원 ID 생성에 실패했습니다."),
     EMPLOYEE_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "직원 정보 수정에 실패했습니다."),
     EMPLOYEE_RETIRE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "직원 퇴사 처리에 실패했습니다."),
-    EMPLOYEE_ALREADY_RETIRED(HttpStatus.BAD_REQUEST, "이미 퇴사 처리된 직원입니다.");
+    EMPLOYEE_ALREADY_RETIRED(HttpStatus.BAD_REQUEST, "이미 퇴사 처리된 직원입니다."),
+
+    // 업무 일지 관련
+    JOURNAL_NOT_FOUND(HttpStatus.NOT_FOUND, "일지를 찾을 수 없습니다."),
+
+    JOURNAL_ACCESS_DENIED(HttpStatus.FORBIDDEN, "본인이 작성한 일지만 수정·삭제할 수 있습니다.");
 
     // =============================
 
