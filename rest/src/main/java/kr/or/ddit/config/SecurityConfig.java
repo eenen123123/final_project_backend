@@ -50,6 +50,7 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.GET, "/api/qna/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/qna").authenticated()
+                        .requestMatchers("/api/files/**").authenticated()
 
                         .requestMatchers("/").permitAll().anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter,
