@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.instructor.InstructorCareerMapper">
+
+    <!--
+        공통 SELECT 컬럼 절
+          INSTRUCTOR_CAREER 테이블 전체 컬럼을 camelCase DTO 필드에 매핑합니다.
+          이력 컬럼(RGTR_ID / REG_DT / LAST_MDFR_ID / MDFCN_DT)과
+          소프트 딜리트 컬럼(DEL_YN / DEL_DT / DEL_USER_ID) 포함.
+    -->
+    <sql id="careerColumns">
+        CAREER_SN                                       AS careerSn,
+        INSTR_USER_ID                                   AS instrUserId,
+        CAREER_TYPE_CD                                  AS careerTypeCd,
+        CAREER_STRT_YR                                  AS careerStrtYr,
+        CAREER_END_YR                                   AS careerEndYr,
+        CAREER_CONT                                     AS careerCont,
+        SORT_ORD                                        AS sortOrd,
+        RGTR_ID                                         AS rgtrId,
+        TO_CHAR(REG_DT, 'YYYY-MM-DD HH24:MI')          AS regDt,
+        LAST_MDFR_ID                                    AS lastMdfrId,
+        TO_CHAR(MDFCN_DT, 'YYYY-MM-DD HH24:MI')        AS mdfcnDt,
+        DEL_YN                                          AS delYn,
+        TO_CHAR(DEL_DT, 'YYYY-MM-DD HH24:MI')          AS delDt,
+        DEL_USER_ID                                     AS delUserId
+    </sql>
+
+    <!-- ──────────────────────────────────────────── -->
+    <!-- 강사 기본 프로필 조회                        -->
+    <!--   소개글(INSTR_INTRO) +                      -->
+    <!--   프로필 이미지 URL(INSTR_PROFILE_IMG)       -->
+    <!-- ──────────────────────────────────────────── -->
+    <select id="selectInstructor"
+            resultType="kr.or.ddit.finalProject.dto.instructor.InstructorDto">
+        SELECT
+            INSTR_USER_ID     AS instrUserId,
+            INSTR_INTRO       AS instrIntro,
+            INSTR_PROFILE_IMG AS instrProfileImg
+        FROM INSTRUCTOR
+        WHERE INSTR_USER_ID = #{instrUserId}
+    </select>
+
+    <!-- ──────────────────────────────────────────── -->
+    <!-- 특정 강사의 약력 항목 전체 조회              -->
+    <!--   DEL_YN = 'N' 조건으로 삭제된 항목 제외    -->
+    <!--   정렬: 유형 → 순서 → 시작연도              -->
+    <!-- ──────────────────────────────────────────── -->
+    <select id="selectCareersByInstructor"
+            resultType="kr.or.ddit.finalProject.dto.instructor.InstructorCareerDto">
+        SELECT <include refid="careerColumns"/>
+        FROM INSTRUCTOR_CAREER
+        WHERE INSTR_USER_ID = #{instrUserId}
+          AND DEL_YN = 'N'
+        ORDER BY CAREER_TYPE_CD ASC, SORT_ORD ASC, CAREER_STRT_YR ASC
+    </select>
+
+    <!-- ──────────────────────────────────────────── -->
+    <!-- 약력 항목 단건 조회                          -->
+    <!--   소유권 확인 및 수정/삭제 전 존재 체크용   -->
+    <!--   소프트 딜리트된 항목도 조회 가능           -->
+    <!--   (서비스에서 DEL_YN 판단 후 처리)          -->
+    <!-- ──────────────────────────────────────────── -->
+    <select id="selectCareerBySn"
+            resultType="kr.or.ddit.finalProject.dto.instructor.InstructorCareerDto">
+        SELECT <include refid="careerColumns"/>
+        FROM INSTRUCTOR_CAREER
+        WHERE CAREER_SN = #{careerSn}
+    </select>
+
+    <!-- ──────────────────────────────────────────── -->
+    <!-- 약력 항목 등록                               -->
+    <!--   useGeneratedKeys: INSERT 후 PK를           -->
+    <!--   dto.careerSn에 자동 주입                   -->
+    <!--   RGTR_ID / REG_DT 이력 함께 저장            -->
+    <!-- ──────────────────────────────────────────── -->
+    <insert id="insertCareer"
+            parameterType="kr.or.ddit.finalProject.dto.instructor.InstructorCareerDto"
+            useGeneratedKeys="true"
+            keyProperty="careerSn"
+            keyColumn="CAREER_SN">
+        INSERT INTO INSTRUCTOR_CAREER (
+            CAREER_SN,
+            INSTR_USER_ID,
+            CAREER_TYPE_CD,
+            CAREER_STRT_YR,
+            CAREER_END_YR,
+            CAREER_CONT,
+            SORT_ORD,
+            RGTR_ID,
+            REG_DT,
+            DEL_YN
+        ) VALUES (
+            SEQ_INSTRUCTOR_CAREER.NEXTVAL,
+            #{instrUserId},
+            #{careerTypeCd},
+            #{careerStrtYr},
+            #{careerEndYr, jdbcType=VARCHAR},
+            #{careerCont},
+            #{sortOrd},
+            #{rgtrId},
+            CURRENT_TIMESTAMP,
+            'N'
+        )
+    </insert>
+
+    <!-- ──────────────────────────────────────────── -->
+    <!-- 약력 항목 수정                               -->
+    <!--   LAST_MDFR_ID / MDFCN_DT 이력 갱신         -->
+    <!-- ──────────────────────────────────────────── -->
+    <update id="updateCareer"
+            parameterType="kr.or.ddit.finalProject.dto.instructor.InstructorCareerDto">
+        UPDATE INSTRUCTOR_CAREER
+        SET
+            CAREER_TYPE_CD = #{careerTypeCd},
+            CAREER_STRT_YR = #{careerStrtYr},
+            CAREER_END_YR  = #{careerEndYr, jdbcType=VARCHAR},
+            CAREER_CONT    = #{careerCont},
+            SORT_ORD       = #{sortOrd},
+            LAST_MDFR_ID   = #{lastMdfrId},
+            MDFCN_DT       = CURRENT_TIMESTAMP
+        WHERE CAREER_SN = #{careerSn}
+          AND DEL_YN = 'N'
+    </update>
+
+    <!-- ──────────────────────────────────────────── -->
+    <!-- 약력 항목 소프트 딜리트                      -->
+    <!--   물리 삭제 대신 DEL_YN = 'Y'로 마킹        -->
+    <!--   DEL_DT / DEL_USER_ID 이력 함께 기록       -->
+    <!-- ──────────────────────────────────────────── -->
+    <update id="deleteCareer">
+        UPDATE INSTRUCTOR_CAREER
+        SET
+            DEL_YN      = 'Y',
+            DEL_DT      = CURRENT_TIMESTAMP,
+            DEL_USER_ID = #{delUserId}
+        WHERE CAREER_SN = #{careerSn}
+          AND DEL_YN = 'N'
+    </update>
+
+    <!-- ──────────────────────────────────────────── -->
+    <!-- 강사 프로필 이미지 URL upsert               -->
+    <!--   INSTRUCTOR 행이 있으면 UPDATE,            -->
+    <!--   없으면 INSERT(최초 접속 강사 대응)         -->
+    <!--   profileImgUrl = null 이면 컬럼 NULL 저장  -->
+    <!-- ──────────────────────────────────────────── -->
+    <update id="updateProfileImg">
+        MERGE INTO INSTRUCTOR i
+        USING DUAL
+        ON (i.INSTR_USER_ID = #{instrUserId})
+        WHEN MATCHED THEN
+            UPDATE SET INSTR_PROFILE_IMG = #{profileImgUrl, jdbcType=VARCHAR}
+        WHEN NOT MATCHED THEN
+            INSERT (INSTR_USER_ID, INSTR_PROFILE_IMG)
+            VALUES (#{instrUserId}, #{profileImgUrl, jdbcType=VARCHAR})
+    </update>
+
+    <!-- ──────────────────────────────────────────── -->
+    <!-- 강사 소개글 upsert                          -->
+    <!--   INSTRUCTOR 행이 있으면 UPDATE,            -->
+    <!--   없으면 INSERT(최초 접속 강사 대응)         -->
+    <!--   빈 문자열은 서비스에서 null로 변환 후 전달 -->
+    <!-- ──────────────────────────────────────────── -->
+    <update id="updateInstrIntro">
+        MERGE INTO INSTRUCTOR i
+        USING DUAL
+        ON (i.INSTR_USER_ID = #{instrUserId})
+        WHEN MATCHED THEN
+            UPDATE SET INSTR_INTRO = #{instrIntro, jdbcType=VARCHAR}
+        WHEN NOT MATCHED THEN
+            INSERT (INSTR_USER_ID, INSTR_INTRO)
+            VALUES (#{instrUserId}, #{instrIntro, jdbcType=VARCHAR})
+    </update>
+
+</mapper>
