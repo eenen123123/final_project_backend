@@ -7,6 +7,9 @@ import kr.or.ddit.finalProject.dto.board.BoardDto;
 @Mapper
 public interface BoardMapper {
 
+    // 게시글 단건 조회
+    BoardDto selectBoardByPostSn(Long postSn);
+
     // 게시글 등록
     int insertBoard(BoardDto boardDto);
 

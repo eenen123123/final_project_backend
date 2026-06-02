@@ -6,5 +6,6 @@ public enum FileCtxType {
     COURSE, // 강좌 관련 파일 id type = long
     DEPT_DOC, // 부서 문서 관련 파일 id type = String
     INSTRUCTOR, // 강사 페이지 관련 파일 id type = String
+    POST, // React 게시글 관련 파일 id type = long
 
 }

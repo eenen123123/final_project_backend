@@ -109,6 +109,29 @@
         WHERE ATCH_FILE_DTL_SN = #{atchFileDtlSn}
     </update>
 
+    <!-- 배치 소유자 검증: 반환값 == fileIds.size() 이면 전부 본인 소유 -->
+    <select id="countOwnedFiles" resultType="int">
+        SELECT COUNT(*)
+        FROM CMMT_ATCH_FILE_DTL
+        WHERE FILE_SERVER_ID IN
+        <foreach collection="fileIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        AND RGTR_ID = #{userId}
+        AND DEL_YN = 'N'
+    </select>
+
+    <!-- 게시글 저장 완료 후 이미지 파일 CTX 일괄 업데이트 -->
+    <update id="updateFileContext">
+        UPDATE CMMT_ATCH_FILE_DTL
+        SET CTX_TYPE = #{ctxType},
+            CTX_ID   = #{ctxId}
+        WHERE FILE_SERVER_ID IN
+        <foreach collection="fileIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
     <!-- findContextByFileServerId -->
 
     <select id="findContextByFileServerId" resultType="kr.or.ddit.finalProject.dto.file.FileDto">
