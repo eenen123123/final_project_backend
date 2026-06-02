@@ -1,108 +1,6 @@
-/* ─── 더미 데이터 ─── */
-const employees = [
-  {
-    id: 1,
-    name: "김현정",
-    role: "매니저",
-    dept: "운영팀",
-    entry: "2023-03-02",
-    workType: "정규직",
-    hours: 40,
-    salary: 320,
-    phone: "010-1234-5678",
-    email: "kim@hermes.com",
-    addr: "서울시 강남구",
-    status: "재직",
-    loginId: "kimhj",
-    lastLogin: "2026-05-25",
-  },
-  {
-    id: 2,
-    name: "이수민",
-    role: "행정",
-    dept: "행정팀",
-    entry: "2024-01-08",
-    workType: "정규직",
-    hours: 40,
-    salary: 270,
-    phone: "010-2345-6789",
-    email: "lee@hermes.com",
-    addr: "서울시 서초구",
-    status: "재직",
-    loginId: "leesm",
-    lastLogin: "2026-05-25",
-  },
-  {
-    id: 3,
-    name: "박지호",
-    role: "강사",
-    dept: "강의팀",
-    entry: "2022-09-01",
-    workType: "정규직",
-    hours: 40,
-    salary: 350,
-    phone: "010-3456-7890",
-    email: "park@hermes.com",
-    addr: "서울시 송파구",
-    status: "재직",
-    loginId: "parkjh",
-    lastLogin: "2026-05-24",
-  },
-  {
-    id: 4,
-    name: "최유리",
-    role: "강사",
-    dept: "강의팀",
-    entry: "2023-07-15",
-    workType: "계약직",
-    hours: 30,
-    salary: 220,
-    phone: "010-4567-8901",
-    email: "choi@hermes.com",
-    addr: "서울시 마포구",
-    status: "휴직",
-    loginId: "choiyr",
-    lastLogin: "2026-03-10",
-  },
-  {
-    id: 5,
-    name: "정민석",
-    role: "PD",
-    dept: "운영팀",
-    entry: "2024-03-04",
-    workType: "정규직",
-    hours: 40,
-    salary: 290,
-    phone: "010-5678-9012",
-    email: "jung@hermes.com",
-    addr: "서울시 노원구",
-    status: "재직",
-    loginId: "jungms",
-    lastLogin: "2026-05-23",
-  },
-  {
-    id: 6,
-    name: "박서준",
-    role: "행정",
-    dept: "행정팀",
-    entry: "2021-06-14",
-    workType: "정규직",
-    hours: 40,
-    salary: 300,
-    phone: "010-6789-0123",
-    email: "psj@hermes.com",
-    addr: "서울시 강동구",
-    status: "퇴사",
-    loginId: "parksjDisabled",
-    lastLogin: "2026-02-28",
-  },
-];
 
 let selectedEmpId = null;
 let detailEditMode = false;
-let currentEmpPage = 1;
-const EMP_SCREEN_SIZE = 9; // PaginationInfo screenSize (한 페이지 카드 수)
-const EMP_BLOCK_SIZE = 5; // PaginationInfo blockSize  (페이지 버튼 수)
 
 /* ─── 탭 전환 ─── */
 function switchEmpTab(tabId, btn) {
@@ -117,157 +15,6 @@ function switchEmpTab(tabId, btn) {
 }
 
 /* ─── 직원 현황 카드 렌더링 ─── */
-function renderEmpCards(list) {
-  const roleClass = {
-    매니저: "role-manager",
-    행정: "role-staff",
-    강사: "role-instructor",
-    PD: "role-pd",
-  };
-  const statusClass = {
-    재직: "status-active",
-    휴직: "status-leave",
-    퇴사: "status-resigned",
-  };
-  const grid = document.getElementById("emp-card-grid");
-  if (!list.length) {
-    grid.innerHTML =
-      '<p class="text-sm text-slate-400 col-span-3 text-center py-10">검색 결과가 없습니다.</p>';
-    return;
-  }
-  grid.innerHTML = list
-    .map(
-      (e) => `
-    <div class="emp-card p-4 cursor-pointer${selectedEmpId === e.id ? " selected" : ""}" onclick="openDetail(${e.id})">
-      <div class="flex items-center gap-3 mb-3">
-        <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center font-bold text-[#3b82f6] text-base flex-shrink-0">${e.name[0]}</div>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 flex-wrap">
-            <span class="font-bold text-sm text-slate-800">${e.name}</span>
-            <span class="status-badge ${statusClass[e.status]}">${e.status}</span>
-          </div>
-          <div class="flex gap-1.5 mt-0.5 flex-wrap">
-            <span class="role-tag ${roleClass[e.role]}">${e.role}</span>
-            <span class="text-xs text-slate-400">${e.dept}</span>
-          </div>
-        </div>
-      </div>
-      <div class="space-y-1.5 text-xs text-slate-500">
-        <div class="flex items-center gap-1.5"><i class="fa-solid fa-calendar-day w-4 text-center"></i>입사일 ${e.entry}</div>
-        <div class="flex items-center gap-1.5"><i class="fa-solid fa-phone w-4 text-center"></i>${e.phone}</div>
-        <div class="flex items-center gap-1.5"><i class="fa-solid fa-clock w-4 text-center"></i>주 ${e.hours}시간 · ${e.workType}</div>
-      </div>
-      <div class="mt-3 pt-3 border-t border-slate-100 flex gap-2">
-        <button onclick="event.stopPropagation(); openDetail(${e.id})" class="flex-1 text-xs text-[#3b82f6] font-semibold border border-blue-200 py-1.5 rounded-lg hover:bg-blue-50">상세보기</button>
-        ${
-          e.status !== "퇴사"
-            ? `<button onclick="event.stopPropagation(); openDetail(${e.id})" class="flex-1 text-xs text-slate-600 font-semibold border border-slate-200 py-1.5 rounded-lg hover:bg-slate-50">수정</button>`
-            : `<button onclick="event.stopPropagation(); openDestroyConfirm(${e.id})" class="flex-1 text-xs text-red-500 font-semibold border border-red-200 py-1.5 rounded-lg hover:bg-red-50">정보 파기</button>`
-        }
-      </div>
-    </div>
-  `,
-    )
-    .join("");
-}
-
-/* ─── 필터 변경 시 1페이지로 리셋 후 재렌더 ─── */
-function filterEmpList() {
-  currentEmpPage = 1;
-  applyEmpPaging();
-}
-
-/* ─── 페이징 적용 (PaginationInfo 동일 로직) ─── */
-function applyEmpPaging() {
-  const q = (document.getElementById("emp-search")?.value || "")
-    .trim()
-    .toLowerCase();
-  const stCd = document.getElementById("emp-status-filter")?.value || "";
-  const typeCd = document.getElementById("emp-type-filter")?.value || "";
-
-  const roleFilter = document.getElementById("emp-role-filter");
-  const selectedDeptNm =
-    roleFilter && roleFilter.selectedIndex > 0
-      ? roleFilter.options[roleFilter.selectedIndex].text.trim().toLowerCase()
-      : "";
-
-  const allCards = Array.from(
-    document.querySelectorAll("#emp-card-grid .emp-card"),
-  );
-
-  // 1. 필터 통과한 카드 추출
-  const filtered = allCards.filter((card) => {
-    const name = (card.dataset.name || "").toLowerCase();
-    const deptNm = (card.dataset.deptNm || "").toLowerCase();
-    const jbgr = (card.dataset.jbgrNm || "").toLowerCase();
-    const statCd = card.dataset.emplStatCd || "";
-    const empType = card.dataset.emplTypeCd || "";
-
-    const matchQ =
-      !q || name.includes(q) || jbgr.includes(q) || deptNm.includes(q);
-    const matchSt = !stCd || statCd === stCd;
-    const matchType = !typeCd || empType === typeCd;
-    const matchDept = !selectedDeptNm || deptNm === selectedDeptNm;
-    return matchQ && matchSt && matchType && matchDept;
-  });
-
-  // 2. 전체 숨기기
-  allCards.forEach((c) => (c.style.display = "none"));
-
-  // 3. PaginationInfo.getOffset() = (page-1) * screenSize
-  const offset = (currentEmpPage - 1) * EMP_SCREEN_SIZE;
-  filtered
-    .slice(offset, offset + EMP_SCREEN_SIZE)
-    .forEach((c) => (c.style.display = ""));
-
-  // 4. 빈 상태 처리
-  const noResult = document.getElementById("emp-no-result");
-  if (noResult) noResult.style.display = filtered.length === 0 ? "" : "none";
-
-  // 5. 페이지 버튼 렌더링
-  renderEmpPagination(filtered.length);
-}
-
-/* ─── 페이지 버튼 렌더링 (PaginationInfo.getStartPage/getEndPage 동일 로직) ─── */
-function renderEmpPagination(totalCount) {
-  const container = document.getElementById("emp-pagination");
-  if (!container) return;
-
-  // getTotalPage()
-  const totalPage = Math.ceil(totalCount / EMP_SCREEN_SIZE);
-  if (totalPage <= 1) {
-    container.innerHTML = "";
-    return;
-  }
-
-  // getEndPage() = ceil(page / blockSize) * blockSize
-  const endPage = Math.min(
-    Math.ceil(currentEmpPage / EMP_BLOCK_SIZE) * EMP_BLOCK_SIZE,
-    totalPage,
-  );
-  // getStartPage() = endPage - blockSize + 1
-  const startPage = Math.max(endPage - EMP_BLOCK_SIZE + 1, 1);
-
-  let html = "";
-  if (startPage > 1) {
-    html += `<button onclick="goEmpPage(${startPage - 1})" class="emp-page-btn">이전</button>`;
-  }
-  for (let p = startPage; p <= endPage; p++) {
-    html += `<button onclick="goEmpPage(${p})" class="emp-page-btn${p === currentEmpPage ? " active" : ""}">${p}</button>`;
-  }
-  if (endPage < totalPage) {
-    html += `<button onclick="goEmpPage(${endPage + 1})" class="emp-page-btn">다음</button>`;
-  }
-  container.innerHTML = html;
-}
-
-function goEmpPage(p) {
-  const scrollY = window.scrollY;
-  currentEmpPage = p;
-  applyEmpPaging();
-  window.scrollTo({ top: scrollY, behavior: "instant" });
-}
-
 /* ═══ 인사 기록 탭 페이징 + 필터 + 정렬 ═══ */
 let currentHrPage = 1;
 const HR_SCREEN_SIZE = 7;
@@ -449,99 +196,6 @@ function goHrPage(p) {
 }
 
 /* ─── 인사 기록 테이블 렌더링 ─── */
-function renderHrTable() {
-  const roleClass = {
-    매니저: "role-manager",
-    행정: "role-staff",
-    강사: "role-instructor",
-    PD: "role-pd",
-  };
-  const statusClass = {
-    재직: "status-active",
-    휴직: "status-leave",
-    퇴사: "status-resigned",
-  };
-  document.getElementById("hr-table-body").innerHTML = employees
-    .map(
-      (e) => `
-    <tr class="hover:bg-slate-50 transition-colors">
-      <td class="py-3 px-4">
-        <div class="flex items-center gap-2">
-          <div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-xs font-bold text-[#3b82f6]">${e.name[0]}</div>
-          <span class="font-semibold text-slate-800 text-xs">${e.name}</span>
-        </div>
-      </td>
-      <td class="py-3 px-4"><span class="role-tag ${roleClass[e.role]}">${e.role}</span></td>
-      <td class="py-3 px-4 text-xs text-slate-600">${e.entry}</td>
-      <td class="py-3 px-4 text-xs text-slate-600">${e.workType}</td>
-      <td class="py-3 px-4 text-xs text-slate-600">주 ${e.hours}시간</td>
-      <td class="py-3 px-4 text-xs text-slate-600">${e.dept}</td>
-      <td class="py-3 px-4"><span class="status-badge ${statusClass[e.status]}">${e.status}</span></td>
-      <td class="py-3 px-4">
-        <button onclick="openDetail(${e.id})" class="text-xs text-[#3b82f6] hover:underline font-semibold">상세</button>
-      </td>
-    </tr>
-  `,
-    )
-    .join("");
-}
-
-/* ─── 계정 목록 렌더링 ─── */
-function renderAcctList() {
-  const active = employees.filter((e) => e.status !== "퇴사");
-  document.getElementById("acct-list").innerHTML = active
-    .map(
-      (e) => `
-    <div class="bg-white border border-slate-100 rounded-xl p-4 shadow-sm">
-      <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-sm font-bold text-[#3b82f6]">${e.name[0]}</div>
-          <div>
-            <p class="font-bold text-sm text-slate-800">${e.name}</p>
-            <p class="text-xs text-slate-400">ID: ${e.loginId}</p>
-          </div>
-        </div>
-        <span class="status-badge ${e.status === "재직" ? "status-active" : "status-leave"}">${e.status}</span>
-      </div>
-      <div class="acct-row">
-        <span class="text-xs text-slate-500">마지막 로그인</span>
-        <span class="text-xs font-semibold text-slate-700">${e.lastLogin}</span>
-      </div>
-      <div class="acct-row">
-        <span class="text-xs text-slate-500">비밀번호 재설정</span>
-        <button onclick="resetPw(${e.id},'${e.name}')" class="text-xs text-amber-600 font-semibold hover:underline">임시 비밀번호 발급</button>
-      </div>
-      <div class="acct-row">
-        <span class="text-xs text-slate-500">접근 차단</span>
-        <button onclick="openResignConfirmDirect(${e.id},'${e.name}')" class="text-xs text-red-500 font-semibold hover:underline">계정 비활성화</button>
-      </div>
-    </div>
-  `,
-    )
-    .join("");
-}
-
-/* ─── 개인정보 파기 대기 목록 ─── */
-function renderDestructionList() {
-  const resigned = employees.filter((e) => e.status === "퇴사");
-  document.getElementById("destruction-list").innerHTML = resigned
-    .map(
-      (e) => `
-    <div class="flex items-center justify-between bg-white border border-red-100 rounded-xl px-4 py-3">
-      <div class="flex items-center gap-2">
-        <div class="w-7 h-7 rounded-lg bg-red-100 flex items-center justify-center text-xs font-bold text-red-500">${e.name[0]}</div>
-        <div>
-          <p class="text-xs font-bold text-slate-800">${e.name}</p>
-          <p class="text-xs text-slate-400">퇴사 처리일: 2026-02-28 · D+87</p>
-        </div>
-      </div>
-      <button onclick="openDestroyConfirm(${e.id})" class="text-xs text-red-500 font-bold border border-red-300 px-3 py-1.5 rounded-lg hover:bg-red-50">파기 실행</button>
-    </div>
-  `,
-    )
-    .join("");
-}
-
 /* ─── 전화번호 하이픈 포맷 (표시용) ─── */
 function formatPhoneDisplay(tel) {
   if (!tel) return "-";
@@ -972,25 +626,6 @@ function executeResign() {
 }
 
 /* ─── 개인정보 파기 ─── */
-function openDestroyConfirm(id) {
-  selectedEmpId = id;
-  document.getElementById("destroy-name").textContent =
-    employees.find((x) => x.id === id)?.name || "";
-  openModal("modal-destroy-confirm");
-}
-
-function executeDestroy() {
-  const idx = employees.findIndex((x) => x.id === selectedEmpId);
-  if (idx !== -1) {
-    employees[idx].phone = "파기 완료";
-    employees[idx].addr = "파기 완료";
-    employees[idx].email = "파기 완료";
-  }
-  closeModal("modal-destroy-confirm");
-  renderDestructionList();
-  renderAcctList();
-  showHermesToast("개인정보가 파기되었습니다.", "success");
-}
 
 /* ─── 한글 초성 → 영어 로마자 변환 ─── */
 function koreanInitialsToEng(name) {
@@ -1066,8 +701,8 @@ function autoGenLoginId(force) {
   // 기준점이 될 앞자리 패턴 (예: "202605KH")
   const baseId = year + month + initials;
 
-  // 화면단 기본 일련번호 (예: 기존employees 배열 길이에 기반한 "07")
-  const defaultSerial = String(employees.length + 1).padStart(2, "0");
+  // 기본 일련번호 — 서버 next-id API로 실제 중복 없는 번호를 발급받음
+  const defaultSerial = "01";
   const targetId = baseId + defaultSerial;
 
   // [실시간 중복 조회 및 차기 순번 발급]
@@ -1476,9 +1111,6 @@ document.querySelectorAll('[id^="modal-"]').forEach((m) => {
 
 /* ─── 초기 렌더링 ─── */
 (function () {
-  renderAcctList();
-  renderDestructionList();
-
   const firstBtn = document.querySelector(
     '.emp-tab-btn[data-tab="emp-tab-hr"]',
   );
