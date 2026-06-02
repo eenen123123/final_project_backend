@@ -196,10 +196,7 @@
           </table>
         </div>
         <!-- 페이지네이션 -->
-        <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
-          <p class="text-xs text-slate-400" id="perm-paging-info">전체 0명</p>
-          <div class="flex items-center gap-1" id="perm-pagination"></div>
-        </div>
+        <div id="perm-pagination" class="flex justify-center items-center gap-1.5 mt-6 pb-2"></div>
       </div>
     </div>
 
@@ -508,6 +505,17 @@
 </div>
 
 
+<style>
+  .emp-page-btn {
+    min-width: 2rem; height: 2rem; padding: 0 .55rem;
+    font-size: .78rem; font-weight: 600; border-radius: .5rem;
+    border: 1.5px solid #e2e8f0; background: #fff; color: #475569;
+    cursor: pointer; transition: all .15s;
+  }
+  .emp-page-btn:hover { border-color: #7c3aed; color: #7c3aed; }
+  .emp-page-btn.active { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+</style>
+
 <!-- ===== 페이지 스크립트 ===== -->
 <script>
   /* ===== 직원 목록 필터 / 정렬 / 페이징 전역 변수 ===== */
@@ -622,36 +630,38 @@
     });
     rows.filter(r => r.dataset.visible === '0').forEach(r => r.style.display = 'none');
 
-    const s = total === 0 ? 0 : start + 1;
-    document.getElementById('perm-paging-info').textContent =
-      `전체 ${total}명 중 ${s}–${Math.min(end, total)} 표시`;
-
     renderPermPagination(total);
   }
 
-  function renderPermPagination(total) {
-    const container  = document.getElementById('perm-pagination');
-    const totalPage  = Math.max(1, Math.ceil(total / PERM_PAGE_SIZE));
+  function renderPermPagination(totalCount) {
+    const container = document.getElementById('perm-pagination');
+    if (!container) return;
+
+    const totalPage = Math.ceil(totalCount / PERM_PAGE_SIZE);
     if (totalPage <= 1) { container.innerHTML = ''; return; }
 
-    const blockEnd   = Math.min(Math.ceil(permCurrentPage / PERM_BLOCK_SIZE) * PERM_BLOCK_SIZE, totalPage);
-    const blockStart = Math.max(blockEnd - PERM_BLOCK_SIZE + 1, 1);
-
-    const base   = 'min-w-[2rem] h-8 px-2 text-xs font-semibold rounded-lg border transition-all cursor-pointer';
-    const normal = 'border-slate-200 bg-white text-slate-500 hover:border-violet-400 hover:text-violet-600';
-    const act    = 'border-violet-600 bg-violet-600 text-white';
+    const endPage   = Math.min(Math.ceil(permCurrentPage / PERM_BLOCK_SIZE) * PERM_BLOCK_SIZE, totalPage);
+    const startPage = Math.max(endPage - PERM_BLOCK_SIZE + 1, 1);
 
     let html = '';
-    if (blockStart > 1)
-      html += `<button onclick="goPermPage(${blockStart - 1})" class="${base} ${normal}">이전</button>`;
-    for (let p = blockStart; p <= blockEnd; p++)
-      html += `<button onclick="goPermPage(${p})" class="${base} ${p === permCurrentPage ? act : normal}">${p}</button>`;
-    if (blockEnd < totalPage)
-      html += `<button onclick="goPermPage(${blockEnd + 1})" class="${base} ${normal}">다음</button>`;
+    if (startPage > 1) {
+      html += `<button onclick="goPermPage(${startPage - 1})" class="emp-page-btn">이전</button>`;
+    }
+    for (let p = startPage; p <= endPage; p++) {
+      html += `<button onclick="goPermPage(${p})" class="emp-page-btn${p === permCurrentPage ? ' active' : ''}">${p}</button>`;
+    }
+    if (endPage < totalPage) {
+      html += `<button onclick="goPermPage(${endPage + 1})" class="emp-page-btn">다음</button>`;
+    }
     container.innerHTML = html;
   }
 
-  function goPermPage(p) { permCurrentPage = p; applyPermTable(); }
+  function goPermPage(p) {
+    const scrollY = window.scrollY;
+    permCurrentPage = p;
+    applyPermTable();
+    window.scrollTo({ top: scrollY, behavior: 'instant' });
+  }
 
   /* 접속 이력 모달 열기 */
   function openActivityModal(element) {
