@@ -7,7 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import kr.or.ddit.finalProject.dto.board.DataRoomDto;
+import kr.or.ddit.finalProject.dto.file.FileCtxType;
 import kr.or.ddit.finalProject.dto.file.FileDto;
+import kr.or.ddit.finalProject.dto.member.MemberRoleEnum;
 import kr.or.ddit.finalProject.mapper.board.DataRoomMapper;
 import kr.or.ddit.finalProject.service.file.FileUploadService;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +40,8 @@ public class DataRoomServiceImpl implements DataRoomService {
     public void createDataRoom(DataRoomDto dataRoomDto, MultipartFile file) {
         // 1. 파일 첨부 있으면 업로드
         if (file != null && !file.isEmpty()) {
-            FileDto fileDto = fileUploadService.uploadFile(file, dataRoomDto.getWrtrUserId());
+            FileDto fileDto = fileUploadService.uploadFile(file, dataRoomDto.getWrtrUserId(),
+                    FileCtxType.MEMBER_ROLE, MemberRoleEnum.ROLE_USER.name());
             dataRoomDto.setAtchFileId(fileDto.getAtchFileDtlSn());
             dataRoomDto.setOrgnFileNm(fileDto.getOrgnFileNm());
             dataRoomDto.setSavePathNm(fileDto.getSavePathNm());
@@ -60,7 +63,8 @@ public class DataRoomServiceImpl implements DataRoomService {
     public void updateDataRoom(DataRoomDto dataRoomDto, MultipartFile file) {
         // 1. 새 파일 첨부 있으면 업로드
         if (file != null && !file.isEmpty()) {
-            FileDto fileDto = fileUploadService.uploadFile(file, dataRoomDto.getWrtrUserId());
+            FileDto fileDto = fileUploadService.uploadFile(file, dataRoomDto.getWrtrUserId(),
+                    FileCtxType.MEMBER_ROLE, MemberRoleEnum.ROLE_USER.name());
             dataRoomDto.setAtchFileId(fileDto.getAtchFileDtlSn());
             dataRoomDto.setOrgnFileNm(fileDto.getOrgnFileNm());
             dataRoomDto.setSavePathNm(fileDto.getSavePathNm());

@@ -16,7 +16,9 @@ import lombok.NoArgsConstructor;
  * java.lang.IndexOutOfBoundsException이 발생했습니다.
  *
  * MyBatis는 기본적으로 no-args constructor + setter 방식으로 결과를 매핑하므로,
+ * 
  * @NoArgsConstructor를 명시해 이 동작을 보장합니다.
+ * 
  * @Builder와 함께 사용할 때는 @AllArgsConstructor도 함께 선언해야 합니다.
  */
 @Data
@@ -42,5 +44,5 @@ public class FileDto implements Serializable {
     private Integer dwnldCnt; // 다운로드 횟수
 
     private FileCtxType fileCtxType; // 파일 컨텍스트 타입
-    private Long fileCtxId; // 파일 컨텍스트 ID (예: 강의 ID, 채팅방 ID 등)
+    private String fileCtxId; // 파일 컨텍스트 ID (예: 강의 ID, 채팅방 ID 등)
 }

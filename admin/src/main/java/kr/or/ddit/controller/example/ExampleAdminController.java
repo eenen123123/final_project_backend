@@ -12,8 +12,10 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.or.ddit.finalProject.dto.example.ExampleDto;
+import kr.or.ddit.finalProject.dto.file.FileCtxType;
 import kr.or.ddit.finalProject.dto.file.FileDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
+import kr.or.ddit.finalProject.dto.member.MemberRoleEnum;
 import kr.or.ddit.finalProject.mapper.MemberMapper;
 import kr.or.ddit.finalProject.mapper.TestMapper;
 import kr.or.ddit.finalProject.service.file.FileUploadService;
@@ -57,7 +59,8 @@ public class ExampleAdminController {
 
         log.info("Received file: {}", file.getOriginalFilename());
         String userId = authentication.getName();
-        FileDto response = fileUploadService.uploadFile(file, userId);
+        FileDto response = fileUploadService.uploadFile(file, userId, FileCtxType.MEMBER_ROLE,
+                MemberRoleEnum.ROLE_ADMIN.name());
         log.info("File uploaded successfully: {}", response);
         redirectAttributes.addFlashAttribute("fileResponse", response);
 
