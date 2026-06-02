@@ -6,7 +6,7 @@
 
 ## 1. 전체 흐름
 
-```text
+```
 [React]
  TipTapEditor에서 글 작성
  → 이미지 선택 시 즉시 파일 서버 업로드 → fileId를 노드 attrs에 저장
@@ -35,8 +35,9 @@
 | 테스트 컨트롤러 | [ExampleRestController.java](../../../backend/rest/src/main/java/kr/or/ddit/controller/ExampleRestController.java)             |
 | 게시글 매퍼     | [BoardMapper.java](../../../backend/common/src/main/java/kr/or/ddit/finalProject/mapper/board/BoardMapper.java)                |
 | 파일 매퍼       | [FileMapper.java](../../../backend/common/src/main/java/kr/or/ddit/finalProject/mapper/FileMapper.java)                        |
-| 에디터 컴포넌트 | [TipTapEditor.tsx](../../../front_final/src/components/TipTapEditor.tsx)                                                       |
-| 파일 API 유틸   | [fileApi.ts](../../../front_final/src/api/fileApi.ts)                                                                          |
+| 에디터 컴포넌트 | [TipTapEditor.tsx](https://github.com/eenen123123/final_project_frontend/blob/main/src/components/TipTapEditor.tsx)            |
+| 파일 API 유틸   | [fileApi.ts](https://github.com/eenen123123/final_project_frontend/blob/main/src/api/fileApi.ts)                               |
+|                 |                                                                                                                                |
 
 ---
 
@@ -147,7 +148,7 @@ WHERE FILE_SERVER_ID IN (fileIds...)
 | 게시글 없음              | `POST_NOT_FOUND`         | 404  |
 | @Valid 검증 실패         | (핸들러가 자동 처리)     | 400  |
 
-`RestExceptionHandler`가 모든 케이스를 `{ status, message }` 형태로 통일해서 반환.
+예외는 모든 케이스를 `{ status, message }` 형태로 통일해서 반환.
 
 ---
 
