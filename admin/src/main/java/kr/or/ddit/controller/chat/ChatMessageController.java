@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import kr.or.ddit.finalProject.dto.file.FileCtxType;
 import kr.or.ddit.finalProject.dto.file.FileDto;
 import kr.or.ddit.finalProject.dto.message.MessageContentDto;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
@@ -47,8 +48,8 @@ public class ChatMessageController {
     @GetMapping("/chat/more")
     public ResponseEntity<List<MessageContentDto>> getMoreMessages(@RequestParam String roomSn,
             @RequestParam int size, @RequestParam int page, Authentication authentication) {
-        List<MessageContentDto> messages
-                = chatService.getChatMessages(Long.parseLong(roomSn), size, page, authentication);
+        List<MessageContentDto> messages =
+                chatService.getChatMessages(Long.parseLong(roomSn), size, page, authentication);
 
         return ResponseEntity.ok(messages);
     }
@@ -74,12 +75,11 @@ public class ChatMessageController {
     public ResponseEntity<MessageContentDto> uploadFile(@RequestParam MultipartFile file,
             @RequestParam String roomSn, Authentication authentication) {
         String userId = authentication.getName();
-        FileDto fileDto = fileUploadService.uploadFile(file, userId);
-
+        FileDto fileDto = fileUploadService.uploadFile(file, userId, FileCtxType.CHAT_ROOM, roomSn);
         // fileExtNm은 확장자가 아닌 MIME 타입(예: image/png)을 저장함
-        String msgTypeCd
-                = fileDto.getFileExtNm() != null && fileDto.getFileExtNm().startsWith("image/") ? "02"
-                : "03";
+        String msgTypeCd =
+                fileDto.getFileExtNm() != null && fileDto.getFileExtNm().startsWith("image/") ? "02"
+                        : "03";
 
         MessageContentDto msg = MessageContentDto.builder().roomSn(Long.parseLong(roomSn))
                 .sendrUserId(userId).msgTypeCd(msgTypeCd)
