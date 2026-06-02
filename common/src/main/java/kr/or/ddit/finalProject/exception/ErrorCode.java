@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
  * 프로젝트 전반에서 발생할 수 있는 다양한 예외 상황을 정의하는 열거형 클래스 각 예외 상황에 대한 고유한 코드와 메시지를 포함하여, 예외
  * 처리 시 일관된 방식으로 사용할 수 있음
  */
+//@formatter:off
 public enum ErrorCode {
 
     // 요청 관련
@@ -41,8 +42,17 @@ public enum ErrorCode {
     FILE_INFO_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 정보 저장에 실패했습니다."),
     INVALID_FILE_TYPE_TO_CLOUDINARY(HttpStatus.BAD_REQUEST,
             "Cloudinary에 업로드할 수 없는 파일 형식입니다. PDF, 이미지 파일만 업로드할 수 있습니다."),
+
+    INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 파일 형식입니다.  PDF, 이미지 파일만 업로드할 수 있습니다."), // Rest API에서 사용
+
     FILE_TYPE_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "PDF, 이미지, 동영상, Zip 파일만 업로드할 수 있습니다."),
     FILE_READ_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "파일 내용을 읽는 중 오류가 발생했습니다."),
+
+    INVALID_FILE_CONTEXT(HttpStatus.BAD_REQUEST,
+            "유효하지 않은 파일 컨텍스트입니다. FILE_CTX_TYPE 열거형에 정의된 값만 사용할 수 있습니다."),
+
+    FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "파일 크기가 10MB를 초과할 수 없습니다."), // Rest API에서 사용
+
     // 결재 관련
     APPROVAL_TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "결재 양식을 찾을 수 없습니다."),
     APPROVAL_NOT_FOUND(HttpStatus.NOT_FOUND, "결재 문서를 찾을 수 없습니다."),
@@ -90,3 +100,4 @@ public enum ErrorCode {
         return message;
     }
 }
+// @formatter:on
