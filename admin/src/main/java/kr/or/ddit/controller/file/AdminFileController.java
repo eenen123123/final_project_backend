@@ -18,6 +18,8 @@ import java.net.URI;
 @RestController
 public class AdminFileController {
 
+    // 파일 서버에 저장된 파일에 접근하고 싶으면 이 컨트롤러로 요청을 보내세요
+    // 저장된 파일이 응답으로 내려오도록 프록시 역할을 하는 컨트롤러입니다
     private final FileAuthorizationService authorizationService;
 
     @Value("${file.server.base-url}")
@@ -26,32 +28,32 @@ public class AdminFileController {
     @Value("${file.server.api-key}")
     private String apiKey;
 
-    @GetMapping("/admin/files/{fileId}/view")
-    public void proxyView(@PathVariable long fileId, HttpServletResponse response,
+    @GetMapping("/admin/files/{fileServerId}/view")
+    public void proxyView(@PathVariable long fileServerId, HttpServletResponse response,
             Authentication authentication) throws IOException {
         // 인가 체크
-        if (!authorizationService.canAccess(fileId, authentication)) {
+        if (!authorizationService.canAccess(fileServerId, authentication)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
-        HttpURLConnection conn = openFileServerConnection(fileId, "view");
+        HttpURLConnection conn = openFileServerConnection(fileServerId, "view");
         response.setContentType(conn.getContentType());
         try (InputStream in = conn.getInputStream()) {
             in.transferTo(response.getOutputStream());
         }
     }
 
-    @GetMapping("/admin/files/{fileId}/download")
-    public void proxyDownload(@PathVariable long fileId, HttpServletResponse response,
+    @GetMapping("/admin/files/{fileServerId}/download")
+    public void proxyDownload(@PathVariable long fileServerId, HttpServletResponse response,
             Authentication authentication) throws IOException {
         // 인가 체크
-        if (!authorizationService.canAccess(fileId, authentication)) {
+        if (!authorizationService.canAccess(fileServerId, authentication)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
-        HttpURLConnection conn = openFileServerConnection(fileId, "download");
+        HttpURLConnection conn = openFileServerConnection(fileServerId, "download");
         response.setContentType(conn.getContentType());
         response.setHeader("Content-Disposition", conn.getHeaderField("Content-Disposition"));
         try (InputStream in = conn.getInputStream()) {
@@ -59,11 +61,11 @@ public class AdminFileController {
         }
     }
 
-    private HttpURLConnection openFileServerConnection(long fileId, String action)
+    private HttpURLConnection openFileServerConnection(long fileServerId, String action)
             throws IOException {
         HttpURLConnection conn = (HttpURLConnection) URI
-                .create(fileServerBaseUrl + "/api/storage/files/" + fileId + "/" + action).toURL()
-                .openConnection();
+                .create(fileServerBaseUrl + "/api/storage/files/" + fileServerId + "/" + action)
+                .toURL().openConnection();
         conn.setRequestProperty("X-Api-Key", apiKey);
         return conn;
     }

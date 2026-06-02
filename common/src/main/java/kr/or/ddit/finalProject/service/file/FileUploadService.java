@@ -16,6 +16,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import jakarta.servlet.http.HttpServletRequest;
+import kr.or.ddit.finalProject.dto.file.FileCtxType;
 import kr.or.ddit.finalProject.dto.file.FileDto;
 import kr.or.ddit.finalProject.dto.file.StoredFileResponse;
 import kr.or.ddit.finalProject.exception.ErrorCode;
@@ -133,9 +134,22 @@ public class FileUploadService {
 
 
     /**
+     * <pre>
+     * 기존 호출부(ChatMessageController 등) 하위 호환용 오버로드입니다.
+     * atchFileId를 지정하지 않는 기존 코드는 이 메서드를 그대로 사용하시면 됩니다.
+     *
+     * [변경 이유] 강좌 자료 관리(/instructor/course/materials) 기능 추가 시,
+     * 파일을 특정 강좌의 파일 그룹(CMMT_ATCH_FILE_CL)에 귀속시켜야 했습니다.
+     * 기존 uploadFile은 atchFileId를 001(임시값)으로 하드코딩했는데,
+     * 이를 atchFileId를 인수로 받는 오버로드로 분리하고 기존 메서드는 1을 넘기도록 변경했습니다.
+     * </pre>
+     * 
      * 파일 업로드 메서드
      * 
      * @param file 업로드할 파일
+     * @param userId 업로드한 사용자 ID
+     * @param ctxType 파일이 속한 컨텍스트 유형 (예: COURSE, LECTURE 등)
+     * @param ctxId 파일이 속한 컨텍스트 ID (예: COURSE_ID, LECTURE_ID 등, PK값)
      * @return 업로드된 파일의 정보
      * 
      * 응답 예시:
@@ -167,17 +181,9 @@ public class FileUploadService {
      *     UploadedAt: "2026-05-18T14:32:53.214345536"
      * </pre>
      */
-    /**
-     * 기존 호출부(ChatMessageController 등) 하위 호환용 오버로드입니다.
-     * atchFileId를 지정하지 않는 기존 코드는 이 메서드를 그대로 사용하시면 됩니다.
-     *
-     * [변경 이유] 강좌 자료 관리(/instructor/course/materials) 기능 추가 시,
-     * 파일을 특정 강좌의 파일 그룹(CMMT_ATCH_FILE_CL)에 귀속시켜야 했습니다.
-     * 기존 uploadFile은 atchFileId를 001(임시값)으로 하드코딩했는데,
-     * 이를 atchFileId를 인수로 받는 오버로드로 분리하고 기존 메서드는 1을 넘기도록 변경했습니다.
-     */
-    public FileDto uploadFile(MultipartFile file, String userId) {
-        return uploadFile(file, userId, 1);
+    public FileDto uploadFile(MultipartFile file, String userId, FileCtxType ctxType,
+            String ctxId) {
+        return uploadFile(file, userId, 1, ctxType, ctxId);
     }
 
     /**
@@ -189,8 +195,13 @@ public class FileUploadService {
      * 이 메서드를 호출해 해당 그룹 ID로 파일을 저장합니다.
      *
      * @param atchFileId CMMT_ATCH_FILE_CL.ATCH_FILE_ID (파일 그룹 PK)
+     * @param ctxType 파일이 속한 컨텍스트 유형 (예: COURSE, LECTURE 등)
+     * @param ctxId 파일이 속한 컨텍스트 ID (예: COURSE_ID, LECTURE_ID 등, PK값)
      */
-    public FileDto uploadFile(MultipartFile file, String userId, int atchFileId) {
+    public FileDto uploadFile(MultipartFile file, String userId, int atchFileId,
+            FileCtxType ctxType, String ctxId
+
+    ) {
         if (file.isEmpty()) {
             throw new FinalProjectException(ErrorCode.FILE_EMPTY);
         }
@@ -203,7 +214,8 @@ public class FileUploadService {
                     restClient.post().uri(fileServerPath).contentType(MediaType.MULTIPART_FORM_DATA)
                             .headers(this::relayAuthorizationHeader).body(body).retrieve()
                             .body(StoredFileResponse.class);
-            return insertFileInfoToDatabase(fileResponse, userId, atchFileId);
+            log.info("파일 서버 업로드 성공: {}", fileResponse);
+            return insertFileInfoToDatabase(fileResponse, userId, atchFileId, ctxType, ctxId);
         } catch (RestClientResponseException e) {
             log.error("파일 서버 업로드 실패. status={}, body={}", e.getStatusCode(),
                     e.getResponseBodyAsString(), e);
@@ -294,12 +306,15 @@ public class FileUploadService {
      * 기존 uploadFile(file, userId) 오버로드는 1을 넘겨 이전 동작을 유지합니다.
      */
     private FileDto insertFileInfoToDatabase(StoredFileResponse fileResponse, String userId,
-            int atchFileId) {
+            int atchFileId, FileCtxType ctxType, String ctxId
+
+    ) {
 
         FileDto fileDto = FileDto.builder().atchFileId(atchFileId)
                 .orgnFileNm(fileResponse.originalFilename()).savePathNm(fileResponse.url())
                 .saveFileNm(fileResponse.url()).fileExtNm(fileResponse.contentType())
-                .fileSizeCnt(fileResponse.fileSize()).rgtrId(userId).delYn("N").dwnldCnt(0).build();
+                .fileServerId(fileResponse.id()).fileSizeCnt(fileResponse.fileSize()).rgtrId(userId)
+                .delYn("N").dwnldCnt(0).fileCtxType(ctxType).fileCtxId(ctxId).build();
 
         int result = fileUploadMapper.insertFileInfo(fileDto);
         if (result <= 0) {
