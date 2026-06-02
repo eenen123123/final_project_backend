@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.mapper.ApprovalMapper">
+
+    <!-- 
+    private String tmplCd; // 기본키(PK) · 양식코드
+    private String tmplNm; // 결재 양식명
+    private String tmplCn; // 결재 양식 내용
+    private String useYn; // DEFAULT 'Y' 권장
+    private String rgtrId; // 최초등록자
+    private String lastMdfrId; // 최종수정자
+    private LocalDateTime regDt; // 데이터 생성 시점 (자동갱신)
+    private LocalDateTime mdfcnDt; // 데이터 수정 시점 (자동갱신)
+    private String atchFileId; // 공통첨부파일분류
+    
+    -->
+
+
+
+
+    <!-- insertApprovalTemplate -->
+
+    <insert id="insertApprovalTemplate" parameterType="kr.or.ddit.finalProject.dto.approval.ApprovalTemplateDto">
+        INSERT INTO approval_template (
+            tmpl_cd, tmpl_nm, tmpl_cn, use_yn, rgtr_id, last_mdfr_id, reg_dt, mdfcn_dt
+        ) VALUES ( #{tmplCd,jdbcType=VARCHAR}, #{tmplNm,jdbcType=VARCHAR}, #{tmplCn,jdbcType=CLOB}, #{useYn,jdbcType=VARCHAR}, #{rgtrId,jdbcType=VARCHAR}, #{lastMdfrId,jdbcType=VARCHAR},
+            CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <!-- selectApprovalTemplateList -->
+
+    <select id="selectApprovalTemplateList" resultType="kr.or.ddit.finalProject.dto.approval.ApprovalTemplateDto">
+        SELECT tmpl_cd, tmpl_nm, tmpl_cn, use_yn, rgtr_id, last_mdfr_id, reg_dt, mdfcn_dt
+        FROM approval_template
+        WHERE use_yn = 'Y'
+    </select>
+
+    <!-- selectApprovalTemplateById -->
+
+    <select id="selectApprovalTemplateById" resultType="kr.or.ddit.finalProject.dto.approval.ApprovalTemplateDto" parameterType="String">
+        SELECT tmpl_cd, tmpl_nm, tmpl_cn, use_yn, rgtr_id, last_mdfr_id, reg_dt, mdfcn_dt
+        FROM approval_template
+        WHERE tmpl_cd = #{tmplCd}
+    </select>
+
+    <!-- ResultMap: 결재 대기 라인 (JOIN된 APPROVAL_MASTER 포함) -->
+    <resultMap id="pendingLineMap" type="kr.or.ddit.finalProject.dto.approval.ApprovalLineDto">
+        <result property="aprvlLineSn" column="aprvl_line_sn"/>
+        <result property="aprvlDocSn" column="aprvl_doc_sn"/>
+        <result property="aprvlOrdr" column="aprvl_ordr"/>
+        <result property="aprvrUserId" column="aprvr_user_id"/>
+        <result property="aprvlPrgrsCd" column="aprvl_prgrs_cd"/>
+        <result property="aprvlDt" column="aprvl_dt"/>
+        <association property="doc" javaType="kr.or.ddit.finalProject.dto.approval.ApprovalMasterDto">
+            <result property="aprvlDocSn" column="aprvl_doc_sn"/>
+            <result property="aprvlDocSj" column="aprvl_doc_sj"/>
+            <result property="tmplCd" column="tmpl_cd"/>
+            <result property="drftUserId" column="drft_user_id"/>
+            <result property="drftRegDt" column="drft_reg_dt"/>
+            <result property="aprvlPrgrsCd" column="doc_prgrs_cd"/>
+        </association>
+    </resultMap>
+
+    <!-- selectMyDocs: 내가 기안한 전체 문서 (CLOB 제외) -->
+    <select id="selectMyDocs" parameterType="string" resultType="kr.or.ddit.finalProject.dto.approval.ApprovalMasterDto">
+        SELECT am.aprvl_doc_sn, am.aprvl_doc_sj, am.tmpl_cd, am.drft_user_id,
+               am.drft_reg_dt, am.aprvl_prgrs_cd, am.mdfcn_dt, atm.tmpl_nm
+        FROM   APPROVAL_MASTER am
+          join approval_template atm ON am.tmpl_cd = atm.tmpl_cd
+        WHERE  am.drft_user_id = #{userId}
+        ORDER BY am.drft_reg_dt DESC
+    </select>
+
+    <!-- selectMyPendingLines: 내가 결재해야 하는 라인 (IN_PROGRESS) -->
+    <select id="selectMyPendingLines" parameterType="string" resultMap="pendingLineMap">
+        SELECT al.aprvl_line_sn,
+               al.aprvl_doc_sn,
+               al.aprvl_ordr,
+               al.aprvr_user_id,
+               al.aprvl_prgrs_cd,
+               al.aprvl_dt,
+               am.aprvl_doc_sj,
+               am.tmpl_cd,
+               am.drft_user_id,
+               am.drft_reg_dt,
+               am.aprvl_prgrs_cd AS doc_prgrs_cd
+        FROM   APPROVAL_LINE   al
+        JOIN   APPROVAL_MASTER am ON al.aprvl_doc_sn = am.aprvl_doc_sn
+        WHERE  al.aprvr_user_id  = #{userId}
+          AND  al.aprvl_prgrs_cd = 'IN_PROGRESS'
+        ORDER BY am.drft_reg_dt DESC
+    </select>
+
+    <!-- selectMyProcessedLines: 내가 처리한 결재 (APPROVED / REJECTED) -->
+    <select id="selectMyProcessedLines" parameterType="string" resultMap="pendingLineMap">
+        SELECT al.aprvl_line_sn,
+               al.aprvl_doc_sn,
+               al.aprvl_ordr,
+               al.aprvr_user_id,
+               al.aprvl_prgrs_cd,
+               al.aprvl_dt,
+               am.aprvl_doc_sj,
+               am.tmpl_cd,
+               am.drft_user_id,
+               am.drft_reg_dt,
+               am.aprvl_prgrs_cd AS doc_prgrs_cd
+        FROM   APPROVAL_LINE   al
+        JOIN   APPROVAL_MASTER am ON al.aprvl_doc_sn = am.aprvl_doc_sn
+        WHERE  al.aprvr_user_id  = #{userId}
+          AND  al.aprvl_prgrs_cd IN ('APPROVED', 'REJECTED')
+        ORDER BY al.aprvl_dt DESC
+    </select>
+
+    <!-- insertApprovalMaster -->
+
+    <insert id="insertApprovalMaster" parameterType="kr.or.ddit.finalProject.dto.approval.ApprovalMasterDto" useGeneratedKeys="true" keyProperty="aprvlDocSn" keyColumn="APRVL_DOC_SN">
+        INSERT INTO APPROVAL_MASTER (APRVL_DOC_SJ, APRVL_DOC_CN, DRFT_USER_ID, APRVL_PRGRS_CD, TMPL_CD, DRFT_REG_DT, MDFCN_DT)
+        VALUES ( #{aprvlDocSj,jdbcType=VARCHAR}, #{aprvlDocCn,jdbcType=CLOB}, #{drftUserId,jdbcType=VARCHAR}, #{aprvlPrgrsCd,jdbcType=VARCHAR}, #{tmplCd,jdbcType=VARCHAR},
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <!-- insertApprovalLine -->
+
+    <insert id="insertApprovalLine" parameterType="kr.or.ddit.finalProject.dto.approval.ApprovalLineDto">
+        INSERT INTO APPROVAL_LINE (APRVL_DOC_SN, APRVL_ORDR, APRVR_USER_ID, APRVL_PRGRS_CD)
+        VALUES (
+            #{aprvlDocSn},
+            #{aprvlOrdr}, #{aprvrUserId,jdbcType=VARCHAR}, #{aprvlPrgrsCd,jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <!-- selectApprovalLinesByUserId -->
+
+    <select id="selectApprovalLinesByUserId" resultType="kr.or.ddit.finalProject.dto.approval.ApprovalLineDto" parameterType="String">
+        SELECT *
+        FROM approval_line
+        WHERE  aprvr_user_id = #{userId}
+    </select>
+
+
+    <select id="selectApprovalMasterByDocSn" resultType="kr.or.ddit.finalProject.dto.approval.ApprovalMasterDto" parameterType="Long">
+        SELECT *
+        FROM approval_master
+        WHERE aprvl_doc_sn = #{aprvlDocSn}
+    </select>
+
+    <select id="selectApprovalLinesByDocSn" parameterType="long" resultType="kr.or.ddit.finalProject.dto.approval.ApprovalLineDto">
+        SELECT al.aprvl_line_sn, al.aprvl_doc_sn, al.aprvl_ordr, al.aprvr_user_id,
+               al.aprvl_dt, al.aprvl_prgrs_cd, al.aprvl_rsn_cn,
+               m.user_name  AS approver_name,
+               jg.jbgr_nm,
+               jg.sort_ord
+        FROM   APPROVAL_LINE   al
+        JOIN   MEMBER          m  ON al.aprvr_user_id = m.user_id
+        JOIN   EMPLOYEE_INFO   ei ON al.aprvr_user_id = ei.user_id
+        JOIN   JOB_GRADE       jg ON ei.jbgr_cd       = jg.jbgr_cd
+        WHERE  al.aprvl_doc_sn = #{aprvlDocSn}
+          AND  al.aprvl_prgrs_cd != 'CANCELED'
+        ORDER BY al.aprvl_ordr
+    </select>
+
+    <!-- updateApprovalMaster -->
+
+    <update id="updateApprovalMaster" parameterType="kr.or.ddit.finalProject.dto.approval.ApprovalMasterDto">
+        UPDATE APPROVAL_MASTER
+        SET aprvl_doc_sj   = #{aprvlDocSj,jdbcType=VARCHAR},
+            aprvl_doc_cn   = #{aprvlDocCn,jdbcType=CLOB},
+            aprvl_prgrs_cd = #{aprvlPrgrsCd,jdbcType=VARCHAR},
+            tmpl_cd        = #{tmplCd,jdbcType=VARCHAR},
+            mdfcn_dt       = CURRENT_TIMESTAMP
+        WHERE aprvl_doc_sn = #{aprvlDocSn}
+    </update>
+
+    <!-- deleteApprovalLinesByDocSn -->
+
+    <update id="deleteApprovalLinesByDocSn" parameterType="map">
+        UPDATE APPROVAL_LINE
+        SET aprvl_prgrs_cd = #{aprvl_status}
+        WHERE aprvl_doc_sn = #{aprvlDocSn}
+    </update>
+
+    <!-- deleteApprovalMaster -->
+
+    <update id="deleteApprovalMaster" parameterType="map">
+        UPDATE APPROVAL_MASTER
+        SET aprvl_prgrs_cd = #{aprvl_status}
+        WHERE aprvl_doc_sn = #{aprvlDocSn}
+    </update>
+
+    <!-- updateApprovalLine -->
+
+    <update id="updateApprovalLine" parameterType="kr.or.ddit.finalProject.dto.approval.ApprovalLineDto">
+    UPDATE approval_line
+    SET aprvl_prgrs_cd = #{aprvlPrgrsCd,jdbcType=VARCHAR},
+        aprvl_dt       = CASE 
+                            WHEN #{aprvlPrgrsCd} IN ('APPROVED','REJECTED') 
+                            THEN CURRENT_TIMESTAMP 
+                            ELSE aprvl_dt 
+                        END,
+        aprvl_rsn_cn   = #{aprvlRsnCn,jdbcType=VARCHAR}
+    WHERE aprvl_line_sn = #{aprvlLineSn}
+    </update>
+</mapper>

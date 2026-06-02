@@ -1,35 +1,35 @@
 <aside
-    th:fragment="sidebarAdminFragment"
-    xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-    id="adminSidebar"
-    class="w-60 bg-[#121212] text-slate-400 flex flex-col shrink-0 z-20 transition-all duration-300 overflow-hidden relative border-r border-white/5"
+  th:fragment="sidebarAdminFragment"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+  id="adminSidebar"
+  class="w-60 bg-[#121212] text-slate-400 flex flex-col shrink-0 z-20 transition-all duration-300 overflow-hidden relative border-r border-white/5"
 >
-    <nav class="flex-1 overflow-y-auto py-8 no-scrollbar overflow-x-hidden">
-        <div th:replace="~{fragments/sidebars/menus/menu_common}"></div>
+  <nav class="flex-1 overflow-y-auto py-8 no-scrollbar overflow-x-hidden">
+    <div th:replace="~{fragments/sidebars/menus/menu_common}"></div>
 
-        <div
-            sec:authorize="hasAuthority('ROLE_PRINCIPAL')"
-            th:replace="~{fragments/sidebars/menus/menu_principal}"
-        ></div>
+    <div
+      sec:authorize="hasAuthority('D400')"
+      th:replace="~{fragments/sidebars/menus/menu_principal}"
+    ></div>
 
-        <div
-            sec:authorize="hasAuthority('ROLE_MANAGER')"
-            th:replace="~{fragments/sidebars/menus/menu_manager}"
-        ></div>
+    <div
+      sec:authorize="hasAuthority('D100') and hasAuthority('A001')"
+      th:replace="~{fragments/sidebars/menus/menu_manager}"
+    ></div>
 
-        <div
-            sec:authorize="hasAuthority('ROLE_STAFF')"
-            th:replace="~{fragments/sidebars/menus/menu_staff}"
-        ></div>
+    <div
+      sec:authorize="hasAuthority('D100')"
+      th:replace="~{fragments/sidebars/menus/menu_staff}"
+    ></div>
 
-        <div
-            sec:authorize="hasAuthority('ROLE_PD')"
-            th:replace="~{fragments/sidebars/menus/menu_pd}"
-        ></div>
+    <div
+      sec:authorize="hasAuthority('D200')"
+      th:replace="~{fragments/sidebars/menus/menu_pd}"
+    ></div>
 
-        <div
-            sec:authorize="hasAuthority('ROLE_INSTRUCTOR')"
-            th:replace="~{fragments/sidebars/menus/menu_instructor}"
-        ></div>
-    </nav>
+    <div
+      sec:authorize="hasAuthority('D300')"
+      th:replace="~{fragments/sidebars/menus/menu_instructor}"
+    ></div>
+  </nav>
 </aside>

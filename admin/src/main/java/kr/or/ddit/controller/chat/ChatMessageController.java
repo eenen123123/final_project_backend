@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import kr.or.ddit.finalProject.dto.file.FileCtxType;
 import kr.or.ddit.finalProject.dto.file.FileDto;
 import kr.or.ddit.finalProject.dto.message.MessageContentDto;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
@@ -19,8 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-
-
 
 @Slf4j
 @RequiredArgsConstructor
@@ -55,7 +54,6 @@ public class ChatMessageController {
         return ResponseEntity.ok(messages);
     }
 
-
     // 메시지를 읽은 것으로 처리하는 엔드포인트 (예: 사용자가 채팅방에서 메시지를 읽었을 때 호출, 구독한 클라이언트에서 메시지를 읽었을 때 프론트엔드에서 호출)
     @PostMapping("/chat/read")
     public String markMessageAsRead(@RequestParam String roomSn, @RequestParam String msgSn,
@@ -77,15 +75,15 @@ public class ChatMessageController {
     public ResponseEntity<MessageContentDto> uploadFile(@RequestParam MultipartFile file,
             @RequestParam String roomSn, Authentication authentication) {
         String userId = authentication.getName();
-        FileDto fileDto = fileUploadService.uploadFile(file, userId);
-
+        FileDto fileDto = fileUploadService.uploadFile(file, userId, FileCtxType.CHAT_ROOM, roomSn);
         // fileExtNm은 확장자가 아닌 MIME 타입(예: image/png)을 저장함
         String msgTypeCd =
                 fileDto.getFileExtNm() != null && fileDto.getFileExtNm().startsWith("image/") ? "02"
                         : "03";
 
         MessageContentDto msg = MessageContentDto.builder().roomSn(Long.parseLong(roomSn))
-                .sendrUserId(userId).msgTypeCd(msgTypeCd).msgCn(fileDto.getSavePathNm())
+                .sendrUserId(userId).msgTypeCd(msgTypeCd)
+                .msgCn("/admin/files/" + fileDto.getFileServerId() + "/view")
                 .atchFileId(String.valueOf(fileDto.getAtchFileDtlSn())).build();
 
         chatService.sendMessage(msg);

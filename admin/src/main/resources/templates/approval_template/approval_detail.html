@@ -1,0 +1,395 @@
+<th:block th:fragment="pageCss">
+  <style>
+    .step-approved {
+      border-color: #059669;
+      color: #059669;
+      background: #d1fae5;
+    }
+    .step-progress {
+      border-color: #7c3aed;
+      color: #7c3aed;
+      background: #ede9fe;
+    }
+    .step-waiting {
+      border-color: #e2e8f0;
+      color: #94a3b8;
+      background: #f8fafc;
+    }
+    .step-rejected {
+      border-color: #dc2626;
+      color: #dc2626;
+      background: #fee2e2;
+    }
+    .step-skipped {
+      border-color: #e2e8f0;
+      color: #cbd5e1;
+      background: #f8fafc;
+    }
+
+    .connector-done {
+      background: #059669;
+    }
+    .connector-wait {
+      background: #e2e8f0;
+    }
+
+    .line-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      min-width: 5rem;
+    }
+    .line-step-circle {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      border: 2px solid;
+    }
+    .line-connector {
+      flex: 1;
+      height: 2px;
+      margin-top: 1.25rem;
+    }
+  </style>
+</th:block>
+
+<title th:fragment="pageTitle" th:text="${doc.aprvlDocSj + ' | HERMES'}">
+  결재 상세 | HERMES
+</title>
+
+<div class="space-y-5 max-w-7xl mx-auto">
+  <!-- ───────── 브레드크럼 ───────── -->
+  <div class="flex items-center gap-2 text-md text-slate-400">
+    <a href="/admin/approval" class="hover:text-violet-600 transition-colors"
+      >전자결재</a
+    >
+    <i class="fa-solid fa-chevron-right text-xs"></i>
+    <span class="text-slate-600 font-medium">결재 상세</span>
+  </div>
+
+  <!-- ───────── 문서 헤더 ───────── -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+    <div class="flex items-start justify-between gap-4 flex-wrap">
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <span
+            class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-violet-50 text-violet-700"
+            th:text="${doc.tmplCd}"
+            >유형</span
+          >
+          <span
+            th:switch="${doc.aprvlPrgrsCd.name()}"
+            class="flex items-center gap-1"
+          >
+            <span
+              th:case="'DRAFT'"
+              class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-500"
+              >임시저장</span
+            >
+            <span
+              th:case="'PENDING'"
+              class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-600"
+              >결재 진행 중</span
+            >
+            <span
+              th:case="'APPROVED'"
+              class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700"
+              >최종 승인</span
+            >
+            <span
+              th:case="'REJECTED'"
+              class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-50 text-red-600"
+              >반려</span
+            >
+            <span
+              th:case="'CANCELLED'"
+              class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-400"
+              >취소됨</span
+            >
+          </span>
+        </div>
+        <h1
+          class="text-xl font-bold text-slate-800 mb-2"
+          th:text="${doc.aprvlDocSj}"
+        >
+          문서 제목
+        </h1>
+        <div class="flex items-center gap-4 text-xs text-slate-400">
+          <span
+            ><i class="fa-solid fa-user mr-1"></i>기안자:
+            <span class="text-slate-600 font-medium" th:text="${doc.drftUserId}"
+              >기안자</span
+            ></span
+          >
+          <span
+            ><i class="fa-regular fa-calendar mr-1"></i>기안일:
+            <span
+              class="text-slate-600"
+              th:text="${#temporals.format(doc.drftRegDt, 'yyyy-MM-dd')}"
+              >2026-05-29</span
+            ></span
+          >
+          <span
+            th:if="${doc.aprvlPrgrsCd.name() == 'APPROVED' or doc.aprvlPrgrsCd.name() == 'REJECTED'}"
+          >
+            <i class="fa-regular fa-calendar-check mr-1"></i>처리일:
+            <span
+              class="text-slate-600"
+              th:text="${#temporals.format(doc.mdfcnDt, 'yyyy-MM-dd')}"
+              >2026-05-30</span
+            >
+          </span>
+        </div>
+      </div>
+
+      <!-- 기안자 회수 버튼 -->
+      <form
+        th:if="${isDrafter and doc.aprvlPrgrsCd.name() == 'PENDING' and canCancel}"
+        th:action="@{/admin/approval/{sn}/cancel(sn=${doc.aprvlDocSn})}"
+        method="post"
+      >
+        <button
+          type="submit"
+          onclick="return confirm('결재를 회수하시겠습니까?');"
+          class="px-4 py-2 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+        >
+          <i class="fa-solid fa-rotate-left mr-1"></i>회수
+        </button>
+      </form>
+
+      <!-- 기안자 삭제 버튼 -->
+      <form
+        th:if="${isDrafter and doc.aprvlPrgrsCd.name() == 'DRAFT' and canDelete}"
+        th:action="@{/admin/approval/{sn}/delete(sn=${doc.aprvlDocSn})}"
+        method="post"
+      >
+        <button
+          type="submit"
+          onclick="return confirm('결재 문서를 삭제하시겠습니까?');"
+          class="px-4 py-2 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+        >
+          <i class="fa-solid fa-trash mr-1"></i>삭제
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ───────── 결재선 현황 ───────── -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+    <h2 class="text-sm font-bold text-slate-700 flex items-center gap-2 mb-5">
+      <i class="fa-solid fa-route text-violet-500"></i> 결재선 현황
+    </h2>
+
+    <div class="flex items-start overflow-x-auto pb-2">
+      <div class="line-step shrink-0">
+        <div class="line-step-circle step-approved">
+          <i class="fa-solid fa-check"></i>
+        </div>
+        <p class="text-xs font-semibold text-slate-700">기안</p>
+        <p class="text-xs text-slate-400" th:text="${doc.drftUserId}">기안자</p>
+        <p
+          class="text-xs text-slate-300"
+          th:text="${#temporals.format(doc.drftRegDt, 'MM/dd')}"
+        >
+          05/29
+        </p>
+      </div>
+
+      <th:block th:each="line, stat : ${lines}">
+        <div
+          th:classappend="${line.aprvlPrgrsCd.name() == 'APPROVED' ? 'connector-done' : 'connector-wait'}"
+          class="line-connector shrink-0"
+        ></div>
+        <div class="line-step shrink-0">
+          <div
+            th:classappend="${'step-' + line.aprvlPrgrsCd.name().toLowerCase()}"
+            class="line-step-circle"
+          >
+            <i
+              th:class="${line.aprvlPrgrsCd.name() == 'APPROVED'    ? 'fa-solid fa-check'                      :
+                           line.aprvlPrgrsCd.name() == 'IN_PROGRESS' ? 'fa-solid fa-hourglass-half animate-pulse' :
+                           line.aprvlPrgrsCd.name() == 'REJECTED'    ? 'fa-solid fa-xmark'                      :
+                           line.aprvlPrgrsCd.name() == 'SKIPPED'     ? 'fa-solid fa-minus'                      :
+                                                                 'fa-solid fa-clock'}"
+            ></i>
+          </div>
+          <p
+            class="text-xs font-semibold text-slate-700"
+            th:text="${stat.index + 1 + '차 결재'}"
+          >
+            1차 결재
+          </p>
+          <p class="text-xs text-slate-500" th:text="${line.aprvrUserId}">
+            결재자
+          </p>
+          <p
+            th:if="${line.aprvlDt != null}"
+            class="text-xs text-slate-300"
+            th:text="${#temporals.format(line.aprvlDt, 'MM/dd')}"
+          >
+            05/30
+          </p>
+          <p
+            th:if="${line.aprvlDt == null}"
+            class="text-xs"
+            th:classappend="${line.aprvlPrgrsCd.name() == 'IN_PROGRESS' ? 'text-violet-400 font-semibold' : 'text-slate-300'}"
+            th:text="${line.aprvlPrgrsCd.name() == 'IN_PROGRESS' ? '결재 대기' :
+                        line.aprvlPrgrsCd.name() == 'WAITING'     ? '대기'     :
+                        line.aprvlPrgrsCd.name() == 'SKIPPED'     ? '스킵'     : ''}"
+          >
+            대기
+          </p>
+        </div>
+      </th:block>
+
+      <div
+        th:classappend="${doc.aprvlPrgrsCd.name() == 'APPROVED' ? 'connector-done' : 'connector-wait'}"
+        class="line-connector shrink-0"
+      ></div>
+      <div class="line-step shrink-0">
+        <div
+          th:classappend="${doc.aprvlPrgrsCd.name() == 'APPROVED' ? 'step-approved' : 'step-waiting'}"
+          class="line-step-circle"
+        >
+          <i class="fa-solid fa-flag-checkered"></i>
+        </div>
+        <p
+          th:classappend="${doc.aprvlPrgrsCd.name() == 'APPROVED' ? 'text-slate-700' : 'text-slate-300'}"
+          class="text-xs font-semibold"
+        >
+          완료
+        </p>
+      </div>
+    </div>
+
+    <!-- 결재자 코멘트 -->
+    <div th:if="${#lists.size(lines) > 0}" class="mt-5 space-y-2">
+      <th:block th:each="line : ${lines}">
+        <div
+          th:if="${line.aprvlRsnCn != null and !#strings.isEmpty(line.aprvlRsnCn)}"
+          th:classappend="${line.aprvlPrgrsCd.name() == 'REJECTED' ? 'bg-red-50 border-red-100 text-red-700' : 'bg-slate-50 border-slate-100 text-slate-600'}"
+          class="border rounded-xl px-4 py-3 text-sm"
+        >
+          <p
+            class="text-xs font-bold mb-1"
+            th:text="${line.aprvrUserId + ' · ' + #temporals.format(line.aprvlDt, 'yyyy-MM-dd HH:mm')}"
+          >
+            결재자
+          </p>
+          <p th:text="${line.aprvlRsnCn}">의견</p>
+        </div>
+      </th:block>
+    </div>
+  </div>
+
+  <!-- ───────── 기안 내용 ───────── -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+    <h2 class="text-sm font-bold text-slate-700 flex items-center gap-2 mb-4">
+      <i class="fa-solid fa-file-lines text-violet-500"></i> 기안 내용
+    </h2>
+    <div class="bg-slate-50 rounded-xl p-6 flex justify-center">
+      <div
+        id="aprvlDocCn"
+        class="w-full max-w-2xl text-sm text-slate-700 leading-relaxed"
+        th:utext="${doc.aprvlDocCn}"
+      >
+        기안 내용이 여기에 표시됩니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────── 결재 처리 영역 (내 차례일 때만 표시) ───────── -->
+  <div
+    th:if="${isApprover and myLine != null and myLine.aprvlPrgrsCd.name() == 'IN_PROGRESS'}"
+    class="bg-white rounded-2xl border-2 border-violet-200 shadow-sm p-6"
+  >
+    <h2 class="text-sm font-bold text-violet-700 flex items-center gap-2 mb-4">
+      <i class="fa-solid fa-stamp"></i> 결재 처리
+    </h2>
+
+    <div class="mb-4">
+      <label class="block text-xs font-medium text-slate-500 mb-1.5"
+        >의견 <span class="text-slate-300">(선택)</span></label
+      >
+      <textarea
+        class="hm-input resize-none"
+        id="aprvlComment"
+        rows="3"
+        placeholder="승인 또는 반려 사유를 입력하세요."
+      ></textarea>
+    </div>
+
+    <div class="flex gap-3">
+      <button
+        type="button"
+        onclick="processApproval('reject')"
+        class="flex-1 py-2.5 text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl border border-red-100 transition-colors"
+      >
+        <i class="fa-solid fa-xmark mr-1.5"></i>반려
+      </button>
+      <button
+        type="button"
+        onclick="processApproval('approve')"
+        class="flex-1 py-2.5 text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 rounded-xl transition-colors"
+      >
+        <i class="fa-solid fa-check mr-1.5"></i>승인
+      </button>
+    </div>
+  </div>
+
+  <!-- ───────── 하단 버튼 ───────── -->
+  <div class="flex justify-between items-center pb-6">
+    <a
+      href="/admin/approval"
+      class="px-5 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+    >
+      <i class="fa-solid fa-arrow-left mr-1"></i>목록으로
+    </a>
+    <a
+      th:if="${doc.aprvlPrgrsCd.name() == 'DRAFT'}"
+      th:href="@{/admin/approval/{sn}/edit(sn=${doc.aprvlDocSn})}"
+      class="hm-btn-primary"
+    >
+      <i class="fa-solid fa-pen"></i><span>이어 작성</span>
+    </a>
+  </div>
+</div>
+
+<script th:inline="javascript">
+  const docSn = /*[[${doc.aprvlDocSn}]]*/ 0;
+
+  function processApproval(action) {
+    const comment = document.getElementById("aprvlComment").value.trim();
+    const label = action === "approve" ? "승인" : "반려";
+    if (action === "reject" && !comment) {
+      if (!confirm("반려 사유를 입력하지 않았습니다. 계속하시겠습니까?"))
+        return;
+    }
+    if (!confirm(`결재를 ${label}하시겠습니까?`)) return;
+
+    fetch(`/admin/approval/${docSn}/${action}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ aprvlRsnCn: comment }),
+    }).then((r) => {
+      if (r.ok) location.reload();
+      else
+        r.json().then((e) =>
+          alert("오류: " + (e.message || "처리에 실패했습니다.")),
+        );
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    // 결재 내용은 수정 불가능하도록 설정
+    const aprvlDocCn = document.getElementById("aprvlDocCn");
+    aprvlDocCn.querySelectorAll("input, textarea, select").forEach((el) => {
+      el.setAttribute("disabled", "disabled");
+    });
+  });
+</script>

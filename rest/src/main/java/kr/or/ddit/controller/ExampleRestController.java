@@ -20,9 +20,9 @@ import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.user.UserException;
 import kr.or.ddit.finalProject.mapper.TestMapper;
 import kr.or.ddit.finalProject.service.email.EmailService;
+import kr.or.ddit.finalProject.service.member.MemberService;
 import kr.or.ddit.finalProject.service.pay.KakaoPayService;
 import kr.or.ddit.finalProject.service.pay.TossPayService;
-import kr.or.ddit.finalProject.service.user.UserService;
 import kr.or.ddit.finalProject.util.PrintPrettyObject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class ExampleRestController {
 
-    private final UserService userService;
+    private final MemberService memberService;
 
     private final TestMapper testMapper;
 
@@ -54,7 +54,7 @@ public class ExampleRestController {
     public ResponseEntity<String> signupReq(@RequestBody SignupRequestRecord requestRecord) {
         try {
             log.info("Signup request received: {}", requestRecord);
-            userService.signup(requestRecord);
+            memberService.signup(requestRecord);
             log.info("Signup successful for: {}", requestRecord);
             return ResponseEntity.ok("Signup successful");
         } catch (Exception e) {

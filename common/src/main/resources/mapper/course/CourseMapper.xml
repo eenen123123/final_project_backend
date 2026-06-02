@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.course.CourseMapper">
+
+  <resultMap id="courseMap" type="kr.or.ddit.finalProject.dto.course.CourseDto">
+    <id property="courseSn" column="COURSE_SN" />
+    <result property="curriculumId"   column="CURRICULUM_ID" />
+    <result property="subjId"         column="SUBJ_ID" />
+    <result property="subjClId"       column="SUBJ_CL_ID" />
+    <result property="instrUserId"    column="INSTR_USER_ID" />
+    <result property="courseNm"       column="COURSE_NM" />
+    <result property="courseExplnCn"  column="COURSE_EXPLN_CN" />
+    <result property="thmbImg"        column="THMB_IMG" />
+    <result property="totLrnTimeCnt"  column="TOT_LRN_TIME_CNT" />
+    <result property="opnnYn"         column="OPNN_YN" />
+    <result property="atchFileId"     column="ATCH_FILE_ID" />
+    <result property="prodMthdCd"     column="PROD_MTHD_CD" />
+    <result property="coursePrice"    column="COURSE_PRICE" />
+    <result property="sortOrd"        column="SORT_ORD" />
+    <result property="prereqCourseSn" column="PREREQ_COURSE_SN" />
+    <result property="rgtrId"         column="RGTR_ID" />
+    <result property="lastMdfrId"     column="LAST_MDFR_ID" />
+    <result property="regDt"          column="REG_DT" />
+    <result property="mdfcnDt"        column="MDFCN_DT" />
+  </resultMap>
+
+  <resultMap id="courseWithTitleMap" type="kr.or.ddit.finalProject.dto.course.CourseDto" extends="courseMap">
+    <result property="curriculumTitle" column="CURRICULUM_TITLE" />
+  </resultMap>
+
+  <select id="selectCoursesByInstructor" resultMap="courseWithTitleMap">
+    SELECT
+      c.COURSE_SN, c.CURRICULUM_ID, c.INSTR_USER_ID, c.COURSE_NM,
+      c.COURSE_EXPLN_CN, c.OPNN_YN, c.SORT_ORD, c.REG_DT,
+      cur.TITLE AS CURRICULUM_TITLE
+    FROM COURSE c
+    LEFT JOIN CURRICULUM cur ON c.CURRICULUM_ID = cur.CURRICULUM_ID
+    WHERE c.INSTR_USER_ID = #{instrUserId}
+    ORDER BY cur.TITLE NULLS LAST, c.SORT_ORD ASC, c.COURSE_SN ASC
+  </select>
+
+  <select id="selectCourseByCurriculumId" resultMap="courseMap">
+    SELECT
+      COURSE_SN, CURRICULUM_ID, SUBJ_ID, SUBJ_CL_ID,
+      INSTR_USER_ID, COURSE_NM, COURSE_EXPLN_CN, THMB_IMG,
+      TOT_LRN_TIME_CNT, OPNN_YN, ATCH_FILE_ID, PROD_MTHD_CD,
+      COURSE_PRICE, SORT_ORD, PREREQ_COURSE_SN,
+      RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
+    FROM COURSE
+    WHERE CURRICULUM_ID = #{curriculumId}
+    ORDER BY SORT_ORD ASC, REG_DT ASC
+  </select>
+
+  <select id="selectCourseBySn" resultMap="courseMap">
+    SELECT
+      COURSE_SN, CURRICULUM_ID, SUBJ_ID, SUBJ_CL_ID,
+      INSTR_USER_ID, COURSE_NM, COURSE_EXPLN_CN, THMB_IMG,
+      TOT_LRN_TIME_CNT, OPNN_YN, ATCH_FILE_ID, PROD_MTHD_CD,
+      COURSE_PRICE, SORT_ORD, PREREQ_COURSE_SN,
+      RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
+    FROM COURSE
+    WHERE COURSE_SN = #{courseSn}
+  </select>
+
+  <insert id="insertCourse" parameterType="kr.or.ddit.finalProject.dto.course.CourseDto">
+    INSERT INTO COURSE (
+      CURRICULUM_ID, SUBJ_ID, SUBJ_CL_ID, INSTR_USER_ID,
+      COURSE_NM, COURSE_EXPLN_CN, THMB_IMG, TOT_LRN_TIME_CNT,
+      OPNN_YN, PROD_MTHD_CD, COURSE_PRICE,
+      SORT_ORD, PREREQ_COURSE_SN,
+      RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
+    ) VALUES (
+      #{curriculumId, jdbcType=NUMERIC},
+      #{subjId, jdbcType=NUMERIC},
+      #{subjClId, jdbcType=NUMERIC},
+      #{instrUserId},
+      #{courseNm},
+      #{courseExplnCn, jdbcType=VARCHAR},
+      #{thmbImg, jdbcType=VARCHAR},
+      #{totLrnTimeCnt, jdbcType=VARCHAR},
+      NVL(#{opnnYn, jdbcType=CHAR}, 'Y'),
+      #{prodMthdCd, jdbcType=CHAR},
+      NVL(#{coursePrice, jdbcType=NUMERIC}, 0),
+      NVL(#{sortOrd, jdbcType=NUMERIC}, 0),
+      #{prereqCourseSn, jdbcType=NUMERIC},
+      #{rgtrId},
+      CURRENT_TIMESTAMP,
+      #{lastMdfrId},
+      CURRENT_TIMESTAMP
+    )
+  </insert>
+
+  <update id="updateCourse" parameterType="kr.or.ddit.finalProject.dto.course.CourseDto">
+    UPDATE COURSE
+    SET
+      COURSE_NM       = #{courseNm},
+      COURSE_EXPLN_CN = #{courseExplnCn, jdbcType=VARCHAR},
+      OPNN_YN         = #{opnnYn, jdbcType=CHAR},
+      SORT_ORD        = #{sortOrd, jdbcType=NUMERIC},
+      PREREQ_COURSE_SN = #{prereqCourseSn, jdbcType=NUMERIC},
+      LAST_MDFR_ID    = #{lastMdfrId},
+      MDFCN_DT        = CURRENT_TIMESTAMP
+    WHERE COURSE_SN = #{courseSn}
+  </update>
+
+  <delete id="deleteCourse">
+    DELETE FROM COURSE WHERE COURSE_SN = #{courseSn}
+  </delete>
+
+  <select id="countLectureByCourse" resultType="int">
+    SELECT COUNT(*) FROM LECTURE WHERE COURSE_SN = #{courseSn}
+  </select>
+
+  <update id="updateCourseAtchFileId">
+    UPDATE COURSE SET ATCH_FILE_ID = #{atchFileId} WHERE COURSE_SN = #{courseSn}
+  </update>
+
+</mapper>

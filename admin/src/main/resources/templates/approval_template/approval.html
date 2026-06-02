@@ -1,0 +1,415 @@
+<th:block th:fragment="pageCss">
+  <style>
+    .ap-tab-btn {
+      transition: all 0.18s;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+    }
+    .ap-tab-btn.active {
+      color: #7c3aed;
+      border-bottom-color: #7c3aed;
+      font-weight: 700;
+    }
+    .ap-tab-panel {
+      display: none;
+    }
+    .ap-tab-panel.active {
+      display: block;
+    }
+
+    .status-draft {
+      background: #f1f5f9;
+      color: #64748b;
+    }
+    .status-pending {
+      background: #fef9c3;
+      color: #854d0e;
+    }
+    .status-approved {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .status-rejected {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .status-cancelled {
+      background: #f1f5f9;
+      color: #94a3b8;
+    }
+  </style>
+</th:block>
+
+<title th:fragment="pageTitle">전자결재 | HERMES</title>
+
+<div class="space-y-6 max-w-7xl mx-auto">
+  <!-- ───────── 페이지 헤더 ───────── -->
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-2 text-md text-slate-400">
+      <span class="text-slate-600 font-medium">전자 결재</span>
+    </div>
+    <a href="/admin/approval/new" class="hm-btn-primary">
+      <i class="fa-solid fa-file-pen"></i>
+      <span>기안 작성</span>
+    </a>
+  </div>
+
+  <!-- ───────── 요약 카드 ───────── -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div
+      class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3"
+    >
+      <div
+        class="w-10 h-10 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-lg shrink-0"
+      >
+        <i class="fa-solid fa-file-lines"></i>
+      </div>
+      <div>
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">
+          전체 기안
+        </p>
+        <p class="text-2xl font-bold text-slate-800" th:text="${totalCount}">
+          0
+        </p>
+      </div>
+    </div>
+    <div
+      class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3"
+    >
+      <div
+        class="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-lg shrink-0"
+      >
+        <i class="fa-solid fa-hourglass-half"></i>
+      </div>
+      <div>
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">
+          진행 중
+        </p>
+        <p class="text-2xl font-bold text-amber-500" th:text="${pendingCount}">
+          0
+        </p>
+      </div>
+    </div>
+    <div
+      class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3"
+    >
+      <div
+        class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0"
+      >
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <div>
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">
+          승인 완료
+        </p>
+        <p
+          class="text-2xl font-bold text-emerald-600"
+          th:text="${approvedCount}"
+        >
+          0
+        </p>
+      </div>
+    </div>
+    <div
+      class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3"
+    >
+      <div
+        class="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center text-lg shrink-0"
+      >
+        <i class="fa-solid fa-circle-xmark"></i>
+      </div>
+      <div>
+        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">
+          반려
+        </p>
+        <p class="text-2xl font-bold text-red-500" th:text="${rejectedCount}">
+          0
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────── 탭 영역 ───────── -->
+  <div
+    class="bg-white rounded-2xl border border-slate-100 shadow-sm max-w-7xl mx-auto"
+  >
+    <div class="flex items-center gap-1 px-5 pt-4 border-b border-slate-100">
+      <button
+        class="ap-tab-btn px-4 py-2.5 text-sm"
+        data-tab="tab-my"
+        onclick="switchTab('tab-my', this)"
+      >
+        <i class="fa-solid fa-list mr-1.5"></i>내 기안 목록
+      </button>
+      <button
+        class="ap-tab-btn px-4 py-2.5 text-sm"
+        data-tab="tab-pending"
+        onclick="switchTab('tab-pending', this)"
+      >
+        <i class="fa-solid fa-stamp mr-1.5"></i>결재 대기
+        <span
+          class="ml-1 px-1.5 py-0.5 bg-amber-400 text-white text-xs rounded-full"
+          th:text="${myApprovalCount}"
+          id="myApprovalBadge"
+          >0</span
+        >
+      </button>
+      <button
+        class="ap-tab-btn px-4 py-2.5 text-sm"
+        data-tab="tab-draft"
+        onclick="switchTab('tab-draft', this)"
+      >
+        <i class="fa-solid fa-pen-to-square mr-1.5"></i>임시저장
+        <span
+          class="ml-1 px-1.5 py-0.5 bg-slate-300 text-white text-xs rounded-full"
+          th:text="${draftCount}"
+          id="draftBadge"
+          >0</span
+        >
+      </button>
+      <button
+        class="ap-tab-btn px-4 py-2.5 text-sm"
+        data-tab="tab-processed"
+        onclick="switchTab('tab-processed', this)"
+      >
+        <i class="fa-solid fa-clock-rotate-left mr-1.5"></i>처리한 결재
+      </button>
+    </div>
+
+    <!-- ── 탭 1: 내 기안 목록 ── -->
+    <div id="tab-my" class="ap-tab-panel p-5">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-100">
+              <th
+                class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider"
+              >
+                문서 제목
+              </th>
+              <th
+                class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider"
+              >
+                문서 양식
+              </th>
+              <th
+                class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider"
+              >
+                기안일
+              </th>
+              <th
+                class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider"
+              >
+                상태
+              </th>
+              <th class="py-2 px-3"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              th:each="doc : ${myDocs}"
+              class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors"
+            >
+              <td
+                class="py-3 px-3 font-medium text-slate-800"
+                th:text="${doc.aprvlDocSj}"
+              >
+                문서 제목
+              </td>
+              <td
+                class="py-3 px-3 text-xs text-slate-500"
+                th:text="${doc.tmplNm}"
+              >
+                문서 양식 명
+              </td>
+              <td
+                class="py-3 px-3 text-sm text-slate-500 whitespace-nowrap"
+                th:text="${#temporals.format(doc.drftRegDt, 'yyyy-MM-dd')}"
+              >
+                2026-05-29
+              </td>
+              <td class="py-3 px-3">
+                <span
+                  th:classappend="${'status-' + doc.aprvlPrgrsCd.name().toLowerCase()}"
+                  th:text="${doc.aprvlPrgrsCd}"
+                  class="px-2.5 py-0.5 rounded-full text-xs font-bold"
+                  >상태</span
+                >
+              </td>
+              <td class="py-3 px-3">
+                <a
+                  th:href="@{/admin/approval/{sn}(sn=${doc.aprvlDocSn})}"
+                  class="text-violet-500 hover:text-violet-700 text-xs font-semibold"
+                >
+                  <i class="fa-solid fa-eye"></i> 보기
+                </a>
+              </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(myDocs)}">
+              <td colspan="5" class="py-10 text-center text-slate-300 text-sm">
+                기안한 문서가 없습니다.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── 탭 2: 결재 대기 ── -->
+    <div id="tab-pending" class="ap-tab-panel p-5">
+      <div class="space-y-3">
+        <div
+          th:each="line : ${myPendingLines}"
+          class="border border-amber-200 bg-amber-50/30 rounded-2xl p-5"
+        >
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <p class="text-xs text-slate-400 mb-1">
+                <span th:text="${line.doc.tmplCd}">유형</span>
+                · 기안자: <span th:text="${line.doc.drftUserId}">기안자</span> ·
+                <span
+                  th:text="${#temporals.format(line.doc.drftRegDt, 'yyyy-MM-dd')}"
+                  >2026-05-29</span
+                >
+              </p>
+              <h3
+                class="text-base font-bold text-slate-800"
+                th:text="${line.doc.aprvlDocSj}"
+              >
+                문서 제목
+              </h3>
+            </div>
+            <a
+              th:href="@{/admin/approval/{sn}(sn=${line.doc.aprvlDocSn})}"
+              class="hm-btn-primary text-xs py-1.5 px-3 shrink-0"
+            >
+              <i class="fa-solid fa-stamp"></i> 결재하기
+            </a>
+          </div>
+          <p class="text-xs text-amber-700 mt-3 font-semibold">
+            <i class="fa-solid fa-circle-exclamation mr-1"></i>내 결재
+            차례입니다.
+          </p>
+        </div>
+        <div
+          th:if="${#lists.isEmpty(myPendingLines)}"
+          class="py-10 text-center text-slate-300 text-sm"
+        >
+          결재 대기 중인 문서가 없습니다.
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 탭 3: 임시저장 ── -->
+    <div id="tab-draft" class="ap-tab-panel p-5">
+      <div class="space-y-3">
+        <div
+          th:each="doc : ${draftDocs}"
+          class="border border-dashed border-slate-200 rounded-2xl p-4 flex items-center gap-4"
+        >
+          <div
+            class="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center text-lg shrink-0"
+          >
+            <i class="fa-regular fa-file-lines"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p
+              class="font-medium text-slate-700 truncate"
+              th:text="${doc.aprvlDocSj}"
+            >
+              임시저장 문서
+            </p>
+            <p class="text-xs text-slate-400 mt-0.5">
+              저장:
+              <span
+                th:text="${#temporals.format(doc.mdfcnDt, 'yyyy-MM-dd HH:mm')}"
+                >2026-05-29 14:32</span
+              >
+            </p>
+          </div>
+          <div class="flex gap-2 shrink-0">
+            <a
+              th:href="@{/admin/approval/{sn}/edit(sn=${doc.aprvlDocSn})}"
+              class="px-3 py-1.5 text-xs font-semibold text-violet-600 bg-violet-50 hover:bg-violet-100 rounded-lg transition-colors"
+            >
+              <i class="fa-solid fa-pen mr-1"></i>이어 작성
+            </a>
+            <button
+              th:data-doc-sn="${doc.aprvlDocSn}"
+              onclick="cancelDoc(this)"
+              class="px-3 py-1.5 text-xs font-semibold text-slate-400 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+            >
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        <div
+          th:if="${#lists.isEmpty(draftDocs)}"
+          class="py-10 text-center text-slate-300 text-sm"
+        >
+          임시저장된 문서가 없습니다.
+        </div>
+      </div>
+    </div>
+    <!-- ── 탭 4: 처리한 결재 ── -->
+    <div id="tab-processed" class="ap-tab-panel p-5">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-100">
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">문서 제목</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">문서 양식</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">기안자</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">처리일시</th>
+              <th class="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">처리결과</th>
+              <th class="py-2 px-3"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="line : ${myProcessedLines}" class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+              <td class="py-3 px-3 font-medium text-slate-800" th:text="${line.doc.aprvlDocSj}">문서 제목</td>
+              <td class="py-3 px-3 text-xs text-slate-500" th:text="${line.doc.tmplCd}">양식</td>
+              <td class="py-3 px-3 text-sm text-slate-500" th:text="${line.doc.drftUserId}">기안자</td>
+              <td class="py-3 px-3 text-sm text-slate-500 whitespace-nowrap" th:text="${#temporals.format(line.aprvlDt, 'yyyy-MM-dd HH:mm')}">-</td>
+              <td class="py-3 px-3">
+                <span th:if="${line.aprvlPrgrsCd.name() == 'APPROVED'}" class="px-2.5 py-0.5 rounded-full text-xs font-bold status-approved">승인</span>
+                <span th:if="${line.aprvlPrgrsCd.name() == 'REJECTED'}" class="px-2.5 py-0.5 rounded-full text-xs font-bold status-rejected">반려</span>
+              </td>
+              <td class="py-3 px-3">
+                <a th:href="@{/admin/approval/{sn}(sn=${line.doc.aprvlDocSn})}" class="text-violet-500 hover:text-violet-700 text-xs font-semibold">
+                  <i class="fa-solid fa-eye"></i> 보기
+                </a>
+              </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(myProcessedLines)}">
+              <td colspan="6" class="py-10 text-center text-slate-300 text-sm">처리한 결재 내역이 없습니다.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function switchTab(tabId, btn) {
+    document
+      .querySelectorAll(".ap-tab-panel")
+      .forEach((p) => p.classList.remove("active"));
+    document
+      .querySelectorAll(".ap-tab-btn")
+      .forEach((b) => b.classList.remove("active"));
+    document.getElementById(tabId).classList.add("active");
+    btn.classList.add("active");
+  }
+
+  function cancelDoc(btn) {
+    const sn = btn.dataset.docSn;
+    if (!confirm("임시저장 문서를 삭제하시겠습니까?")) return;
+    fetch(`/admin/approval/${sn}`, { method: "DELETE" }).then((r) => {
+      if (r.ok) location.reload();
+    });
+  }
+
+  document.querySelector('.ap-tab-btn[data-tab="tab-my"]').click();
+</script>

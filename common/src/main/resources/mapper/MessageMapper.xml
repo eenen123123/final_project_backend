@@ -85,8 +85,10 @@
             <result property="exitDt" column="EXIT_DT"/>
             <result property="notiYn" column="NOTI_YN"/>
             <result property="lstReadMsgSn" column="LST_READ_MSG_SN"/>
-            <result property="partRoleName" column="PART_ROLE_NAME"/>
             <result property="partUserName" column="PART_USER_NAME"/>
+
+            <result property="partDeptNm" column="PART_DEPT_NM"/>
+            <result property="partJbgrNm" column="PART_JBGR_NM"/>
         </collection>
 
 
@@ -163,7 +165,6 @@
             mr.ROOM_TYPE_CD,
 
 
-                                                                                                    <!-- mr.ROOM_NM, -->
              case
                 when mr.ROOM_TYPE_CD = '01' then (
                     select m.user_name || '님과의 대화'
@@ -186,17 +187,18 @@
             mrp.EXIT_DT,
             mrp.NOTI_YN,
             mrp.LST_READ_MSG_SN,
-            (
-                select mrole.authrt_nm
-                from member_role_mapping mrm
-                left join member_role mrole on mrm.user_role_cd = mrole.user_role_cd
-                where mrm.user_id = mrp.part_user_id
-                      and mrm.user_role_cd != 'ROLE_ADMIN'
-            ) as part_role_name,
+            d.dept_nm as part_dept_nm,
+            j.jbgr_nm as part_jbgr_nm,
+
             m.user_name as part_user_name
         FROM MESSAGE_ROOM mr
         INNER JOIN MESSAGE_ROOM_PARTICIPANT mrp ON mr.ROOM_SN = mrp.ROOM_SN
         INNER JOIN member m ON mrp.PART_USER_ID = m.user_id
+        inner join EMPLOYEE_INFO ei on m.user_id = ei.user_id
+        inner join DEPARTMENT d on ei.dept_cd = d.dept_cd
+        inner join JOB_GRADE j on ei.jbgr_cd = j.jbgr_cd
+
+
         <where>
             mr.ROOM_SN = #{roomSn}
             AND mr.DEL_YN = 'N'
@@ -223,26 +225,38 @@
             #{sendrUserId},
             COALESCE(#{msgTypeCd}, '01'),
             #{msgCn},
-            #{atchFileId, jdbcType=VARCHAR}<!-- null 전달 시 Oracle이 JdbcType=OTHER를 거부(ORA-17004)하므로 명시 필요 -->
+            #{atchFileId, jdbcType=VARCHAR}                                        <!-- null 전달 시 Oracle이 JdbcType=OTHER를 거부(ORA-17004)하므로 명시 필요 -->
         )
     </insert>
 
     <select id="selectChatMessagesByRoomSn" resultType="kr.or.ddit.finalProject.dto.message.MessageContentDto">
-        SELECT mc.*, (
-            select mr.authrt_nm
-            from member_role_mapping mrm
-            left join member_role mr on mrm.user_role_cd = mr.user_role_cd
-            where mrm.user_id = mc.sendr_user_id
-                  and mrm.user_role_cd != 'ROLE_ADMIN'
-        ) as sender_role_name, m.user_name as user_name,
+        SELECT mc.*, m.user_name as user_name,
+        d.dept_nm as part_dept_nm,
+        j.jbgr_nm as part_jbgr_nm,
+
         cad.ORGN_FILE_NM as file_nm
         FROM MESSAGE_CONTENT mc
         left join member m on mc.sendr_user_id = m.user_id
         left join CMMT_ATCH_FILE_DTL cad on cad.ATCH_FILE_DTL_SN = TO_NUMBER(mc.ATCH_FILE_ID)
+        inner join EMPLOYEE_INFO ei on m.user_id = ei.user_id
+        inner join DEPARTMENT d on ei.dept_cd = d.dept_cd
+        inner join JOB_GRADE j on ei.jbgr_cd = j.jbgr_cd
 
         WHERE mc.ROOM_SN = #{roomSn}
         ORDER BY mc.MSG_SN desc
         offset #{paginationInfo.offset} rows fetch next #{paginationInfo.screenSize} rows only
+    </select>
+
+    <!-- 브로드캐스트용 발신자 표시 정보 (이름/부서/직급) -->
+    <select id="selectSenderInfo" resultType="kr.or.ddit.finalProject.dto.message.MessageContentDto">
+        SELECT m.user_name  as user_name,
+               d.dept_nm    as part_dept_nm,
+               j.jbgr_nm    as part_jbgr_nm
+        FROM member m
+        inner join EMPLOYEE_INFO ei on m.user_id = ei.user_id
+        inner join DEPARTMENT d on ei.dept_cd = d.dept_cd
+        inner join JOB_GRADE j on ei.jbgr_cd = j.jbgr_cd
+        WHERE m.user_id = #{userId}
     </select>
 
 

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.classroom.ClassroomMapper">
+
+  <resultMap id="classroomListResponseMap" type="kr.or.ddit.finalProject.dto.classroom.ClassroomListResponse">
+    <result property="classSn"      column="CLASS_SN" />
+    <result property="classNm"      column="CLASS_NM" />
+    <result property="courseNm"     column="COURSE_NM" />
+    <result property="classStatCd"  column="CLASS_STAT_CD" />
+    <result property="studentCount" column="STUDENT_COUNT" />
+    <result property="regDt"        column="REG_DT" />
+  </resultMap>
+
+  <resultMap id="classroomDetailResponseMap" type="kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse">
+    <result property="classSn"      column="CLASS_SN" />
+    <result property="classNm"      column="CLASS_NM" />
+    <result property="courseNm"     column="COURSE_NM" />
+    <result property="classStatCd"  column="CLASS_STAT_CD" />
+    <result property="enrlStrtYmd"  column="ENRL_STRT_YMD" />
+    <result property="enrlEndYmd"   column="ENRL_END_YMD" />
+  </resultMap>
+
+  <select id="selectClassroomListByInstructor" resultMap="classroomListResponseMap">
+    SELECT
+        cl.CLASS_SN,
+        cl.CLASS_NM,
+        c.COURSE_NM,
+        cl.CLASS_STAT_CD,
+        cl.REG_DT,
+        (
+            SELECT COUNT(*)
+            FROM CLASSROOM_MEMBER cm
+            WHERE cm.CLASS_SN = cl.CLASS_SN
+              AND cm.ENRL_STAT_CD = '01'
+        ) AS STUDENT_COUNT
+    FROM CLASSROOM cl
+    JOIN COURSE c ON cl.COURSE_SN = c.COURSE_SN
+    WHERE c.INSTR_USER_ID = #{instrUserId}
+    ORDER BY cl.REG_DT DESC
+  </select>
+
+  <select id="selectClassroomBySn" resultMap="classroomDetailResponseMap">
+    SELECT
+        cl.CLASS_SN,
+        cl.CLASS_NM,
+        c.COURSE_NM,
+        cl.CLASS_STAT_CD,
+        cl.ENRL_STRT_YMD,
+        cl.ENRL_END_YMD
+    FROM CLASSROOM cl
+    JOIN COURSE c ON cl.COURSE_SN = c.COURSE_SN
+    WHERE cl.CLASS_SN = #{classSn}
+  </select>
+
+
+</mapper>

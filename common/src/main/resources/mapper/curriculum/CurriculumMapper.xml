@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.curriculum.CurriculumMapper">
+
+  <resultMap id="curriculumMap" type="kr.or.ddit.finalProject.dto.curriculum.CurriculumDto">
+    <id property="curriculumId" column="CURRICULUM_ID" />
+    <result property="title" column="TITLE" />
+    <result property="instructorId" column="INSTRUCTOR_ID" />
+    <result property="useYn" column="USE_YN" />
+    <result property="rgtrId" column="RGTR_ID" />
+    <result property="regDt" column="REG_DT" />
+    <result property="lastMdfrId" column="LAST_MDFR_ID" />
+    <result property="mdfcnDt" column="MDFCN_DT" />
+  </resultMap>
+
+  <select id="selectList" resultMap="curriculumMap">
+    SELECT
+      CURRICULUM_ID, TITLE, INSTRUCTOR_ID, USE_YN,
+      RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
+    FROM CURRICULUM
+    WHERE INSTRUCTOR_ID = #{instructorId}
+      AND USE_YN = 'Y'
+    ORDER BY REG_DT DESC
+  </select>
+
+  <select id="selectById" resultMap="curriculumMap">
+    SELECT
+      CURRICULUM_ID, TITLE, INSTRUCTOR_ID, USE_YN,
+      RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
+    FROM CURRICULUM
+    WHERE CURRICULUM_ID = #{curriculumId}
+  </select>
+
+  <insert id="insert" parameterType="kr.or.ddit.finalProject.dto.curriculum.CurriculumDto">
+    <selectKey keyProperty="curriculumId" resultType="long" order="BEFORE">
+      SELECT SEQ_CURRICULUM.NEXTVAL FROM DUAL
+    </selectKey>
+    INSERT INTO CURRICULUM (
+      CURRICULUM_ID, TITLE, INSTRUCTOR_ID, USE_YN,
+      RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
+    ) VALUES (
+      #{curriculumId}, #{title}, #{instructorId}, 'Y',
+      #{rgtrId}, SYSDATE, #{lastMdfrId}, SYSDATE
+    )
+  </insert>
+
+  <update id="update" parameterType="kr.or.ddit.finalProject.dto.curriculum.CurriculumDto">
+    UPDATE CURRICULUM
+    SET TITLE = #{title}, LAST_MDFR_ID = #{lastMdfrId}, MDFCN_DT = SYSDATE
+    WHERE CURRICULUM_ID = #{curriculumId}
+  </update>
+
+  <update id="deleteLogically">
+    UPDATE CURRICULUM
+    SET USE_YN = 'N', LAST_MDFR_ID = #{lastMdfrId}, MDFCN_DT = SYSDATE
+    WHERE CURRICULUM_ID = #{curriculumId}
+  </update>
+
+</mapper>

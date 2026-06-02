@@ -1,13 +1,12 @@
 package kr.or.ddit.finalProject.dto.board;
 
 import java.io.Serializable;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @Builder
@@ -15,8 +14,27 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DataRoomDto implements Serializable {
 
-    private Long postSn; // 기본키(PK) · 시퀀스
-    private String dataCtg; // 강의노트, 참고서적 등
-    private Long expsOrd;
-    private String accsLmtCd; // 전체공개, 수강생 전용 등
+    private Long postSn; // 게시판 번호
+    private String dataCtg; // 자료실 카테고리
+    private Long expsOrd; // 게시글 정렬순서
+    private String accsLmtCd; // 접근 제한코드 (전체공개 01, 회원전용 02)
+
+    // BOARD 조인 필드
+    private String postSj;
+    private String postCn;
+    private String wrtrUserId;
+    private Integer atchFileId;
+    private LocalDateTime regDt;
+    private LocalDateTime mdfcnDt;
+
+    // 공통코드 조인 필드
+    private String dataCtgNm; // 자료실 카테고리명
+    private String accsLmtNm; // 접근제한명
+
+    // 파일 첨부 관련
+    private transient MultipartFile attachFile; // 업로드 파일 (DB 미매핑)
+    private String orgnFileNm; // 원본 파일명
+    private String savePathNm; // 파일 URL
+    private String fileExtNm; // 파일 확장자 (MIME 타입)
+    private Long fileSizeCnt; // 파일 크기
 }

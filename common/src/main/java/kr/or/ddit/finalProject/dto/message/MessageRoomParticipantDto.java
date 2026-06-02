@@ -1,7 +1,6 @@
 package kr.or.ddit.finalProject.dto.message;
 
 import java.io.Serializable;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
@@ -23,6 +22,8 @@ public class MessageRoomParticipantDto implements Serializable {
     private String notiYn; // Y:알림ON / N:알림OFF
     private Long lstReadMsgSn; // 안읽은 메시지 수 계산 기준 읽을 때마다 갱신
 
-    private String partRoleName; //  역할 이름 (예: 관리자, 일반 사용자 등)
     private String partUserName; //  이름
+
+    private String partDeptNm; // 부서명
+    private String partJbgrNm; // 직급명
 }

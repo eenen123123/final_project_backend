@@ -13,11 +13,12 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import kr.or.ddit.finalProject.dto.member.AdminMemberDto;
 import kr.or.ddit.finalProject.dto.message.CreateMessageRoomRequestDto;
 import kr.or.ddit.finalProject.dto.message.MessageContentDto;
 import kr.or.ddit.finalProject.dto.message.MessageRoomDto;
+import kr.or.ddit.finalProject.dto.message.MessageRoomParticipantDto;
 import kr.or.ddit.finalProject.dto.message.MessageRoomSummaryDto;
-import kr.or.ddit.finalProject.dto.user.AdminUserDto;
 import kr.or.ddit.finalProject.mapper.MemberMapper;
 import kr.or.ddit.finalProject.service.chat.ChatService;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +57,13 @@ public class ChatRoomPageController {
 
         MessageRoomDto room = chatService.getGroupChatRoom(roomSn, authentication);
         model.addAttribute("room", room);
+
+        Map<String, List<MessageRoomParticipantDto>> groupedParticipants =
+                room.getParticipants().stream()
+                        .collect(Collectors.groupingBy(MessageRoomParticipantDto::getPartDeptNm,
+                                LinkedHashMap::new, Collectors.toList()));
+        model.addAttribute("groupedParticipants", groupedParticipants);
+
         List<MessageContentDto> messages =
                 chatService.getChatMessages(roomSn, 20, 1, authentication); // 최신 20개 메시지
         Collections.reverse(messages); // DESC로 가져온 거 뒤집어서 오래된 순으로 표시
@@ -70,9 +78,10 @@ public class ChatRoomPageController {
     @GetMapping("/create")
     public String createChatRoom(Model model, Authentication authentication) {
         String userId = authentication.getName();
-        List<AdminUserDto> adminUsers = memberMapper.getAdminUsers(userId);
-        Map<String, List<AdminUserDto>> groupedAdminUsers = adminUsers.stream().collect(Collectors
-                .groupingBy(AdminUserDto::getAuthrtNm, LinkedHashMap::new, Collectors.toList()));
+        List<AdminMemberDto> adminUsers = memberMapper.getAdminUsers(userId);
+        Map<String, List<AdminMemberDto>> groupedAdminUsers = adminUsers.stream()
+                .collect(Collectors.groupingBy(adminUser -> adminUser.getEmployeeInfo().getDeptNm(),
+                        LinkedHashMap::new, Collectors.toList()));
         model.addAttribute("groupedAdminUsers", groupedAdminUsers);
         return "admin:/chat/createChatRoom";
     }
@@ -94,9 +103,10 @@ public class ChatRoomPageController {
         // otherUserId가 없으면 사용자 목록에서 선택하도록 페이지로 이동, 있으면 바로 1:1 채팅방으로 이동
         if (otherUserId.trim().isBlank()) {
             String userId = authentication.getName();
-            List<AdminUserDto> adminUsers = memberMapper.getAdminUsers(userId);
-            Map<String, List<AdminUserDto>> groupedAdminUsers =
-                    adminUsers.stream().collect(Collectors.groupingBy(AdminUserDto::getAuthrtNm,
+            List<AdminMemberDto> adminUsers = memberMapper.getAdminUsers(userId);
+            Map<String, List<AdminMemberDto>> groupedAdminUsers = adminUsers.stream()
+                    .collect(Collectors.groupingBy(
+                            adminUser -> adminUser.getEmployeeInfo().getDeptNm(),
                             LinkedHashMap::new, Collectors.toList()));
             model.addAttribute("groupedAdminUsers", groupedAdminUsers);
             return "admin:/chat/createDirectChatRoom";

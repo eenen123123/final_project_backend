@@ -72,19 +72,19 @@
 
     <!-- FAQ 등록 (BOARD 먼저 INSERT 후 FAQ INSERT) -->
     <insert id="insertFaq" parameterType="FaqDto">
-        INSERT INTO FAQ (
-            POST_SN
-            , FAQ_CTG_CD
-            , FAQ_SUB_CTG_CD
-            , EXPS_ORD
-            , TOP_FIX_YN
-        ) VALUES (
-            #{postSn}
-            , #{faqCtgCd}
-            , #{faqSubCtgCd}
-            , #{expsOrd}
-            , #{topFixYn}
-        )
+    INSERT INTO FAQ (
+        POST_SN
+        , FAQ_CTG_CD
+        , FAQ_SUB_CTG_CD
+        , EXPS_ORD
+        , TOP_FIX_YN
+    ) VALUES (
+        #{postSn}
+        , #{faqCtgCd}
+        , #{faqSubCtgCd}
+        , #{expsOrd, jdbcType=NUMERIC}
+        , #{topFixYn}
+    )
     </insert>
 
     <!-- FAQ 수정 -->
@@ -93,7 +93,7 @@
         SET
             FAQ_CTG_CD = #{faqCtgCd}
             , FAQ_SUB_CTG_CD = #{faqSubCtgCd}
-            , EXPS_ORD = #{expsOrd}
+            , EXPS_ORD = #{expsOrd, jdbcType=NUMERIC}
             , TOP_FIX_YN = #{topFixYn}
         WHERE POST_SN = #{postSn}
     </update>
@@ -103,5 +103,55 @@
         DELETE FROM FAQ
         WHERE POST_SN = #{postSn}
     </delete>
+
+    <!-- FAQ 이전글 (같은 카테고리) -->
+<select id="findPrevFaq" resultMap="faqResultMap">
+    SELECT
+        f.POST_SN
+        , f.FAQ_CTG_CD
+        , f.FAQ_SUB_CTG_CD
+        , f.EXPS_ORD
+        , f.TOP_FIX_YN
+        , b.POST_SJ
+        , b.POST_CN
+        , b.WRTR_USER_ID
+        , b.REG_DT
+        , c1.COM_CD_NM AS FAQ_CTG_NM
+        , c2.COM_CD_NM AS FAQ_SUB_CTG_NM
+    FROM FAQ f
+    JOIN BOARD b ON b.POST_SN = f.POST_SN
+    LEFT JOIN COM_CD c1 ON c1.CL_CODE = '101' AND c1.COM_CD = f.FAQ_CTG_CD
+    LEFT JOIN COM_CD c2 ON c2.CL_CODE = '102' AND c2.COM_CD = f.FAQ_SUB_CTG_CD
+    WHERE f.POST_SN &lt; #{postSn}
+    AND f.FAQ_CTG_CD = #{faqCtgCd}
+    ORDER BY f.POST_SN DESC
+    FETCH FIRST 1 ROWS ONLY
+</select>
+
+<!-- FAQ 다음글 (같은 카테고리) -->
+<select id="findNextFaq" resultMap="faqResultMap">
+    SELECT
+        f.POST_SN
+        , f.FAQ_CTG_CD
+        , f.FAQ_SUB_CTG_CD
+        , f.EXPS_ORD
+        , f.TOP_FIX_YN
+        , b.POST_SJ
+        , b.POST_CN
+        , b.WRTR_USER_ID
+        , b.REG_DT
+        , c1.COM_CD_NM AS FAQ_CTG_NM
+        , c2.COM_CD_NM AS FAQ_SUB_CTG_NM
+    FROM FAQ f
+    JOIN BOARD b ON b.POST_SN = f.POST_SN
+    LEFT JOIN COM_CD c1 ON c1.CL_CODE = '101' AND c1.COM_CD = f.FAQ_CTG_CD
+    LEFT JOIN COM_CD c2 ON c2.CL_CODE = '102' AND c2.COM_CD = f.FAQ_SUB_CTG_CD
+    WHERE f.POST_SN &gt; #{postSn}
+    AND f.FAQ_CTG_CD = #{faqCtgCd}
+    ORDER BY f.POST_SN ASC
+    FETCH FIRST 1 ROWS ONLY
+</select>    
+
+
 
 </mapper>

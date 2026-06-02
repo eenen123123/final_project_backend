@@ -3,10 +3,81 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="kr.or.ddit.finalProject.mapper.StaffMapper">
+    
+    <resultMap id="EmployeeDetailResultMap" type="kr.or.ddit.finalProject.dto.employee.EmployeeDetailDto">
 
-    <!-- selectDepartmentList --> 
+        <id property="userId" column="M_USER_ID" />
+        <result property="deptNm" column="DEPT_NM" />
+        <result property="jbgrNm" column="JBGR_NM" />
+
+        <result property="deptCd" column="DEPT_CD" />
+        <!-- 직원 상태 코드 -->
+        <result property="emplStatCd" column="EMPL_STAT_CD" />
+        <!-- 근무 형태 코드 -->
+        <result property="emplTypeCd" column="EMPL_TYPE_CD" />
+        <!-- 현재 적용 급여 -->
+        <result property="baseSalary" column="BASE_SALARY" />
+
+        <association property="member" resultMap="kr.or.ddit.finalProject.mapper.MemberMapper.memberTestResultMap" columnPrefix="M_" />
+
+        <association property="employeeInfo" javaType="kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto" columnPrefix="EI_">
+            <id property="userId" column="USER_ID" />
+            <result property="deptCd" column="DEPT_CD" />
+            <result property="jbgrCd" column="JBGR_CD" />
+            <result property="joinYmd" column="JOIN_YMD" />
+            <result property="retmtYmd" column="RETMT_YMD" />
+            <result property="emplStatCd" column="EMPL_STAT_CD" /> 
+            <result property="atchFileId" column="ATCH_FILE_ID" />
+            <result property="chrgDutyCn" column="CHRG_DUTY_CN" />
+            <result property="emplTypeCd" column="EMPL_TYPE_CD" />
+            <result property="ctrctEndYmd" column="CTRCT_END_YMD" />
+        </association>
+    </resultMap>
+
+
     <select id="selectDepartmentList" resultType="kr.or.ddit.finalProject.dto.employee.DepartmentDto">
         SELECT
+            DEPT_CD, PRNT_DEPT_CD, DEPT_NM, USE_YN, INTL_TEL_NO, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
+        FROM
+            DEPARTMENT
+    </select>      
+
+    <select id="selectJobGradeList" resultType="kr.or.ddit.finalProject.dto.employee.JobGradeDto">
+        SELECT
+            JBGR_CD, JBGR_NM, SORT_ORD, USE_YN, BASE_ANN_LV_DAYS, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT, DEPT_CD
+        FROM
+            JOB_GRADE
+        WHERE USE_YN = 'Y'
+        ORDER BY SORT_ORD
+    </select>
+
+    <insert id="insertEmployee" parameterType="kr.or.ddit.finalProject.dto.member.MemberDto">
+        INSERT INTO MEMBER (
+            USER_ID, USER_ENPSWD, USER_NAME, USER_ENRRNO, USER_GNDR_CD, USER_BRDT,
+            JOIN_DT, USER_TELNO, USER_EMAIL_ADDR, USER_ZIP, USER_ADDR, USER_DADDR,
+            USER_PROFILE, REG_DATE, MOD_DATE, ENABLE, USER_ROLE
+        ) VALUES (
+            #{userId, jdbcType=VARCHAR},
+            #{userEnpswd, jdbcType=VARCHAR},
+            #{userName, jdbcType=VARCHAR},
+            #{userEnrrno, jdbcType=VARCHAR},
+            #{userGndrCd, jdbcType=CHAR},
+            #{userBrdt, jdbcType=DATE},
+            CURRENT_TIMESTAMP,
+            #{userTelno, jdbcType=VARCHAR},
+            #{userEmailAddr, jdbcType=VARCHAR},
+            #{userZip, jdbcType=VARCHAR},
+            #{userAddr, jdbcType=VARCHAR},
+            #{userDaddr, jdbcType=VARCHAR},
+            #{userProfile, jdbcType=VARCHAR}, CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP,
+            'Y',
+            #{userRole, jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <insert id="insertEmployeeInfo" parameterType="kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto">
+        INSERT INTO EMPLOYEE_INFO (
             USER_ID
             , DEPT_CD
             , JBGR_CD
@@ -19,23 +90,209 @@
             , LAST_MDFR_ID
             , REG_DT
             , MDFCN_DT
-        FROM
-            EMPLOYEE_INFO
-    </select>      
+            , EMPL_TYPE_CD
+            , CTRCT_END_YMD
+        ) VALUES (
+            #{userId, jdbcType=VARCHAR}
+            , #{deptCd, jdbcType=CHAR}
+            , #{jbgrCd, jdbcType=CHAR}
+            , #{joinYmd, jdbcType=DATE}
+            , #{retmtYmd, jdbcType=DATE}
+            , #{emplStatCd, jdbcType=CHAR}
+            , #{atchFileId, jdbcType=VARCHAR}
+            , #{chrgDutyCn, jdbcType=VARCHAR}
+            , #{rgtrId, jdbcType=VARCHAR}
+            , #{lastMdfrId, jdbcType=VARCHAR}
+            , SYSTIMESTAMP
+            , SYSTIMESTAMP
+            , #{emplTypeCd, jdbcType=CHAR}
+            
+            <choose>
+                <when test="ctrctEndYmd != null and ctrctEndYmd != ''">
+                    , TO_DATE(SUBSTR(#{ctrctEndYmd, jdbcType=VARCHAR}, 1, 10), 'YYYY-MM-DD')
+                </when>
+                <otherwise>
+                    , NULL
+                </otherwise>
+            </choose>
+        )
+    </insert>
 
-    <!-- selectJobGradeList --> 
-    <select id="selectJobGradeList" resultType="kr.or.ddit.finalProject.dto.employee.JobGradeDto">
+    <insert id="insertEmployeeSalary" parameterType="kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto">
+        INSERT INTO EMPLOYEE_SALARY (
+            USER_ID, BASE_SALARY, APPLY_YMD, USE_YN, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
+        ) VALUES (
+            #{userId, jdbcType=VARCHAR},
+            #{baseSalary, jdbcType=NUMERIC}, #{applyYmd, jdbcType=DATE},     #{useYn, jdbcType=CHAR},
+            #{rgtrId, jdbcType=VARCHAR},
+            #{lastMdfrId, jdbcType=VARCHAR},
+            SYSTIMESTAMP,
+            SYSTIMESTAMP
+        )
+    </insert>
+
+    <!-- selectEmployeeList --> 
+    <select id="selectEmployeeList" resultMap="EmployeeDetailResultMap">
         SELECT
-            JBGR_CD
-            , JBGR_NM
-            , SORT_ORD
-            , USE_YN
-            , BASE_ANN_LV_DAYS
-            , RGTR_ID
-            , LAST_MDFR_ID
-            , REG_DT
-            , MDFCN_DT
+            /* MEMBER 테이블 (M_ 접두사) */
+            m.USER_ID AS M_USER_ID,
+            m.USER_ENPSWD AS M_USER_ENPSWD,
+            m.USER_NAME AS M_USER_NAME,
+            m.USER_ENRRNO AS M_USER_ENRRNO,
+            m.USER_GNDR_CD AS M_USER_GNDR_CD,
+            m.USER_BRDT AS M_USER_BRDT,
+            m.JOIN_DT AS M_JOIN_DT,
+            m.USER_TELNO AS M_USER_TELNO,
+            m.USER_EMAIL_ADDR AS M_USER_EMAIL_ADDR,
+            m.USER_ZIP AS M_USER_ZIP,
+            m.USER_ADDR AS M_USER_ADDR,
+            m.USER_DADDR AS M_USER_DADDR,
+            m.USER_PROFILE AS M_USER_PROFILE,
+            m.REG_DATE AS M_REG_DATE,
+            m.MOD_DATE AS M_MOD_DATE,
+            m.ENABLE AS M_ENABLE,
+            m.USER_ROLE AS M_USER_ROLE,
+
+            ei.DEPT_CD,
+            ei.EMPL_STAT_CD,
+            ei.EMPL_TYPE_CD,
+
+            /* EMPLOYEE_INFO 테이블 (EI_ 접두사 및 매핑 컬럼) */
+            ei.USER_ID AS EI_USER_ID,
+            ei.DEPT_CD AS EI_DEPT_CD,
+            ei.JBGR_CD AS EI_JBGR_CD,
+            ei.JOIN_YMD AS EI_JOIN_YMD,
+            ei.RETMT_YMD AS EI_RETMT_YMD,
+            ei.EMPL_STAT_CD AS EI_EMPL_STAT_CD,
+            ei.ATCH_FILE_ID AS EI_ATCH_FILE_ID,
+            ei.CHRG_DUTY_CN AS EI_CHRG_DUTY_CN,
+            ei.EMPL_TYPE_CD AS EI_EMPL_TYPE_CD,
+            ei.CTRCT_END_YMD AS EI_CTRCT_END_YMD,
+
+            /* DEPARTMENT 테이블 */
+            d.DEPT_NM,
+            
+            /* 직급명 */
+            j.JBGR_NM,
+
+            /* 재직/휴직: 현재 급여(USE_YN='Y'), 퇴사자: 마지막으로 받은 급여 */
+            es.BASE_SALARY
         FROM
-            JOB_GRADE
+            MEMBER m
+        LEFT JOIN EMPLOYEE_INFO ei ON m.USER_ID = ei.USER_ID
+        LEFT JOIN DEPARTMENT d ON ei.DEPT_CD = d.DEPT_CD
+        LEFT JOIN JOB_GRADE j ON ei.JBGR_CD = j.JBGR_CD
+        LEFT JOIN EMPLOYEE_SALARY es ON m.USER_ID = es.USER_ID
+            AND (
+                (NVL(ei.EMPL_STAT_CD, '01') != '03' AND es.USE_YN = 'Y')
+                OR
+                (ei.EMPL_STAT_CD = '03' AND es.APPLY_YMD = (
+                    SELECT MAX(APPLY_YMD) FROM EMPLOYEE_SALARY WHERE USER_ID = m.USER_ID
+                ))
+            )
+        WHERE m.USER_ROLE = 'ROLE_ADMIN'
+        ORDER BY m.USER_ID
     </select>
+
+    <!-- selectJoinYearList -->
+    <select id="selectJoinYearList" resultType="int">
+        SELECT DISTINCT TO_CHAR(JOIN_YMD, 'YYYY') AS JOIN_YEAR
+        FROM EMPLOYEE_INFO
+        WHERE JOIN_YMD IS NOT NULL
+        ORDER BY JOIN_YEAR
+    </select>
+
+    <!-- checkIdExists -->
+    <select id="checkIdExists" parameterType="String" resultType="int">
+        SELECT COUNT(*) FROM MEMBER WHERE USER_ID = #{userId}
+    </select>
+
+    <!-- selectMaxUserId -->
+    <select id="selectMaxUserId" parameterType="String" resultType="String">
+        SELECT MAX(USER_ID) FROM MEMBER WHERE USER_ID LIKE CONCAT(#{baseId}, '%')
+    </select>
+
+    <!-- updateMember -->
+    <update id="updateMember" parameterType="kr.or.ddit.finalProject.dto.member.MemberDto">
+        UPDATE MEMBER SET
+            USER_NAME       = #{userName, jdbcType=VARCHAR},
+            USER_GNDR_CD    = #{userGndrCd, jdbcType=CHAR},
+            USER_BRDT       = #{userBrdt, jdbcType=DATE},
+            USER_TELNO      = #{userTelno, jdbcType=VARCHAR},
+            USER_EMAIL_ADDR = #{userEmailAddr, jdbcType=VARCHAR},
+            USER_ZIP        = #{userZip, jdbcType=VARCHAR},
+            USER_ADDR       = #{userAddr, jdbcType=VARCHAR},
+            USER_DADDR      = #{userDaddr, jdbcType=VARCHAR},
+            USER_PROFILE    = #{userProfile, jdbcType=VARCHAR},
+            MOD_DATE        = CURRENT_TIMESTAMP
+        WHERE USER_ID = #{userId, jdbcType=VARCHAR}
+    </update>
+
+    <!-- updateEmployeeInfo -->
+    <update id="updateEmployeeInfo" parameterType="kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto">
+        UPDATE EMPLOYEE_INFO SET
+            DEPT_CD         = #{deptCd, jdbcType=CHAR},
+            JBGR_CD         = #{jbgrCd, jdbcType=CHAR},
+            JOIN_YMD        = #{joinYmd, jdbcType=DATE},
+            EMPL_STAT_CD    = #{emplStatCd, jdbcType=CHAR},
+            EMPL_TYPE_CD    = #{emplTypeCd, jdbcType=CHAR},
+            CTRCT_END_YMD   = <choose>
+                                <when test="ctrctEndYmd != null and ctrctEndYmd != ''">TO_DATE(SUBSTR(#{ctrctEndYmd, jdbcType=VARCHAR}, 1, 10), 'YYYY-MM-DD')</when>
+                                <otherwise>NULL</otherwise>
+                              </choose>,
+            CHRG_DUTY_CN    = #{chrgDutyCn, jdbcType=VARCHAR},
+            LAST_MDFR_ID    = #{lastMdfrId, jdbcType=VARCHAR},
+            MDFCN_DT        = SYSTIMESTAMP
+        WHERE USER_ID = #{userId, jdbcType=VARCHAR}
+    </update>
+
+    <!-- selectCurrentSalary -->
+    <select id="selectCurrentSalary" parameterType="String" resultType="kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto">
+        SELECT BASE_SALARY
+        FROM EMPLOYEE_SALARY
+        WHERE USER_ID = #{userId}
+          AND USE_YN = 'Y'
+    </select>
+    
+
+    <!-- deactivateCurrentSalary: 현재 적용 급여를 이력으로 전환 -->
+    <update id="deactivateCurrentSalary" parameterType="String">
+        UPDATE EMPLOYEE_SALARY SET
+            USE_YN   = 'N',
+            MDFCN_DT = SYSTIMESTAMP
+        WHERE USER_ID = #{userId, jdbcType=VARCHAR}
+          AND USE_YN = 'Y'
+    </update>
+
+    <!-- 퇴사: MEMBER 계정 비활성화 --> 
+    <update id="updateMemberDisabled" parameterType="String">
+        UPDATE MEMBER SET
+            ENABLE   = 'N',
+            MOD_DATE = SYSTIMESTAMP
+        WHERE USER_ID = #{userId}
+          AND ENABLE = 'Y'
+    </update>
+
+    <!-- 퇴사: EMPLOYEE_INFO 상태, 퇴사일, 퇴사사유 변경 --> 
+    <update id="updateEmployeeRetired">
+        UPDATE EMPLOYEE_INFO SET
+            EMPL_STAT_CD = '03',
+            RETMT_YMD    = SYSTIMESTAMP,
+            RETMT_RSN    = #{retmtRsn},
+            LAST_MDFR_ID = #{loginUserId},
+            MDFCN_DT     = SYSTIMESTAMP       
+        WHERE USER_ID = #{userId}
+          AND NVL(EMPL_STAT_CD, '00') != '03' 
+    </update>
+
+    <!-- 퇴사: EMPLOYEE_SALARY 현재 급여 비활성화 --> 
+    <update id="updateEmployeeSalaryInactive">
+        UPDATE EMPLOYEE_SALARY SET
+            USE_YN       = 'N',
+            LAST_MDFR_ID = #{loginUserId},
+            MDFCN_DT     = SYSTIMESTAMP
+        WHERE USER_ID = #{userId}
+          AND USE_YN = 'Y'                
+    </update>
+    
 </mapper>

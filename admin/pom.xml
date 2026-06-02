@@ -14,6 +14,13 @@
     <name>admin</name>
 
     <dependencies>
+        <!-- HTML 새니타이징 (XSS 방어) -->
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.17.2</version>
+        </dependency>
+
         <!-- common 모듈 (DB, JWT, 공통 코드 포함) -->
         <dependency>
             <groupId>kr.or.ddit</groupId>
@@ -28,6 +35,12 @@
         <dependency>
             <groupId>org.thymeleaf.extras</groupId>
             <artifactId>thymeleaf-extras-springsecurity6</artifactId>
+        </dependency>
+
+        <!-- WebSocket (ChatMessageController에서 직접 사용) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
 
         <!-- Lombok -->

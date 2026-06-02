@@ -12,11 +12,12 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.or.ddit.finalProject.dto.example.ExampleDto;
+import kr.or.ddit.finalProject.dto.file.FileCtxType;
 import kr.or.ddit.finalProject.dto.file.FileDto;
-import kr.or.ddit.finalProject.dto.file.StoredFileResponse;
-import kr.or.ddit.finalProject.dto.user.UserDto;
+import kr.or.ddit.finalProject.dto.member.MemberDto;
+import kr.or.ddit.finalProject.dto.member.MemberRoleEnum;
+import kr.or.ddit.finalProject.mapper.MemberMapper;
 import kr.or.ddit.finalProject.mapper.TestMapper;
-import kr.or.ddit.finalProject.mapper.UserMapper;
 import kr.or.ddit.finalProject.service.file.FileUploadService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,7 +29,7 @@ public class ExampleAdminController {
     @Autowired
     private TestMapper testMapper;
     @Autowired
-    private UserMapper userMapper;
+    private MemberMapper memberMapper;
 
     @Autowired
     private FileUploadService fileUploadService;
@@ -46,7 +47,7 @@ public class ExampleAdminController {
 
         log.info("User authorities: {}", authentication.getAuthorities());
 
-        UserDto member = userMapper.findByUserId(userId).orElse(null);
+        MemberDto member = memberMapper.findByUserId(userId).orElse(null);
         model.addAttribute("user", member);
 
         return "admin:/hello";
@@ -58,7 +59,8 @@ public class ExampleAdminController {
 
         log.info("Received file: {}", file.getOriginalFilename());
         String userId = authentication.getName();
-        FileDto response = fileUploadService.uploadFile(file, userId);
+        FileDto response = fileUploadService.uploadFile(file, userId, FileCtxType.MEMBER_ROLE,
+                MemberRoleEnum.ROLE_ADMIN.name());
         log.info("File uploaded successfully: {}", response);
         redirectAttributes.addFlashAttribute("fileResponse", response);
 

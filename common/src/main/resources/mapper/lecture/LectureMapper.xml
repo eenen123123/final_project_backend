@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.lecture.LectureMapper">
+
+  <resultMap id="lectureMap" type="kr.or.ddit.finalProject.dto.lecture.LectureDto">
+    <id property="lectureSn"       column="LECTURE_SN" />
+    <result property="courseSn"        column="COURSE_SN" />
+    <result property="lectureNm"       column="LECTURE_NM" />
+    <result property="lectureTypeCd"   column="LECTURE_TYPE_CD" />
+    <result property="lectureDuration" column="LECTURE_DURATION" />
+    <result property="lectureExplnCn"  column="LECTURE_EXPLN_CN" />
+    <result property="opnnYn"          column="OPNN_YN" />
+    <result property="lockYn"          column="LOCK_YN" />
+    <result property="prereqLectureSn" column="PREREQ_LECTURE_SN" />
+    <result property="sortOrd"         column="SORT_ORD" />
+    <result property="rgtrId"          column="RGTR_ID" />
+    <result property="lastMdfrId"      column="LAST_MDFR_ID" />
+  </resultMap>
+
+  <select id="selectLectureByCourseSn" resultMap="lectureMap">
+    SELECT
+      LECTURE_SN, COURSE_SN, LECTURE_NM, LECTURE_TYPE_CD,
+      LECTURE_DURATION, LECTURE_EXPLN_CN, OPNN_YN, LOCK_YN,
+      PREREQ_LECTURE_SN, SORT_ORD, RGTR_ID, LAST_MDFR_ID
+    FROM LECTURE
+    WHERE COURSE_SN = #{courseSn}
+    ORDER BY SORT_ORD ASC, LECTURE_SN ASC
+  </select>
+
+  <select id="selectLectureBySn" resultMap="lectureMap">
+    SELECT
+      LECTURE_SN, COURSE_SN, LECTURE_NM, LECTURE_TYPE_CD,
+      LECTURE_DURATION, LECTURE_EXPLN_CN, OPNN_YN, LOCK_YN,
+      PREREQ_LECTURE_SN, SORT_ORD, RGTR_ID, LAST_MDFR_ID
+    FROM LECTURE
+    WHERE LECTURE_SN = #{lectureSn}
+  </select>
+
+  <insert id="insertLecture" parameterType="kr.or.ddit.finalProject.dto.lecture.LectureDto">
+    INSERT INTO LECTURE (
+      COURSE_SN, LECTURE_NM, LECTURE_TYPE_CD, LECTURE_DURATION,
+      LECTURE_EXPLN_CN, OPNN_YN, LOCK_YN, PREREQ_LECTURE_SN,
+      SORT_ORD, RGTR_ID, LAST_MDFR_ID
+    ) VALUES (
+      #{courseSn},
+      #{lectureNm},
+      #{lectureTypeCd, jdbcType=VARCHAR},
+      #{lectureDuration, jdbcType=NUMERIC},
+      #{lectureExplnCn, jdbcType=VARCHAR},
+      NVL(#{opnnYn, jdbcType=CHAR}, 'Y'),
+      NVL(#{lockYn, jdbcType=CHAR}, 'N'),
+      #{prereqLectureSn, jdbcType=NUMERIC},
+      NVL(#{sortOrd, jdbcType=NUMERIC}, 0),
+      #{rgtrId},
+      #{lastMdfrId}
+    )
+  </insert>
+
+  <update id="updateLecture" parameterType="kr.or.ddit.finalProject.dto.lecture.LectureDto">
+    UPDATE LECTURE
+    SET
+      LECTURE_NM       = #{lectureNm},
+      LECTURE_TYPE_CD  = #{lectureTypeCd, jdbcType=VARCHAR},
+      LECTURE_DURATION = #{lectureDuration, jdbcType=NUMERIC},
+      LECTURE_EXPLN_CN = #{lectureExplnCn, jdbcType=VARCHAR},
+      OPNN_YN          = #{opnnYn, jdbcType=CHAR},
+      LOCK_YN          = #{lockYn, jdbcType=CHAR},
+      PREREQ_LECTURE_SN = #{prereqLectureSn, jdbcType=NUMERIC},
+      SORT_ORD         = #{sortOrd, jdbcType=NUMERIC},
+      LAST_MDFR_ID     = #{lastMdfrId}
+    WHERE LECTURE_SN = #{lectureSn}
+  </update>
+
+  <delete id="deleteLecture">
+    DELETE FROM LECTURE WHERE LECTURE_SN = #{lectureSn}
+  </delete>
+
+</mapper>

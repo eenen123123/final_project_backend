@@ -1,7 +1,6 @@
 package kr.or.ddit.finalProject.dto.employee;
 
 import java.io.Serializable;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
@@ -24,4 +23,5 @@ public class JobGradeDto implements Serializable {
     private String lastMdfrId;
     private LocalDateTime regDt;
     private LocalDateTime mdfcnDt;
+    private String deptCd;
 }

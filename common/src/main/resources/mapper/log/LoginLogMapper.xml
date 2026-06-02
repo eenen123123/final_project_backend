@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.log.LoginLogMapper">
+
+    <resultMap id="LoginLogResultMap" type="kr.or.ddit.finalProject.dto.log.LoginLogDto">
+        <id     property="logId"     column="LOG_ID" />
+        <result property="userId"    column="USER_ID" />
+        <result property="loginIp"   column="LOGIN_IP" />
+        <result property="loginDt"   column="LOGIN_DT" />
+        <result property="logoutDt"  column="LOGOUT_DT" />
+        <result property="sessionId" column="SESSION_ID" />
+    </resultMap>
+
+    <!-- 로그인 로그 등록-->
+    <insert id="insertLoginLog" parameterType="kr.or.ddit.finalProject.dto.log.LoginLogDto">
+        INSERT INTO LOGIN_LOG (LOG_ID, USER_ID, LOGIN_IP, LOGIN_DT, SESSION_ID)
+        VALUES (LOGIN_LOG_SEQ.NEXTVAL, #{userId}, #{loginIp}, SYSTIMESTAMP, #{sessionId})
+    </insert>
+
+    <!-- 로그아웃 로그 등록-->
+    <update id="updateLogoutDt">
+        UPDATE LOGIN_LOG
+        SET LOGOUT_DT = SYSTIMESTAMP
+        WHERE SESSION_ID = #{sessionId}
+          AND LOGOUT_DT IS NULL
+    </update>
+
+    <!-- 사용자별 로그인 로그 조회 -->
+    <select id="selectLoginLogsByUserId" resultMap="LoginLogResultMap">
+        SELECT LOG_ID, USER_ID, LOGIN_IP, LOGIN_DT, LOGOUT_DT, SESSION_ID
+        FROM LOGIN_LOG
+        WHERE USER_ID = #{userId}
+        ORDER BY LOGIN_DT DESC
+    </select>
+
+    <!-- 서버 재시작 시 미처리 세션 일괄 정리 -->
+    <update id="closeAllOpenSessions">
+        UPDATE LOGIN_LOG
+        SET LOGOUT_DT = SYSTIMESTAMP
+        WHERE LOGOUT_DT IS NULL
+    </update>
+
+    <!-- 사용자별 마지막 접속 정보 + 현재 접속 여부 조회
+         - LAST_LOGIN_DT : 가장 최근 로그인 시각
+         - IS_ONLINE     : 활성 세션(LOGOUT_DT IS NULL)이 하나라도 있으면 'Y'
+         중복 로그인을 허용하므로 SESSION_ID 기준으로 판단한다. -->
+    <select id="selectLastLoginPerUser" resultMap="LoginLogResultMap">
+        SELECT
+            l.USER_ID,
+            l.LOGIN_DT,
+            l.LOGIN_IP,
+            l.LOGOUT_DT,
+            l.SESSION_ID,
+            l.LOG_ID
+        FROM LOGIN_LOG l
+        INNER JOIN (
+            SELECT USER_ID, MAX(LOGIN_DT) AS MAX_LOGIN_DT
+            FROM LOGIN_LOG
+            GROUP BY USER_ID
+        ) latest ON l.USER_ID = latest.USER_ID AND l.LOGIN_DT = latest.MAX_LOGIN_DT
+    </select>
+
+    <!-- 사용자별 현재 활성 세션 존재 여부 ('Y'/'N') -->
+    <select id="selectOnlineStatusPerUser" resultType="map">
+        SELECT USER_ID, 'Y' AS IS_ONLINE
+        FROM LOGIN_LOG
+        WHERE LOGOUT_DT IS NULL
+        GROUP BY USER_ID
+    </select>
+
+</mapper>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.EmployeeMapper">
+
+
+
+
+
+    <!-- insertEmployeeInfo -->
+
+    <insert id="insertEmployeeInfo" parameterType="kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto">
+        insert into EMPLOYEE_INFO (USER_ID, DEPT_CD, JBGR_CD, EMPL_STAT_CD)
+        values (#{userId}, #{deptCd}, #{jbgrCd}, #{emplStatCd})
+    </insert>
+
+    <!-- selectEmployeeInfoByUserId -->
+
+    <select id="selectEmployeeInfoByUserId" parameterType="string" resultType="kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto">
+        select * from EMPLOYEE_INFO 
+        where USER_ID = #{userId}
+        
+    </select>
+
+    <!-- selectEmployeeListByDeptCd -->
+
+    <select id="selectEmployeeListByDeptCd" parameterType="string" resultType="kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto">
+        select * from EMPLOYEE_INFO
+        where DEPT_CD = #{deptCd}
+    </select>
+
+    <!-- selectApproverCandidates: 현재 유저보다 sort_ord 낮은(상위 직급) 재직 직원 -->
+    <select id="selectApproverCandidates" parameterType="string" resultType="kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto">
+        SELECT ei.user_id,
+               m.user_name,
+               ei.dept_cd,
+               d.dept_nm,
+               ei.jbgr_cd,
+               jg.jbgr_nm,
+               jg.sort_ord
+        FROM   EMPLOYEE_INFO ei
+        JOIN   MEMBER     m  ON ei.user_id  = m.user_id
+        JOIN   JOB_GRADE  jg ON ei.jbgr_cd  = jg.jbgr_cd
+        JOIN   DEPARTMENT d  ON ei.dept_cd   = d.dept_cd
+        WHERE  ei.empl_stat_cd = '01'
+          AND  ei.user_id     != #{userId}
+          AND  jg.sort_ord     &lt; (
+               SELECT jg2.sort_ord
+               FROM   EMPLOYEE_INFO ei2
+               JOIN   JOB_GRADE     jg2 ON ei2.jbgr_cd = jg2.jbgr_cd
+               WHERE  ei2.user_id = #{userId}
+          )
+        ORDER BY d.dept_nm, jg.sort_ord
+    </select>
+
+    <!-- selectTeamLeaderByDeptCd -->
+
+    <select id="selectTeamLeaderByDeptCd" parameterType="string" resultType="kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto">
+        select 
+            ei.user_id, ei.dept_cd, ei.jbgr_cd, ei.empl_stat_cd, jg.jbgr_nm
+        
+        from EMPLOYEE_INFO ei
+        inner join job_grade jg on ei.jbgr_cd = jg.jbgr_cd
+        where ei.DEPT_CD = #{deptCd}
+            and jg.sort_ord = 1
+    </select>
+</mapper>
