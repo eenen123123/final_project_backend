@@ -1,0 +1,193 @@
+<div class="journal-container">
+    <link rel="stylesheet" th:href="@{/css/instructor/curriculum.css}" />
+    <style>
+        /* ── 레이아웃 ── */
+        .journal-layout    { display: flex; gap: 1rem; height: calc(100vh - 140px); min-height: 500px; }
+        .journal-list-pane { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; background: #fff; border: 1px solid #e2e8f0; border-radius: 0.75rem; overflow: hidden; }
+        .journal-detail-pane { flex: 1; background: #fff; border: 1px solid #e2e8f0; border-radius: 0.75rem; overflow-y: auto; padding: 1.5rem; }
+
+        /* ── 목록 패널 ── */
+        .list-header { padding: 1rem; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; }
+        .list-header h2 { font-size: 0.875rem; font-weight: 700; color: #334155; }
+        .btn-new { font-size: 0.72rem; font-weight: 600; background: #0ea5e9; color: #fff; border: none; border-radius: 0.375rem; padding: 0.3rem 0.7rem; cursor: pointer; text-decoration: none; }
+        .btn-new:hover { background: #0284c7; }
+
+        .journal-list { overflow-y: auto; flex: 1; }
+        .journal-item { display: block; padding: 0.75rem 1rem; border-bottom: 1px solid #f8fafc; text-decoration: none; transition: background 0.1s; }
+        .journal-item:hover { background: #f0f9ff; }
+        .journal-item.active { background: #e0f2fe; border-left: 3px solid #0ea5e9; }
+        .journal-item .item-date  { font-size: 0.7rem; color: #94a3b8; }
+        .journal-item .item-title { font-size: 0.8rem; font-weight: 600; color: #334155; margin-top: 0.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .journal-item .item-author { font-size: 0.68rem; color: #0369a1; font-weight: 600; margin-top: 0.1rem; }
+
+        /* ── 상세/폼 패널 ── */
+        .empty-hint { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #cbd5e1; }
+        .empty-hint i { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .empty-hint p { font-size: 0.85rem; }
+
+        .detail-title   { font-size: 1.25rem; font-weight: 700; color: #0f172a; margin-bottom: 0.25rem; }
+        .detail-meta    { font-size: 0.75rem; color: #94a3b8; display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid #f1f5f9; }
+        .detail-content { font-size: 0.875rem; color: #334155; line-height: 1.75; white-space: pre-wrap; }
+
+        .action-bar { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; justify-content: flex-end; }
+        .btn-edit   { font-size: 0.78rem; font-weight: 600; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 0.375rem; padding: 0.35rem 0.85rem; text-decoration: none; }
+        .btn-edit:hover { background: #e2e8f0; }
+        .btn-delete { font-size: 0.78rem; font-weight: 600; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; border-radius: 0.375rem; padding: 0.35rem 0.85rem; cursor: pointer; }
+        .btn-delete:hover { background: #fecaca; }
+
+        /* ── 폼 ── */
+        .form-group    { margin-bottom: 1rem; }
+        .form-label    { display: block; font-size: 0.75rem; font-weight: 600; color: #475569; margin-bottom: 0.3rem; }
+        .form-input    { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; font-size: 0.85rem; color: #334155; box-sizing: border-box; }
+        .form-input:focus { outline: none; border-color: #0ea5e9; box-shadow: 0 0 0 2px rgba(14,165,233,0.15); }
+        .form-textarea { resize: vertical; min-height: 300px; font-family: inherit; }
+        .btn-save   { font-size: 0.85rem; font-weight: 600; background: #0ea5e9; color: #fff; border: none; border-radius: 0.5rem; padding: 0.5rem 1.25rem; cursor: pointer; }
+        .btn-save:hover { background: #0284c7; }
+        .btn-cancel { font-size: 0.85rem; font-weight: 600; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.5rem 1rem; text-decoration: none; }
+        .btn-cancel:hover { background: #e2e8f0; }
+    </style>
+
+    <!-- 페이지 헤더 -->
+    <div class="flex items-center gap-2 mb-5">
+        <div class="w-1 h-7 rounded-full bg-sky-500"></div>
+        <h1 class="text-2xl font-bold text-slate-800">업무 일지</h1>
+        <span th:if="${isViewer}"
+              class="text-xs font-semibold text-sky-600 bg-sky-50 border border-sky-200 rounded-full px-2 py-0.5 ml-2">읽기 전용</span>
+    </div>
+
+    <!-- 2-pane 레이아웃 -->
+    <div class="journal-layout">
+
+        <!-- ── 좌측: 일지 목록 패널 ── -->
+        <div class="journal-list-pane">
+            <div class="list-header">
+                <h2><i class="fa-solid fa-book-open mr-1 text-sky-400"></i>일지 목록</h2>
+                <!-- 뷰어(수석 강사·원장)는 작성 버튼 숨김 -->
+                <a th:unless="${isViewer}"
+                   th:href="@{/instructor/journals(newForm=true)}"
+                   class="btn-new">
+                    <i class="fa-solid fa-plus mr-0.5"></i> 새 일지
+                </a>
+            </div>
+
+            <div class="journal-list">
+                <div th:if="${#lists.isEmpty(journalList)}"
+                     class="text-center text-slate-400 text-xs py-8">
+                    작성된 일지가 없습니다.
+                </div>
+
+                <a th:each="j : ${journalList}"
+                   th:href="@{/instructor/journals(jrnlSn=${j.jrnlSn})}"
+                   th:classappend="${selected != null and selected.jrnlSn == j.jrnlSn} ? 'active' : ''"
+                   class="journal-item">
+                    <div class="item-date"  th:text="${j.jrnlDt}">2026-06-01</div>
+                    <div class="item-title" th:text="${j.jrnlTitle}">제목</div>
+                    <!-- 뷰어 모드: 목록에서 작성 강사 이름 표시 -->
+                    <div th:if="${isViewer}" class="item-author" th:text="${j.instrUserNm}"></div>
+                </a>
+            </div>
+        </div>
+
+        <!-- ── 우측: 상세 / 폼 패널 ── -->
+        <div class="journal-detail-pane">
+
+            <!-- (1) 초기 상태 -->
+            <div th:if="${mode == 'none'}" class="empty-hint">
+                <i class="fa-regular fa-file-lines"></i>
+                <p>일지를 선택하거나 새 일지를 작성하세요.</p>
+            </div>
+
+            <!-- (2) 읽기 모드 -->
+            <div th:if="${mode == 'view'}">
+                <!-- 본인 일지에만 수정·삭제 버튼 표시 (isOwner = 본인 작성 + 뷰어 아님) -->
+                <div class="action-bar" th:if="${isOwner}">
+                    <a th:href="@{/instructor/journals(jrnlSn=${selected.jrnlSn}, edit=true)}"
+                       class="btn-edit"><i class="fa-solid fa-pen mr-1"></i>수정</a>
+                    <form th:action="@{/instructor/journals/{sn}/delete(sn=${selected.jrnlSn})}"
+                          method="post"
+                          onsubmit="return confirm('이 일지를 삭제하시겠습니까?')">
+                        <button type="submit" class="btn-delete">
+                            <i class="fa-solid fa-trash mr-1"></i>삭제
+                        </button>
+                    </form>
+                </div>
+
+                <div class="detail-title" th:text="${selected.jrnlTitle}">제목</div>
+                <div class="detail-meta">
+                    <span><i class="fa-regular fa-calendar mr-1"></i><span th:text="${selected.jrnlDt}"></span></span>
+                    <!-- 뷰어 모드: 작성자 표시 -->
+                    <span th:if="${isViewer}">
+                        <i class="fa-solid fa-user mr-1"></i>
+                        <span style="font-weight:600; color:#0369a1;" th:text="${selected.instrUserNm}"></span>
+                    </span>
+                    <span th:if="${selected.mdfcnDt != null}" style="color:#cbd5e1;">
+                        수정: <span th:text="${selected.mdfcnDt}"></span>
+                    </span>
+                </div>
+                <div class="detail-content" th:text="${selected.jrnlCont}">내용</div>
+            </div>
+
+            <!-- (3) 새 일지 작성 폼 -->
+            <div th:if="${mode == 'new'}">
+                <h2 class="text-base font-bold text-slate-700 mb-4">
+                    <i class="fa-solid fa-plus-circle mr-1 text-sky-400"></i>새 일지 작성
+                </h2>
+                <form th:action="@{/instructor/journals/create}" method="post">
+                    <div class="form-group">
+                        <label class="form-label">제목 *</label>
+                        <input type="text" name="jrnlTitle" class="form-input"
+                               placeholder="일지 제목을 입력하세요" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">업무 날짜 *</label>
+                        <!-- 오늘 날짜를 기본값으로 설정 -->
+                        <input type="date" name="jrnlDt" class="form-input"
+                               th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">내용 *</label>
+                        <textarea name="jrnlCont" class="form-input form-textarea"
+                                  placeholder="업무 내용을 자유롭게 작성하세요." required></textarea>
+                    </div>
+                    <div class="flex gap-2 justify-end">
+                        <a th:href="@{/instructor/journals}" class="btn-cancel">취소</a>
+                        <button type="submit" class="btn-save">
+                            <i class="fa-solid fa-floppy-disk mr-1"></i>저장
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- (4) 수정 폼 -->
+            <div th:if="${mode == 'edit'}">
+                <h2 class="text-base font-bold text-slate-700 mb-4">
+                    <i class="fa-solid fa-pen mr-1 text-sky-400"></i>일지 수정
+                </h2>
+                <form th:action="@{/instructor/journals/{sn}/update(sn=${selected.jrnlSn})}" method="post">
+                    <div class="form-group">
+                        <label class="form-label">제목 *</label>
+                        <input type="text" name="jrnlTitle" class="form-input"
+                               th:value="${selected.jrnlTitle}" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">업무 날짜 *</label>
+                        <input type="date" name="jrnlDt" class="form-input"
+                               th:value="${selected.jrnlDt}" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">내용 *</label>
+                        <textarea name="jrnlCont" class="form-input form-textarea"
+                                  required th:text="${selected.jrnlCont}"></textarea>
+                    </div>
+                    <div class="flex gap-2 justify-end">
+                        <a th:href="@{/instructor/journals(jrnlSn=${selected.jrnlSn})}" class="btn-cancel">취소</a>
+                        <button type="submit" class="btn-save">
+                            <i class="fa-solid fa-floppy-disk mr-1"></i>저장
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div><!-- /detail-pane -->
+    </div><!-- /journal-layout -->
+</div>
