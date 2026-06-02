@@ -163,7 +163,7 @@
 
 ---
 
-### 3.6 AI 문항 생성 지원 `/instructor/ai-questions`
+### 3.7 AI 문항 생성 지원 `/instructor/ai-questions`
 
 **목적**: AI를 활용해 문항 초안을 빠르게 생성하고, 문항 은행으로 저장하는 도구
 
@@ -180,7 +180,7 @@
 
 ---
 
-### 3.7 업무 일지 `/instructor/journals`
+### 3.8 업무 일지 `/instructor/journals`
 
 **목적**: 강사 개인의 업무 기록 작성 및 관리
 
@@ -196,7 +196,7 @@
 
 ---
 
-### 3.8 개인 페이지 관리 `/instructor/profile/teacher`
+### 3.9 개인 페이지 관리 `/instructor/profile/teacher`
 
 **목적**: 수강생에게 노출되는 강사의 공개 프로필 페이지 편집
 
@@ -278,6 +278,12 @@
       </a>
     </li>
     <li>
+      <a href="/instructor/board" class="sidebar-link">
+        <i class="fa-solid fa-clipboard sidebar-icon"></i>
+        <span class="sidebar-link-text">강사 게시판</span>
+      </a>
+    </li>
+    <li>
       <a href="/instructor/journals" class="sidebar-link">
         <i class="fa-solid fa-book sidebar-icon"></i>
         <span class="sidebar-link-text">업무 일지</span>
@@ -305,7 +311,8 @@
 | 전체 학습 현황 | **개편** (기존 "학습 현황 모니터링" → 클래스 횡단 집계 뷰로 범위 재정의) |
 | 문항 / 시험 관리 | **개편** (기존 "시험 및 성적 관리" → 성적 조회는 클래스룸으로 분리) |
 | AI 문항 생성 지원 | 유지. 문항 은행 저장 흐름 추가 |
+| 강사 게시판 | **신규 추가** (기존 테스트 메뉴 → 정식 메뉴로 격상, `/instructor/board/*` 재활용) |
 | 업무 일지 | 유지 |
-| 개인 페이지 관리 | 유지 |
+| 개인 페이지 관리 | **범위 확장** (프로필 이미지 + 소개글 + INSTRUCTOR_CAREER 약력 관리 추가) |
 | ~~나의 강좌~~ | **삭제** (강좌 자료 관리로 재정의) |
 | ~~강사 게시판 테스트~~ | **삭제** (테스트 메뉴) |
