@@ -17,7 +17,7 @@ public class FileAccessTokenService {
     @Value("${file.server.base-url}")
     private String fileServerBaseUrl;
 
-    private static final Duration TOKEN_TTL = Duration.ofSeconds(60 * 10);
+    private static final Duration TOKEN_TTL = Duration.ofSeconds(60 * 10); // 10분
     private static final String KEY_PREFIX = "file:token:";
 
     public String issueViewUrl(long fileId, String userId) {
