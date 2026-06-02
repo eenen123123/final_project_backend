@@ -24,7 +24,7 @@
       </div>
       <div>
         <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">전체 직원</p>
-        <p class="text-2xl font-bold text-slate-800 mt-0.5">48명</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5"><span th:text="${employeeList.size()}">0</span>명</p>
       </div>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
@@ -33,7 +33,7 @@
       </div>
       <div>
         <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">현재 접속 중</p>
-        <p class="text-2xl font-bold text-slate-800 mt-0.5">12명</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5"><span th:text="${onlineCount}">0</span>명</p>
       </div>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
@@ -72,173 +72,123 @@
     <div id="tab-employees" class="perm-tab-panel p-6 space-y-5">
       <!-- 검색/필터 바 -->
       <div class="flex flex-wrap items-center gap-3">
-        <div class="w-full sm:w-72 relative">
-          <input type="text" class="hm-input pl-10" placeholder="직원명 또는 사번 검색..." />
-          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+        <div class="w-full sm:w-60 relative">
+          <input type="text" id="perm-search" class="hm-input pl-10" placeholder="직원명 검색..."
+                 oninput="permFilter()" />
+          <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3.5 text-slate-400"></i>
         </div>
+        <select class="hm-input" id="perm-dept-filter" style="width:10rem"
+                onchange="onPermDeptChange(this.value)">
+          <option value="">전체 부서</option>
+          <option th:each="dept : ${departmentList}"
+                  th:value="${dept.deptCd}"
+                  th:text="${dept.deptNm}"></option>
+        </select>
+        <select class="hm-input" id="perm-role-filter" style="width:10rem" onchange="permFilter()">
+          <option value="">전체 직급</option>
+          <option th:each="jbgr : ${jobGradeList}"
+                  th:value="${jbgr.jbgrNm}"
+                  th:data-dept="${jbgr.deptCd != null ? #strings.trim(jbgr.deptCd) : ''}"
+                  th:text="${jbgr.jbgrNm}"></option>
+        </select>
         <div class="w-full sm:w-40">
-          <select class="hm-input">
-            <option value="">직급 전체</option>
-            <option>원장</option>
-            <option>팀장</option>
-            <option>강사</option>
-            <option>직원</option>
+          <select id="perm-search-status" class="hm-input" onchange="permFilter()">
+            <option value="">전체 접속 상태</option>
+            <option value="Y">접속 중</option>
+            <option value="N">오프라인</option>
           </select>
         </div>
-        <div class="w-full sm:w-40">
-          <select class="hm-input">
-            <option value="">접속 상태 전체</option>
-            <option>접속 중</option>
-            <option>오프라인</option>
-          </select>
-        </div>
+        <button type="button" onclick="resetPermFilter()" class="hm-btn-secondary text-sm px-3 py-2 whitespace-nowrap">
+            <i class="fa-solid fa-rotate-left mr-1"></i>초기화
+          </button>
       </div>
 
       <!-- 직원 테이블 -->
       <div class="rounded-xl border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
+            <colgroup>
+              <col style="width:10%">
+              <col style="width:9%">
+              <col style="width:9%">
+              <col style="width:10%">
+              <col style="width:8%">
+              <col style="width:8%">
+            </colgroup>
             <thead>
-              <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
-                <th class="py-4 px-6">직원 정보</th>
-                <th class="py-4 px-6">부서 / 직급</th>
-                <th class="py-4 px-6">마지막 접속</th>
-                <th class="py-4 px-6 text-center">접속 상태</th>
+              <tr class="bg-slate-100 text-slate-500 text-sm">
+                <th class="text-left py-3 px-4 pl-8 font-semibold cursor-pointer select-none truncate" onclick="permSort('name')">
+                  직원 정보 <i id="sort-icon-name" class="fa-solid fa-sort ml-1 text-slate-300"></i>
+                </th>
+                <th class="py-4 px-6 cursor-pointer select-none" onclick="permSort('dept')">
+                  부서 <i id="sort-icon-dept" class="fa-solid fa-sort ml-1 text-slate-300"></i>
+                </th>
+                <th class="py-4 px-6 cursor-pointer select-none" onclick="permSort('jbgr')">
+                  직급 <i id="sort-icon-jbgr" class="fa-solid fa-sort ml-1 text-slate-300"></i>
+                </th>
+                <th class="py-4 px-6 cursor-pointer select-none" onclick="permSort('login')">
+                  마지막 접속 <i id="sort-icon-login" class="fa-solid fa-sort ml-1 text-slate-300"></i>
+                </th>
+                <th class="py-4 px-6 text-center cursor-pointer select-none" onclick="permSort('online')">
+                  접속 상태 <i id="sort-icon-online" class="fa-solid fa-sort ml-1 text-slate-300"></i>
+                </th>
                 <th class="py-4 px-6 text-center">이력 조회</th>
-                <th class="py-4 px-6 text-center">권한 수준</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+            <tbody id="perm-table-body" class="divide-y divide-slate-50 text-sm text-slate-700">
 
-              <!-- 행 1 -->
-              <tr class="hover:bg-slate-50/50 transition-colors">
+              <!-- 안전성 보장 리팩토링: 가독성을 높이고 문법적 충돌을 방지하기 위해 단일 th:data 속성들로 구성합니다. -->
+              <tr th:each="emp : ${employeeList}"
+                  class="emp-perm-row hover:bg-slate-50/50 transition-colors"
+                  th:data-name="${emp.member.userName}"
+                  th:data-dept-cd="${emp.deptCd != null ? #strings.trim(emp.deptCd) : ''}"
+                  th:data-jbgr-nm="${emp.jbgrNm != null ? #strings.trim(emp.jbgrNm) : ''}"
+                  th:data-online="${lastLoginMap[emp.userId] != null and lastLoginMap[emp.userId].logoutDt == null ? 'Y' : 'N'}"
+                  th:data-last-login="${lastLoginMap[emp.userId] != null ? #temporals.format(lastLoginMap[emp.userId].loginDt, 'yyyy-MM-dd''T''HH:mm') : ''}">
+                
                 <td class="py-4 px-6">
                   <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-violet-600 flex items-center justify-center text-white font-bold text-sm">홍</div>
+                    <img th:if="${emp.member.userProfile != null and emp.member.userProfile != ''}"
+                    th:src="${emp.member.userProfile}"
+                    class="w-7 h-7 rounded-lg object-cover" alt="프로필">
+                      <div th:unless="${emp.member.userProfile != null and emp.member.userProfile != ''}"
+                      class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-xs font-bold text-[#3b82f6]"
+                      th:text="${#strings.substring(emp.member.userName, 0, 1)}">?</div>  
                     <div>
-                      <p class="font-bold text-slate-800">홍길동</p>
-                      <p class="text-xs text-slate-400">EMP-001</p>
+                      <p class="font-bold text-slate-800" th:text="${emp.member.userName}"></p>
+                      <p class="text-xs text-slate-400" th:text="${emp.userId}"></p>
                     </div>
                   </div>
                 </td>
-                <td class="py-4 px-6">
-                  <p class="font-medium text-slate-700">교학부</p>
-                  <p class="text-xs text-slate-400 mt-0.5">원장</p>
+                
+                <td class="py-4 px-6 text-sm text-slate-700" th:text="${emp.deptNm}"></td>
+                <td class="py-4 px-6 text-sm text-slate-700" th:text="${emp.jbgrNm}"></td>
+                
+                <!-- 구조 변경: 3항 연산자를 타임리프 전용 th:if / th:unless 태그 분기문으로 전환하여 충돌 가능성을 파쇄합니다. -->
+                <td class="py-4 px-6 text-xs text-slate-500 font-mono">
+                  <span th:if="${lastLoginMap[emp.userId] != null}" th:text="${#temporals.format(lastLoginMap[emp.userId].loginDt, 'yyyy-MM-dd HH:mm')}"></span>
+                  <span th:unless="${lastLoginMap[emp.userId] != null}">-</span>
                 </td>
-                <td class="py-4 px-6 text-xs text-slate-500 font-mono">2026-05-26 09:14</td>
+                
                 <td class="py-4 px-6 text-center">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
+                  <span th:if="${lastLoginMap[emp.userId] != null and lastLoginMap[emp.userId].logoutDt == null}"
+                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 접속 중
                   </span>
-                </td>
-                <td class="py-4 px-6 text-center">
-                  <button class="text-slate-400 hover:text-violet-600 p-1.5 transition-colors" onclick="openActivityModal('홍길동')" title="접속 이력 보기">
-                    <i class="fa-solid fa-timeline text-base"></i>
-                  </button>
-                </td>
-                <td class="py-4 px-6 text-center">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-violet-50 text-violet-700">
-                    <i class="fa-solid fa-crown text-[10px]"></i> 최고 관리자
-                  </span>
-                </td>
-              </tr>
-
-              <!-- 행 2 -->
-              <tr class="hover:bg-slate-50/50 transition-colors">
-                <td class="py-4 px-6">
-                  <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-sky-500 flex items-center justify-center text-white font-bold text-sm">김</div>
-                    <div>
-                      <p class="font-bold text-slate-800">김민준</p>
-                      <p class="text-xs text-slate-400">EMP-015</p>
-                    </div>
-                  </div>
-                </td>
-                <td class="py-4 px-6">
-                  <p class="font-medium text-slate-700">마케팅팀</p>
-                  <p class="text-xs text-slate-400 mt-0.5">팀장</p>
-                </td>
-                <td class="py-4 px-6 text-xs text-slate-500 font-mono">2026-05-26 08:52</td>
-                <td class="py-4 px-6 text-center">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 접속 중
-                  </span>
-                </td>
-                <td class="py-4 px-6 text-center">
-                  <button class="text-slate-400 hover:text-violet-600 p-1.5 transition-colors" onclick="openActivityModal('김민준')" title="접속 이력 보기">
-                    <i class="fa-solid fa-timeline text-base"></i>
-                  </button>
-                </td>
-                <td class="py-4 px-6 text-center">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700">
-                    <i class="fa-solid fa-user-tie text-[10px]"></i> 팀장
-                  </span>
-                </td>
-              </tr>
-
-              <!-- 행 3 -->
-              <tr class="hover:bg-slate-50/50 transition-colors">
-                <td class="py-4 px-6">
-                  <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-rose-400 flex items-center justify-center text-white font-bold text-sm">이</div>
-                    <div>
-                      <p class="font-bold text-slate-800">이수진</p>
-                      <p class="text-xs text-slate-400">EMP-023</p>
-                    </div>
-                  </div>
-                </td>
-                <td class="py-4 px-6">
-                  <p class="font-medium text-slate-700">강사팀</p>
-                  <p class="text-xs text-slate-400 mt-0.5">강사</p>
-                </td>
-                <td class="py-4 px-6 text-xs text-slate-500 font-mono">2026-05-25 18:33</td>
-                <td class="py-4 px-6 text-center">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500">
+                  <span th:unless="${lastLoginMap[emp.userId] != null and lastLoginMap[emp.userId].logoutDt == null}"
+                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500">
                     <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> 오프라인
                   </span>
                 </td>
+                
                 <td class="py-4 px-6 text-center">
-                  <button class="text-slate-400 hover:text-violet-600 p-1.5 transition-colors" onclick="openActivityModal('이수진')" title="접속 이력 보기">
+                  <button class="text-slate-400 hover:text-violet-600 p-1.5 transition-colors"
+                          th:data-user-id="${emp.userId}"
+                          th:data-user-name="${emp.member.userName}"
+                          onclick="openActivityModal(this)"
+                          title="접속 이력 보기">
                     <i class="fa-solid fa-timeline text-base"></i>
                   </button>
-                </td>
-                <td class="py-4 px-6 text-center">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-50 text-slate-600">
-                    <i class="fa-solid fa-chalkboard-user text-[10px]"></i> 강사
-                  </span>
-                </td>
-              </tr>
-
-              <!-- 행 4 -->
-              <tr class="hover:bg-slate-50/50 transition-colors">
-                <td class="py-4 px-6">
-                  <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-teal-500 flex items-center justify-center text-white font-bold text-sm">박</div>
-                    <div>
-                      <p class="font-bold text-slate-800">박재원</p>
-                      <p class="text-xs text-slate-400">EMP-031</p>
-                    </div>
-                  </div>
-                </td>
-                <td class="py-4 px-6">
-                  <p class="font-medium text-slate-700">행정팀</p>
-                  <p class="text-xs text-slate-400 mt-0.5">직원</p>
-                </td>
-                <td class="py-4 px-6 text-xs text-slate-500 font-mono">2026-05-26 10:01</td>
-                <td class="py-4 px-6 text-center">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 접속 중
-                  </span>
-                </td>
-                <td class="py-4 px-6 text-center">
-                  <button class="text-slate-400 hover:text-violet-600 p-1.5 transition-colors" onclick="openActivityModal('박재원')" title="접속 이력 보기">
-                    <i class="fa-solid fa-timeline text-base"></i>
-                  </button>
-                </td>
-                <td class="py-4 px-6 text-center">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-50 text-slate-600">
-                    <i class="fa-solid fa-user text-[10px]"></i> 일반 직원
-                  </span>
                 </td>
               </tr>
 
@@ -247,18 +197,8 @@
         </div>
         <!-- 페이지네이션 -->
         <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
-          <p class="text-xs text-slate-400">전체 48명 중 1 – 10 표시</p>
-          <div class="flex items-center gap-1">
-            <button class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-all flex items-center justify-center text-xs">
-              <i class="fa-solid fa-chevron-left"></i>
-            </button>
-            <button class="w-8 h-8 rounded-lg bg-violet-600 text-white text-xs font-bold flex items-center justify-center">1</button>
-            <button class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 text-xs flex items-center justify-center">2</button>
-            <button class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 text-xs flex items-center justify-center">3</button>
-            <button class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-all flex items-center justify-center text-xs">
-              <i class="fa-solid fa-chevron-right"></i>
-            </button>
-          </div>
+          <p class="text-xs text-slate-400" id="perm-paging-info">전체 0명</p>
+          <div class="flex items-center gap-1" id="perm-pagination"></div>
         </div>
       </div>
     </div>
@@ -570,10 +510,23 @@
 
 <!-- ===== 페이지 스크립트 ===== -->
 <script>
+  /* ===== 직원 목록 필터 / 정렬 / 페이징 전역 변수 ===== */
+  const PERM_PAGE_SIZE  = 10;
+  const PERM_BLOCK_SIZE = 5;
+  let permCurrentPage = 1;
+  let permSortKey = null;
+  let permSortDir = 'asc';
+
+  /* 직급 필터 전체 옵션 원본 저장 (Tom Select 초기화 전에 native select 에서 읽음) */
+  const allRoleOptions = Array.from(
+    document.querySelectorAll('#perm-role-filter option[value]:not([value=""])')
+  ).map(opt => ({ value: opt.value, text: opt.textContent.trim(), dept: (opt.dataset.dept || '').trim() }));
+
   /* 탭 전환 */
   (function initTabs() {
     const firstBtn = document.querySelector('.perm-tab-btn[data-tab="tab-employees"]');
     if (firstBtn) switchPermTab('tab-employees', firstBtn);
+    applyPermTable();
   })();
 
   function switchPermTab(tabId, btn) {
@@ -590,8 +543,121 @@
     btn.classList.add('text-violet-600', 'border-violet-500', 'bg-violet-50/60');
   }
 
-  /* 접속 이력 모달 */
-  function openActivityModal(name) {
+  /* ===== 직원 목록 필터 / 정렬 / 페이징 ===== */
+  function permFilter() { permCurrentPage = 1; applyPermTable(); }
+
+  /* 선택된 부서에 속한 직급만 직급 필터에 노출 (Tom Select 대응) */
+  function updatePermRoleFilter(deptCd) {
+    const el = document.getElementById('perm-role-filter');
+    const ts = el.tomselect;
+    const filtered = deptCd ? allRoleOptions.filter(o => o.dept === deptCd) : allRoleOptions;
+    if (ts) {
+      ts.clear(true);
+      ts.clearOptions();
+      filtered.forEach(o => ts.addOption({ value: o.value, text: o.text }));
+      ts.refreshOptions(false);
+    } else {
+      el.innerHTML = '<option value="">전체 직급</option>'
+        + filtered.map(o => `<option value="${o.value}">${o.text}</option>`).join('');
+    }
+  }
+
+  function onPermDeptChange(deptCd) {
+    updatePermRoleFilter(deptCd);
+    permFilter();
+  }
+
+  function permSort(key) {
+    permSortDir = (permSortKey === key && permSortDir === 'asc') ? 'desc' : 'asc';
+    permSortKey = key;
+    permCurrentPage = 1;
+    document.querySelectorAll('[id^="sort-icon-"]').forEach(el => {
+      el.className = 'fa-solid fa-sort ml-1 text-slate-300';
+    });
+    const icon = document.getElementById('sort-icon-' + key);
+    if (icon) icon.className = 'fa-solid ml-1 text-violet-500 ' + (permSortDir === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
+    applyPermTable();
+  }
+
+  function applyPermTable() {
+    const nameQ   = document.getElementById('perm-search').value.toLowerCase();
+    const deptQ   = document.getElementById('perm-dept-filter').value;
+    const jbgrQ   = document.getElementById('perm-role-filter').value;
+    const statusQ = document.getElementById('perm-search-status').value;
+
+    let rows = [...document.querySelectorAll('.emp-perm-row')];
+
+    rows.forEach(r => {
+      const match =
+        (!nameQ   || r.dataset.name.toLowerCase().includes(nameQ)) &&
+        (!deptQ   || (r.dataset.deptCd  || '').trim() === deptQ.trim()) &&
+        (!jbgrQ   || (r.dataset.jbgrNm  || '').trim() === jbgrQ.trim()) &&
+        (!statusQ || r.dataset.online  === statusQ);
+      r.dataset.visible = match ? '1' : '0';
+    });
+
+    let visible = rows.filter(r => r.dataset.visible === '1');
+
+    if (permSortKey) {
+      const keyMap = { name: 'name', dept: 'deptCd', jbgr: 'jbgrNm', login: 'lastLogin', online: 'online' };
+      const dk = keyMap[permSortKey];
+      visible.sort((a, b) => {
+        const av = a.dataset[dk] || '';
+        const bv = b.dataset[dk] || '';
+        return permSortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+      });
+    }
+
+    const total     = visible.length;
+    const totalPage = Math.max(1, Math.ceil(total / PERM_PAGE_SIZE));
+    if (permCurrentPage > totalPage) permCurrentPage = totalPage;
+
+    const start = (permCurrentPage - 1) * PERM_PAGE_SIZE;
+    const end   = start + PERM_PAGE_SIZE;
+
+    const tbody = document.getElementById('perm-table-body');
+    visible.forEach((r, i) => {
+      tbody.appendChild(r);
+      r.style.display = (i >= start && i < end) ? '' : 'none';
+    });
+    rows.filter(r => r.dataset.visible === '0').forEach(r => r.style.display = 'none');
+
+    const s = total === 0 ? 0 : start + 1;
+    document.getElementById('perm-paging-info').textContent =
+      `전체 ${total}명 중 ${s}–${Math.min(end, total)} 표시`;
+
+    renderPermPagination(total);
+  }
+
+  function renderPermPagination(total) {
+    const container  = document.getElementById('perm-pagination');
+    const totalPage  = Math.max(1, Math.ceil(total / PERM_PAGE_SIZE));
+    if (totalPage <= 1) { container.innerHTML = ''; return; }
+
+    const blockEnd   = Math.min(Math.ceil(permCurrentPage / PERM_BLOCK_SIZE) * PERM_BLOCK_SIZE, totalPage);
+    const blockStart = Math.max(blockEnd - PERM_BLOCK_SIZE + 1, 1);
+
+    const base   = 'min-w-[2rem] h-8 px-2 text-xs font-semibold rounded-lg border transition-all cursor-pointer';
+    const normal = 'border-slate-200 bg-white text-slate-500 hover:border-violet-400 hover:text-violet-600';
+    const act    = 'border-violet-600 bg-violet-600 text-white';
+
+    let html = '';
+    if (blockStart > 1)
+      html += `<button onclick="goPermPage(${blockStart - 1})" class="${base} ${normal}">이전</button>`;
+    for (let p = blockStart; p <= blockEnd; p++)
+      html += `<button onclick="goPermPage(${p})" class="${base} ${p === permCurrentPage ? act : normal}">${p}</button>`;
+    if (blockEnd < totalPage)
+      html += `<button onclick="goPermPage(${blockEnd + 1})" class="${base} ${normal}">다음</button>`;
+    container.innerHTML = html;
+  }
+
+  function goPermPage(p) { permCurrentPage = p; applyPermTable(); }
+
+  /* 접속 이력 모달 열기 */
+  function openActivityModal(element) {
+    const userId = element.dataset.userId;
+    const name = element.dataset.userName;
+
     document.getElementById('activityModalTitle').textContent = name + ' — 접속 이력';
     const modal = document.getElementById('activityModal');
     modal.classList.remove('hidden');
@@ -608,4 +674,21 @@
   document.getElementById('activityModal').addEventListener('click', function(e) {
     if (e.target === this) closeActivityModal();
   });
+
+  function resetPermFilter() {
+    document.getElementById('perm-search').value = '';
+    updatePermRoleFilter('');
+    ['perm-dept-filter', 'perm-role-filter', 'perm-search-status'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el.tomselect) el.tomselect.setValue('');
+      else el.value = '';
+    });
+    permSortKey = null;
+    permSortDir = 'asc';
+    document.querySelectorAll('[id^="sort-icon-"]').forEach(el => {
+      el.className = 'fa-solid fa-sort ml-1 text-slate-300';
+    });
+    permCurrentPage = 1;
+    applyPermTable();
+  }
 </script>

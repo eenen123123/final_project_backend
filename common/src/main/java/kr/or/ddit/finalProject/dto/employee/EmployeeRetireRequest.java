@@ -1,13 +1,13 @@
 package kr.or.ddit.finalProject.dto.employee;
 
+import java.io.Serializable;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
-public class EmployeeRetireRequest {
+@Data
+public class EmployeeRetireRequest implements Serializable{
 
     @NotBlank(message = "퇴사 사유는 필수 입니다.")
     @Size(max = 1000, message = "퇴사 사유는 1000자 이하로 입력해야 합니다.")
