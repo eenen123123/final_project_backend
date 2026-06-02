@@ -12,7 +12,7 @@ public interface FileMapper {
 
     int insertFileInfo(FileDto fileDto);
 
-    FileDto findContextByFileId(long fileId);
+    FileDto findContextByFileServerId(long fileServerId);
 
     int selectNextFileGroupId();
 

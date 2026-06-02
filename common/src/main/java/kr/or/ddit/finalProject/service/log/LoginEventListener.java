@@ -1,5 +1,6 @@
 package kr.or.ddit.finalProject.service.log;
 
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.event.InteractiveAuthenticationSuccessEvent;
 import org.springframework.security.web.session.HttpSessionDestroyedEvent;
@@ -27,6 +28,12 @@ import lombok.extern.slf4j.Slf4j;
 public class LoginEventListener {
 
     private final LoginLogService loginLogService;
+
+    // 서버 완전히 기동된 후 미처리 세션(서버 강제 종료 등으로 LOGOUT_DT가 NULL인 채 남은 것) 일괄 정리
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationReady() {
+        loginLogService.closeAllOpenSessions();
+    }
 
     // 로그인 성공 시 Spring Security가 자동으로 발행하는 이벤트
     @EventListener

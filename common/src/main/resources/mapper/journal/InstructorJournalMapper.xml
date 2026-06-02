@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.journal.InstructorJournalMapper">
+
+    <!--
+        공통 SELECT 컬럼 절 (목록·상세 공유)
+          - MEMBER JOIN : 강사 이름(instrUserNm)
+    -->
+    <sql id="journalColumns">
+        j.JRNL_SN,
+        j.INSTR_USER_ID                              AS instrUserId,
+        m.USER_NAME                                  AS instrUserNm,
+        j.JRNL_TITLE,
+        j.JRNL_CONT,
+        TO_CHAR(j.JRNL_DT,   'YYYY-MM-DD')          AS jrnlDt,
+        TO_CHAR(j.REG_DT,    'YYYY-MM-DD HH24:MI')  AS regDt,
+        TO_CHAR(j.MDFCN_DT,  'YYYY-MM-DD HH24:MI')  AS mdfcnDt
+    </sql>
+
+    <!--
+        공통 FROM + JOIN 절
+          - MEMBER : 강사 이름 조회 (INSTRUCTOR 테이블을 경유하지 않음)
+          - FK가 MEMBER(USER_ID)를 참조하므로 직접 JOIN 가능
+    -->
+    <sql id="journalFrom">
+        FROM INSTRUCTOR_JOURNAL j
+        JOIN MEMBER m ON j.INSTR_USER_ID = m.USER_ID
+    </sql>
+
+    <!-- ──────────────────────────────────────────── -->
+    <!-- 특정 강사의 일지 목록 (강사 본인용)          -->
+    <!-- ──────────────────────────────────────────── -->
+    <select id="selectJournalListByInstructor"
+            resultType="kr.or.ddit.finalProject.dto.journal.InstructorJournalDto">
+        SELECT <include refid="journalColumns"/>
+        <include refid="journalFrom"/>
+        WHERE j.INSTR_USER_ID = #{instrUserId}
+        ORDER BY j.JRNL_DT DESC, j.JRNL_SN DESC
+    </select>
+
+    <!-- ──────────────────────────────────────────── -->
+    <!-- 전체 강사 일지 목록 (수석 강사 / 원장용)    -->
+    <!-- ──────────────────────────────────────────── -->
+    <select id="selectAllJournalList"
+            resultType="kr.or.ddit.finalProject.dto.journal.InstructorJournalDto">
+        SELECT <include refid="journalColumns"/>
+        <include refid="journalFrom"/>
+        ORDER BY j.JRNL_DT DESC, j.JRNL_SN DESC
+    </select>
+
+    <!-- ──────────────────────────────────────────── -->
+    <!-- 일지 단건 상세 조회                          -->
+    <!-- ──────────────────────────────────────────── -->
+    <select id="selectJournalBySn"
+            resultType="kr.or.ddit.finalProject.dto.journal.InstructorJournalDto">
+        SELECT <include refid="journalColumns"/>
+        <include refid="journalFrom"/>
+        WHERE j.JRNL_SN = #{jrnlSn}
+    </select>
+
+    <!-- ──────────────────────────────────────────── -->
+    <!-- 일지 등록                                    -->
+    <!-- useGeneratedKeys: INSERT 후 PK를 dto.jrnlSn 에 자동 주입 -->
+    <!-- ──────────────────────────────────────────── -->
+    <insert id="insertJournal"
+            parameterType="kr.or.ddit.finalProject.dto.journal.InstructorJournalDto"
+            useGeneratedKeys="true"
+            keyProperty="jrnlSn"
+            keyColumn="JRNL_SN">
+        INSERT INTO INSTRUCTOR_JOURNAL (
+            INSTR_USER_ID,
+            JRNL_TITLE,
+            JRNL_CONT,
+            JRNL_DT
+        ) VALUES (
+            #{instrUserId},
+            #{jrnlTitle},
+            #{jrnlCont},
+            TO_DATE(#{jrnlDt}, 'YYYY-MM-DD')
+        )
+    </insert>
+
+    <!-- ──────────────────────────────────────────── -->
+    <!-- 일지 수정                                    -->
+    <!-- MDFCN_DT 를 CURRENT_TIMESTAMP 로 갱신       -->
+    <!-- ──────────────────────────────────────────── -->
+    <update id="updateJournal"
+            parameterType="kr.or.ddit.finalProject.dto.journal.InstructorJournalDto">
+        UPDATE INSTRUCTOR_JOURNAL
+        SET
+            JRNL_TITLE = #{jrnlTitle},
+            JRNL_CONT  = #{jrnlCont},
+            JRNL_DT    = TO_DATE(#{jrnlDt}, 'YYYY-MM-DD'),
+            MDFCN_DT   = CURRENT_TIMESTAMP
+        WHERE JRNL_SN = #{jrnlSn}
+    </update>
+
+    <!-- ──────────────────────────────────────────── -->
+    <!-- 일지 삭제                                    -->
+    <!-- ──────────────────────────────────────────── -->
+    <delete id="deleteJournal">
+        DELETE FROM INSTRUCTOR_JOURNAL
+        WHERE JRNL_SN = #{jrnlSn}
+    </delete>
+
+</mapper>

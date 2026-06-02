@@ -61,4 +61,10 @@ public class LoginLogServiceImpl implements LoginLogService {
     public List<LoginLogDto> getLastLoginPerUser() {
         return loginLogMapper.selectLastLoginPerUser();
     }
+
+    @Override
+    public void closeAllOpenSessions() {
+        loginLogMapper.closeAllOpenSessions();
+        log.info("[LoginLog] 서버 재시작 - 미처리 세션 일괄 정리 완료");
+    }
 }
