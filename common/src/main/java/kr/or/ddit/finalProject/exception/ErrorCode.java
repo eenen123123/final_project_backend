@@ -46,19 +46,15 @@ public enum ErrorCode {
     FILE_INFO_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 정보 저장에 실패했습니다."),
     INVALID_FILE_TYPE_TO_CLOUDINARY(HttpStatus.BAD_REQUEST,
             "Cloudinary에 업로드할 수 없는 파일 형식입니다. PDF, 이미지 파일만 업로드할 수 있습니다."),
-
     INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 파일 형식입니다.  PDF, 이미지 파일만 업로드할 수 있습니다."), // Rest API에서 사용
 
     FILE_TYPE_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "PDF, 이미지, 동영상, Zip 파일만 업로드할 수 있습니다."),
     FILE_READ_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "파일 내용을 읽는 중 오류가 발생했습니다."),
-
     INVALID_FILE_CONTEXT(HttpStatus.BAD_REQUEST,
             "유효하지 않은 파일 컨텍스트입니다. FILE_CTX_TYPE 열거형에 정의된 값만 사용할 수 있습니다."),
-
     FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "파일 크기가 10MB를 초과할 수 없습니다."), // Rest API에서 사용
     FILE_IDS_REQUIRED(HttpStatus.BAD_REQUEST, "파일 ID 목록이 비어있습니다."),
     FILE_IDS_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "파일 ID는 최대 5개까지 조회할 수 있습니다."),
-
     // 결재 관련
     APPROVAL_TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "결재 양식을 찾을 수 없습니다."),
     APPROVAL_NOT_FOUND(HttpStatus.NOT_FOUND, "결재 문서를 찾을 수 없습니다."),
@@ -90,9 +86,14 @@ public enum ErrorCode {
     JOURNAL_ACCESS_DENIED(HttpStatus.FORBIDDEN, "본인이 작성한 일지만 수정·삭제할 수 있습니다."),
     // 강사 약력 관련
     CAREER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "본인의 약력 항목만 수정·삭제할 수 있습니다."),
-
     // 회원 관련
-    MEMBER_ID_GENETATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "회원 ID 생성에 실패했습니다.");
+    MEMBER_ID_GENETATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "회원 ID 생성에 실패했습니다."),
+    // 문항 관련
+    QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "문항을 찾을 수 없습니다."),
+    QUESTION_ACCESS_DENIED(HttpStatus.FORBIDDEN, "본인이 등록한 문항만 수정·삭제할 수 있습니다."),
+    // 시험 관련
+    EXAM_NOT_FOUND(HttpStatus.NOT_FOUND, "시험을 찾을 수 없습니다."),
+    EXAM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "본인이 등록한 시험만 수정·삭제할 수 있습니다.");
 
     // =============================
     private final HttpStatus status;
