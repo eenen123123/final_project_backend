@@ -1,0 +1,503 @@
+<div>
+  <style>
+    .cal-cell {
+      min-height: 96px;
+    }
+
+    .event-bar {
+      font-size: 10px;
+      line-height: 1.3;
+      padding: 1px 5px;
+      border-radius: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: pointer;
+    }
+
+    .event-bar.type-event {
+      background: #ffedd5;
+      color: #c2410c;
+    }
+
+    .event-bar.type-academic {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .event-bar.type-holiday {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .today-cell {
+      background: #f0f9ff !important;
+    }
+
+    .selected-cell {
+      outline: 1px solid #1e293b;
+      outline-offset: -1px;
+    }
+
+    .other-month {
+      background: #f8fafc !important;
+    }
+
+    .sun-bg {
+      background: #fff5f5;
+    }
+  </style>
+
+  <!-- 페이지 헤더 -->
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <div class="flex items-center gap-2 mb-0.5">
+        <div class="w-1 h-6 rounded-full bg-sky-500"></div>
+        <h1 class="text-xl font-bold text-slate-800">캘린더 관리</h1>
+      </div>
+      <p class="text-sm text-slate-500 ml-3">혜택/이벤트 및 학사 일정을 등록·관리합니다.</p>
+    </div>
+  </div>
+
+  <!-- 2단 레이아웃 -->
+  <div class="flex gap-4 items-start">
+
+    <!-- ── 왼쪽: 달력 + 이벤트 목록 ── -->
+    <div class="flex-1 flex flex-col gap-4">
+
+      <!-- ── 달력 ── -->
+      <div class="flex-1 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <!-- 달력 헤더 -->
+        <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50/60">
+          <div class="flex items-center gap-2 relative">
+            <button onclick="movePrev()"
+              class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-200 text-slate-500 transition-colors cursor-pointer">
+              <i class="fa-solid fa-chevron-left text-xs"></i>
+            </button>
+            <button id="month-picker-btn" onclick="togglePicker()"
+              class="text-base font-bold text-slate-800 hover:text-sky-600 transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-sky-50">
+              <span id="cal-year">2026</span>.<span id="cal-month">06</span>
+            </button>
+            <button onclick="moveNext()"
+              class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-200 text-slate-500 transition-colors cursor-pointer">
+              <i class="fa-solid fa-chevron-right text-xs"></i>
+            </button>
+
+            <!-- 년/월 피커 -->
+            <div id="month-picker"
+              class="absolute top-10 left-0 z-50 hidden bg-white border border-slate-200 rounded-xl shadow-lg p-4 w-60">
+              <div class="flex items-center justify-between mb-3">
+                <button onclick="pickerPrevYear()"
+                  class="text-slate-400 hover:text-slate-700 cursor-pointer px-2 py-1 rounded hover:bg-slate-100">‹</button>
+                <span id="picker-year" class="text-sm font-bold text-slate-800">2026</span>
+                <button onclick="pickerNextYear()"
+                  class="text-slate-400 hover:text-slate-700 cursor-pointer px-2 py-1 rounded hover:bg-slate-100">›</button>
+              </div>
+              <div class="grid grid-cols-4 gap-1.5" id="picker-months"></div>
+            </div>
+          </div>
+
+          <!-- 범례 -->
+          <div class="flex items-center gap-4 text-[11px] font-medium text-slate-500">
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-400"></span>공휴일</span>
+            <span class="flex items-center gap-1.5"><span
+                class="w-2 h-2 rounded-full bg-orange-400"></span>혜택/이벤트</span>
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-400"></span>학사 일정</span>
+          </div>
+        </div>
+
+        <!-- 요일 헤더 -->
+        <div class="grid grid-cols-7 border-b border-slate-100">
+          <div class="py-2 text-center text-[11px] font-bold text-red-400">SUN</div>
+          <div class="py-2 text-center text-[11px] font-bold text-slate-400">MON</div>
+          <div class="py-2 text-center text-[11px] font-bold text-slate-400">TUE</div>
+          <div class="py-2 text-center text-[11px] font-bold text-slate-400">WED</div>
+          <div class="py-2 text-center text-[11px] font-bold text-slate-400">THU</div>
+          <div class="py-2 text-center text-[11px] font-bold text-slate-400">FRI</div>
+          <div class="py-2 text-center text-[11px] font-bold text-blue-400">SAT</div>
+        </div>
+
+        <!-- 날짜 그리드 -->
+        <div id="cal-grid" class="grid grid-cols-7 border-l border-slate-100"></div>
+      </div>
+
+      <!-- ── 달력 아래: 이벤트 목록 ── -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="px-4 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-list text-sky-500 text-xs"></i>
+            <span class="text-sm font-bold text-slate-700">등록된 일정</span>
+            <span class="text-xs bg-sky-100 text-sky-600 font-bold px-2 py-0.5 rounded-full"
+              th:text="${#lists.size(eventList)}">0</span>
+          </div>
+          <select id="type-filter" onchange="filterEvents()"
+            class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-600 cursor-pointer"
+            data-ts-defer>
+            <option value="">전체</option>
+            <option value="holiday">공휴일</option>
+            <option value="event">혜택/이벤트</option>
+            <option value="academic">학사 일정</option>
+          </select>
+        </div>
+        <ul id="event-list" class="divide-y divide-slate-50 overflow-y-auto" style="max-height: 260px;">
+          <li th:if="${#lists.isEmpty(eventList)}" class="py-8 text-center text-xs text-slate-400">
+            등록된 일정이 없습니다.
+          </li>
+          <li th:each="ev : ${eventList}" th:attr="data-sn=${ev.eventSn},
+                     data-type=${ev.eventType},
+                     data-title=${ev.eventTitle},
+                     data-cont=${ev.eventCont},
+                     data-start=${ev.startDt},
+                     data-end=${ev.endDt}"
+            class="event-list-item px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors"
+            onclick="selectEvent(this)">
+            <div class="flex items-center gap-3">
+              <span th:if="${ev.eventType == 'holiday'}"
+                class="flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-50 text-red-500">공휴일</span>
+              <span th:if="${ev.eventType == 'event'}"
+                class="flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded bg-orange-50 text-orange-500">혜택</span>
+              <span th:if="${ev.eventType == 'academic'}"
+                class="flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-500">학사</span>
+              <p class="text-xs font-semibold text-slate-700 flex-1 truncate" th:text="${ev.eventTitle}">제목</p>
+              <p class="text-[10px] text-slate-400 flex-shrink-0" th:text="${ev.startDt} + ' ~ ' + ${ev.endDt}">기간</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+    </div><!-- 왼쪽 컬럼 끝 -->
+
+    <!-- ── 오른쪽: 등록/수정 폼 ── -->
+    <div class="w-72 flex-shrink-0 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div class="px-4 py-3.5 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i id="form-icon" class="fa-solid fa-plus text-sky-500 text-xs"></i>
+          <span id="form-title" class="text-sm font-bold text-slate-700">일정 등록</span>
+        </div>
+        <button id="form-reset-btn" onclick="resetForm()"
+          class="hidden text-xs text-slate-400 hover:text-slate-600 cursor-pointer transition-colors">
+          <i class="fa-solid fa-rotate-left mr-1"></i>초기화
+        </button>
+      </div>
+
+      <div class="p-4 space-y-3">
+        <input type="hidden" id="form-event-sn" value="" />
+
+        <!-- 유형 -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1.5">유형 <span
+              class="text-red-400">*</span></label>
+          <div class="flex gap-2">
+            <label
+              class="flex-1 flex items-center justify-center gap-1.5 border border-slate-200 rounded-lg py-2 cursor-pointer hover:border-red-300 hover:bg-red-50 transition-all">
+              <input type="radio" name="eventType" value="event" class="hidden" />
+              <span class="w-2 h-2 rounded-full bg-red-400"></span>
+              <span class="text-xs font-semibold text-slate-600">혜택/이벤트</span>
+            </label>
+            <label
+              class="flex-1 flex items-center justify-center gap-1.5 border border-slate-200 rounded-lg py-2 cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-all">
+              <input type="radio" name="eventType" value="academic" class="hidden" />
+              <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+              <span class="text-xs font-semibold text-slate-600">학사 일정</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 제목 -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1.5">제목 <span
+              class="text-red-400">*</span></label>
+          <input type="text" id="form-event-title" placeholder="일정 제목을 입력하세요"
+            class="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-sky-400 transition-all" />
+        </div>
+
+        <!-- 내용 -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1.5">내용</label>
+          <textarea id="form-event-cont" rows="3" placeholder="일정 내용을 입력하세요"
+            class="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-sky-400 transition-all resize-none"></textarea>
+        </div>
+
+        <!-- 기간 -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1.5">기간 <span
+              class="text-red-400">*</span></label>
+          <div class="flex items-center gap-2">
+            <input type="date" id="form-start-dt"
+              class="flex-1 text-xs border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:border-sky-400 transition-all cursor-pointer" />
+            <span class="text-slate-400 text-xs flex-shrink-0">~</span>
+            <input type="date" id="form-end-dt"
+              class="flex-1 text-xs border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:border-sky-400 transition-all cursor-pointer" />
+          </div>
+        </div>
+
+        <!-- 등록/수정 버튼 -->
+        <button id="form-submit-btn" onclick="submitForm()"
+          class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer">
+          <i class="fa-solid fa-plus mr-1.5"></i>일정 등록
+        </button>
+
+        <!-- 삭제 버튼 -->
+        <button id="form-delete-btn" onclick="deleteEvent()" style="display:none;"
+          class="w-full py-2.5 bg-red-50 hover:bg-red-100 text-red-500 text-xs font-bold rounded-xl transition-colors cursor-pointer border border-red-200">
+          <i class="fa-solid fa-trash mr-1.5"></i>일정 삭제
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 숨김 폼 -->
+  <form id="hidden-write-form" th:action="@{/admin/calendar/write}" method="post" style="display:none;">
+    <input type="hidden" name="eventType" id="h-event-type" />
+    <input type="hidden" name="eventTitle" id="h-event-title" />
+    <input type="hidden" name="eventCont" id="h-event-cont" />
+    <input type="hidden" name="startDt" id="h-start-dt" />
+    <input type="hidden" name="endDt" id="h-end-dt" />
+  </form>
+  <form id="hidden-edit-form" method="post" style="display:none;">
+    <input type="hidden" name="eventType" id="he-event-type" />
+    <input type="hidden" name="eventTitle" id="he-event-title" />
+    <input type="hidden" name="eventCont" id="he-event-cont" />
+    <input type="hidden" name="startDt" id="he-start-dt" />
+    <input type="hidden" name="endDt" id="he-end-dt" />
+  </form>
+  <form id="hidden-delete-form" method="post" style="display:none;"></form>
+
+  <script th:inline="javascript">
+    const ALL_EVENTS = /*[[${eventList}]]*/[];
+    let curYear = new Date().getFullYear();
+    let curMonth = new Date().getMonth();
+    let pickerYear = curYear;
+
+    function toStr(y, m, d) {
+      return y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    }
+
+    function getEventsForDate(dateStr) {
+      return ALL_EVENTS.filter(ev => {
+        const sel = new Date(dateStr);
+        return sel >= new Date(ev.startDt) && sel <= new Date(ev.endDt);
+      });
+    }
+
+    function renderCalendar() {
+      document.getElementById('cal-year').textContent = curYear;
+      document.getElementById('cal-month').textContent = String(curMonth + 1).padStart(2, '0');
+
+      const today = new Date();
+      const todayStr = toStr(today.getFullYear(), today.getMonth(), today.getDate());
+      const firstDay = new Date(curYear, curMonth, 1).getDay();
+      const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
+      const daysInPrev = new Date(curYear, curMonth, 0).getDate();
+
+      const cells = [];
+      for (let i = firstDay - 1; i >= 0; i--) {
+        const d = daysInPrev - i;
+        const pm = curMonth === 0 ? 11 : curMonth - 1;
+        const py = curMonth === 0 ? curYear - 1 : curYear;
+        cells.push({ day: d, year: py, month: pm, other: true });
+      }
+      for (let d = 1; d <= daysInMonth; d++) cells.push({ day: d, year: curYear, month: curMonth, other: false });
+      const rem = 42 - cells.length;
+      for (let d = 1; d <= rem; d++) {
+        const nm = curMonth === 11 ? 0 : curMonth + 1;
+        const ny = curMonth === 11 ? curYear + 1 : curYear;
+        cells.push({ day: d, year: ny, month: nm, other: true });
+      }
+
+      const grid = document.getElementById('cal-grid');
+      grid.innerHTML = '';
+      cells.forEach((cell, idx) => {
+        const dateStr = toStr(cell.year, cell.month, cell.day);
+        const isSun = idx % 7 === 0;
+        const isSat = idx % 7 === 6;
+        const isToday = dateStr === todayStr;
+        const dayEvents = cell.other ? [] : getEventsForDate(dateStr);
+
+        const div = document.createElement('div');
+        div.className = 'cal-cell border-r border-b border-slate-100 p-1.5 flex flex-col gap-0.5 transition-colors';
+        if (cell.other) { div.classList.add('other-month'); }
+        else {
+          div.classList.add('cursor-pointer', 'hover:bg-sky-50/40');
+          if (isSun) div.classList.add('sun-bg');
+          if (isToday) div.classList.add('today-cell');
+          div.onclick = () => onDateClick(dateStr, div);
+        }
+
+        const dateDiv = document.createElement('div');
+        dateDiv.className = 'flex items-center gap-1 mb-0.5';
+        const span = document.createElement('span');
+        span.className = 'text-xs font-medium';
+        span.textContent = cell.day;
+        if (cell.other) span.classList.add('text-slate-300');
+        else if (isSun) span.classList.add('text-red-400');
+        else if (isSat) span.classList.add('text-blue-400');
+        else span.classList.add('text-slate-700');
+        dateDiv.appendChild(span);
+        if (isToday && !cell.other) {
+          const tb = document.createElement('span');
+          tb.className = 'text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-sky-500 text-white leading-none';
+          tb.textContent = 'Today';
+          dateDiv.appendChild(tb);
+        }
+        div.appendChild(dateDiv);
+
+        dayEvents.slice(0, 3).forEach(ev => {
+          const bar = document.createElement('div');
+          bar.className = 'event-bar ' + (
+            ev.eventType === 'holiday' ? 'type-holiday' :
+              ev.eventType === 'event' ? 'type-event' :
+                ev.eventType === 'academic' ? 'type-academic' : 'type-academic'
+          );
+          bar.textContent = ev.eventTitle.length > 8 ? ev.eventTitle.slice(0, 8) + '...' : ev.eventTitle;
+          bar.onclick = (e) => { e.stopPropagation(); selectEventBySn(ev.eventSn); };
+          div.appendChild(bar);
+        });
+        if (dayEvents.length > 3) {
+          const more = document.createElement('span');
+          more.className = 'text-[10px] text-slate-400';
+          more.textContent = '+' + (dayEvents.length - 3) + '개';
+          div.appendChild(more);
+        }
+        grid.appendChild(div);
+      });
+    }
+
+    function onDateClick(dateStr, el) {
+      document.querySelectorAll('.selected-cell').forEach(c => c.classList.remove('selected-cell'));
+      el.classList.add('selected-cell');
+      document.getElementById('form-start-dt').value = dateStr;
+      document.getElementById('form-end-dt').value = dateStr;
+    }
+
+    function selectEvent(el) {
+      document.querySelectorAll('.event-list-item').forEach(i => i.classList.remove('bg-sky-50'));
+      el.classList.add('bg-sky-50');
+      fillForm(el.dataset);
+    }
+
+    function selectEventBySn(sn) {
+      const item = document.querySelector(`[data-sn="${sn}"]`);
+      if (item) selectEvent(item);
+    }
+
+    function fillForm(data) {
+      document.getElementById('form-event-sn').value = data.sn;
+      document.getElementById('form-event-title').value = data.title || '';
+      document.getElementById('form-event-cont').value = data.cont || '';
+      document.getElementById('form-start-dt').value = data.start || '';
+      document.getElementById('form-end-dt').value = data.end || '';
+      document.querySelectorAll('input[name="eventType"]').forEach(r => r.checked = r.value === data.type);
+      document.getElementById('form-title').textContent = '일정 수정';
+      document.getElementById('form-icon').className = 'fa-solid fa-pen text-sky-500 text-xs';
+      document.getElementById('form-submit-btn').innerHTML = '<i class="fa-solid fa-floppy-disk mr-1.5"></i>일정 수정';
+      document.getElementById('form-delete-btn').style.display = '';
+      document.getElementById('form-reset-btn').classList.remove('hidden');
+    }
+
+    function resetForm() {
+      document.getElementById('form-event-sn').value = '';
+      document.getElementById('form-event-title').value = '';
+      document.getElementById('form-event-cont').value = '';
+      document.getElementById('form-start-dt').value = '';
+      document.getElementById('form-end-dt').value = '';
+      document.querySelectorAll('input[name="eventType"]').forEach(r => r.checked = false);
+      document.getElementById('form-title').textContent = '일정 등록';
+      document.getElementById('form-icon').className = 'fa-solid fa-plus text-sky-500 text-xs';
+      document.getElementById('form-submit-btn').innerHTML = '<i class="fa-solid fa-plus mr-1.5"></i>일정 등록';
+      document.getElementById('form-delete-btn').style.display = 'none';
+      document.getElementById('form-reset-btn').classList.add('hidden');
+      document.querySelectorAll('.event-list-item').forEach(i => i.classList.remove('bg-sky-50'));
+    }
+
+    function submitForm() {
+      const type = document.querySelector('input[name="eventType"]:checked')?.value;
+      const title = document.getElementById('form-event-title').value.trim();
+      const cont = document.getElementById('form-event-cont').value.trim();
+      const start = document.getElementById('form-start-dt').value;
+      const end = document.getElementById('form-end-dt').value;
+      const sn = document.getElementById('form-event-sn').value;
+
+      if (!type) return alert('유형을 선택해주세요.');
+      if (!title) return alert('제목을 입력해주세요.');
+      if (!start || !end) return alert('기간을 입력해주세요.');
+      if (start > end) return alert('종료일이 시작일보다 빠릅니다.');
+
+      if (sn) {
+        document.getElementById('hidden-edit-form').action = '/admin/calendar/edit/' + sn;
+        document.getElementById('he-event-type').value = type;
+        document.getElementById('he-event-title').value = title;
+        document.getElementById('he-event-cont').value = cont;
+        document.getElementById('he-start-dt').value = start;
+        document.getElementById('he-end-dt').value = end;
+        document.getElementById('hidden-edit-form').submit();
+      } else {
+        document.getElementById('h-event-type').value = type;
+        document.getElementById('h-event-title').value = title;
+        document.getElementById('h-event-cont').value = cont;
+        document.getElementById('h-start-dt').value = start;
+        document.getElementById('h-end-dt').value = end;
+        document.getElementById('hidden-write-form').submit();
+      }
+    }
+
+    function deleteEvent() {
+      const sn = document.getElementById('form-event-sn').value;
+      if (!sn) return;
+      if (!confirm('이 일정을 삭제하시겠습니까?')) return;
+      const form = document.getElementById('hidden-delete-form');
+      form.action = '/admin/calendar/delete/' + sn;
+      form.submit();
+    }
+
+    function filterEvents() {
+      const type = document.getElementById('type-filter').value;
+      document.querySelectorAll('.event-list-item').forEach(item => {
+        item.style.display = (!type || item.dataset.type === type) ? '' : 'none';
+      });
+    }
+
+    function movePrev() {
+      if (curMonth === 0) { curYear--; curMonth = 11; } else curMonth--;
+      renderCalendar();
+    }
+
+    function moveNext() {
+      if (curMonth === 11) { curYear++; curMonth = 0; } else curMonth++;
+      renderCalendar();
+    }
+
+    function togglePicker() {
+      const picker = document.getElementById('month-picker');
+      picker.classList.toggle('hidden');
+      pickerYear = curYear;
+      renderPickerMonths();
+    }
+
+    function renderPickerMonths() {
+      document.getElementById('picker-year').textContent = pickerYear;
+      const container = document.getElementById('picker-months');
+      container.innerHTML = '';
+      for (let m = 0; m < 12; m++) {
+        const btn = document.createElement('button');
+        btn.textContent = (m + 1) + '월';
+        btn.className = 'py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ' +
+          (pickerYear === curYear && m === curMonth ? 'bg-slate-800 text-white' : 'hover:bg-slate-100 text-slate-700');
+        btn.onclick = () => { curYear = pickerYear; curMonth = m; document.getElementById('month-picker').classList.add('hidden'); renderCalendar(); };
+        container.appendChild(btn);
+      }
+    }
+
+    function pickerPrevYear() { pickerYear--; renderPickerMonths(); }
+    function pickerNextYear() { pickerYear++; renderPickerMonths(); }
+
+    document.addEventListener('click', (e) => {
+      const picker = document.getElementById('month-picker');
+      const btn = document.getElementById('month-picker-btn');
+      if (!picker.contains(e.target) && !btn.contains(e.target)) picker.classList.add('hidden');
+    });
+
+    renderCalendar();
+  </script>
+</div>
