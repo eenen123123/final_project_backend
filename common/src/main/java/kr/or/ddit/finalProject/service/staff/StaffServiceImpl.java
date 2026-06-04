@@ -58,14 +58,14 @@ public class StaffServiceImpl implements StaffService{
      */
     @Override
     @Transactional(rollbackFor = Exception.class) // 예외 발생시 롤백
-    public void registerEmployee(MemberDto memberDto, EmployeeInfoDto employeeInfoDto, EmployeeSalaryDto employeeSalaryDto, MultipartFile profileImage, String loginAdminId) {
+    public void registerEmployee(MemberDto memberDto, EmployeeInfoDto employeeInfoDto, EmployeeSalaryDto employeeSalaryDto, String profileUrl, String loginAdminId) {
 
         // 0. 유효성 검사 (암호화·가공 이전 원본값 기준)
         validateMemberInput(memberDto);
 
         // 1. ROLE 및 기본 프로필 설정
         memberDto.setUserRole("ROLE_ADMIN"); // 기본적으로 ROLE_ADMIN으로 설정
-        memberDto.setUserProfile("/images/default-profile.png"); // 기본 프로필 이미지 경로 설정
+        memberDto.setUserProfile(profileUrl); // 기본 프로필 이미지 경로 설정
 
         // 2. 비밀번호 암호화
         memberDto.setUserEnpswd(passwordEncoder.encode(memberDto.getUserEnpswd()));

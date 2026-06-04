@@ -36,9 +36,14 @@
 ├── 전체 학습 현황            /instructor/learning/overview
 ├── 문항 / 시험 관리          /instructor/exams
 ├── AI 문항 생성 지원         /instructor/ai-questions
+├── 강사 게시판               /instructor/board
 ├── 업무 일지                 /instructor/journals
 └── 개인 페이지 관리          /instructor/profile/teacher
 ```
+
+> **설계 원칙**: 관리자 페이지는 "수강생이 소비하는 공개 페이지"가 아닌 "강사가 편집·운영하는 도구"다.
+> 공개 페이지(프론트)에서는 프로필·게시판·강좌가 한 페이지에 묶여 보이지만,
+> 관리자 페이지에서는 기능별로 독립된 메뉴로 분리하여 일관성을 유지한다.
 
 ---
 
@@ -117,7 +122,31 @@
 
 ---
 
-### 3.5 문항 / 시험 관리 `/instructor/exams`
+### 3.5 강사 게시판 `/instructor/board`
+
+**목적**: 강사가 수강생을 대상으로 작성하는 공지사항·Q&A·자료실을 관리자 단에서 통합 관리
+
+**제공 기능**
+
+- 게시판 유형별 게시글 조회 (공지사항 / Q&A / 자료실)
+- 게시글 작성 / 수정 / 삭제 (소프트 삭제, USE_YN)
+- 삭제된 게시글 복구
+
+**프론트와의 관계**
+
+- 관리자 페이지: 강사가 게시글을 직접 작성·관리하는 도구
+- 공개 페이지(프론트): 수강생이 강사 개인 페이지에서 게시판 링크를 통해 조회
+- 공개 페이지에서는 강사 개인 페이지 하위에 게시판이 노출되지만, 관리는 이 메뉴에서 독립적으로 수행
+
+**설계 메모**
+
+- 기존 `/instructor/board/*` 컨트롤러·서비스·매퍼 구현 완료 상태로 재활용
+- 게시판 유형은 `BOARD_TYPE_CD` (COM_CD 공통코드) 로 구분
+- 프로필 관리(`/instructor/profile/teacher`)와 분리: 공개 페이지에서 함께 노출되더라도 관리 도구는 기능별로 독립
+
+---
+
+### 3.6 문항 / 시험 관리 `/instructor/exams`
 
 **목적**: 문항 은행을 중앙에서 관리하고, 시험지를 설계하여 클래스에 배정할 수 있도록 준비
 
@@ -134,7 +163,7 @@
 
 ---
 
-### 3.6 AI 문항 생성 지원 `/instructor/ai-questions`
+### 3.7 AI 문항 생성 지원 `/instructor/ai-questions`
 
 **목적**: AI를 활용해 문항 초안을 빠르게 생성하고, 문항 은행으로 저장하는 도구
 
@@ -151,7 +180,7 @@
 
 ---
 
-### 3.7 업무 일지 `/instructor/journals`
+### 3.8 업무 일지 `/instructor/journals`
 
 **목적**: 강사 개인의 업무 기록 작성 및 관리
 
@@ -167,16 +196,25 @@
 
 ---
 
-### 3.8 개인 페이지 관리 `/instructor/profile/teacher`
+### 3.9 개인 페이지 관리 `/instructor/profile/teacher`
 
 **목적**: 수강생에게 노출되는 강사의 공개 프로필 페이지 편집
 
 **제공 기능**
-- 강사 소개글 작성 및 수정
-- 프로필 이미지 업로드
-- 경력 / 자격 / 강의 이력 등록
-- 공개 페이지 미리보기
-- 공개 여부 설정
+
+- 프로필 이미지 업로드 (Cloudinary 연동, INSTRUCTOR 테이블 별도 컬럼 저장)
+- 강사 소개글 작성 및 수정 (`INSTRUCTOR.INSTR_INTRO`)
+- 약력 / 저서 / 수상 / 방송출연 항목 관리 (`INSTRUCTOR_CAREER` 테이블)
+  - 항목별 유형 구분: 01 약력 / 02 저서 / 03 수상 / 04 방송출연
+  - 항목별 연도(시작/종료) + 내용 입력, 순서 조정, 개별 삭제
+
+#### 설계 메모
+
+- 게시판 관리(`/instructor/board`)와 분리: 공개 페이지에서 함께 보이더라도 관리 도구는 기능별로 독립
+- `MEMBER.USER_PROFILE`은 계정 프로필 사진 전용이므로 강사 공개 프로필 이미지는 INSTRUCTOR 테이블에 별도 저장
+- 공개 여부 설정 불필요: 강사 공개 페이지는 항상 공개
+- **Cloudinary 이미지 삭제 정책**: 이미지 제거 시 DB의 `INSTR_PROFILE_IMG`만 NULL로 업데이트하며, Cloudinary에 업로드된 원본 파일은 삭제하지 않는다. (팀 정책)
+- **INSTRUCTOR 행 자동 생성**: 프로필 이미지·소개글 저장 시 INSTRUCTOR 테이블에 해당 강사 행이 없으면 MERGE upsert로 자동 생성한다. 신규 강사 계정 등록 시 별도로 INSTRUCTOR 행을 INSERT하지 않아도 최초 프로필 저장 시점에 생성된다.
 
 ---
 
@@ -242,6 +280,12 @@
       </a>
     </li>
     <li>
+      <a href="/instructor/board" class="sidebar-link">
+        <i class="fa-solid fa-clipboard sidebar-icon"></i>
+        <span class="sidebar-link-text">강사 게시판</span>
+      </a>
+    </li>
+    <li>
       <a href="/instructor/journals" class="sidebar-link">
         <i class="fa-solid fa-book sidebar-icon"></i>
         <span class="sidebar-link-text">업무 일지</span>
@@ -269,7 +313,8 @@
 | 전체 학습 현황 | **개편** (기존 "학습 현황 모니터링" → 클래스 횡단 집계 뷰로 범위 재정의) |
 | 문항 / 시험 관리 | **개편** (기존 "시험 및 성적 관리" → 성적 조회는 클래스룸으로 분리) |
 | AI 문항 생성 지원 | 유지. 문항 은행 저장 흐름 추가 |
+| 강사 게시판 | **신규 추가** (기존 테스트 메뉴 → 정식 메뉴로 격상, `/instructor/board/*` 재활용) |
 | 업무 일지 | 유지 |
-| 개인 페이지 관리 | 유지 |
+| 개인 페이지 관리 | **범위 확장** (프로필 이미지 + 소개글 + INSTRUCTOR_CAREER 약력 관리 추가) · **정책 확정** (Cloudinary 이미지 삭제 안 함, INSTRUCTOR 행 MERGE upsert 자동 생성) |
 | ~~나의 강좌~~ | **삭제** (강좌 자료 관리로 재정의) |
 | ~~강사 게시판 테스트~~ | **삭제** (테스트 메뉴) |

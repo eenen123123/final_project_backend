@@ -34,11 +34,15 @@ public enum ErrorCode {
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."),
     DOTENV_FILE_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR,
             "환경 변수 파일(.env)을 찾을 수 없습니다. .env.example 파일을 복사하여 .env 파일을 생성하고, 필요한 환경 변수를 설정해주세요."),
+    // 게시글 관련
+    POST_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "게시글 저장에 실패했습니다."),
+    POST_NOT_FOUND(HttpStatus.NOT_FOUND, "게시글을 찾을 수 없습니다."),
     // File
     FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다."),
     FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "파일을 찾을 수 없습니다."),
     FILE_EMPTY(HttpStatus.BAD_REQUEST, "업로드할 파일이 없습니다."),
     CANT_ACCESS_FILE(HttpStatus.INTERNAL_SERVER_ERROR, "파일에 접근할 수 없습니다."),
+    FILE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "파일에 대한 접근 권한이 없습니다."),
     FILE_INFO_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 정보 저장에 실패했습니다."),
     INVALID_FILE_TYPE_TO_CLOUDINARY(HttpStatus.BAD_REQUEST,
             "Cloudinary에 업로드할 수 없는 파일 형식입니다. PDF, 이미지 파일만 업로드할 수 있습니다."),
@@ -52,6 +56,8 @@ public enum ErrorCode {
             "유효하지 않은 파일 컨텍스트입니다. FILE_CTX_TYPE 열거형에 정의된 값만 사용할 수 있습니다."),
 
     FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "파일 크기가 10MB를 초과할 수 없습니다."), // Rest API에서 사용
+    FILE_IDS_REQUIRED(HttpStatus.BAD_REQUEST, "파일 ID 목록이 비어있습니다."),
+    FILE_IDS_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "파일 ID는 최대 5개까지 조회할 수 있습니다."),
 
     // 결재 관련
     APPROVAL_TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "결재 양식을 찾을 수 없습니다."),
@@ -81,7 +87,9 @@ public enum ErrorCode {
     EMPLOYEE_ALREADY_RETIRED(HttpStatus.BAD_REQUEST, "이미 퇴사 처리된 직원입니다."),
     // 업무 일지 관련
     JOURNAL_NOT_FOUND(HttpStatus.NOT_FOUND, "일지를 찾을 수 없습니다."),
-    JOURNAL_ACCESS_DENIED(HttpStatus.FORBIDDEN, "본인이 작성한 일지만 수정·삭제할 수 있습니다.");
+    JOURNAL_ACCESS_DENIED(HttpStatus.FORBIDDEN, "본인이 작성한 일지만 수정·삭제할 수 있습니다."),
+    // 강사 약력 관련
+    CAREER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "본인의 약력 항목만 수정·삭제할 수 있습니다.");
 
     // =============================
     private final HttpStatus status;

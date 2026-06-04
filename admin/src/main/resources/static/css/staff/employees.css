@@ -1,0 +1,318 @@
+.emp-tab-btn {
+  transition: all 0.18s;
+}
+
+.emp-tab-btn.active {
+  color: #3b82f6;
+  border-bottom: 2px solid #3b82f6;
+  font-weight: 700;
+}
+
+.emp-tab-panel {
+  display: none;
+}
+
+.emp-tab-panel.active {
+  display: block;
+}
+
+.emp-card {
+  background: #fff;
+  border-radius: 1rem;
+  border: 1.5px solid #e2e8f0;
+  transition:
+    box-shadow 0.18s,
+    border-color 0.18s;
+}
+
+/* [변경] 카드 호버 시 파란색 계열 은은한 그림자와 테두리 적용 */
+.emp-card:hover {
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.09);
+  border-color: #93c5fd;
+}
+
+/* [변경] 카드 선택 시 테두리와 외곽선 음영을 행정 파란색으로 변경 */
+.emp-card.selected {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.18rem 0.6rem;
+  border-radius: 9999px;
+  letter-spacing: 0.02em;
+}
+
+.status-active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-resigned {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-leave {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+/* 역할 태그는 기존의 직책별 고유 색상 시스템을 그대로 유지합니다 */
+.role-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+  border-radius: 0.4rem;
+}
+
+.role-manager {
+  background: #ede9fe;
+  color: #10b981;
+}
+
+/* 실장(보라) */
+.role-staff {
+  background: #dbeafe;
+  color: #3b82f6;
+}
+
+/* 행정(파랑) */
+.role-instructor {
+  background: #e0f2fe;
+  color: #0ea5e9;
+}
+
+/* 강사(하늘) */
+.role-pd {
+  background: #ffedd5;
+  color: #f97316;
+}
+
+/* PD(오렌지) */
+
+.info-row {
+  display: flex;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  width: 7rem;
+  font-size: 0.78rem;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.info-value {
+  font-size: 0.82rem;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.danger-zone {
+  border: 1.5px solid #ef4444;
+  border-radius: 0.75rem;
+  background: #fef2f2;
+}
+
+/* 퇴사 및 경고(Danger) 입력창 색상 시스템 */
+.hm-input-danger {
+  border-color: #ef4444;
+}
+
+.hm-input-danger:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08);
+}
+
+.hm-input-danger:disabled {
+  border-color: #fca5a5;
+}
+
+/* TomSelect danger 오버라이드 */
+.ts-wrapper.hm-input-danger {
+  border-color: #ef4444;
+}
+.ts-wrapper.hm-input-danger.focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08);
+}
+
+/* 퇴사 사유 select: 모달 하단에 있어 옵션이 위로 펼쳐지게 한다 */
+.ts-dropup .ts-dropdown {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 6px;
+}
+.ts-dropup.dropdown-active .ts-control::after {
+  transform: rotate(180deg);
+}
+
+input.hm-input.hm-input-blue[placeholder]:not(:placeholder-shown) {
+  background-color: #eff6ff;
+}
+.hm-input.hm-input-blue.filled {
+  background-color: #eff6ff;
+}
+
+.acct-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.acct-row:last-child {
+  border-bottom: none;
+}
+
+.emp-page-btn {
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+/* [변경] 하단 페이지 버튼 호버 및 활성화 시 행정 파란색(#3b82f6) 적용 */
+.emp-page-btn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.emp-page-btn.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+/* 모달 스크롤바 스타일 */
+.modal-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.modal-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ==========================================================================
+      5. 모달 / 폼 공통 컴포넌트
+      ========================================================================== */
+
+/* 폼 라벨 */
+.form-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+.form-label .required {
+  color: #f87171;
+  margin-left: 0.15rem;
+}
+
+/* 섹션 제목 */
+.form-section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #3b82f6;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+/* 모달 컨테이너 */
+.hm-modal-inner {
+  background: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+.hm-modal-scroll {
+  overflow-y: auto;
+  max-height: 90vh;
+}
+
+.hm-modal-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.hm-modal-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.hm-modal-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.hm-modal-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* 모달 헤더 */
+.hm-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.hm-modal-header h2 {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+/* 모달 푸터 */
+.hm-modal-footer {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+/* 폼 내 input/select 높이 통일 */
+.ts-wrapper.hm-lg {
+  min-height: 46.1px;
+}
+
+.ts-wrapper.hm-lg .ts-control {
+  min-height: calc(46.1px - 2px);
+}
+
+input.hm-lg {
+  line-height: 23.55px;
+}
