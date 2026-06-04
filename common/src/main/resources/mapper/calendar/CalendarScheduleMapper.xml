@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.calendar.CalendarScheduleMapper">
+
+    <!-- ResultMap -->
+    <resultMap id="calendarScheduleResultMap" type="kr.or.ddit.finalProject.dto.calendar.CalendarScheduleDto">
+        <id property="scheduleSn"    column="schedule_sn"/>
+        <result property="userId"        column="user_id"/>
+        <result property="scheduleType"  column="schedule_type"/>
+        <result property="scheduleTitle" column="schedule_title"/>
+        <result property="scheduleCont"  column="schedule_cont"/>
+        <result property="startDt"       column="start_dt"/>
+        <result property="endDt"         column="end_dt"/>
+        <result property="regDt"         column="reg_dt"/>
+        <result property="mdfcnDt"       column="mdfcn_dt"/>
+    </resultMap>
+
+    <!-- 월별 개인 일정 조회 -->
+    <select id="selectCalendarScheduleList" parameterType="map" resultMap="calendarScheduleResultMap">
+        SELECT *
+        FROM calendar_schedule
+        WHERE user_id = #{userId}
+          AND start_dt &lt;= LAST_DAY(TO_DATE(#{year} || '-' || LPAD(#{month}, 2, '0') || '-01', 'YYYY-MM-DD'))
+          AND end_dt   &gt;= TO_DATE(#{year} || '-' || LPAD(#{month}, 2, '0') || '-01', 'YYYY-MM-DD')
+        ORDER BY start_dt ASC
+    </select>
+
+    <!-- 단건 조회 -->
+    <select id="selectCalendarSchedule" parameterType="long" resultMap="calendarScheduleResultMap">
+        SELECT *
+        FROM calendar_schedule
+        WHERE schedule_sn = #{scheduleSn}
+    </select>
+
+    <!-- 등록 -->
+    <insert id="insertCalendarSchedule" parameterType="kr.or.ddit.finalProject.dto.calendar.CalendarScheduleDto">
+        INSERT INTO calendar_schedule (
+            user_id, schedule_type, schedule_title, schedule_cont,
+            start_dt, end_dt, reg_dt
+        ) VALUES (
+            #{userId}, #{scheduleType}, #{scheduleTitle}, #{scheduleCont},
+            #{startDt}, #{endDt}, CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <!-- 수정 -->
+    <update id="updateCalendarSchedule" parameterType="kr.or.ddit.finalProject.dto.calendar.CalendarScheduleDto">
+        UPDATE calendar_schedule
+        SET schedule_type  = #{scheduleType},
+            schedule_title = #{scheduleTitle},
+            schedule_cont  = #{scheduleCont},
+            start_dt       = #{startDt},
+            end_dt         = #{endDt},
+            mdfcn_dt       = CURRENT_TIMESTAMP
+        WHERE schedule_sn = #{scheduleSn}
+          AND user_id     = #{userId}
+    </update>
+
+    <!-- 삭제 (본인 일정만) -->
+    <delete id="deleteCalendarSchedule">
+        DELETE FROM calendar_schedule
+        WHERE schedule_sn = #{scheduleSn}
+          AND user_id     = #{userId}
+    </delete>
+
+</mapper>

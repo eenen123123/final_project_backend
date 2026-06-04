@@ -1,8 +1,7 @@
 package kr.or.ddit.controller.board.qna;
 
-import java.util.List;
-
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,57 +12,75 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import kr.or.ddit.finalProject.dto.board.QnaDto;
+import kr.or.ddit.finalProject.dto.board.req.QnaRequestDto;
+import kr.or.ddit.finalProject.dto.board.req.QnaSearchCondition;
+import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
 import kr.or.ddit.finalProject.service.board.qna.QnaService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/qna")
 @RequiredArgsConstructor
 public class QnaController {
 
     private final QnaService qnaService;
+    private final ObjectMapper objectMapper;
 
-    // QnA 목록 조회
-    // GET /api/qna?qnaCtgCd=01&answStatCd=01
-    @GetMapping
-    public ResponseEntity<List<QnaDto>> getQnaList(@RequestParam(required = false) String qnaCtgCd,
-            @RequestParam(required = false) String answStatCd) {
-        return ResponseEntity.ok(qnaService.getQnaList(qnaCtgCd, answStatCd));
+    // GET /api/qna/paged?page=1&size=10&keyword=xxx&myOnly=true
+    @GetMapping("/paged")
+    public ResponseEntity<PageResponse<QnaDto>> getQnaListPaged(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String qnaCtgCd,
+            @RequestParam(required = false) String answStatCd,
+            @RequestParam(defaultValue = "false") boolean myOnly,
+            Authentication authentication) {
+        String wrtrUserId = (myOnly && authentication != null) ? authentication.getName() : null;
+        PaginationInfo<QnaSearchCondition> paginationInfo = new PaginationInfo<>(size, 5, page);
+        paginationInfo.setDetailCondition(new QnaSearchCondition(keyword, qnaCtgCd, answStatCd, wrtrUserId));
+        return ResponseEntity.ok(qnaService.getList(paginationInfo));
     }
 
-    // QnA 단건 조회
     // GET /api/qna/{postSn}
     @GetMapping("/{postSn}")
-    public ResponseEntity<QnaDto> getQnaById(@PathVariable Long postSn) {
-        return ResponseEntity.ok(qnaService.getQnaById(postSn));
+    public ResponseEntity<QnaDto> getQnaById(@PathVariable Long postSn, Authentication authentication) {
+        return ResponseEntity.ok(qnaService.getById(postSn, authentication));
     }
 
-    // QnA 등록 (사용자)
     // POST /api/qna
     @PostMapping
-    public ResponseEntity<Void> createQna(@RequestBody QnaDto qnaDto) {
-        log.info("qna controller : {]", qnaDto.toString());
-        qnaService.createQna(qnaDto);
+    public ResponseEntity<Void> createQna(@RequestBody QnaRequestDto req, Authentication authentication) {
+        QnaDto dto = new QnaDto();
+        dto.setQnaCtgCd(req.getQnaCtgCd());
+        dto.setSecrYn(req.getSecrYn());
+        dto.setPostSj(req.getPostSj());
+        try {
+            dto.setPostCn(objectMapper.writeValueAsString(req.getPostCn()));
+        } catch (JsonProcessingException e) {
+            return ResponseEntity.badRequest().build();
+        }
+        qnaService.create(dto, authentication);
         return ResponseEntity.ok().build();
     }
 
-    // QnA 수정 (사용자)
     // PUT /api/qna/{postSn}
     @PutMapping("/{postSn}")
-    public ResponseEntity<Void> updateQna(@PathVariable Long postSn, @RequestBody QnaDto qnaDto) {
-        qnaDto.setPostSn(postSn);
-        qnaService.updateQna(qnaDto);
+    public ResponseEntity<Void> updateQna(@PathVariable Long postSn, @RequestBody QnaDto dto) {
+        dto.setPostSn(postSn);
+        qnaService.update(dto);
         return ResponseEntity.ok().build();
     }
 
-    // QnA 삭제 (사용자) => 나중에 update 로 바꿔야함.
     // DELETE /api/qna/{postSn}
     @DeleteMapping("/{postSn}")
-    public ResponseEntity<Void> deleteQna(@PathVariable Long postSn){
-        qnaService.deleteQna(postSn);
+    public ResponseEntity<Void> deleteQna(@PathVariable Long postSn) {
+        qnaService.delete(postSn);
         return ResponseEntity.ok().build();
     }
 }

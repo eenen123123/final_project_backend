@@ -19,6 +19,44 @@
         <result property="noticeTypeNm" column="NOTICE_TYPE_NM"/>
     </resultMap>
 
+    <sql id="noticeSearchWhere">
+        <trim prefix="WHERE" prefixOverrides="AND">
+            <if test="detailCondition != null">
+                <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
+                    AND instr(b.POST_SJ, #{detailCondition.keyword}) &gt; 0
+                </if>
+                <if test="detailCondition.noticeTypeCd != null and detailCondition.noticeTypeCd != ''">
+                    AND n.NOTICE_TYPE_CD = #{detailCondition.noticeTypeCd}
+                </if>
+            </if>
+        </trim>
+    </sql>
+
+    <!-- 공지사항 페이징 목록 조회 -->
+    <select id="findNoticeListPaged" resultMap="noticeResultMap">
+        SELECT * FROM (
+            SELECT
+                n.POST_SN, n.NOTICE_TYPE_CD,
+                b.POST_SJ, b.POST_CN, b.WRTR_USER_ID,
+                b.TOP_FIX_ORD, b.POPUP_EXPS_YN, b.REG_DT, b.MDFCN_DT,
+                c.COM_CD_NM AS NOTICE_TYPE_NM
+            FROM NOTICE n
+            JOIN BOARD b ON b.POST_SN = n.POST_SN
+            LEFT JOIN COM_CD c ON c.CL_CODE = '103' AND c.COM_CD = n.NOTICE_TYPE_CD
+            <include refid="noticeSearchWhere"/>
+            ORDER BY b.TOP_FIX_ORD ASC NULLS LAST, b.REG_DT DESC
+        )
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <!-- 공지사항 전체 건수 -->
+    <select id="countNoticeList" resultType="int">
+        SELECT COUNT(*)
+        FROM NOTICE n
+        JOIN BOARD b ON b.POST_SN = n.POST_SN
+        <include refid="noticeSearchWhere"/>
+    </select>
+
     <!-- 공지사항 목록 조회 -->
     <select id="findNoticeList" resultMap="noticeResultMap">
         SELECT

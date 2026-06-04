@@ -2,84 +2,72 @@ package kr.or.ddit.finalProject.service.board.faq;
 
 import java.util.List;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import kr.or.ddit.finalProject.dto.board.BoardDto;
 import kr.or.ddit.finalProject.dto.board.FaqDto;
+import kr.or.ddit.finalProject.dto.board.req.FaqSearchCondition;
+import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.mapper.board.BoardMapper;
 import kr.or.ddit.finalProject.mapper.board.FaqMapper;
-import kr.or.ddit.finalProject.service.board.BoardService;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @RequiredArgsConstructor
 @Service
 public class FaqServiceImpl implements FaqService {
 
     private final FaqMapper faqMapper;
-    private final BoardService boardService;
+    private final BoardMapper boardMapper;
 
     @Override
     @Transactional(readOnly = true)
-    public List<FaqDto> getFaqList(String faqCtgCd, String faqSubCtgCd) {
-        log.info("FAQ 목록 조회 - 대분류: {}, 중분류: {}", faqCtgCd, faqSubCtgCd);
-        return faqMapper.findFaqList(faqCtgCd, faqSubCtgCd);
+    public PageResponse<FaqDto> getList(PaginationInfo<FaqSearchCondition> paginationInfo) {
+        List<FaqDto> items = faqMapper.findFaqListPaged(paginationInfo);
+        int totalCount = faqMapper.countFaqList(paginationInfo);
+        return new PageResponse<>(items, totalCount);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public FaqDto getFaqById(Long postSn) {
-        log.info("FAQ 단건 조회 - postSn: {}", postSn);
+    public FaqDto getById(Long postSn, Authentication authentication) {
         return faqMapper.findFaqById(postSn);
     }
 
     @Override
     @Transactional
-    public void createFaq(FaqDto faqDto) {
-        // 1. BOARD INSERT → postSn 자동 채번
-        BoardDto boardDto = BoardDto.builder().wrtrUserId(faqDto.getWrtrUserId())
-                .postSj(faqDto.getPostSj()).postCn(faqDto.getPostCn()).build();
-        boardService.createPost(boardDto);
-
-        // 2. 채번된 postSn FAQ에 세팅
-        faqDto.setPostSn(boardDto.getPostSn());
-
-        // 3. FAQ INSERT
-        faqMapper.insertFaq(faqDto);
+    public void create(FaqDto dto, Authentication authentication) {
+        if (authentication != null) {
+            dto.setWrtrUserId(authentication.getName());
+        }
+        boardMapper.insertBoard(dto);
+        faqMapper.insertFaq(dto);
     }
 
     @Override
     @Transactional
-    public void updateFaq(FaqDto faqDto) {
-        // 1. BOARD 수정
-        BoardDto boardDto = BoardDto.builder().postSn(faqDto.getPostSn()).postSj(faqDto.getPostSj())
-                .postCn(faqDto.getPostCn()).lastMdfrId(faqDto.getWrtrUserId()).build();
-        boardService.updatePost(boardDto);
-
-        // 2. FAQ 수정
-        faqMapper.updateFaq(faqDto);
+    public void update(FaqDto dto) {
+        boardMapper.updateBoard(dto);
+        faqMapper.updateFaq(dto);
     }
 
     @Override
     @Transactional
-    public void deleteFaq(Long postSn) {
-        // 1. FAQ 삭제 (FK 때문에 FAQ 먼저)
+    public void delete(Long postSn) {
         faqMapper.deleteFaq(postSn);
-
-        // 2. BOARD 삭제
-        boardService.deletePost(postSn);
+        boardMapper.deleteBoard(postSn);
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public FaqDto getPrevFaq(Long postSn, String faqCtgCd) {
         return faqMapper.findPrevFaq(postSn, faqCtgCd);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public FaqDto getNextFaq(Long postSn, String faqCtgCd) {
         return faqMapper.findNextFaq(postSn, faqCtgCd);
     }
-
 }
