@@ -98,7 +98,7 @@
             , #{jbgrCd, jdbcType=CHAR}
             , #{joinYmd, jdbcType=DATE}
             , #{retmtYmd, jdbcType=DATE}
-            , #{emplStatCd, jdbcType=CHAR}
+            , '01'
             , #{atchFileId, jdbcType=VARCHAR}
             , #{chrgDutyCn, jdbcType=VARCHAR}
             , #{rgtrId, jdbcType=VARCHAR}
