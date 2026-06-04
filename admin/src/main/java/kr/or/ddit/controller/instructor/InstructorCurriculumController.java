@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,7 +18,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import kr.or.ddit.finalProject.dto.course.CourseDto;
+import kr.or.ddit.finalProject.dto.curriculum.CourseSaveRequest;
 import kr.or.ddit.finalProject.dto.curriculum.CurriculumDto;
+import kr.or.ddit.finalProject.dto.curriculum.CurriculumSaveRequest;
+import kr.or.ddit.finalProject.dto.curriculum.LectureSaveRequest;
 import kr.or.ddit.finalProject.dto.lecture.LectureDto;
 import kr.or.ddit.finalProject.service.course.CourseService;
 import kr.or.ddit.finalProject.service.curriculum.CurriculumService;
@@ -41,7 +45,7 @@ public class InstructorCurriculumController {
 
     @GetMapping
     public String curriculumMainPage(Model model, Authentication authentication) {
-        String loginInstructorId = resolveLoginUserId(authentication);
+        String loginInstructorId = authentication.getName();
 
         List<CurriculumDto> curriculumList = curriculumService.retrieveList(loginInstructorId);
         model.addAttribute("curriculumList", curriculumList);
@@ -52,7 +56,7 @@ public class InstructorCurriculumController {
     @ResponseBody
     public ResponseEntity<String> saveCurriculum(@RequestBody CurriculumSaveRequest request,
             Authentication authentication) {
-        String loginInstructorId = resolveLoginUserId(authentication);
+        String loginInstructorId = authentication.getName();
 
         CurriculumDto curriculumDto = new CurriculumDto();
         curriculumDto.setTitle(request.getTitle());
@@ -72,7 +76,7 @@ public class InstructorCurriculumController {
     public ResponseEntity<String> modifyCurriculum(@PathVariable Long curriculumId,
             @RequestBody CurriculumSaveRequest request,
             Authentication authentication) {
-        String loginInstructorId = resolveLoginUserId(authentication);
+        String loginInstructorId = authentication.getName();
 
         CurriculumDto curriculumDto = new CurriculumDto();
         curriculumDto.setCurriculumId(curriculumId);
@@ -86,7 +90,7 @@ public class InstructorCurriculumController {
     @ResponseBody
     public ResponseEntity<String> deleteCurriculum(@PathVariable Long curriculumId,
             Authentication authentication) {
-        String loginInstructorId = resolveLoginUserId(authentication);
+        String loginInstructorId = authentication.getName();
 
         curriculumService.removeCurriculumLogically(curriculumId, loginInstructorId);
         return ResponseEntity.ok("SUCCESS");
@@ -108,7 +112,7 @@ public class InstructorCurriculumController {
     public ResponseEntity<String> saveCourse(@PathVariable Long curriculumId,
             @RequestBody CourseSaveRequest request,
             Authentication authentication) {
-        String loginInstructorId = resolveLoginUserId(authentication);
+        String loginInstructorId = authentication.getName();
 
         CourseDto courseDto = new CourseDto();
         courseDto.setCurriculumId(curriculumId);
@@ -133,7 +137,7 @@ public class InstructorCurriculumController {
     public ResponseEntity<String> modifyCourse(@PathVariable Long courseSn,
             @RequestBody CourseSaveRequest request,
             Authentication authentication) {
-        String loginInstructorId = resolveLoginUserId(authentication);
+        String loginInstructorId = authentication.getName();
 
         CourseDto courseDto = new CourseDto();
         courseDto.setCourseSn(courseSn);
@@ -151,7 +155,7 @@ public class InstructorCurriculumController {
     @ResponseBody
     public ResponseEntity<String> deleteCourse(@PathVariable Long courseSn,
             Authentication authentication) {
-        String loginInstructorId = resolveLoginUserId(authentication);
+        String loginInstructorId = authentication.getName();
 
         courseService.removeCourse(courseSn, loginInstructorId);
         return ResponseEntity.ok("SUCCESS");
@@ -173,7 +177,7 @@ public class InstructorCurriculumController {
     public ResponseEntity<String> saveLecture(@PathVariable Long courseSn,
             @RequestBody LectureSaveRequest request,
             Authentication authentication) {
-        String loginInstructorId = resolveLoginUserId(authentication);
+        String loginInstructorId = authentication.getName();
 
         LectureDto lectureDto = new LectureDto();
         lectureDto.setCourseSn(courseSn);
@@ -200,7 +204,7 @@ public class InstructorCurriculumController {
     public ResponseEntity<String> modifyLecture(@PathVariable Long lectureSn,
             @RequestBody LectureSaveRequest request,
             Authentication authentication) {
-        String loginInstructorId = resolveLoginUserId(authentication);
+        String loginInstructorId = authentication.getName();
 
         LectureDto lectureDto = new LectureDto();
         lectureDto.setLectureSn(lectureSn);
@@ -221,7 +225,7 @@ public class InstructorCurriculumController {
     @ResponseBody
     public ResponseEntity<String> deleteLecture(@PathVariable Long lectureSn,
             Authentication authentication) {
-        String loginInstructorId = resolveLoginUserId(authentication);
+        String loginInstructorId = authentication.getName();
 
         lectureService.removeLecture(lectureSn, loginInstructorId);
         return ResponseEntity.ok("SUCCESS");
@@ -231,48 +235,16 @@ public class InstructorCurriculumController {
     // 공통
     // =====================================================================
 
-    private String resolveLoginUserId(Authentication authentication) {
-        if (authentication == null || authentication.getName() == null) {
-            throw new IllegalStateException("인증 정보가 없습니다.");
-        }
-        return authentication.getName();
-    }
-
-    @org.springframework.web.bind.annotation.ExceptionHandler(IllegalArgumentException.class)
+    @ExceptionHandler(IllegalArgumentException.class)
     @ResponseBody
     public ResponseEntity<String> handleNotFound(IllegalArgumentException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 
-    @org.springframework.web.bind.annotation.ExceptionHandler(SecurityException.class)
+    @ExceptionHandler(SecurityException.class)
     @ResponseBody
     public ResponseEntity<String> handleForbidden(SecurityException e) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
     }
 
-    @lombok.Data
-    public static class CurriculumSaveRequest {
-        private String title;
-    }
-
-    @lombok.Data
-    public static class CourseSaveRequest {
-        private String courseNm;
-        private String courseExplnCn;
-        private String opnnYn;
-        private Integer sortOrd;
-        private Long prereqCourseSn;
-    }
-
-    @lombok.Data
-    public static class LectureSaveRequest {
-        private String lectureNm;
-        private String lectureTypeCd;
-        private Integer lectureDuration;
-        private String lectureExplnCn;
-        private String opnnYn;
-        private String lockYn;
-        private Integer sortOrd;
-        private Long prereqLectureSn;
-    }
 }
