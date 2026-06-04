@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.calendar.CalendarEventMapper">
+
+    <!-- ResultMap -->
+    <resultMap id="calendarEventResultMap" type="kr.or.ddit.finalProject.dto.calendar.CalendarEventDto">
+        <id property="eventSn" column="event_sn"/>
+        <result property="eventType" column="event_type"/>
+        <result property="eventTitle" column="event_title"/>
+        <result property="eventCont" column="event_cont"/>
+        <result property="startDt" column="start_dt"/>
+        <result property="endDt" column="end_dt"/>
+        <result property="regUserId" column="reg_user_id"/>
+        <result property="regDt" column="reg_dt"/>
+        <result property="mdfcnDt" column="mdfcn_dt"/>
+        <result property="mdfcnUserId" column="mdfcn_user_id"/>
+    </resultMap>
+
+    <!-- 전체 이벤트 조회 (관리자) -->
+    <select id="selectAllCalendarEventList" resultMap="calendarEventResultMap">
+        SELECT *
+        FROM calendar_event
+        ORDER BY start_dt ASC
+    </select>
+
+    <!-- 월별 이벤트 조회 -->
+    <select id="selectCalendarEventList" parameterType="map" resultMap="calendarEventResultMap">
+        SELECT *
+        FROM calendar_event
+        WHERE start_dt &lt;= LAST_DAY(TO_DATE(#{year} || '-' || LPAD(#{month}, 2, '0') || '-01', 'YYYY-MM-DD'))
+          AND end_dt &gt;= TO_DATE(#{year} || '-' || LPAD(#{month}, 2, '0') || '-01', 'YYYY-MM-DD')
+        ORDER BY start_dt ASC
+    </select>
+
+    <!-- 단건 조회 -->
+    <select id="selectCalendarEvent" parameterType="long" resultMap="calendarEventResultMap">
+        SELECT *
+        FROM calendar_event
+        WHERE event_sn = #{eventSn}
+    </select>
+
+    <!-- 유형 + 년도로 삭제 -->
+    <delete id="deleteCalendarEventByTypeAndYear">
+        DELETE FROM calendar_event
+        WHERE event_type = #{eventType}
+        AND TO_CHAR(start_dt, 'YYYY') = TO_CHAR(#{year})
+    </delete>
+
+    <!-- 등록 -->
+    <insert id="insertCalendarEvent" parameterType="kr.or.ddit.finalProject.dto.calendar.CalendarEventDto">
+        INSERT INTO calendar_event (
+            event_type, event_title, event_cont,
+            start_dt, end_dt, reg_user_id, reg_dt
+        ) VALUES (
+            #{eventType}, #{eventTitle}, #{eventCont},
+            #{startDt}, #{endDt}, #{regUserId}, CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <!-- 수정 -->
+    <update id="updateCalendarEvent" parameterType="kr.or.ddit.finalProject.dto.calendar.CalendarEventDto">
+        UPDATE calendar_event
+        SET event_type  = #{eventType},
+            event_title = #{eventTitle},
+            event_cont  = #{eventCont},
+            start_dt    = #{startDt},
+            end_dt      = #{endDt},
+            mdfcn_dt    = CURRENT_TIMESTAMP,
+            mdfcn_user_id = #{mdfcnUserId}
+        WHERE event_sn = #{eventSn}
+    </update>
+
+    <!-- 삭제 -->
+    <delete id="deleteCalendarEvent" parameterType="long">
+        DELETE FROM calendar_event
+        WHERE event_sn = #{eventSn}
+    </delete>
+
+</mapper>

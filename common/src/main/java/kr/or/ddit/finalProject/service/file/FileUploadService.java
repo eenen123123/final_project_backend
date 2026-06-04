@@ -1,6 +1,7 @@
 package kr.or.ddit.finalProject.service.file;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
@@ -207,6 +208,7 @@ public class FileUploadService {
         }
 
         try {
+            validateMagicBytes(file);
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
             body.add("file", multipartResource(file));
 
@@ -283,6 +285,34 @@ public class FileUploadService {
                 return file.getOriginalFilename();
             }
         };
+    }
+
+    // Content-Type 헤더는 클라이언트가 조작 가능하므로 파일 시그니처(Magic Bytes)로 실제 포맷을 검증
+    private void validateMagicBytes(MultipartFile file) {
+        byte[] header = new byte[12];
+        int read;
+        try (InputStream in = file.getInputStream()) {
+            read = in.read(header);
+        } catch (IOException e) {
+            throw new FinalProjectException(ErrorCode.FILE_READ_ERROR, e);
+        }
+        if (read < 4 || !isSupportedFormat(header, read)) {
+            throw new FinalProjectException(ErrorCode.INVALID_FILE_TYPE);
+        }
+    }
+
+    private boolean isSupportedFormat(byte[] b, int len) {
+        // JPEG: FF D8 FF
+        if (len >= 3 && b[0] == (byte) 0xFF && b[1] == (byte) 0xD8 && b[2] == (byte) 0xFF) return true;
+        // PNG: 89 50 4E 47
+        if (len >= 4 && b[0] == (byte) 0x89 && b[1] == 0x50 && b[2] == 0x4E && b[3] == 0x47) return true;
+        // GIF: GIF8
+        if (len >= 4 && b[0] == 0x47 && b[1] == 0x49 && b[2] == 0x46 && b[3] == 0x38) return true;
+        // WEBP: RIFF....WEBP
+        if (len >= 12 && b[0] == 0x52 && b[1] == 0x49 && b[2] == 0x46 && b[3] == 0x46
+                && b[8] == 0x57 && b[9] == 0x45 && b[10] == 0x42 && b[11] == 0x50) return true;
+        // PDF: %PDF
+        return len >= 4 && b[0] == 0x25 && b[1] == 0x50 && b[2] == 0x44 && b[3] == 0x46;
     }
 
     private void relayAuthorizationHeader(HttpHeaders headers) {
