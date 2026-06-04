@@ -38,4 +38,14 @@ public class FileAuthorizationService {
             default -> true; // false로 바꿔야 하지만, 일단 테스트 편의를 위해 true 반환. 실제 구현 시에는 각 케이스에 맞는 권한 체크 로직 구현 필요.
         };
     }
+
+
+    public boolean canAccess(long[] fileServerIds, Authentication authentication) {
+        for (long fileServerId : fileServerIds) {
+            if (!canAccess(fileServerId, authentication)) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
