@@ -15,6 +15,7 @@ import kr.or.ddit.finalProject.dto.employee.EmployeeDetailDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto;
 import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
+import kr.or.ddit.finalProject.dto.member.MemberCreateLogDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.dto.user.SignupRequestRecord;
 import kr.or.ddit.finalProject.exception.ErrorCode;
@@ -60,69 +61,14 @@ public class StaffServiceImpl implements StaffService{
     @Transactional(rollbackFor = Exception.class) // 예외 발생시 롤백
     public void registerEmployee(MemberDto memberDto, EmployeeInfoDto employeeInfoDto, EmployeeSalaryDto employeeSalaryDto, String profileUrl, String loginAdminId) {
 
-        // 0. 유효성 검사 (암호화·가공 이전 원본값 기준)
-        validateMemberInput(memberDto);
+        // 1. MemberDto에 데이터 넣기
+        propareMemberForRegister(memberDto, profileUrl, "ROLE_ADMIN");
 
-        // 1. ROLE 및 기본 프로필 설정
-        memberDto.setUserRole("ROLE_ADMIN"); // 기본적으로 ROLE_ADMIN으로 설정
-        memberDto.setUserProfile(profileUrl); // 기본 프로필 이미지 경로 설정
-
-        // 2. 비밀번호 암호화
-        memberDto.setUserEnpswd(passwordEncoder.encode(memberDto.getUserEnpswd()));
-
-        // 3. 주민등록번호 암호화
-        memberDto.setUserEnrrno(passwordEncoder.encode(memberDto.getUserEnrrno()));
-
-        // 4. 연락처 하이픈 제거
-        if (memberDto.getUserTelno() != null) {
-            String cleanTelno = memberDto.getUserTelno().replaceAll("-","");
-            memberDto.setUserTelno(cleanTelno);
-        }
-
-        // 5. ID 중복 체크
-        String generatedId = memberDto.getUserId();// 화면에서 넘어온 최초 생성 ID (예: 202605KH07)
-        String baseId = generatedId.substring(0, 10); // "년월+초성" 패턴 분리 (예: 202605KH)
-
-        boolean isDuplicate = true;
-        int safetyCount = 0; // 무한 루프 방지 방어벽
-
-        while (isDuplicate && safetyCount < 100) {
-            // DB에 현재 ID가 이미 존재하는지 최종 확인
-            int count = staffMapper.checkIdExists(generatedId);
-
-            if (count == 0) {
-                // 중복이 없다면 이 ID를 최종 사용하기로 확정하고 루프 탈출
-                isDuplicate = false;
-            } else {
-                // 중복이 발생했다면, DB에서 해당 패턴의 최신 MAX ID를 다시 조회합니다.
-                String maxId = staffMapper.selectMaxUserId(baseId);
-                
-                // 조회된 최고 높은 ID의 맨 뒤 2자리를 잘라 숫자로 바꾼 뒤 1을 더해줍니다 (++)
-                String lastTwoDigits = maxId.substring(maxId.length() - 2);
-                int nextSerialInt = Integer.parseInt(lastTwoDigits) + 1;
-                
-                // 다시 2자리 문자열 포맷으로 변환하여 베이스 아이디 뒤에 결합합니다.
-                String nextSerial = String.format("%02d", nextSerialInt);
-                generatedId = baseId + nextSerial; // 예: 202605KH08로 안전하게 업데이트
-                
-                safetyCount++;
-            }
-        }
-
-        // 100회 시도 후에도 중복 해소 실패 → 예외 발생
-        if (isDuplicate) {
-            log.error("[registerEmployee] ID 생성 실패 - 100회 시도 소진. baseId={}", baseId);
-            throw new FinalProjectException(ErrorCode.EMPLOYEE_ID_GENERATE_FAILED);
-        }
-
-        // 최종적으로 중복이 없는 ID가 확보된 상태에서 memberDto에 주입합니다.
-        memberDto.setUserId(generatedId);
-
-        // 6. EmployeeInfoDto에 데이터 넣기
+        // 2. EmployeeInfoDto에 데이터 넣기
         employeeInfoDto.setRgtrId(loginAdminId); // 최초등록자ID -> 현재 로그인한 관리자 ID
         employeeInfoDto.setLastMdfrId(loginAdminId); // 최종등록자ID -> 현재 로그인한 관리자 ID
 
-        // 7. EmployeeSalaryDto 데이터 넣기
+        // 3. EmployeeSalaryDto 데이터 넣기
         employeeSalaryDto.setUserId(memberDto.getUserId());
         employeeSalaryDto.setUseYn("Y"); // 첫 등록이므로 현재 사용 여부는 무조건 'Y'로 설정
         employeeSalaryDto.setApplyYmd(employeeInfoDto.getJoinYmd()); // 급여 적용 시작일은 입사일과 동일하게 설정
@@ -168,25 +114,24 @@ public class StaffServiceImpl implements StaffService{
 
     /**
      * 아이디 중복 자동 순번 발급 및 중복 회피
+     * defaultSerial 길이로 시리얼 자릿수를 자동 감지 (직원: "01" 2자리, 학생: "00001" 5자리)
      */
     @Override
     public String getNextAvailableId(String baseId, String defaultSerial) {
-        // DB에서 가장 큰 ID 조회 (예: "202605KH07")
+        int serialLen = defaultSerial.length(); // 직원=2, 학생=5
         String maxId = staffMapper.selectMaxUserId(baseId);
-        
+
         if (maxId == null) {
-            // 기존에 등록된 동일 패턴의 ID가 전혀 없다면 처음 제안된 기본값("202605KH07") 그대로 반환
             return baseId + defaultSerial;
         }
-        
-        // 가장 뒤의 2자리 일련번호를 잘라내어 숫자로 변환 후 ++ 해줍니다.
+
         try {
-            String lastTwoDigits = maxId.substring(maxId.length() - 2);
-            int nextSerialInt = Integer.parseInt(lastTwoDigits) + 1;
-            String nextSerial = String.format("%02d", nextSerialInt);
+            String lastDigits = maxId.substring(maxId.length() - serialLen);
+            int nextSerialInt = Integer.parseInt(lastDigits) + 1;
+            String nextSerial = String.format("%0" + serialLen + "d", nextSerialInt);
             return baseId + nextSerial;
         } catch (NumberFormatException e) {
-            log.error("[getNextAvailableId] ID 끝 2자리 숫자 파싱 실패. maxId={}", maxId);
+            log.error("[getNextAvailableId] ID 끝 {}자리 숫자 파싱 실패. maxId={}", serialLen, maxId);
             throw new FinalProjectException(ErrorCode.EMPLOYEE_ID_GENERATE_FAILED, e);
         }
     }
@@ -293,4 +238,149 @@ public class StaffServiceImpl implements StaffService{
 
     }
 
+    /**
+     * 학생 리스트 조회
+     */
+    @Override
+    public List<MemberDto> retrieveStudentList() {
+        return staffMapper.selectStudentList();
+    }
+
+    /**
+     * 가입 연도 목록 조회
+     */
+    @Override
+    public List<Integer> retrieveMemberJoinYearList() {
+        return staffMapper.selectStudentJoinYearList();
+    }
+
+    /**
+     * 신규 학생 통합 등록 (계정 + 프로필 파일)
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void registerStudent(MemberDto memberDto, MemberCreateLogDto memberCreateLog, String profileUrl, String loginAdmin) {
+        // 1. MemberDto에 데이터 넣기
+        propareMemberForRegister(memberDto, profileUrl, "ROLE_STUDENT");
+        
+        // 2. memberCreateLog에 데이터넣기
+        memberCreateLog.setRgtrId(loginAdmin);     // 최초등록자ID -> 현재 로그인한 관리자 ID
+        memberCreateLog.setLastMdfrId(loginAdmin); // 최종등록자ID -> 현재 로그인한 관리자 ID
+
+        log.info("등록할 회원 정보: {}", memberDto);
+        log.info("등록할 학생 로그: {}", memberCreateLog);
+
+        /**
+         * 일괄 트랜잭션 등록 처리
+         * 1. 회원 등록 (MemberDto) -> 회원 마스터 테이블(MEMBER)에 INSERT
+         * 2. 회원 로그 정보 저장 (MemberCreateLog) -> 회원 마스터 테이블(MEMBER_CREATE_LOG)에 INSERT
+         */
+        try {
+            staffMapper.insertEmployee(memberDto);
+            staffMapper.insertStudentLog(memberCreateLog);
+        } catch (DataAccessException e) {
+            log.error("[registerStudent] DB INSERT 실패, userId={}, cause={}", memberDto.getUserId(), e.getMessage());
+            throw new FinalProjectException(ErrorCode.MEMBER_ID_GENETATE_FAILED, e);
+        }
+
+    }   
+
+    /**
+     * 회원 공통 등록 전처리
+     */
+    private void propareMemberForRegister(MemberDto memberDto, String profileUrl, String userRole) {
+
+        // 0. 유효성 검사 (암호화·가공 이전 원본값 기준)
+        validateMemberInput(memberDto);
+
+        // 1. 권한 설정
+        memberDto.setUserRole(userRole); 
+
+        // 2. 기본 프로필 설정
+        memberDto.setUserProfile(profileUrl);
+
+        // 3. 비밀번호 암호화
+        memberDto.setUserEnpswd(passwordEncoder.encode(memberDto.getUserEnpswd()));
+
+        // 4. 주민등록번호 암호화
+        if (hasText(memberDto.getUserEnrrno())) {
+            memberDto.setUserEnrrno(passwordEncoder.encode(memberDto.getUserEnrrno()));
+        }
+
+        // 5. 연락처 하이픈 제거
+        memberDto.setUserTelno(removeHyphen(memberDto.getUserTelno()));
+
+        // 6. ID 생성
+        String uniqueUserId = generateUniqueUserId(memberDto.getUserId());
+        memberDto.setUserId(uniqueUserId);
+    }
+
+    /**
+     * USER_ID 중복 체크 후 최종 ID 생성
+     * 학생 ID 패턴 (\d{2}S\d{5}) 자동 감지 → 시리얼 5자리 처리
+     * 직원 ID 패턴 그 외 → 기존 시리얼 2자리 처리
+     */
+    private String generateUniqueUserId(String initialUserId) {
+
+        if (initialUserId == null || initialUserId.isBlank()) {
+            log.error("[generateUniqueUserId] USER_ID가 비어있습니다.");
+            throw new FinalProjectException(ErrorCode.USERNAME_ALREADY_EXISTS);
+        }
+
+        // 학생 ID 형식: {YY}S{5자리} (예: 26S00001, 총 8자리)
+        boolean isStudentId = initialUserId.matches("\\d{2}S\\d{5}");
+        int serialLen = isStudentId ? 5 : 2;
+        int baseLen   = initialUserId.length() - serialLen;
+
+        if (baseLen <= 0) {
+            log.error("[generateUniqueUserId] 잘못된 USER_ID 형식, initialUserId={}", initialUserId);
+            throw new FinalProjectException(ErrorCode.USERNAME_ALREADY_EXISTS);
+        }
+
+        String generatedId = initialUserId;
+        String baseId      = generatedId.substring(0, baseLen); // 직원: "202605KH", 학생: "26S"
+
+        boolean isDuplicate = true;
+        int safetyCount = 0;
+
+        while (isDuplicate && safetyCount < 100) {
+            int count = staffMapper.checkIdExists(generatedId);
+
+            if (count == 0) {
+                isDuplicate = false;
+            } else {
+                String maxId = staffMapper.selectMaxUserId(baseId);
+                String lastDigits = maxId.substring(maxId.length() - serialLen);
+                int nextSerialInt = Integer.parseInt(lastDigits) + 1;
+                String nextSerial = String.format("%0" + serialLen + "d", nextSerialInt);
+                generatedId = baseId + nextSerial;
+                safetyCount++;
+            }
+        }
+
+        if (isDuplicate) {
+            log.error("[generateUniqueUserId] ID 생성 실패 - 100회 시도 소진. baseId={}", baseId);
+            throw new FinalProjectException(ErrorCode.USER_ID_ALREADY_EXISTS);
+        }
+
+        return generatedId;
+    }
+
+    /**
+     * 전화번호 하이픈 제거
+     */
+    private String removeHyphen(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        return value.replace("-", "");
+    }
+
+    /**
+     * 문자열 값 존재 여부 체크
+     */
+    private boolean hasText(String value) {
+        return value != null && !value.trim().isEmpty();
+    }
 }

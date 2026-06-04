@@ -98,7 +98,7 @@
             , #{jbgrCd, jdbcType=CHAR}
             , #{joinYmd, jdbcType=DATE}
             , #{retmtYmd, jdbcType=DATE}
-            , #{emplStatCd, jdbcType=CHAR}
+            , '01'
             , #{atchFileId, jdbcType=VARCHAR}
             , #{chrgDutyCn, jdbcType=VARCHAR}
             , #{rgtrId, jdbcType=VARCHAR}
@@ -294,5 +294,54 @@
         WHERE USER_ID = #{userId}
           AND USE_YN = 'Y'                
     </update>
-    
+
+    <!-- selectStudentList --> 
+    <select id="selectStudentList" resultType="kr.or.ddit.finalProject.dto.member.MemberDto">
+        SELECT
+            USER_ID
+            , USER_ENPSWD
+            , USER_NAME
+            , USER_ENRRNO
+            , USER_GNDR_CD
+            , USER_BRDT
+            , JOIN_DT
+            , USER_TELNO
+            , USER_EMAIL_ADDR
+            , USER_ZIP
+            , USER_ADDR
+            , USER_DADDR
+            , USER_PROFILE
+            , REG_DATE
+            , MOD_DATE
+            , ENABLE
+            , USER_ROLE
+        FROM
+            MEMBER
+        WHERE USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
+    </select>    
+
+    <!-- selectStudentJoinYearList --> 
+    <select id="selectStudentJoinYearList">
+        SELECT DISTINCT TO_CHAR(JOIN_DT, 'YYYY') AS JOIN_YEAR
+          FROM MEMBER
+          WHERE USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
+            AND JOIN_DT IS NOT NULL
+          ORDER BY JOIN_YEAR
+    </select>
+
+    <!-- insertStudentLog --> 
+
+    <insert id="insertStudentLog" parameterType="kr.or.ddit.finalProject.dto.member.MemberCreateLogDto">
+        INSERT
+            INTO
+            MEMBER_CREATE_LOG
+            (
+                USER_ID
+                , RGTR_ID
+                , LAST_MDFR_ID
+                , REG_DT
+                , MDFCN_DT
+            )
+        VALUES(#{userId}, #{rgtrId}, #{lastMdfrId}, SYSTIMESTAMP, SYSTIMESTAMP)
+    </insert>
 </mapper>

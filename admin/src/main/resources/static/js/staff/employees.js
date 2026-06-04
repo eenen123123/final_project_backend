@@ -276,22 +276,28 @@ function openDetail(id) {
     휴직: "status-leave",
     퇴사: "status-resigned",
   };
-  const roleClass = {
-    매니저: "role-manager",
-    행정: "role-staff",
-    강사: "role-instructor",
-    PD: "role-pd",
-  };
 
   document.getElementById("detail-title").textContent = e.name + " · 직원 상세";
-  document.getElementById("detail-avatar").textContent =
-    e.name && e.name !== "-" ? e.name[0] : "?";
+  const profileUrl = (row ? row.dataset.profile : src.dataset.profile) || "";
+  const avatarImg = document.getElementById("detail-avatar-img");
+  const avatarDiv = document.getElementById("detail-avatar");
+  if (profileUrl.startsWith("http")) {
+    avatarImg.src = profileUrl;
+    avatarImg.classList.remove("hidden");
+    avatarImg.style.cursor = "zoom-in";
+    avatarImg.onclick = () => openProfileLightbox(profileUrl);
+    avatarDiv.classList.add("hidden");
+  } else {
+    avatarImg.classList.add("hidden");
+    avatarImg.onclick = null;
+    avatarDiv.classList.remove("hidden");
+    avatarDiv.textContent = e.name && e.name !== "-" ? e.name[0] : "?";
+  }
   document.getElementById("detail-name").textContent = e.name;
   document.getElementById("detail-status-badge").className =
     "status-badge " + (statusClass[e.status] || "status-resigned");
   document.getElementById("detail-status-badge").textContent = e.status;
-  document.getElementById("detail-role-tag").className =
-    "role-tag " + (roleClass[e.role] || "role-staff");
+  document.getElementById("detail-role-tag").className = "text-xs text-slate-500";
   document.getElementById("detail-role-tag").textContent = e.role;
   document.getElementById("detail-dept-tag").textContent = e.dept;
   document.getElementById("detail-phone").textContent = e.phone;
@@ -387,10 +393,74 @@ function toggleDetailEdit() {
       document.getElementById("edit-salary").value = row.dataset.salary || "";
 
       const profilePathEl = document.getElementById("edit-profile-path");
-      if (profilePathEl) profilePathEl.value = row.dataset.profile || "";
+      const rawProfile = row.dataset.profile || "";
+      if (profilePathEl) profilePathEl.value = rawProfile.startsWith("http") ? rawProfile : "";
       const profileFileEl = document.getElementById("edit-profile");
       if (profileFileEl) profileFileEl.value = "";
     }
+  }
+}
+
+function openProfileLightbox(url) {
+  const overlay = document.createElement("div");
+  overlay.style.cssText = [
+    "position:fixed", "inset:0", "z-index:9999",
+    "background:rgba(0,0,0,0.75)", "display:flex",
+    "align-items:center", "justify-content:center", "cursor:zoom-out",
+  ].join(";");
+
+  const img = document.createElement("img");
+  img.src = url;
+  img.style.cssText = "max-width:80vw;max-height:80vh;border-radius:1rem;box-shadow:0 8px 40px rgba(0,0,0,0.5)";
+
+  overlay.appendChild(img);
+  document.body.appendChild(overlay);
+
+  const close = () => overlay.remove();
+  overlay.addEventListener("click", close);
+  document.addEventListener("keydown", function onKey(e) {
+    if (e.key === "Escape") { close(); document.removeEventListener("keydown", onKey); }
+  });
+}
+
+function syncRowCells(row) {
+  const cells = row.cells;
+  const typeMap = { "01": "정규직", "02": "계약직", "03": "파트타임" };
+  const statusInfo = {
+    "01": ["재직", "status-active"],
+    "02": ["휴직", "status-leave"],
+    "03": ["퇴사", "status-resigned"],
+  };
+
+  // col 0: 이름 텍스트 + 아바타 이니셜
+  const nameEl = cells[0].querySelector("p.font-bold");
+  if (nameEl) nameEl.textContent = row.dataset.name || "";
+  const textAvatar = cells[0].querySelector(".bg-blue-100");
+  if (textAvatar) textAvatar.textContent = (row.dataset.name || "?")[0];
+
+  // col 1: 부서
+  cells[1].textContent = row.dataset.deptNm || "-";
+
+  // col 2: 직급
+  const gradeSpan = cells[2].querySelector("span");
+  if (gradeSpan) gradeSpan.textContent = row.dataset.grade || "-";
+
+  // col 3: 근무 유형
+  cells[3].textContent = typeMap[row.dataset.type] || "-";
+
+  // col 4: 입사일
+  cells[4].textContent = row.dataset.join || "-";
+
+  // col 5: 계약 기간
+  const end = (row.dataset.contractEnd || "").substring(0, 10);
+  cells[5].textContent = end || "-";
+
+  // col 6: 상태 badge
+  const badge = cells[6].querySelector(".status-badge");
+  if (badge) {
+    const [text, cls] = statusInfo[row.dataset.status] || ["미등록", "status-resigned"];
+    badge.textContent = text;
+    badge.className = "status-badge " + cls;
   }
 }
 
@@ -412,6 +482,7 @@ function saveDetailEdit() {
     document.getElementById("edit-addr-detail").value || ""
   ).trim();
 
+  row.dataset.name = document.getElementById("edit-name").value.trim();
   row.dataset.dept = deptVal;
   row.dataset.deptNm = deptOpt ? deptOpt.text : row.dataset.deptNm;
   row.dataset.gradeCd = gradeVal;
@@ -440,35 +511,59 @@ function saveDetailEdit() {
     card.dataset.emplStatCd = row.dataset.status;
   }
 
-  const payload = {
-    userId: selectedEmpId,
-    userName: document.getElementById("edit-name").value.trim(),
-    userGndrCd: document.getElementById("edit-gender").value,
-    userBrdt: document.getElementById("edit-birthdate").value,
-    userTelno: document.getElementById("edit-phone").value,
-    userEmailAddr: document.getElementById("edit-email").value.trim(),
-    userZip: document.getElementById("edit-zipcode").value.trim(),
-    userAddr: document.getElementById("edit-addr").value.trim(),
-    userDaddr: addrDetail,
-    userProfile: document.getElementById("edit-profile-path").value.trim(),
-    deptCd: deptVal,
-    jbgrCd: gradeVal,
-    joinYmd: document.getElementById("edit-entry-date").value,
-    emplStatCd: document.getElementById("edit-status").value,
-    emplTypeCd: document.getElementById("edit-work-type").value,
-    ctrctEndYmd: document.getElementById("edit-contract-end").value,
-    chrgDutyCn: document.getElementById("edit-duty").value.trim(),
-    baseSalary: document.getElementById("edit-salary").value,
-  };
+  const formData = new FormData();
+  formData.append("userId", selectedEmpId);
+  formData.append("userName", document.getElementById("edit-name").value.trim());
+  formData.append("userGndrCd", document.getElementById("edit-gender").value);
+  formData.append("userBrdt", document.getElementById("edit-birthdate").value);
+  formData.append("userTelno", document.getElementById("edit-phone").value);
+  formData.append("userEmailAddr", document.getElementById("edit-email").value.trim());
+  formData.append("userZip", document.getElementById("edit-zipcode").value.trim());
+  formData.append("userAddr", document.getElementById("edit-addr").value.trim());
+  formData.append("userDaddr", addrDetail);
+  formData.append("userProfile", document.getElementById("edit-profile-path").value.trim());
+  formData.append("deptCd", deptVal);
+  formData.append("jbgrCd", gradeVal);
+  formData.append("joinYmd", document.getElementById("edit-entry-date").value);
+  formData.append("emplStatCd", document.getElementById("edit-status").value);
+  formData.append("emplTypeCd", document.getElementById("edit-work-type").value);
+  formData.append("ctrctEndYmd", document.getElementById("edit-contract-end").value);
+  formData.append("chrgDutyCn", document.getElementById("edit-duty").value.trim());
+  formData.append("baseSalary", document.getElementById("edit-salary").value);
+  const profileFile = document.getElementById("edit-profile").files[0];
+  if (profileFile) formData.append("editProfileImage", profileFile);
 
   fetch("/admin/employees/update", {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: formData,
   })
     .then((res) => res.json())
     .then((data) => {
       if (data.result === "success") {
+        const newProfileUrl = data.profileUrl || "";
+        row.dataset.profile = newProfileUrl;
+
+        // 테이블 행 아바타 즉시 동기화 (새로고침 없이 반영)
+        const avatarWrap = row.querySelector("td:first-child .flex");
+        if (avatarWrap) {
+          let img = avatarWrap.querySelector("img");
+          const textDiv = avatarWrap.querySelector(".bg-blue-100");
+          if (newProfileUrl.startsWith("http")) {
+            if (!img) {
+              img = document.createElement("img");
+              img.className = "w-7 h-7 rounded-lg object-cover";
+              img.alt = "프로필";
+              avatarWrap.prepend(img);
+            }
+            img.src = newProfileUrl;
+            if (textDiv) textDiv.style.display = "none";
+          } else {
+            if (img) img.remove();
+            if (textDiv) textDiv.style.display = "";
+          }
+        }
+
+        syncRowCells(row);
         toggleDetailEdit();
         openDetail(selectedEmpId);
         showHermesToast("인사 기록이 수정되었습니다.", "success");
