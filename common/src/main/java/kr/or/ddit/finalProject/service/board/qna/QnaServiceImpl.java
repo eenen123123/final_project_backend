@@ -2,13 +2,21 @@ package kr.or.ddit.finalProject.service.board.qna;
 
 import java.util.List;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import kr.or.ddit.finalProject.dto.board.BoardDto;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import kr.or.ddit.finalProject.dto.board.QnaDto;
+import kr.or.ddit.finalProject.dto.board.req.QnaSearchCondition;
+import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.dto.member.MemberRoleEnum;
+import kr.or.ddit.finalProject.exception.ErrorCode;
+import kr.or.ddit.finalProject.exception.FinalProjectException;
+import kr.or.ddit.finalProject.mapper.board.BoardMapper;
 import kr.or.ddit.finalProject.mapper.board.QnaMapper;
-import kr.or.ddit.finalProject.service.board.BoardService;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,68 +26,61 @@ import lombok.extern.slf4j.Slf4j;
 public class QnaServiceImpl implements QnaService {
 
     private final QnaMapper qnaMapper;
-    private final BoardService boardService;
+    private final BoardMapper boardMapper;
+    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional(readOnly = true)
-    public List<QnaDto> getQnaList(String qnaCtgCd, String answStatCd) {
-        return qnaMapper.findQnaList(qnaCtgCd, answStatCd);
+    public PageResponse<QnaDto> getList(PaginationInfo<QnaSearchCondition> paginationInfo) {
+        List<QnaDto> items = qnaMapper.findQnaListPaged(paginationInfo);
+        int totalCount = qnaMapper.countQnaList(paginationInfo);
+        return new PageResponse<>(items, totalCount);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public QnaDto getQnaById(Long postSn) {
-        return qnaMapper.findQnaById(postSn);
+    public QnaDto getById(Long postSn, Authentication authentication) {
+        String userId = authentication.getName();
+        QnaDto qna = qnaMapper.findQnaById(postSn);
+        if (qna == null) {
+            throw new FinalProjectException(ErrorCode.POST_NOT_FOUND);
+        }
+        if ("Y".equals(qna.getSecrYn()) && !qna.getWrtrUserId().equals(userId)) {
+            if (authentication.getAuthorities().stream().noneMatch(
+                    auth -> auth.getAuthority().equals(MemberRoleEnum.ROLE_ADMIN.name()))) {
+                throw new FinalProjectException(ErrorCode.QNA_ACCESS_DENIED);
+            }
+        }
+        return qna;
     }
 
     @Override
     @Transactional
-    public void createQna(QnaDto qnaDto) {
-        log.info("createQna : {} ", qnaDto.toString());
-        // 1. BOARD INSERT → postSn 자동 채번
-        BoardDto boardDto = BoardDto.builder()
-                .wrtrUserId(qnaDto.getWrtrUserId())
-                .postSj(qnaDto.getPostSj())
-                .postCn(qnaDto.getPostCn())
-                .boardTypeCd("03")
-                .popupExpsYn("N")
-                .build();
-        boardService.createPost(boardDto);
-
-        // 2. 채번된 postSn QnA에 세팅
-        qnaDto.setPostSn(boardDto.getPostSn());
-
-        // 3. QnA INSERT
-        qnaMapper.insertQna(qnaDto);
+    public void create(QnaDto dto, Authentication authentication) {
+        dto.setWrtrUserId(authentication.getName());
+        dto.setBoardTypeCd("03");
+        dto.setPopupExpsYn("N");
+        boardMapper.insertBoard(dto);
+        qnaMapper.insertQna(dto);
     }
 
     @Override
     @Transactional
-    public void updateQna(QnaDto qnaDto) {
-        // 1. BOARD 수정
-        BoardDto boardDto = BoardDto.builder().postSn(qnaDto.getPostSn()).postSj(qnaDto.getPostSj())
-                .postCn(qnaDto.getPostCn()).lastMdfrId(qnaDto.getWrtrUserId()).build();
-        boardService.updatePost(boardDto);
-
-        // 2. QnA 수정
-        qnaMapper.updateQna(qnaDto);
+    public void update(QnaDto dto) {
+        boardMapper.updateBoard(dto);
+        qnaMapper.updateQna(dto);
     }
 
     @Override
     @Transactional
     public void answerQna(QnaDto qnaDto) {
-        // 답변 등록 + 답변상태 완료로 변경
         qnaMapper.updateQnaAnswer(qnaDto);
     }
 
     @Override
     @Transactional
-    public void deleteQna(Long postSn) {
-        // 1. QnA 삭제 (FK 때문에 먼저)
+    public void delete(Long postSn) {
         qnaMapper.deleteQna(postSn);
-
-        // 2. BOARD 삭제
-        boardService.deletePost(postSn);
+        boardMapper.deleteBoard(postSn);
     }
-
 }
