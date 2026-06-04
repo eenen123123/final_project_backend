@@ -159,68 +159,85 @@ public class StaffEmployeesController {
 
     /**
      * 직원 정보 수정
-     * @param body // 수정할 직원 정보가 담긴 JSON 요청 본문
      * @param principal // 현재 로그인한 관리자 정보
      * @return
      */
     @PutMapping("/employees/update")
     @ResponseBody
     public ResponseEntity<Map<String, String>> updateEmployee(
-            @RequestBody Map<String, Object> body,
+            @RequestParam String userId,
+            @RequestParam(required = false) String userName,
+            @RequestParam(required = false) String userGndrCd,
+            @RequestParam(required = false) String userTelno,
+            @RequestParam(required = false) String userEmailAddr,
+            @RequestParam(required = false) String userZip,
+            @RequestParam(required = false) String userAddr,
+            @RequestParam(required = false) String userDaddr,
+            @RequestParam(required = false) String userBrdt,
+            @RequestParam(required = false) String userProfile,
+            @RequestParam(required = false) String deptCd,
+            @RequestParam(required = false) String jbgrCd,
+            @RequestParam(required = false) String joinYmd,
+            @RequestParam(required = false) String emplStatCd,
+            @RequestParam(required = false) String emplTypeCd,
+            @RequestParam(required = false) String ctrctEndYmd,
+            @RequestParam(required = false) String chrgDutyCn,
+            @RequestParam(required = false) Integer baseSalary,
+            @RequestParam(required = false) MultipartFile editProfileImage,
             Principal principal
     ) {
 
         // 로그인한 관리자의 ID를 꺼냄
         String loginAdminId = principal != null ? principal.getName() : "SYSTEM";
 
-        // 요청 본문에서 직원 정보 추출
+        // 새 파일이 있으면 Cloudinary 업로드, 없으면 기존 URL 유지
+        String finalProfileUrl = userProfile;
+        if (editProfileImage != null && !editProfileImage.isEmpty()) {
+            try {
+                finalProfileUrl = cloudinaryUploadService.uploadFileToCloudinary(editProfileImage);
+            } catch (Exception e) {
+                log.error("[updateEmployee] Cloudinary 업로드 실패 : {}", e.getMessage());
+            }
+        }
+
         MemberDto memberDto = new MemberDto();
-        memberDto.setUserId((String) body.get("userId"));
-        memberDto.setUserName((String) body.get("userName"));
-        memberDto.setUserGndrCd((String) body.get("userGndrCd"));
-        memberDto.setUserTelno((String) body.get("userTelno"));
-        memberDto.setUserEmailAddr((String) body.get("userEmailAddr"));
-        memberDto.setUserZip((String) body.get("userZip"));
-        memberDto.setUserAddr((String) body.get("userAddr"));
-        memberDto.setUserDaddr((String) body.get("userDaddr"));
-        memberDto.setUserProfile((String) body.get("userProfile"));
-        String brdtStr = (String) body.get("userBrdt");
-        if (brdtStr != null && !brdtStr.isBlank()) {
-            memberDto.setUserBrdt(java.time.LocalDate.parse(brdtStr.substring(0, 10)));
+        memberDto.setUserId(userId);
+        memberDto.setUserName(userName);
+        memberDto.setUserGndrCd(userGndrCd);
+        memberDto.setUserTelno(userTelno);
+        memberDto.setUserEmailAddr(userEmailAddr);
+        memberDto.setUserZip(userZip);
+        memberDto.setUserAddr(userAddr);
+        memberDto.setUserDaddr(userDaddr);
+        memberDto.setUserProfile(finalProfileUrl);
+        if (userBrdt != null && !userBrdt.isBlank()) {
+            memberDto.setUserBrdt(java.time.LocalDate.parse(userBrdt.substring(0, 10)));
         }
 
-        // 직원 정보 DTO 생성 및 설정
         EmployeeInfoDto employeeInfoDto = new EmployeeInfoDto();
-        employeeInfoDto.setUserId(memberDto.getUserId());
-        employeeInfoDto.setDeptCd((String) body.get("deptCd"));
-        employeeInfoDto.setJbgrCd((String) body.get("jbgrCd"));
-        employeeInfoDto.setEmplStatCd((String) body.get("emplStatCd"));
-        employeeInfoDto.setEmplTypeCd((String) body.get("emplTypeCd"));
-        employeeInfoDto.setChrgDutyCn((String) body.get("chrgDutyCn"));
-
-        // 입사일과 계약 종료일은 문자열로 받아서 LocalDate로 변환
-        String joinYmdStr = (String) body.get("joinYmd");
-        if (joinYmdStr != null && !joinYmdStr.isBlank()) {
-            employeeInfoDto.setJoinYmd(java.time.LocalDate.parse(joinYmdStr.substring(0, 10)));
+        employeeInfoDto.setUserId(userId);
+        employeeInfoDto.setDeptCd(deptCd);
+        employeeInfoDto.setJbgrCd(jbgrCd);
+        employeeInfoDto.setEmplStatCd(emplStatCd);
+        employeeInfoDto.setEmplTypeCd(emplTypeCd);
+        employeeInfoDto.setChrgDutyCn(chrgDutyCn);
+        if (joinYmd != null && !joinYmd.isBlank()) {
+            employeeInfoDto.setJoinYmd(java.time.LocalDate.parse(joinYmd.substring(0, 10)));
         }
-        String ctrctEndStr = (String) body.get("ctrctEndYmd");
-        if (ctrctEndStr != null && !ctrctEndStr.isBlank()) {
-            employeeInfoDto.setCtrctEndYmd(ctrctEndStr.substring(0, 10));
+        if (ctrctEndYmd != null && !ctrctEndYmd.isBlank()) {
+            employeeInfoDto.setCtrctEndYmd(ctrctEndYmd.substring(0, 10));
         }
 
-        // 직원 급여 DTO 생성 및 설정
         EmployeeSalaryDto employeeSalaryDto = new EmployeeSalaryDto();
-        Object salary = body.get("baseSalary");
-        if (salary != null) {
-            employeeSalaryDto.setBaseSalary(Integer.parseInt(salary.toString()));
+        if (baseSalary != null) {
+            employeeSalaryDto.setBaseSalary(baseSalary);
         }
 
-        // 서비스 호출하여 직원 정보 업데이트
         try {
             staffService.updateEmployee(memberDto, employeeInfoDto, employeeSalaryDto, loginAdminId);
-            return ResponseEntity.ok(Map.of("result", "success"));
+            return ResponseEntity.ok(Map.of("result", "success", "profileUrl", finalProfileUrl != null ? finalProfileUrl : ""));
         } catch (Exception e) {
-            log.error("[updateEmployee] 수정 실패. userId={}, cause={}", memberDto.getUserId(), e.getMessage());
+            log.error("[updateEmployee] 수정 실패. userId={}, cause={}", userId, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("result", "error", "message", e.getMessage()));
         }

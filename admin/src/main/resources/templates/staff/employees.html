@@ -75,10 +75,14 @@
   <!-- ───────────────── 탭 네비게이션 ───────────────── -->
   <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
     <div class="flex border-b border-slate-100 px-6">
-      <button class="emp-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px" data-tab="emp-tab-hr"
+      <button class="emp-tab-btn active py-3.5 px-4 text-sm -mb-px" data-tab="emp-tab-hr"
         onclick="switchEmpTab('emp-tab-hr',this)">
-        <i class="fa-solid fa-list-ul mr-1.5"></i>인사 기록
+        <i class="fa-solid fa-id-badge mr-1.5"></i>인사 기록
       </button>
+      <a href="/admin/employees/students"
+        class="emp-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px flex items-center">
+        <i class="fa-solid fa-graduation-cap mr-1.5"></i>학생 기록
+      </a>
     </div>
 
 
@@ -195,10 +199,10 @@
               <!-- 테이블 내용 -->
               <td class="py-3 px-4">
                 <div class="flex items-center gap-2">
-                  <img th:if="${emp.member.userProfile != null and emp.member.userProfile != ''}"
+                  <img th:if="${emp.member.userProfile != null and #strings.startsWith(emp.member.userProfile, 'http')}"
                     th:src="${emp.member.userProfile}"
                     class="w-7 h-7 rounded-lg object-cover" alt="프로필">
-                  <div th:unless="${emp.member.userProfile != null and emp.member.userProfile != ''}"
+                  <div th:unless="${emp.member.userProfile != null and #strings.startsWith(emp.member.userProfile, 'http')}"
                     class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-xs font-bold text-[#3b82f6]"
                     th:text="${#strings.substring(emp.member.userName, 0, 1)}">?</div>
 
@@ -305,7 +309,6 @@
                 </div>
                 <div class="col-span-2">
                   <label class="form-label">프로필 사진</label>
-                  <!-- <input type="file" class="hm-input hm-input-blue hm-lg" id="new-atch-file" name="tempuserProfile" accept="image/*" /> -->
                   <input type="file" class="hm-input hm-input-blue hm-lg" id="new-atch-file" name="profileImage" accept="image/*" />
                 </div>
               </div>
@@ -423,17 +426,19 @@
         <div class="p-6" id="detail-body">
           <!-- 직원 헤더 -->
           <div class="flex items-center gap-4 mb-5">
-            <div
-              class="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center text-2xl font-bold text-[#3b82f6]"
-              id="detail-avatar"></div>
+            <div class="w-14 h-14 flex-shrink-0">
+              <img id="detail-avatar-img" class="w-14 h-14 rounded-2xl object-cover hidden" alt="프로필">
+              <div id="detail-avatar" class="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center text-2xl font-bold text-[#3b82f6]"></div>
+            </div>
             <div>
               <div class="flex items-center gap-2">
                 <span class="font-bold text-lg text-slate-800" id="detail-name"></span>
                 <span class="status-badge status-active" id="detail-status-badge"></span>
               </div>
-              <div class="flex gap-2 mt-1">
-                <span class="role-tag role-manager" id="detail-role-tag"></span>
+              <div class="flex items-center gap-1.5 mt-1">
                 <span class="text-xs text-slate-500" id="detail-dept-tag"></span>
+                <span class="text-xs text-slate-400">·</span>
+                <span class="text-xs text-slate-500" id="detail-role-tag"></span>
               </div>
             </div>
           </div>
@@ -535,8 +540,7 @@
               </div>
               <div class="col-span-2">
                 <label class="form-label">새 프로필 파일로 교체
-                  <input type="file" class="hm-input hm-input-blue hm-lg py-1.5 text-xs" id="edit-profile"
-                    accept="image/*" />
+                  <input type="file" class="hm-input hm-input-blue hm-lg py-1.5 text-xs" id="edit-profile" name="editProfileImage" accept="image/*" />
                 </label>
               </div>
             </div>
