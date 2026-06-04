@@ -56,6 +56,8 @@ public enum ErrorCode {
             "유효하지 않은 파일 컨텍스트입니다. FILE_CTX_TYPE 열거형에 정의된 값만 사용할 수 있습니다."),
 
     FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "파일 크기가 10MB를 초과할 수 없습니다."), // Rest API에서 사용
+    FILE_IDS_REQUIRED(HttpStatus.BAD_REQUEST, "파일 ID 목록이 비어있습니다."),
+    FILE_IDS_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "파일 ID는 최대 5개까지 조회할 수 있습니다."),
 
     // 결재 관련
     APPROVAL_TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "결재 양식을 찾을 수 없습니다."),

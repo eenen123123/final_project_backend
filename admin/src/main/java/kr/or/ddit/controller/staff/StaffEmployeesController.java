@@ -1,5 +1,7 @@
 package kr.or.ddit.controller.staff;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.List;
 
@@ -16,6 +18,7 @@ import kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto;
 import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
+import kr.or.ddit.finalProject.service.file.CloudinaryUploadService;
 import kr.or.ddit.finalProject.service.staff.StaffService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,8 +35,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 
 
-
-
 @Slf4j
 @Controller
 @RequestMapping("/admin")
@@ -42,32 +43,58 @@ public class StaffEmployeesController {
     @Autowired
     StaffService staffService;
 
+    @Autowired
+    CloudinaryUploadService cloudinaryUploadService;
+
     /**
-     * 직원 정보 및 계정 관리
-     * @param model
-     * @return
+     * 직원 관리 메인 화면 이동 및 초기 데이터 조회
+     * 
+     * ✔ 직원 정보 및 계정 관리 페이지(인사 관리 대시보드)를
+     * 요청할 때 진입하는 컨트롤러 메서드
+     * 
+     * ✔ 역할 요약
+     * ---------------------------------------------------------------------
+     * - 전체 직원 목록 데이터 확보
+     * - 검색 및 필터링용 메타데이터(부서, 직급, 입사 연도) 조회
+     * - 뷰(View) 템플릿으로 데이터 전달 및 포워딩
+     * 
+     * ✔ 설계 목적
+     * ---------------------------------------------------------------------
+     * 1. 인사 관리 화면 초기 로딩 시 필요한 모든 데이터를 한 번에 바인딩
+     * 2. 화면 단의 검색 조건 필터(Select Box) 구성 요소들을 동적으로 제공
+     * 
+     * ✔ 아키텍처 위치 (Controller Layer)
+     * ---------------------------------------------------------------------
+     * [Bower] -> [staffController.getEmployees()] -> [staffService]
+     * ↓
+     * [admin:/staff/employees] <- (Model Data Binding) <- [Database]
+     * 
+     * @param model 화면(Thymeleaf)에 조화된 데이터를 전달하기 위한 Spring UI Model 객체
+     * @return 직원 관리 메인 뷰 템플릿(HTML) 경로
      */
     @GetMapping("/employees")
     public String getEmployees(Model model) {
         log.info("getEmployees()");
 
-        // 전체 직원 조회
+        // 1. 인사 관리 대시보드 테이블에 노출할 전체 직원 상세 목록 데이터를 조회한다.
         List<EmployeeDetailDto> employeeList = staffService.retrieveEmployeeList();
 
-        // 부서명 조회
+        // 2. 화면 상단 검색 조건 필터(Select Box) 구성을 위한 부서명 메타데이터 목록을 조회한다.
         List<DepartmentDto> departmentlist = staffService.retrieveDepartmentList();
 
-        // 직급명 조회
+        //3. 화면 상단 검색 조건 필터 구성을 위한 직급명 메타데이터 목록을 조회한다.
         List<JobGradeDto> jobgradelist = staffService.retrieveJobGradeList();
 
-        // 입사 연도 목록 조회
+        //4. 입사 연도별 필터링 기능을 지원하기 위해 시스템에 등록된 전체 입사 연도 목록을 조회한다.
         List<Integer> joinYearList = staffService.retrieveJoinYearList();
 
+        // 5. 조회된 4가지 목록 데이터를 Thymeleaf 템플릿 엔진에서 식별할 수 있도록 Model 객체에 바인딩한다.
         model.addAttribute("departmentlist", departmentlist);
         model.addAttribute("jobgradelist", jobgradelist);
         model.addAttribute("joinYearList", joinYearList);
         model.addAttribute("employeeList", employeeList);
 
+        // 6. 직원 목록 화면을 렌더링할 admin 권한 전용 staff/employees 뷰 템플릿 경로를 반환한다.
         return "admin:/staff/employees";
     }
 
@@ -82,46 +109,46 @@ public class StaffEmployeesController {
      */
     @PostMapping("/employees")
     public String createEmployee(
-        // @Valid MemberDto memberDto, // @Valid 를 붙여 유효성 검증을 활성화한다.
-        // BindingResult bindingResult, // 검증 실패 결과 리포트를 담을 그릇을 바로 뒤에 선언해야 한다.
         MemberDto memberDto,
         EmployeeInfoDto employeeInfoDto,
         EmployeeSalaryDto employeeSalary,
-        //  @RequestParam(value = "userProfile", required = false) MultipartFile profileImage) {
-        @RequestParam(value = "tempuserProfile", required = false) MultipartFile profileImage,
+        @RequestParam(required = false) MultipartFile profileImage,
         Principal principal
     ) {
-
-        // 추후 MemberDto 유효성 추가될시 아래와 같이 유효성 체크 후 예외 처리 필요
-        // if (bindingResult.hasErrors()) {
-        //     // 콘솔이나 로그에 어떤 에러가 터졌는지 친절하게 기록을 남긴다.
-        //     log.warn("직원 등록 유효성 검증 실패: {}", bindingResult.getAllErrors());
-            
-        //     // 타임리프 화면으로 DTO 객체들을 다시 보내주어 기존 입력값을 유지시킨다.
-        //     model.addAttribute("memberDto", memberDto);
-        //     model.addAttribute("employeeInfoDto", employeeInfoDto);
-        //     model.addAttribute("employeeSalaryDto", employeeSalary);
-            
-        //     // 알림을 보여줄 직원 등록 화면(Form)의 Thymeleaf 뷰 경로를 문자열로 리턴한다.
-        //     return "admin/employeeForm"; 
-        // }
 
         // 로그인한 관리자의 ID를 꺼냄
         String loginAdminId = "SYSTEM"; // 기본값, 실제로는 principal에서 꺼내야 함
         if (principal != null) {
             loginAdminId = principal.getName(); // 세션이나 토큰에 저장된 로그인 ID
         }
-        try {
-            staffService.registerEmployee(memberDto, employeeInfoDto, employeeSalary, profileImage, loginAdminId);
-        } catch (IllegalArgumentException e) {
-            log.warn("[createEmployee] 유효성 검사 실패: {}", e.getMessage());
-            return "redirect:/admin/employees?error=" + java.net.URLEncoder.encode(e.getMessage(), java.nio.charset.StandardCharsets.UTF_8);
+
+        // 프로필 사진 cloudinary 업로드
+        String profileUrl = null;
+        if (profileImage != null && !profileImage.isEmpty()) {
+            try {
+                profileUrl = cloudinaryUploadService.uploadFileToCloudinary(profileImage);
+            } catch (Exception e) {
+                log.error("[createEmployee] Cloudinary 업로드 실패: {}", e.getMessage());
+                return "redirect:/admin/employees?error=" + URLEncoder.encode("프로필 이미지 업로드에 실패했습니다.", StandardCharsets.UTF_8);
+            }
         }
 
-        return "redirect:/admin/employees";
+        try {
+            staffService.registerEmployee(memberDto, employeeInfoDto, employeeSalary, profileUrl, loginAdminId);
+        } catch (FinalProjectException e) {
+            log.warn("[createEmployee] 등록 실패: {}", e.getMessage());
+            return "redirect:/admin/employees?error=" + URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException e) {
+            log.warn("[createEmployee] 유효성 검사 실패: {}", e.getMessage());
+            return "redirect:/admin/employees?error=" + URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
+        }
+
+        return "redirect:/admin/employees?success=" + URLEncoder.encode("직원이 성공적으로 등록되었습니다.", StandardCharsets.UTF_8);
     }
 
-    // 아이디 중복 자동 순번 발급 및 중복 회피
+    /**
+     * 아이디 중복 자동 순번 발급 및 중복 회피
+     */
     @GetMapping("/employees/next-id")
     @ResponseBody
     public ResponseEntity<String> getNextId(@RequestParam String baseId, @RequestParam String defaultSerial) {
@@ -143,8 +170,10 @@ public class StaffEmployeesController {
             Principal principal
     ) {
 
+        // 로그인한 관리자의 ID를 꺼냄
         String loginAdminId = principal != null ? principal.getName() : "SYSTEM";
 
+        // 요청 본문에서 직원 정보 추출
         MemberDto memberDto = new MemberDto();
         memberDto.setUserId((String) body.get("userId"));
         memberDto.setUserName((String) body.get("userName"));
@@ -160,6 +189,7 @@ public class StaffEmployeesController {
             memberDto.setUserBrdt(java.time.LocalDate.parse(brdtStr.substring(0, 10)));
         }
 
+        // 직원 정보 DTO 생성 및 설정
         EmployeeInfoDto employeeInfoDto = new EmployeeInfoDto();
         employeeInfoDto.setUserId(memberDto.getUserId());
         employeeInfoDto.setDeptCd((String) body.get("deptCd"));
@@ -167,6 +197,8 @@ public class StaffEmployeesController {
         employeeInfoDto.setEmplStatCd((String) body.get("emplStatCd"));
         employeeInfoDto.setEmplTypeCd((String) body.get("emplTypeCd"));
         employeeInfoDto.setChrgDutyCn((String) body.get("chrgDutyCn"));
+
+        // 입사일과 계약 종료일은 문자열로 받아서 LocalDate로 변환
         String joinYmdStr = (String) body.get("joinYmd");
         if (joinYmdStr != null && !joinYmdStr.isBlank()) {
             employeeInfoDto.setJoinYmd(java.time.LocalDate.parse(joinYmdStr.substring(0, 10)));
@@ -176,12 +208,14 @@ public class StaffEmployeesController {
             employeeInfoDto.setCtrctEndYmd(ctrctEndStr.substring(0, 10));
         }
 
+        // 직원 급여 DTO 생성 및 설정
         EmployeeSalaryDto employeeSalaryDto = new EmployeeSalaryDto();
         Object salary = body.get("baseSalary");
         if (salary != null) {
             employeeSalaryDto.setBaseSalary(Integer.parseInt(salary.toString()));
         }
 
+        // 서비스 호출하여 직원 정보 업데이트
         try {
             staffService.updateEmployee(memberDto, employeeInfoDto, employeeSalaryDto, loginAdminId);
             return ResponseEntity.ok(Map.of("result", "success"));
@@ -207,9 +241,13 @@ public class StaffEmployeesController {
         Principal principal
     ) {
         
+        // 로그인한 관리자의 ID를 꺼냄
         String loginUserId = principal != null ? principal.getName() : "SYSTEM";
+
+        // 요청 본문에서 퇴사 사유 추출
         String retmtRsn = body.get("retmtRsn");
 
+        // 서비스 호출하여 직원 퇴사 처리
         try {
             staffService.retireEmployee(userId, retmtRsn, loginUserId);
             return ResponseEntity.ok(Map.of("result", "success"));

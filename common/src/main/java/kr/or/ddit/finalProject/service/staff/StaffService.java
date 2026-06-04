@@ -11,29 +11,117 @@ import kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto;
 import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 
+
+/**
+ * StaffService
+ * 
+ * ✔ 인사 관리(HR) 시스템의 핵심 비즈니스 요구사항을 정의하는 명세서
+ * 
+ * ✔ 역할 요약
+ * ---------------------------------------------------------------------------
+ * - 신규 직원 등록 및 프로필 이미지 업로드 처리
+ * - 직원 기본 정보, 인사 정보, 급여 정보의 통합 관리(CUD)
+ * - 인사 대시보드 구현을 위한 조회 및 검색 메타데이터 제공
+ * - 퇴사 처리 및 보안을 위한 계정 상태 제어
+ * 
+ * ✔ 설계 목적
+ * ---------------------------------------------------------------------------
+ * 1. 인사 데이터의 무결성을 보장하기 위해 다중 테이블 복합 비즈니스 로직 정의
+ * 2. 상위 컨트롤러와 하위 데이터 접근 계층(Mapper) 간의 느슨한 결합 제공
+ * 3. 기획서상의 인사 관리 유즈케이스(Use Case)를 단일 인터페이스로 응집
+ * 
+ * ✔ 아키텍처 위치 (Service Interface Layer)
+ * ---------------------------------------------------------------------------
+ * [StaffController] -> [StaffService (Specification)]
+ * ↑ (Implements)
+ * [StaffServiceImpl] -> [StaffMapper]
+ */
 public interface  StaffService {
 
-    // 부서 리스트 조회
+    /**
+     * 부서 리스트 조회
+     * 
+     * ✔ 사용 시나리오: 직원 등록 폼이나 검색 필터의 부서 선택(Select Box) 목록을 동적으로 구성할 때 호출한다.
+     * @return 시스템에 등록된 전체 부서 정보 DTO 리스트
+     */
     List<DepartmentDto> retrieveDepartmentList();
 
-    // 직급 리스트 조회
+    /**
+     * 직급 리스트 조회
+     * 
+     * ✔ 사용 시나리오: 직원 등록 폼이나 검색 필터의 직급 선택 목록을 동적으로 구성할 때 호출한다.
+     * @return 시스템에 등록된 전체 직급 정보 DTO 리스트
+     */
     List<JobGradeDto> retrieveJobGradeList();
 
-    // 직원 등록, 직원 정보 저장, 직원 급여 정보 저장
-    void registerEmployee(MemberDto memberDto, EmployeeInfoDto employeeInfoDto, EmployeeSalaryDto employeeSalaryDto, MultipartFile profileImage, String loginAdminId);
+    /**
+     * 신규 직원 통합 등록 (계정 + 인사 + 급여 + 프로필 파일)
+     * 
+     * ✔ 사용 시나리오
+     * --------------------------------------------------------------------------------
+     * - 인사 관리자가 신규 직원을 시스템에 등록할 때 사용한다.
+     * - 파일 업로드 시스템 및 다중 테이블 프랜잭션 처리가 수반되어야 한다.
+     * 
+     * @param memberDto         사용자 계정 기본 정보 (MEMBER)
+     * @param employeeInfoDto   직원 상세 인사 정보 (EMPLOYEE_INFO)
+     * @param employeeSalaryDto 직원 급여 정보 (EMPLOYEE_SALARY)
+     * @param profileImage      cloudinary에 저장할 프로필 이미지 파일 (MultipartFile)
+     * @param loginAdminId      해당 등록 작업을 수행할 이력 추적용 관리자 ID
+     */
+    void registerEmployee(MemberDto memberDto, EmployeeInfoDto employeeInfoDto, EmployeeSalaryDto employeeSalaryDto, String  profileUrl, String loginAdminId);
 
-    // 직원 리스트 조회
+    /**
+     * 인사 대시보드용 전체 직원 목록 조회
+     * 
+     * ✔ 사용 시나리오: 관리자 페이지 직원 메인 테이블에 재직자 및 퇴사자를 아우르는 상세 데이터를 출력할 때 사용한다.
+     * @return 테이블 결합(JOIN)을 통해 확보된 직원 상세 정보 DTO 리스트
+     */
     List<EmployeeDetailDto> retrieveEmployeeList();
 
-    // 입사 연도 목록 조회
+    /**
+     * 시스템 등록 직원의 전체 입사 연도 고유 목록 조회
+     * 
+     * ✔ 사용 시나리오: 직원 목록 검색 조건 중 '입사 연도' 필터 항목을 동적으로 채우기 위해 사용한다.
+     * @return 중복이 제거된 입사 연도(Integer) 리스트
+     */
     List<Integer> retrieveJoinYearList();
 
-    // 아이디 중복 자동 순번 발급 및 중복 회피
+    /**
+     * 고유 아이디 생성을 위한 자동 순번 발급 및 중복 검증
+     * 
+     * ✔ 사용 시나리오: 신규 등록 시 규칙성 있는 사번 형태의 아이디를 자동 제안하거나 중복을 회피하기 위해 호출한다.
+     * @param baseId        기준이 되는 기본 아이디 포맷
+     * @param defaultSerial 중복 시 결합할 초기 순번 문자열
+     * @return 중복이 검증되어 즉시 사용 가능한 고유 아이디 문자열
+     */
     String getNextAvailableId(String baseId, String defaultSerial);
 
-    // 직원 계정 수정 (MEMBER + EMPLOYEE_INFO + EMPLOYEE_SALARY 트랜잭션)
+    /**
+     * 직원 상세 정보 수정 (계정 + 인사 + 급여 통합 갱싱)
+     * 
+     * ✔ 사용 시나리오
+     * -------------------------------------------------------------------------------------
+     * - 모달 및 상세 페이지에서 직원의 신상 정보, 직급, 부서, 급여 등을 수정할 때 사용한다.
+     * - 데이터 원자성 보장을 위해 단일 트랜잭션 안에서 처리가 완료되어야 한다.
+     * 
+     * @param memberDto         변경할 사용자 계정 정보
+     * @param employeeInfoDto   변경할 인사 정보
+     * @param employeeSalaryDto 변경할 급여 정보
+     * @param loginAdminId      작업을 수행한 관리자 ID (이력 기록용)
+     */
     void updateEmployee(MemberDto memberDto, EmployeeInfoDto employeeInfoDto, EmployeeSalaryDto employeeSalaryDto, String loginAdminId);
 
-    // 직원 퇴사 처리 (MEMBER + EMPLOYEE_INFO + EMPLOYEE_SALARY 비활성화)
+    /**
+     * 직원 퇴사 처리 (계정 및 인사 정보 비활성화)
+     * 
+     * ✔ 사용 시나리오
+     * -------------------------------------------------------------------------------------
+     * - 재직 중인 직원의 상태를 '퇴사'로 변경하고 시스템 접근 권한을 박탈할 때 사용한다.
+     * - 물리적 삭제(DELETE)가 아닌 논리적 삭제(UPDATE) 및 퇴사 사유 기록을 원칙으로 한다.
+     * 
+     * @param userId        퇴사 처리할 대상 직원의 고유 계정 ID
+     * @param retmtRsn      퇴사 사유 명목 문자열
+     * @param loginUserId   작업을 진행한 관리자 ID
+     */
     void retireEmployee(String userId, String retmtRsn, String loginUserId);
 }
