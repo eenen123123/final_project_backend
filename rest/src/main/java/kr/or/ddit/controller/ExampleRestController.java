@@ -1,5 +1,6 @@
 package kr.or.ddit.controller;
 
+import java.util.List;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -11,7 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
-import kr.or.ddit.finalProject.dto.board.EditorPostRequestDto;
+import kr.or.ddit.finalProject.dto.board.BoardDto;
+import kr.or.ddit.finalProject.dto.board.req.EditorPostRequestDto;
 import kr.or.ddit.finalProject.dto.example.ExampleDto;
 import kr.or.ddit.finalProject.dto.pay.kakao.KakaoPayApproveResponse;
 import kr.or.ddit.finalProject.dto.pay.kakao.KakaoPayReadyRequest;
@@ -21,6 +23,7 @@ import kr.or.ddit.finalProject.dto.user.SignupRequestRecord;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.user.UserException;
 import kr.or.ddit.finalProject.mapper.TestMapper;
+import kr.or.ddit.finalProject.mapper.board.BoardMapper;
 import kr.or.ddit.finalProject.service.email.EmailService;
 import kr.or.ddit.finalProject.service.member.MemberService;
 import kr.or.ddit.finalProject.service.pay.KakaoPayService;
@@ -46,6 +49,8 @@ public class ExampleRestController {
     private final TossPayService tossPayService;
 
     private final RestPostService restPostService;
+
+    private final BoardMapper boardMapper;
 
     @GetMapping("/hello")
     public ExampleDto getMethodName() {
@@ -151,6 +156,8 @@ public class ExampleRestController {
         return ResponseEntity.ok(tossPayService.confirm(request));
     }
 
+    // MARK: - Post Example
+
     @PostMapping("/posts/example")
     public ResponseEntity<?> create(@Valid @RequestBody EditorPostRequestDto req,
             Authentication auth) {
@@ -162,4 +169,13 @@ public class ExampleRestController {
     public ResponseEntity<?> getPost(@PathVariable long postSn) {
         return ResponseEntity.ok(restPostService.getPost(postSn));
     }
+
+    @GetMapping("/posts/example/list")
+    public ResponseEntity<?> getPostList() {
+
+        List<BoardDto> boardList = boardMapper.selectBoardsExample();
+        return ResponseEntity.ok(boardList);
+    }
+
+
 }

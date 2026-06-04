@@ -1,28 +1,20 @@
 package kr.or.ddit.finalProject.service.board;
 
+import org.springframework.security.core.Authentication;
+
 import kr.or.ddit.finalProject.dto.board.BoardDto;
+import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
 
-public interface BoardService {
+public interface BoardService<T extends BoardDto, C> {
 
-    /**
-     * 게시글 등록
-     *
-     * @param boardDto 등록할 게시글 정보
-     */
-    void createPost(BoardDto boardDto);
+    PageResponse<T> getList(PaginationInfo<C> paginationInfo);
 
-    /**
-     * 게시글 수정
-     *
-     * @param boardDto 수정할 게시글 정보
-     */
-    void updatePost(BoardDto boardDto);
+    T getById(Long postSn, Authentication authentication);
 
-    /**
-     * 게시글 삭제
-     *
-     * @param postSn 삭제할 게시글 PK
-     */
-    void deletePost(Long postSn);
+    void create(T dto, Authentication authentication);
 
+    void update(T dto);
+
+    void delete(Long postSn);
 }

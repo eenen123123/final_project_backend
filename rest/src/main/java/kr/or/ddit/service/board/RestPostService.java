@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.or.ddit.finalProject.dto.board.BoardDto;
-import kr.or.ddit.finalProject.dto.board.EditorPostRequestDto;
+import kr.or.ddit.finalProject.dto.board.req.EditorPostRequestDto;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.mapper.FileMapper;
@@ -31,11 +31,8 @@ public class RestPostService {
         }
         try {
             // postCn은 TipTap JSON 문자열 → JsonNode로 파싱해서 반환 (프론트에서 바로 initialContent로 사용)
-            return Map.of(
-                "postSn", board.getPostSn(),
-                "postSj", board.getPostSj(),
-                "postCn", objectMapper.readTree(board.getPostCn())
-            );
+            return Map.of("postSn", board.getPostSn(), "postSj", board.getPostSj(), "postCn",
+                    objectMapper.readTree(board.getPostCn()));
         } catch (JsonProcessingException e) {
             throw new FinalProjectException(ErrorCode.JSON_PROCESSING_FAILED, e);
         }
