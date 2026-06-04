@@ -130,6 +130,15 @@
         language: "ko-KR",
         usageStatistics: false,
         plugins: [colorSyntax, codeSyntaxHighlight, tableMergedCell, chart].filter(Boolean),
+        hooks: {
+          addImageBlobHook: async (blob, callback) => {
+            const formData = new FormData();
+            formData.append('image', blob);
+            const res = await fetch('/admin/board/upload/editor-image', { method: 'POST', body: formData });
+            const { url } = await res.json();
+            callback(url, '이미지');
+          }
+        },
       });
 
       document.querySelector("form").addEventListener("submit", function () {
