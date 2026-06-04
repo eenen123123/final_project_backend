@@ -214,6 +214,7 @@ public class StaffEmployeesController {
             memberDto.setUserBrdt(java.time.LocalDate.parse(userBrdt.substring(0, 10)));
         }
 
+        // 직원 정보 DTO 생성 및 설정
         EmployeeInfoDto employeeInfoDto = new EmployeeInfoDto();
         employeeInfoDto.setUserId(userId);
         employeeInfoDto.setDeptCd(deptCd);
@@ -228,11 +229,13 @@ public class StaffEmployeesController {
             employeeInfoDto.setCtrctEndYmd(ctrctEndYmd.substring(0, 10));
         }
 
+        // 직원 급여 DTO 생성 및 설정
         EmployeeSalaryDto employeeSalaryDto = new EmployeeSalaryDto();
         if (baseSalary != null) {
             employeeSalaryDto.setBaseSalary(baseSalary);
         }
 
+        // 서비스 호출하여 직원 정보 업데이트
         try {
             staffService.updateEmployee(memberDto, employeeInfoDto, employeeSalaryDto, loginAdminId);
             return ResponseEntity.ok(Map.of("result", "success", "profileUrl", finalProfileUrl != null ? finalProfileUrl : ""));
