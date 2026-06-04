@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import kr.or.ddit.finalProject.dto.board.EditorPostRequestDto;
 import kr.or.ddit.finalProject.dto.example.ExampleDto;
 import kr.or.ddit.finalProject.dto.pay.kakao.KakaoPayApproveResponse;
 import kr.or.ddit.finalProject.dto.pay.kakao.KakaoPayReadyRequest;
@@ -24,6 +26,7 @@ import kr.or.ddit.finalProject.service.member.MemberService;
 import kr.or.ddit.finalProject.service.pay.KakaoPayService;
 import kr.or.ddit.finalProject.service.pay.TossPayService;
 import kr.or.ddit.finalProject.util.PrintPrettyObject;
+import kr.or.ddit.service.board.RestPostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,7 +45,7 @@ public class ExampleRestController {
     private final KakaoPayService kakaoPayService;
     private final TossPayService tossPayService;
 
-
+    private final RestPostService restPostService;
 
     @GetMapping("/hello")
     public ExampleDto getMethodName() {
@@ -148,4 +151,15 @@ public class ExampleRestController {
         return ResponseEntity.ok(tossPayService.confirm(request));
     }
 
+    @PostMapping("/posts/example")
+    public ResponseEntity<?> create(@Valid @RequestBody EditorPostRequestDto req,
+            Authentication auth) {
+        long postId = restPostService.createPost(req, "99", auth);
+        return ResponseEntity.ok(Map.of("postId", postId));
+    }
+
+    @GetMapping("/posts/example/{postSn}")
+    public ResponseEntity<?> getPost(@PathVariable long postSn) {
+        return ResponseEntity.ok(restPostService.getPost(postSn));
+    }
 }

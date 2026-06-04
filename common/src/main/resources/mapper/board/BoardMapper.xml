@@ -4,6 +4,20 @@
 
 <mapper namespace="kr.or.ddit.finalProject.mapper.board.BoardMapper">
 
+    <!-- 게시글 단건 조회 -->
+    <select id="selectBoardByPostSn" resultType="kr.or.ddit.finalProject.dto.board.BoardDto">
+        SELECT POST_SN        AS postSn,
+               WRTR_USER_ID   AS wrtrUserId,
+               BOARD_TYPE_CD  AS boardTypeCd,
+               POST_SJ        AS postSj,
+               POST_CN        AS postCn,
+               INQ_CNT        AS inqCnt,
+               REG_DT         AS regDt,
+               MDFCN_DT       AS mdfcnDt
+        FROM BOARD
+        WHERE POST_SN = #{postSn}
+    </select>
+
     <!-- 게시글 등록 -->
     <insert id="insertBoard" parameterType="BoardDto">
       <selectKey keyProperty="postSn" resultType="Long" order="BEFORE">

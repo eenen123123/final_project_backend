@@ -130,7 +130,7 @@ public class MemberServiceImpl implements MemberService {
     public MemberDto authenticate(SigninRequestRecord signinRequestRecord) {
         MemberDto memberDto = memberMapper.findByUserId(signinRequestRecord.userId())
                 .orElseThrow(() -> new FinalProjectException(ErrorCode.USER_NOT_FOUND));
-                log.info("enable :  {}",memberDto.getEnable());
+        log.info("enable :  {}", memberDto.getEnable());
         if (memberDto.getEnable().equals("N")) {
             throw new FinalProjectException(ErrorCode.ACCOUNT_UNUSABLE);
         }
@@ -213,6 +213,9 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public void updateMember(MemberDto memberDto) {
+        if (memberDto.getUserEnpswd() != null && !memberDto.getUserEnpswd().isBlank()) {
+            memberDto.setUserEnpswd(passwordEncoder.encode(memberDto.getUserEnpswd()));
+        }
         memberMapper.updateMember(memberDto);
     }
 }

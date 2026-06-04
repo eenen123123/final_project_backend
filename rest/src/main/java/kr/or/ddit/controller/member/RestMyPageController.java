@@ -85,9 +85,10 @@ public class RestMyPageController {
      */
     @PutMapping("/profile")
     public ResponseEntity<Boolean> updateProfile(@RequestHeader("Authorization") String authHeader,
-            @RequestPart("userTelno") String userTelno,
-            @RequestPart("userEmailAddr") String userEmailAddr,
-            @RequestPart("userZip") String userZip, @RequestPart("userAddr") String userAddr,
+            @RequestPart(value = "userTelno", required = false) String userTelno,
+            @RequestPart(value = "userEmailAddr", required = false) String userEmailAddr,
+            @RequestPart(value = "userZip", required = false) String userZip,
+            @RequestPart(value = "userAddr", required = false) String userAddr,
             @RequestPart(value = "userDaddr", required = false) String userDaddr,
             @RequestPart(value = "newPassword", required = false) String newPassword,
             @RequestPart(value = "profileImage", required = false) MultipartFile profileImage) {
@@ -95,16 +96,18 @@ public class RestMyPageController {
         String token = authHeader.replace("Bearer ", "");
         MemberDto memberDto = memberService.getMemberByToken(token);
 
-        memberDto.setUserTelno(userTelno);
-        memberDto.setUserEmailAddr(userEmailAddr);
-        memberDto.setUserZip(userZip);
-        memberDto.setUserAddr(userAddr);
-        memberDto.setUserDaddr(userDaddr);
+        // 비밀번호 변경 요청 시 기존 정보 유지
+        MemberDto existing = memberService.getMemberByToken(token);
+        memberDto.setUserTelno(existing.getUserTelno());
+        memberDto.setUserEmailAddr(existing.getUserEmailAddr());
+        memberDto.setUserZip(existing.getUserZip());
+        memberDto.setUserAddr(existing.getUserAddr());
+        memberDto.setUserDaddr(existing.getUserDaddr());
 
         // 비밀번호 변경 요청 시 암호화 후 세팅
         if (newPassword != null && !newPassword.isBlank()) {
             // TODO: PasswordEncoder 주입 후 암호화 처리
-            // memberDto.setUserEnpswd(passwordEncoder.encode(newPassword));
+            memberDto.setUserEnpswd(newPassword);
             log.info("비밀번호 변경 요청 - userId: {}", memberDto.getUserId());
         }
 
