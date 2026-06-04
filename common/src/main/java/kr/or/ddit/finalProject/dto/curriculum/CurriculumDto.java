@@ -1,9 +1,8 @@
 package kr.or.ddit.finalProject.dto.curriculum;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -11,7 +10,6 @@ import lombok.EqualsAndHashCode;
 @Data
 public class CurriculumDto {
 
-    @NotNull
     private Long curriculumId;
     @NotBlank
     private String title;
@@ -20,8 +18,8 @@ public class CurriculumDto {
     private String useYn;
     @NotBlank
     private String rgtrId;
-    private LocalDate regDt;
+    private LocalDateTime regDt;
     private String lastMdfrId;
-    private LocalDate mdfcnDt;
+    private LocalDateTime mdfcnDt;
 
 }

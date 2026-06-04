@@ -3,6 +3,46 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="kr.or.ddit.finalProject.mapper.board.DataRoomMapper">
 
+    <sql id="dataRoomSearchWhere">
+        <trim prefix="WHERE" prefixOverrides="AND">
+            <if test="detailCondition != null">
+                <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
+                    AND instr(b.POST_SJ, #{detailCondition.keyword}) &gt; 0
+                </if>
+                <if test="detailCondition.dataCtg != null and detailCondition.dataCtg != ''">
+                    AND d.DATA_CTG = #{detailCondition.dataCtg}
+                </if>
+            </if>
+            AND b.BOARD_TYPE_CD = '04'
+        </trim>
+    </sql>
+
+    <!-- 자료실 페이징 목록 조회 -->
+    <select id="findDataRoomListPaged" resultType="kr.or.ddit.finalProject.dto.board.DataRoomDto">
+        SELECT * FROM (
+            SELECT
+                b.POST_SN, b.POST_SJ, b.POST_CN, b.WRTR_USER_ID,
+                b.INQ_CNT, b.REG_DT, b.MDFCN_DT,
+                d.DATA_CTG, d.EXPS_ORD, d.ACCS_LMT_CD,
+                c1.COM_CD_NM AS DATA_CTG_NM, c2.COM_CD_NM AS ACCS_LMT_NM
+            FROM BOARD b
+            JOIN DATA_ROOM d ON b.POST_SN = d.POST_SN
+            LEFT JOIN COM_CD c1 ON c1.COM_CD = d.DATA_CTG AND c1.CL_CODE = '106'
+            LEFT JOIN COM_CD c2 ON c2.COM_CD = d.ACCS_LMT_CD AND c2.CL_CODE = '107'
+            <include refid="dataRoomSearchWhere"/>
+            ORDER BY b.REG_DT DESC
+        )
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <!-- 자료실 전체 건수 -->
+    <select id="countDataRoomList" resultType="int">
+        SELECT COUNT(*)
+        FROM BOARD b
+        JOIN DATA_ROOM d ON b.POST_SN = d.POST_SN
+        <include refid="dataRoomSearchWhere"/>
+    </select>
+
     <!-- 자료실 목록 조회 -->
     <select id="findDataRoomList" resultType="kr.or.ddit.finalProject.dto.board.DataRoomDto">
         SELECT
@@ -10,7 +50,6 @@
             b.POST_SJ,
             b.POST_CN,
             b.WRTR_USER_ID,
-            b.ATCH_FILE_ID,
             b.INQ_CNT,
             b.REG_DT,
             b.MDFCN_DT,
@@ -37,7 +76,6 @@
             b.POST_SJ,
             b.POST_CN,
             b.WRTR_USER_ID,
-            b.ATCH_FILE_ID,
             b.INQ_CNT,
             b.REG_DT,
             b.MDFCN_DT,
@@ -45,16 +83,11 @@
             d.EXPS_ORD,
             d.ACCS_LMT_CD,
             c1.COM_CD_NM AS DATA_CTG_NM,
-            c2.COM_CD_NM AS ACCS_LMT_NM,
-            f.ORGN_FILE_NM,
-            f.SAVE_PATH_NM,
-            f.FILE_EXT_NM,
-            f.FILE_SIZE_CNT
+            c2.COM_CD_NM AS ACCS_LMT_NM
         FROM BOARD b
         JOIN DATA_ROOM d ON b.POST_SN = d.POST_SN
         LEFT JOIN COM_CD c1 ON c1.COM_CD = d.DATA_CTG AND c1.CL_CODE = '106'
         LEFT JOIN COM_CD c2 ON c2.COM_CD = d.ACCS_LMT_CD AND c2.CL_CODE = '107'
-        LEFT JOIN CMMT_ATCH_FILE_DTL f ON f.ATCH_FILE_DTL_SN = b.ATCH_FILE_ID
         WHERE b.POST_SN = #{postSn}
     </select>
 
@@ -66,7 +99,6 @@
             BOARD_TYPE_CD,
             POST_SJ,
             POST_CN,
-            ATCH_FILE_ID,
             INQ_CNT,
             REG_DT,
             MDFCN_DT
@@ -76,7 +108,6 @@
             '04',
             #{postSj},
             #{postCn},
-            #{atchFileId, jdbcType=NUMERIC},
             0,
             CURRENT_TIMESTAMP,
             CURRENT_TIMESTAMP
@@ -104,11 +135,10 @@
     <!-- 자료실 수정 - BOARD UPDATE -->
     <update id="updateBoard" parameterType="kr.or.ddit.finalProject.dto.board.DataRoomDto">
         UPDATE BOARD SET
-            POST_SJ     = #{postSj},
-            POST_CN     = #{postCn},
-            ATCH_FILE_ID = #{atchFileId, jdbcType=NUMERIC},
+            POST_SJ      = #{postSj},
+            POST_CN      = #{postCn},
             LAST_MDFR_ID = #{wrtrUserId},
-            MDFCN_DT    = CURRENT_TIMESTAMP
+            MDFCN_DT     = CURRENT_TIMESTAMP
         WHERE POST_SN = #{postSn}
     </update>
 

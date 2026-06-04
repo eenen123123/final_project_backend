@@ -2,16 +2,15 @@ package kr.or.ddit.finalProject.service.board.dataroom;
 
 import java.util.List;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import kr.or.ddit.finalProject.dto.board.DataRoomDto;
-import kr.or.ddit.finalProject.dto.file.FileCtxType;
-import kr.or.ddit.finalProject.dto.file.FileDto;
-import kr.or.ddit.finalProject.dto.member.MemberRoleEnum;
+import kr.or.ddit.finalProject.dto.board.req.DataRoomSearchCondition;
+import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.mapper.board.DataRoomMapper;
-import kr.or.ddit.finalProject.service.file.FileUploadService;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,76 +20,42 @@ import lombok.extern.slf4j.Slf4j;
 public class DataRoomServiceImpl implements DataRoomService {
 
     private final DataRoomMapper dataRoomMapper;
-    private final FileUploadService fileUploadService;
 
     @Override
     @Transactional(readOnly = true)
-    public List<DataRoomDto> getDataRoomList(String dataCtg) {
-        return dataRoomMapper.findDataRoomList(dataCtg);
+    public PageResponse<DataRoomDto> getList(PaginationInfo<DataRoomSearchCondition> paginationInfo) {
+        List<DataRoomDto> items = dataRoomMapper.findDataRoomListPaged(paginationInfo);
+        int totalCount = dataRoomMapper.countDataRoomList(paginationInfo);
+        return new PageResponse<>(items, totalCount);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public DataRoomDto getDataRoomById(Long postSn) {
+    public DataRoomDto getById(Long postSn, Authentication authentication) {
         return dataRoomMapper.findDataRoomById(postSn);
     }
 
     @Override
     @Transactional
-    public void createDataRoom(DataRoomDto dataRoomDto, MultipartFile file) {
-        // 1. 파일 첨부 있으면 업로드
-        if (file != null && !file.isEmpty()) {
-            FileDto fileDto = fileUploadService.uploadFile(file, dataRoomDto.getWrtrUserId(),
-                    FileCtxType.MEMBER_ROLE, MemberRoleEnum.ROLE_USER.name());
-            dataRoomDto.setAtchFileId(fileDto.getAtchFileDtlSn());
-            dataRoomDto.setOrgnFileNm(fileDto.getOrgnFileNm());
-            dataRoomDto.setSavePathNm(fileDto.getSavePathNm());
-            dataRoomDto.setFileExtNm(fileDto.getFileExtNm());
-            dataRoomDto.setFileSizeCnt(fileDto.getFileSizeCnt());
+    public void create(DataRoomDto dto, Authentication authentication) {
+        if (authentication != null) {
+            dto.setWrtrUserId(authentication.getName());
         }
-
-        // 2. BOARD INSERT → postSn 채번
-        dataRoomMapper.insertBoard(dataRoomDto);
-
-        // 3. DATA_ROOM INSERT
-        dataRoomMapper.insertDataRoom(dataRoomDto);
-
-        log.info("자료실 등록 완료 : {}", dataRoomDto);
+        dataRoomMapper.insertBoard(dto);
+        dataRoomMapper.insertDataRoom(dto);
     }
 
     @Override
     @Transactional
-    public void updateDataRoom(DataRoomDto dataRoomDto, MultipartFile file) {
-        // 1. 새 파일 첨부 있으면 업로드
-        if (file != null && !file.isEmpty()) {
-            FileDto fileDto = fileUploadService.uploadFile(file, dataRoomDto.getWrtrUserId(),
-                    FileCtxType.MEMBER_ROLE, MemberRoleEnum.ROLE_USER.name());
-            dataRoomDto.setAtchFileId(fileDto.getAtchFileDtlSn());
-            dataRoomDto.setOrgnFileNm(fileDto.getOrgnFileNm());
-            dataRoomDto.setSavePathNm(fileDto.getSavePathNm());
-            dataRoomDto.setFileExtNm(fileDto.getFileExtNm());
-            dataRoomDto.setFileSizeCnt(fileDto.getFileSizeCnt());
-        }
-
-        // 2. BOARD UPDATE
-        dataRoomMapper.updateBoard(dataRoomDto);
-
-        // 3. DATA_ROOM UPDATE
-        dataRoomMapper.updateDataRoom(dataRoomDto);
-
-        log.info("자료실 수정 완료 : {}", dataRoomDto);
+    public void update(DataRoomDto dto) {
+        dataRoomMapper.updateBoard(dto);
+        dataRoomMapper.updateDataRoom(dto);
     }
 
     @Override
     @Transactional
-    public void deleteDataRoom(Long postSn) {
-        // 1. DATA_ROOM DELETE (FK 때문에 먼저)
+    public void delete(Long postSn) {
         dataRoomMapper.deleteDataRoom(postSn);
-
-        // 2. BOARD DELETE
         dataRoomMapper.deleteBoard(postSn);
-
-        log.info("자료실 삭제 완료 : postSn={}", postSn);
     }
-
 }

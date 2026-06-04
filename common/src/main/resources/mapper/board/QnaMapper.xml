@@ -23,6 +23,55 @@
         <result property="answStatNm" column="ANSW_STAT_NM"/>
     </resultMap>
 
+    <sql id="qnaSearchWhere">
+        <trim prefix="WHERE" prefixOverrides="AND">
+            <if test="detailCondition != null">
+                <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
+                    AND (
+                        instr(b.POST_SJ, #{detailCondition.keyword}) &gt; 0
+                        OR (q.SECR_YN = 'N' AND instr(b.POST_CN, #{detailCondition.keyword}) &gt; 0)
+                    )
+                </if>
+                <if test="detailCondition.qnaCtgCd != null and detailCondition.qnaCtgCd != ''">
+                    AND q.QNA_CTG_CD = #{detailCondition.qnaCtgCd}
+                </if>
+                <if test="detailCondition.answStatCd != null and detailCondition.answStatCd != ''">
+                    AND q.ANSW_STAT_CD = #{detailCondition.answStatCd}
+                </if>
+                <if test="detailCondition.wrtrUserId != null and detailCondition.wrtrUserId != ''">
+                    AND b.WRTR_USER_ID = #{detailCondition.wrtrUserId}
+                </if>
+            </if>
+        </trim>
+    </sql>
+
+    <!-- QnA 페이징 목록 조회 -->
+    <select id="findQnaListPaged" resultMap="qnaResultMap">
+        SELECT * FROM (
+            SELECT
+                q.POST_SN, q.QNA_CTG_CD, q.SECR_YN, q.ANSW_STAT_CD,
+                q.ANSW_CN, q.ANSWR_USER_ID, q.ANSW_DT,
+                b.POST_SJ, b.POST_CN, b.WRTR_USER_ID, b.REG_DT, b.MDFCN_DT,
+                c1.COM_CD_NM AS QNA_CTG_NM,
+                c2.COM_CD_NM AS ANSW_STAT_NM
+            FROM QNA q
+            JOIN BOARD b ON b.POST_SN = q.POST_SN
+            LEFT JOIN COM_CD c1 ON c1.CL_CODE = '105' AND c1.COM_CD = q.QNA_CTG_CD
+            LEFT JOIN COM_CD c2 ON c2.CL_CODE = '104' AND c2.COM_CD = q.ANSW_STAT_CD
+            <include refid="qnaSearchWhere"/>
+            ORDER BY b.REG_DT DESC
+        )
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <!-- QnA 전체 건수 -->
+    <select id="countQnaList" resultType="int">
+        SELECT COUNT(*)
+        FROM QNA q
+        JOIN BOARD b ON b.POST_SN = q.POST_SN
+        <include refid="qnaSearchWhere"/>
+    </select>
+
     <!-- QnA 목록 조회 -->
     <select id="findQnaList" resultMap="qnaResultMap">
         SELECT
