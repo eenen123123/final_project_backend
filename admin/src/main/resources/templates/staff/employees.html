@@ -7,6 +7,7 @@
   <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+  <script src="/js/admin-core.js" defer></script>
   <script src="/js/staff/employees.js" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="/css/admin-core.css" />
@@ -304,7 +305,8 @@
                 </div>
                 <div class="col-span-2">
                   <label class="form-label">프로필 사진</label>
-                  <input type="file" class="hm-input hm-input-blue hm-lg" id="new-atch-file" name="tempuserProfile" accept="image/*" />
+                  <!-- <input type="file" class="hm-input hm-input-blue hm-lg" id="new-atch-file" name="tempuserProfile" accept="image/*" /> -->
+                  <input type="file" class="hm-input hm-input-blue hm-lg" id="new-atch-file" name="profileImage" accept="image/*" />
                 </div>
               </div>
             </div>
@@ -333,7 +335,7 @@
                   <input type="date" class="hm-input hm-input-blue hm-lg" id="new-entry-date" name="joinYmd"
                     min="2000-01-01" max="2099-12-31" oninput="autoGenLoginId()" />
                 </div>
-                <div>
+                <!-- <div>
                   <label class="form-label">재직 상태 <span class="required">*</span></label>
                   <select class="hm-input hm-input-blue hm-lg" id="new-empl-stat" name="emplStatCd">
                     <option value="">선택</option>
@@ -341,9 +343,9 @@
                     <option value="02">휴직</option>
                     <option value="03">퇴사</option>
                   </select>
-                </div>
+                </div> -->
                 <div>
-                  <label class="form-label">근무 유형</label>
+                  <label class="form-label">근무 유형 <span class="required">*</span></label>
                   <select class="hm-input hm-input-blue hm-lg" id="new-work-type" name="emplTypeCd" onchange="toggleContractPeriod(this.value)">
                     <option value="">선택</option>
                     <option value="01">정규직</option>
@@ -356,12 +358,12 @@
                   <input type="date" class="hm-input hm-input-blue hm-lg" id="new-contract-end" name="ctrctEndYmd" />
                 </div>
                 <div>
-                  <label class="form-label">급여 (만원)</label>
+                  <label class="form-label">급여 (만원) <span class="required">*</span></label>
                   <input type="number" class="hm-input hm-input-blue hm-lg" placeholder="300" id="new-salary"
                     name="baseSalary" />
                 </div>
                 <div class="col-span-2">
-                  <label class="form-label">담당 업무</label>
+                  <label class="form-label">담당 업무 <span class="required">*</span></label>
                   <textarea class="hm-input hm-input-blue resize-none" rows="2" placeholder="담당 업무 내용을 입력하세요"
                     id="new-chrg-duty" name="chrgDutyCn"></textarea>
                 </div>
@@ -665,30 +667,6 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════ -->
-  <!--  MODAL: 개인정보 파기 확인                         -->
-  <!-- ═══════════════════════════════════════════════════ -->
-  <div id="modal-destroy-confirm" class="fixed inset-0 bg-black/60 z-[60] hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
-      <div class="p-6 text-center">
-        <div class="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-          <i class="fa-solid fa-trash-can text-red-500 text-2xl"></i>
-        </div>
-        <h3 class="font-bold text-slate-800 mb-2">개인정보 파기</h3>
-        <p class="text-sm text-slate-500 mb-1">
-          <span class="font-semibold text-slate-700" id="destroy-name">박서준</span> 직원의 개인정보를 파기합니다.
-        </p>
-        <p class="text-xs text-red-500 mb-5">주민등록번호, 주소, 연락처 등 민감 정보가 영구 삭제되며 복구가 불가능합니다.</p>
-        <p class="text-xs text-slate-400 mb-5 bg-slate-50 rounded-lg p-2">파기 대상: 주민등록번호, 주소, 연락처, 계좌정보</p>
-        <div class="flex gap-3">
-          <button onclick="closeModal('modal-destroy-confirm')"
-            class="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50">취소</button>
-          <button onclick="executeDestroy()"
-            class="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600">파기 실행</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
 </body>
 

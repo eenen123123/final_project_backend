@@ -737,15 +737,24 @@ function toggleContractPeriod(val) {
   if (!show) end.value = "";
 }
 
+/* ─── 주민등록번호 체크섬(루한 알고리즘) 검증 ─── */
+function validateRrnChecksum(digits) {
+  // digits: 하이픈 없는 13자리 숫자 문자열
+  const weights = [2, 3, 4, 5, 6, 7, 8, 9, 2, 3, 4, 5];
+  const sum = weights.reduce((acc, w, i) => acc + parseInt(digits[i], 10) * w, 0);
+  const expected = (11 - (sum % 11)) % 10;
+  return parseInt(digits[12], 10) === expected;
+}
+
 /* ─── 주민번호에서 생년월일·성별·임시비밀번호 자동 파생 및 날짜 유효성 체크 ─── */
 /* ─── 주민번호 입력 시 실시간 날짜 유효성 검증 및 생년월일·성별 자동 파생 ─── */
 function autoFillTempPw() {
   // 숫자만 추출
   const rrn = document.getElementById("new-rrn").value.replace(/\D/g, "");
 
-  // 임시 비밀번호: 생년월일 앞 6자리 자동 설정
+  // 임시 비밀번호: 주민등록번호 앞 8자리 자동 설정
   document.getElementById("new-temp-pw").value =
-    rrn.length >= 6 ? rrn.slice(0, 6) : "";
+    rrn.length >= 8 ? rrn.slice(0, 8) : "";
 
   // 1. 최소 7 자리가 입력되어 성별 코드가 확인되는 시점부터 분석 시작
   if (rrn.length >= 7) {
@@ -772,11 +781,11 @@ function autoFillTempPw() {
         "주민등록번호의 '월' 입력이 잘못되었습니다. (1월~12월 사이)",
         "error",
       );
-      clearRrnOutputs();
+      clearRrnDerived();
       return;
     }
 
-    // 3. 13자리 전체가 완벽히 입력되었을 때 '일(Day)'과 '윤년' 최종 검증 발동
+    // 3. 13자리 전체가 완벽히 입력되었을 때 '일(Day)', '윤년', '체크섬' 최종 검증 발동
     if (rrn.length === 13) {
       const dateCheck = new Date(fullYear, month - 1, day);
 
@@ -790,9 +799,10 @@ function autoFillTempPw() {
           `존재하지 않는 날짜입니다. 입력된 날짜를 확인해 주세요. (${month}월 ${day}일)`,
           "error",
         );
-        clearRrnOutputs();
+        clearRrnDerived();
         return;
       }
+
     }
 
     // 4. 모든 검증을 통과한 유효한 날짜 포맷일 때만 화면에 반영
@@ -811,6 +821,14 @@ function autoFillTempPw() {
     document.getElementById("new-gndr").value = "";
     document.getElementById("new-gndr-display").value = "";
   }
+}
+
+/* ─── 파생 필드만 초기화 (주민번호 입력은 유지) ─── */
+function clearRrnDerived() {
+  document.getElementById("new-brdt").value = "";
+  document.getElementById("new-gndr").value = "";
+  document.getElementById("new-gndr-display").value = "";
+  document.getElementById("new-temp-pw").value = "";
 }
 
 /* ─── 잘못된 주민번호 감지 시 입력 필드를 비우고 포커스를 주는 공통 함수 ─── */
@@ -876,6 +894,8 @@ function validateNewEmp() {
   const deptEl = document.getElementById("new-dept");
   const roleEl = document.getElementById("new-role");
   const entryEl = document.getElementById("new-entry-date");
+  const typeEl = document.getElementById("new-work-type");
+  const contractEndEl = document.getElementById("new-contract-end");
   const loginIdEl = document.getElementById("new-login-id");
   const baseSalary = document.getElementById("new-salary");
   const chrgDutyCnt = document.getElementById("new-chrg-duty");
@@ -910,6 +930,11 @@ function validateNewEmp() {
       "주민등록번호는 000000-0000000 형식이어야 합니다.",
       "error",
     );
+    rrnDisplayEl.focus();
+    return false;
+  }
+  if (!validateRrnChecksum(rrnEl.value.replace(/\D/g, ""))) {
+    showHermesToast("유효하지 않은 주민등록번호입니다. 다시 확인해주세요.", "error");
     rrnDisplayEl.focus();
     return false;
   }
@@ -1000,6 +1025,20 @@ function validateNewEmp() {
       "error",
     );
     entryEl.focus();
+    return false;
+  }
+
+  // [근무 유형] 필수
+  if (!typeEl.value) {
+    showHermesToast("근무 유형을 선택해주세요.", "error");
+    typeEl.focus();
+    return false;
+  }
+
+  // [계약 종료일] 정규직(01) 외에는 필수
+  if (typeEl.value !== "01" && !contractEndEl.value) {
+    showHermesToast("계약 종료일을 입력해주세요.", "error");
+    contractEndEl.focus();
     return false;
   }
 
@@ -1116,9 +1155,21 @@ document.querySelectorAll('[id^="modal-"]').forEach((m) => {
   );
   if (firstBtn) switchEmpTab("emp-tab-hr", firstBtn);
 
-  applyEmpPaging();
   // Tailwind CDN 스타일 적용 후 실행되도록 다음 이벤트 루프로 지연
   setTimeout(filterHrList, 0);
+
+  // 등록/수정 결과 토스트 처리
+  const params = new URLSearchParams(window.location.search);
+  const errMsg = params.get("error");
+  const okMsg  = params.get("success");
+  if (errMsg) {
+    setTimeout(() => showHermesToast(decodeURIComponent(errMsg), "error"), 300);
+    history.replaceState(null, "", window.location.pathname);
+  }
+  if (okMsg) {
+    setTimeout(() => showHermesToast(decodeURIComponent(okMsg), "success"), 300);
+    history.replaceState(null, "", window.location.pathname);
+  }
 })();
 
 /* ─── 신규 등록 폼: 부서 → 직급 필터 ─── */
