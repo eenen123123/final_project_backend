@@ -10,6 +10,7 @@ import kr.or.ddit.finalProject.dto.employee.EmployeeDetailDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto;
 import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
+import kr.or.ddit.finalProject.dto.member.MemberCreateLogDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 
 @Mapper
@@ -61,4 +62,13 @@ public interface StaffMapper {
 
     // 퇴사 처리: EMPLOYEE_SALARY 현재 급여 비활성화
     int updateEmployeeSalaryInactive(@Param("userId") String userId, @Param("loginUserId") String loginUserId);
+
+    // 학생 리스트 조회
+    List<MemberDto> selectStudentList();
+
+    // 가입 연도 목록 조회 (중복 제거)
+    List<Integer> selectStudentJoinYearList();
+
+    // 학생 로그 정보 저장 (MEMBER_CREATE_LOG)
+    void insertStudentLog(MemberCreateLogDto memberCreateLog);
 }

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>학생 정보 및 계정 관리</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+  <script src="/js/admin-core.js" defer></script>
+  <script src="/js/staff/students.js" defer></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/admin-core.css" />
+  <link rel="stylesheet" href="/css/staff/students.css" />
+</head>
+
+<body>
+
+  <!-- ───────────────── 페이지 헤더 ───────────────── -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-xl font-bold text-slate-800">학생 정보 및 계정 관리</h1>
+      <p class="text-sm text-slate-500 mt-0.5">학생 기록 조회, 계정 생성, 탈퇴 처리를 관리합니다.</p>
+    </div>
+    <button onclick="openModal('modal-new-student'); autoGenStudentId()" class="hm-btn-primary hm-btn-blue">
+      <i class="fa-solid fa-user-plus"></i> 신규 학생 등록
+    </button>
+  </div>
+
+  <!-- ───────────────── 요약 카드 3개 ───────────────── -->
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+        <i class="fa-solid fa-users text-[#3b82f6]"></i>
+      </div>
+      <div>
+        <p class="text-xs text-slate-500">전체 학생</p>
+        <p class="text-xl font-bold text-slate-800" th:text="${studentList != null ? #lists.size(studentList) : 0}">0</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+        <i class="fa-solid fa-circle-check text-emerald-600"></i>
+      </div>
+      <div>
+        <p class="text-xs text-slate-500">일반 학생</p>
+        <p class="text-xl font-bold text-slate-800"
+          th:text="${studentList != null ? #lists.size(studentList.?[userRole == 'ROLE_USER']) : 0}">0</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+        <i class="fa-solid fa-school text-amber-600"></i>
+      </div>
+      <div>
+        <p class="text-xs text-slate-500">오프라인 학생</p>
+        <p class="text-xl font-bold text-slate-800"
+          th:text="${studentList != null ? #lists.size(studentList.?[userRole == 'ROLE_STUDENT']) : 0}">0</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────────────── 탭 네비게이션 ───────────────── -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+    <div class="flex border-b border-slate-100 px-6">
+      <a href="/admin/employees"
+        class="emp-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px flex items-center">
+        <i class="fa-solid fa-id-badge mr-1.5"></i>인사 기록
+      </a>
+      <button class="emp-tab-btn active py-3.5 px-4 text-sm -mb-px" data-tab="stu-tab-list"
+        onclick="switchEmpTab('stu-tab-list', this)">
+        <i class="fa-solid fa-graduation-cap mr-1.5"></i>학생 기록
+      </button>
+    </div>
+
+    <!-- ══════ 학생 기록 탭 ══════ -->
+    <div id="stu-tab-list" class="emp-tab-panel p-6">
+      <div class="flex flex-wrap gap-3 mb-5 items-end justify-between">
+        <div class="flex gap-3 flex-wrap items-center">
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-2/3 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input type="text" id="hr-search" placeholder="학생명 검색..." class="hm-input hm-input-blue"
+              style="width:10rem; line-height:1rem; padding:0.65rem 1.75rem 0.65rem 1rem" oninput="filterHrList()">
+          </div>
+          <select class="hm-input hm-input-blue" id="hr-year" style="width:10rem" onchange="filterHrList()">
+            <option value="">전체 연도</option>
+            <option th:each="year : ${joinYearList}" th:value="${year}" th:text="${year + '년'}"></option>
+          </select>
+          <select class="hm-input hm-input-blue" id="hr-type-filter" style="width:10rem" onchange="filterHrList()">
+            <option value="">전체 유형</option>
+            <option value="ROLE_USER">일반</option>
+            <option value="ROLE_STUDENT">오프라인</option>
+          </select>
+          <select class="hm-input hm-input-blue" id="hr-status-filter" style="width:10rem" onchange="filterHrList()">
+            <option value="">전체 상태</option>
+            <option value="Y">정상</option>
+            <option value="N">탈퇴</option>
+          </select>
+          <button type="button" onclick="resetHrFilter()" class="hm-btn-secondary text-sm px-3 py-2 whitespace-nowrap">
+            <i class="fa-solid fa-rotate-left mr-1"></i>초기화
+          </button>
+        </div>
+        <button class="hm-btn-primary hm-btn-blue text-sm px-4 py-2" onclick="showHermesToast('엑셀로 내보내기 준비 중','info')">
+          <i class="fa-solid fa-file-excel mr-1"></i>엑셀 내보내기
+        </button>
+      </div>
+
+      <!-- 테이블 -->
+      <div class="overflow-x-auto rounded-xl border border-slate-100" style="min-height:32rem">
+        <table class="w-full text-sm table-fixed">
+          <colgroup>
+            <col style="width:20%">
+            <col style="width:12%">
+            <col style="width:16%">
+            <col style="width:16%">
+            <col style="width:10%">
+            <col style="width:8%">
+          </colgroup>
+          <thead>
+            <tr id="hr-thead" class="bg-slate-100 text-slate-500 text-sm">
+              <th class="text-left py-3 px-4 pl-8 font-semibold cursor-pointer select-none truncate" data-col="name"
+                onclick="sortHrBy('name')">학생명 <span class="sort-icon text-slate-300">↕</span></th>
+              <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="type"
+                onclick="sortHrBy('type')">유형 <span class="sort-icon text-slate-300">↕</span></th>
+              <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="email"
+                onclick="sortHrBy('email')">이메일 <span class="sort-icon text-slate-300">↕</span></th>
+              <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="join"
+                onclick="sortHrBy('join')">가입일 <span class="sort-icon text-slate-300">↕</span></th>
+              <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="status"
+                onclick="sortHrBy('status')">상태 <span class="sort-icon text-slate-300">↕</span></th>
+              <th class="text-left py-3 px-4 font-semibold">상세</th>
+            </tr>
+          </thead>
+          <tbody id="hr-table-body" class="divide-y divide-slate-50">
+            <tr th:if="${studentList == null or #lists.isEmpty(studentList)}">
+              <td colspan="6" class="text-center py-10 text-sm text-slate-400">등록된 학생이 없습니다.</td>
+            </tr>
+            <tr th:each="stu : ${studentList}" class="hr-data-row hover:bg-slate-50 transition-colors"
+              th:data-id="${stu.userId}"
+              th:data-name="${stu.userName}"
+              th:data-email="${stu.userEmailAddr}"
+              th:data-phone="${stu.userTelno}"
+              th:data-birthdate="${stu.userBrdt}"
+              th:data-gender="${stu.userGndrCd}"
+              th:data-zip="${stu.userZip}"
+              th:data-addr-base="${stu.userAddr != null ? stu.userAddr : ''}"
+              th:data-addr-detail="${stu.userDaddr != null ? stu.userDaddr : ''}"
+              th:data-addr="${(stu.userAddr != null ? stu.userAddr : '') + (stu.userDaddr != null and not #strings.isEmpty(stu.userDaddr) ? ' ' + stu.userDaddr : '')}"
+              th:data-profile="${stu.userProfile != null ? stu.userProfile : ''}"
+              th:data-type="${stu.userRole}"
+              th:data-join="${stu.joinDt != null ? stu.joinDt : ''}"
+              th:data-enable="${stu.enable}">
+
+              <!-- 학생명 + 아바타 -->
+              <td class="py-3 px-4">
+                <div class="flex items-center gap-2">
+                  <img th:if="${stu.userProfile != null and #strings.startsWith(stu.userProfile, 'http')}"
+                    th:src="${stu.userProfile}" class="w-7 h-7 rounded-lg object-cover" alt="프로필">
+                  <div th:unless="${stu.userProfile != null and #strings.startsWith(stu.userProfile, 'http')}"
+                    class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-xs font-bold text-[#3b82f6]"
+                    th:text="${#strings.substring(stu.userName, 0, 1)}">?</div>
+                  <div>
+                    <p class="font-bold text-slate-800" th:text="${stu.userName}"></p>
+                    <p class="text-xs text-slate-400" th:text="${stu.userId}"></p>
+                  </div>
+                </div>
+              </td>
+              <!-- 유형 -->
+              <td class="py-3 px-4 text-sm text-slate-600 truncate"
+                th:text="${stu.userRole == 'ROLE_USER' ? '일반' : (stu.userRole == 'ROLE_STUDENT' ? '오프라인' : '-')}">-</td>
+              <!-- 이메일 -->
+              <td class="py-3 px-4 text-sm text-slate-600 truncate" th:text="${stu.userEmailAddr ?: '-'}">-</td>
+              <!-- 가입일 -->
+              <td class="py-3 px-4 text-sm text-slate-600 whitespace-nowrap"
+                th:text="${stu.joinDt != null ? #strings.substring(stu.joinDt.toString(), 0, 10) : '-'}">-</td>
+              <!-- 상태 -->
+              <td class="py-3 px-4">
+                <span class="status-badge"
+                  th:classappend="${stu.enable == 'Y' ? 'status-active' : 'status-resigned'}"
+                  th:text="${stu.enable == 'Y' ? '정상' : '탈퇴'}">-</span>
+              </td>
+              <!-- 상세 버튼 -->
+              <td class="py-3 px-4">
+                <button type="button" th:data-id="${stu.userId}"
+                  onclick="openDetail(this.getAttribute('data-id'))"
+                  class="text-xs text-[#3b82f6] hover:underline font-semibold">상세</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="hr-pagination" class="flex justify-center items-center gap-1.5 mt-6 pb-2"></div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!--  MODAL: 신규 학생 등록                             -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="modal-new-student" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
+    <div class="hm-modal-inner max-w-2xl">
+      <div class="hm-modal-scroll">
+        <div class="hm-modal-header">
+          <h2><i class="fa-solid fa-user-plus mr-2 text-[#3b82f6]"></i>신규 학생 등록</h2>
+          <button type="button" onclick="closeModal('modal-new-student')" class="text-slate-400 hover:text-slate-600">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+        <form id="form-new-student" action="/admin/employees/students" method="POST" enctype="multipart/form-data" onsubmit="return validateNewStu()">
+          <div class="p-6 space-y-5">
+            <!-- 기본 정보 -->
+            <div>
+              <p class="form-section-title">기본 정보</p>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="form-label">이름 <span class="required">*</span></label>
+                  <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="홍길동" id="new-name" name="userName" oninput="formatName(this)" onblur="blurValidateName(this)" />
+                </div>
+                <div>
+                  <label class="form-label">주민등록번호 <span class="required">*</span></label>
+                  <div class="relative">
+                    <input type="text" class="hm-input hm-input-blue pr-10" placeholder="000000-0000000" id="new-rrn-display" maxlength="14" oninput="onRrnInput(this)" onfocus="onRrnFocus()" onblur="onRrnBlur()" autocomplete="off" />
+                    <button type="button" id="rrn-eye-btn" class="absolute right-3 top-5/7 -translate-y-1/2 text-slate-400 hover:text-slate-700" onclick="toggleRrnVisibility()">
+                      <i id="rrn-eye-icon" class="fa-regular fa-eye-slash text-sm"></i>
+                    </button>
+                    <input type="hidden" id="new-rrn" name="userEnrrno" />
+                  </div>
+                </div>
+                <div>
+                  <label class="form-label">생년월일</label>
+                  <input type="text" class="hm-input hm-input-blue bg-slate-50" id="new-brdt" name="userBrdt" placeholder="주민등록번호 입력 시 자동 설정됩니다" readonly />
+                </div>
+                <div>
+                  <label class="form-label">성별</label>
+                  <input type="text" class="hm-input hm-input-blue hm-lg bg-slate-50" id="new-gndr-display" placeholder="주민등록번호 입력 시 자동 설정됩니다" readonly />
+                  <input type="hidden" id="new-gndr" name="userGndrCd" />
+                </div>
+                <div>
+                  <label class="form-label">연락처 <span class="required">*</span></label>
+                  <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="010-0000-0000" id="new-phone" name="userTelno" oninput="formatPhone(this)" maxlength="13" onblur="blurValidatePhone(this)" />
+                </div>
+                <div>
+                  <label class="form-label">이메일</label>
+                  <input type="email" class="hm-input hm-input-blue hm-lg" placeholder="user@hermes.com" id="new-email"
+                    name="userEmailAddr" onblur="blurValidateEmail(this)" />
+                </div>
+                <div class="col-span-2 flex gap-2">
+                  <div class="w-36">
+                    <label class="form-label"> 우편번호
+                      <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="00000" id="postcode" name="userZip" maxlength="5" readonly />
+                    </label>
+                  </div>
+                  <div class="flex items-end">
+                    <button type="button" onclick="searchZipCode()" class="hm-btn-primary hm-btn-blue text-xs px-3 py-2.5 whitespace-nowrap">우편번호 검색</button>
+                  </div>
+                </div>
+                <div class="col-span-2">
+                  <label class="form-label">기본 주소 <span class="required">*</span></label>
+                  <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="도로명 주소" id="address" name="userAddr" readonly />
+                </div>
+                <div class="col-span-2">
+                  <label class="form-label">상세 주소</label>
+                  <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="상세 주소 (동/호수 등)" id="detailAddress" name="userDaddr" />
+                </div>
+                <div class="col-span-2">
+                  <label class="form-label">프로필 사진</label>
+                  <input type="file" class="hm-input hm-input-blue hm-lg" id="new-atch-file" name="profileImage" accept="image/*"
+                    onchange="this.classList.toggle('filled', this.files.length > 0)" />
+                </div>
+                <div>
+                  <label class="form-label">학생 유형 <span class="required">*</span></label>
+                  <select class="hm-input hm-input-blue hm-lg filled" id="new-stu-type" name="userRole"
+                    onchange="this.classList.add('filled')">
+                    <option value="ROLE_USER">일반</option>
+                    <option value="ROLE_STUDENT">오프라인</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- 계정 설정 -->
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <p class="form-section-title">계정 설정</p>
+              <div class="grid grid-cols-2 gap-3">
+                <div class="col-span-2">
+                  <label class="form-label">로그인 ID <span class="required">*</span></label>
+                  <div class="relative">
+                    <input type="text" class="hm-input hm-input-blue pr-20 bg-slate-50 font-mono text-sm"
+                      id="new-stu-login-id" name="userId" placeholder="모달 열릴 때 자동 생성됩니다" readonly />
+                    <button type="button" onclick="autoGenStudentId()"
+                      class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[#3b82f6] font-semibold hover:text-blue-800">재생성</button>
+                  </div>
+                  <p class="text-xs text-slate-400 mt-1">연도 2자리 + S + 가입순번 5자리 (예: 26S00001)</p>
+                </div>
+                <div class="col-span-2">
+                  <label class="form-label">초기 비밀번호 <span class="required">*</span></label>
+                  <input type="text" class="hm-input hm-input-blue hm-lg font-mono"
+                    id="new-stu-pw" name="userEnpswd" placeholder="초기 비밀번호 입력" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="hm-modal-footer">
+            <button type="button" onclick="closeModal('modal-new-student')" class="hm-btn-secondary px-5 py-2.5">취소</button>
+            <button type="submit" class="hm-btn-primary hm-btn-blue px-6 py-2.5">등록 완료</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!--  MODAL: 학생 상세 / 정보 수정                       -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="modal-emp-detail" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
+    <div class="hm-modal-inner max-w-2xl">
+      <div class="hm-modal-scroll">
+        <div class="hm-modal-header">
+          <h2 id="detail-title">학생 상세 정보</h2>
+          <div class="flex gap-2">
+            <button onclick="toggleDetailEdit()" id="detail-edit-btn" class="hm-btn-secondary text-xs px-3 py-1.5">
+              <i class="fa-solid fa-pen mr-1"></i>수정
+            </button>
+            <button onclick="closeModal('modal-emp-detail')" class="text-slate-400 hover:text-slate-600">
+              <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+          </div>
+        </div>
+        <div class="p-6" id="detail-body">
+          <!-- 학생 헤더 -->
+          <div class="flex items-center gap-4 mb-5">
+            <div class="w-14 h-14 flex-shrink-0">
+              <img id="detail-avatar-img" class="w-14 h-14 rounded-2xl object-cover hidden" alt="프로필">
+              <div id="detail-avatar" class="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center text-2xl font-bold text-[#3b82f6]"></div>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-lg text-slate-800" id="detail-name"></span>
+                <span class="status-badge status-active" id="detail-status-badge"></span>
+              </div>
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="text-xs text-slate-500" id="detail-dept-tag"></span>
+                <span class="text-xs text-slate-400">·</span>
+                <span class="text-xs text-slate-500" id="detail-role-tag"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 기본 정보 섹션 -->
+          <div class="mb-4">
+            <p class="form-section-title">기본 정보</p>
+            <div>
+              <div class="info-row"><span class="info-label">연락처</span><span class="info-value" id="detail-phone">-</span></div>
+              <div class="info-row"><span class="info-label">이메일</span><span class="info-value" id="detail-email">-</span></div>
+              <div class="info-row"><span class="info-label">주소</span><span class="info-value" id="detail-addr">-</span></div>
+            </div>
+          </div>
+
+          <!-- 계정 정보 섹션 -->
+          <div class="mb-4">
+            <p class="form-section-title">계정 정보</p>
+            <div>
+              <div class="info-row"><span class="info-label">유형</span><span class="info-value" id="detail-work-type">-</span></div>
+              <div class="info-row"><span class="info-label">가입일</span><span class="info-value" id="detail-entry">-</span></div>
+              <div class="info-row"><span class="info-label">상태</span><span class="info-value" id="detail-enable">-</span></div>
+            </div>
+          </div>
+
+          <!-- 수정 폼 (숨김) -->
+          <div id="detail-edit-form" class="hidden">
+            <hr class="border-slate-200 my-4" />
+            <p class="text-xs font-bold text-amber-600 uppercase tracking-wider mb-3">기본 정보 수정</p>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="form-label">이름 <span class="required">*</span>
+                  <input type="text" class="hm-input hm-input-blue hm-lg" id="edit-name" placeholder="이름" />
+                </label>
+              </div>
+              <div>
+                <label class="form-label">연락처 <span class="required">*</span>
+                  <input type="text" class="hm-input hm-input-blue hm-lg" id="edit-phone" placeholder="010-0000-0000"
+                    oninput="formatPhone(this)" maxlength="13" />
+                </label>
+              </div>
+              <div class="col-span-2">
+                <label class="form-label">이메일
+                  <input type="text" class="hm-input hm-input-blue hm-lg" id="edit-email" placeholder="example@email.com" />
+                </label>
+              </div>
+              <div class="col-span-2">
+                <label class="form-label">우편번호
+                  <div class="flex gap-2 mb-1">
+                    <input type="text" class="hm-input hm-input-blue hm-lg" id="edit-zipcode" placeholder="우편번호"
+                      readonly style="width:8rem" />
+                    <button type="button" onclick="searchDetailZipCode()"
+                      class="hm-btn-primary hm-btn-blue text-xs px-3 py-2 whitespace-nowrap">우편번호 검색</button>
+                  </div>
+                </label>
+              </div>
+              <div class="col-span-2">
+                <label class="form-label">기본 주소 <span class="required">*</span>
+                  <input type="text" class="hm-input hm-input-blue hm-lg mb-1" id="edit-addr" placeholder="도로명 주소" readonly />
+                </label>
+              </div>
+              <div class="col-span-2">
+                <label class="form-label">상세 주소
+                  <input type="text" class="hm-input hm-input-blue hm-lg" id="edit-addr-detail" placeholder="상세 주소 (동/호수 등)" />
+                </label>
+              </div>
+              <div class="col-span-2">
+                <label class="form-label">현재 프로필 경로
+                  <input type="text" class="hm-input hm-input-blue hm-lg" id="edit-profile-path" placeholder="(없음)" readonly />
+                </label>
+              </div>
+              <div class="col-span-2">
+                <label class="form-label">새 프로필 파일로 교체
+                  <input type="file" class="hm-input hm-input-blue hm-lg py-1.5 text-xs" id="edit-profile" name="editProfileImage" accept="image/*" />
+                </label>
+              </div>
+            </div>
+
+            <hr class="border-slate-200 my-4" />
+            <p class="text-xs font-bold text-amber-600 uppercase tracking-wider mb-3">계정 정보 수정</p>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="form-label">학생 유형
+                  <select class="hm-input hm-input-blue hm-lg" id="edit-stu-type">
+                    <option value="ROLE_USER">일반</option>
+                    <option value="ROLE_STUDENT">오프라인</option>
+                  </select>
+                </label>
+              </div>
+              <div>
+                <label class="form-label">계정 상태
+                  <select class="hm-input hm-input-blue hm-lg" id="edit-enable">
+                    <option value="Y">정상</option>
+                    <option value="N">탈퇴</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <div class="hm-modal-footer" style="padding:1rem 0 0">
+              <button onclick="toggleDetailEdit()" class="hm-btn-secondary px-4 py-2">취소</button>
+              <button onclick="saveDetailEdit()" class="hm-btn-primary hm-btn-blue px-5 py-2">수정 저장</button>
+            </div>
+
+            <!-- 위험 구역 (탈퇴 처리) -->
+            <div class="danger-zone p-4 mt-4">
+              <p class="text-xs font-bold text-[#ef4444] mb-2">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i>탈퇴 처리
+              </p>
+              <p class="text-xs text-slate-500 mb-3">탈퇴 처리 시 계정이 즉시 비활성화되고 30일 후 개인정보 파기 대상으로 이관됩니다.</p>
+              <div class="grid grid-cols-2 gap-2 mb-3">
+                <div class="col-span-2">
+                  <label class="form-label">탈퇴 사유
+                    <select class="hm-input hm-input-danger hm-lg" id="resign-reason" onchange="onResignReasonChange(this)">
+                      <option value="">선택</option>
+                      <option value="본인 요청">본인 요청</option>
+                      <option value="장기 미접속">장기 미접속</option>
+                      <option value="운영 정책 위반">운영 정책 위반</option>
+                      <option value="기타">기타</option>
+                    </select>
+                    <textarea id="resign-reason-detail" class="hm-input hm-input-danger mt-1 text-sm resize-none hidden"
+                      rows="2" maxlength="1000" placeholder="기타 사유를 직접 입력해주세요."></textarea>
+                  </label>
+                </div>
+              </div>
+              <button onclick="openResignConfirm()" class="hm-btn-danger w-full">
+                <i class="fa-solid fa-user-xmark mr-1.5"></i>탈퇴 처리 실행
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!--  MODAL: 탈퇴 최종 확인                             -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="modal-resign-confirm" class="fixed inset-0 bg-black/60 z-[60] hidden flex items-center justify-center p-4">
+    <div class="hm-modal-inner max-w-sm">
+      <div class="p-6 text-center">
+        <div class="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+          <i class="fa-solid fa-user-xmark text-red-500 text-2xl"></i>
+        </div>
+        <h3 class="font-bold text-slate-800 mb-2 text-lg">탈퇴 처리 최종 확인</h3>
+        <p class="text-base text-slate-500 mb-1">
+          <span class="font-semibold text-slate-700" id="resign-confirm-name"></span> 학생을 탈퇴 처리합니다.
+        </p>
+        <p class="text-sm text-red-500 mb-5">계정이 즉시 비활성화되며,<br>해당 학생은 시스템에 접근할 수 없게 됩니다.</p>
+        <div class="hm-modal-footer" style="padding:0">
+          <button onclick="closeModal('modal-resign-confirm')" class="hm-btn-secondary flex-1">취소</button>
+          <button onclick="executeResign()" class="hm-btn-danger flex-1">탈퇴 처리</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>
