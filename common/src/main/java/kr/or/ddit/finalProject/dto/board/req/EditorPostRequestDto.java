@@ -1,4 +1,4 @@
-package kr.or.ddit.finalProject.dto.board;
+package kr.or.ddit.finalProject.dto.board.req;
 
 import java.io.Serializable;
 import java.util.List;

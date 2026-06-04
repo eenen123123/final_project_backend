@@ -20,6 +20,47 @@
         <result property="faqSubCtgNm" column="FAQ_SUB_CTG_NM"/>
     </resultMap>
 
+    <sql id="faqSearchWhere">
+        <trim prefix="WHERE" prefixOverrides="AND">
+            <if test="detailCondition != null">
+                <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
+                    AND instr(b.POST_SJ, #{detailCondition.keyword}) &gt; 0
+                </if>
+                <if test="detailCondition.faqCtgCd != null and detailCondition.faqCtgCd != ''">
+                    AND f.FAQ_CTG_CD = #{detailCondition.faqCtgCd}
+                </if>
+                <if test="detailCondition.faqSubCtgCd != null and detailCondition.faqSubCtgCd != ''">
+                    AND f.FAQ_SUB_CTG_CD = #{detailCondition.faqSubCtgCd}
+                </if>
+            </if>
+        </trim>
+    </sql>
+
+    <!-- FAQ 페이징 목록 조회 -->
+    <select id="findFaqListPaged" resultMap="faqResultMap">
+        SELECT * FROM (
+            SELECT
+                f.POST_SN, f.FAQ_CTG_CD, f.FAQ_SUB_CTG_CD, f.EXPS_ORD, f.TOP_FIX_YN,
+                b.POST_SJ, b.POST_CN, b.WRTR_USER_ID, b.REG_DT,
+                c1.COM_CD_NM AS FAQ_CTG_NM, c2.COM_CD_NM AS FAQ_SUB_CTG_NM
+            FROM FAQ f
+            JOIN BOARD b ON b.POST_SN = f.POST_SN
+            LEFT JOIN COM_CD c1 ON c1.CL_CODE = '101' AND c1.COM_CD = f.FAQ_CTG_CD
+            LEFT JOIN COM_CD c2 ON c2.CL_CODE = '102' AND c2.COM_CD = f.FAQ_SUB_CTG_CD
+            <include refid="faqSearchWhere"/>
+            ORDER BY f.TOP_FIX_YN DESC, f.EXPS_ORD ASC
+        )
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <!-- FAQ 전체 건수 -->
+    <select id="countFaqList" resultType="int">
+        SELECT COUNT(*)
+        FROM FAQ f
+        JOIN BOARD b ON b.POST_SN = f.POST_SN
+        <include refid="faqSearchWhere"/>
+    </select>
+
     <!-- FAQ 목록 조회 -->
     <select id="findFaqList" resultMap="faqResultMap">
         SELECT

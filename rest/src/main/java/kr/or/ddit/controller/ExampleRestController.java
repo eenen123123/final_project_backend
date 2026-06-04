@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import kr.or.ddit.finalProject.dto.board.BoardDto;
-import kr.or.ddit.finalProject.dto.board.EditorPostRequestDto;
+import kr.or.ddit.finalProject.dto.board.req.EditorPostRequestDto;
 import kr.or.ddit.finalProject.dto.example.ExampleDto;
 import kr.or.ddit.finalProject.dto.pay.kakao.KakaoPayApproveResponse;
 import kr.or.ddit.finalProject.dto.pay.kakao.KakaoPayReadyRequest;
@@ -155,6 +155,8 @@ public class ExampleRestController {
 
         return ResponseEntity.ok(tossPayService.confirm(request));
     }
+
+    // MARK: - Post Example
 
     @PostMapping("/posts/example")
     public ResponseEntity<?> create(@Valid @RequestBody EditorPostRequestDto req,

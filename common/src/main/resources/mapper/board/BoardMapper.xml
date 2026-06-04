@@ -19,27 +19,21 @@
     </select>
 
     <!-- 게시글 등록 -->
-    <insert id="insertBoard" parameterType="BoardDto">
-        <selectKey keyProperty="postSn" resultType="Long" order="BEFORE">
-        SELECT "TEAM1_202512AF"."ISEQ$$_433495".NEXTVAL FROM DUAL
-        </selectKey>
+    <insert id="insertBoard" parameterType="BoardDto" useGeneratedKeys="true" keyProperty="postSn" keyColumn="POST_SN">
+     
        INSERT INTO BOARD (
-        POST_SN
-        , WRTR_USER_ID
+     WRTR_USER_ID
         , BOARD_TYPE_CD
         , POST_SJ
         , POST_CN
-        , ATCH_FILE_ID
         , POPUP_EXPS_YN
         , REG_DT
         , MDFCN_DT
     ) VALUES (
-        #{postSn}
-        , #{wrtrUserId, jdbcType=VARCHAR}
+         #{wrtrUserId, jdbcType=VARCHAR}
         , #{boardTypeCd, jdbcType=CHAR}
         , #{postSj, jdbcType=VARCHAR}
         , #{postCn, jdbcType=VARCHAR}
-        , #{atchFileId, jdbcType=VARCHAR}
         , #{popupExpsYn, jdbcType=CHAR}
         , CURRENT_TIMESTAMP
         , CURRENT_TIMESTAMP

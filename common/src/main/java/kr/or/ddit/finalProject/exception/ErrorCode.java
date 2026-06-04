@@ -37,6 +37,12 @@ public enum ErrorCode {
     // 게시글 관련
     POST_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "게시글 저장에 실패했습니다."),
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "게시글을 찾을 수 없습니다."),
+
+    QNA_ACCESS_DENIED(HttpStatus.FORBIDDEN, "비공개 QnA 게시글에 대한 접근 권한이 없습니다."),
+    
+    
+    
+    
     // File
     FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다."),
     FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "파일을 찾을 수 없습니다."),

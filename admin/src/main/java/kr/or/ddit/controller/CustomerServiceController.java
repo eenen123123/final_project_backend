@@ -3,7 +3,6 @@ package kr.or.ddit.controller;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.security.core.Authentication;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,10 +11,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+
 import kr.or.ddit.finalProject.dto.board.DataRoomDto;
 import kr.or.ddit.finalProject.dto.board.FaqDto;
 import kr.or.ddit.finalProject.dto.board.NoticeDto;
 import kr.or.ddit.finalProject.dto.board.QnaDto;
+import kr.or.ddit.finalProject.dto.board.req.DataRoomSearchCondition;
+import kr.or.ddit.finalProject.dto.board.req.FaqSearchCondition;
+import kr.or.ddit.finalProject.dto.board.req.NoticeSearchCondition;
+import kr.or.ddit.finalProject.dto.board.req.QnaSearchCondition;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
 import kr.or.ddit.finalProject.service.board.dataroom.DataRoomService;
 import kr.or.ddit.finalProject.service.board.faq.FaqService;
 import kr.or.ddit.finalProject.service.board.notice.NoticeService;
@@ -34,14 +39,15 @@ public class CustomerServiceController {
     private final QnaService qnaService;
     private final DataRoomService dataRoomService;
 
-    // 고객센터 관리 메인 (탭 포함)
+    private static final int ADMIN_ALL = 500;
+
     @GetMapping("/customer-service")
     public String customerService(Model model) {
         model.addAttribute("pageTitle", "고객센터 관리 | HERMES");
-        model.addAttribute("faqList", faqService.getFaqList(null, null));
-        model.addAttribute("noticeList", noticeService.getNoticeList(null));
-        model.addAttribute("qnaList", qnaService.getQnaList(null, null));
-        model.addAttribute("dataRoomList", dataRoomService.getDataRoomList(null));
+        model.addAttribute("faqList", faqService.getList(allOf(new FaqSearchCondition())).getItems());
+        model.addAttribute("noticeList", noticeService.getList(allOf(new NoticeSearchCondition())).getItems());
+        model.addAttribute("qnaList", qnaService.getList(allOf(new QnaSearchCondition())).getItems());
+        model.addAttribute("dataRoomList", dataRoomService.getList(allOf(new DataRoomSearchCondition())).getItems());
         return "admin:/board/customer_service";
     }
 
@@ -54,28 +60,28 @@ public class CustomerServiceController {
     }
 
     @PostMapping("/faq/write")
-    public String faqWrite(FaqDto faqDto) {
-        faqService.createFaq(faqDto);
+    public String faqWrite(FaqDto faqDto, Authentication authentication) {
+        faqService.create(faqDto, authentication);
         return "redirect:/admin/board/customer-service?tab=tab-faq";
     }
 
     @GetMapping("/faq/edit/{postSn}")
     public String faqEditForm(@PathVariable Long postSn, Model model) {
         model.addAttribute("pageTitle", "FAQ 수정 | HERMES");
-        model.addAttribute("faq", faqService.getFaqById(postSn));
+        model.addAttribute("faq", faqService.getById(postSn, null));
         return "admin:/board/faq/faq_edit";
     }
 
     @PostMapping("/faq/edit/{postSn}")
     public String faqEdit(@PathVariable Long postSn, FaqDto faqDto) {
         faqDto.setPostSn(postSn);
-        faqService.updateFaq(faqDto);
+        faqService.update(faqDto);
         return "redirect:/admin/board/customer-service?tab=tab-faq";
     }
 
     @PostMapping("/faq/delete/{postSn}")
     public String faqDelete(@PathVariable Long postSn) {
-        faqService.deleteFaq(postSn);
+        faqService.delete(postSn);
         return "redirect:/admin/board/customer-service?tab=tab-faq";
     }
 
@@ -88,42 +94,41 @@ public class CustomerServiceController {
     }
 
     @PostMapping("/notice/write")
-    public String noticeWrite(NoticeDto noticeDto) {
-        noticeService.createNotice(noticeDto);
+    public String noticeWrite(NoticeDto noticeDto, Authentication authentication) {
+        noticeService.create(noticeDto, authentication);
         return "redirect:/admin/board/customer-service?tab=tab-notice";
     }
 
     @GetMapping("/notice/edit/{postSn}")
     public String noticeEditForm(@PathVariable Long postSn, Model model) {
         model.addAttribute("pageTitle", "공지사항 수정 | HERMES");
-        model.addAttribute("notice", noticeService.getNoticeById(postSn));
+        model.addAttribute("notice", noticeService.getById(postSn, null));
         return "admin:/board/notice/notice_edit";
     }
 
     @PostMapping("/notice/edit/{postSn}")
     public String noticeEdit(@PathVariable Long postSn, NoticeDto noticeDto) {
         noticeDto.setPostSn(postSn);
-        noticeService.updateNotice(noticeDto);
+        noticeService.update(noticeDto);
         return "redirect:/admin/board/customer-service?tab=tab-notice";
     }
 
     @PostMapping("/notice/delete/{postSn}")
     public String noticeDelete(@PathVariable Long postSn) {
-        noticeService.deleteNotice(postSn);
+        noticeService.delete(postSn);
         return "redirect:/admin/board/customer-service?tab=tab-notice";
     }
 
     // ── QnA ──────────────────────────────
     @GetMapping("/qna/{postSn}")
-    public String qnaDetail(@PathVariable Long postSn, Model model) {
+    public String qnaDetail(@PathVariable Long postSn, Model model, Authentication authentication) {
         model.addAttribute("pageTitle", "QnA 답변 | HERMES");
-        model.addAttribute("qna", qnaService.getQnaById(postSn));
+        model.addAttribute("qna", qnaService.getById(postSn, authentication));
         return "admin:/board/qna/qna_detail";
     }
 
     @PostMapping("/qna/{postSn}/answer")
-    public String qnaAnswer(@PathVariable Long postSn, QnaDto qnaDto,
-            Authentication authentication) {
+    public String qnaAnswer(@PathVariable Long postSn, QnaDto qnaDto, Authentication authentication) {
         qnaDto.setPostSn(postSn);
         qnaDto.setAnswrUserId(authentication.getName());
         qnaService.answerQna(qnaDto);
@@ -131,9 +136,9 @@ public class CustomerServiceController {
     }
 
     @GetMapping("/qna/edit/{postSn}")
-    public String qnaEditForm(@PathVariable Long postSn, Model model) {
+    public String qnaEditForm(@PathVariable Long postSn, Model model, Authentication authentication) {
         model.addAttribute("pageTitle", "QnA 답변 수정 | HERMES");
-        model.addAttribute("qna", qnaService.getQnaById(postSn));
+        model.addAttribute("qna", qnaService.getById(postSn, authentication));
         return "admin:/board/qna/qna_edit";
     }
 
@@ -141,13 +146,13 @@ public class CustomerServiceController {
     public String qnaEdit(@PathVariable Long postSn, QnaDto qnaDto, Authentication authentication) {
         qnaDto.setPostSn(postSn);
         qnaDto.setAnswrUserId(authentication.getName());
-        qnaService.answerQna(qnaDto); // 기존 메서드 재사용
+        qnaService.answerQna(qnaDto);
         return "redirect:/admin/board/customer-service?tab=tab-qna";
     }
 
     @PostMapping("/qna/delete/{postSn}")
     public String qnaDelete(@PathVariable Long postSn) {
-        qnaService.deleteQna(postSn);
+        qnaService.delete(postSn);
         return "redirect:/admin/board/customer-service?tab=tab-qna";
     }
 
@@ -163,16 +168,15 @@ public class CustomerServiceController {
     public String dataRoomWrite(DataRoomDto dataRoomDto,
             @RequestParam(required = false) MultipartFile attachFile,
             Authentication authentication) {
-        dataRoomDto.setWrtrUserId(authentication.getName());
-        // dataRoomDto.setPostCn(sanitize(dataRoomDto.getPostCn()));
-        dataRoomService.createDataRoom(dataRoomDto, attachFile);
+        dataRoomDto.setAttachFile(attachFile);
+        dataRoomService.create(dataRoomDto, authentication);
         return "redirect:/admin/board/customer-service?tab=tab-dataroom";
     }
 
     @GetMapping("/dataroom/edit/{postSn}")
     public String dataRoomEditForm(@PathVariable Long postSn, Model model) {
         model.addAttribute("pageTitle", "자료실 수정 | HERMES");
-        DataRoomDto dataRoom = dataRoomService.getDataRoomById(postSn);
+        DataRoomDto dataRoom = dataRoomService.getById(postSn, null);
         dataRoom.setPostCn(sanitize(dataRoom.getPostCn()));
         model.addAttribute("dataRoom", dataRoom);
         return "admin:/board/dataroom/dataroom_edit";
@@ -183,31 +187,35 @@ public class CustomerServiceController {
             @RequestParam(required = false) MultipartFile attachFile,
             Authentication authentication) {
         dataRoomDto.setPostSn(postSn);
-        dataRoomDto.setWrtrUserId(authentication.getName());
         dataRoomDto.setPostCn(sanitize(dataRoomDto.getPostCn()));
-        dataRoomService.updateDataRoom(dataRoomDto, attachFile);
+        dataRoomDto.setAttachFile(attachFile);
+        dataRoomService.update(dataRoomDto);
         return "redirect:/admin/board/customer-service?tab=tab-dataroom";
     }
 
     @PostMapping("/dataroom/delete/{postSn}")
     public String dataRoomDelete(@PathVariable Long postSn) {
-        dataRoomService.deleteDataRoom(postSn);
+        dataRoomService.delete(postSn);
         return "redirect:/admin/board/customer-service?tab=tab-dataroom";
     }
 
-    // Toast UI Editor 허용 태그 목록 — 매 호출마다 재생성하지 않도록 static 상수로 선언
+    private <C> PaginationInfo<C> allOf(C condition) {
+        PaginationInfo<C> info = new PaginationInfo<>(ADMIN_ALL, 1, 1);
+        info.setDetailCondition(condition);
+        return info;
+    }
+
     private static final Safelist TOAST_SAFELIST = Safelist.relaxed()
             .addTags("del", "s", "hr", "input")
-            .addAttributes("input", "type", "checked", "disabled").addAttributes("span", "style")
-            .addAttributes("p", "style").addAttributes("h1", "style").addAttributes("h2", "style")
-            .addAttributes("h3", "style").addAttributes("h4", "style").addAttributes("h5", "style")
-            .addAttributes("h6", "style").addAttributes("img", "src");
+            .addAttributes("input", "type", "checked", "disabled")
+            .addAttributes("span", "style").addAttributes("p", "style")
+            .addAttributes("h1", "style").addAttributes("h2", "style")
+            .addAttributes("h3", "style").addAttributes("h4", "style")
+            .addAttributes("h5", "style").addAttributes("h6", "style")
+            .addAttributes("img", "src");
 
-    // XSS 방어: 허용 태그만 남기고 나머지 제거
     private String sanitize(String html) {
-        if (html == null)
-            return null;
+        if (html == null) return null;
         return Jsoup.clean(html, TOAST_SAFELIST);
-
     }
 }
