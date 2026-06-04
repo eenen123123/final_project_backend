@@ -1,5 +1,6 @@
 package kr.or.ddit.finalProject.mapper.board;
 
+import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import kr.or.ddit.finalProject.dto.board.BoardDto;
@@ -18,4 +19,6 @@ public interface BoardMapper {
 
     // 게시글 삭제
     int deleteBoard(Long postSn);
+
+    List<BoardDto> selectBoardsExample();
 }

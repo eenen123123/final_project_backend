@@ -20,9 +20,9 @@
 
     <!-- 게시글 등록 -->
     <insert id="insertBoard" parameterType="BoardDto">
-      <selectKey keyProperty="postSn" resultType="Long" order="BEFORE">
+        <selectKey keyProperty="postSn" resultType="Long" order="BEFORE">
         SELECT "TEAM1_202512AF"."ISEQ$$_433495".NEXTVAL FROM DUAL
-      </selectKey>
+        </selectKey>
        INSERT INTO BOARD (
         POST_SN
         , WRTR_USER_ID
@@ -63,4 +63,19 @@
         WHERE POST_SN = #{postSn}
     </delete>
 
+
+    <!-- selectBoardsExample -->
+
+    <select id="selectBoardsExample" resultType="kr.or.ddit.finalProject.dto.board.BoardDto">
+        SELECT POST_SN        AS postSn,
+               WRTR_USER_ID   AS wrtrUserId,
+               BOARD_TYPE_CD  AS boardTypeCd,
+               POST_SJ        AS postSj,
+               POST_CN        AS postCn,
+               INQ_CNT        AS inqCnt,
+               REG_DT         AS regDt,
+               MDFCN_DT       AS mdfcnDt
+        FROM BOARD
+        where post_sn >= 162
+    </select>
 </mapper>
