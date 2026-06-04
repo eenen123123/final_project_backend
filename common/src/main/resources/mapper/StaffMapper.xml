@@ -228,6 +228,22 @@
         WHERE USER_ID = #{userId, jdbcType=VARCHAR}
     </update>
 
+    <!-- updateStudentMember: 학생 기본정보 + 유형(USER_ROLE) + 상태(ENABLE) 수정 -->
+    <update id="updateStudentMember" parameterType="kr.or.ddit.finalProject.dto.member.MemberDto">
+        UPDATE MEMBER SET
+            USER_NAME       = #{userName, jdbcType=VARCHAR},
+            USER_TELNO      = #{userTelno, jdbcType=VARCHAR},
+            USER_EMAIL_ADDR = #{userEmailAddr, jdbcType=VARCHAR},
+            USER_ZIP        = #{userZip, jdbcType=VARCHAR},
+            USER_ADDR       = #{userAddr, jdbcType=VARCHAR},
+            USER_DADDR      = #{userDaddr, jdbcType=VARCHAR},
+            USER_PROFILE    = #{userProfile, jdbcType=VARCHAR},
+            USER_ROLE       = #{userRole, jdbcType=VARCHAR},
+            ENABLE          = #{enable, jdbcType=CHAR},
+            MOD_DATE        = CURRENT_TIMESTAMP
+        WHERE USER_ID = #{userId, jdbcType=VARCHAR}
+    </update>
+
     <!-- updateEmployeeInfo -->
     <update id="updateEmployeeInfo" parameterType="kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto">
         UPDATE EMPLOYEE_INFO SET
@@ -333,15 +349,32 @@
 
     <insert id="insertStudentLog" parameterType="kr.or.ddit.finalProject.dto.member.MemberCreateLogDto">
         INSERT
-            INTO
-            MEMBER_CREATE_LOG
-            (
-                USER_ID
-                , RGTR_ID
-                , LAST_MDFR_ID
-                , REG_DT
-                , MDFCN_DT
-            )
+        INTO
+        MEMBER_CREATE_LOG
+        (
+            USER_ID
+            , RGTR_ID
+            , LAST_MDFR_ID
+            , REG_DT
+            , MDFCN_DT
+        )
         VALUES(#{userId}, #{rgtrId}, #{lastMdfrId}, SYSTIMESTAMP, SYSTIMESTAMP)
+    </insert>
+
+    <!-- updateMemberWithdrwa --> 
+
+    <insert id="updateMemberWithdrwa" parameterType="kr.or.ddit.finalProject.dto.member.MemberWithdrawLogDto">
+        INSERT
+        INTO
+        MEMBER_WITHDRAW_LOG
+        (
+            USER_ID
+            , WITHDRAW_RSN
+            , RGTR_ID
+            , LAST_MDFR_ID
+            , REG_DT
+            , MDFCN_DT
+        )
+        VALUES(#{userId}, #{withdrawRsn}, #{rgtrId}, #{lastMdfrId}, SYSTIMESTAMP , SYSTIMESTAMP )
     </insert>
 </mapper>

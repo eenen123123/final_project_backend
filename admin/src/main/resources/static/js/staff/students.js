@@ -221,7 +221,6 @@ function toggleDetailEdit() {
     document.getElementById("edit-profile").value = "";
 
     document.getElementById("edit-stu-type").value = row.dataset.type   || "ROLE_USER";
-    document.getElementById("edit-enable").value   = row.dataset.enable || "Y";
   }
 }
 
@@ -292,7 +291,6 @@ function saveDetailEdit() {
   row.dataset.addrDetail = addrDetail;
   row.dataset.addr       = (addrBase + (addrDetail ? " " + addrDetail : "")).trim();
   row.dataset.type       = document.getElementById("edit-stu-type").value;
-  row.dataset.enable     = document.getElementById("edit-enable").value;
 
   const formData = new FormData();
   formData.append("userId",        selectedEmpId);
@@ -304,7 +302,6 @@ function saveDetailEdit() {
   formData.append("userDaddr",     addrDetail);
   formData.append("userProfile",   document.getElementById("edit-profile-path").value.trim());
   formData.append("userRole",      document.getElementById("edit-stu-type").value);
-  formData.append("enable",        document.getElementById("edit-enable").value);
   const profileFile = document.getElementById("edit-profile").files[0];
   if (profileFile) formData.append("editProfileImage", profileFile);
 
@@ -390,7 +387,7 @@ function executeResign() {
   }
   if (selectedVal === "기타") withdrawRsn = "기타: " + withdrawRsn;
 
-  fetch("/admin/students/" + selectedEmpId + "/withdraw", {
+  fetch("/admin/students/" + selectedEmpId + "/retirement", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ withdrawRsn }),
@@ -706,3 +703,10 @@ document.querySelectorAll('[id^="modal-"]').forEach((m) => {
     history.replaceState(null, "", window.location.pathname);
   }
 })();
+
+/* 탈퇴 사유 select: 모달 하단에 있어 드롭다운을 위로 펼치게 한다 */
+document.addEventListener("DOMContentLoaded", function () {
+  const el = document.getElementById("resign-reason");
+  const ts = el && el.tomselect;
+  if (ts) ts.wrapper.classList.add("ts-dropup");
+});

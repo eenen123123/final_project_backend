@@ -147,5 +147,15 @@ public interface  StaffService {
      * @param profileUrl
      * @param loginAdmin
      */
-    void registerStudent(MemberDto memberDto, MemberCreateLogDto memberCreateLog,String profileUrl, String loginAdmin);
+    void registerStudent(MemberDto memberDto, MemberCreateLogDto memberCreateLog, String profileUrl, String loginAdmin);
+
+    /**
+     * 학생 상세 정보 수정 (계정 + 프로필 파일)
+     */
+    void updateStudent(MemberDto memberDto, String loginAdminId);
+
+    /**
+     * 학생 탈퇴 처리 (계정 및 인사 정보 비활성화)
+     */
+	void retireStudent(String userId, String withdrawRsn, String loginUserId);
 }
