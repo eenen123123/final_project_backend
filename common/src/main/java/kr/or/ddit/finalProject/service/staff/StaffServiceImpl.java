@@ -17,6 +17,7 @@ import kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto;
 import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
 import kr.or.ddit.finalProject.dto.member.MemberCreateLogDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
+import kr.or.ddit.finalProject.dto.member.MemberWithdrawLogDto;
 import kr.or.ddit.finalProject.dto.user.SignupRequestRecord;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
@@ -286,6 +287,23 @@ public class StaffServiceImpl implements StaffService{
     }   
 
     /**
+     * 학생 정보 수정 (MEMBER: 기본정보 + USER_ROLE + ENABLE)
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateStudent(MemberDto memberDto, String loginAdminId) {
+        if (memberDto.getUserTelno() != null) {
+            memberDto.setUserTelno(memberDto.getUserTelno().replaceAll("-", ""));
+        }
+        try {
+            staffMapper.updateStudentMember(memberDto);
+        } catch (DataAccessException e) {
+            log.error("[updateStudent] DB 수정 실패. userId={}, cause={}", memberDto.getUserId(), e.getMessage());
+            throw new FinalProjectException(ErrorCode.EMPLOYEE_REGISTER_FAILED, e);
+        }
+    }
+
+    /**
      * 회원 공통 등록 전처리
      */
     private void propareMemberForRegister(MemberDto memberDto, String profileUrl, String userRole) {
@@ -382,5 +400,46 @@ public class StaffServiceImpl implements StaffService{
      */
     private boolean hasText(String value) {
         return value != null && !value.trim().isEmpty();
+    }
+
+    /**
+     * 학생 탈퇴 처리
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void retireStudent(String userId, String withdrawRsn, String loginUserId) {
+        if (userId == null || userId.isBlank()) {
+            throw new FinalProjectException(ErrorCode.BAD_REQUEST);
+        }
+        if (withdrawRsn == null || withdrawRsn.isBlank() || withdrawRsn.length() > 1000) {
+            throw new FinalProjectException(ErrorCode.BAD_REQUEST);
+        }
+
+        try {
+            // MEMBER.ENABLE = 'N'
+            int memberResult = staffMapper.updateMemberDisabled(userId);
+            if (memberResult != 1) {
+                // 이미 탈퇴된 회원
+                throw new FinalProjectException(ErrorCode.MEMBER_ALREADY_RETIRED);
+            }
+
+            MemberWithdrawLogDto withdrawLog = MemberWithdrawLogDto.builder()
+                    .userId(userId)
+                    .withdrawRsn(withdrawRsn)
+                    .rgtrId(loginUserId)
+                    .lastMdfrId(loginUserId)
+                    .build();
+            int infoResult = staffMapper.updateMemberWithdrwa(withdrawLog);
+            if (infoResult > 1) {
+                // 회원 탈퇴 처리 실패
+                throw new FinalProjectException(ErrorCode.MEMBER_RETIRE_FAILED);
+            }
+
+            log.info("[retireStudent] 탈퇴 처리 완료. userId={}", userId);
+            
+        } catch (DataAccessException e) {
+            log.error("[retireStudent] DB 처리 실패. userId={}, cause={}", userId, e.getMessage());
+            throw new FinalProjectException(ErrorCode.MEMBER_RETIRE_FAILED, e);
+        }
     }
 }

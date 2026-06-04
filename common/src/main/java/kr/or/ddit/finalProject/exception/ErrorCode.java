@@ -92,7 +92,11 @@ public enum ErrorCode {
     CAREER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "본인의 약력 항목만 수정·삭제할 수 있습니다."),
 
     // 회원 관련
-    MEMBER_ID_GENETATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "회원 ID 생성에 실패했습니다.");
+    MEMBER_ID_GENETATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "회원 ID 생성에 실패했습니다."),
+    MEMBER_REGISTER_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "회원 등록에 실패했습니다."),
+    MEMBER_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "회원 정보 수정에 실패했습니다."),
+    MEMBER_RETIRE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "회원 탈퇴 처리에 실패했습니다."),
+    MEMBER_ALREADY_RETIRED(HttpStatus.BAD_REQUEST, "이미 탈퇴 처리된 회원입니다.");
 
     // =============================
     private final HttpStatus status;

@@ -12,6 +12,7 @@ import kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto;
 import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
 import kr.or.ddit.finalProject.dto.member.MemberCreateLogDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
+import kr.or.ddit.finalProject.dto.member.MemberWithdrawLogDto;
 
 @Mapper
 public interface StaffMapper {
@@ -54,6 +55,9 @@ public interface StaffMapper {
     // 현재 적용 급여를 비활성화 (USE_YN = 'N')
     void deactivateCurrentSalary(String userId);
 
+    // 학생 계정 수정 (MEMBER + USER_ROLE + ENABLE 포함)
+    void updateStudentMember(MemberDto memberDto);
+
     // 퇴사 처리: MEMBER.ENABLE = 'N'
     int updateMemberDisabled(String userId);
 
@@ -71,4 +75,7 @@ public interface StaffMapper {
 
     // 학생 로그 정보 저장 (MEMBER_CREATE_LOG)
     void insertStudentLog(MemberCreateLogDto memberCreateLog);
+
+    // 학생 탈퇴 로그 정보 저장 (MEMBER_WITHDRAW_LOG)
+    int updateMemberWithdrwa(MemberWithdrawLogDto withdrawLog);
 }
