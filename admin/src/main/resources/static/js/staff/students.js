@@ -419,6 +419,186 @@ function executeResign() {
     .catch(() => showHermesToast("탈퇴 처리 요청 중 오류가 발생했습니다.", "error"));
 }
 
+/* ─── 학생 ID 자동 생성 (YYS00001 형식) ─── */
+function autoGenStudentId() {
+  const idEl = document.getElementById("new-stu-login-id");
+  if (!idEl) return;
+
+  const year          = new Date().getFullYear().toString().slice(-2); // "26"
+  const baseId        = year + "S";                                    // "26S"
+  const defaultSerial = "00001";
+
+  fetch(`/admin/employees/students/next-id?baseId=${baseId}&defaultSerial=${defaultSerial}`)
+    .then((res) => res.text())
+    .then((nextId) => {
+      idEl.value = nextId;
+    })
+    .catch(() => {
+      idEl.value = baseId + defaultSerial;
+    });
+}
+
+/* ─── 이름 포맷 (한글/영문만) ─── */
+function formatName(el) {
+  const before = el.value;
+  el.value = before.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z]/g, "");
+  if (el.value !== before)
+    showHermesToast("이름은 한글 또는 영문만 입력 가능합니다.", "error");
+}
+
+function blurValidateName(el) {
+  const v = el.value.trim();
+  if (!v) return;
+  if (v.length < 2 || v.length > 50) {
+    showHermesToast("이름은 2자 이상 50자 이하로 입력해주세요.", "error");
+    return;
+  }
+  if (!/^[가-힣a-zA-Z]+$/.test(v))
+    showHermesToast("이름은 한글 또는 영문만 입력 가능합니다.", "error");
+}
+
+/* ─── 주민등록번호 관련 ─── */
+let rrnRealValue = "";
+let rrnEyeOpen  = false;
+
+function validateRrnChecksum(digits) {
+  const weights = [2, 3, 4, 5, 6, 7, 8, 9, 2, 3, 4, 5];
+  const sum = weights.reduce((acc, w, i) => acc + parseInt(digits[i], 10) * w, 0);
+  return parseInt(digits[12], 10) === (11 - (sum % 11)) % 10;
+}
+
+function maskRrn(formatted) {
+  const digits = formatted.replace(/\D/g, "");
+  if (digits.length <= 6) return formatted;
+  return digits.slice(0, 6) + "-" + digits[6] + "*".repeat(Math.max(0, digits.length - 7));
+}
+
+function autoFillTempPw() {
+  const rrn = document.getElementById("new-rrn").value.replace(/\D/g, "");
+  const pwEl = document.getElementById("new-stu-pw");
+  if (pwEl) pwEl.value = rrn.length >= 8 ? rrn.slice(0, 8) : "";
+
+  if (rrn.length >= 7) {
+    const genderDigit = parseInt(rrn[6], 10);
+    const yy = rrn.slice(0, 2), mm = rrn.slice(2, 4), dd = rrn.slice(4, 6);
+    let century = "19";
+    if (genderDigit === 3 || genderDigit === 4) century = "20";
+    else if (genderDigit === 9 || genderDigit === 0) century = "18";
+
+    const month = parseInt(mm, 10), day = parseInt(dd, 10);
+    if (month < 1 || month > 12) {
+      showHermesToast("주민등록번호의 '월' 입력이 잘못되었습니다.", "error");
+      clearRrnDerived(); return;
+    }
+    if (rrn.length === 13) {
+      const fullYear = parseInt(century + yy, 10);
+      const dc = new Date(fullYear, month - 1, day);
+      if (dc.getFullYear() !== fullYear || dc.getMonth() !== month - 1 || dc.getDate() !== day) {
+        showHermesToast(`존재하지 않는 날짜입니다. (${month}월 ${day}일)`, "error");
+        clearRrnDerived(); return;
+      }
+    }
+    document.getElementById("new-brdt").value = century + yy + "-" + mm + "-" + dd;
+    const gndrMap = { 1: "M", 2: "F", 3: "M", 4: "F" };
+    const gndrVal = gndrMap[genderDigit] || "";
+    document.getElementById("new-gndr").value = gndrVal;
+    document.getElementById("new-gndr-display").value = gndrVal === "M" ? "남성" : gndrVal === "F" ? "여성" : "";
+  } else {
+    document.getElementById("new-brdt").value = "";
+    document.getElementById("new-gndr").value = "";
+    document.getElementById("new-gndr-display").value = "";
+  }
+}
+
+function clearRrnDerived() {
+  document.getElementById("new-brdt").value = "";
+  document.getElementById("new-gndr").value = "";
+  document.getElementById("new-gndr-display").value = "";
+  const pwEl = document.getElementById("new-stu-pw");
+  if (pwEl) pwEl.value = "";
+}
+
+function clearRrnOutputs() {
+  rrnRealValue = "";
+  document.getElementById("new-rrn").value = "";
+  document.getElementById("new-rrn-display").value = "";
+  clearRrnDerived();
+  document.getElementById("new-rrn-display").focus();
+}
+
+function onRrnInput(el) {
+  let digits = el.value.replace(/\D/g, "").replace(/\*/g, "");
+  if (digits.length > 13) digits = digits.slice(0, 13);
+  const formatted = digits.length > 6 ? digits.slice(0, 6) + "-" + digits.slice(6) : digits;
+  rrnRealValue = formatted;
+  document.getElementById("new-rrn").value = formatted;
+  el.value = formatted;
+  autoFillTempPw();
+}
+
+function onRrnFocus() {
+  document.getElementById("new-rrn-display").value = rrnRealValue;
+}
+
+function onRrnBlur() {
+  if (!rrnEyeOpen)
+    document.getElementById("new-rrn-display").value = maskRrn(rrnRealValue);
+}
+
+function toggleRrnVisibility() {
+  rrnEyeOpen = !rrnEyeOpen;
+  const icon    = document.getElementById("rrn-eye-icon");
+  const display = document.getElementById("new-rrn-display");
+  icon.className = rrnEyeOpen ? "fa-regular fa-eye text-sm" : "fa-regular fa-eye-slash text-sm";
+  display.value  = rrnEyeOpen ? rrnRealValue : maskRrn(rrnRealValue);
+}
+
+/* ─── 신규 학생 등록 폼 유효성 검사 ─── */
+function validateNewStu() {
+  const nameEl  = document.getElementById("new-name");
+  const rrnEl   = document.getElementById("new-rrn");
+  const rrnDisp = document.getElementById("new-rrn-display");
+  const phoneEl = document.getElementById("new-phone");
+  const emailEl = document.getElementById("new-email");
+  const addrEl  = document.getElementById("address");
+  const idEl    = document.getElementById("new-stu-login-id");
+  const pwEl    = document.getElementById("new-stu-pw");
+
+  const name = nameEl.value.trim();
+  if (!name) { showHermesToast("이름을 입력해주세요.", "error"); nameEl.focus(); return false; }
+  if (name.length < 2 || name.length > 50) { showHermesToast("이름은 2자 이상 50자 이하로 입력해주세요.", "error"); nameEl.focus(); return false; }
+  if (!/^[가-힣a-zA-Z]+$/.test(name)) { showHermesToast("이름은 한글 또는 영문만 입력 가능합니다.", "error"); nameEl.focus(); return false; }
+
+  if (!rrnEl.value.trim()) { showHermesToast("주민등록번호를 입력해주세요.", "error"); rrnDisp.focus(); return false; }
+  if (!/^\d{6}-\d{7}$/.test(rrnEl.value)) { showHermesToast("주민등록번호는 000000-0000000 형식이어야 합니다.", "error"); rrnDisp.focus(); return false; }
+  if (!validateRrnChecksum(rrnEl.value.replace(/\D/g, ""))) { showHermesToast("유효하지 않은 주민등록번호입니다.", "error"); rrnDisp.focus(); return false; }
+
+  if (!phoneEl.value.trim()) { showHermesToast("연락처를 입력해주세요.", "error"); phoneEl.focus(); return false; }
+  if (!/^010-\d{3,4}-\d{4}$/.test(phoneEl.value.trim())) { showHermesToast("올바른 휴대폰 번호 형식이 아닙니다. (예: 010-1234-5678)", "error"); phoneEl.focus(); return false; }
+
+  const email = emailEl.value.trim();
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showHermesToast("유효한 이메일 형식이 아닙니다.", "error"); emailEl.focus(); return false; }
+
+  if (!addrEl.value.trim()) { showHermesToast("기본 주소를 입력해주세요.", "error"); return false; }
+
+  if (!idEl.value.trim()) { showHermesToast("로그인 ID를 입력해주세요.", "error"); idEl.focus(); return false; }
+  if (!pwEl.value.trim()) { showHermesToast("초기 비밀번호를 입력해주세요.", "error"); pwEl.focus(); return false; }
+
+  return true;
+}
+
+/* ─── 신규 등록 우편번호 검색 ─── */
+function searchZipCode() {
+  new daum.Postcode({
+    oncomplete: function (data) {
+      const addr = data.userSelectedType === "R" ? data.roadAddress : data.jibunAddress;
+      document.getElementById("postcode").value    = data.zonecode;
+      document.getElementById("address").value     = addr;
+      document.getElementById("detailAddress").focus();
+    },
+  }).open();
+}
+
 /* ─── 우편번호 검색 ─── */
 function searchStuZipCode() {
   new daum.Postcode({

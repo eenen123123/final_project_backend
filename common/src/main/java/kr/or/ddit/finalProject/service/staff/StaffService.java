@@ -9,6 +9,7 @@ import kr.or.ddit.finalProject.dto.employee.EmployeeDetailDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto;
 import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
+import kr.or.ddit.finalProject.dto.member.MemberCreateLogDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 
 
@@ -138,4 +139,13 @@ public interface  StaffService {
      * @return 중복이 제거된 가입 연도(Integer) 리스트
      */
     List<Integer> retrieveMemberJoinYearList();
+
+    /**
+     * 신규 학생 통합 등록 (계정 + 프로필 파일)
+     * 
+     * @param memberDto
+     * @param profileUrl
+     * @param loginAdmin
+     */
+    void registerStudent(MemberDto memberDto, MemberCreateLogDto memberCreateLog,String profileUrl, String loginAdmin);
 }

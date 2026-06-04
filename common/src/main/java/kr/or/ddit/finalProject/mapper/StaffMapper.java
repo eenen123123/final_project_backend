@@ -10,6 +10,7 @@ import kr.or.ddit.finalProject.dto.employee.EmployeeDetailDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto;
 import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
+import kr.or.ddit.finalProject.dto.member.MemberCreateLogDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 
 @Mapper
@@ -67,4 +68,7 @@ public interface StaffMapper {
 
     // 가입 연도 목록 조회 (중복 제거)
     List<Integer> selectStudentJoinYearList();
+
+    // 학생 로그 정보 저장 (MEMBER_CREATE_LOG)
+    void insertStudentLog(MemberCreateLogDto memberCreateLog);
 }

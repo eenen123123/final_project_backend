@@ -22,7 +22,7 @@
       <h1 class="text-xl font-bold text-slate-800">학생 정보 및 계정 관리</h1>
       <p class="text-sm text-slate-500 mt-0.5">학생 기록 조회, 계정 생성, 탈퇴 처리를 관리합니다.</p>
     </div>
-    <button onclick="openModal('modal-new-student')" class="hm-btn-primary hm-btn-blue">
+    <button onclick="openModal('modal-new-student'); autoGenStudentId()" class="hm-btn-primary hm-btn-blue">
       <i class="fa-solid fa-user-plus"></i> 신규 학생 등록
     </button>
   </div>
@@ -206,7 +206,7 @@
             <i class="fa-solid fa-xmark text-lg"></i>
           </button>
         </div>
-        <form id="form-new-student" action="/admin/students" method="POST" enctype="multipart/form-data">
+        <form id="form-new-student" action="/admin/employees/students" method="POST" enctype="multipart/form-data" onsubmit="return validateNewStu()">
           <div class="p-6 space-y-5">
             <!-- 기본 정보 -->
             <div>
@@ -214,52 +214,66 @@
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label class="form-label">이름 <span class="required">*</span></label>
-                  <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="홍길동"
-                    id="new-stu-name" name="userName" />
+                  <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="홍길동" id="new-name" name="userName" oninput="formatName(this)" onblur="blurValidateName(this)" />
+                </div>
+                <div>
+                  <label class="form-label">주민등록번호 <span class="required">*</span></label>
+                  <div class="relative">
+                    <input type="text" class="hm-input hm-input-blue pr-10" placeholder="000000-0000000" id="new-rrn-display" maxlength="14" oninput="onRrnInput(this)" onfocus="onRrnFocus()" onblur="onRrnBlur()" autocomplete="off" />
+                    <button type="button" id="rrn-eye-btn" class="absolute right-3 top-5/7 -translate-y-1/2 text-slate-400 hover:text-slate-700" onclick="toggleRrnVisibility()">
+                      <i id="rrn-eye-icon" class="fa-regular fa-eye-slash text-sm"></i>
+                    </button>
+                    <input type="hidden" id="new-rrn" name="userEnrrno" />
+                  </div>
+                </div>
+                <div>
+                  <label class="form-label">생년월일</label>
+                  <input type="text" class="hm-input hm-input-blue bg-slate-50" id="new-brdt" name="userBrdt" placeholder="주민등록번호 입력 시 자동 설정됩니다" readonly />
+                </div>
+                <div>
+                  <label class="form-label">성별</label>
+                  <input type="text" class="hm-input hm-input-blue hm-lg bg-slate-50" id="new-gndr-display" placeholder="주민등록번호 입력 시 자동 설정됩니다" readonly />
+                  <input type="hidden" id="new-gndr" name="userGndrCd" />
                 </div>
                 <div>
                   <label class="form-label">연락처 <span class="required">*</span></label>
-                  <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="010-0000-0000"
-                    id="new-stu-phone" name="userTelno" oninput="formatPhone(this)" maxlength="13" />
+                  <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="010-0000-0000" id="new-phone" name="userTelno" oninput="formatPhone(this)" maxlength="13" onblur="blurValidatePhone(this)" />
                 </div>
-                <div class="col-span-2">
+                <div>
                   <label class="form-label">이메일</label>
-                  <input type="email" class="hm-input hm-input-blue hm-lg" placeholder="user@hermes.com"
-                    id="new-stu-email" name="userEmailAddr" />
+                  <input type="email" class="hm-input hm-input-blue hm-lg" placeholder="user@hermes.com" id="new-email"
+                    name="userEmailAddr" onblur="blurValidateEmail(this)" />
                 </div>
                 <div class="col-span-2 flex gap-2">
                   <div class="w-36">
-                    <label class="form-label">우편번호
-                      <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="00000"
-                        id="stu-postcode" name="userZip" maxlength="5" readonly />
+                    <label class="form-label"> 우편번호
+                      <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="00000" id="postcode" name="userZip" maxlength="5" readonly />
                     </label>
                   </div>
                   <div class="flex items-end">
-                    <button type="button" onclick="searchStuZipCode()"
-                      class="hm-btn-primary hm-btn-blue text-xs px-3 py-2.5 whitespace-nowrap">우편번호 검색</button>
+                    <button type="button" onclick="searchZipCode()" class="hm-btn-primary hm-btn-blue text-xs px-3 py-2.5 whitespace-nowrap">우편번호 검색</button>
                   </div>
                 </div>
                 <div class="col-span-2">
-                  <label class="form-label">기본 주소</label>
-                  <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="도로명 주소"
-                    id="stu-address" name="userAddr" readonly />
+                  <label class="form-label">기본 주소 <span class="required">*</span></label>
+                  <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="도로명 주소" id="address" name="userAddr" readonly />
                 </div>
                 <div class="col-span-2">
                   <label class="form-label">상세 주소</label>
-                  <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="상세 주소 (동/호수 등)"
-                    id="stu-detail-address" name="userDaddr" />
-                </div>
-                <div>
-                  <label class="form-label">학생 유형 <span class="required">*</span></label>
-                  <select class="hm-input hm-input-blue hm-lg" id="new-stu-type" name="userRole">
-                    <option value="ROLE_USER">일반</option>
-                    <option value="ROLE_STUDENT">오프라인</option>
-                  </select>
+                  <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="상세 주소 (동/호수 등)" id="detailAddress" name="userDaddr" />
                 </div>
                 <div class="col-span-2">
                   <label class="form-label">프로필 사진</label>
-                  <input type="file" class="hm-input hm-input-blue hm-lg" id="new-stu-profile"
-                    name="profileImage" accept="image/*" />
+                  <input type="file" class="hm-input hm-input-blue hm-lg" id="new-atch-file" name="profileImage" accept="image/*"
+                    onchange="this.classList.toggle('filled', this.files.length > 0)" />
+                </div>
+                <div>
+                  <label class="form-label">학생 유형 <span class="required">*</span></label>
+                  <select class="hm-input hm-input-blue hm-lg filled" id="new-stu-type" name="userRole"
+                    onchange="this.classList.add('filled')">
+                    <option value="ROLE_USER">일반</option>
+                    <option value="ROLE_STUDENT">오프라인</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -270,8 +284,13 @@
               <div class="grid grid-cols-2 gap-3">
                 <div class="col-span-2">
                   <label class="form-label">로그인 ID <span class="required">*</span></label>
-                  <input type="text" class="hm-input hm-input-blue hm-lg font-mono text-sm"
-                    id="new-stu-login-id" name="userId" placeholder="아이디 입력" />
+                  <div class="relative">
+                    <input type="text" class="hm-input hm-input-blue pr-20 bg-slate-50 font-mono text-sm"
+                      id="new-stu-login-id" name="userId" placeholder="모달 열릴 때 자동 생성됩니다" readonly />
+                    <button type="button" onclick="autoGenStudentId()"
+                      class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[#3b82f6] font-semibold hover:text-blue-800">재생성</button>
+                  </div>
+                  <p class="text-xs text-slate-400 mt-1">연도 2자리 + S + 가입순번 5자리 (예: 26S00001)</p>
                 </div>
                 <div class="col-span-2">
                   <label class="form-label">초기 비밀번호 <span class="required">*</span></label>

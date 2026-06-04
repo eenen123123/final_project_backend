@@ -1,17 +1,28 @@
 package kr.or.ddit.controller.staff;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.security.Principal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
+import kr.or.ddit.finalProject.dto.member.MemberCreateLogDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
+import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.service.file.CloudinaryUploadService;
 import kr.or.ddit.finalProject.service.staff.StaffService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
 
 
 @Slf4j
@@ -55,5 +66,59 @@ public class StaffStudentsController {
 
         return "admin:/staff/students";
     }
+
+    /**
+     * 학생 ID 자동 순번 발급 (예: 26S00001)
+     */
+    @GetMapping("/employees/students/next-id")
+    @ResponseBody
+    public ResponseEntity<String> getNextStudentId(
+            @RequestParam String baseId,
+            @RequestParam String defaultSerial) {
+        String nextId = staffService.getNextAvailableId(baseId, defaultSerial);
+        return ResponseEntity.ok(nextId);
+    }
+
+    /**
+     * 신규 회원 등록 처리
+     */
+    @PostMapping("/employees/students")
+    public String createStudent(
+        MemberDto memberDto,
+        MemberCreateLogDto memberCreateLog,
+        @RequestParam(required = false) MultipartFile profileImage,
+        Principal principal
+    ) {
+        // 로그인한 관리자의 ID를 꺼냄
+        String loginAdmin = "SYSTEM"; // 기본값
+
+        if (principal != null) {
+            loginAdmin = principal.getName(); // 세션이나 토큰에 저장된 로그인 ID
+        }
+
+        // 프로필 사진 cloudinary 업로드
+        String profileUrl = null;
+        if (profileImage != null && !profileImage.isEmpty()) {
+            try {
+                profileUrl = cloudinaryUploadService.uploadFileToCloudinary(profileImage);
+            } catch (Exception e) {
+                log.error("[createStudent] Cloudinary 업로드 실패: {}", e.getMessage());
+                return "redirect:/admin/employees/students?error=" + URLEncoder.encode("프로필 이미지 업로드에 실패했습니다.", StandardCharsets.UTF_8);
+            }
+        }
+
+        try {
+            staffService.registerStudent(memberDto, memberCreateLog, profileUrl, loginAdmin);            
+        } catch (FinalProjectException e) {
+            log.warn("[createStudent] 등록 실패: {}", e.getMessage());
+            return "redirect:/admin/employees/students?error=" + URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException e) {
+            log.warn("[createStudent] 유효성 검사 실패: {}", e.getMessage());
+            return "redirect:/admin/employees/students?error=" + URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
+        }
+
+        return "redirect:/admin/employees?success=" + URLEncoder.encode("회원이 성공적으로 등록되었습니다.", StandardCharsets.UTF_8);
+    }
+    
     
 }
