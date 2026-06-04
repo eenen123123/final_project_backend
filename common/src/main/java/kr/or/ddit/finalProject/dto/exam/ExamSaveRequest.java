@@ -24,6 +24,9 @@ public class ExamSaveRequest {
     /** 시험명 (필수) */
     private String examRegNm;
 
+    /** 연결할 강좌(클래스) SN (CLASSROOM.CLASS_SN, nullable) */
+    private Long classSn;
+
     /** 시험 유형 코드 (COM_CD 참조, 선택 입력) */
     private String examTypeCd;
 

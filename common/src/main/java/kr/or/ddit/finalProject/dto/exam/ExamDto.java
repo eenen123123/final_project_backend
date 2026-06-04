@@ -57,6 +57,12 @@ public class ExamDto {
      */
     private Integer qstnCnt;
 
+    /** 연결된 강좌(클래스) 일련번호 (CLASSROOM.CLASS_SN, nullable) */
+    private Long classSn;
+
+    /** 강좌명 (JOIN 조회 시 채워짐, DB 컬럼 아님) */
+    private String classNm;
+
     /**
      * 이 시험에 배정된 문항 목록
      * EXAM_QUESTION + QUESTION_LIST 조인 결과이며,

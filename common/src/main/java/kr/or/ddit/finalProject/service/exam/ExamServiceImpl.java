@@ -166,6 +166,7 @@ public class ExamServiceImpl implements ExamService {
         dto.setExamTypeCd(trimOrNull(request.getExamTypeCd()));
         dto.setExamStrtDt(trimOrNull(request.getExamStrtDt()));
         dto.setExamEndDt(trimOrNull(request.getExamEndDt()));
+        dto.setClassSn(request.getClassSn());
 
         examMapper.insertExam(dto); // dto.examSn에 생성된 PK 주입됨
 
@@ -196,6 +197,7 @@ public class ExamServiceImpl implements ExamService {
         dto.setExamTypeCd(trimOrNull(request.getExamTypeCd()));
         dto.setExamStrtDt(trimOrNull(request.getExamStrtDt()));
         dto.setExamEndDt(trimOrNull(request.getExamEndDt()));
+        dto.setClassSn(request.getClassSn());
 
         examMapper.updateExam(dto);
 
