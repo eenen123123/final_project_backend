@@ -51,7 +51,7 @@ public class CurriculumServiceImpl implements CurriculumService {
     public void removeCurriculumLogically(Long curriculumId, String currentUserId) {
         CurriculumDto original = curriculumMapper.selectById(curriculumId);
 
-        if (original == null) {
+        if (original == null || !"Y".equals(original.getUseYn())) {
             throw new IllegalArgumentException("삭제하려는 커리큘럼이 존재하지 않습니다.");
         }
 
