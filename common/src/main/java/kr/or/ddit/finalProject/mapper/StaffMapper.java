@@ -61,4 +61,10 @@ public interface StaffMapper {
 
     // 퇴사 처리: EMPLOYEE_SALARY 현재 급여 비활성화
     int updateEmployeeSalaryInactive(@Param("userId") String userId, @Param("loginUserId") String loginUserId);
+
+    // 학생 리스트 조회
+    List<MemberDto> selectStudentList();
+
+    // 가입 연도 목록 조회 (중복 제거)
+    List<Integer> selectStudentJoinYearList();
 }

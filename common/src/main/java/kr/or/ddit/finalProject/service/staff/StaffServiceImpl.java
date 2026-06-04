@@ -293,4 +293,20 @@ public class StaffServiceImpl implements StaffService{
 
     }
 
+    /**
+     * 학생 리스트 조회
+     */
+    @Override
+    public List<MemberDto> retrieveStudentList() {
+        return staffMapper.selectStudentList();
+    }
+
+    /**
+     * 가입 연도 목록 조회
+     */
+    @Override
+    public List<Integer> retrieveMemberJoinYearList() {
+        return staffMapper.selectStudentJoinYearList();
+    }
+
 }

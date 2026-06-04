@@ -124,4 +124,18 @@ public interface  StaffService {
      * @param loginUserId   작업을 진행한 관리자 ID
      */
     void retireEmployee(String userId, String retmtRsn, String loginUserId);
+    
+    /**
+     * 학생 리스트 조회
+     * @return
+     */
+    List<MemberDto> retrieveStudentList();
+
+    /**
+     * 시스템 등록 학생의 전체 가입 연도 고유 목록 조회
+     * 
+     * ✔ 사용 시나리오: 학생 목록 검색 조건 중 '가입 연도' 필터 항목을 동적으로 채우기 위해 사용한다.
+     * @return 중복이 제거된 가입 연도(Integer) 리스트
+     */
+    List<Integer> retrieveMemberJoinYearList();
 }
