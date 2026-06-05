@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse;
+import kr.or.ddit.finalProject.dto.classroom.ClassroomGradeDto;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomListResponse;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomMemberListResponse;
 import kr.or.ddit.finalProject.dto.coursecohort.CourseCohortListResponse;
@@ -57,6 +58,11 @@ public class ClassroomServiceImpl implements ClassroomService {
         detail.setCohorts(cohorts);
 
         return detail;
+    }
+
+    @Override
+    public List<ClassroomGradeDto> retrieveGradeList(Long classSn) {
+        return classroomMemberMapper.selectGradeList(classSn);
     }
 
     // YYYYMMDD → YYYY.MM.DD

@@ -135,6 +135,15 @@ public class InstructorClassroomController {
         return "redirect:/instructor/classroom/detail/" + classSn + "/assignments/" + asgmtSn;
     }
 
+    // ── 성적 관리 ────────────────────────────────────────────────
+
+    @GetMapping("/detail/{classSn}/grades")
+    public String gradeList(@PathVariable Long classSn, Model model) {
+        model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
+        model.addAttribute("gradeList", classroomService.retrieveGradeList(classSn));
+        return "instructor/classroom-grades";
+    }
+
     // ── 수강생 목록 ──────────────────────────────────────────────
 
     @GetMapping("/detail/{classSn}/members")
