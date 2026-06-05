@@ -29,6 +29,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
 import java.util.HashMap;
 
+import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -147,26 +149,40 @@ public class StaffEmployeesController {
         return "redirect:/admin/employees?success=" + URLEncoder.encode("직원이 성공적으로 등록되었습니다.", StandardCharsets.UTF_8);
     }
 
+    private static final int HR_SCREEN_SIZE = 10;
+    private static final int HR_BLOCK_SIZE  = 5;
+
     /**
-     * 직원 목록 동적 검색 (AJAX)
+     * 직원 목록 동적 검색 + 서버 페이징 (AJAX)
      */
     @GetMapping("/employees/search")
     @ResponseBody
-    public ResponseEntity<List<EmployeeDetailDto>> searchEmployees(
+    public ResponseEntity<PageResponse<EmployeeDetailDto>> searchEmployees(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String year,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String deptCd,
             @RequestParam(required = false) String jbgrCd,
-            @RequestParam(required = false) String emplTypeCd) {
-        Map<String, Object> params = new HashMap<>();
-        if (keyword != null && !keyword.isBlank())    params.put("keyword",    keyword.trim());
-        if (year != null && !year.isBlank())          params.put("year",       year.trim());
-        if (status != null && !status.isBlank())      params.put("status",     status.trim());
-        if (deptCd != null && !deptCd.isBlank())      params.put("deptCd",     deptCd.trim());
-        if (jbgrCd != null && !jbgrCd.isBlank())      params.put("jbgrCd",     jbgrCd.trim());
-        if (emplTypeCd != null && !emplTypeCd.isBlank()) params.put("emplTypeCd", emplTypeCd.trim());
-        return ResponseEntity.ok(staffService.searchEmployeeList(params));
+            @RequestParam(required = false) String emplTypeCd,
+            @RequestParam(defaultValue = "1")  int page,
+            @RequestParam(defaultValue = "10") int screenSize,
+            @RequestParam(required = false) String orderBy,
+            @RequestParam(required = false) String orderDirection) {
+
+        Map<String, Object> searchParams = new HashMap<>();
+        if (keyword != null && !keyword.isBlank())       searchParams.put("keyword",    keyword.trim());
+        if (year != null && !year.isBlank())             searchParams.put("year",       year.trim());
+        if (status != null && !status.isBlank())         searchParams.put("status",     status.trim());
+        if (deptCd != null && !deptCd.isBlank())         searchParams.put("deptCd",     deptCd.trim());
+        if (jbgrCd != null && !jbgrCd.isBlank())         searchParams.put("jbgrCd",     jbgrCd.trim());
+        if (emplTypeCd != null && !emplTypeCd.isBlank()) searchParams.put("emplTypeCd", emplTypeCd.trim());
+
+        String safeDir = "DESC".equalsIgnoreCase(orderDirection) ? "DESC" : "ASC";
+        PaginationInfo<Map<String, Object>> paging =
+            new PaginationInfo<>(screenSize, HR_BLOCK_SIZE, page, orderBy, safeDir);
+        paging.setDetailCondition(searchParams);
+
+        return ResponseEntity.ok(staffService.searchEmployeeList(paging));
     }
 
     /**

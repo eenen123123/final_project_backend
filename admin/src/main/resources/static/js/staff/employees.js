@@ -75,10 +75,13 @@ var filterDebounceTimer = null;
 
 function filterHrList() {
   clearTimeout(filterDebounceTimer);
-  filterDebounceTimer = setTimeout(doFilterHrList, 300);
+  filterDebounceTimer = setTimeout(() => doFilterHrList(1), 300);
 }
 
-async function doFilterHrList() {
+async function doFilterHrList(page) {
+  page = page || 1;
+  currentHrPage = page;
+
   const keyword   = document.getElementById("hr-search").value.trim();
   const year      = document.getElementById("hr-year").value;
   const status    = document.getElementById("hr-status-filter").value;
@@ -87,21 +90,30 @@ async function doFilterHrList() {
   const emplType  = document.getElementById("hr-type-filter").value;
 
   const params = new URLSearchParams();
-  if (keyword)   params.set("keyword",    keyword);
-  if (year)      params.set("year",       year);
-  if (status)    params.set("status",     status);
-  if (deptCd)    params.set("deptCd",     deptCd);
-  if (jbgrCd)    params.set("jbgrCd",     jbgrCd);
-  if (emplType)  params.set("emplTypeCd", emplType);
+  if (keyword)   params.set("keyword",        keyword);
+  if (year)      params.set("year",           year);
+  if (status)    params.set("status",         status);
+  if (deptCd)    params.set("deptCd",         deptCd);
+  if (jbgrCd)    params.set("jbgrCd",         jbgrCd);
+  if (emplType)  params.set("emplTypeCd",     emplType);
+  if (hrSortCol) {
+    params.set("orderBy",        hrSortCol);
+    params.set("orderDirection", hrSortAsc ? "ASC" : "DESC");
+  }
+  params.set("page",       page);
+  params.set("screenSize", HR_SCREEN_SIZE);
 
   try {
     const res  = await fetch("/admin/employees/search?" + params);
     const data = await res.json();
-    renderEmployeeTable(data);
+    renderEmployeeTable(data.items, data.totalCount);
   } catch (e) {
     console.error("직원 검색 실패:", e);
   }
 }
+
+// defer 스크립트와 AJAX 탭 이동 모두에서 DOM 준비 완료 후 실행되므로 직접 호출
+doFilterHrList(1);
 
 function escHtml(s) {
   return String(s == null ? "" : s)
@@ -109,12 +121,10 @@ function escHtml(s) {
     .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-function renderEmployeeTable(employees) {
+function renderEmployeeTable(employees, totalCount) {
   const tbody = document.getElementById("hr-table-body");
   if (!employees || employees.length === 0) {
     tbody.innerHTML = '<tr><td colspan="8" class="text-center py-10 text-sm text-slate-400">등록된 직원이 없습니다.</td></tr>';
-    hrFilteredRows = [];
-    currentHrPage = 1;
     renderHrPagination(0);
     return;
   }
@@ -172,10 +182,7 @@ function renderEmployeeTable(employees) {
     </tr>`;
   }).join("");
 
-  hrFilteredRows = Array.from(tbody.querySelectorAll(".hr-data-row"));
-  currentHrPage = 1;
-  if (hrSortCol) applyHrSort(hrFilteredRows);
-  applyHrPaging();
+  renderHrPagination(totalCount);
 }
 
 // 직급 필터 전체 옵션 원본 저장 (Tom Select 초기화 전에 native select에서 읽음)
@@ -232,7 +239,7 @@ function sortHrBy(col) {
     hrSortAsc = true;
   }
   updateHrSortIcons(col);
-  filterHrList();
+  doFilterHrList(1);
 }
 
 function applyHrSort(rows) {
@@ -315,9 +322,7 @@ function renderHrPagination(totalCount) {
 
 function goHrPage(p) {
   const scrollY = window.scrollY;
-  currentHrPage = p;
-  applyHrPaging();
-  window.scrollTo({ top: scrollY, behavior: "instant" });
+  doFilterHrList(p).then(() => window.scrollTo({ top: scrollY, behavior: "instant" }));
 }
 
 /* ─── 인사 기록 테이블 렌더링 ─── */

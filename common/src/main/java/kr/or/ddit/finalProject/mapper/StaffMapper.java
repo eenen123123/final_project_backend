@@ -6,6 +6,8 @@ import java.util.Map;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import kr.or.ddit.finalProject.paging.PaginationInfo;
+
 import kr.or.ddit.finalProject.dto.employee.DepartmentDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeDetailDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
@@ -71,8 +73,11 @@ public interface StaffMapper {
     // 퇴사 처리: EMPLOYEE_SALARY 현재 급여 비활성화
     int updateEmployeeSalaryInactive(@Param("userId") String userId, @Param("loginUserId") String loginUserId);
 
-    // 직원 목록 동적 검색
-    List<EmployeeDetailDto> searchEmployeeList(Map<String, Object> params);
+    // 직원 목록 동적 검색 (서버 페이징)
+    List<EmployeeDetailDto> searchEmployeeList(PaginationInfo<Map<String, Object>> paging);
+
+    // 직원 전체 건수 (페이지 버튼 계산용)
+    int countSearchEmployeeList(PaginationInfo<Map<String, Object>> paging);
 
     // 학생 목록 동적 검색
     List<MemberDto> searchStudentList(Map<String, Object> params);

@@ -5,6 +5,9 @@ import java.util.Map;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
+
 import kr.or.ddit.finalProject.dto.employee.DepartmentDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeDetailDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
@@ -136,9 +139,9 @@ public interface  StaffService {
     void retireEmployee(String userId, String retmtRsn, String loginUserId);
     
     /**
-     * 직원 목록 동적 검색 (keyword, year, status, deptCd, jbgrCd, emplTypeCd)
+     * 직원 목록 동적 검색 + 서버 페이징 (keyword, year, status, deptCd, jbgrCd, emplTypeCd, page, screenSize)
      */
-    List<EmployeeDetailDto> searchEmployeeList(Map<String, Object> params);
+    PageResponse<EmployeeDetailDto> searchEmployeeList(PaginationInfo<Map<String, Object>> paging);
 
     /**
      * 학생 목록 동적 검색 (keyword, year, userRole, enable)

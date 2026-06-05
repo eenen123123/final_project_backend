@@ -3,6 +3,9 @@ package kr.or.ddit.finalProject.service.staff;
 import java.util.List;
 import java.util.Map;
 
+import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -249,8 +252,10 @@ public class StaffServiceImpl implements StaffService{
     }
 
     @Override
-    public List<EmployeeDetailDto> searchEmployeeList(Map<String, Object> params) {
-        return staffMapper.searchEmployeeList(params);
+    public PageResponse<EmployeeDetailDto> searchEmployeeList(PaginationInfo<Map<String, Object>> paging) {
+        List<EmployeeDetailDto> items = staffMapper.searchEmployeeList(paging);
+        int totalCount = staffMapper.countSearchEmployeeList(paging);
+        return new PageResponse<>(items, totalCount);
     }
 
     @Override

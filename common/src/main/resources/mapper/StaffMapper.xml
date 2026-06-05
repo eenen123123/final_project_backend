@@ -241,8 +241,8 @@
         ORDER BY m.USER_ID
     </select>
 
-    <!-- searchEmployeeList: 직원 목록 동적 검색 -->
-    <select id="searchEmployeeList" parameterType="map" resultMap="EmployeeDetailResultMap">
+    <!-- searchEmployeeList: 직원 목록 동적 검색 + 서버 페이징 -->
+    <select id="searchEmployeeList" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo" resultMap="EmployeeDetailResultMap">
         SELECT
             m.USER_ID AS M_USER_ID,
             m.USER_ENPSWD AS M_USER_ENPSWD,
@@ -290,25 +290,67 @@
                 ))
             )
         WHERE m.USER_ROLE = 'ROLE_ADMIN'
-        <if test="keyword != null and keyword != ''">
-            AND m.USER_NAME LIKE '%' || #{keyword} || '%'
+        <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
+            AND m.USER_NAME LIKE '%' || #{detailCondition.keyword} || '%'
         </if>
-        <if test="year != null and year != ''">
-            AND TO_CHAR(ei.JOIN_YMD, 'YYYY') = #{year}
+        <if test="detailCondition != null and detailCondition.year != null and detailCondition.year != ''">
+            AND TO_CHAR(ei.JOIN_YMD, 'YYYY') = #{detailCondition.year}
         </if>
-        <if test="status != null and status != ''">
-            AND ei.EMPL_STAT_CD = #{status}
+        <if test="detailCondition != null and detailCondition.status != null and detailCondition.status != ''">
+            AND ei.EMPL_STAT_CD = #{detailCondition.status}
         </if>
-        <if test="deptCd != null and deptCd != ''">
-            AND ei.DEPT_CD = #{deptCd}
+        <if test="detailCondition != null and detailCondition.deptCd != null and detailCondition.deptCd != ''">
+            AND ei.DEPT_CD = #{detailCondition.deptCd}
         </if>
-        <if test="jbgrCd != null and jbgrCd != ''">
-            AND ei.JBGR_CD = #{jbgrCd}
+        <if test="detailCondition != null and detailCondition.jbgrCd != null and detailCondition.jbgrCd != ''">
+            AND ei.JBGR_CD = #{detailCondition.jbgrCd}
         </if>
-        <if test="emplTypeCd != null and emplTypeCd != ''">
-            AND ei.EMPL_TYPE_CD = #{emplTypeCd}
+        <if test="detailCondition != null and detailCondition.emplTypeCd != null and detailCondition.emplTypeCd != ''">
+            AND ei.EMPL_TYPE_CD = #{detailCondition.emplTypeCd}
         </if>
-        ORDER BY m.USER_ID
+        ORDER BY
+        <choose>
+            <when test="orderBy == 'name'">m.USER_NAME</when>
+            <when test="orderBy == 'dept'">d.DEPT_NM</when>
+            <when test="orderBy == 'grade'">j.JBGR_NM</when>
+            <when test="orderBy == 'join'">ei.JOIN_YMD</when>
+            <when test="orderBy == 'type'">ei.EMPL_TYPE_CD</when>
+            <when test="orderBy == 'status'">ei.EMPL_STAT_CD</when>
+            <when test="orderBy == 'contractEnd'">ei.CTRCT_END_YMD</when>
+            <otherwise>m.USER_ID</otherwise>
+        </choose>
+        <choose>
+            <when test="orderDirection == 'DESC'">DESC</when>
+            <otherwise>ASC</otherwise>
+        </choose>
+        NULLS LAST
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <!-- countSearchEmployeeList: 전체 건수 (페이지 버튼 계산용) -->
+    <select id="countSearchEmployeeList" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo" resultType="int">
+        SELECT COUNT(*)
+        FROM MEMBER m
+        LEFT JOIN EMPLOYEE_INFO ei ON m.USER_ID = ei.USER_ID
+        WHERE m.USER_ROLE = 'ROLE_ADMIN'
+        <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
+            AND m.USER_NAME LIKE '%' || #{detailCondition.keyword} || '%'
+        </if>
+        <if test="detailCondition != null and detailCondition.year != null and detailCondition.year != ''">
+            AND TO_CHAR(ei.JOIN_YMD, 'YYYY') = #{detailCondition.year}
+        </if>
+        <if test="detailCondition != null and detailCondition.status != null and detailCondition.status != ''">
+            AND ei.EMPL_STAT_CD = #{detailCondition.status}
+        </if>
+        <if test="detailCondition != null and detailCondition.deptCd != null and detailCondition.deptCd != ''">
+            AND ei.DEPT_CD = #{detailCondition.deptCd}
+        </if>
+        <if test="detailCondition != null and detailCondition.jbgrCd != null and detailCondition.jbgrCd != ''">
+            AND ei.JBGR_CD = #{detailCondition.jbgrCd}
+        </if>
+        <if test="detailCondition != null and detailCondition.emplTypeCd != null and detailCondition.emplTypeCd != ''">
+            AND ei.EMPL_TYPE_CD = #{detailCondition.emplTypeCd}
+        </if>
     </select>
 
     <!-- selectJoinYearList -->
