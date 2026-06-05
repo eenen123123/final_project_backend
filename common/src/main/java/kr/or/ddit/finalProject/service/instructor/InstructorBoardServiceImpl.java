@@ -98,4 +98,27 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
         return instructorBoardMapper.restoreInstructorBoard(postSn, instrUserId);
     }
 
+    // ── 클래스룸 공지사항 ──────────────────────────────────────────
+
+    @Override
+    public List<InstructorBoardDto> getClassroomNoticeList(Long classSn) {
+        return instructorBoardMapper.selectClassroomNoticeList(classSn);
+    }
+
+    @Override
+    public InstructorBoardDto getClassroomNoticeDetail(Long postSn, Long classSn) {
+        return instructorBoardMapper.selectClassroomNoticeDetail(postSn, classSn);
+    }
+
+    @Override
+    public int insertClassroomNotice(InstructorBoardDto dto) {
+        dto.setBoardTypeCd("02");
+        return instructorBoardMapper.insertClassroomNotice(dto);
+    }
+
+    @Override
+    public int deleteClassroomNotice(Long postSn, Long classSn) {
+        return instructorBoardMapper.deleteClassroomNotice(postSn, classSn);
+    }
+
 }

@@ -36,4 +36,14 @@ public interface InstructorBoardService {
      * 강사 게시판 복구
      */
     int restoreInstructorBoard(Long postSn, String instrUserId);
+
+    // ── 클래스룸 공지사항 ──────────────────────────────────────────
+
+    List<InstructorBoardDto> getClassroomNoticeList(Long classSn);
+
+    InstructorBoardDto getClassroomNoticeDetail(Long postSn, Long classSn);
+
+    int insertClassroomNotice(InstructorBoardDto dto);
+
+    int deleteClassroomNotice(Long postSn, Long classSn);
 }

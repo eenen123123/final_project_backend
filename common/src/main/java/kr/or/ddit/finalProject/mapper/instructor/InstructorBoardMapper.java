@@ -21,4 +21,14 @@ public interface InstructorBoardMapper {
     public int deleteInstructorBoard(@Param("postSn") Long postSn, @Param("instrUserId") String instrUserId);
 
     public int restoreInstructorBoard(@Param("postSn") Long postSn, @Param("instrUserId") String instrUserId);
+
+    // ── 클래스룸 공지사항 ──────────────────────────────────────────
+
+    List<InstructorBoardDto> selectClassroomNoticeList(@Param("classSn") Long classSn);
+
+    InstructorBoardDto selectClassroomNoticeDetail(@Param("postSn") Long postSn, @Param("classSn") Long classSn);
+
+    int insertClassroomNotice(InstructorBoardDto dto);
+
+    int deleteClassroomNotice(@Param("postSn") Long postSn, @Param("classSn") Long classSn);
 }
