@@ -11,10 +11,15 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import java.math.BigDecimal;
+
+import kr.or.ddit.finalProject.dto.assignment.AssignmentBoardDto;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomListResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto;
+import kr.or.ddit.finalProject.service.assignment.AssignmentBoardService;
 import kr.or.ddit.finalProject.service.classroom.ClassroomHomeService;
 import kr.or.ddit.finalProject.service.classroom.ClassroomService;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
@@ -28,6 +33,7 @@ public class InstructorClassroomController {
     private final ClassroomService classroomService;
     private final ClassroomHomeService classroomHomeService;
     private final InstructorBoardService instructorBoardService;
+    private final AssignmentBoardService assignmentBoardService;
 
     @GetMapping("/list")
     public String classroomList(Model model, Authentication authentication) {
@@ -93,6 +99,42 @@ public class InstructorClassroomController {
         return "redirect:/instructor/classroom/detail/" + classSn + "/notice";
     }
 
+    // ── 과제 제출 ────────────────────────────────────────────────
+
+    @GetMapping("/detail/{classSn}/assignments")
+    public String assignmentList(@PathVariable Long classSn, Model model) {
+        model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
+        model.addAttribute("assignmentList", assignmentBoardService.getAssignmentList(classSn));
+        return "instructor/classroom-assignments";
+    }
+
+    @PostMapping("/detail/{classSn}/assignments/write")
+    public String assignmentWrite(@PathVariable Long classSn,
+                                  @ModelAttribute AssignmentBoardDto dto,
+                                  Authentication authentication) {
+        dto.setClassSn(classSn);
+        dto.setRgtrUserId(authentication.getName());
+        assignmentBoardService.insertAssignment(dto);
+        return "redirect:/instructor/classroom/detail/" + classSn + "/assignments";
+    }
+
+    @GetMapping("/detail/{classSn}/assignments/{asgmtSn}")
+    public String assignmentDetail(@PathVariable Long classSn, @PathVariable Long asgmtSn, Model model) {
+        model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
+        model.addAttribute("assignment", assignmentBoardService.getAssignmentDetail(asgmtSn));
+        model.addAttribute("submitList", assignmentBoardService.getSubmitList(asgmtSn, classSn));
+        return "instructor/classroom-assignment-detail";
+    }
+
+    @PostMapping("/detail/{classSn}/assignments/{asgmtSn}/grade/{sbmtSn}")
+    public String assignmentGrade(@PathVariable Long classSn, @PathVariable Long asgmtSn,
+                                  @PathVariable Long sbmtSn,
+                                  @RequestParam BigDecimal score,
+                                  Authentication authentication) {
+        assignmentBoardService.gradeSubmit(sbmtSn, score, authentication.getName());
+        return "redirect:/instructor/classroom/detail/" + classSn + "/assignments/" + asgmtSn;
+    }
+
     // ── 수강생 목록 ──────────────────────────────────────────────
 
     @GetMapping("/detail/{classSn}/members")
@@ -130,7 +172,7 @@ public class InstructorClassroomController {
 
     @PostMapping("/detail/{classSn}/qna/{postSn}/answer")
     public String qnaAnswer(@PathVariable Long classSn, @PathVariable Long postSn,
-                            @org.springframework.web.bind.annotation.RequestParam String answCn,
+                            @RequestParam String answCn,
                             Authentication authentication) {
         instructorBoardService.answerClassroomQna(postSn, authentication.getName(), answCn);
         return "redirect:/instructor/classroom/detail/" + classSn + "/qna/" + postSn;
