@@ -27,7 +27,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
+import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
 
 
 
@@ -71,6 +72,37 @@ public class StaffStudentsController {
         model.addAttribute("joinYearList", joinYearList);
 
         return "admin:/staff/students";
+    }
+
+    private static final int PAGE_SIZE = 10;
+    private static final int BLOCK_SIZE = 5;
+    /**
+     * 학생 목록 동적 검색 + 서버 페이징 (AJAX)
+     */
+    @GetMapping("/employees/students/search")
+    @ResponseBody
+    public ResponseEntity<PageResponse<MemberDto>> searchStudents(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String year,
+            @RequestParam(required = false) String userRole,
+            @RequestParam(required = false) String enable,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int screenSize,
+            @RequestParam(required = false) String orderBy,
+            @RequestParam(required = false) String orderDirection
+        ) {
+        Map<String, Object> params = new HashMap<>();
+        if (keyword != null && !keyword.isBlank())  params.put("keyword",  keyword.trim());
+        if (year != null && !year.isBlank())        params.put("year",     year.trim());
+        if (userRole != null && !userRole.isBlank()) params.put("userRole", userRole.trim());
+        if (enable != null && !enable.isBlank())    params.put("enable",   enable.trim());
+
+        String safeDir = "DESC".equalsIgnoreCase(orderDirection) ? "DESC" : "ASC";
+        PaginationInfo<Map<String, Object>> paging = 
+            new PaginationInfo<>(screenSize, BLOCK_SIZE, page, orderBy, safeDir);
+        paging.setDetailCondition(params);
+
+        return ResponseEntity.ok(staffService.searchStudentList(paging));
     }
 
     /**

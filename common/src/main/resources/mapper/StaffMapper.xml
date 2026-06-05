@@ -495,26 +495,40 @@
         WHERE USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
     </select>    
 
-    <!-- searchStudentList: 학생 목록 동적 검색 -->
-    <select id="searchStudentList" parameterType="map" resultType="kr.or.ddit.finalProject.dto.member.MemberDto">
+    <!-- searchStudentList: 학생 목록 동적 검색 + 서버 페이징 -->
+    <select id="searchStudentList" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo" resultType="kr.or.ddit.finalProject.dto.member.MemberDto">
         SELECT
             USER_ID, USER_ENPSWD, USER_NAME, USER_ENRRNO, USER_GNDR_CD, USER_BRDT,
             JOIN_DT, USER_TELNO, USER_EMAIL_ADDR, USER_ZIP, USER_ADDR, USER_DADDR,
             USER_PROFILE, REG_DATE, MOD_DATE, ENABLE, USER_ROLE
         FROM MEMBER
         WHERE USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
-        <if test="keyword != null and keyword != ''">
-            AND USER_NAME LIKE '%' || #{keyword} || '%'
+        <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
+            AND USER_NAME LIKE '%' || #{detailCondition.keyword} || '%'
         </if>
-        <if test="year != null and year != ''">
-            AND TO_CHAR(JOIN_DT, 'YYYY') = #{year}
+        <if test="detailCondition != null and detailCondition.year != null and detailCondition.year != ''">
+            AND TO_CHAR(JOIN_DT, 'YYYY') = #{detailCondition.year}
         </if>
-        <if test="userRole != null and userRole != ''">
-            AND USER_ROLE = #{userRole}
+        <if test="detailCondition != null and detailCondition.userRole != null and detailCondition.userRole != ''">
+            AND USER_ROLE = #{detailCondition.userRole}
         </if>
-        <if test="enable != null and enable != ''">
-            AND ENABLE = #{enable}
+        <if test="detailCondition != null and detailCondition.enable != null and detailCondition.enable != ''">
+            AND ENABLE = #{detailCondition.enable}
         </if>
+        ORDER BY
+        <choose>
+            <when test="orderBy == 'name'">USER_NAME</when>
+            <when test="orderBy == 'role'">USER_ROLE</when>
+            <when test="orderBy == 'enable'">ENABLE</when>
+            <when test="orderBy == 'join'">JOIN_DT</when>
+            <otherwise>USER_ID</otherwise>
+        </choose>
+        <choose>
+            <when test="orderDirection == 'DESC'">DESC</when>
+            <otherwise>ASC</otherwise>
+        </choose>
+        NULLS LAST
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
     </select>
 
     <!-- selectStudentJoinYearList -->
@@ -558,4 +572,22 @@
         )
         VALUES(#{userId}, #{withdrawRsn}, #{rgtrId}, #{lastMdfrId}, SYSTIMESTAMP , SYSTIMESTAMP )
     </insert>
-</mapper>
+
+    <!-- countSearchStudentList -->
+    <select id="countSearchStudentList" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo" resultType="int">
+        SELECT COUNT(*)
+        FROM MEMBER
+        WHERE USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
+        <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
+            AND USER_NAME LIKE '%' || #{detailCondition.keyword} || '%'
+        </if>
+        <if test="detailCondition != null and detailCondition.year != null and detailCondition.year != ''">
+            AND TO_CHAR(JOIN_DT, 'YYYY') = #{detailCondition.year}
+        </if>
+        <if test="detailCondition != null and detailCondition.userRole != null and detailCondition.userRole != ''">
+            AND USER_ROLE = #{detailCondition.userRole}
+        </if>
+        <if test="detailCondition != null and detailCondition.enable != null and detailCondition.enable != ''">
+            AND ENABLE = #{detailCondition.enable}
+        </if>
+    </select></mapper>
