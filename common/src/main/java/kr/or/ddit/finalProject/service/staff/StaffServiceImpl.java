@@ -259,6 +259,13 @@ public class StaffServiceImpl implements StaffService{
     }
 
     @Override
+    public PageResponse<EmployeeDetailDto> searchActiveEmployeeList(PaginationInfo<Map<String, Object>> paging) {
+        List<EmployeeDetailDto> items = staffMapper.searchActiveEmployeeList(paging);
+        int totalCount = staffMapper.countSearchActiveEmployeeList(paging);
+        return new PageResponse<>(items, totalCount);
+    }
+
+    @Override
     public PageResponse<MemberDto> searchStudentList(PaginationInfo<Map<String, Object>> paging) {
         List<MemberDto> items = staffMapper.searchStudentList(paging);
         int totalCOunt = staffMapper.countSearchStudentList(paging);
