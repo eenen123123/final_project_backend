@@ -1,0 +1,331 @@
+<title th:fragment="pageTitle">쪽지함 | HERMES Admin</title>
+
+<style>
+  .note-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5rem 0.875rem;
+    border-radius: 0.625rem;
+    font-size: 0.875rem;
+    color: #475569;
+    transition:
+      background 0.15s,
+      color 0.15s;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .note-nav-link:hover {
+    background-color: #f1f5f9;
+    color: #1e293b;
+  }
+  .note-nav-link.active {
+    background-color: #ede9fe;
+    color: #7c3aed;
+    font-weight: 600;
+  }
+  .note-nav-link.trash {
+    color: #94a3b8;
+  }
+  .note-nav-link.trash:hover {
+    background-color: #fee2e2;
+    color: #ef4444;
+  }
+  .note-table th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+  }
+  .note-table td {
+    padding: 0.875rem 1rem;
+    font-size: 0.875rem;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+  }
+  .note-table tbody tr:hover {
+    background-color: #f8fafc;
+  }
+  .note-table tbody tr.unread td {
+    font-weight: 600;
+    color: #1e293b;
+  }
+  .note-subject {
+    max-width: 200px;
+    font-weight: 600;
+    color: #1e293b;
+    cursor: pointer;
+  }
+  .note-content-preview {
+    max-width: 480px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .note-content-preview:hover {
+    color: #7c3aed;
+  }
+</style>
+
+<!-- 쪽지함 레이아웃: 좌측 탐색 + 우측 목록 -->
+<div
+  class="flex bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden"
+  style="height: calc(100vh - 9rem)"
+>
+  <!-- 좌측 쪽지 탐색 패널 -->
+  <aside
+    class="w-60 flex-shrink-0 flex flex-col border-r border-slate-100 bg-slate-50"
+  >
+    <!-- 쪽지 쓰기 버튼 -->
+    <div class="p-4 space-y-2 border-b border-slate-100">
+      <button class="hm-btn-primary w-full">
+        <i class="fa-solid fa-pen-to-square"></i>
+        쪽지 쓰기
+      </button>
+      <button
+        class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-600 bg-white hover:bg-slate-50 transition-colors"
+      >
+        <i class="fa-solid fa-user-pen text-slate-400"></i>
+        내게 쓰기
+      </button>
+    </div>
+
+    <!-- 쪽지 카테고리 목록 -->
+    <nav class="flex-1 p-3 overflow-y-auto no-scrollbar">
+      <ul class="space-y-0.5">
+        <li>
+          <a
+            th:href="@{/admin/note(box='received')}"
+            th:class="'note-nav-link' + (${box == 'received' and postType == null} ? ' active' : '')"
+          >
+            <i class="fa-solid fa-inbox w-4 text-center"></i>
+            <span>받은 쪽지</span>
+          </a>
+        </li>
+        <li>
+          <a
+            th:href="@{/admin/note(box='received', postType='PERSONAL')}"
+            th:class="'note-nav-link' + (${box == 'received' and postType == 'PERSONAL'} ? ' active' : '')"
+          >
+            <i class="fa-solid fa-user w-4 text-center"></i>
+            <span>개인 쪽지</span>
+          </a>
+        </li>
+        <li>
+          <a
+            th:href="@{/admin/note(box='received', postType='SYSTEM')}"
+            th:class="'note-nav-link' + (${box == 'received' and postType == 'SYSTEM'} ? ' active' : '')"
+          >
+            <i class="fa-solid fa-users w-4 text-center"></i>
+            <span>단체 쪽지</span>
+          </a>
+        </li>
+        <li>
+          <a
+            th:href="@{/admin/note(box='self')}"
+            th:class="'note-nav-link' + (${box == 'self'} ? ' active' : '')"
+          >
+            <i class="fa-solid fa-note-sticky w-4 text-center"></i>
+            <span>내게 쓴 쪽지함</span>
+          </a>
+        </li>
+        <li>
+          <a
+            th:href="@{/admin/note(box='sent')}"
+            th:class="'note-nav-link' + (${box == 'sent'} ? ' active' : '')"
+          >
+            <i class="fa-solid fa-paper-plane w-4 text-center"></i>
+            <span>보낸 쪽지함</span>
+          </a>
+        </li>
+        <li>
+          <a
+            th:href="@{/admin/note(box='archive')}"
+            th:class="'note-nav-link' + (${box == 'archive'} ? ' active' : '')"
+          >
+            <i class="fa-solid fa-box-archive w-4 text-center"></i>
+            <span>쪽지 보관함</span>
+          </a>
+        </li>
+      </ul>
+
+      <div class="border-t border-slate-200 my-3"></div>
+
+      <ul>
+        <li>
+          <a
+            th:href="@{/admin/note(box='trash')}"
+            th:class="'note-nav-link trash' + (${box == 'trash'} ? ' active' : '')"
+          >
+            <i class="fa-solid fa-trash w-4 text-center"></i>
+            <span>휴지통</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- 우측 목록 영역 -->
+  <div class="flex-1 flex flex-col min-w-0">
+    <!-- 필터 바 -->
+    <div
+      class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-white flex-shrink-0"
+    >
+      <select class="hm-input" style="width: 9rem" data-ts-defer>
+        <option value="">전체 쪽지</option>
+        <option value="unread">읽지 않은 쪽지</option>
+        <option value="read">읽은 쪽지</option>
+      </select>
+      <select class="hm-input" style="width: 7rem" data-ts-defer>
+        <option value="id">아이디</option>
+        <option value="name">이름</option>
+        <option value="content">내용</option>
+      </select>
+      <input
+        type="text"
+        class="hm-input flex-1"
+        placeholder="검색어를 입력하세요"
+        style="min-width: 0"
+      />
+      <button class="hm-btn-primary flex-shrink-0">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        검색
+      </button>
+    </div>
+
+    <!-- 액션 바 -->
+    <div
+      class="flex items-center justify-between px-6 py-3 border-b border-slate-100 bg-slate-50/50 flex-shrink-0"
+    >
+      <div class="flex items-center gap-2">
+        <button
+          class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 rounded-lg bg-white hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
+        >
+          <i class="fa-solid fa-trash-can"></i>
+          선택 삭제
+        </button>
+        <button
+          class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 rounded-lg bg-white hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200 transition-colors"
+        >
+          <i class="fa-solid fa-box-archive"></i>
+          선택 보관
+        </button>
+      </div>
+      <span class="text-xs text-slate-400"
+        >총 <strong class="text-slate-600">1</strong>건</span
+      >
+    </div>
+
+    <!-- 쪽지 목록 테이블 -->
+    <div class="flex-1 overflow-y-auto no-scrollbar">
+      <table class="note-table w-full">
+        <thead class="bg-slate-50">
+          <tr>
+            <th style="width: 2.5rem; text-align: center">
+              <input
+                type="checkbox"
+                class="rounded border-slate-300 text-violet-600 cursor-pointer"
+              />
+            </th>
+            <th style="width: 12rem">보낸사람</th>
+            <th style="width: 16rem">제목</th>
+            <th style="width: 30rem">내용</th>
+            <th style="width: 15rem">날짜</th>
+            <th style="width: 4rem; text-align: center">삭제</th>
+            <th style="width: 4rem; text-align: center">보관</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="post : ${postList}" class="unread">
+            <td style="text-align: center">
+              <input
+                type="checkbox"
+                class="rounded border-slate-300 text-violet-600 cursor-pointer"
+              />
+            </td>
+            <td>
+              <div class="flex items-center gap-2">
+                <span
+                  class="w-7 h-7 rounded-full bg-violet-100 text-violet-700 text-xs font-bold flex items-center justify-center flex-shrink-0"
+                  >A</span
+                >
+                <span th:text="${post.sndrUserId}">sender</span>
+              </div>
+            </td>
+            <td>
+              <span class="note-subject" th:text="${post.ntceSj}"
+                >쪽지 제목</span
+              >
+            </td>
+            <td class="note-content-preview" th:text="${post.ntceCn}">
+              쪽지 내용
+            </td>
+            <td
+              class="text-slate-400 text-xs"
+              th:text="${#temporals.format(post.ntceSndDt, 'yyyy.MM.dd (E) HH:mm:ss')}"
+            >
+              <!-- 2026-06-05T16:04:08.959923 형식이라 바꿔주기 -->
+
+              2026-06-05 09:30
+            </td>
+            <td style="text-align: center">
+              <button
+                class="text-slate-300 hover:text-red-500 transition-colors text-sm"
+              >
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </td>
+            <td style="text-align: center">
+              <button
+                class="text-slate-300 hover:text-violet-500 transition-colors text-sm"
+              >
+                <i class="fa-solid fa-box-archive"></i>
+              </button>
+            </td>
+          </tr>
+
+          <!-- 빈 상태 (데이터 없을 때 표시) -->
+          <!-- 실제 구현 시 th:if로 조건 처리 -->
+        </tbody>
+      </table>
+
+      <!-- 빈 상태 메시지 (쪽지가 없을 때) -->
+      <div
+        th:if="${#lists.isEmpty(postList)}"
+        class="flex flex-col items-center justify-center py-20 text-slate-400"
+      >
+        <div
+          class="flex flex-col items-center justify-center py-20 text-slate-400"
+        >
+          <i
+            class="fa-regular fa-envelope-open text-5xl mb-4 text-slate-200"
+          ></i>
+          <p class="text-sm font-medium">받은 쪽지가 없습니다.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Tom Select 초기화 (data-ts-defer 있는 select 수동 초기화)
+  document.querySelectorAll("select[data-ts-defer]").forEach(function (el) {
+    window.initTomSelect(el);
+  });
+
+  // 전체 선택 체크박스
+  document
+    .querySelector("thead input[type=checkbox]")
+    .addEventListener("change", function () {
+      document.querySelectorAll("tbody input[type=checkbox]").forEach(function (
+        cb,
+      ) {
+        cb.checked = this.checked;
+      }, this);
+    });
+</script>

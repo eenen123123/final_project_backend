@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.post.PostMapper">
+
+
+    <resultMap id="postResultMap" type="kr.or.ddit.finalProject.dto.post.PostMasterDto">
+        <id property="ntceSn" column="ntce_sn"/>
+        <result property="ntceSj" column="ntce_sj"/>
+        <result property="ntceCn" column="ntce_cn"/>
+        <result property="ntceSndDt" column="ntce_snd_dt"/>
+        <result property="ntceTypeCd" column="ntce_type_cd"/>
+        <result property="sndrUserId" column="sndr_user_id"/>
+    </resultMap>
+
+    <resultMap id="postSenderResultMap" type="kr.or.ddit.finalProject.dto.post.PostSenderDto">
+        <id property="ntceSn" column="ntce_sn"/>
+        <result property="sndrUserId" column="sender_user_id"/>
+        <result property="delYn" column="del_yn"/>
+        <result property="delDt" column="del_dt"/>
+    </resultMap>
+
+    <resultMap id="postReceiverResultMap" type="kr.or.ddit.finalProject.dto.post.PostReceiverDto">
+        <id property="rcvrUserId" column="rcvr_user_id"/>
+        <result property="ntceSn" column="ntce_sn"/>
+        <result property="ntceCfmtnYn" column="ntce_cfmtn_yn"/>
+        <result property="ntceCfmtnDt" column="ntce_cfmtn_dt"/>
+        <result property="delYn" column="del_yn"/>
+        <result property="delDt" column="del_dt"/>
+    </resultMap>
+
+    <sql id="postSearchWhere">
+        <trim prefix="WHERE" prefixOverrides="AND">
+            <if test="paginationInfo.detailCondition != null">
+                <if test="paginationInfo.detailCondition.keyword != null and paginationInfo.detailCondition.keyword != ''">
+                    <if test="paginationInfo.detailCondition.searchType != null and paginationInfo.detailCondition.searchType != ''">
+                        <if test="paginationInfo.detailCondition.searchType == 'title'">
+                            AND instr(pm.ntce_sj, #{paginationInfo.detailCondition.keyword}) &gt; 0
+                        </if>
+                        <if test="paginationInfo.detailCondition.searchType == 'content'">
+                            AND instr(pm.ntce_cn, #{paginationInfo.detailCondition.keyword}) &gt; 0
+                        </if>
+                        <if test="paginationInfo.detailCondition.searchType =='sender'">
+                            AND instr(ps.sndr_user_id, #{paginationInfo.detailCondition.keyword}) &gt; 0
+                        </if>
+                        <if test="paginationInfo.detailCondition.searchType =='receiver'">
+                            AND instr(pr.rcvr_user_id, #{paginationInfo.detailCondition.keyword}) &gt; 0
+                        </if>
+                    </if>
+                </if>
+                <if test="paginationInfo.detailCondition.readType != null and paginationInfo.detailCondition.readType != ''">
+                    <if test="paginationInfo.detailCondition.readType == 'read'">
+                        AND pr.ntce_cfmtn_yn = 'Y'
+                    </if>
+                    <if test="paginationInfo.detailCondition.readType == 'unread'">
+                        AND pr.ntce_cfmtn_yn = 'N'
+                    </if>
+                </if>
+                <if test="paginationInfo.detailCondition.box != null and paginationInfo.detailCondition.box != ''">
+                    <if test="paginationInfo.detailCondition.box == 'received'">
+                        AND pr.rcvr_user_id = #{userId}
+                    </if>
+                    <if test="paginationInfo.detailCondition.box == 'sent'">
+                        AND ps.sndr_user_id = #{userId}
+                    </if>
+                    <if test="paginationInfo.detailCondition.box == 'self'">
+                        AND (ps.sndr_user_id = #{userId} and pr.rcvr_user_id = #{userId})
+                    </if>
+                </if>
+                <if test="paginationInfo.detailCondition.postType != null">
+                    AND pm.ntce_type_cd = #{paginationInfo.detailCondition.postType}
+                </if>
+            </if>
+        </trim>
+
+    </sql>
+
+    <!-- insertPostMaster -->
+
+    <insert id="insertPostMaster" useGeneratedKeys="true" keyProperty="ntceSn" keyColumn="ntce_sn" parameterType="kr.or.ddit.finalProject.dto.post.PostMasterDto">
+        insert into post_master (ntce_sj, ntce_cn, ntce_snd_dt, ntce_type_cd)
+        values (#{ntceSj}, #{ntceCn}, #{ntceSndDt}, #{ntceTypeCd})
+
+    </insert>
+
+    <!-- insertPostSender -->
+
+    <insert id="insertPostSender">
+        insert into post_sender (ntce_sn, sndr_user_id )
+        values (#{ntceSn}, #{sndrUserId})
+    </insert>
+
+    <!-- insertPostReceiver -->
+
+    <insert id="insertPostReceiver">
+        insert into post_receiver (ntce_sn, rcvr_user_id )
+        values (#{ntceSn}, #{rcvrUserId} )
+    </insert>
+
+    <!-- selectPostById -->
+
+    <select id="selectPostById" resultMap="postResultMap">
+        select pm.*
+        from post_master pm
+        left join post_receiver pr on pm.ntce_sn = pr.ntce_sn
+        left join post_sender ps on pm.ntce_sn = ps.ntce_sn
+        where pm.ntce_sn = #{postSn}
+    </select>
+
+    <!-- selectPostList -->
+
+    <select id="selectPostList" resultMap="postResultMap">
+        select
+            pm.ntce_sn, pm.ntce_sj, pm.ntce_cn, pm.ntce_snd_dt, pm.ntce_type_cd,
+            ps.sndr_user_id
+        from post_master pm
+        left join post_receiver pr on pm.ntce_sn = pr.ntce_sn
+        left join post_sender ps on pm.ntce_sn = ps.ntce_sn
+        <include refid="postSearchWhere"/>
+        order by pm.ntce_snd_dt desc
+    </select>
+
+    <!-- selectPostListCount -->
+
+    <select id="selectPostListCount" resultType="int">
+        select count(*)
+        from post_master pm
+        left join post_receiver pr on pm.ntce_sn = pr.ntce_sn
+        left join post_sender ps on pm.ntce_sn = ps.ntce_sn
+        <include refid="postSearchWhere"/>
+    </select>
+</mapper>
