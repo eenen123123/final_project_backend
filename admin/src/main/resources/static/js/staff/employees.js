@@ -1,6 +1,6 @@
 
-let selectedEmpId = null;
-let detailEditMode = false;
+var selectedEmpId = null;
+var detailEditMode = false;
 
 /* ─── 탭 전환 ─── */
 function switchEmpTab(tabId, btn) {
@@ -14,47 +14,179 @@ function switchEmpTab(tabId, btn) {
   document.getElementById(tabId).classList.add("active");
 }
 
+/* ─── 페이지 깜빡임 없는 탭 이동 ─── */
+async function navigateToStudents(btn) {
+  btn.disabled = true;
+  try {
+    const res = await fetch('/admin/employees/students');
+    if (!res.ok) { location.href = '/admin/employees/students'; return; }
+
+    const html = await res.text();
+    const doc  = new DOMParser().parseFromString(html, 'text/html');
+    const newMain  = doc.querySelector('main');
+    const currMain = document.querySelector('main');
+    if (!newMain || !currMain) { location.href = '/admin/employees/students'; return; }
+
+    // 신규 CSS 로드
+    doc.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
+      const href = link.getAttribute('href');
+      if (href && !document.querySelector(`link[href="${href}"]`)) {
+        const el = document.createElement('link');
+        el.rel = 'stylesheet'; el.href = href;
+        document.head.appendChild(el);
+      }
+    });
+
+    currMain.innerHTML = newMain.innerHTML;
+
+    // 기존 직원 스크립트 제거 후 학생 스크립트 로드
+    document.querySelectorAll('script[src*="/js/staff/"]').forEach(s => s.remove());
+    for (const s of doc.querySelectorAll('script[src*="/js/staff/"]')) {
+      await new Promise(resolve => {
+        const el = document.createElement('script');
+        el.src = s.getAttribute('src');
+        el.onload = el.onerror = resolve;
+        document.head.appendChild(el);
+      });
+    }
+
+    currMain.querySelectorAll('select.hm-input:not([data-ts-defer])').forEach(el => {
+      if (!el.tomselect && window.initTomSelect) window.initTomSelect(el);
+    });
+
+    history.pushState({ url: '/admin/employees/students' }, doc.title || '', '/admin/employees/students');
+    if (doc.title) document.title = doc.title;
+
+  } catch {
+    location.href = '/admin/employees/students';
+  }
+}
+
 /* ─── 직원 현황 카드 렌더링 ─── */
 /* ═══ 인사 기록 탭 페이징 + 필터 + 정렬 ═══ */
-let currentHrPage = 1;
-const HR_SCREEN_SIZE = 7;
-const HR_BLOCK_SIZE = 5;
-let hrSortCol = null;
-let hrSortAsc = true;
-let hrFilteredRows = null;
+var currentHrPage = 1;
+var HR_SCREEN_SIZE = 7;
+var HR_BLOCK_SIZE = 5;
+var hrSortCol = null;
+var hrSortAsc = true;
+var hrFilteredRows = null;
+
+var filterDebounceTimer = null;
 
 function filterHrList() {
-  const keyword = document
-    .getElementById("hr-search")
-    .value.trim()
-    .toLowerCase();
-  const year = document.getElementById("hr-year").value;
-  currentHrPage = 1;
-  const status = document.getElementById("hr-status-filter").value;
-  const dept = document.getElementById("hr-dept-filter").value;
-  const role = document.getElementById("hr-role-filter").value;
-  const type = document.getElementById("hr-type-filter").value;
-  const allRows = Array.from(
-    document.querySelectorAll("#hr-table-body .hr-data-row"),
-  );
+  clearTimeout(filterDebounceTimer);
+  filterDebounceTimer = setTimeout(() => doFilterHrList(1), 300);
+}
 
-  hrFilteredRows = allRows.filter((r) => {
-    if (keyword && !(r.dataset.name || "").toLowerCase().includes(keyword))
-      return false;
-    if (year && !(r.dataset.join || "").startsWith(year)) return false;
-    if (status && r.dataset.status !== status) return false;
-    if (dept && r.dataset.dept !== dept) return false;
-    if (role && r.dataset.gradeCd !== role) return false;
-    if (type && (r.dataset.type || "").trim() !== type) return false;
-    return true;
-  });
+async function doFilterHrList(page) {
+  page = page || 1;
+  currentHrPage = page;
 
-  if (hrSortCol) applyHrSort(hrFilteredRows);
-  applyHrPaging();
+  const keyword   = document.getElementById("hr-search").value.trim();
+  const year      = document.getElementById("hr-year").value;
+  const status    = document.getElementById("hr-status-filter").value;
+  const deptCd    = document.getElementById("hr-dept-filter").value;
+  const jbgrCd    = document.getElementById("hr-role-filter").value;
+  const emplType  = document.getElementById("hr-type-filter").value;
+
+  const params = new URLSearchParams();
+  if (keyword)   params.set("keyword",        keyword);
+  if (year)      params.set("year",           year);
+  if (status)    params.set("status",         status);
+  if (deptCd)    params.set("deptCd",         deptCd);
+  if (jbgrCd)    params.set("jbgrCd",         jbgrCd);
+  if (emplType)  params.set("emplTypeCd",     emplType);
+  if (hrSortCol) {
+    params.set("orderBy",        hrSortCol);
+    params.set("orderDirection", hrSortAsc ? "ASC" : "DESC");
+  }
+  params.set("page",       page);
+  params.set("screenSize", HR_SCREEN_SIZE);
+
+  try {
+    const res  = await fetch("/admin/employees/search?" + params);
+    const data = await res.json();
+    renderEmployeeTable(data.items, data.totalCount);
+  } catch (e) {
+    console.error("직원 검색 실패:", e);
+  }
+}
+
+// defer 스크립트와 AJAX 탭 이동 모두에서 DOM 준비 완료 후 실행되므로 직접 호출
+doFilterHrList(1);
+
+function escHtml(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function renderEmployeeTable(employees, totalCount) {
+  const tbody = document.getElementById("hr-table-body");
+  if (!employees || employees.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-10 text-sm text-slate-400">등록된 직원이 없습니다.</td></tr>';
+    renderHrPagination(0);
+    return;
+  }
+
+  tbody.innerHTML = employees.map(emp => {
+    const m   = emp.member || {};
+    const ei  = emp.employeeInfo || {};
+    const uid = emp.userId || "";
+    const nm  = m.userName || "";
+    const pro = m.userProfile || "";
+    const jn  = ei.joinYmd   ? String(ei.joinYmd).substring(0, 10)   : "";
+    const et  = (ei.emplTypeCd || "").trim();
+    const es  = ei.emplStatCd || "";
+    const ct  = ei.ctrctEndYmd ? String(ei.ctrctEndYmd).substring(0, 10) : "";
+    const addr = (m.userAddr || "") + (m.userDaddr ? " " + m.userDaddr : "");
+
+    const typeNm  = { "01":"정규직","02":"계약직","03":"파트타임" }[et] || "-";
+    const statNm  = { "01":"재직","02":"휴직","03":"퇴사" }[es] || "미등록";
+    const statCls = { "01":"status-active","02":"status-leave","03":"status-resigned" }[es] || "status-resigned";
+    const avatar  = (pro && pro.startsWith("http"))
+      ? `<img src="${escHtml(pro)}" class="w-7 h-7 rounded-lg object-cover" alt="프로필">`
+      : `<div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-xs font-bold text-[#3b82f6]">${escHtml(nm.charAt(0))}</div>`;
+
+    return `<tr class="hr-data-row hover:bg-slate-50 transition-colors"
+      data-id="${escHtml(uid)}" data-name="${escHtml(nm)}" data-grade="${escHtml(emp.jbgrNm||"")}"
+      data-grade-cd="${escHtml(ei.jbgrCd||"")}" data-join="${escHtml(jn)}" data-type="${escHtml(et)}"
+      data-dept="${escHtml(emp.deptCd||"")}" data-dept-nm="${escHtml(emp.deptNm||"")}"
+      data-status="${escHtml(es)}" data-phone="${escHtml(m.userTelno||"")}"
+      data-email="${escHtml(m.userEmailAddr||"")}" data-birthdate="${escHtml(m.userBrdt||"")}"
+      data-gender="${escHtml(m.userGndrCd||"")}" data-zip="${escHtml(m.userZip||"")}"
+      data-addr-base="${escHtml(m.userAddr||"")}" data-addr-detail="${escHtml(m.userDaddr||"")}"
+      data-addr="${escHtml(addr)}" data-contract-end="${escHtml(ct)}"
+      data-duty="${escHtml(ei.chrgDutyCn||"")}" data-salary="${escHtml(emp.baseSalary||"")}"
+      data-profile="${escHtml(pro)}">
+      <td class="py-3 px-4">
+        <div class="flex items-center gap-2">
+          ${avatar}
+          <div>
+            <p class="font-bold text-slate-800">${escHtml(nm)}</p>
+            <p class="text-xs text-slate-400">${escHtml(uid)}</p>
+          </div>
+        </div>
+      </td>
+      <td class="py-3 px-4 text-sm text-slate-600 truncate">${escHtml(emp.deptNm||"-")}</td>
+      <td class="py-3 px-4"><span class="text-sm text-slate-600 block truncate">${escHtml(emp.jbgrNm||"-")}</span></td>
+      <td class="py-3 px-4 text-sm text-slate-600 whitespace-nowrap">${typeNm}</td>
+      <td class="py-3 px-4 text-sm text-slate-600 whitespace-nowrap">${jn || "-"}</td>
+      <td class="py-3 px-4 text-sm text-slate-600 truncate">${ct || "-"}</td>
+      <td class="py-3 px-4"><span class="status-badge ${statCls}">${statNm}</span></td>
+      <td class="py-3 px-4">
+        <button type="button" data-id="${escHtml(uid)}"
+          onclick="openDetail(this.getAttribute('data-id'))"
+          class="text-xs text-[#3b82f6] hover:underline font-semibold">상세</button>
+      </td>
+    </tr>`;
+  }).join("");
+
+  renderHrPagination(totalCount);
 }
 
 // 직급 필터 전체 옵션 원본 저장 (Tom Select 초기화 전에 native select에서 읽음)
-const allRoleOptions = Array.from(
+var allRoleOptions = Array.from(
   document.querySelectorAll('#hr-role-filter option[value]:not([value=""])'),
 ).map((opt) => ({
   value: opt.value,
@@ -107,7 +239,7 @@ function sortHrBy(col) {
     hrSortAsc = true;
   }
   updateHrSortIcons(col);
-  filterHrList();
+  doFilterHrList(1);
 }
 
 function applyHrSort(rows) {
@@ -190,9 +322,7 @@ function renderHrPagination(totalCount) {
 
 function goHrPage(p) {
   const scrollY = window.scrollY;
-  currentHrPage = p;
-  applyHrPaging();
-  window.scrollTo({ top: scrollY, behavior: "instant" });
+  doFilterHrList(p).then(() => window.scrollTo({ top: scrollY, behavior: "instant" }));
 }
 
 /* ─── 인사 기록 테이블 렌더링 ─── */
@@ -575,7 +705,7 @@ function saveDetailEdit() {
 }
 
 // edit-role 전체 옵션 원본 저장
-const allEditRoleOptions = Array.from(
+var allEditRoleOptions = Array.from(
   document.querySelectorAll('#edit-role option[value]:not([value=""])'),
 ).map((opt) => ({
   value: opt.value,
@@ -1268,7 +1398,7 @@ document.querySelectorAll('[id^="modal-"]').forEach((m) => {
 })();
 
 /* ─── 신규 등록 폼: 부서 → 직급 필터 ─── */
-const allNewRoleOptions = Array.from(
+var allNewRoleOptions = Array.from(
   document.querySelectorAll('#new-role option[value]:not([value=""])'),
 ).map((opt) => ({
   value: opt.value,
@@ -1323,7 +1453,7 @@ function syncFilled(el) {
 });
 
 // new-brdt 는 JS가 value를 직접 세팅하므로 MutationObserver 대신 input 이벤트 + 직접 호출
-const brdtEl = document.getElementById("new-brdt");
+var brdtEl = document.getElementById("new-brdt");
 if (brdtEl) {
   brdtEl.addEventListener("input", () => syncFilled(brdtEl));
   // autoFillTempPw 가 value를 세팅한 직후 호출
@@ -1335,8 +1465,8 @@ if (brdtEl) {
 }
 
 /* ─── 주민등록번호 마스킹 ─── */
-let rrnRealValue = ""; // 실제 값 (하이픈 포함, 예: 900101-1234567)
-let rrnEyeOpen = false; // 눈 아이콘 상태
+var rrnRealValue = ""; // 실제 값 (하이픈 포함, 예: 900101-1234567)
+var rrnEyeOpen = false; // 눈 아이콘 상태
 
 function maskRrn(formatted) {
   const digits = formatted.replace(/\D/g, "");

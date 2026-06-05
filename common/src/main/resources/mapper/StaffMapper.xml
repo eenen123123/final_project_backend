@@ -194,6 +194,165 @@
         ORDER BY m.USER_ID
     </select>
 
+    <!-- selectActiveEmployeeList: 재직 중인 직원만 조회 (권한 설정 페이지용) -->
+    <select id="selectActiveEmployeeList" resultMap="EmployeeDetailResultMap">
+        SELECT
+            m.USER_ID AS M_USER_ID,
+            m.USER_ENPSWD AS M_USER_ENPSWD,
+            m.USER_NAME AS M_USER_NAME,
+            m.USER_ENRRNO AS M_USER_ENRRNO,
+            m.USER_GNDR_CD AS M_USER_GNDR_CD,
+            m.USER_BRDT AS M_USER_BRDT,
+            m.JOIN_DT AS M_JOIN_DT,
+            m.USER_TELNO AS M_USER_TELNO,
+            m.USER_EMAIL_ADDR AS M_USER_EMAIL_ADDR,
+            m.USER_ZIP AS M_USER_ZIP,
+            m.USER_ADDR AS M_USER_ADDR,
+            m.USER_DADDR AS M_USER_DADDR,
+            m.USER_PROFILE AS M_USER_PROFILE,
+            m.REG_DATE AS M_REG_DATE,
+            m.MOD_DATE AS M_MOD_DATE,
+            m.ENABLE AS M_ENABLE,
+            m.USER_ROLE AS M_USER_ROLE,
+            ei.DEPT_CD,
+            ei.EMPL_STAT_CD,
+            ei.EMPL_TYPE_CD,
+            ei.USER_ID AS EI_USER_ID,
+            ei.DEPT_CD AS EI_DEPT_CD,
+            ei.JBGR_CD AS EI_JBGR_CD,
+            ei.JOIN_YMD AS EI_JOIN_YMD,
+            ei.RETMT_YMD AS EI_RETMT_YMD,
+            ei.EMPL_STAT_CD AS EI_EMPL_STAT_CD,
+            ei.ATCH_FILE_ID AS EI_ATCH_FILE_ID,
+            ei.CHRG_DUTY_CN AS EI_CHRG_DUTY_CN,
+            ei.EMPL_TYPE_CD AS EI_EMPL_TYPE_CD,
+            ei.CTRCT_END_YMD AS EI_CTRCT_END_YMD,
+            d.DEPT_NM,
+            j.JBGR_NM,
+            es.BASE_SALARY
+        FROM
+            MEMBER m
+        LEFT JOIN EMPLOYEE_INFO ei ON m.USER_ID = ei.USER_ID
+        LEFT JOIN DEPARTMENT d ON ei.DEPT_CD = d.DEPT_CD
+        LEFT JOIN JOB_GRADE j ON ei.JBGR_CD = j.JBGR_CD
+        LEFT JOIN EMPLOYEE_SALARY es ON m.USER_ID = es.USER_ID AND es.USE_YN = 'Y'
+        WHERE m.USER_ROLE = 'ROLE_ADMIN'
+          AND m.ENABLE = 'Y'
+        ORDER BY m.USER_ID
+    </select>
+
+    <!-- searchEmployeeList: 직원 목록 동적 검색 + 서버 페이징 -->
+    <select id="searchEmployeeList" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo" resultMap="EmployeeDetailResultMap">
+        SELECT
+            m.USER_ID AS M_USER_ID,
+            m.USER_ENPSWD AS M_USER_ENPSWD,
+            m.USER_NAME AS M_USER_NAME,
+            m.USER_ENRRNO AS M_USER_ENRRNO,
+            m.USER_GNDR_CD AS M_USER_GNDR_CD,
+            m.USER_BRDT AS M_USER_BRDT,
+            m.JOIN_DT AS M_JOIN_DT,
+            m.USER_TELNO AS M_USER_TELNO,
+            m.USER_EMAIL_ADDR AS M_USER_EMAIL_ADDR,
+            m.USER_ZIP AS M_USER_ZIP,
+            m.USER_ADDR AS M_USER_ADDR,
+            m.USER_DADDR AS M_USER_DADDR,
+            m.USER_PROFILE AS M_USER_PROFILE,
+            m.REG_DATE AS M_REG_DATE,
+            m.MOD_DATE AS M_MOD_DATE,
+            m.ENABLE AS M_ENABLE,
+            m.USER_ROLE AS M_USER_ROLE,
+            ei.DEPT_CD,
+            ei.EMPL_STAT_CD,
+            ei.EMPL_TYPE_CD,
+            ei.USER_ID AS EI_USER_ID,
+            ei.DEPT_CD AS EI_DEPT_CD,
+            ei.JBGR_CD AS EI_JBGR_CD,
+            ei.JOIN_YMD AS EI_JOIN_YMD,
+            ei.RETMT_YMD AS EI_RETMT_YMD,
+            ei.EMPL_STAT_CD AS EI_EMPL_STAT_CD,
+            ei.ATCH_FILE_ID AS EI_ATCH_FILE_ID,
+            ei.CHRG_DUTY_CN AS EI_CHRG_DUTY_CN,
+            ei.EMPL_TYPE_CD AS EI_EMPL_TYPE_CD,
+            ei.CTRCT_END_YMD AS EI_CTRCT_END_YMD,
+            d.DEPT_NM,
+            j.JBGR_NM,
+            es.BASE_SALARY
+        FROM MEMBER m
+        LEFT JOIN EMPLOYEE_INFO ei ON m.USER_ID = ei.USER_ID
+        LEFT JOIN DEPARTMENT d ON ei.DEPT_CD = d.DEPT_CD
+        LEFT JOIN JOB_GRADE j ON ei.JBGR_CD = j.JBGR_CD
+        LEFT JOIN EMPLOYEE_SALARY es ON m.USER_ID = es.USER_ID
+            AND (
+                (NVL(ei.EMPL_STAT_CD, '01') != '03' AND es.USE_YN = 'Y')
+                OR
+                (ei.EMPL_STAT_CD = '03' AND es.APPLY_YMD = (
+                    SELECT MAX(APPLY_YMD) FROM EMPLOYEE_SALARY WHERE USER_ID = m.USER_ID
+                ))
+            )
+        WHERE m.USER_ROLE = 'ROLE_ADMIN'
+        <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
+            AND m.USER_NAME LIKE '%' || #{detailCondition.keyword} || '%'
+        </if>
+        <if test="detailCondition != null and detailCondition.year != null and detailCondition.year != ''">
+            AND TO_CHAR(ei.JOIN_YMD, 'YYYY') = #{detailCondition.year}
+        </if>
+        <if test="detailCondition != null and detailCondition.status != null and detailCondition.status != ''">
+            AND ei.EMPL_STAT_CD = #{detailCondition.status}
+        </if>
+        <if test="detailCondition != null and detailCondition.deptCd != null and detailCondition.deptCd != ''">
+            AND ei.DEPT_CD = #{detailCondition.deptCd}
+        </if>
+        <if test="detailCondition != null and detailCondition.jbgrCd != null and detailCondition.jbgrCd != ''">
+            AND ei.JBGR_CD = #{detailCondition.jbgrCd}
+        </if>
+        <if test="detailCondition != null and detailCondition.emplTypeCd != null and detailCondition.emplTypeCd != ''">
+            AND ei.EMPL_TYPE_CD = #{detailCondition.emplTypeCd}
+        </if>
+        ORDER BY
+        <choose>
+            <when test="orderBy == 'name'">m.USER_NAME</when>
+            <when test="orderBy == 'dept'">d.DEPT_NM</when>
+            <when test="orderBy == 'grade'">j.JBGR_NM</when>
+            <when test="orderBy == 'join'">ei.JOIN_YMD</when>
+            <when test="orderBy == 'type'">ei.EMPL_TYPE_CD</when>
+            <when test="orderBy == 'status'">ei.EMPL_STAT_CD</when>
+            <when test="orderBy == 'contractEnd'">ei.CTRCT_END_YMD</when>
+            <otherwise>m.USER_ID</otherwise>
+        </choose>
+        <choose>
+            <when test="orderDirection == 'DESC'">DESC</when>
+            <otherwise>ASC</otherwise>
+        </choose>
+        NULLS LAST
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <!-- countSearchEmployeeList: 전체 건수 (페이지 버튼 계산용) -->
+    <select id="countSearchEmployeeList" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo" resultType="int">
+        SELECT COUNT(*)
+        FROM MEMBER m
+        LEFT JOIN EMPLOYEE_INFO ei ON m.USER_ID = ei.USER_ID
+        WHERE m.USER_ROLE = 'ROLE_ADMIN'
+        <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
+            AND m.USER_NAME LIKE '%' || #{detailCondition.keyword} || '%'
+        </if>
+        <if test="detailCondition != null and detailCondition.year != null and detailCondition.year != ''">
+            AND TO_CHAR(ei.JOIN_YMD, 'YYYY') = #{detailCondition.year}
+        </if>
+        <if test="detailCondition != null and detailCondition.status != null and detailCondition.status != ''">
+            AND ei.EMPL_STAT_CD = #{detailCondition.status}
+        </if>
+        <if test="detailCondition != null and detailCondition.deptCd != null and detailCondition.deptCd != ''">
+            AND ei.DEPT_CD = #{detailCondition.deptCd}
+        </if>
+        <if test="detailCondition != null and detailCondition.jbgrCd != null and detailCondition.jbgrCd != ''">
+            AND ei.JBGR_CD = #{detailCondition.jbgrCd}
+        </if>
+        <if test="detailCondition != null and detailCondition.emplTypeCd != null and detailCondition.emplTypeCd != ''">
+            AND ei.EMPL_TYPE_CD = #{detailCondition.emplTypeCd}
+        </if>
+    </select>
+
     <!-- selectJoinYearList -->
     <select id="selectJoinYearList" resultType="int">
         SELECT DISTINCT TO_CHAR(JOIN_YMD, 'YYYY') AS JOIN_YEAR
@@ -336,7 +495,43 @@
         WHERE USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
     </select>    
 
-    <!-- selectStudentJoinYearList --> 
+    <!-- searchStudentList: 학생 목록 동적 검색 + 서버 페이징 -->
+    <select id="searchStudentList" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo" resultType="kr.or.ddit.finalProject.dto.member.MemberDto">
+        SELECT
+            USER_ID, USER_ENPSWD, USER_NAME, USER_ENRRNO, USER_GNDR_CD, USER_BRDT,
+            JOIN_DT, USER_TELNO, USER_EMAIL_ADDR, USER_ZIP, USER_ADDR, USER_DADDR,
+            USER_PROFILE, REG_DATE, MOD_DATE, ENABLE, USER_ROLE
+        FROM MEMBER
+        WHERE USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
+        <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
+            AND USER_NAME LIKE '%' || #{detailCondition.keyword} || '%'
+        </if>
+        <if test="detailCondition != null and detailCondition.year != null and detailCondition.year != ''">
+            AND TO_CHAR(JOIN_DT, 'YYYY') = #{detailCondition.year}
+        </if>
+        <if test="detailCondition != null and detailCondition.userRole != null and detailCondition.userRole != ''">
+            AND USER_ROLE = #{detailCondition.userRole}
+        </if>
+        <if test="detailCondition != null and detailCondition.enable != null and detailCondition.enable != ''">
+            AND ENABLE = #{detailCondition.enable}
+        </if>
+        ORDER BY
+        <choose>
+            <when test="orderBy == 'name'">USER_NAME</when>
+            <when test="orderBy == 'role'">USER_ROLE</when>
+            <when test="orderBy == 'enable'">ENABLE</when>
+            <when test="orderBy == 'join'">JOIN_DT</when>
+            <otherwise>USER_ID</otherwise>
+        </choose>
+        <choose>
+            <when test="orderDirection == 'DESC'">DESC</when>
+            <otherwise>ASC</otherwise>
+        </choose>
+        NULLS LAST
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <!-- selectStudentJoinYearList -->
     <select id="selectStudentJoinYearList">
         SELECT DISTINCT TO_CHAR(JOIN_DT, 'YYYY') AS JOIN_YEAR
           FROM MEMBER
@@ -377,4 +572,22 @@
         )
         VALUES(#{userId}, #{withdrawRsn}, #{rgtrId}, #{lastMdfrId}, SYSTIMESTAMP , SYSTIMESTAMP )
     </insert>
-</mapper>
+
+    <!-- countSearchStudentList -->
+    <select id="countSearchStudentList" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo" resultType="int">
+        SELECT COUNT(*)
+        FROM MEMBER
+        WHERE USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
+        <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
+            AND USER_NAME LIKE '%' || #{detailCondition.keyword} || '%'
+        </if>
+        <if test="detailCondition != null and detailCondition.year != null and detailCondition.year != ''">
+            AND TO_CHAR(JOIN_DT, 'YYYY') = #{detailCondition.year}
+        </if>
+        <if test="detailCondition != null and detailCondition.userRole != null and detailCondition.userRole != ''">
+            AND USER_ROLE = #{detailCondition.userRole}
+        </if>
+        <if test="detailCondition != null and detailCondition.enable != null and detailCondition.enable != ''">
+            AND ENABLE = #{detailCondition.enable}
+        </if>
+    </select></mapper>
