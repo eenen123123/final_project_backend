@@ -46,4 +46,9 @@ public class AssignmentBoardServiceImpl implements AssignmentBoardService {
     public int gradeSubmit(Long sbmtSn, BigDecimal score, String grddUserId) {
         return assignmentSubmitMapper.updateGrade(sbmtSn, score, grddUserId);
     }
+
+    @Override
+    public int getPendingGradeCount(Long classSn) {
+        return assignmentSubmitMapper.selectPendingGradeCount(classSn);
+    }
 }

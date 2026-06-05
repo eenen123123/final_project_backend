@@ -79,17 +79,30 @@
 
     </div>
 
-    <!-- 액션 아이템: 미답변 Q&A -->
-    <div th:if="${unansweredQnaCount > 0}"
-         class="bg-amber-50 border border-amber-100 rounded-xl p-3.5 flex items-center gap-3">
-      <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center text-amber-500 text-sm flex-shrink-0">
-        <i class="fa-solid fa-comment-dots"></i>
+    <!-- 액션 아이템 -->
+    <div th:if="${unansweredQnaCount > 0 or pendingGradeCount > 0}" class="flex flex-col gap-2">
+      <div th:if="${unansweredQnaCount > 0}"
+           class="bg-amber-50 border border-amber-100 rounded-xl p-3.5 flex items-center gap-3">
+        <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center text-amber-500 text-sm flex-shrink-0">
+          <i class="fa-solid fa-comment-dots"></i>
+        </div>
+        <p class="flex-1 text-xs font-bold text-amber-800">
+          답변 대기 중인 Q&A가 <span class="text-amber-600" th:text="${unansweredQnaCount}">0</span>건 있습니다.
+        </p>
+        <a th:href="@{/instructor/classroom/detail/{sn}/qna(sn=${classroom.classSn})}"
+           class="text-[11px] font-bold text-amber-600 hover:underline flex-shrink-0">확인 →</a>
       </div>
-      <p class="flex-1 text-xs font-bold text-amber-800">
-        답변 대기 중인 Q&A가 <span class="text-amber-600" th:text="${unansweredQnaCount}">0</span>건 있습니다.
-      </p>
-      <a th:href="@{/instructor/classroom/detail/{sn}/qna(sn=${classroom.classSn})}"
-         class="text-[11px] font-bold text-amber-600 hover:underline flex-shrink-0">확인 →</a>
+      <div th:if="${pendingGradeCount > 0}"
+           class="bg-indigo-50 border border-indigo-100 rounded-xl p-3.5 flex items-center gap-3">
+        <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-500 text-sm flex-shrink-0">
+          <i class="fa-solid fa-pen-to-square"></i>
+        </div>
+        <p class="flex-1 text-xs font-bold text-indigo-800">
+          채점 대기 중인 과제가 <span class="text-indigo-600" th:text="${pendingGradeCount}">0</span>건 있습니다.
+        </p>
+        <a th:href="@{/instructor/classroom/detail/{sn}/assignments(sn=${classroom.classSn})}"
+           class="text-[11px] font-bold text-indigo-600 hover:underline flex-shrink-0">확인 →</a>
+      </div>
     </div>
 
     <!-- 최근 공지사항 -->

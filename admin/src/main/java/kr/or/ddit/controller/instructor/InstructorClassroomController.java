@@ -66,6 +66,7 @@ public class InstructorClassroomController {
         model.addAttribute("todayQuestion",        classroomHomeService.retrieveTodayQuestion(classSn));
         model.addAttribute("noticeCount",          0);
         model.addAttribute("unansweredQnaCount",   instructorBoardService.getUnansweredQnaCount(classSn));
+        model.addAttribute("pendingGradeCount",    assignmentBoardService.getPendingGradeCount(classSn));
         return "instructor/classroom-home";
     }
 
