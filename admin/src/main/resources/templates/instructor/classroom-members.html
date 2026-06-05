@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html th:replace="~{instructor/classroom-fragments :: layout(
+    ${classroom.classNm} + ' | 수강생 목록',
+    ${classroom},
+    'members',
+    ~{:: #content}
+)}" lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div id="content">
+
+  <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100">
+      <h2 class="text-sm font-bold text-slate-700">수강생 목록</h2>
+    </div>
+
+    <!-- 빈 목록 -->
+    <div th:if="${#lists.isEmpty(classroom.members)}"
+         class="p-16 flex flex-col items-center justify-center text-center gap-3">
+      <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-2xl">
+        <i class="fa-solid fa-users"></i>
+      </div>
+      <p class="text-sm font-medium text-slate-500">등록된 수강생이 없습니다.</p>
+    </div>
+
+    <!-- 수강생 목록 -->
+    <div th:unless="${#lists.isEmpty(classroom.members)}" class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider uppercase">
+            <th class="py-3 px-6 w-12">번호</th>
+            <th class="py-3 px-6">이름</th>
+            <th class="py-3 px-6 w-28">아이디</th>
+            <th class="py-3 px-6 w-24 text-center">수강 상태</th>
+            <th class="py-3 px-6 w-32">등록일</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+          <tr th:each="member, stat : ${classroom.members}" class="hover:bg-slate-50/50 transition-colors">
+            <td class="py-3 px-6 text-xs text-slate-400 font-mono" th:text="${stat.count}">1</td>
+            <td class="py-3 px-6 font-semibold text-slate-800" th:text="${member.userName}">홍길동</td>
+            <td class="py-3 px-6 text-xs text-slate-500 font-mono" th:text="${member.userId}">user123</td>
+            <td class="py-3 px-6 text-center">
+              <span th:if="${member.enrlStatCd == '01'}"
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-600">수강중</span>
+              <span th:if="${member.enrlStatCd == '02'}"
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600">수강완료</span>
+              <span th:if="${member.enrlStatCd == '03'}"
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-500">중도탈퇴</span>
+              <span th:if="${member.enrlStatCd == '04'}"
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-400">등록취소</span>
+            </td>
+            <td class="py-3 px-6 text-xs text-slate-400 font-mono" th:text="${member.formattedRegDt}">2026-01-01</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="border-t border-slate-100 px-6 py-3 bg-slate-50/50">
+      <p class="text-xs text-slate-400">
+        전체 <span class="font-semibold text-slate-600" th:text="${#lists.size(classroom.members)}">0</span>명
+      </p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

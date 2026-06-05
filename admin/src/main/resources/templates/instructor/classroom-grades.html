@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html th:replace="~{instructor/classroom-fragments :: layout(
+    ${classroom.classNm} + ' | 성적 관리',
+    ${classroom},
+    'grades',
+    ~{:: #content}
+)}" lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div id="content">
+
+  <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100">
+      <h2 class="text-sm font-bold text-slate-700">수강생 성적 현황</h2>
+      <p class="text-xs text-slate-400 mt-0.5">수강 중인 학생의 과제 및 시험 성적 요약입니다.</p>
+    </div>
+
+    <!-- 빈 목록 -->
+    <div th:if="${#lists.isEmpty(gradeList)}"
+         class="p-16 flex flex-col items-center justify-center text-center gap-3">
+      <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-2xl">
+        <i class="fa-solid fa-chart-bar"></i>
+      </div>
+      <p class="text-sm font-medium text-slate-500">수강 중인 학생이 없습니다.</p>
+    </div>
+
+    <!-- 성적 테이블 -->
+    <div th:unless="${#lists.isEmpty(gradeList)}" class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider uppercase">
+            <th class="py-3 px-6 w-12">번호</th>
+            <th class="py-3 px-6">이름</th>
+            <th class="py-3 px-6 w-24 text-center">과제 제출</th>
+            <th class="py-3 px-6 w-24 text-center">채점 완료</th>
+            <th class="py-3 px-6 w-28 text-center">과제 평균</th>
+            <th class="py-3 px-6 w-24 text-center">시험 응시</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+          <tr th:each="g, stat : ${gradeList}" class="hover:bg-slate-50/50 transition-colors">
+            <td class="py-3 px-6 text-xs text-slate-400 font-mono" th:text="${stat.count}">1</td>
+            <td class="py-3 px-6">
+              <div class="font-semibold text-slate-800" th:text="${g.userName}">홍길동</div>
+              <div class="text-[11px] text-slate-400 font-mono" th:text="${g.userId}">hong123</div>
+            </td>
+            <td class="py-3 px-6 text-center">
+              <span class="text-xs font-bold"
+                    th:text="${g.sbmtAsgmtCnt + ' / ' + g.totAsgmtCnt}">0 / 0</span>
+            </td>
+            <td class="py-3 px-6 text-center">
+              <span th:if="${g.grddAsgmtCnt > 0}"
+                    class="text-xs font-bold text-emerald-600"
+                    th:text="${g.grddAsgmtCnt + '건'}">0건</span>
+              <span th:unless="${g.grddAsgmtCnt > 0}"
+                    class="text-xs text-slate-300">-</span>
+            </td>
+            <td class="py-3 px-6 text-center">
+              <span th:if="${g.avgScore != null}"
+                    class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-600"
+                    th:text="${g.avgScore + '점'}">0점</span>
+              <span th:unless="${g.avgScore != null}"
+                    class="text-xs text-slate-300">-</span>
+            </td>
+            <td class="py-3 px-6 text-center">
+              <span th:if="${g.examCnt > 0}"
+                    class="text-xs font-bold text-indigo-600"
+                    th:text="${g.examCnt + '회'}">0회</span>
+              <span th:unless="${g.examCnt > 0}"
+                    class="text-xs text-slate-300">-</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(gradeList)}" class="border-t border-slate-100 px-6 py-3 bg-slate-50/50">
+      <p class="text-xs text-slate-400">
+        전체 <span class="font-semibold text-slate-600" th:text="${#lists.size(gradeList)}">0</span>명
+      </p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

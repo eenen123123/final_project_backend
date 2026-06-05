@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.assignment.AssignmentBoardMapper">
+
+  <resultMap id="assignmentBoardMap" type="kr.or.ddit.finalProject.dto.assignment.AssignmentBoardDto">
+    <id  property="asgmtSn"      column="ASGMT_SN"/>
+    <result property="classSn"      column="CLASS_SN"/>
+    <result property="rgtrUserId"   column="RGTR_USER_ID"/>
+    <result property="asgmtSj"      column="ASGMT_SJ"/>
+    <result property="asgmtCn"      column="ASGMT_CN"/>
+    <result property="sbmtDdlnDt"   column="SBMT_DDLN_DT"/>
+    <result property="asgmtStatCd"  column="ASGMT_STAT_CD"/>
+    <result property="regDt"        column="REG_DT"/>
+    <result property="sbmtCnt"      column="SBMT_CNT"/>
+    <result property="totMemberCnt" column="TOT_MEMBER_CNT"/>
+  </resultMap>
+
+  <select id="selectAssignmentList" resultMap="assignmentBoardMap">
+    SELECT
+        ab.ASGMT_SN,
+        ab.CLASS_SN,
+        ab.RGTR_USER_ID,
+        ab.ASGMT_SJ,
+        ab.SBMT_DDLN_DT,
+        ab.ASGMT_STAT_CD,
+        ab.REG_DT,
+        (SELECT COUNT(*) FROM ASSIGNMENT_SUBMIT s WHERE s.ASGMT_SN = ab.ASGMT_SN) AS SBMT_CNT,
+        (SELECT COUNT(*) FROM CLASSROOM_MEMBER cm WHERE cm.CLASS_SN = ab.CLASS_SN AND cm.ENRL_STAT_CD = '01') AS TOT_MEMBER_CNT
+    FROM ASSIGNMENT_BOARD ab
+    WHERE ab.CLASS_SN = #{classSn}
+    ORDER BY ab.REG_DT DESC
+  </select>
+
+  <select id="selectAssignmentDetail" resultMap="assignmentBoardMap">
+    SELECT
+        ab.ASGMT_SN,
+        ab.CLASS_SN,
+        ab.RGTR_USER_ID,
+        ab.ASGMT_SJ,
+        ab.ASGMT_CN,
+        ab.SBMT_DDLN_DT,
+        ab.ASGMT_STAT_CD,
+        ab.REG_DT,
+        (SELECT COUNT(*) FROM ASSIGNMENT_SUBMIT s WHERE s.ASGMT_SN = ab.ASGMT_SN) AS SBMT_CNT,
+        (SELECT COUNT(*) FROM CLASSROOM_MEMBER cm WHERE cm.CLASS_SN = ab.CLASS_SN AND cm.ENRL_STAT_CD = '01') AS TOT_MEMBER_CNT
+    FROM ASSIGNMENT_BOARD ab
+    WHERE ab.ASGMT_SN = #{asgmtSn}
+  </select>
+
+  <insert id="insertAssignment" useGeneratedKeys="true" keyProperty="asgmtSn" keyColumn="ASGMT_SN">
+    INSERT INTO ASSIGNMENT_BOARD (
+        CLASS_SN, RGTR_USER_ID, ASGMT_SJ, ASGMT_CN, SBMT_DDLN_DT,
+        REG_DT, MDFCN_DT, RGTR_ID, LAST_MDFR_ID
+    ) VALUES (
+        #{classSn}, #{rgtrUserId}, #{asgmtSj}, #{asgmtCn}, #{sbmtDdlnDt},
+        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, #{rgtrUserId}, #{rgtrUserId}
+    )
+  </insert>
+
+</mapper>

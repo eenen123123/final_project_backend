@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html th:replace="~{instructor/classroom-fragments :: layout(
+    ${classroom.classNm} + ' | 온라인 강의',
+    ${classroom},
+    'lectures',
+    ~{:: #content}
+)}" lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div id="content">
+
+  <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100">
+      <h2 class="text-sm font-bold text-slate-700">강의 목록</h2>
+      <p class="text-xs text-slate-400 mt-0.5">수강생의 강의별 완료 현황입니다.</p>
+    </div>
+
+    <!-- 빈 목록 -->
+    <div th:if="${#lists.isEmpty(lectureList)}"
+         class="p-16 flex flex-col items-center justify-center text-center gap-3">
+      <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-2xl">
+        <i class="fa-solid fa-play-circle"></i>
+      </div>
+      <p class="text-sm font-medium text-slate-500">등록된 강의가 없습니다.</p>
+    </div>
+
+    <!-- 강의 목록 -->
+    <div th:unless="${#lists.isEmpty(lectureList)}" class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider uppercase">
+            <th class="py-3 px-6 w-12">순서</th>
+            <th class="py-3 px-6">강의명</th>
+            <th class="py-3 px-6 w-24 text-center">재생 시간</th>
+            <th class="py-3 px-6 w-36 text-center">완료 현황</th>
+            <th class="py-3 px-6 w-40">완료율</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+          <tr th:each="lec, stat : ${lectureList}" class="hover:bg-slate-50/50 transition-colors">
+            <td class="py-3 px-6 text-xs text-slate-400 font-mono" th:text="${stat.count}">1</td>
+            <td class="py-3 px-6">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center text-blue-400 text-[10px] flex-shrink-0">
+                  <i class="fa-solid fa-play"></i>
+                </span>
+                <span class="font-semibold text-slate-800" th:text="${lec.lectureNm}">강의명</span>
+              </div>
+            </td>
+            <td class="py-3 px-6 text-center text-xs text-slate-400 font-mono"
+                th:with="dur=${lec.lectureDuration}"
+                th:text="${dur != null ? (dur / 60) + ':' + #strings.leftPad('' + (dur % 60), 2, '0') : '-'}">-</td>
+            <td class="py-3 px-6 text-center">
+              <span class="text-xs font-bold"
+                    th:text="${lec.cmplCnt + ' / ' + lec.totMemberCnt + '명'}">0 / 0명</span>
+            </td>
+            <td class="py-3 px-6">
+              <div th:if="${lec.totMemberCnt > 0}" class="flex items-center gap-2">
+                <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-blue-500 rounded-full transition-all"
+                       th:style="'width: ' + ${(lec.cmplCnt * 100 / lec.totMemberCnt)} + '%'"></div>
+                </div>
+                <span class="text-xs font-bold text-slate-600 w-8 text-right"
+                      th:text="${lec.cmplCnt * 100 / lec.totMemberCnt} + '%'">0%</span>
+              </div>
+              <span th:unless="${lec.totMemberCnt > 0}" class="text-xs text-slate-300">-</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(lectureList)}" class="border-t border-slate-100 px-6 py-3 bg-slate-50/50">
+      <p class="text-xs text-slate-400">
+        전체 <span class="font-semibold text-slate-600" th:text="${#lists.size(lectureList)}">0</span>개 강의
+      </p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,478 +1,952 @@
 <div class="profile-container">
-    <link rel="stylesheet" th:href="@{/css/instructor/curriculum.css}" />
-    <style>
-        /* ── 공통 카드 ── */
-        .profile-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; }
-        .section-title { font-size: 0.9rem; font-weight: 700; color: #334155; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem; }
-        .section-title i { color: #0ea5e9; }
+  <link rel="stylesheet" th:href="@{/css/instructor/curriculum.css}" />
+  <style>
+    /* ── 공통 카드 ── */
+    .profile-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .section-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .section-title i {
+      color: #0ea5e9;
+    }
 
-        /* ── 프로필 이미지 ── */
-        .profile-img-wrap { display: flex; align-items: center; gap: 1.5rem; }
-        .profile-img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #e2e8f0; background: #f1f5f9; }
-        .profile-img-placeholder { width: 100px; height: 100px; border-radius: 50%; background: #f1f5f9; border: 2px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 2rem; }
-        .btn-img-upload { font-size: 0.78rem; font-weight: 600; background: #0ea5e9; color: #fff; border: none; border-radius: 0.5rem; padding: 0.4rem 1rem; cursor: pointer; }
-        .btn-img-upload:hover { background: #0284c7; }
-        .btn-img-remove { font-size: 0.78rem; font-weight: 600; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; border-radius: 0.5rem; padding: 0.4rem 0.85rem; cursor: pointer; }
-        .btn-img-remove:hover { background: #fecaca; }
+    /* ── 프로필 이미지 ── */
+    .profile-img-wrap {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .profile-img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #e2e8f0;
+      background: #f1f5f9;
+    }
+    .profile-img-placeholder {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      border: 2px dashed #cbd5e1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      font-size: 2rem;
+    }
+    .btn-img-upload {
+      font-size: 0.78rem;
+      font-weight: 600;
+      background: #0ea5e9;
+      color: #fff;
+      border: none;
+      border-radius: 0.5rem;
+      padding: 0.4rem 1rem;
+      cursor: pointer;
+    }
+    .btn-img-upload:hover {
+      background: #0284c7;
+    }
+    .btn-img-remove {
+      font-size: 0.78rem;
+      font-weight: 600;
+      background: #fee2e2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+      border-radius: 0.5rem;
+      padding: 0.4rem 0.85rem;
+      cursor: pointer;
+    }
+    .btn-img-remove:hover {
+      background: #fecaca;
+    }
 
-        /* ── 폼 공통 ── */
-        .form-label  { display: block; font-size: 0.75rem; font-weight: 600; color: #475569; margin-bottom: 0.3rem; }
-        .form-input  { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; font-size: 0.85rem; color: #334155; box-sizing: border-box; }
-        .form-input:focus  { outline: none; border-color: #0ea5e9; box-shadow: 0 0 0 2px rgba(14,165,233,0.15); }
-        .form-textarea { resize: vertical; min-height: 120px; font-family: inherit; }
-        .btn-save  { font-size: 0.85rem; font-weight: 600; background: #0ea5e9; color: #fff; border: none; border-radius: 0.5rem; padding: 0.45rem 1.2rem; cursor: pointer; }
-        .btn-save:hover  { background: #0284c7; }
+    /* ── 폼 공통 ── */
+    .form-label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 0.3rem;
+    }
+    .form-input {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.5rem;
+      font-size: 0.85rem;
+      color: #334155;
+      box-sizing: border-box;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: #0ea5e9;
+      box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.15);
+    }
+    .form-textarea {
+      resize: vertical;
+      min-height: 120px;
+      font-family: inherit;
+    }
+    .btn-save {
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: #0ea5e9;
+      color: #fff;
+      border: none;
+      border-radius: 0.5rem;
+      padding: 0.45rem 1.2rem;
+      cursor: pointer;
+    }
+    .btn-save:hover {
+      background: #0284c7;
+    }
 
-        /* ── 약력 항목 목록 ── */
-        .career-type-block { margin-bottom: 1.25rem; }
-        .career-type-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #0ea5e9; margin-bottom: 0.5rem; }
-        .career-item { display: flex; align-items: center; padding: 0.5rem 0.75rem; background: #f8fafc; border-radius: 0.5rem; margin-bottom: 0.35rem; font-size: 0.83rem; color: #334155; gap: 0.5rem; }
-        .career-item .career-year { font-size: 0.72rem; color: #94a3b8; white-space: nowrap; }
-        .career-item .career-cont { flex: 1; }
-        .career-item .career-actions { display: flex; gap: 0.35rem; flex-shrink: 0; }
-        .btn-edit-career   { font-size: 0.7rem; font-weight: 600; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 0.375rem; padding: 0.2rem 0.6rem; cursor: pointer; }
-        .btn-edit-career:hover { background: #e2e8f0; }
-        .btn-delete-career { font-size: 0.7rem; font-weight: 600; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; border-radius: 0.375rem; padding: 0.2rem 0.6rem; cursor: pointer; }
-        .btn-delete-career:hover { background: #fecaca; }
+    /* ── 약력 항목 목록 ── */
+    .career-type-block {
+      margin-bottom: 1.25rem;
+    }
+    .career-type-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #0ea5e9;
+      margin-bottom: 0.5rem;
+    }
+    .career-item {
+      display: flex;
+      align-items: center;
+      padding: 0.5rem 0.75rem;
+      background: #f8fafc;
+      border-radius: 0.5rem;
+      margin-bottom: 0.35rem;
+      font-size: 0.83rem;
+      color: #334155;
+      gap: 0.5rem;
+    }
+    .career-item .career-year {
+      font-size: 0.72rem;
+      color: #94a3b8;
+      white-space: nowrap;
+    }
+    .career-item .career-cont {
+      flex: 1;
+    }
+    .career-item .career-actions {
+      display: flex;
+      gap: 0.35rem;
+      flex-shrink: 0;
+    }
+    .btn-edit-career {
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.375rem;
+      padding: 0.2rem 0.6rem;
+      cursor: pointer;
+    }
+    .btn-edit-career:hover {
+      background: #e2e8f0;
+    }
+    .btn-delete-career {
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: #fee2e2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+      border-radius: 0.375rem;
+      padding: 0.2rem 0.6rem;
+      cursor: pointer;
+    }
+    .btn-delete-career:hover {
+      background: #fecaca;
+    }
 
-        /* ── 약력 수정 인라인 폼 ── */
-        .career-edit-form { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 0.5rem; padding: 0.75rem; margin-bottom: 0.5rem; display: none; }
-        .career-edit-form.open { display: block; }
+    /* ── 약력 수정 인라인 폼 ── */
+    .career-edit-form {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
+      display: none;
+    }
+    .career-edit-form.open {
+      display: block;
+    }
 
-        /* ── 약력 추가 폼 ── */
-        .career-add-form { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 1rem; }
-        .career-form-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
-        .career-form-row .form-group { flex: 1; min-width: 120px; }
-        .form-group { margin-bottom: 0; }
-        .form-select { width: 100%; padding: 0.45rem 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; font-size: 0.85rem; color: #334155; background: #fff; }
-        .form-select:focus { outline: none; border-color: #0ea5e9; box-shadow: 0 0 0 2px rgba(14,165,233,0.15); }
-    </style>
+    /* ── 약력 추가 폼 ── */
+    .career-add-form {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.5rem;
+      padding: 1rem;
+    }
+    .career-form-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+    }
+    .career-form-row .form-group {
+      flex: 1;
+      min-width: 120px;
+    }
+    .form-group {
+      margin-bottom: 0;
+    }
+    .form-select {
+      width: 100%;
+      padding: 0.45rem 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.5rem;
+      font-size: 0.85rem;
+      color: #334155;
+      background: #fff;
+    }
+    .form-select:focus {
+      outline: none;
+      border-color: #0ea5e9;
+      box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.15);
+    }
+  </style>
 
-    <!-- 페이지 헤더 -->
-    <div class="flex items-center gap-2 mb-5">
-        <div class="w-1 h-7 rounded-full bg-sky-500"></div>
-        <h1 class="text-2xl font-bold text-slate-800">개인 페이지 관리</h1>
+  <!-- 페이지 헤더 -->
+  <div class="flex items-center gap-2 mb-5">
+    <div class="w-1 h-7 rounded-full bg-sky-500"></div>
+    <h1 class="text-2xl font-bold text-slate-800">개인 페이지 관리</h1>
+  </div>
+
+  <!-- ① 프로필 이미지 -->
+  <div class="profile-card">
+    <div class="section-title">
+      <i class="fa-solid fa-image"></i> 프로필 이미지
     </div>
+    <div class="profile-img-wrap">
+      <!-- 이미지가 있으면 표시, 없으면 플레이스홀더 -->
+      <div
+        th:if="${profile.instrProfileImg != null and !#strings.isEmpty(profile.instrProfileImg)}"
+      >
+        <img
+          th:src="${profile.instrProfileImg}"
+          class="profile-img"
+          alt="프로필 이미지"
+        />
+      </div>
+      <div
+        th:unless="${profile.instrProfileImg != null and !#strings.isEmpty(profile.instrProfileImg)}"
+        class="profile-img-placeholder"
+      >
+        <i class="fa-solid fa-user"></i>
+      </div>
 
-    <!-- ① 프로필 이미지 -->
-    <div class="profile-card">
-        <div class="section-title">
-            <i class="fa-solid fa-image"></i> 프로필 이미지
-        </div>
-        <div class="profile-img-wrap">
-            <!-- 이미지가 있으면 표시, 없으면 플레이스홀더 -->
-            <div th:if="${profile.instrProfileImg != null and !#strings.isEmpty(profile.instrProfileImg)}">
-                <img th:src="${profile.instrProfileImg}" class="profile-img" alt="프로필 이미지" />
-            </div>
-            <div th:unless="${profile.instrProfileImg != null and !#strings.isEmpty(profile.instrProfileImg)}"
-                 class="profile-img-placeholder">
-                <i class="fa-solid fa-user"></i>
-            </div>
-
-            <div>
-                <!-- 이미지 업로드 폼 -->
-                <form th:action="@{/instructor/profile/teacher/image}" method="post"
-                      enctype="multipart/form-data" class="mb-2">
-                    <p class="text-xs text-slate-400 mb-2">이미지 파일(JPG, PNG, GIF)만 업로드할 수 있습니다.</p>
-                    <div class="flex items-center gap-2">
-                        <input type="file" name="imageFile" accept="image/*"
-                               class="text-xs text-slate-500" required />
-                        <button type="submit" class="btn-img-upload">
-                            <i class="fa-solid fa-upload mr-1"></i>업로드
-                        </button>
-                    </div>
-                </form>
-                <!-- 이미지 제거 버튼 (이미지가 있을 때만 표시) -->
-                <form th:if="${profile.instrProfileImg != null and !#strings.isEmpty(profile.instrProfileImg)}"
-                      th:action="@{/instructor/profile/teacher/image/delete}" method="post"
-                      onsubmit="return confirm('프로필 이미지를 제거하시겠습니까?')">
-                    <button type="submit" class="btn-img-remove">
-                        <i class="fa-solid fa-trash mr-1"></i>이미지 제거
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- ② 강사 소개글 -->
-    <div class="profile-card">
-        <div class="section-title">
-            <i class="fa-solid fa-pen-to-square"></i> 강사 소개글
-        </div>
-        <form th:action="@{/instructor/profile/teacher/intro}" method="post">
-            <div class="mb-3">
-                <label class="form-label">소개글 (비우면 삭제됩니다)</label>
-                <textarea name="instrIntro" class="form-input form-textarea"
-                          placeholder="수강생에게 보여줄 소개글을 입력하세요."
-                          th:text="${profile.instrIntro}"></textarea>
-            </div>
-            <div class="flex justify-end">
-                <button type="submit" class="btn-save">
-                    <i class="fa-solid fa-floppy-disk mr-1"></i>저장
-                </button>
-            </div>
+      <div>
+        <!-- 이미지 업로드 폼 -->
+        <form
+          th:action="@{/instructor/profile/instructor/image}"
+          method="post"
+          enctype="multipart/form-data"
+          class="mb-2"
+        >
+          <p class="text-xs text-slate-400 mb-2">
+            이미지 파일(JPG, PNG, GIF)만 업로드할 수 있습니다.
+          </p>
+          <div class="flex items-center gap-2">
+            <input
+              type="file"
+              name="imageFile"
+              accept="image/*"
+              class="text-xs text-slate-500"
+              required
+            />
+            <button type="submit" class="btn-img-upload">
+              <i class="fa-solid fa-upload mr-1"></i>업로드
+            </button>
+          </div>
         </form>
+        <!-- 이미지 제거 버튼 (이미지가 있을 때만 표시) -->
+        <form
+          th:if="${profile.instrProfileImg != null and !#strings.isEmpty(profile.instrProfileImg)}"
+          th:action="@{/instructor/profile/instructor/image/delete}"
+          method="post"
+          onsubmit="return confirm('프로필 이미지를 제거하시겠습니까?');"
+        >
+          <button type="submit" class="btn-img-remove">
+            <i class="fa-solid fa-trash mr-1"></i>이미지 제거
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② 강사 소개글 -->
+  <div class="profile-card">
+    <div class="section-title">
+      <i class="fa-solid fa-pen-to-square"></i> 강사 소개글
+    </div>
+    <form th:action="@{/instructor/profile/instructor/intro}" method="post">
+      <div class="mb-3">
+        <label class="form-label">소개글 (비우면 삭제됩니다)</label>
+        <textarea
+          name="instrIntro"
+          class="form-input form-textarea"
+          placeholder="수강생에게 보여줄 소개글을 입력하세요."
+          th:text="${profile.instrIntro}"
+        ></textarea>
+      </div>
+      <div class="flex justify-end">
+        <button type="submit" class="btn-save">
+          <i class="fa-solid fa-floppy-disk mr-1"></i>저장
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ③ 약력 항목 목록 + 수정 폼 -->
+  <div class="profile-card">
+    <div class="section-title">
+      <i class="fa-solid fa-list-ul"></i> 약력 항목
     </div>
 
-    <!-- ③ 약력 항목 목록 + 수정 폼 -->
-    <div class="profile-card">
-        <div class="section-title">
-            <i class="fa-solid fa-list-ul"></i> 약력 항목
-        </div>
+    <!-- 항목이 없을 때 -->
+    <div
+      th:if="${#lists.isEmpty(careers)}"
+      class="text-center text-slate-400 text-xs py-6"
+    >
+      등록된 약력 항목이 없습니다. 아래 폼으로 추가해 주세요.
+    </div>
 
-        <!-- 항목이 없을 때 -->
-        <div th:if="${#lists.isEmpty(careers)}"
-             class="text-center text-slate-400 text-xs py-6">
-            등록된 약력 항목이 없습니다. 아래 폼으로 추가해 주세요.
-        </div>
-
-        <!--
+    <!--
             유형 코드별로 그룹핑하여 표시합니다.
             01: 약력 / 02: 저서 / 03: 수상 / 04: 방송출연
         -->
-        <div th:unless="${#lists.isEmpty(careers)}">
-
-            <!-- 약력(01) -->
-            <div th:if="${careers.?[careerTypeCd == '01'].size() > 0}" class="career-type-block">
-                <div class="career-type-label">약력</div>
-                <div th:each="c : ${careers.?[careerTypeCd == '01']}">
-                    <!-- 항목 표시 행 -->
-                    <div class="career-item">
-                        <span class="career-year">
-                            <span th:text="${c.careerStrtYr}"></span>
-                            <!-- 약력은 기간으로 표시: 종료연도 없으면 "현재" -->
-                            <span th:if="${c.careerEndYr != null}">~ <span th:text="${c.careerEndYr}"></span></span>
-                            <span th:unless="${c.careerEndYr != null}">~ 현재</span>
-                        </span>
-                        <span class="career-cont" th:text="${c.careerCont}"></span>
-                        <div class="career-actions">
-                            <!-- 수정 버튼: 클릭 시 해당 항목의 인라인 수정 폼 토글 -->
-                            <button type="button" class="btn-edit-career"
-                                    th:onclick="|toggleEditForm('edit-' + ${c.careerSn})|">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <!-- 삭제 버튼 -->
-                            <form th:action="@{/instructor/profile/teacher/careers/{sn}/delete(sn=${c.careerSn})}"
-                                  method="post"
-                                  onsubmit="return confirm('이 항목을 삭제하시겠습니까?')">
-                                <button type="submit" class="btn-delete-career">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    <!-- 인라인 수정 폼 (기본 숨김, 수정 버튼 클릭 시 표시) -->
-                    <div th:id="|edit-${c.careerSn}|" class="career-edit-form">
-                        <form th:action="@{/instructor/profile/teacher/careers/{sn}/update(sn=${c.careerSn})}"
-                              method="post">
-                            <div class="career-form-row">
-                                <div class="form-group" style="min-width:130px; max-width:160px;">
-                                    <label class="form-label">유형</label>
-                                    <select name="careerTypeCd" class="form-select"
-                                            onchange="toggleEndYrInEdit(this)">
-                                        <option value="01" th:selected="${c.careerTypeCd == '01'}">약력</option>
-                                        <option value="02" th:selected="${c.careerTypeCd == '02'}">저서</option>
-                                        <option value="03" th:selected="${c.careerTypeCd == '03'}">수상</option>
-                                        <option value="04" th:selected="${c.careerTypeCd == '04'}">방송출연</option>
-                                    </select>
-                                </div>
-                                <div class="form-group" style="min-width:90px; max-width:110px;">
-                                    <label class="form-label">시작 연도</label>
-                                    <input type="text" name="careerStrtYr" class="form-input"
-                                           maxlength="4" th:value="${c.careerStrtYr}" />
-                                </div>
-                                <div class="form-group" style="min-width:90px; max-width:110px;">
-                                    <label class="form-label">종료 연도</label>
-                                    <input type="text" name="careerEndYr" class="form-input"
-                                           maxlength="4" placeholder="현재면 비움"
-                                           th:value="${c.careerEndYr}" />
-                                </div>
-                                <div class="form-group" style="min-width:70px; max-width:90px;">
-                                    <label class="form-label">순서</label>
-                                    <input type="number" name="sortOrd" class="form-input"
-                                           min="0" th:value="${c.sortOrd}" />
-                                </div>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label">내용</label>
-                                <input type="text" name="careerCont" class="form-input"
-                                       th:value="${c.careerCont}" required />
-                            </div>
-                            <div class="flex gap-2 justify-end">
-                                <button type="button" class="btn-save"
-                                        style="background:#64748b;"
-                                        th:onclick="|toggleEditForm('edit-' + ${c.careerSn})|">취소</button>
-                                <button type="submit" class="btn-save">
-                                    <i class="fa-solid fa-floppy-disk mr-1"></i>저장
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+    <div th:unless="${#lists.isEmpty(careers)}">
+      <!-- 약력(01) -->
+      <div
+        th:if="${careers.?[careerTypeCd == '01'].size() > 0}"
+        class="career-type-block"
+      >
+        <div class="career-type-label">약력</div>
+        <div th:each="c : ${careers.?[careerTypeCd == '01']}">
+          <!-- 항목 표시 행 -->
+          <div class="career-item">
+            <span class="career-year">
+              <span th:text="${c.careerStrtYr}"></span>
+              <!-- 약력은 기간으로 표시: 종료연도 없으면 "현재" -->
+              <span th:if="${c.careerEndYr != null}"
+                >~ <span th:text="${c.careerEndYr}"></span
+              ></span>
+              <span th:unless="${c.careerEndYr != null}">~ 현재</span>
+            </span>
+            <span class="career-cont" th:text="${c.careerCont}"></span>
+            <div class="career-actions">
+              <!-- 수정 버튼: 클릭 시 해당 항목의 인라인 수정 폼 토글 -->
+              <button
+                type="button"
+                class="btn-edit-career"
+                th:onclick="|toggleEditForm('edit-' + ${c.careerSn})|"
+              >
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <!-- 삭제 버튼 -->
+              <form
+                th:action="@{/instructor/profile/instructor/careers/{sn}/delete(sn=${c.careerSn})}"
+                method="post"
+                onsubmit="return confirm('이 항목을 삭제하시겠습니까?');"
+              >
+                <button type="submit" class="btn-delete-career">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </form>
             </div>
-
-            <!-- 저서(02) -->
-            <div th:if="${careers.?[careerTypeCd == '02'].size() > 0}" class="career-type-block">
-                <div class="career-type-label">저서</div>
-                <div th:each="c : ${careers.?[careerTypeCd == '02']}">
-                    <div class="career-item">
-                        <span class="career-year" th:text="${c.careerStrtYr}"></span>
-                        <span class="career-cont" th:text="${c.careerCont}"></span>
-                        <div class="career-actions">
-                            <button type="button" class="btn-edit-career"
-                                    th:onclick="|toggleEditForm('edit-' + ${c.careerSn})|">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <form th:action="@{/instructor/profile/teacher/careers/{sn}/delete(sn=${c.careerSn})}"
-                                  method="post" onsubmit="return confirm('이 항목을 삭제하시겠습니까?')">
-                                <button type="submit" class="btn-delete-career"><i class="fa-solid fa-trash"></i></button>
-                            </form>
-                        </div>
-                    </div>
-                    <div th:id="|edit-${c.careerSn}|" class="career-edit-form">
-                        <form th:action="@{/instructor/profile/teacher/careers/{sn}/update(sn=${c.careerSn})}" method="post">
-                            <div class="career-form-row">
-                                <div class="form-group" style="min-width:130px; max-width:160px;">
-                                    <label class="form-label">유형</label>
-                                    <select name="careerTypeCd" class="form-select">
-                                        <option value="01" th:selected="${c.careerTypeCd == '01'}">약력</option>
-                                        <option value="02" th:selected="${c.careerTypeCd == '02'}">저서</option>
-                                        <option value="03" th:selected="${c.careerTypeCd == '03'}">수상</option>
-                                        <option value="04" th:selected="${c.careerTypeCd == '04'}">방송출연</option>
-                                    </select>
-                                </div>
-                                <div class="form-group" style="min-width:90px; max-width:110px;">
-                                    <label class="form-label">연도</label>
-                                    <input type="text" name="careerStrtYr" class="form-input" maxlength="4" th:value="${c.careerStrtYr}" />
-                                </div>
-                                <input type="hidden" name="careerEndYr" value="" />
-                                <div class="form-group" style="min-width:70px; max-width:90px;">
-                                    <label class="form-label">순서</label>
-                                    <input type="number" name="sortOrd" class="form-input" min="0" th:value="${c.sortOrd}" />
-                                </div>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label">내용</label>
-                                <input type="text" name="careerCont" class="form-input" th:value="${c.careerCont}" required />
-                            </div>
-                            <div class="flex gap-2 justify-end">
-                                <button type="button" class="btn-save" style="background:#64748b;"
-                                        th:onclick="|toggleEditForm('edit-' + ${c.careerSn})|">취소</button>
-                                <button type="submit" class="btn-save"><i class="fa-solid fa-floppy-disk mr-1"></i>저장</button>
-                            </div>
-                        </form>
-                    </div>
+          </div>
+          <!-- 인라인 수정 폼 (기본 숨김, 수정 버튼 클릭 시 표시) -->
+          <div th:id="|edit-${c.careerSn}|" class="career-edit-form">
+            <form
+              th:action="@{/instructor/profile/instructor/careers/{sn}/update(sn=${c.careerSn})}"
+              method="post"
+            >
+              <div class="career-form-row">
+                <div
+                  class="form-group"
+                  style="min-width: 130px; max-width: 160px"
+                >
+                  <label class="form-label">유형</label>
+                  <select
+                    name="careerTypeCd"
+                    class="form-select"
+                    onchange="toggleEndYrInEdit(this)"
+                  >
+                    <option value="01" th:selected="${c.careerTypeCd == '01'}">
+                      약력
+                    </option>
+                    <option value="02" th:selected="${c.careerTypeCd == '02'}">
+                      저서
+                    </option>
+                    <option value="03" th:selected="${c.careerTypeCd == '03'}">
+                      수상
+                    </option>
+                    <option value="04" th:selected="${c.careerTypeCd == '04'}">
+                      방송출연
+                    </option>
+                  </select>
                 </div>
-            </div>
-
-            <!-- 수상(03) -->
-            <div th:if="${careers.?[careerTypeCd == '03'].size() > 0}" class="career-type-block">
-                <div class="career-type-label">수상</div>
-                <div th:each="c : ${careers.?[careerTypeCd == '03']}">
-                    <div class="career-item">
-                        <span class="career-year" th:text="${c.careerStrtYr}"></span>
-                        <span class="career-cont" th:text="${c.careerCont}"></span>
-                        <div class="career-actions">
-                            <button type="button" class="btn-edit-career"
-                                    th:onclick="|toggleEditForm('edit-' + ${c.careerSn})|">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <form th:action="@{/instructor/profile/teacher/careers/{sn}/delete(sn=${c.careerSn})}"
-                                  method="post" onsubmit="return confirm('이 항목을 삭제하시겠습니까?')">
-                                <button type="submit" class="btn-delete-career"><i class="fa-solid fa-trash"></i></button>
-                            </form>
-                        </div>
-                    </div>
-                    <div th:id="|edit-${c.careerSn}|" class="career-edit-form">
-                        <form th:action="@{/instructor/profile/teacher/careers/{sn}/update(sn=${c.careerSn})}" method="post">
-                            <div class="career-form-row">
-                                <div class="form-group" style="min-width:130px; max-width:160px;">
-                                    <label class="form-label">유형</label>
-                                    <select name="careerTypeCd" class="form-select">
-                                        <option value="01" th:selected="${c.careerTypeCd == '01'}">약력</option>
-                                        <option value="02" th:selected="${c.careerTypeCd == '02'}">저서</option>
-                                        <option value="03" th:selected="${c.careerTypeCd == '03'}">수상</option>
-                                        <option value="04" th:selected="${c.careerTypeCd == '04'}">방송출연</option>
-                                    </select>
-                                </div>
-                                <div class="form-group" style="min-width:90px; max-width:110px;">
-                                    <label class="form-label">연도</label>
-                                    <input type="text" name="careerStrtYr" class="form-input" maxlength="4" th:value="${c.careerStrtYr}" />
-                                </div>
-                                <input type="hidden" name="careerEndYr" value="" />
-                                <div class="form-group" style="min-width:70px; max-width:90px;">
-                                    <label class="form-label">순서</label>
-                                    <input type="number" name="sortOrd" class="form-input" min="0" th:value="${c.sortOrd}" />
-                                </div>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label">내용</label>
-                                <input type="text" name="careerCont" class="form-input" th:value="${c.careerCont}" required />
-                            </div>
-                            <div class="flex gap-2 justify-end">
-                                <button type="button" class="btn-save" style="background:#64748b;"
-                                        th:onclick="|toggleEditForm('edit-' + ${c.careerSn})|">취소</button>
-                                <button type="submit" class="btn-save"><i class="fa-solid fa-floppy-disk mr-1"></i>저장</button>
-                            </div>
-                        </form>
-                    </div>
+                <div
+                  class="form-group"
+                  style="min-width: 90px; max-width: 110px"
+                >
+                  <label class="form-label">시작 연도</label>
+                  <input
+                    type="text"
+                    name="careerStrtYr"
+                    class="form-input"
+                    maxlength="4"
+                    th:value="${c.careerStrtYr}"
+                  />
                 </div>
-            </div>
-
-            <!-- 방송출연(04) -->
-            <div th:if="${careers.?[careerTypeCd == '04'].size() > 0}" class="career-type-block">
-                <div class="career-type-label">방송출연</div>
-                <div th:each="c : ${careers.?[careerTypeCd == '04']}">
-                    <div class="career-item">
-                        <span class="career-year" th:text="${c.careerStrtYr}"></span>
-                        <span class="career-cont" th:text="${c.careerCont}"></span>
-                        <div class="career-actions">
-                            <button type="button" class="btn-edit-career"
-                                    th:onclick="|toggleEditForm('edit-' + ${c.careerSn})|">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <form th:action="@{/instructor/profile/teacher/careers/{sn}/delete(sn=${c.careerSn})}"
-                                  method="post" onsubmit="return confirm('이 항목을 삭제하시겠습니까?')">
-                                <button type="submit" class="btn-delete-career"><i class="fa-solid fa-trash"></i></button>
-                            </form>
-                        </div>
-                    </div>
-                    <div th:id="|edit-${c.careerSn}|" class="career-edit-form">
-                        <form th:action="@{/instructor/profile/teacher/careers/{sn}/update(sn=${c.careerSn})}" method="post">
-                            <div class="career-form-row">
-                                <div class="form-group" style="min-width:130px; max-width:160px;">
-                                    <label class="form-label">유형</label>
-                                    <select name="careerTypeCd" class="form-select">
-                                        <option value="01" th:selected="${c.careerTypeCd == '01'}">약력</option>
-                                        <option value="02" th:selected="${c.careerTypeCd == '02'}">저서</option>
-                                        <option value="03" th:selected="${c.careerTypeCd == '03'}">수상</option>
-                                        <option value="04" th:selected="${c.careerTypeCd == '04'}">방송출연</option>
-                                    </select>
-                                </div>
-                                <div class="form-group" style="min-width:90px; max-width:110px;">
-                                    <label class="form-label">연도</label>
-                                    <input type="text" name="careerStrtYr" class="form-input" maxlength="4" th:value="${c.careerStrtYr}" />
-                                </div>
-                                <input type="hidden" name="careerEndYr" value="" />
-                                <div class="form-group" style="min-width:70px; max-width:90px;">
-                                    <label class="form-label">순서</label>
-                                    <input type="number" name="sortOrd" class="form-input" min="0" th:value="${c.sortOrd}" />
-                                </div>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label">내용</label>
-                                <input type="text" name="careerCont" class="form-input" th:value="${c.careerCont}" required />
-                            </div>
-                            <div class="flex gap-2 justify-end">
-                                <button type="button" class="btn-save" style="background:#64748b;"
-                                        th:onclick="|toggleEditForm('edit-' + ${c.careerSn})|">취소</button>
-                                <button type="submit" class="btn-save"><i class="fa-solid fa-floppy-disk mr-1"></i>저장</button>
-                            </div>
-                        </form>
-                    </div>
+                <div
+                  class="form-group"
+                  style="min-width: 90px; max-width: 110px"
+                >
+                  <label class="form-label">종료 연도</label>
+                  <input
+                    type="text"
+                    name="careerEndYr"
+                    class="form-input"
+                    maxlength="4"
+                    placeholder="현재면 비움"
+                    th:value="${c.careerEndYr}"
+                  />
                 </div>
-            </div>
-        </div>
-
-        <!-- 약력 항목 추가 폼 -->
-        <div class="mt-4">
-            <div class="section-title text-sm mb-2">
-                <i class="fa-solid fa-plus"></i> 항목 추가
-            </div>
-            <form th:action="@{/instructor/profile/teacher/careers}" method="post"
-                  class="career-add-form">
-                <div class="career-form-row">
-                    <!-- 유형 선택 -->
-                    <div class="form-group" style="min-width:130px; max-width:160px;">
-                        <label class="form-label">유형 *</label>
-                        <select name="careerTypeCd" class="form-select" required
-                                onchange="toggleEndYr(this)">
-                            <option value="">선택</option>
-                            <option value="01">약력</option>
-                            <option value="02">저서</option>
-                            <option value="03">수상</option>
-                            <option value="04">방송출연</option>
-                        </select>
-                    </div>
-                    <!-- 시작 연도 -->
-                    <div class="form-group" style="min-width:90px; max-width:110px;">
-                        <label class="form-label">시작 연도 *</label>
-                        <input type="text" name="careerStrtYr" class="form-input"
-                               placeholder="2020" maxlength="4" required />
-                    </div>
-                    <!-- 종료 연도 (약력 유형일 때만 활성화) -->
-                    <div class="form-group" style="min-width:90px; max-width:110px;" id="endYrGroup">
-                        <label class="form-label">종료 연도</label>
-                        <input type="text" name="careerEndYr" class="form-input"
-                               placeholder="약력 유형만 사용" maxlength="4" id="endYrInput" disabled />
-                    </div>
-                    <!-- 순서 -->
-                    <div class="form-group" style="min-width:70px; max-width:90px;">
-                        <label class="form-label">순서</label>
-                        <input type="number" name="sortOrd" class="form-input"
-                               placeholder="0" min="0" value="0" />
-                    </div>
+                <div
+                  class="form-group"
+                  style="min-width: 70px; max-width: 90px"
+                >
+                  <label class="form-label">순서</label>
+                  <input
+                    type="number"
+                    name="sortOrd"
+                    class="form-input"
+                    min="0"
+                    th:value="${c.sortOrd}"
+                  />
                 </div>
-                <!-- 내용 -->
-                <div class="mb-3">
-                    <label class="form-label">내용 *</label>
-                    <input type="text" name="careerCont" class="form-input"
-                           placeholder="예) OO대학교 수학과 졸업, 파이썬 완전정복 출간" required />
-                </div>
-                <div class="flex justify-end">
-                    <button type="submit" class="btn-save">
-                        <i class="fa-solid fa-plus mr-1"></i>추가
-                    </button>
-                </div>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">내용</label>
+                <input
+                  type="text"
+                  name="careerCont"
+                  class="form-input"
+                  th:value="${c.careerCont}"
+                  required
+                />
+              </div>
+              <div class="flex gap-2 justify-end">
+                <button
+                  type="button"
+                  class="btn-save"
+                  style="background: #64748b"
+                  th:onclick="|toggleEditForm('edit-' + ${c.careerSn})|"
+                >
+                  취소
+                </button>
+                <button type="submit" class="btn-save">
+                  <i class="fa-solid fa-floppy-disk mr-1"></i>저장
+                </button>
+              </div>
             </form>
+          </div>
         </div>
+      </div>
+
+      <!-- 저서(02) -->
+      <div
+        th:if="${careers.?[careerTypeCd == '02'].size() > 0}"
+        class="career-type-block"
+      >
+        <div class="career-type-label">저서</div>
+        <div th:each="c : ${careers.?[careerTypeCd == '02']}">
+          <div class="career-item">
+            <span class="career-year" th:text="${c.careerStrtYr}"></span>
+            <span class="career-cont" th:text="${c.careerCont}"></span>
+            <div class="career-actions">
+              <button
+                type="button"
+                class="btn-edit-career"
+                th:onclick="|toggleEditForm('edit-' + ${c.careerSn})|"
+              >
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <form
+                th:action="@{/instructor/profile/instructor/careers/{sn}/delete(sn=${c.careerSn})}"
+                method="post"
+                onsubmit="return confirm('이 항목을 삭제하시겠습니까?');"
+              >
+                <button type="submit" class="btn-delete-career">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+          <div th:id="|edit-${c.careerSn}|" class="career-edit-form">
+            <form
+              th:action="@{/instructor/profile/instructor/careers/{sn}/update(sn=${c.careerSn})}"
+              method="post"
+            >
+              <div class="career-form-row">
+                <div
+                  class="form-group"
+                  style="min-width: 130px; max-width: 160px"
+                >
+                  <label class="form-label">유형</label>
+                  <select name="careerTypeCd" class="form-select">
+                    <option value="01" th:selected="${c.careerTypeCd == '01'}">
+                      약력
+                    </option>
+                    <option value="02" th:selected="${c.careerTypeCd == '02'}">
+                      저서
+                    </option>
+                    <option value="03" th:selected="${c.careerTypeCd == '03'}">
+                      수상
+                    </option>
+                    <option value="04" th:selected="${c.careerTypeCd == '04'}">
+                      방송출연
+                    </option>
+                  </select>
+                </div>
+                <div
+                  class="form-group"
+                  style="min-width: 90px; max-width: 110px"
+                >
+                  <label class="form-label">연도</label>
+                  <input
+                    type="text"
+                    name="careerStrtYr"
+                    class="form-input"
+                    maxlength="4"
+                    th:value="${c.careerStrtYr}"
+                  />
+                </div>
+                <input type="hidden" name="careerEndYr" value="" />
+                <div
+                  class="form-group"
+                  style="min-width: 70px; max-width: 90px"
+                >
+                  <label class="form-label">순서</label>
+                  <input
+                    type="number"
+                    name="sortOrd"
+                    class="form-input"
+                    min="0"
+                    th:value="${c.sortOrd}"
+                  />
+                </div>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">내용</label>
+                <input
+                  type="text"
+                  name="careerCont"
+                  class="form-input"
+                  th:value="${c.careerCont}"
+                  required
+                />
+              </div>
+              <div class="flex gap-2 justify-end">
+                <button
+                  type="button"
+                  class="btn-save"
+                  style="background: #64748b"
+                  th:onclick="|toggleEditForm('edit-' + ${c.careerSn})|"
+                >
+                  취소
+                </button>
+                <button type="submit" class="btn-save">
+                  <i class="fa-solid fa-floppy-disk mr-1"></i>저장
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- 수상(03) -->
+      <div
+        th:if="${careers.?[careerTypeCd == '03'].size() > 0}"
+        class="career-type-block"
+      >
+        <div class="career-type-label">수상</div>
+        <div th:each="c : ${careers.?[careerTypeCd == '03']}">
+          <div class="career-item">
+            <span class="career-year" th:text="${c.careerStrtYr}"></span>
+            <span class="career-cont" th:text="${c.careerCont}"></span>
+            <div class="career-actions">
+              <button
+                type="button"
+                class="btn-edit-career"
+                th:onclick="|toggleEditForm('edit-' + ${c.careerSn})|"
+              >
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <form
+                th:action="@{/instructor/profile/instructor/careers/{sn}/delete(sn=${c.careerSn})}"
+                method="post"
+                onsubmit="return confirm('이 항목을 삭제하시겠습니까?');"
+              >
+                <button type="submit" class="btn-delete-career">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+          <div th:id="|edit-${c.careerSn}|" class="career-edit-form">
+            <form
+              th:action="@{/instructor/profile/instructor/careers/{sn}/update(sn=${c.careerSn})}"
+              method="post"
+            >
+              <div class="career-form-row">
+                <div
+                  class="form-group"
+                  style="min-width: 130px; max-width: 160px"
+                >
+                  <label class="form-label">유형</label>
+                  <select name="careerTypeCd" class="form-select">
+                    <option value="01" th:selected="${c.careerTypeCd == '01'}">
+                      약력
+                    </option>
+                    <option value="02" th:selected="${c.careerTypeCd == '02'}">
+                      저서
+                    </option>
+                    <option value="03" th:selected="${c.careerTypeCd == '03'}">
+                      수상
+                    </option>
+                    <option value="04" th:selected="${c.careerTypeCd == '04'}">
+                      방송출연
+                    </option>
+                  </select>
+                </div>
+                <div
+                  class="form-group"
+                  style="min-width: 90px; max-width: 110px"
+                >
+                  <label class="form-label">연도</label>
+                  <input
+                    type="text"
+                    name="careerStrtYr"
+                    class="form-input"
+                    maxlength="4"
+                    th:value="${c.careerStrtYr}"
+                  />
+                </div>
+                <input type="hidden" name="careerEndYr" value="" />
+                <div
+                  class="form-group"
+                  style="min-width: 70px; max-width: 90px"
+                >
+                  <label class="form-label">순서</label>
+                  <input
+                    type="number"
+                    name="sortOrd"
+                    class="form-input"
+                    min="0"
+                    th:value="${c.sortOrd}"
+                  />
+                </div>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">내용</label>
+                <input
+                  type="text"
+                  name="careerCont"
+                  class="form-input"
+                  th:value="${c.careerCont}"
+                  required
+                />
+              </div>
+              <div class="flex gap-2 justify-end">
+                <button
+                  type="button"
+                  class="btn-save"
+                  style="background: #64748b"
+                  th:onclick="|toggleEditForm('edit-' + ${c.careerSn})|"
+                >
+                  취소
+                </button>
+                <button type="submit" class="btn-save">
+                  <i class="fa-solid fa-floppy-disk mr-1"></i>저장
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- 방송출연(04) -->
+      <div
+        th:if="${careers.?[careerTypeCd == '04'].size() > 0}"
+        class="career-type-block"
+      >
+        <div class="career-type-label">방송출연</div>
+        <div th:each="c : ${careers.?[careerTypeCd == '04']}">
+          <div class="career-item">
+            <span class="career-year" th:text="${c.careerStrtYr}"></span>
+            <span class="career-cont" th:text="${c.careerCont}"></span>
+            <div class="career-actions">
+              <button
+                type="button"
+                class="btn-edit-career"
+                th:onclick="|toggleEditForm('edit-' + ${c.careerSn})|"
+              >
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <form
+                th:action="@{/instructor/profile/instructor/careers/{sn}/delete(sn=${c.careerSn})}"
+                method="post"
+                onsubmit="return confirm('이 항목을 삭제하시겠습니까?');"
+              >
+                <button type="submit" class="btn-delete-career">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+          <div th:id="|edit-${c.careerSn}|" class="career-edit-form">
+            <form
+              th:action="@{/instructor/profile/instructor/careers/{sn}/update(sn=${c.careerSn})}"
+              method="post"
+            >
+              <div class="career-form-row">
+                <div
+                  class="form-group"
+                  style="min-width: 130px; max-width: 160px"
+                >
+                  <label class="form-label">유형</label>
+                  <select name="careerTypeCd" class="form-select">
+                    <option value="01" th:selected="${c.careerTypeCd == '01'}">
+                      약력
+                    </option>
+                    <option value="02" th:selected="${c.careerTypeCd == '02'}">
+                      저서
+                    </option>
+                    <option value="03" th:selected="${c.careerTypeCd == '03'}">
+                      수상
+                    </option>
+                    <option value="04" th:selected="${c.careerTypeCd == '04'}">
+                      방송출연
+                    </option>
+                  </select>
+                </div>
+                <div
+                  class="form-group"
+                  style="min-width: 90px; max-width: 110px"
+                >
+                  <label class="form-label">연도</label>
+                  <input
+                    type="text"
+                    name="careerStrtYr"
+                    class="form-input"
+                    maxlength="4"
+                    th:value="${c.careerStrtYr}"
+                  />
+                </div>
+                <input type="hidden" name="careerEndYr" value="" />
+                <div
+                  class="form-group"
+                  style="min-width: 70px; max-width: 90px"
+                >
+                  <label class="form-label">순서</label>
+                  <input
+                    type="number"
+                    name="sortOrd"
+                    class="form-input"
+                    min="0"
+                    th:value="${c.sortOrd}"
+                  />
+                </div>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">내용</label>
+                <input
+                  type="text"
+                  name="careerCont"
+                  class="form-input"
+                  th:value="${c.careerCont}"
+                  required
+                />
+              </div>
+              <div class="flex gap-2 justify-end">
+                <button
+                  type="button"
+                  class="btn-save"
+                  style="background: #64748b"
+                  th:onclick="|toggleEditForm('edit-' + ${c.careerSn})|"
+                >
+                  취소
+                </button>
+                <button type="submit" class="btn-save">
+                  <i class="fa-solid fa-floppy-disk mr-1"></i>저장
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <script>
-        /**
-         * [추가 폼용] 유형이 "약력(01)"일 때만 종료 연도 입력란을 활성화합니다.
-         * 나머지 유형은 종료 연도 개념이 없으므로 비활성화하고 값을 비웁니다.
-         */
-        function toggleEndYr(select) {
-            const endYrInput = document.getElementById('endYrInput');
-            if (select.value === '01') {
-                endYrInput.disabled = false;
-                endYrInput.placeholder = '현재면 비움';
-            } else {
-                endYrInput.disabled = true;
-                endYrInput.value = '';
-                endYrInput.placeholder = '약력 유형만 사용';
-            }
-        }
+    <!-- 약력 항목 추가 폼 -->
+    <div class="mt-4">
+      <div class="section-title text-sm mb-2">
+        <i class="fa-solid fa-plus"></i> 항목 추가
+      </div>
+      <form
+        th:action="@{/instructor/profile/instructor/careers}"
+        method="post"
+        class="career-add-form"
+      >
+        <div class="career-form-row">
+          <!-- 유형 선택 -->
+          <div class="form-group" style="min-width: 130px; max-width: 160px">
+            <label class="form-label">유형 *</label>
+            <select
+              name="careerTypeCd"
+              class="form-select"
+              required
+              onchange="toggleEndYr(this)"
+            >
+              <option value="">선택</option>
+              <option value="01">약력</option>
+              <option value="02">저서</option>
+              <option value="03">수상</option>
+              <option value="04">방송출연</option>
+            </select>
+          </div>
+          <!-- 시작 연도 -->
+          <div class="form-group" style="min-width: 90px; max-width: 110px">
+            <label class="form-label">시작 연도 *</label>
+            <input
+              type="text"
+              name="careerStrtYr"
+              class="form-input"
+              placeholder="2020"
+              maxlength="4"
+              required
+            />
+          </div>
+          <!-- 종료 연도 (약력 유형일 때만 활성화) -->
+          <div
+            class="form-group"
+            style="min-width: 90px; max-width: 110px"
+            id="endYrGroup"
+          >
+            <label class="form-label">종료 연도</label>
+            <input
+              type="text"
+              name="careerEndYr"
+              class="form-input"
+              placeholder="약력 유형만 사용"
+              maxlength="4"
+              id="endYrInput"
+              disabled
+            />
+          </div>
+          <!-- 순서 -->
+          <div class="form-group" style="min-width: 70px; max-width: 90px">
+            <label class="form-label">순서</label>
+            <input
+              type="number"
+              name="sortOrd"
+              class="form-input"
+              placeholder="0"
+              min="0"
+              value="0"
+            />
+          </div>
+        </div>
+        <!-- 내용 -->
+        <div class="mb-3">
+          <label class="form-label">내용 *</label>
+          <input
+            type="text"
+            name="careerCont"
+            class="form-input"
+            placeholder="예) OO대학교 수학과 졸업, 파이썬 완전정복 출간"
+            required
+          />
+        </div>
+        <div class="flex justify-end">
+          <button type="submit" class="btn-save">
+            <i class="fa-solid fa-plus mr-1"></i>추가
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-        /**
-         * [수정 폼용] 유형이 "약력(01)"일 때만 종료 연도 입력란을 활성화합니다.
-         * 추가 폼과 달리 각 수정 폼이 독립적이므로, select의 상위 form 안에서
-         * name="careerEndYr" input을 탐색합니다.
-         * @param {HTMLSelectElement} select - 유형 선택 select 요소
-         */
-        function toggleEndYrInEdit(select) {
-            const endYrInput = select.closest('form').querySelector('input[name="careerEndYr"]');
-            if (!endYrInput) return;
-            if (select.value === '01') {
-                endYrInput.disabled = false;
-                endYrInput.placeholder = '현재면 비움';
-            } else {
-                endYrInput.disabled = true;
-                endYrInput.value = '';
-                endYrInput.placeholder = '약력 유형만 사용';
-            }
-        }
+  <script>
+    /**
+     * [추가 폼용] 유형이 "약력(01)"일 때만 종료 연도 입력란을 활성화합니다.
+     * 나머지 유형은 종료 연도 개념이 없으므로 비활성화하고 값을 비웁니다.
+     */
+    function toggleEndYr(select) {
+      const endYrInput = document.getElementById("endYrInput");
+      if (select.value === "01") {
+        endYrInput.disabled = false;
+        endYrInput.placeholder = "현재면 비움";
+      } else {
+        endYrInput.disabled = true;
+        endYrInput.value = "";
+        endYrInput.placeholder = "약력 유형만 사용";
+      }
+    }
 
-        /**
-         * 약력 항목의 인라인 수정 폼을 토글합니다.
-         * @param {string} id - 수정 폼 요소의 id (예: "edit-3")
-         */
-        function toggleEditForm(id) {
-            const form = document.getElementById(id);
-            if (form) {
-                form.classList.toggle('open');
-            }
-        }
-    </script>
+    /**
+     * [수정 폼용] 유형이 "약력(01)"일 때만 종료 연도 입력란을 활성화합니다.
+     * 추가 폼과 달리 각 수정 폼이 독립적이므로, select의 상위 form 안에서
+     * name="careerEndYr" input을 탐색합니다.
+     * @param {HTMLSelectElement} select - 유형 선택 select 요소
+     */
+    function toggleEndYrInEdit(select) {
+      const endYrInput = select
+        .closest("form")
+        .querySelector('input[name="careerEndYr"]');
+      if (!endYrInput) return;
+      if (select.value === "01") {
+        endYrInput.disabled = false;
+        endYrInput.placeholder = "현재면 비움";
+      } else {
+        endYrInput.disabled = true;
+        endYrInput.value = "";
+        endYrInput.placeholder = "약력 유형만 사용";
+      }
+    }
+
+    /**
+     * 약력 항목의 인라인 수정 폼을 토글합니다.
+     * @param {string} id - 수정 폼 요소의 id (예: "edit-3")
+     */
+    function toggleEditForm(id) {
+      const form = document.getElementById(id);
+      if (form) {
+        form.classList.toggle("open");
+      }
+    }
+  </script>
 </div>

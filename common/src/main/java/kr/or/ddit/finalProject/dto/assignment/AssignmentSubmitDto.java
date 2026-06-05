@@ -26,4 +26,7 @@ public class AssignmentSubmitDto implements Serializable {
     private String sbmtStatCd;
     private LocalDateTime regDt;
     private LocalDateTime mdfcnDt;
+
+    // MEMBER 조인용
+    private String userName;
 }

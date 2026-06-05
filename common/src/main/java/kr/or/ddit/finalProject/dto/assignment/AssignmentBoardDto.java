@@ -26,4 +26,8 @@ public class AssignmentBoardDto implements Serializable {
     private LocalDateTime mdfcnDt;
     private String rgtrId;
     private String lastMdfrId;
+
+    // 목록 조회용 집계 (SQL에서 세팅)
+    private int sbmtCnt;
+    private int totMemberCnt;
 }
