@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title th:text="${classroom.classNm} + ' | 클래스룸'">ClassroomPage</title>
   <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
     @keyframes growBar { from { height: 4%; } to { height: var(--h); } }
     @keyframes drawArc { to { stroke-dashoffset: var(--offset); } }
@@ -14,8 +15,13 @@
 </head>
 <body class="h-screen flex flex-col bg-white overflow-hidden">
 
-  <header class="h-12 bg-white border-b border-slate-200 flex items-center px-6 flex-shrink-0">
-    <span class="text-sm font-bold text-slate-700">클래스룸</span>
+  <header class="h-12 bg-white border-b border-slate-200 flex items-center px-6 gap-4 flex-shrink-0">
+    <a href="/instructor/classroom/list"
+       class="text-slate-400 hover:text-slate-600 transition-colors text-xs flex items-center gap-1">
+      <i class="fa-solid fa-chevron-left text-[10px]"></i> 클래스 목록
+    </a>
+    <div class="w-px h-4 bg-slate-200"></div>
+    <span class="text-sm font-bold text-slate-700" th:text="${classroom.classNm}">클래스룸</span>
   </header>
 
   <div class="flex flex-1 overflow-hidden">
@@ -92,22 +98,28 @@
       <div class="max-w-[1000px] w-full flex flex-col gap-5">
 
         <nav class="flex items-center gap-1 bg-slate-200/60 p-1 rounded-xl w-fit border border-slate-200/10">
-          <button class="px-4 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 bg-blue-600 text-white shadow-sm shadow-blue-500/20">홈</button>
-          <button class="px-4 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors">
+          <a th:href="@{/instructor/classroom/detail/{sn}(sn=${classroom.classSn})}"
+             class="px-4 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 bg-blue-600 text-white shadow-sm shadow-blue-500/20">홈</a>
+          <a th:href="@{/instructor/classroom/detail/{sn}/notice(sn=${classroom.classSn})}"
+             class="px-4 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors">
             공지사항
             <span th:if="${noticeCount > 0}"
                   class="text-[10px] px-1.5 py-0.5 rounded font-bold leading-none bg-red-50 text-red-500"
                   th:text="${noticeCount}">1</span>
-          </button>
-          <button class="px-4 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors">온라인 강의</button>
-          <button class="px-4 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors">
+          </a>
+          <a th:href="@{/instructor/classroom/detail/{sn}/lectures(sn=${classroom.classSn})}"
+             class="px-4 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors">온라인 강의</a>
+          <a th:href="@{/instructor/classroom/detail/{sn}/assignments(sn=${classroom.classSn})}"
+             class="px-4 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors">
             과제 제출
             <span th:if="${assignmentCount > 0}"
                   class="text-[10px] px-1.5 py-0.5 rounded font-bold leading-none bg-red-50 text-red-500"
                   th:text="${assignmentCount}">2</span>
-          </button>
-          <button class="px-4 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors">1:1 Q&amp;A</button>
-          <button class="px-4 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors">성적 관리</button>
+          </a>
+          <a th:href="@{/instructor/classroom/detail/{sn}/qna(sn=${classroom.classSn})}"
+             class="px-4 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors">1:1 Q&amp;A</a>
+          <a th:href="@{/instructor/classroom/detail/{sn}/grades(sn=${classroom.classSn})}"
+             class="px-4 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors">성적 관리</a>
         </nav>
 
         <div class="flex flex-col gap-4">
