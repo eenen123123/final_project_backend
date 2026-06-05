@@ -20,6 +20,38 @@
     <result property="lastMdfrId"      column="LAST_MDFR_ID" />
   </resultMap>
 
+  <resultMap id="lectureProgressMap" type="kr.or.ddit.finalProject.dto.lecture.LectureProgressDto">
+    <result property="lectureSn"       column="LECTURE_SN" />
+    <result property="lectureNm"       column="LECTURE_NM" />
+    <result property="lectureDuration" column="LECTURE_DURATION" />
+    <result property="lectureTypeCd"   column="LECTURE_TYPE_CD" />
+    <result property="sortOrd"         column="SORT_ORD" />
+    <result property="cmplCnt"         column="CMPL_CNT" />
+    <result property="totMemberCnt"    column="TOT_MEMBER_CNT" />
+  </resultMap>
+
+  <select id="selectLecturesWithProgress" resultMap="lectureProgressMap">
+    SELECT
+        l.LECTURE_SN,
+        l.LECTURE_NM,
+        l.LECTURE_DURATION,
+        l.LECTURE_TYPE_CD,
+        l.SORT_ORD,
+        COUNT(CASE WHEN p.CMPL_YN = 'Y' THEN 1 END) AS CMPL_CNT,
+        (SELECT COUNT(*)
+         FROM CLASSROOM_MEMBER
+         WHERE CLASS_SN = #{classSn}
+           AND ENRL_STAT_CD = '01') AS TOT_MEMBER_CNT
+    FROM LECTURE l
+    JOIN CLASSROOM c ON c.COURSE_SN = l.COURSE_SN
+    LEFT JOIN STUDENT_CONTENT_PROGRESS p
+           ON p.LECTURE_SN = l.LECTURE_SN
+          AND p.CLASS_SN   = #{classSn}
+    WHERE c.CLASS_SN = #{classSn}
+    GROUP BY l.LECTURE_SN, l.LECTURE_NM, l.LECTURE_DURATION, l.LECTURE_TYPE_CD, l.SORT_ORD
+    ORDER BY l.SORT_ORD ASC, l.LECTURE_SN ASC
+  </select>
+
   <select id="selectLectureByCourseSn" resultMap="lectureMap">
     SELECT
       LECTURE_SN, COURSE_SN, LECTURE_NM, LECTURE_TYPE_CD,

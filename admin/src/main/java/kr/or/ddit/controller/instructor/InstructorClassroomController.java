@@ -66,6 +66,15 @@ public class InstructorClassroomController {
         return "instructor/classroom-home";
     }
 
+    // ── 온라인 강의 ──────────────────────────────────────────────
+
+    @GetMapping("/detail/{classSn}/lectures")
+    public String lectureList(@PathVariable Long classSn, Model model) {
+        model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
+        model.addAttribute("lectureList", classroomService.retrieveLecturesWithProgress(classSn));
+        return "instructor/classroom-lectures";
+    }
+
     // ── 공지사항 ──────────────────────────────────────────────────
 
     @GetMapping("/detail/{classSn}/notice")

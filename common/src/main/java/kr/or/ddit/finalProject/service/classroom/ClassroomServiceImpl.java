@@ -10,6 +10,8 @@ import kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomGradeDto;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomListResponse;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomMemberListResponse;
+import kr.or.ddit.finalProject.dto.lecture.LectureProgressDto;
+import kr.or.ddit.finalProject.mapper.lecture.LectureMapper;
 import kr.or.ddit.finalProject.dto.coursecohort.CourseCohortListResponse;
 import kr.or.ddit.finalProject.mapper.classroom.ClassroomMapper;
 import kr.or.ddit.finalProject.mapper.classroom.ClassroomMemberMapper;
@@ -26,6 +28,7 @@ public class ClassroomServiceImpl implements ClassroomService {
     private final ClassroomMapper classroomMapper;
     private final ClassroomMemberMapper classroomMemberMapper;
     private final CourseCohortMapper courseCohortMapper;
+    private final LectureMapper lectureMapper;
 
     @Override
     public List<ClassroomListResponse> retrieveClassroomList(String instrUserId) {
@@ -63,6 +66,11 @@ public class ClassroomServiceImpl implements ClassroomService {
     @Override
     public List<ClassroomGradeDto> retrieveGradeList(Long classSn) {
         return classroomMemberMapper.selectGradeList(classSn);
+    }
+
+    @Override
+    public List<LectureProgressDto> retrieveLecturesWithProgress(Long classSn) {
+        return lectureMapper.selectLecturesWithProgress(classSn);
     }
 
     // YYYYMMDD → YYYY.MM.DD
