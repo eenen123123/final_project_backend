@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.log.MemberLoginLogMapper">
+
+    <!-- 로그인 이력 등록 (성공/실패 공통) -->
+    <insert id="insertMemberLoginLog" parameterType="kr.or.ddit.finalProject.dto.log.MemberLoginLogDto">
+        INSERT INTO MEMBER_LOGIN_LOG (
+            INPUT_USER_ID, USER_ID, ONLINE_YN, LOGIN_SUCCESS_YN,
+            LOGIN_IP, FAIL_RSN
+        ) VALUES (
+            #{inputUserId},
+            #{userId},
+            #{onlineYn},
+            #{loginSuccessYn},
+            #{loginIp},
+            #{failRsn}
+        )
+    </insert>
+
+    <!-- 로그아웃 처리: ONLINE_YN = 'N', LOGOUT_DT = 현재시각 -->
+    <update id="updateMemberLogout" parameterType="string">
+        UPDATE MEMBER_LOGIN_LOG
+        SET LOGOUT_DT = SYSTIMESTAMP,
+            ONLINE_YN = 'N',
+            MOD_DATE  = CURRENT_TIMESTAMP
+        WHERE USER_ID   = #{userId}
+          AND ONLINE_YN = 'Y'
+          AND LOGOUT_DT IS NULL
+    </update>
+
+    <!-- 서버 재시작 시 미처리 세션(ONLINE_YN='Y', LOGOUT_DT IS NULL) 일괄 정리 -->
+    <update id="closeAllOpenSessions">
+        UPDATE MEMBER_LOGIN_LOG
+        SET LOGOUT_DT = SYSTIMESTAMP,
+            ONLINE_YN = 'N',
+            MOD_DATE  = CURRENT_TIMESTAMP
+        WHERE ONLINE_YN = 'Y'
+          AND LOGOUT_DT IS NULL
+    </update>
+
+</mapper>
