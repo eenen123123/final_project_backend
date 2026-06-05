@@ -51,10 +51,14 @@ public class CustomerServiceController {
     @GetMapping("/customer-service")
     public String customerService(Model model) {
         model.addAttribute("pageTitle", "고객센터 관리 | HERMES");
-        model.addAttribute("faqList", faqService.getList(allOf(new FaqSearchCondition())).getItems());
-        model.addAttribute("noticeList", noticeService.getList(allOf(new NoticeSearchCondition())).getItems());
-        model.addAttribute("qnaList", qnaService.getList(allOf(new QnaSearchCondition())).getItems());
-        model.addAttribute("dataRoomList", dataRoomService.getList(allOf(new DataRoomSearchCondition())).getItems());
+        model.addAttribute("faqList",
+                faqService.getList(allOf(new FaqSearchCondition())).getItems());
+        model.addAttribute("noticeList",
+                noticeService.getList(allOf(new NoticeSearchCondition())).getItems());
+        model.addAttribute("qnaList",
+                qnaService.getList(allOf(new QnaSearchCondition())).getItems());
+        model.addAttribute("dataRoomList",
+                dataRoomService.getList(allOf(new DataRoomSearchCondition())).getItems());
         return "admin:/board/customer_service";
     }
 
@@ -144,7 +148,8 @@ public class CustomerServiceController {
     }
 
     @PostMapping("/qna/{postSn}/answer")
-    public String qnaAnswer(@PathVariable Long postSn, QnaDto qnaDto, Authentication authentication) {
+    public String qnaAnswer(@PathVariable Long postSn, QnaDto qnaDto,
+            Authentication authentication) {
         qnaDto.setPostSn(postSn);
         qnaDto.setAnswrUserId(authentication.getName());
         qnaService.answerQna(qnaDto);
@@ -152,7 +157,8 @@ public class CustomerServiceController {
     }
 
     @GetMapping("/qna/edit/{postSn}")
-    public String qnaEditForm(@PathVariable Long postSn, Model model, Authentication authentication) {
+    public String qnaEditForm(@PathVariable Long postSn, Model model,
+            Authentication authentication) {
         model.addAttribute("pageTitle", "QnA 답변 수정 | HERMES");
         model.addAttribute("qna", qnaService.getById(postSn, authentication));
         return "admin:/board/qna/qna_edit";
@@ -223,15 +229,14 @@ public class CustomerServiceController {
 
     private static final Safelist TOAST_SAFELIST = Safelist.relaxed()
             .addTags("del", "s", "hr", "input")
-            .addAttributes("input", "type", "checked", "disabled")
-            .addAttributes("span", "style").addAttributes("p", "style")
-            .addAttributes("h1", "style").addAttributes("h2", "style")
-            .addAttributes("h3", "style").addAttributes("h4", "style")
-            .addAttributes("h5", "style").addAttributes("h6", "style")
-            .addAttributes("img", "src");
+            .addAttributes("input", "type", "checked", "disabled").addAttributes("span", "style")
+            .addAttributes("p", "style").addAttributes("h1", "style").addAttributes("h2", "style")
+            .addAttributes("h3", "style").addAttributes("h4", "style").addAttributes("h5", "style")
+            .addAttributes("h6", "style").addAttributes("img", "src");
 
     private String sanitize(String html) {
-        if (html == null) return null;
+        if (html == null)
+            return null;
         return Jsoup.clean(html, TOAST_SAFELIST);
     }
 }
