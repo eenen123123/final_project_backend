@@ -9,25 +9,25 @@
 ### 핵심 파일
 
 - `src/main/resources/templates/layouts/admin-layout.html`
-  - admin 페이지의 기본 레이아웃 템플릿
-  - 공통 CSS와 JS를 로드하고, 헤더·사이드바·메인 콘텐츠를 배치합니다
+    - admin 페이지의 기본 레이아웃 템플릿
+    - 공통 CSS와 JS를 로드하고, 헤더·사이드바·메인 콘텐츠를 배치합니다
 - `src/main/resources/templates/fragments/header.html`
-  - 상단 헤더 프래그먼트
-  - 사이드바 토글 버튼, 검색창, 알림, 계정 UI 등이 포함됩니다
+    - 상단 헤더 프래그먼트
+    - 사이드바 토글 버튼, 검색창, 알림, 계정 UI 등이 포함됩니다
 - `src/main/resources/templates/fragments/sidebars/sidebar_admin.html`
-  - 사이드바 전체 구조
-  - 공통 메뉴와 역할별 메뉴를 분리하여 `th:replace`로 삽입합니다
+    - 사이드바 전체 구조
+    - 공통 메뉴와 역할별 메뉴를 분리하여 `th:replace`로 삽입합니다
 - `src/main/resources/static/css/admin-core.css`
-  - 글로벌 공통 스타일
-  - 버튼, 입력, 공통 유틸리티 등 전역 UI 요소 정의
+    - 글로벌 공통 스타일
+    - 버튼, 입력, 공통 유틸리티 등 전역 UI 요소 정의
 - `src/main/resources/static/css/sidebar-admin.css`
-  - 사이드바 전용 스타일
-  - `.sidebar-section`, `.sidebar-link`, `.sidebar-title`, `.sidebar-collapsed` 등
+    - 사이드바 전용 스타일
+    - `.sidebar-section`, `.sidebar-link`, `.sidebar-title`, `.sidebar-collapsed` 등
 - `src/main/resources/static/js/admin-core.js`
-  - 글로벌 공통 스크립트
-  - 토스트 알림 같은 전역 기능
+    - 글로벌 공통 스크립트
+    - 토스트 알림 같은 전역 기능
 - `src/main/resources/static/js/sidebar-admin.js`
-  - 사이드바 토글 및 상태 저장 전용 스크립트
+    - 사이드바 토글 및 상태 저장 전용 스크립트
 
 ---
 
@@ -48,12 +48,12 @@
 
 - `sidebar_admin.html`은 사용자 역할에 따라 메뉴를 선택해서 로드합니다.
 - 역할별 메뉴 파일:
-  - `menu_common.html`
-  - `menu_principal.html`
-  - `menu_manager.html`
-  - `menu_staff.html`
-  - `menu_pd.html`
-  - `menu_teacher.html`
+    - `menu_common.html`
+    - `menu_principal.html`
+    - `menu_manager.html`
+    - `menu_staff.html`
+    - `menu_pd.html`
+    - `menu_instructor.html`
 - 역할별 메뉴는 `th:if`와 `th:replace`로 동적으로 렌더됩니다.
 
 ---
@@ -113,13 +113,13 @@
 <header th:replace="~{fragments/header :: headerFragment}"></header>
 
 <div class="flex-1 flex min-h-0 w-full relative">
-  <div
-    th:replace="~{fragments/sidebars/sidebar_admin :: sidebarAdminFragment}"
-  ></div>
+    <div
+        th:replace="~{fragments/sidebars/sidebar_admin :: sidebarAdminFragment}"
+    ></div>
 
-  <main class="flex-1 overflow-y-auto p-8 no-scrollbar bg-[#F8FAFC]">
-    <th:block th:insert="~{${contentPage}}"></th:block>
-  </main>
+    <main class="flex-1 overflow-y-auto p-8 no-scrollbar bg-[#F8FAFC]">
+        <th:block th:insert="~{${contentPage}}"></th:block>
+    </main>
 </div>
 
 <script th:src="@{/js/admin-core.js}" defer></script>
@@ -130,7 +130,7 @@
 
 ```html
 <button id="sidebarToggle" class="...">
-  <i class="fa-solid fa-bars text-lg"></i>
+    <i class="fa-solid fa-bars text-lg"></i>
 </button>
 ```
 

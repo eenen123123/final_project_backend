@@ -29,7 +29,7 @@ src/main/resources/templates/
                     ├── menu_principal.html  (원장 전용 권한)
                     ├── menu_manager.html    (행정팀장 전용 권한)
                     ├── menu_staff.html      (행정 전용 권한)
-                    ├── menu_teacher.html    (선생님 전용 권한)
+                    ├── menu_instructor.html    (강사 전용 권한)
                     └── menu_pd.html         (PD 전용 권한)
 
 ```
@@ -48,22 +48,22 @@ src/main/resources/templates/
 
 ```html
 <div>
-  <div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold text-slate-800">학생 목록 관리</h1>
-    <button class="bg-blue-600 text-white px-4 py-2 rounded-xl">
-      학생 등록
-    </button>
-  </div>
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-slate-800">학생 목록 관리</h1>
+        <button class="bg-blue-600 text-white px-4 py-2 rounded-xl">
+            학생 등록
+        </button>
+    </div>
 
-  <table class="w-full bg-white rounded-2xl shadow-sm"></table>
+    <table class="w-full bg-white rounded-2xl shadow-sm"></table>
 </div>
 
 <th:block th:fragment="pageCss">
-  <link rel="stylesheet" th:href="@{/css/page/student-list.css}" />
+    <link rel="stylesheet" th:href="@{/css/page/student-list.css}" />
 </th:block>
 
 <th:block th:fragment="pageJs">
-  <script th:src="@{/js/page/student-list.js}"></script>
+    <script th:src="@{/js/page/student-list.js}"></script>
 </th:block>
 ```
 
@@ -102,40 +102,40 @@ public class StudentController {
 ```html
 <!doctype html>
 <html xmlns:th="http://www.thymeleaf.org">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title th:text="${pageTitle} ?: 'HERMES Admin'"></title>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title th:text="${pageTitle} ?: 'HERMES Admin'"></title>
 
-    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
+        <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        />
 
-    <link rel="stylesheet" th:href="@{/css/admin-core.css}" />
-    <link rel="stylesheet" th:href="@{/css/admin-layout.css}" />
+        <link rel="stylesheet" th:href="@{/css/admin-core.css}" />
+        <link rel="stylesheet" th:href="@{/css/admin-layout.css}" />
 
-    <th:block th:replace="~{${contentPage} :: pageCss} ?: ~{}"></th:block>
-  </head>
-  <body class="h-screen flex flex-col overflow-hidden bg-[#F8FAFC]">
-    <header th:replace="~{fragments/header :: headerFragment}"></header>
+        <th:block th:replace="~{${contentPage} :: pageCss} ?: ~{}"></th:block>
+    </head>
+    <body class="h-screen flex flex-col overflow-hidden bg-[#F8FAFC]">
+        <header th:replace="~{fragments/header :: headerFragment}"></header>
 
-    <div class="flex-1 flex min-h-0 w-full relative">
-      <div
-        th:replace="~{fragments/sidebars/sidebar_admin :: sidebarAdminFragment}"
-      ></div>
+        <div class="flex-1 flex min-h-0 w-full relative">
+            <div
+                th:replace="~{fragments/sidebars/sidebar_admin :: sidebarAdminFragment}"
+            ></div>
 
-      <main class="flex-1 overflow-y-auto p-10 no-scrollbar">
-        <th:block th:insert="~{${contentPage}}"></th:block>
-      </main>
-    </div>
+            <main class="flex-1 overflow-y-auto p-10 no-scrollbar">
+                <th:block th:insert="~{${contentPage}}"></th:block>
+            </main>
+        </div>
 
-    <script th:src="@{/js/admin-core.js}"></script>
-    <script th:src="@{/js/admin-layout.js}"></script>
+        <script th:src="@{/js/admin-core.js}"></script>
+        <script th:src="@{/js/admin-layout.js}"></script>
 
-    <th:block th:replace="~{${contentPage} :: pageJs} ?: ~{}"></th:block>
-  </body>
+        <th:block th:replace="~{${contentPage} :: pageJs} ?: ~{}"></th:block>
+    </body>
 </html>
 ```
 
@@ -148,40 +148,40 @@ public class StudentController {
 ```html
 <!doctype html>
 <html xmlns:th="http://www.thymeleaf.org">
-  <aside
-    th:fragment="sidebarAdminFragment"
-    id="adminSidebar"
-    class="w-72 bg-[#121212] text-slate-400 flex flex-col shrink-0 z-20 transition-all duration-300 overflow-hidden relative border-r border-white/5"
-  >
-    <nav class="flex-1 overflow-y-auto py-8 no-scrollbar overflow-x-hidden">
-      <div th:replace="~{fragments/sidebars/menus/menu_common}"></div>
+    <aside
+        th:fragment="sidebarAdminFragment"
+        id="adminSidebar"
+        class="w-72 bg-[#121212] text-slate-400 flex flex-col shrink-0 z-20 transition-all duration-300 overflow-hidden relative border-r border-white/5"
+    >
+        <nav class="flex-1 overflow-y-auto py-8 no-scrollbar overflow-x-hidden">
+            <div th:replace="~{fragments/sidebars/menus/menu_common}"></div>
 
-      <div
-        th:if="${session.userRole == 'PRINCIPAL'}"
-        th:replace="~{fragments/sidebars/menus/menu_principal}"
-      ></div>
+            <div
+                th:if="${session.userRole == 'PRINCIPAL'}"
+                th:replace="~{fragments/sidebars/menus/menu_principal}"
+            ></div>
 
-      <div
-        th:if="${session.userRole == 'MANAGER'}"
-        th:replace="~{fragments/sidebars/menus/menu_manager}"
-      ></div>
+            <div
+                th:if="${session.userRole == 'MANAGER'}"
+                th:replace="~{fragments/sidebars/menus/menu_manager}"
+            ></div>
 
-      <div
-        th:if="${session.userRole == 'STAFF'}"
-        th:replace="~{fragments/sidebars/menus/menu_staff}"
-      ></div>
+            <div
+                th:if="${session.userRole == 'STAFF'}"
+                th:replace="~{fragments/sidebars/menus/menu_staff}"
+            ></div>
 
-      <div
-        th:if="${session.userRole == 'TEACHER'}"
-        th:replace="~{fragments/sidebars/menus/menu_teacher}"
-      ></div>
+            <div
+                th:if="${session.userRole == 'instructor'}"
+                th:replace="~{fragments/sidebars/menus/menu_instructor}"
+            ></div>
 
-      <div
-        th:if="${session.userRole == 'PD'}"
-        th:replace="~{fragments/sidebars/menus/menu_pd}"
-      ></div>
-    </nav>
-  </aside>
+            <div
+                th:if="${session.userRole == 'PD'}"
+                th:replace="~{fragments/sidebars/menus/menu_pd}"
+            ></div>
+        </nav>
+    </aside>
 </html>
 ```
 
@@ -194,16 +194,16 @@ public class StudentController {
 ```javascript
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    // 레이아웃, 프래그먼트, 세부 권한 메뉴 폴더까지 완벽하게 추적 스캔
-    "./src/main/resources/templates/**/*.html",
-    "./src/main/resources/templates/*.html",
-    "./src/main/resources/static/js/**/*.js",
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
+    content: [
+        // 레이아웃, 프래그먼트, 세부 권한 메뉴 폴더까지 완벽하게 추적 스캔
+        "./src/main/resources/templates/**/*.html",
+        "./src/main/resources/templates/*.html",
+        "./src/main/resources/static/js/**/*.js",
+    ],
+    theme: {
+        extend: {},
+    },
+    plugins: [],
 };
 ```
 
