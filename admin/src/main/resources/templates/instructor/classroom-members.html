@@ -1,129 +1,68 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title th:text="${classroom.classNm} + ' | 수강생 목록'">수강생 목록</title>
-  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <style>body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }</style>
-</head>
-<body class="h-screen flex flex-col bg-white overflow-hidden">
+<html th:replace="~{instructor/classroom-fragments :: layout(
+    ${classroom.classNm} + ' | 수강생 목록',
+    ${classroom},
+    'members',
+    ~{:: #content}
+)}" lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div id="content">
 
-  <header class="h-12 bg-white border-b border-slate-200 flex items-center px-6 gap-4 flex-shrink-0">
-    <a href="/instructor/classroom/list"
-       class="text-slate-400 hover:text-slate-600 transition-colors text-xs flex items-center gap-1">
-      <i class="fa-solid fa-chevron-left text-[10px]"></i> 클래스 목록
-    </a>
-    <div class="w-px h-4 bg-slate-200"></div>
-    <span class="text-sm font-bold text-slate-700" th:text="${classroom.classNm}">클래스룸</span>
-  </header>
+  <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100">
+      <h2 class="text-sm font-bold text-slate-700">수강생 목록</h2>
+    </div>
 
-  <div class="flex flex-1 overflow-hidden">
-
-    <!-- LEFT PANEL -->
-    <aside class="w-64 bg-white border-r border-slate-200 p-5 flex flex-col gap-6 flex-shrink-0 overflow-y-auto">
-      <div class="flex flex-col items-center">
-        <div class="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-2xl font-bold shadow-xl shadow-blue-100 mb-3 rotate-3 hover:rotate-0 transition-transform cursor-pointer select-none"
-             th:text="${#strings.substring(classroom.instrNm, 0, 1)}">김</div>
-        <h3 class="font-bold text-slate-800 text-base" th:text="${classroom.instrNm + ' 강사'}">김민준 강사</h3>
-        <span class="text-blue-500 text-xs font-bold bg-blue-50 px-2 py-0.5 rounded-md mt-1"
-              th:text="${classroom.classNm}">영어 A반</span>
+    <!-- 빈 목록 -->
+    <div th:if="${#lists.isEmpty(classroom.members)}"
+         class="p-16 flex flex-col items-center justify-center text-center gap-3">
+      <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-2xl">
+        <i class="fa-solid fa-users"></i>
       </div>
-      <div class="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
-      <div class="space-y-3">
-        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Information</h4>
-        <div class="bg-slate-50/50 rounded-2xl p-3 space-y-2 border border-slate-100">
-          <div class="flex justify-between text-[11px] font-bold">
-            <span class="text-slate-400">📚 강좌</span>
-            <span class="text-slate-700" th:text="${classroom.courseNm}">수능 영어</span>
-          </div>
-          <div class="flex justify-between text-[11px] font-bold">
-            <span class="text-slate-400">👥 수강 인원</span>
-            <span class="text-slate-700" th:text="${classroom.memberCount + '명'}">32명</span>
-          </div>
-        </div>
-      </div>
-    </aside>
+      <p class="text-sm font-medium text-slate-500">등록된 수강생이 없습니다.</p>
+    </div>
 
-    <!-- MAIN CONTENT -->
-    <main class="flex-1 overflow-y-auto p-6 bg-[#F8FAFC]">
-      <div class="max-w-[1000px] w-full flex flex-col gap-5">
+    <!-- 수강생 목록 -->
+    <div th:unless="${#lists.isEmpty(classroom.members)}" class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider uppercase">
+            <th class="py-3 px-6 w-12">번호</th>
+            <th class="py-3 px-6">이름</th>
+            <th class="py-3 px-6 w-28">아이디</th>
+            <th class="py-3 px-6 w-24 text-center">수강 상태</th>
+            <th class="py-3 px-6 w-32">등록일</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+          <tr th:each="member, stat : ${classroom.members}" class="hover:bg-slate-50/50 transition-colors">
+            <td class="py-3 px-6 text-xs text-slate-400 font-mono" th:text="${stat.count}">1</td>
+            <td class="py-3 px-6 font-semibold text-slate-800" th:text="${member.userName}">홍길동</td>
+            <td class="py-3 px-6 text-xs text-slate-500 font-mono" th:text="${member.userId}">user123</td>
+            <td class="py-3 px-6 text-center">
+              <span th:if="${member.enrlStatCd == '01'}"
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-600">수강중</span>
+              <span th:if="${member.enrlStatCd == '02'}"
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600">수강완료</span>
+              <span th:if="${member.enrlStatCd == '03'}"
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-500">중도탈퇴</span>
+              <span th:if="${member.enrlStatCd == '04'}"
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-400">등록취소</span>
+            </td>
+            <td class="py-3 px-6 text-xs text-slate-400 font-mono" th:text="${member.formattedRegDt}">2026-01-01</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-        <nav class="flex items-center gap-1 bg-slate-200/60 p-1 rounded-xl w-fit border border-slate-200/10">
-          <a th:href="@{/instructor/classroom/detail/{sn}(sn=${classroom.classSn})}"
-             class="px-4 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors">홈</a>
-          <a th:href="@{/instructor/classroom/detail/{sn}/notice(sn=${classroom.classSn})}"
-             class="px-4 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors">공지사항</a>
-          <a th:href="@{/instructor/classroom/detail/{sn}/lectures(sn=${classroom.classSn})}"
-             class="px-4 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors">온라인 강의</a>
-          <a th:href="@{/instructor/classroom/detail/{sn}/assignments(sn=${classroom.classSn})}"
-             class="px-4 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors">과제 제출</a>
-          <a th:href="@{/instructor/classroom/detail/{sn}/qna(sn=${classroom.classSn})}"
-             class="px-4 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors">Q&amp;A</a>
-          <a th:href="@{/instructor/classroom/detail/{sn}/grades(sn=${classroom.classSn})}"
-             class="px-4 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors">성적 관리</a>
-          <a th:href="@{/instructor/classroom/detail/{sn}/members(sn=${classroom.classSn})}"
-             class="px-4 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 bg-blue-600 text-white shadow-sm shadow-blue-500/20">수강생 목록</a>
-        </nav>
-
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-          <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h2 class="text-sm font-bold text-slate-700">수강생 목록</h2>
-          </div>
-
-          <!-- 목록 비어있을 때 -->
-          <div th:if="${#lists.isEmpty(classroom.members)}"
-               class="p-16 flex flex-col items-center justify-center text-center gap-3">
-            <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-2xl">
-              <i class="fa-solid fa-users"></i>
-            </div>
-            <p class="text-sm font-medium text-slate-500">등록된 수강생이 없습니다.</p>
-          </div>
-
-          <!-- 수강생 목록 -->
-          <div th:unless="${#lists.isEmpty(classroom.members)}" class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider uppercase">
-                  <th class="py-3 px-6 w-12">번호</th>
-                  <th class="py-3 px-6">이름</th>
-                  <th class="py-3 px-6 w-28">아이디</th>
-                  <th class="py-3 px-6 w-24 text-center">수강 상태</th>
-                  <th class="py-3 px-6 w-32">등록일</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
-                <tr th:each="member, stat : ${classroom.members}" class="hover:bg-slate-50/50 transition-colors">
-                  <td class="py-3 px-6 text-xs text-slate-400 font-mono" th:text="${stat.count}">1</td>
-                  <td class="py-3 px-6 font-semibold text-slate-800" th:text="${member.userName}">홍길동</td>
-                  <td class="py-3 px-6 text-xs text-slate-500 font-mono" th:text="${member.userId}">user123</td>
-                  <td class="py-3 px-6 text-center">
-                    <span th:if="${member.enrlStatCd == '01'}"
-                          class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-600">수강중</span>
-                    <span th:if="${member.enrlStatCd == '02'}"
-                          class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600">수강완료</span>
-                    <span th:if="${member.enrlStatCd == '03'}"
-                          class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-500">중도탈퇴</span>
-                    <span th:if="${member.enrlStatCd == '04'}"
-                          class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-400">등록취소</span>
-                  </td>
-                  <td class="py-3 px-6 text-xs text-slate-400 font-mono" th:text="${member.formattedRegDt}">2026-01-01</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="border-t border-slate-100 px-6 py-3 bg-slate-50/50">
-            <p class="text-xs text-slate-400">
-              전체 <span class="font-semibold text-slate-600" th:text="${#lists.size(classroom.members)}">0</span>명
-            </p>
-          </div>
-        </div>
-
-      </div>
-    </main>
+    <div class="border-t border-slate-100 px-6 py-3 bg-slate-50/50">
+      <p class="text-xs text-slate-400">
+        전체 <span class="font-semibold text-slate-600" th:text="${#lists.size(classroom.members)}">0</span>명
+      </p>
+    </div>
   </div>
 
+</div>
 </body>
 </html>

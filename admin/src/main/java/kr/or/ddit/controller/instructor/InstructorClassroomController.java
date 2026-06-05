@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.math.BigDecimal;
 
 import kr.or.ddit.finalProject.dto.assignment.AssignmentBoardDto;
-import kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomListResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto;
 import kr.or.ddit.finalProject.service.assignment.AssignmentBoardService;
@@ -43,26 +42,29 @@ public class InstructorClassroomController {
         return "admin:/instructor/classroomList";
     }
 
-    @GetMapping("/detail/{classSn}")
-    public String classroomDetail(@PathVariable Long classSn, Model model) {
-        ClassroomDetailResponse classroom = classroomService.retrieveClassroomDetail(classSn);
-        model.addAttribute("classroom", classroom);
-
+    @ModelAttribute
+    public void addCalendarAttributes(
+            @PathVariable(required = false) Long classSn,
+            Model model) {
+        if (classSn == null) return;
         LocalDate now = LocalDate.now();
         int year  = now.getYear();
         int month = now.getMonthValue();
-
         model.addAttribute("calendarYear",    year);
         model.addAttribute("calendarMonth",   month);
         model.addAttribute("calendarPadding", classroomHomeService.retrieveCalendarPadding(year, month));
         model.addAttribute("calendarDays",    classroomHomeService.retrieveCalendarDays(classSn, year, month));
-        model.addAttribute("weeklyData",      classroomHomeService.retrieveWeeklyData(classSn));
-        model.addAttribute("weeklyCompareText", classroomHomeService.retrieveWeeklyCompareText(classSn));
-        model.addAttribute("achievements",    classroomHomeService.retrieveAchievements(classSn));
-        model.addAttribute("assignmentCount", classroomHomeService.retrieveUpcomingAssignmentCount(classSn));
-        model.addAttribute("todayQuestion",   classroomHomeService.retrieveTodayQuestion(classSn));
-        model.addAttribute("noticeCount",     0);  // 클래스별 공지 테이블 미구현
+    }
 
+    @GetMapping("/detail/{classSn}")
+    public String classroomDetail(@PathVariable Long classSn, Model model) {
+        model.addAttribute("classroom",         classroomService.retrieveClassroomDetail(classSn));
+        model.addAttribute("weeklyData",        classroomHomeService.retrieveWeeklyData(classSn));
+        model.addAttribute("weeklyCompareText", classroomHomeService.retrieveWeeklyCompareText(classSn));
+        model.addAttribute("achievements",      classroomHomeService.retrieveAchievements(classSn));
+        model.addAttribute("assignmentCount",   classroomHomeService.retrieveUpcomingAssignmentCount(classSn));
+        model.addAttribute("todayQuestion",     classroomHomeService.retrieveTodayQuestion(classSn));
+        model.addAttribute("noticeCount",       0);
         return "instructor/classroom-home";
     }
 
