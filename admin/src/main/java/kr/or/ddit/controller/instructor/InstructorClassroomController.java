@@ -93,6 +93,14 @@ public class InstructorClassroomController {
         return "redirect:/instructor/classroom/detail/" + classSn + "/notice";
     }
 
+    // ── 수강생 목록 ──────────────────────────────────────────────
+
+    @GetMapping("/detail/{classSn}/members")
+    public String memberList(@PathVariable Long classSn, Model model) {
+        model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
+        return "instructor/classroom-members";
+    }
+
     // ── Q&A ──────────────────────────────────────────────────────
 
     @GetMapping("/detail/{classSn}/qna")
