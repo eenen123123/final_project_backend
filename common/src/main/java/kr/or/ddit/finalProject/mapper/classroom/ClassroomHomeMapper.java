@@ -41,4 +41,10 @@ public interface ClassroomHomeMapper {
 
     /** 오늘 진행 중인 시험 (EXAM_STRT_DT ≤ 오늘 ≤ EXAM_END_DT). 없으면 null */
     Map<String, Object> selectTodayExam(@Param("classSn") Long classSn);
+
+    /** 이번 주 강의 완료 이력이 없는 활성 수강생 수 */
+    int selectInactiveStudentCount(
+            @Param("classSn") Long classSn,
+            @Param("weekStart") String weekStart,
+            @Param("weekEnd") String weekEnd);
 }

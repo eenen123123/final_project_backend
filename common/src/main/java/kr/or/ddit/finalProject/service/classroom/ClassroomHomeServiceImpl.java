@@ -151,6 +151,14 @@ public class ClassroomHomeServiceImpl implements ClassroomHomeService {
     }
 
     @Override
+    public int retrieveInactiveStudentCount(Long classSn) {
+        LocalDate today = LocalDate.now();
+        String weekStart = today.with(DayOfWeek.MONDAY).format(YMD);
+        String weekEnd   = today.with(DayOfWeek.SUNDAY).format(YMD);
+        return homeMapper.selectInactiveStudentCount(classSn, weekStart, weekEnd);
+    }
+
+    @Override
     public TodayQuestionDto retrieveTodayQuestion(Long classSn) {
         Map<String, Object> row = homeMapper.selectTodayExam(classSn);
         if (row == null) return null;
