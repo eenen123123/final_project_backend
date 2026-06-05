@@ -144,6 +144,11 @@ public interface  StaffService {
     PageResponse<EmployeeDetailDto> searchEmployeeList(PaginationInfo<Map<String, Object>> paging);
 
     /**
+     * 재직 중인 직원 동적 검색 + 서버 페이징 (권한 설정 페이지 전용: keyword, deptCd, jbgrNm, online)
+     */
+    PageResponse<EmployeeDetailDto> searchActiveEmployeeList(PaginationInfo<Map<String, Object>> paging);
+
+    /**
      * 학생 목록 동적 검색 (keyword, year, userRole, enable)
      */
     PageResponse<MemberDto> searchStudentList(PaginationInfo<Map<String, Object>> paging);
