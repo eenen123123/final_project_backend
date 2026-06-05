@@ -1,8 +1,12 @@
 package kr.or.ddit.finalProject.service.staff;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.web.multipart.MultipartFile;
+
+import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
 
 import kr.or.ddit.finalProject.dto.employee.DepartmentDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeDetailDto;
@@ -73,11 +77,19 @@ public interface  StaffService {
 
     /**
      * 인사 대시보드용 전체 직원 목록 조회
-     * 
+     *
      * ✔ 사용 시나리오: 관리자 페이지 직원 메인 테이블에 재직자 및 퇴사자를 아우르는 상세 데이터를 출력할 때 사용한다.
      * @return 테이블 결합(JOIN)을 통해 확보된 직원 상세 정보 DTO 리스트
      */
     List<EmployeeDetailDto> retrieveEmployeeList();
+
+    /**
+     * 재직 중인 직원 목록 조회 (권한 설정 페이지용)
+     *
+     * ✔ 사용 시나리오: 접속 이력/권한 관리 테이블에 퇴사자를 제외한 재직자만 표시할 때 사용한다.
+     * @return ENABLE = 'Y' 인 재직 직원 상세 정보 DTO 리스트
+     */
+    List<EmployeeDetailDto> retrieveActiveEmployeeList();
 
     /**
      * 시스템 등록 직원의 전체 입사 연도 고유 목록 조회
@@ -126,6 +138,16 @@ public interface  StaffService {
      */
     void retireEmployee(String userId, String retmtRsn, String loginUserId);
     
+    /**
+     * 직원 목록 동적 검색 + 서버 페이징 (keyword, year, status, deptCd, jbgrCd, emplTypeCd, page, screenSize)
+     */
+    PageResponse<EmployeeDetailDto> searchEmployeeList(PaginationInfo<Map<String, Object>> paging);
+
+    /**
+     * 학생 목록 동적 검색 (keyword, year, userRole, enable)
+     */
+    PageResponse<MemberDto> searchStudentList(PaginationInfo<Map<String, Object>> paging);
+
     /**
      * 학생 리스트 조회
      * @return
