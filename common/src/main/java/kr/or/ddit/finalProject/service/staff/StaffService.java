@@ -146,7 +146,7 @@ public interface  StaffService {
     /**
      * 학생 목록 동적 검색 (keyword, year, userRole, enable)
      */
-    List<MemberDto> searchStudentList(Map<String, Object> params);
+    PageResponse<MemberDto> searchStudentList(PaginationInfo<Map<String, Object>> paging);
 
     /**
      * 학생 리스트 조회

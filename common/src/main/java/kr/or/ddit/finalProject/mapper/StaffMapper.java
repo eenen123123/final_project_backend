@@ -79,8 +79,11 @@ public interface StaffMapper {
     // 직원 전체 건수 (페이지 버튼 계산용)
     int countSearchEmployeeList(PaginationInfo<Map<String, Object>> paging);
 
-    // 학생 목록 동적 검색
-    List<MemberDto> searchStudentList(Map<String, Object> params);
+    // 학생 목록 동적 검색 (서버 페이징)
+    List<MemberDto> searchStudentList(PaginationInfo<Map<String, Object>> paging);
+
+    // 학생 전체 건수 (페이지 버튼 계산용)
+    int countSearchStudentList(PaginationInfo<Map<String, Object>> paging);
 
     // 학생 리스트 조회
     List<MemberDto> selectStudentList();
