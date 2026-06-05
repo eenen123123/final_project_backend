@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Controller
 @RequestMapping("/admin")
 @RequiredArgsConstructor
-public class principalPermissions {
+public class principalPermissionsController {
 
     private final StaffService staffService;
     private final LoginLogService loginLogService;
@@ -40,7 +40,7 @@ public class principalPermissions {
                 .filter(dto -> dto.getLogoutDt() == null)
                 .count();
 
-        model.addAttribute("employeeList", staffService.retrieveEmployeeList());
+        model.addAttribute("employeeList", staffService.retrieveActiveEmployeeList());
         model.addAttribute("lastLoginMap", lastLoginMap);
         model.addAttribute("onlineCount", onlineCount);
         model.addAttribute("departmentList", staffService.retrieveDepartmentList());

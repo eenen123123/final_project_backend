@@ -1,6 +1,10 @@
 package kr.or.ddit.finalProject.service.staff;
 
 import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -103,6 +107,14 @@ public class StaffServiceImpl implements StaffService{
     @Override
     public List<EmployeeDetailDto> retrieveEmployeeList() {
         return staffMapper.selectEmployeeList();
+    }
+
+    /**
+     * 재직 중인 직원 리스트 조회
+     */
+    @Override
+    public List<EmployeeDetailDto> retrieveActiveEmployeeList() {
+        return staffMapper.selectActiveEmployeeList();
     }
 
     /**
@@ -237,6 +249,20 @@ public class StaffServiceImpl implements StaffService{
             throw new FinalProjectException(ErrorCode.EMPLOYEE_RETIRE_FAILED, e);
         }
 
+    }
+
+    @Override
+    public PageResponse<EmployeeDetailDto> searchEmployeeList(PaginationInfo<Map<String, Object>> paging) {
+        List<EmployeeDetailDto> items = staffMapper.searchEmployeeList(paging);
+        int totalCount = staffMapper.countSearchEmployeeList(paging);
+        return new PageResponse<>(items, totalCount);
+    }
+
+    @Override
+    public PageResponse<MemberDto> searchStudentList(PaginationInfo<Map<String, Object>> paging) {
+        List<MemberDto> items = staffMapper.searchStudentList(paging);
+        int totalCOunt = staffMapper.countSearchStudentList(paging);
+        return new PageResponse<>(items, totalCOunt);
     }
 
     /**

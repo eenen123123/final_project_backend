@@ -1,5 +1,5 @@
-let selectedEmpId = null;
-let detailEditMode = false;
+var selectedEmpId = null;
+var detailEditMode = false;
 
 /* ─── 탭 전환 ─── */
 function switchEmpTab(tabId, btn) {
@@ -9,33 +9,158 @@ function switchEmpTab(tabId, btn) {
   document.getElementById(tabId).classList.add("active");
 }
 
+/* ─── 페이지 깜빡임 없는 탭 이동 ─── */
+async function navigateToEmployees(btn) {
+  btn.disabled = true;
+  try {
+    const res = await fetch('/admin/employees');
+    if (!res.ok) { location.href = '/admin/employees'; return; }
+
+    const html = await res.text();
+    const doc  = new DOMParser().parseFromString(html, 'text/html');
+    const newMain  = doc.querySelector('main');
+    const currMain = document.querySelector('main');
+    if (!newMain || !currMain) { location.href = '/admin/employees'; return; }
+
+    // 신규 CSS 로드
+    doc.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
+      const href = link.getAttribute('href');
+      if (href && !document.querySelector(`link[href="${href}"]`)) {
+        const el = document.createElement('link');
+        el.rel = 'stylesheet'; el.href = href;
+        document.head.appendChild(el);
+      }
+    });
+
+    currMain.innerHTML = newMain.innerHTML;
+
+    // 기존 학생 스크립트 제거 후 직원 스크립트 로드
+    document.querySelectorAll('script[src*="/js/staff/"]').forEach(s => s.remove());
+    for (const s of doc.querySelectorAll('script[src*="/js/staff/"]')) {
+      await new Promise(resolve => {
+        const el = document.createElement('script');
+        el.src = s.getAttribute('src');
+        el.onload = el.onerror = resolve;
+        document.head.appendChild(el);
+      });
+    }
+
+    currMain.querySelectorAll('select.hm-input:not([data-ts-defer])').forEach(el => {
+      if (!el.tomselect && window.initTomSelect) window.initTomSelect(el);
+    });
+
+    history.pushState({ url: '/admin/employees' }, doc.title || '', '/admin/employees');
+    if (doc.title) document.title = doc.title;
+
+  } catch {
+    location.href = '/admin/employees';
+  }
+}
+
 /* ─── 페이징 + 필터 + 정렬 ─── */
-let currentHrPage = 1;
-const HR_SCREEN_SIZE = 7;
-const HR_BLOCK_SIZE = 5;
-let hrSortCol = null;
-let hrSortAsc = true;
-let hrFilteredRows = null;
+var currentHrPage = 1;
+var HR_SCREEN_SIZE = 7;
+var HR_BLOCK_SIZE = 5;
+var hrSortCol = null;
+var hrSortAsc = true;
+var hrFilteredRows = null;
+
+var filterDebounceTimer = null;
 
 function filterHrList() {
-  const keyword = document.getElementById("hr-search").value.trim().toLowerCase();
+  clearTimeout(filterDebounceTimer);
+  filterDebounceTimer = setTimeout(() => doFilterHrList(1), 300);
+}
+
+async function doFilterHrList(page) {
+  page = page || 1;
+  currentHrPage = page;
+  const keyword = document.getElementById("hr-search").value.trim();
   const year    = document.getElementById("hr-year").value;
   const type    = document.getElementById("hr-type-filter").value;
   const status  = document.getElementById("hr-status-filter").value;
-  currentHrPage = 1;
 
-  const allRows = Array.from(document.querySelectorAll("#hr-table-body .hr-data-row"));
+  const params = new URLSearchParams();
+  if (keyword) params.set("keyword",  keyword);
+  if (year)    params.set("year",     year);
+  if (type)    params.set("userRole", type);
+  if (status)  params.set("enable",   status);
+  if (hrSortCol) {
+    params.set("orderBy",        hrSortCol);
+    params.set("orderDirection", hrSortAsc ? "ASC" : "DESC");
+  }
+  params.set("page",       page);
+  params.set("screenSize", HR_SCREEN_SIZE);
 
-  hrFilteredRows = allRows.filter((r) => {
-    if (keyword && !(r.dataset.name || "").toLowerCase().includes(keyword)) return false;
-    if (year   && !(r.dataset.join || "").startsWith(year))                  return false;
-    if (type   && r.dataset.type   !== type)                                  return false;
-    if (status && r.dataset.enable !== status)                                return false;
-    return true;
-  });
+  try {
+    const res  = await fetch("/admin/employees/students/search?" + params);
+    const data = await res.json();
+    renderStudentTable(data.items, data.totalCount);
+  } catch (e) {
+    console.error("학생 검색 실패:", e);
+  }
+}
 
-  if (hrSortCol) applyHrSort(hrFilteredRows);
-  applyHrPaging();
+function escHtml(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function renderStudentTable(students, totalCount) {
+  const tbody = document.getElementById("hr-table-body");
+  if (!students || students.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-sm text-slate-400">등록된 학생이 없습니다.</td></tr>';
+    renderHrPagination(0);
+    return;
+  }
+
+  tbody.innerHTML = students.map(stu => {
+    const pro  = stu.userProfile || "";
+    const nm   = stu.userName || "";
+    const uid  = stu.userId || "";
+    const jn   = stu.joinDt ? String(stu.joinDt).substring(0, 10) : "";
+    const en   = stu.enable || "";
+    const role = stu.userRole || "";
+    const addr = (stu.userAddr || "") + (stu.userDaddr ? " " + stu.userDaddr : "");
+
+    const typeNm  = { "ROLE_USER":"일반","ROLE_STUDENT":"오프라인" }[role] || "-";
+    const statNm  = en === "Y" ? "정상" : "탈퇴";
+    const statCls = en === "Y" ? "status-active" : "status-resigned";
+    const avatar  = (pro && pro.startsWith("http"))
+      ? `<img src="${escHtml(pro)}" class="w-7 h-7 rounded-lg object-cover" alt="프로필">`
+      : `<div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-xs font-bold text-[#3b82f6]">${escHtml(nm.charAt(0))}</div>`;
+
+    return `<tr class="hr-data-row hover:bg-slate-50 transition-colors"
+      data-id="${escHtml(uid)}" data-name="${escHtml(nm)}"
+      data-email="${escHtml(stu.userEmailAddr||"")}" data-phone="${escHtml(stu.userTelno||"")}"
+      data-birthdate="${escHtml(stu.userBrdt||"")}" data-gender="${escHtml(stu.userGndrCd||"")}"
+      data-zip="${escHtml(stu.userZip||"")}" data-addr-base="${escHtml(stu.userAddr||"")}"
+      data-addr-detail="${escHtml(stu.userDaddr||"")}" data-addr="${escHtml(addr)}"
+      data-profile="${escHtml(pro)}" data-type="${escHtml(role)}"
+      data-join="${escHtml(jn)}" data-enable="${escHtml(en)}">
+      <td class="py-3 px-4">
+        <div class="flex items-center gap-2">
+          ${avatar}
+          <div>
+            <p class="font-bold text-slate-800">${escHtml(nm)}</p>
+            <p class="text-xs text-slate-400">${escHtml(uid)}</p>
+          </div>
+        </div>
+      </td>
+      <td class="py-3 px-4 text-sm text-slate-600 truncate">${typeNm}</td>
+      <td class="py-3 px-4 text-sm text-slate-600 truncate">${escHtml(stu.userEmailAddr||"-")}</td>
+      <td class="py-3 px-4 text-sm text-slate-600 whitespace-nowrap">${jn || "-"}</td>
+      <td class="py-3 px-4"><span class="status-badge ${statCls}">${statNm}</span></td>
+      <td class="py-3 px-4">
+        <button type="button" data-id="${escHtml(uid)}"
+          onclick="openDetail(this.getAttribute('data-id'))"
+          class="text-xs text-[#3b82f6] hover:underline font-semibold">상세</button>
+      </td>
+    </tr>`;
+  }).join("");
+
+  renderHrPagination(totalCount);
 }
 
 function resetHrFilter() {
@@ -56,7 +181,7 @@ function sortHrBy(col) {
   if (hrSortCol === col) hrSortAsc = !hrSortAsc;
   else { hrSortCol = col; hrSortAsc = true; }
   updateHrSortIcons(col);
-  filterHrList();
+  doFilterHrList(1);
 }
 
 function applyHrSort(rows) {
@@ -123,9 +248,7 @@ function renderHrPagination(totalCount) {
 
 function goHrPage(p) {
   const scrollY = window.scrollY;
-  currentHrPage = p;
-  applyHrPaging();
-  window.scrollTo({ top: scrollY, behavior: "instant" });
+  doFilterHrList(p).then(() => window.scrollTo({ top: scrollY, behavior: "instant" }));
 }
 
 /* ─── 전화번호 표시 포맷 ─── */
@@ -455,8 +578,8 @@ function blurValidateName(el) {
 }
 
 /* ─── 주민등록번호 관련 ─── */
-let rrnRealValue = "";
-let rrnEyeOpen  = false;
+var rrnRealValue = "";
+var rrnEyeOpen  = false;
 
 function validateRrnChecksum(digits) {
   const weights = [2, 3, 4, 5, 6, 7, 8, 9, 2, 3, 4, 5];

@@ -1,0 +1,15 @@
+<div>
+  <div id="editor"></div>
+  <input type="hidden" name="postCn" id="postCn" th:value="${qnaDto?.postCn}" />
+  <script th:src="@{/js/tiptap/tiptap-editor.iife.js}"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      TipTapEditor.mount("editor", {
+        editable: false,
+        outputInputId: "postCn",
+        initialContent: document.getElementById("postCn").value,
+        imageUrlResolver: (fileId) => `/admin/files/${fileId}/view`,
+      });
+    });
+  </script>
+</div>
