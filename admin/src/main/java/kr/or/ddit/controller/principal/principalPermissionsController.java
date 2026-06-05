@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Controller
 @RequestMapping("/admin")
 @RequiredArgsConstructor
-public class principalPermissions {
+public class principalPermissionsController {
 
     private final StaffService staffService;
     private final LoginLogService loginLogService;

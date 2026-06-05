@@ -69,10 +69,12 @@ var filterDebounceTimer = null;
 
 function filterHrList() {
   clearTimeout(filterDebounceTimer);
-  filterDebounceTimer = setTimeout(doFilterHrList, 300);
+  filterDebounceTimer = setTimeout(() => doFilterHrList(1), 300);
 }
 
-async function doFilterHrList() {
+async function doFilterHrList(page) {
+  page = page || 1;
+  currentHrPage = page;
   const keyword = document.getElementById("hr-search").value.trim();
   const year    = document.getElementById("hr-year").value;
   const type    = document.getElementById("hr-type-filter").value;
@@ -83,11 +85,17 @@ async function doFilterHrList() {
   if (year)    params.set("year",     year);
   if (type)    params.set("userRole", type);
   if (status)  params.set("enable",   status);
+  if (hrSortCol) {
+    params.set("orderBy",        hrSortCol);
+    params.set("orderDirection", hrSortAsc ? "ASC" : "DESC");
+  }
+  params.set("page",       page);
+  params.set("screenSize", HR_SCREEN_SIZE);
 
   try {
     const res  = await fetch("/admin/employees/students/search?" + params);
     const data = await res.json();
-    renderStudentTable(data);
+    renderStudentTable(data.items, data.totalCount);
   } catch (e) {
     console.error("학생 검색 실패:", e);
   }
@@ -99,12 +107,10 @@ function escHtml(s) {
     .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-function renderStudentTable(students) {
+function renderStudentTable(students, totalCount) {
   const tbody = document.getElementById("hr-table-body");
   if (!students || students.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-sm text-slate-400">등록된 학생이 없습니다.</td></tr>';
-    hrFilteredRows = [];
-    currentHrPage = 1;
     renderHrPagination(0);
     return;
   }
@@ -154,10 +160,7 @@ function renderStudentTable(students) {
     </tr>`;
   }).join("");
 
-  hrFilteredRows = Array.from(tbody.querySelectorAll(".hr-data-row"));
-  currentHrPage = 1;
-  if (hrSortCol) applyHrSort(hrFilteredRows);
-  applyHrPaging();
+  renderHrPagination(totalCount);
 }
 
 function resetHrFilter() {
@@ -178,7 +181,7 @@ function sortHrBy(col) {
   if (hrSortCol === col) hrSortAsc = !hrSortAsc;
   else { hrSortCol = col; hrSortAsc = true; }
   updateHrSortIcons(col);
-  filterHrList();
+  doFilterHrList(1);
 }
 
 function applyHrSort(rows) {
@@ -245,9 +248,7 @@ function renderHrPagination(totalCount) {
 
 function goHrPage(p) {
   const scrollY = window.scrollY;
-  currentHrPage = p;
-  applyHrPaging();
-  window.scrollTo({ top: scrollY, behavior: "instant" });
+  doFilterHrList(p).then(() => window.scrollTo({ top: scrollY, behavior: "instant" }));
 }
 
 /* ─── 전화번호 표시 포맷 ─── */
