@@ -34,6 +34,9 @@ public interface StaffMapper {
     // 직원 리스트 조회
     List<EmployeeDetailDto> selectEmployeeList();
 
+    // 재직 중인 직원 리스트 조회 (ENABLE = 'Y')
+    List<EmployeeDetailDto> selectActiveEmployeeList();
+
     // 입사 연도 목록 조회 (중복 제거)
     List<Integer> selectJoinYearList();
 

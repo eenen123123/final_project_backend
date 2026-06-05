@@ -106,6 +106,14 @@ public class StaffServiceImpl implements StaffService{
     }
 
     /**
+     * 재직 중인 직원 리스트 조회
+     */
+    @Override
+    public List<EmployeeDetailDto> retrieveActiveEmployeeList() {
+        return staffMapper.selectActiveEmployeeList();
+    }
+
+    /**
      * 입사 연도 목록 조회
      */
     @Override
