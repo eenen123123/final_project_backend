@@ -1,6 +1,7 @@
 package kr.or.ddit.finalProject.service.staff;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -134,6 +135,16 @@ public interface  StaffService {
      */
     void retireEmployee(String userId, String retmtRsn, String loginUserId);
     
+    /**
+     * 직원 목록 동적 검색 (keyword, year, status, deptCd, jbgrCd, emplTypeCd)
+     */
+    List<EmployeeDetailDto> searchEmployeeList(Map<String, Object> params);
+
+    /**
+     * 학생 목록 동적 검색 (keyword, year, userRole, enable)
+     */
+    List<MemberDto> searchStudentList(Map<String, Object> params);
+
     /**
      * 학생 리스트 조회
      * @return

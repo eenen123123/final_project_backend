@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
+import java.util.HashMap;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -144,6 +145,28 @@ public class StaffEmployeesController {
         }
 
         return "redirect:/admin/employees?success=" + URLEncoder.encode("직원이 성공적으로 등록되었습니다.", StandardCharsets.UTF_8);
+    }
+
+    /**
+     * 직원 목록 동적 검색 (AJAX)
+     */
+    @GetMapping("/employees/search")
+    @ResponseBody
+    public ResponseEntity<List<EmployeeDetailDto>> searchEmployees(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String year,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String deptCd,
+            @RequestParam(required = false) String jbgrCd,
+            @RequestParam(required = false) String emplTypeCd) {
+        Map<String, Object> params = new HashMap<>();
+        if (keyword != null && !keyword.isBlank())    params.put("keyword",    keyword.trim());
+        if (year != null && !year.isBlank())          params.put("year",       year.trim());
+        if (status != null && !status.isBlank())      params.put("status",     status.trim());
+        if (deptCd != null && !deptCd.isBlank())      params.put("deptCd",     deptCd.trim());
+        if (jbgrCd != null && !jbgrCd.isBlank())      params.put("jbgrCd",     jbgrCd.trim());
+        if (emplTypeCd != null && !emplTypeCd.isBlank()) params.put("emplTypeCd", emplTypeCd.trim());
+        return ResponseEntity.ok(staffService.searchEmployeeList(params));
     }
 
     /**

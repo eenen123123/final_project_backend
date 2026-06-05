@@ -71,32 +71,109 @@ var hrSortCol = null;
 var hrSortAsc = true;
 var hrFilteredRows = null;
 
+var filterDebounceTimer = null;
+
 function filterHrList() {
-  const keyword = document
-    .getElementById("hr-search")
-    .value.trim()
-    .toLowerCase();
-  const year = document.getElementById("hr-year").value;
+  clearTimeout(filterDebounceTimer);
+  filterDebounceTimer = setTimeout(doFilterHrList, 300);
+}
+
+async function doFilterHrList() {
+  const keyword   = document.getElementById("hr-search").value.trim();
+  const year      = document.getElementById("hr-year").value;
+  const status    = document.getElementById("hr-status-filter").value;
+  const deptCd    = document.getElementById("hr-dept-filter").value;
+  const jbgrCd    = document.getElementById("hr-role-filter").value;
+  const emplType  = document.getElementById("hr-type-filter").value;
+
+  const params = new URLSearchParams();
+  if (keyword)   params.set("keyword",    keyword);
+  if (year)      params.set("year",       year);
+  if (status)    params.set("status",     status);
+  if (deptCd)    params.set("deptCd",     deptCd);
+  if (jbgrCd)    params.set("jbgrCd",     jbgrCd);
+  if (emplType)  params.set("emplTypeCd", emplType);
+
+  try {
+    const res  = await fetch("/admin/employees/search?" + params);
+    const data = await res.json();
+    renderEmployeeTable(data);
+  } catch (e) {
+    console.error("직원 검색 실패:", e);
+  }
+}
+
+function escHtml(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function renderEmployeeTable(employees) {
+  const tbody = document.getElementById("hr-table-body");
+  if (!employees || employees.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-10 text-sm text-slate-400">등록된 직원이 없습니다.</td></tr>';
+    hrFilteredRows = [];
+    currentHrPage = 1;
+    renderHrPagination(0);
+    return;
+  }
+
+  tbody.innerHTML = employees.map(emp => {
+    const m   = emp.member || {};
+    const ei  = emp.employeeInfo || {};
+    const uid = emp.userId || "";
+    const nm  = m.userName || "";
+    const pro = m.userProfile || "";
+    const jn  = ei.joinYmd   ? String(ei.joinYmd).substring(0, 10)   : "";
+    const et  = (ei.emplTypeCd || "").trim();
+    const es  = ei.emplStatCd || "";
+    const ct  = ei.ctrctEndYmd ? String(ei.ctrctEndYmd).substring(0, 10) : "";
+    const addr = (m.userAddr || "") + (m.userDaddr ? " " + m.userDaddr : "");
+
+    const typeNm  = { "01":"정규직","02":"계약직","03":"파트타임" }[et] || "-";
+    const statNm  = { "01":"재직","02":"휴직","03":"퇴사" }[es] || "미등록";
+    const statCls = { "01":"status-active","02":"status-leave","03":"status-resigned" }[es] || "status-resigned";
+    const avatar  = (pro && pro.startsWith("http"))
+      ? `<img src="${escHtml(pro)}" class="w-7 h-7 rounded-lg object-cover" alt="프로필">`
+      : `<div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-xs font-bold text-[#3b82f6]">${escHtml(nm.charAt(0))}</div>`;
+
+    return `<tr class="hr-data-row hover:bg-slate-50 transition-colors"
+      data-id="${escHtml(uid)}" data-name="${escHtml(nm)}" data-grade="${escHtml(emp.jbgrNm||"")}"
+      data-grade-cd="${escHtml(ei.jbgrCd||"")}" data-join="${escHtml(jn)}" data-type="${escHtml(et)}"
+      data-dept="${escHtml(emp.deptCd||"")}" data-dept-nm="${escHtml(emp.deptNm||"")}"
+      data-status="${escHtml(es)}" data-phone="${escHtml(m.userTelno||"")}"
+      data-email="${escHtml(m.userEmailAddr||"")}" data-birthdate="${escHtml(m.userBrdt||"")}"
+      data-gender="${escHtml(m.userGndrCd||"")}" data-zip="${escHtml(m.userZip||"")}"
+      data-addr-base="${escHtml(m.userAddr||"")}" data-addr-detail="${escHtml(m.userDaddr||"")}"
+      data-addr="${escHtml(addr)}" data-contract-end="${escHtml(ct)}"
+      data-duty="${escHtml(ei.chrgDutyCn||"")}" data-salary="${escHtml(emp.baseSalary||"")}"
+      data-profile="${escHtml(pro)}">
+      <td class="py-3 px-4">
+        <div class="flex items-center gap-2">
+          ${avatar}
+          <div>
+            <p class="font-bold text-slate-800">${escHtml(nm)}</p>
+            <p class="text-xs text-slate-400">${escHtml(uid)}</p>
+          </div>
+        </div>
+      </td>
+      <td class="py-3 px-4 text-sm text-slate-600 truncate">${escHtml(emp.deptNm||"-")}</td>
+      <td class="py-3 px-4"><span class="text-sm text-slate-600 block truncate">${escHtml(emp.jbgrNm||"-")}</span></td>
+      <td class="py-3 px-4 text-sm text-slate-600 whitespace-nowrap">${typeNm}</td>
+      <td class="py-3 px-4 text-sm text-slate-600 whitespace-nowrap">${jn || "-"}</td>
+      <td class="py-3 px-4 text-sm text-slate-600 truncate">${ct || "-"}</td>
+      <td class="py-3 px-4"><span class="status-badge ${statCls}">${statNm}</span></td>
+      <td class="py-3 px-4">
+        <button type="button" data-id="${escHtml(uid)}"
+          onclick="openDetail(this.getAttribute('data-id'))"
+          class="text-xs text-[#3b82f6] hover:underline font-semibold">상세</button>
+      </td>
+    </tr>`;
+  }).join("");
+
+  hrFilteredRows = Array.from(tbody.querySelectorAll(".hr-data-row"));
   currentHrPage = 1;
-  const status = document.getElementById("hr-status-filter").value;
-  const dept = document.getElementById("hr-dept-filter").value;
-  const role = document.getElementById("hr-role-filter").value;
-  const type = document.getElementById("hr-type-filter").value;
-  const allRows = Array.from(
-    document.querySelectorAll("#hr-table-body .hr-data-row"),
-  );
-
-  hrFilteredRows = allRows.filter((r) => {
-    if (keyword && !(r.dataset.name || "").toLowerCase().includes(keyword))
-      return false;
-    if (year && !(r.dataset.join || "").startsWith(year)) return false;
-    if (status && r.dataset.status !== status) return false;
-    if (dept && r.dataset.dept !== dept) return false;
-    if (role && r.dataset.gradeCd !== role) return false;
-    if (type && (r.dataset.type || "").trim() !== type) return false;
-    return true;
-  });
-
   if (hrSortCol) applyHrSort(hrFilteredRows);
   applyHrPaging();
 }

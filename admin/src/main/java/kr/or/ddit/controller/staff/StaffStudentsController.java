@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -70,6 +71,24 @@ public class StaffStudentsController {
         model.addAttribute("joinYearList", joinYearList);
 
         return "admin:/staff/students";
+    }
+
+    /**
+     * 학생 목록 동적 검색 (AJAX)
+     */
+    @GetMapping("/employees/students/search")
+    @ResponseBody
+    public ResponseEntity<List<MemberDto>> searchStudents(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String year,
+            @RequestParam(required = false) String userRole,
+            @RequestParam(required = false) String enable) {
+        Map<String, Object> params = new HashMap<>();
+        if (keyword != null && !keyword.isBlank())  params.put("keyword",  keyword.trim());
+        if (year != null && !year.isBlank())        params.put("year",     year.trim());
+        if (userRole != null && !userRole.isBlank()) params.put("userRole", userRole.trim());
+        if (enable != null && !enable.isBlank())    params.put("enable",   enable.trim());
+        return ResponseEntity.ok(staffService.searchStudentList(params));
     }
 
     /**

@@ -1,6 +1,7 @@
 package kr.or.ddit.finalProject.mapper;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -69,6 +70,12 @@ public interface StaffMapper {
 
     // 퇴사 처리: EMPLOYEE_SALARY 현재 급여 비활성화
     int updateEmployeeSalaryInactive(@Param("userId") String userId, @Param("loginUserId") String loginUserId);
+
+    // 직원 목록 동적 검색
+    List<EmployeeDetailDto> searchEmployeeList(Map<String, Object> params);
+
+    // 학생 목록 동적 검색
+    List<MemberDto> searchStudentList(Map<String, Object> params);
 
     // 학생 리스트 조회
     List<MemberDto> selectStudentList();

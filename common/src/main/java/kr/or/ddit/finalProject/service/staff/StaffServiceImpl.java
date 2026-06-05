@@ -1,6 +1,7 @@
 package kr.or.ddit.finalProject.service.staff;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -245,6 +246,16 @@ public class StaffServiceImpl implements StaffService{
             throw new FinalProjectException(ErrorCode.EMPLOYEE_RETIRE_FAILED, e);
         }
 
+    }
+
+    @Override
+    public List<EmployeeDetailDto> searchEmployeeList(Map<String, Object> params) {
+        return staffMapper.searchEmployeeList(params);
+    }
+
+    @Override
+    public List<MemberDto> searchStudentList(Map<String, Object> params) {
+        return staffMapper.searchStudentList(params);
     }
 
     /**
