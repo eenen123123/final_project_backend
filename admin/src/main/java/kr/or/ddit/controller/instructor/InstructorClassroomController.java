@@ -59,12 +59,13 @@ public class InstructorClassroomController {
     @GetMapping("/detail/{classSn}")
     public String classroomDetail(@PathVariable Long classSn, Model model) {
         model.addAttribute("classroom",         classroomService.retrieveClassroomDetail(classSn));
-        model.addAttribute("weeklyData",        classroomHomeService.retrieveWeeklyData(classSn));
-        model.addAttribute("weeklyCompareText", classroomHomeService.retrieveWeeklyCompareText(classSn));
-        model.addAttribute("achievements",      classroomHomeService.retrieveAchievements(classSn));
-        model.addAttribute("assignmentCount",   classroomHomeService.retrieveUpcomingAssignmentCount(classSn));
-        model.addAttribute("todayQuestion",     classroomHomeService.retrieveTodayQuestion(classSn));
-        model.addAttribute("noticeCount",       0);
+        model.addAttribute("weeklyData",           classroomHomeService.retrieveWeeklyData(classSn));
+        model.addAttribute("weeklyCompareText",    classroomHomeService.retrieveWeeklyCompareText(classSn));
+        model.addAttribute("achievements",         classroomHomeService.retrieveAchievements(classSn));
+        model.addAttribute("assignmentCount",      classroomHomeService.retrieveUpcomingAssignmentCount(classSn));
+        model.addAttribute("todayQuestion",        classroomHomeService.retrieveTodayQuestion(classSn));
+        model.addAttribute("noticeCount",          0);
+        model.addAttribute("unansweredQnaCount",   instructorBoardService.getUnansweredQnaCount(classSn));
         return "instructor/classroom-home";
     }
 

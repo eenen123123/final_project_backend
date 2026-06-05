@@ -249,4 +249,14 @@
             WHERE POST_SN = #{postSn}
       </update>
 
+      <select id="selectUnansweredQnaCount" resultType="int">
+            SELECT COUNT(*)
+            FROM INSTRUCTOR_BOARD IB
+                 INNER JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
+            WHERE IB.CLASS_SN      = #{classSn}
+              AND IB.BOARD_TYPE_CD = '03'
+              AND IB.USE_YN        = 'Y'
+              AND IQ.ANSW_YN       = 'N'
+      </select>
+
 </mapper>
