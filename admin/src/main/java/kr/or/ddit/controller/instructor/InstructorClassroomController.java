@@ -92,4 +92,39 @@ public class InstructorClassroomController {
         instructorBoardService.deleteClassroomNotice(postSn, classSn);
         return "redirect:/instructor/classroom/detail/" + classSn + "/notice";
     }
+
+    // ── Q&A ──────────────────────────────────────────────────────
+
+    @GetMapping("/detail/{classSn}/qna")
+    public String qnaList(@PathVariable Long classSn, Model model) {
+        model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
+        model.addAttribute("qnaList", instructorBoardService.getClassroomQnaList(classSn));
+        return "instructor/classroom-qna";
+    }
+
+    @GetMapping("/detail/{classSn}/qna/{postSn}")
+    public String qnaDetail(@PathVariable Long classSn, @PathVariable Long postSn, Model model) {
+        model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
+        model.addAttribute("qna", instructorBoardService.getClassroomQnaDetail(postSn, classSn));
+        return "instructor/classroom-qna-detail";
+    }
+
+    @PostMapping("/detail/{classSn}/qna/write")
+    public String qnaWrite(@PathVariable Long classSn,
+                           @ModelAttribute InstructorBoardDto dto,
+                           Authentication authentication) {
+        dto.setClassSn(classSn);
+        dto.setInstrUserId(authentication.getName());
+        dto.setWrtrUserId(authentication.getName());
+        instructorBoardService.insertClassroomQna(dto);
+        return "redirect:/instructor/classroom/detail/" + classSn + "/qna";
+    }
+
+    @PostMapping("/detail/{classSn}/qna/{postSn}/answer")
+    public String qnaAnswer(@PathVariable Long classSn, @PathVariable Long postSn,
+                            @org.springframework.web.bind.annotation.RequestParam String answCn,
+                            Authentication authentication) {
+        instructorBoardService.answerClassroomQna(postSn, authentication.getName(), answCn);
+        return "redirect:/instructor/classroom/detail/" + classSn + "/qna/" + postSn;
+    }
 }

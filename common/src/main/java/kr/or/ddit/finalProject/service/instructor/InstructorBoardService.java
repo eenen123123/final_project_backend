@@ -46,4 +46,14 @@ public interface InstructorBoardService {
     int insertClassroomNotice(InstructorBoardDto dto);
 
     int deleteClassroomNotice(Long postSn, Long classSn);
+
+    // ── 클래스룸 Q&A ──────────────────────────────────────────────
+
+    List<kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto> getClassroomQnaList(Long classSn);
+
+    kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto getClassroomQnaDetail(Long postSn, Long classSn);
+
+    void insertClassroomQna(InstructorBoardDto dto);
+
+    void answerClassroomQna(Long postSn, String answrUserId, String answCn);
 }

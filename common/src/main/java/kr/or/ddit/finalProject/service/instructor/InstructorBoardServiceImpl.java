@@ -121,4 +121,28 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
         return instructorBoardMapper.deleteClassroomNotice(postSn, classSn);
     }
 
+    // ── 클래스룸 Q&A ──────────────────────────────────────────────
+
+    @Override
+    public List<kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto> getClassroomQnaList(Long classSn) {
+        return instructorBoardMapper.selectClassroomQnaList(classSn);
+    }
+
+    @Override
+    public kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto getClassroomQnaDetail(Long postSn, Long classSn) {
+        return instructorBoardMapper.selectClassroomQnaDetail(postSn, classSn);
+    }
+
+    @Override
+    public void insertClassroomQna(InstructorBoardDto dto) {
+        dto.setBoardTypeCd("03");
+        instructorBoardMapper.insertClassroomQnaBoard(dto);
+        instructorBoardMapper.insertClassroomQnaChild(dto.getPostSn());
+    }
+
+    @Override
+    public void answerClassroomQna(Long postSn, String answrUserId, String answCn) {
+        instructorBoardMapper.updateClassroomQnaAnswer(postSn, answrUserId, answCn);
+    }
+
 }

@@ -31,4 +31,18 @@ public interface InstructorBoardMapper {
     int insertClassroomNotice(InstructorBoardDto dto);
 
     int deleteClassroomNotice(@Param("postSn") Long postSn, @Param("classSn") Long classSn);
+
+    // ── 클래스룸 Q&A ──────────────────────────────────────────────
+
+    List<kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto> selectClassroomQnaList(@Param("classSn") Long classSn);
+
+    kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto selectClassroomQnaDetail(@Param("postSn") Long postSn, @Param("classSn") Long classSn);
+
+    int insertClassroomQnaBoard(InstructorBoardDto dto);
+
+    int insertClassroomQnaChild(@Param("postSn") Long postSn);
+
+    int updateClassroomQnaAnswer(@Param("postSn") Long postSn,
+                                 @Param("answrUserId") String answrUserId,
+                                 @Param("answCn") String answCn);
 }

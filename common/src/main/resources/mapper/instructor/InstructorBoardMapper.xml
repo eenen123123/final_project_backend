@@ -177,4 +177,76 @@
               AND CLASS_SN = #{classSn}
       </update>
 
+      <!-- ── 클래스룸 Q&A ──────────────────────────────────────── -->
+
+      <resultMap id="classroomQnaMap" type="kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto"
+                 extends="instructorBoardMap">
+            <result property="answYn"      column="ANSW_YN"/>
+            <result property="secrYn"      column="SECR_YN"/>
+            <result property="answCn"      column="ANSW_CN"/>
+            <result property="answrUserId" column="ANSWR_USER_ID"/>
+            <result property="answrUserNm" column="ANSWR_USER_NM"/>
+            <result property="answDt"      column="ANSW_DT"/>
+      </resultMap>
+
+      <select id="selectClassroomQnaList" resultMap="classroomQnaMap">
+            SELECT
+                  IB.POST_SN, IB.INSTR_USER_ID, IB.WRTR_USER_ID,
+                  IB.POST_SJ, IB.INQ_CNT, IB.REG_DT, IB.USE_YN,
+                  IB.CLASS_SN,
+                  M.USER_NAME,
+                  IQ.ANSW_YN, IQ.SECR_YN
+            FROM INSTRUCTOR_BOARD IB
+                  INNER JOIN MEMBER M  ON IB.WRTR_USER_ID = M.USER_ID
+                  LEFT  JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
+            WHERE IB.CLASS_SN      = #{classSn}
+              AND IB.BOARD_TYPE_CD = '03'
+              AND IB.USE_YN        = 'Y'
+            ORDER BY IB.REG_DT DESC
+      </select>
+
+      <select id="selectClassroomQnaDetail" resultMap="classroomQnaMap">
+            SELECT
+                  IB.POST_SN, IB.INSTR_USER_ID, IB.WRTR_USER_ID,
+                  IB.POST_SJ, IB.POST_CN, IB.INQ_CNT, IB.REG_DT, IB.USE_YN,
+                  IB.CLASS_SN,
+                  M.USER_NAME,
+                  IQ.ANSW_YN, IQ.SECR_YN,
+                  IQ.ANSW_CN, IQ.ANSWR_USER_ID, IQ.ANSW_DT,
+                  AM.USER_NAME AS ANSWR_USER_NM
+            FROM INSTRUCTOR_BOARD IB
+                  INNER JOIN MEMBER M   ON IB.WRTR_USER_ID  = M.USER_ID
+                  LEFT  JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
+                  LEFT  JOIN MEMBER AM  ON IQ.ANSWR_USER_ID = AM.USER_ID
+            WHERE IB.POST_SN  = #{postSn}
+              AND IB.CLASS_SN = #{classSn}
+              AND IB.USE_YN   = 'Y'
+      </select>
+
+      <insert id="insertClassroomQnaBoard" useGeneratedKeys="true" keyProperty="postSn" keyColumn="POST_SN">
+            INSERT INTO INSTRUCTOR_BOARD (
+                  INSTR_USER_ID, WRTR_USER_ID, BOARD_TYPE_CD,
+                  CLASS_SN, POST_SJ, POST_CN,
+                  INQ_CNT, USE_YN, REG_DT, MDFCN_DT, RGTR_ID, LAST_MDFR_ID
+            ) VALUES (
+                  #{instrUserId}, #{wrtrUserId}, '03',
+                  #{classSn}, #{postSj}, #{postCn},
+                  0, 'Y', SYSDATE, SYSDATE, #{wrtrUserId}, #{wrtrUserId}
+            )
+      </insert>
+
+      <insert id="insertClassroomQnaChild">
+            INSERT INTO INSTRUCTOR_QNA (POST_SN, ANSW_YN, SECR_YN)
+            VALUES (#{postSn}, 'N', 'N')
+      </insert>
+
+      <update id="updateClassroomQnaAnswer">
+            UPDATE INSTRUCTOR_QNA
+            SET ANSW_CN       = #{answCn},
+                ANSWR_USER_ID = #{answrUserId},
+                ANSW_DT       = SYSDATE,
+                ANSW_YN       = 'Y'
+            WHERE POST_SN = #{postSn}
+      </update>
+
 </mapper>
