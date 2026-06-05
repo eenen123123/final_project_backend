@@ -97,7 +97,13 @@ public enum ErrorCode {
     MEMBER_REGISTER_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "회원 등록에 실패했습니다."),
     MEMBER_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "회원 정보 수정에 실패했습니다."),
     MEMBER_RETIRE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "회원 탈퇴 처리에 실패했습니다."),
-    MEMBER_ALREADY_RETIRED(HttpStatus.BAD_REQUEST, "이미 탈퇴 처리된 회원입니다.");
+    MEMBER_ALREADY_RETIRED(HttpStatus.BAD_REQUEST, "이미 탈퇴 처리된 회원입니다."),
+    // 문항 관련
+    QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "문항을 찾을 수 없습니다."),
+    QUESTION_ACCESS_DENIED(HttpStatus.FORBIDDEN, "본인이 등록한 문항만 수정·삭제할 수 있습니다."),
+    // 시험 관련
+    EXAM_NOT_FOUND(HttpStatus.NOT_FOUND, "시험을 찾을 수 없습니다."),
+    EXAM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "본인이 등록한 시험만 수정·삭제할 수 있습니다.");
 
     // =============================
     private final HttpStatus status;
