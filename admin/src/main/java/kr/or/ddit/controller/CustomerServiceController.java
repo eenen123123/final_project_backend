@@ -25,12 +25,14 @@ import kr.or.ddit.finalProject.dto.board.req.DataRoomSearchCondition;
 import kr.or.ddit.finalProject.dto.board.req.FaqSearchCondition;
 import kr.or.ddit.finalProject.dto.board.req.NoticeSearchCondition;
 import kr.or.ddit.finalProject.dto.board.req.QnaSearchCondition;
+import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
 import kr.or.ddit.finalProject.service.board.dataroom.DataRoomService;
 import kr.or.ddit.finalProject.service.board.faq.FaqService;
 import kr.or.ddit.finalProject.service.board.notice.NoticeService;
 import kr.or.ddit.finalProject.service.board.qna.QnaService;
 import kr.or.ddit.finalProject.service.file.CloudinaryUploadService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,20 +48,80 @@ public class CustomerServiceController {
     private final DataRoomService dataRoomService;
     private final CloudinaryUploadService cloudinaryUploadService;
 
-    private static final int ADMIN_ALL = 500;
-
     @GetMapping("/customer-service")
     public String customerService(Model model) {
         model.addAttribute("pageTitle", "고객센터 관리 | HERMES");
-        model.addAttribute("faqList",
-                faqService.getList(allOf(new FaqSearchCondition())).getItems());
-        model.addAttribute("noticeList",
-                noticeService.getList(allOf(new NoticeSearchCondition())).getItems());
-        model.addAttribute("qnaList",
-                qnaService.getList(allOf(new QnaSearchCondition())).getItems());
-        model.addAttribute("dataRoomList",
-                dataRoomService.getList(allOf(new DataRoomSearchCondition())).getItems());
         return "admin:/board/customer_service";
+    }
+
+    // ── 비동기 목록 API (JSON) ────────────────────────────
+    @ResponseBody
+    @GetMapping("/faq/paged")
+    public ResponseEntity<PageResponse<FaqDto>> faqPaged(@RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String faqCtgCd) {
+        PaginationInfo<FaqSearchCondition> pi = new PaginationInfo<>(size, 5, page);
+        pi.setDetailCondition(new FaqSearchCondition(keyword, faqCtgCd, null));
+        return ResponseEntity.ok(faqService.getList(pi));
+    }
+
+    @ResponseBody
+    @GetMapping("/notice/paged")
+    public ResponseEntity<PageResponse<NoticeDto>> noticePaged(
+            @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String noticeTypeCd) {
+        PaginationInfo<NoticeSearchCondition> pi = new PaginationInfo<>(size, 5, page);
+        pi.setDetailCondition(new NoticeSearchCondition(keyword, noticeTypeCd));
+        return ResponseEntity.ok(noticeService.getList(pi));
+    }
+
+    @ResponseBody
+    @GetMapping("/qna/paged")
+    public ResponseEntity<PageResponse<QnaDto>> qnaPaged(@RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String qnaCtgCd,
+            @RequestParam(required = false) String answStatCd) {
+        PaginationInfo<QnaSearchCondition> pi = new PaginationInfo<>(size, 5, page);
+        pi.setDetailCondition(new QnaSearchCondition(keyword, qnaCtgCd, answStatCd, null));
+        return ResponseEntity.ok(qnaService.getList(pi));
+    }
+
+    @ResponseBody
+    @GetMapping("/dataroom/paged")
+    public ResponseEntity<PageResponse<DataRoomDto>> dataRoomPaged(
+            @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String dataCtg) {
+        PaginationInfo<DataRoomSearchCondition> pi = new PaginationInfo<>(size, 5, page);
+        pi.setDetailCondition(new DataRoomSearchCondition(keyword, dataCtg));
+        return ResponseEntity.ok(dataRoomService.getList(pi));
+    }
+
+    // ── FAQ 상세 ─────────────────────────────────────────
+    @GetMapping("/faq/{postSn}")
+    public String faqDetail(@PathVariable Long postSn, Model model) {
+        model.addAttribute("pageTitle", "FAQ 상세 | HERMES");
+        model.addAttribute("faq", faqService.getById(postSn, null));
+        return "admin:/board/faq/faq_detail";
+    }
+
+    // ── 공지사항 상세 ─────────────────────────────────────
+    @GetMapping("/notice/{postSn}")
+    public String noticeDetail(@PathVariable Long postSn, Model model) {
+        model.addAttribute("pageTitle", "공지사항 상세 | HERMES");
+        model.addAttribute("notice", noticeService.getById(postSn, null));
+        return "admin:/board/notice/notice_detail";
+    }
+
+    // ── 자료실 상세 ──────────────────────────────────────
+    @GetMapping("/dataroom/{postSn}")
+    public String dataRoomDetail(@PathVariable Long postSn, Model model) {
+        model.addAttribute("pageTitle", "자료실 상세 | HERMES");
+        model.addAttribute("dataRoom", dataRoomService.getById(postSn, null));
+        return "admin:/board/dataroom/dataroom_detail";
     }
 
     // ── 에디터 이미지 업로드 ──────────────────────────────
@@ -219,12 +281,6 @@ public class CustomerServiceController {
     public String dataRoomDelete(@PathVariable Long postSn) {
         dataRoomService.delete(postSn);
         return "redirect:/admin/board/customer-service?tab=tab-dataroom";
-    }
-
-    private <C> PaginationInfo<C> allOf(C condition) {
-        PaginationInfo<C> info = new PaginationInfo<>(ADMIN_ALL, 1, 1);
-        info.setDetailCondition(condition);
-        return info;
     }
 
     private static final Safelist TOAST_SAFELIST = Safelist.relaxed()
