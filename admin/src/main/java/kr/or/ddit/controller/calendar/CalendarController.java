@@ -1,6 +1,6 @@
 package kr.or.ddit.controller.calendar;
 
-import kr.or.ddit.finalProject.batch.HolidayBatchService;
+//import kr.or.ddit.finalProject.batch.HolidayBatchService;
 import kr.or.ddit.finalProject.dto.calendar.CalendarEventDto;
 import kr.or.ddit.finalProject.service.calendar.CalendarEventService;
 import lombok.RequiredArgsConstructor;
@@ -17,22 +17,14 @@ import org.springframework.web.bind.annotation.*;
 public class CalendarController {
 
     private final CalendarEventService calendarEventService;
-    private final HolidayBatchService holidayBatchService;
+//    private final HolidayBatchService holidayBatchService;
 
     // ── 캘린더 관리 메인 페이지 ───────────────────────────
     @GetMapping
     public String calendarMain(Model model) {
         model.addAttribute("pageTitle", "캘린더 관리 | HERMES");
-        model.addAttribute("eventList", calendarEventService.getCalendarEventList()); // 파라미터 없이
+        model.addAttribute("eventList", calendarEventService.getCalendarEventList());
         return "admin:/calendar/calendar_main";
-    }
-
-    // ── 등록 폼 ──────────────────────────────────────────
-    @GetMapping("/write")
-    public String writeForm(Model model, Authentication authentication) {
-        model.addAttribute("pageTitle", "일정 등록 | HERMES");
-        model.addAttribute("currentUser", authentication.getName());
-        return "admin:/calendar/calendar_write";
     }
 
     // ── 등록 처리 ─────────────────────────────────────────
@@ -41,14 +33,6 @@ public class CalendarController {
         dto.setRegUserId(authentication.getName());
         calendarEventService.insertCalendarEvent(dto);
         return "redirect:/admin/calendar";
-    }
-
-    // ── 수정 폼 ──────────────────────────────────────────
-    @GetMapping("/edit/{eventSn}")
-    public String editForm(@PathVariable Long eventSn, Model model) {
-        model.addAttribute("pageTitle", "일정 수정 | HERMES");
-        model.addAttribute("event", calendarEventService.getCalendarEvent(eventSn));
-        return "admin:/calendar/calendar_edit";
     }
 
     // ── 수정 처리 ─────────────────────────────────────────
@@ -68,13 +52,12 @@ public class CalendarController {
         return "redirect:/admin/calendar";
     }
 
-    // 배치 수동 실행 (테스트용)
-    @GetMapping("/batch/holiday/{year}")
-    @ResponseBody
-    public String runHolidayBatch(@PathVariable int year) {
-        holidayBatchService.fetchAndSaveHolidays(year);
-        return year + "년 공휴일 배치 완료";
-    }
-
+    // ── 공휴일 배치 수동 실행 (테스트용) ──────────────────
+//    @GetMapping("/batch/holiday/{year}")
+//    @ResponseBody
+//    public String runHolidayBatch(@PathVariable int year) {
+//        holidayBatchService.fetchAndSaveHolidays(year);
+//        return year + "년 공휴일 배치 완료";
+//    }
 
 }

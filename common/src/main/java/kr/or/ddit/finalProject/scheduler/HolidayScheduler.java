@@ -8,6 +8,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+/**
+ * 공휴일 배치 수동 실행 엔드포인트
+ *
+ * 공공데이터 API(한국천문연구원_특일 정보)를 호출하여 해당 연도의 공휴일 데이터를 CALENDAR_EVENT 테이블에 저장합니다.
+ *
+ * ※ 스케줄러(HolidayScheduler)가 매년 1월 1일 00:10 자동 실행하므로 데이터 누락 또는 최초 적재 시에만 사용할 것
+ *
+ * 사용법: GET /admin/calendar/batch/holiday/{year} 예시 : GET /admin/calendar/batch/holiday/2026
+ */
+
 @Slf4j
 @Component
 @RequiredArgsConstructor

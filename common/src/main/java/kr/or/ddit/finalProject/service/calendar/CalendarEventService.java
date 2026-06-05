@@ -6,7 +6,7 @@ import kr.or.ddit.finalProject.dto.calendar.CalendarEventDto;
 
 public interface CalendarEventService {
 
-    // 월별 이벤트 조회
+    // 월별 이벤트 조회 (REST API 사용)
     List<CalendarEventDto> getCalendarEventList(Map<String, Object> param);
 
     // 단건 조회
