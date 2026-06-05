@@ -42,7 +42,7 @@ public class AdminSecurityConfig {
                 // 정적 리소스에 대한 보안 설정을 무시하도록 구성
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
                 // 로그인 페이지만 개방
-                .requestMatchers("/login").permitAll()
+                .requestMatchers("/login").permitAll().requestMatchers("/static/**").permitAll()
 
                 .requestMatchers(HttpMethod.GET, "/admin/approval/template/view").permitAll()
 
