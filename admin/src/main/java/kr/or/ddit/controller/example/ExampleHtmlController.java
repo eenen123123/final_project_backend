@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
-import kr.or.ddit.controller.principal.principalPermissions;
+import kr.or.ddit.controller.principal.principalPermissionsController;
 import kr.or.ddit.finalProject.dto.board.QnaDto;
 import kr.or.ddit.finalProject.service.board.qna.QnaService;
 import lombok.RequiredArgsConstructor;
