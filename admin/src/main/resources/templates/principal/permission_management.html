@@ -136,62 +136,7 @@
               </tr>
             </thead>
             <tbody id="perm-table-body" class="divide-y divide-slate-50 text-sm text-slate-700">
-
-              <!-- 안전성 보장 리팩토링: 가독성을 높이고 문법적 충돌을 방지하기 위해 단일 th:data 속성들로 구성합니다. -->
-              <tr th:each="emp : ${employeeList}"
-                  class="emp-perm-row hover:bg-slate-50/50 transition-colors"
-                  th:data-name="${emp.member.userName}"
-                  th:data-dept-cd="${emp.deptCd != null ? #strings.trim(emp.deptCd) : ''}"
-                  th:data-jbgr-nm="${emp.jbgrNm != null ? #strings.trim(emp.jbgrNm) : ''}"
-                  th:data-online="${lastLoginMap[emp.userId] != null and lastLoginMap[emp.userId].logoutDt == null ? 'Y' : 'N'}"
-                  th:data-last-login="${lastLoginMap[emp.userId] != null ? #temporals.format(lastLoginMap[emp.userId].loginDt, 'yyyy-MM-dd''T''HH:mm') : ''}">
-                <!-- 테이블 내용 -->
-                <td class="py-4 px-6">
-                  <div class="flex items-center gap-3">
-                    <img th:if="${emp.member.userProfile != null and #strings.startsWith(emp.member.userProfile, 'http')}"
-                    th:src="${emp.member.userProfile}"
-                    class="w-7 h-7 rounded-lg object-cover" alt="프로필">
-                      <div th:unless="${emp.member.userProfile != null and #strings.startsWith(emp.member.userProfile, 'http')}"
-                      class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-xs font-bold text-[#3b82f6]"
-                      th:text="${#strings.substring(emp.member.userName, 0, 1)}">?</div>  
-                    <div>
-                      <p class="font-bold text-slate-800" th:text="${emp.member.userName}"></p>
-                      <p class="text-xs text-slate-400" th:text="${emp.userId}"></p>
-                    </div>
-                  </div>
-                </td>
-                
-                <td class="py-4 px-6 text-sm text-slate-700" th:text="${emp.deptNm}"></td>
-                <td class="py-4 px-6 text-sm text-slate-700" th:text="${emp.jbgrNm}"></td>
-                
-                <!-- 구조 변경: 3항 연산자를 타임리프 전용 th:if / th:unless 태그 분기문으로 전환하여 충돌 가능성을 파쇄합니다. -->
-                <td class="py-4 px-6 text-xs text-slate-500 font-mono">
-                  <span th:if="${lastLoginMap[emp.userId] != null}" th:text="${#temporals.format(lastLoginMap[emp.userId].loginDt, 'yyyy-MM-dd HH:mm')}"></span>
-                  <span th:unless="${lastLoginMap[emp.userId] != null}">-</span>
-                </td>
-                
-                <td class="py-4 px-6 text-center">
-                  <span th:if="${lastLoginMap[emp.userId] != null and lastLoginMap[emp.userId].logoutDt == null}"
-                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 접속 중
-                  </span>
-                  <span th:unless="${lastLoginMap[emp.userId] != null and lastLoginMap[emp.userId].logoutDt == null}"
-                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500">
-                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> 오프라인
-                  </span>
-                </td>
-                
-                <td class="py-4 px-6 text-center">
-                  <button class="text-slate-400 hover:text-violet-600 p-1.5 transition-colors"
-                          th:data-user-id="${emp.userId}"
-                          th:data-user-name="${emp.member.userName}"
-                          onclick="openActivityModal(this)"
-                          title="접속 이력 보기">
-                    <i class="fa-solid fa-timeline text-base"></i>
-                  </button>
-                </td>
-              </tr>
-
+              <tr><td colspan="6" class="text-center py-10 text-sm text-slate-400">불러오는 중...</td></tr>
             </tbody>
           </table>
         </div>
@@ -518,43 +463,76 @@
 
 <!-- ===== 페이지 스크립트 ===== -->
 <script>
-  /* ===== 직원 목록 필터 / 정렬 / 페이징 전역 변수 ===== */
+  /* ===== 전역 변수 ===== */
   const PERM_PAGE_SIZE  = 10;
   const PERM_BLOCK_SIZE = 5;
   let permCurrentPage = 1;
   let permSortKey = null;
   let permSortDir = 'asc';
+  let permDebounceTimer = null;
 
-  /* 직급 필터 전체 옵션 원본 저장 (Tom Select 초기화 전에 native select 에서 읽음) */
+  /* 직급 필터 원본 옵션 저장 (Tom Select 초기화 전 native select에서 읽음) */
   const allRoleOptions = Array.from(
     document.querySelectorAll('#perm-role-filter option[value]:not([value=""])')
   ).map(opt => ({ value: opt.value, text: opt.textContent.trim(), dept: (opt.dataset.dept || '').trim() }));
 
-  /* 탭 전환 */
-  (function initTabs() {
-    const firstBtn = document.querySelector('.perm-tab-btn[data-tab="tab-employees"]');
-    if (firstBtn) switchPermTab('tab-employees', firstBtn);
-    applyPermTable();
-  })();
-
+  /* ===== 탭 전환 ===== */
   function switchPermTab(tabId, btn) {
     document.querySelectorAll('.perm-tab-panel').forEach(p => p.classList.add('hidden'));
     document.querySelectorAll('.perm-tab-btn').forEach(b => {
       b.classList.remove('text-violet-600', 'border-violet-500', 'bg-violet-50/60');
       b.classList.add('text-slate-500', 'border-transparent');
     });
-
     const panel = document.getElementById(tabId);
     if (panel) panel.classList.remove('hidden');
-
     btn.classList.remove('text-slate-500', 'border-transparent');
     btn.classList.add('text-violet-600', 'border-violet-500', 'bg-violet-50/60');
   }
 
-  /* ===== 직원 목록 필터 / 정렬 / 페이징 ===== */
-  function permFilter() { permCurrentPage = 1; applyPermTable(); }
+  /* ===== 필터 / 정렬 진입점 ===== */
+  function permFilter() {
+    clearTimeout(permDebounceTimer);
+    permDebounceTimer = setTimeout(() => doPermSearch(1), 300);
+  }
 
-  /* 선택된 부서에 속한 직급만 직급 필터에 노출 (Tom Select 대응) */
+  function onPermDeptChange(deptCd) {
+    updatePermRoleFilter(deptCd);
+    doPermSearch(1);
+  }
+
+  function permSort(key) {
+    permSortDir = (permSortKey === key && permSortDir === 'asc') ? 'desc' : 'asc';
+    permSortKey = key;
+    document.querySelectorAll('[id^="sort-icon-"]').forEach(el => {
+      el.className = 'fa-solid fa-sort ml-1 text-slate-300';
+    });
+    const icon = document.getElementById('sort-icon-' + key);
+    if (icon) icon.className = 'fa-solid ml-1 text-violet-500 ' + (permSortDir === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
+    doPermSearch(1);
+  }
+
+  function goPermPage(p) {
+    const scrollY = window.scrollY;
+    doPermSearch(p).then(() => window.scrollTo({ top: scrollY, behavior: 'instant' }));
+  }
+
+  function resetPermFilter() {
+    document.getElementById('perm-search').value = '';
+    updatePermRoleFilter('');
+    ['perm-dept-filter', 'perm-role-filter', 'perm-search-status'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el.tomselect) el.tomselect.setValue('');
+      else el.value = '';
+    });
+    permSortKey = null;
+    permSortDir = 'asc';
+    document.querySelectorAll('[id^="sort-icon-"]').forEach(el => {
+      el.className = 'fa-solid fa-sort ml-1 text-slate-300';
+    });
+    doPermSearch(1);
+  }
+
+  /* 부서 선택 시 해당 부서 직급만 노출 */
   function updatePermRoleFilter(deptCd) {
     const el = document.getElementById('perm-role-filter');
     const ts = el.tomselect;
@@ -570,73 +548,101 @@
     }
   }
 
-  function onPermDeptChange(deptCd) {
-    updatePermRoleFilter(deptCd);
-    permFilter();
+  /* ===== 서버 AJAX 검색 + 페이징 ===== */
+  function escPerm(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  function permSort(key) {
-    permSortDir = (permSortKey === key && permSortDir === 'asc') ? 'desc' : 'asc';
-    permSortKey = key;
-    permCurrentPage = 1;
-    document.querySelectorAll('[id^="sort-icon-"]').forEach(el => {
-      el.className = 'fa-solid fa-sort ml-1 text-slate-300';
-    });
-    const icon = document.getElementById('sort-icon-' + key);
-    if (icon) icon.className = 'fa-solid ml-1 text-violet-500 ' + (permSortDir === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
-    applyPermTable();
-  }
+  async function doPermSearch(page) {
+    page = page || 1;
+    permCurrentPage = page;
 
-  function applyPermTable() {
-    const nameQ   = document.getElementById('perm-search').value.toLowerCase();
-    const deptQ   = document.getElementById('perm-dept-filter').value;
-    const jbgrQ   = document.getElementById('perm-role-filter').value;
-    const statusQ = document.getElementById('perm-search-status').value;
+    const keyword = document.getElementById('perm-search').value.trim();
+    const deptCd  = document.getElementById('perm-dept-filter').value;
+    const jbgrNm  = document.getElementById('perm-role-filter').value;
+    const online  = document.getElementById('perm-search-status').value;
 
-    let rows = [...document.querySelectorAll('.emp-perm-row')];
-
-    rows.forEach(r => {
-      const match =
-        (!nameQ   || r.dataset.name.toLowerCase().includes(nameQ)) &&
-        (!deptQ   || (r.dataset.deptCd  || '').trim() === deptQ.trim()) &&
-        (!jbgrQ   || (r.dataset.jbgrNm  || '').trim() === jbgrQ.trim()) &&
-        (!statusQ || r.dataset.online  === statusQ);
-      r.dataset.visible = match ? '1' : '0';
-    });
-
-    let visible = rows.filter(r => r.dataset.visible === '1');
-
+    const params = new URLSearchParams();
+    if (keyword) params.set('keyword', keyword);
+    if (deptCd)  params.set('deptCd',  deptCd);
+    if (jbgrNm)  params.set('jbgrNm',  jbgrNm);
+    if (online)  params.set('online',  online);
     if (permSortKey) {
-      const keyMap = { name: 'name', dept: 'deptCd', jbgr: 'jbgrNm', login: 'lastLogin', online: 'online' };
-      const dk = keyMap[permSortKey];
-      visible.sort((a, b) => {
-        const av = a.dataset[dk] || '';
-        const bv = b.dataset[dk] || '';
-        return permSortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
-      });
+      const keyMap = { name: 'name', dept: 'dept', jbgr: 'jbgr' };
+      if (keyMap[permSortKey]) {
+        params.set('orderBy',        keyMap[permSortKey]);
+        params.set('orderDirection', permSortDir === 'asc' ? 'ASC' : 'DESC');
+      }
+    }
+    params.set('page',       page);
+    params.set('screenSize', PERM_PAGE_SIZE);
+
+    try {
+      const res  = await fetch('/admin/settings/permissions/search?' + params);
+      const data = await res.json();
+      renderPermTable(data.items, data.totalCount, data.lastLoginMap || {});
+    } catch (e) {
+      console.error('권한 직원 검색 실패:', e);
+    }
+  }
+
+  function renderPermTable(items, totalCount, lastLoginMap) {
+    const tbody = document.getElementById('perm-table-body');
+    if (!items || items.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-sm text-slate-400">조회된 직원이 없습니다.</td></tr>';
+      renderPermPagination(0);
+      return;
     }
 
-    const total     = visible.length;
-    const totalPage = Math.max(1, Math.ceil(total / PERM_PAGE_SIZE));
-    if (permCurrentPage > totalPage) permCurrentPage = totalPage;
+    tbody.innerHTML = items.map(emp => {
+      const uid     = emp.userId || '';
+      const nm      = (emp.member && emp.member.userName) || '';
+      const pro     = (emp.member && emp.member.userProfile) || '';
+      const deptNm  = emp.deptNm  || '-';
+      const jbgrNm  = emp.jbgrNm  || '-';
+      const loginInfo = lastLoginMap[uid];
+      const isOnline  = loginInfo ? loginInfo.online  : false;
+      const loginDt   = loginInfo ? loginInfo.loginDt : null;
 
-    const start = (permCurrentPage - 1) * PERM_PAGE_SIZE;
-    const end   = start + PERM_PAGE_SIZE;
+      const avatar = (pro && pro.startsWith('http'))
+        ? `<img src="${escPerm(pro)}" class="w-7 h-7 rounded-lg object-cover" alt="프로필">`
+        : `<div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-xs font-bold text-[#3b82f6]">${escPerm(nm.charAt(0))}</div>`;
 
-    const tbody = document.getElementById('perm-table-body');
-    visible.forEach((r, i) => {
-      tbody.appendChild(r);
-      r.style.display = (i >= start && i < end) ? '' : 'none';
-    });
-    rows.filter(r => r.dataset.visible === '0').forEach(r => r.style.display = 'none');
+      const onlineBadge = isOnline
+        ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 접속 중</span>`
+        : `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> 오프라인</span>`;
 
-    renderPermPagination(total);
+      return `<tr class="emp-perm-row hover:bg-slate-50/50 transition-colors">
+        <td class="py-4 px-6">
+          <div class="flex items-center gap-3">
+            ${avatar}
+            <div>
+              <p class="font-bold text-slate-800">${escPerm(nm)}</p>
+              <p class="text-xs text-slate-400">${escPerm(uid)}</p>
+            </div>
+          </div>
+        </td>
+        <td class="py-4 px-6 text-sm text-slate-700">${escPerm(deptNm)}</td>
+        <td class="py-4 px-6 text-sm text-slate-700">${escPerm(jbgrNm)}</td>
+        <td class="py-4 px-6 text-xs text-slate-500 font-mono">${loginDt ? escPerm(loginDt) : '-'}</td>
+        <td class="py-4 px-6 text-center">${onlineBadge}</td>
+        <td class="py-4 px-6 text-center">
+          <button class="text-slate-400 hover:text-violet-600 p-1.5 transition-colors"
+                  data-user-id="${escPerm(uid)}" data-user-name="${escPerm(nm)}"
+                  onclick="openActivityModal(this)" title="접속 이력 보기">
+            <i class="fa-solid fa-timeline text-base"></i>
+          </button>
+        </td>
+      </tr>`;
+    }).join('');
+
+    renderPermPagination(totalCount);
   }
 
   function renderPermPagination(totalCount) {
     const container = document.getElementById('perm-pagination');
     if (!container) return;
-
     const totalPage = Math.ceil(totalCount / PERM_PAGE_SIZE);
     if (totalPage <= 1) { container.innerHTML = ''; return; }
 
@@ -644,31 +650,18 @@
     const startPage = Math.max(endPage - PERM_BLOCK_SIZE + 1, 1);
 
     let html = '';
-    if (startPage > 1) {
+    if (startPage > 1)
       html += `<button onclick="goPermPage(${startPage - 1})" class="emp-page-btn">이전</button>`;
-    }
-    for (let p = startPage; p <= endPage; p++) {
+    for (let p = startPage; p <= endPage; p++)
       html += `<button onclick="goPermPage(${p})" class="emp-page-btn${p === permCurrentPage ? ' active' : ''}">${p}</button>`;
-    }
-    if (endPage < totalPage) {
+    if (endPage < totalPage)
       html += `<button onclick="goPermPage(${endPage + 1})" class="emp-page-btn">다음</button>`;
-    }
     container.innerHTML = html;
   }
 
-  function goPermPage(p) {
-    const scrollY = window.scrollY;
-    permCurrentPage = p;
-    applyPermTable();
-    window.scrollTo({ top: scrollY, behavior: 'instant' });
-  }
-
-  /* 접속 이력 모달 열기 */
+  /* ===== 접속 이력 모달 ===== */
   function openActivityModal(element) {
-    const userId = element.dataset.userId;
-    const name = element.dataset.userName;
-
-    document.getElementById('activityModalTitle').textContent = name + ' — 접속 이력';
+    document.getElementById('activityModalTitle').textContent = element.dataset.userName + ' — 접속 이력';
     const modal = document.getElementById('activityModal');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
@@ -680,25 +673,14 @@
     modal.classList.remove('flex');
   }
 
-  /* 모달 바깥 클릭 시 닫기 */
   document.getElementById('activityModal').addEventListener('click', function(e) {
     if (e.target === this) closeActivityModal();
   });
 
-  function resetPermFilter() {
-    document.getElementById('perm-search').value = '';
-    updatePermRoleFilter('');
-    ['perm-dept-filter', 'perm-role-filter', 'perm-search-status'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el.tomselect) el.tomselect.setValue('');
-      else el.value = '';
-    });
-    permSortKey = null;
-    permSortDir = 'asc';
-    document.querySelectorAll('[id^="sort-icon-"]').forEach(el => {
-      el.className = 'fa-solid fa-sort ml-1 text-slate-300';
-    });
-    permCurrentPage = 1;
-    applyPermTable();
-  }
+  /* ===== 초기 로딩 ===== */
+  (function initTabs() {
+    const firstBtn = document.querySelector('.perm-tab-btn[data-tab="tab-employees"]');
+    if (firstBtn) switchPermTab('tab-employees', firstBtn);
+    doPermSearch(1);
+  })();
 </script>
