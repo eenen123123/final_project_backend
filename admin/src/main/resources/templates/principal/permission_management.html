@@ -145,13 +145,13 @@
                   th:data-jbgr-nm="${emp.jbgrNm != null ? #strings.trim(emp.jbgrNm) : ''}"
                   th:data-online="${lastLoginMap[emp.userId] != null and lastLoginMap[emp.userId].logoutDt == null ? 'Y' : 'N'}"
                   th:data-last-login="${lastLoginMap[emp.userId] != null ? #temporals.format(lastLoginMap[emp.userId].loginDt, 'yyyy-MM-dd''T''HH:mm') : ''}">
-                
+                <!-- 테이블 내용 -->
                 <td class="py-4 px-6">
                   <div class="flex items-center gap-3">
-                    <img th:if="${emp.member.userProfile != null and emp.member.userProfile != ''}"
+                    <img th:if="${emp.member.userProfile != null and #strings.startsWith(emp.member.userProfile, 'http')}"
                     th:src="${emp.member.userProfile}"
                     class="w-7 h-7 rounded-lg object-cover" alt="프로필">
-                      <div th:unless="${emp.member.userProfile != null and emp.member.userProfile != ''}"
+                      <div th:unless="${emp.member.userProfile != null and #strings.startsWith(emp.member.userProfile, 'http')}"
                       class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-xs font-bold text-[#3b82f6]"
                       th:text="${#strings.substring(emp.member.userName, 0, 1)}">?</div>  
                     <div>
