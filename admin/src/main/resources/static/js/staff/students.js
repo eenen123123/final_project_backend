@@ -1,5 +1,5 @@
-let selectedEmpId = null;
-let detailEditMode = false;
+var selectedEmpId = null;
+var detailEditMode = false;
 
 /* ─── 탭 전환 ─── */
 function switchEmpTab(tabId, btn) {
@@ -9,13 +9,61 @@ function switchEmpTab(tabId, btn) {
   document.getElementById(tabId).classList.add("active");
 }
 
+/* ─── 페이지 깜빡임 없는 탭 이동 ─── */
+async function navigateToEmployees(btn) {
+  btn.disabled = true;
+  try {
+    const res = await fetch('/admin/employees');
+    if (!res.ok) { location.href = '/admin/employees'; return; }
+
+    const html = await res.text();
+    const doc  = new DOMParser().parseFromString(html, 'text/html');
+    const newMain  = doc.querySelector('main');
+    const currMain = document.querySelector('main');
+    if (!newMain || !currMain) { location.href = '/admin/employees'; return; }
+
+    // 신규 CSS 로드
+    doc.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
+      const href = link.getAttribute('href');
+      if (href && !document.querySelector(`link[href="${href}"]`)) {
+        const el = document.createElement('link');
+        el.rel = 'stylesheet'; el.href = href;
+        document.head.appendChild(el);
+      }
+    });
+
+    currMain.innerHTML = newMain.innerHTML;
+
+    // 기존 학생 스크립트 제거 후 직원 스크립트 로드
+    document.querySelectorAll('script[src*="/js/staff/"]').forEach(s => s.remove());
+    for (const s of doc.querySelectorAll('script[src*="/js/staff/"]')) {
+      await new Promise(resolve => {
+        const el = document.createElement('script');
+        el.src = s.getAttribute('src');
+        el.onload = el.onerror = resolve;
+        document.head.appendChild(el);
+      });
+    }
+
+    currMain.querySelectorAll('select.hm-input:not([data-ts-defer])').forEach(el => {
+      if (!el.tomselect && window.initTomSelect) window.initTomSelect(el);
+    });
+
+    history.pushState({ url: '/admin/employees' }, doc.title || '', '/admin/employees');
+    if (doc.title) document.title = doc.title;
+
+  } catch {
+    location.href = '/admin/employees';
+  }
+}
+
 /* ─── 페이징 + 필터 + 정렬 ─── */
-let currentHrPage = 1;
-const HR_SCREEN_SIZE = 7;
-const HR_BLOCK_SIZE = 5;
-let hrSortCol = null;
-let hrSortAsc = true;
-let hrFilteredRows = null;
+var currentHrPage = 1;
+var HR_SCREEN_SIZE = 7;
+var HR_BLOCK_SIZE = 5;
+var hrSortCol = null;
+var hrSortAsc = true;
+var hrFilteredRows = null;
 
 function filterHrList() {
   const keyword = document.getElementById("hr-search").value.trim().toLowerCase();
@@ -455,8 +503,8 @@ function blurValidateName(el) {
 }
 
 /* ─── 주민등록번호 관련 ─── */
-let rrnRealValue = "";
-let rrnEyeOpen  = false;
+var rrnRealValue = "";
+var rrnEyeOpen  = false;
 
 function validateRrnChecksum(digits) {
   const weights = [2, 3, 4, 5, 6, 7, 8, 9, 2, 3, 4, 5];

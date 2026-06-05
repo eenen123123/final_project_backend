@@ -1,6 +1,6 @@
 
-let selectedEmpId = null;
-let detailEditMode = false;
+var selectedEmpId = null;
+var detailEditMode = false;
 
 /* ─── 탭 전환 ─── */
 function switchEmpTab(tabId, btn) {
@@ -14,14 +14,62 @@ function switchEmpTab(tabId, btn) {
   document.getElementById(tabId).classList.add("active");
 }
 
+/* ─── 페이지 깜빡임 없는 탭 이동 ─── */
+async function navigateToStudents(btn) {
+  btn.disabled = true;
+  try {
+    const res = await fetch('/admin/employees/students');
+    if (!res.ok) { location.href = '/admin/employees/students'; return; }
+
+    const html = await res.text();
+    const doc  = new DOMParser().parseFromString(html, 'text/html');
+    const newMain  = doc.querySelector('main');
+    const currMain = document.querySelector('main');
+    if (!newMain || !currMain) { location.href = '/admin/employees/students'; return; }
+
+    // 신규 CSS 로드
+    doc.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
+      const href = link.getAttribute('href');
+      if (href && !document.querySelector(`link[href="${href}"]`)) {
+        const el = document.createElement('link');
+        el.rel = 'stylesheet'; el.href = href;
+        document.head.appendChild(el);
+      }
+    });
+
+    currMain.innerHTML = newMain.innerHTML;
+
+    // 기존 직원 스크립트 제거 후 학생 스크립트 로드
+    document.querySelectorAll('script[src*="/js/staff/"]').forEach(s => s.remove());
+    for (const s of doc.querySelectorAll('script[src*="/js/staff/"]')) {
+      await new Promise(resolve => {
+        const el = document.createElement('script');
+        el.src = s.getAttribute('src');
+        el.onload = el.onerror = resolve;
+        document.head.appendChild(el);
+      });
+    }
+
+    currMain.querySelectorAll('select.hm-input:not([data-ts-defer])').forEach(el => {
+      if (!el.tomselect && window.initTomSelect) window.initTomSelect(el);
+    });
+
+    history.pushState({ url: '/admin/employees/students' }, doc.title || '', '/admin/employees/students');
+    if (doc.title) document.title = doc.title;
+
+  } catch {
+    location.href = '/admin/employees/students';
+  }
+}
+
 /* ─── 직원 현황 카드 렌더링 ─── */
 /* ═══ 인사 기록 탭 페이징 + 필터 + 정렬 ═══ */
-let currentHrPage = 1;
-const HR_SCREEN_SIZE = 7;
-const HR_BLOCK_SIZE = 5;
-let hrSortCol = null;
-let hrSortAsc = true;
-let hrFilteredRows = null;
+var currentHrPage = 1;
+var HR_SCREEN_SIZE = 7;
+var HR_BLOCK_SIZE = 5;
+var hrSortCol = null;
+var hrSortAsc = true;
+var hrFilteredRows = null;
 
 function filterHrList() {
   const keyword = document
@@ -54,7 +102,7 @@ function filterHrList() {
 }
 
 // 직급 필터 전체 옵션 원본 저장 (Tom Select 초기화 전에 native select에서 읽음)
-const allRoleOptions = Array.from(
+var allRoleOptions = Array.from(
   document.querySelectorAll('#hr-role-filter option[value]:not([value=""])'),
 ).map((opt) => ({
   value: opt.value,
@@ -575,7 +623,7 @@ function saveDetailEdit() {
 }
 
 // edit-role 전체 옵션 원본 저장
-const allEditRoleOptions = Array.from(
+var allEditRoleOptions = Array.from(
   document.querySelectorAll('#edit-role option[value]:not([value=""])'),
 ).map((opt) => ({
   value: opt.value,
@@ -1268,7 +1316,7 @@ document.querySelectorAll('[id^="modal-"]').forEach((m) => {
 })();
 
 /* ─── 신규 등록 폼: 부서 → 직급 필터 ─── */
-const allNewRoleOptions = Array.from(
+var allNewRoleOptions = Array.from(
   document.querySelectorAll('#new-role option[value]:not([value=""])'),
 ).map((opt) => ({
   value: opt.value,
@@ -1323,7 +1371,7 @@ function syncFilled(el) {
 });
 
 // new-brdt 는 JS가 value를 직접 세팅하므로 MutationObserver 대신 input 이벤트 + 직접 호출
-const brdtEl = document.getElementById("new-brdt");
+var brdtEl = document.getElementById("new-brdt");
 if (brdtEl) {
   brdtEl.addEventListener("input", () => syncFilled(brdtEl));
   // autoFillTempPw 가 value를 세팅한 직후 호출
@@ -1335,8 +1383,8 @@ if (brdtEl) {
 }
 
 /* ─── 주민등록번호 마스킹 ─── */
-let rrnRealValue = ""; // 실제 값 (하이픈 포함, 예: 900101-1234567)
-let rrnEyeOpen = false; // 눈 아이콘 상태
+var rrnRealValue = ""; // 실제 값 (하이픈 포함, 예: 900101-1234567)
+var rrnEyeOpen = false; // 눈 아이콘 상태
 
 function maskRrn(formatted) {
   const digits = formatted.replace(/\D/g, "");
