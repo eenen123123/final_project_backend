@@ -15,4 +15,6 @@ public interface AssignmentSubmitMapper {
     List<AssignmentSubmitDto> selectSubmitList(@Param("asgmtSn") Long asgmtSn, @Param("classSn") Long classSn);
 
     int updateGrade(@Param("sbmtSn") Long sbmtSn, @Param("score") BigDecimal score, @Param("grddUserId") String grddUserId);
+
+    int selectPendingGradeCount(@Param("classSn") Long classSn);
 }

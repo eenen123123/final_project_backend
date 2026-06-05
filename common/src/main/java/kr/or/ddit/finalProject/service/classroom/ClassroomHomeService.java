@@ -24,4 +24,6 @@ public interface ClassroomHomeService {
     int retrieveUpcomingAssignmentCount(Long classSn);
 
     TodayQuestionDto retrieveTodayQuestion(Long classSn);
+
+    int retrieveInactiveStudentCount(Long classSn);
 }

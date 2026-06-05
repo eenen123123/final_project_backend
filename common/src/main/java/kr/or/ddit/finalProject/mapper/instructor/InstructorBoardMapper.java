@@ -45,4 +45,6 @@ public interface InstructorBoardMapper {
     int updateClassroomQnaAnswer(@Param("postSn") Long postSn,
                                  @Param("answrUserId") String answrUserId,
                                  @Param("answCn") String answCn);
+
+    int selectUnansweredQnaCount(@Param("classSn") Long classSn);
 }
