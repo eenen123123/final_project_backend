@@ -1,19 +1,19 @@
 package kr.or.ddit.controller.manager;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-
 
 @Slf4j
 @Controller
 @RequestMapping("/admin")
 public class ManagerController {
-    
+
     /**
      * 학부모 상담 관리
+     *
      * @return
      */
     @GetMapping("/consultation")
@@ -24,6 +24,7 @@ public class ManagerController {
 
     /**
      * 퇴원 방어 및 유지
+     *
      * @return
      */
     @GetMapping("/retention")
@@ -34,16 +35,18 @@ public class ManagerController {
 
     /**
      * 강사 및 업무 모니터링
+     *
      * @return
      */
-    @GetMapping("/teachers/monitor")
-    public String getTeachersMonitor() {
-        log.info("getTeachersMonitor()");
-        return "admin:/manager/teachers_monitor";
+    @GetMapping("/instructors/monitor")
+    public String getInstructorsMonitor() {
+        log.info("getInstructorsMonitor()");
+        return "admin:/manager/instructors_monitor";
     }
 
     /**
      * 원장 승인 요청 관리
+     *
      * @return
      */
     @GetMapping("/approval/request")
@@ -54,6 +57,7 @@ public class ManagerController {
 
     /**
      * 관리자 권한 운영
+     *
      * @return
      */
     @GetMapping("/settings/manager-permissions")
@@ -61,5 +65,5 @@ public class ManagerController {
         log.info("getManagerPermissions()");
         return "admin:/manager/manager_permissions";
     }
-    
+
 }

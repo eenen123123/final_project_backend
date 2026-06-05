@@ -21,6 +21,8 @@
     <result property="classStatCd"  column="CLASS_STAT_CD" />
     <result property="enrlStrtYmd"  column="ENRL_STRT_YMD" />
     <result property="enrlEndYmd"   column="ENRL_END_YMD" />
+    <result property="instrNm"      column="INSTR_NM" />
+    <result property="memberCount"  column="MEMBER_COUNT" />
   </resultMap>
 
   <select id="selectClassroomListByInstructor" resultMap="classroomListResponseMap">
@@ -49,9 +51,17 @@
         c.COURSE_NM,
         cl.CLASS_STAT_CD,
         cl.ENRL_STRT_YMD,
-        cl.ENRL_END_YMD
+        cl.ENRL_END_YMD,
+        m.USER_NAME AS INSTR_NM,
+        (
+            SELECT COUNT(*)
+            FROM CLASSROOM_MEMBER cm
+            WHERE cm.CLASS_SN = cl.CLASS_SN
+              AND cm.ENRL_STAT_CD = '01'
+        ) AS MEMBER_COUNT
     FROM CLASSROOM cl
-    JOIN COURSE c ON cl.COURSE_SN = c.COURSE_SN
+    JOIN COURSE c   ON cl.COURSE_SN = c.COURSE_SN
+    JOIN MEMBER m   ON c.INSTR_USER_ID = m.USER_ID
     WHERE cl.CLASS_SN = #{classSn}
   </select>
 

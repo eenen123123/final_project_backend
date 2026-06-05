@@ -24,4 +24,40 @@
     ORDER BY cm.REG_DT ASC
   </select>
 
+
+  <resultMap id="classroomGradeDtoMap" type="kr.or.ddit.finalProject.dto.classroom.ClassroomGradeDto">
+    <result property="userId"        column="USER_ID" />
+    <result property="userName"      column="USER_NAME" />
+    <result property="totAsgmtCnt"   column="TOT_ASGMT_CNT" />
+    <result property="sbmtAsgmtCnt"  column="SBMT_ASGMT_CNT" />
+    <result property="grddAsgmtCnt"  column="GRDD_ASGMT_CNT" />
+    <result property="avgScore"      column="AVG_SCORE" />
+    <result property="examCnt"       column="EXAM_CNT" />
+  </resultMap>
+
+  <select id="selectGradeList" resultMap="classroomGradeDtoMap">
+    SELECT
+        cm.USER_ID,
+        m.USER_NAME,
+        (SELECT COUNT(*) FROM ASSIGNMENT_BOARD ab WHERE ab.CLASS_SN = #{classSn}) AS TOT_ASGMT_CNT,
+        COUNT(DISTINCT s.SBMT_SN) AS SBMT_ASGMT_CNT,
+        COUNT(DISTINCT CASE WHEN s.GRDD_YN = 'Y' THEN s.SBMT_SN END) AS GRDD_ASGMT_CNT,
+        ROUND(AVG(CASE WHEN s.GRDD_YN = 'Y' THEN s.SCORE END), 2) AS AVG_SCORE,
+        (SELECT COUNT(*)
+         FROM EXAM_TAKER et
+         JOIN EXAM e ON e.EXAM_SN = et.EXAM_SN
+         WHERE et.STD_USER_ID = cm.USER_ID
+           AND e.CLASS_SN = #{classSn}
+           AND e.EXAM_STAT_CD != '99') AS EXAM_CNT
+    FROM CLASSROOM_MEMBER cm
+    JOIN MEMBER m ON m.USER_ID = cm.USER_ID
+    LEFT JOIN ASSIGNMENT_SUBMIT s
+           ON s.SBMT_USER_ID = cm.USER_ID
+          AND s.ASGMT_SN IN (SELECT ASGMT_SN FROM ASSIGNMENT_BOARD WHERE CLASS_SN = #{classSn})
+    WHERE cm.CLASS_SN = #{classSn}
+      AND cm.ENRL_STAT_CD = '01'
+    GROUP BY cm.USER_ID, m.USER_NAME
+    ORDER BY m.USER_NAME ASC
+  </select>
+
 </mapper>
