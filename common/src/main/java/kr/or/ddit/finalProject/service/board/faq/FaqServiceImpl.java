@@ -61,6 +61,12 @@ public class FaqServiceImpl implements FaqService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<FaqDto> getAll(String faqCtgCd, String faqSubCtgCd) {
+        return faqMapper.findFaqList(faqCtgCd, faqSubCtgCd);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public FaqDto getPrevFaq(Long postSn, String faqCtgCd) {
         return faqMapper.findPrevFaq(postSn, faqCtgCd);
     }

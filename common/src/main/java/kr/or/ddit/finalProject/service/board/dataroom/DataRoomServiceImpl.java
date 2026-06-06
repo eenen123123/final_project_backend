@@ -31,6 +31,12 @@ public class DataRoomServiceImpl implements DataRoomService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<DataRoomDto> getAll(String dataCtg) {
+        return dataRoomMapper.findDataRoomList(dataCtg);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public DataRoomDto getById(Long postSn, Authentication authentication) {
         return dataRoomMapper.findDataRoomById(postSn);
     }

@@ -1,5 +1,7 @@
 package kr.or.ddit.controller.board.faq;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,6 +22,14 @@ import lombok.RequiredArgsConstructor;
 public class FaqController {
 
     private final FaqService faqService;
+
+    // GET /api/faq?faqCtgCd=01&faqSubCtgCd=01
+    @GetMapping
+    public ResponseEntity<List<FaqDto>> getFaqList(
+            @RequestParam(required = false) String faqCtgCd,
+            @RequestParam(required = false) String faqSubCtgCd) {
+        return ResponseEntity.ok(faqService.getAll(faqCtgCd, faqSubCtgCd));
+    }
 
     // GET /api/faq/paged?page=1&size=10&keyword=xxx&faqCtgCd=01&faqSubCtgCd=01
     @GetMapping("/paged")
