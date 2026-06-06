@@ -61,6 +61,12 @@ public class NoticeServiceImpl implements NoticeService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<NoticeDto> getAll() {
+        return noticeMapper.findNoticeList(null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public NoticeDto getPrevNotice(Long postSn) {
         return noticeMapper.findPrevNotice(postSn);
     }
