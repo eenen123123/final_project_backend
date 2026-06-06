@@ -1,0 +1,456 @@
+<title th:fragment="pageTitle">라이브 VOD 아카이빙 | HERMES</title>
+
+<div class="space-y-6">
+
+  <!-- ① 페이지 헤더 -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">라이브 VOD 아카이빙</h1>
+      <p class="text-sm text-slate-500 mt-1">실시간 라이브 수업 녹화본을 저장하고 다시보기로 게시합니다.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-100 rounded-xl">
+        <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+        <span class="text-xs font-semibold text-red-600">라이브 진행 중 1개</span>
+      </div>
+      <button class="hm-btn-primary hm-btn-orange" onclick="openUploadModal()">
+        <i class="fa-solid fa-cloud-arrow-up"></i>
+        <span>녹화본 수동 업로드</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ② 요약 통계 카드 -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-tower-broadcast"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">이번 달 라이브</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">47회</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">저장 완료</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">45개</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-play-circle"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">다시보기 공개</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">38개</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-hard-drive"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">사용 저장 용량</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">1.2 TB</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 현재 라이브 세션 (진행 중인 경우 표시) -->
+  <div class="bg-gradient-to-r from-red-50 to-orange-50 border border-red-100 rounded-2xl p-5">
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+        <h2 class="text-sm font-bold text-red-700">현재 진행 중인 라이브</h2>
+      </div>
+      <span class="text-xs text-slate-400" id="liveDuration">진행 시간: 00:45:12</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <div class="w-20 h-12 bg-slate-900 rounded-lg flex items-center justify-center relative shrink-0">
+        <i class="fa-solid fa-circle text-red-500 text-xs absolute top-1.5 right-1.5 animate-pulse"></i>
+        <i class="fa-solid fa-video text-white/40 text-sm"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="font-bold text-slate-800 text-sm truncate">2026 고등수학 A반 수학1 - 14강 삼각함수</p>
+        <p class="text-xs text-slate-500 mt-0.5">강사: 대표원장 · 고등수학A반 · 시작: 14:00</p>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-red-500 text-white flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>LIVE
+        </span>
+        <button class="hm-btn-secondary text-xs" onclick="showHermesToast('녹화가 자동으로 진행 중입니다.', 'info')">
+          <i class="fa-solid fa-circle-dot text-red-400"></i>
+          <span>녹화 중</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ 필터 바 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-wrap items-center gap-4">
+    <div class="w-full sm:w-72 relative">
+      <input
+        type="text"
+        class="hm-input pl-10"
+        placeholder="강의명 또는 강사 이름 검색..."
+        oninput="filterArchives(this.value)"
+      />
+      <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+    </div>
+    <div class="w-full sm:w-40">
+      <input type="date" class="hm-input" id="filterDate" onchange="filterByDate(this.value)" />
+    </div>
+    <div class="w-full sm:w-44">
+      <select class="hm-input" onchange="filterByClass(this.value)">
+        <option value="">전체 강좌</option>
+        <option value="고등수학A">고등수학 A</option>
+        <option value="고등수학B">고등수학 B</option>
+        <option value="중등수학A">중등수학 A</option>
+        <option value="고등영어">고등영어</option>
+      </select>
+    </div>
+    <div class="w-full sm:w-36">
+      <select class="hm-input" onchange="filterByStatus(this.value)">
+        <option value="">전체 상태</option>
+        <option value="공개">다시보기 공개</option>
+        <option value="비공개">비공개</option>
+        <option value="처리중">처리 중</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- ⑤ 아카이브 목록 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+            <th class="py-4 px-6 w-28">썸네일</th>
+            <th class="py-4 px-6">강의 정보</th>
+            <th class="py-4 px-6 w-32">녹화 시간</th>
+            <th class="py-4 px-6 w-28">파일 크기</th>
+            <th class="py-4 px-6 w-28">상태</th>
+            <th class="py-4 px-6 text-center w-36">제어</th>
+          </tr>
+        </thead>
+        <tbody id="archiveTableBody" class="divide-y divide-slate-50 text-sm text-slate-700">
+          <!-- JS로 렌더링 -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 페이징 -->
+    <div class="flex items-center justify-between px-6 py-4 border-t border-slate-50">
+      <p class="text-xs text-slate-400" id="totalCount">총 45건</p>
+      <div class="flex items-center gap-1">
+        <button class="w-8 h-8 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs flex items-center justify-center">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <button class="w-8 h-8 rounded-lg bg-orange-500 text-white text-xs flex items-center justify-center font-bold">1</button>
+        <button class="w-8 h-8 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs flex items-center justify-center">2</button>
+        <button class="w-8 h-8 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs flex items-center justify-center">3</button>
+        <button class="w-8 h-8 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs flex items-center justify-center">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== 다시보기 미리보기 모달 ===== -->
+<div id="previewModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closePreviewModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4">
+    <div class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-100">
+      <div>
+        <h3 class="text-base font-bold text-slate-800" id="previewTitle">강의 다시보기</h3>
+        <p class="text-xs text-slate-400 mt-0.5" id="previewMeta">-</p>
+      </div>
+      <button onclick="closePreviewModal()" class="text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+    <!-- 영상 플레이어 자리 -->
+    <div class="mx-6 my-4 bg-slate-900 rounded-xl aspect-video flex items-center justify-center relative">
+      <i class="fa-solid fa-play text-white/20 text-5xl"></i>
+      <div class="absolute bottom-3 right-3 bg-black/70 text-white text-xs px-2 py-0.5 rounded font-mono" id="previewDuration">-</div>
+    </div>
+    <div class="px-6 pb-5 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-xs text-slate-400">다시보기 공개 여부</span>
+        <input type="checkbox" class="hm-switch hm-switch-orange" id="previewPublicSwitch" onchange="togglePublic(this.checked)">
+      </div>
+      <div class="flex gap-2">
+        <button class="hm-btn-secondary text-xs" onclick="showHermesToast('다운로드가 시작됩니다.', 'info')">
+          <i class="fa-solid fa-download"></i>
+          <span>다운로드</span>
+        </button>
+        <button class="hm-btn-danger text-xs" onclick="closePreviewModal(); showHermesToast('삭제되었습니다.', 'error')">
+          <i class="fa-solid fa-trash"></i>
+          <span>삭제</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 수동 업로드 모달 ===== -->
+<div id="uploadModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeUploadModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="text-base font-bold text-slate-800">녹화본 수동 업로드</h3>
+      <button onclick="closeUploadModal()" class="text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+    <div class="space-y-4">
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">강좌 선택 <span class="text-red-400">*</span></label>
+        <select class="hm-input" id="uploadClass">
+          <option value="">강좌를 선택하세요</option>
+          <option value="고등수학A">고등수학 A반</option>
+          <option value="고등수학B">고등수학 B반</option>
+          <option value="중등수학A">중등수학 A반</option>
+          <option value="고등영어">고등영어반</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">강의 제목 <span class="text-red-400">*</span></label>
+        <input type="text" class="hm-input" id="uploadTitle" placeholder="예) 2026 고등수학 - 14강 삼각함수">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">녹화 날짜 <span class="text-red-400">*</span></label>
+        <input type="date" class="hm-input" id="uploadDate">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">영상 파일 <span class="text-red-400">*</span></label>
+        <div class="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-orange-300 transition-colors cursor-pointer" onclick="document.getElementById('fileInput').click()">
+          <i class="fa-solid fa-cloud-arrow-up text-slate-300 text-2xl mb-2"></i>
+          <p class="text-xs text-slate-400">MP4, MOV 파일을 드래그하거나 클릭하여 선택</p>
+          <p class="text-[11px] text-slate-300 mt-1">최대 파일 크기: 10 GB</p>
+        </div>
+        <input type="file" id="fileInput" accept="video/*" class="hidden" onchange="handleFileSelect(this)">
+        <p class="text-xs text-orange-500 mt-1.5 hidden" id="fileSelectedMsg"></p>
+      </div>
+      <div class="flex items-center gap-3">
+        <input type="checkbox" class="hm-switch hm-switch-orange" id="uploadPublic">
+        <label class="text-xs text-slate-600">업로드 후 즉시 다시보기 공개</label>
+      </div>
+    </div>
+    <div class="flex gap-3 mt-5">
+      <button class="flex-1 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors" onclick="closeUploadModal()">취소</button>
+      <button class="flex-1 hm-btn-primary hm-btn-orange" onclick="submitUpload()">
+        <i class="fa-solid fa-cloud-arrow-up"></i>
+        <span>업로드</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 페이지 스크립트 ===== -->
+<script>
+  /* ── 더미 데이터 ── */
+  const archiveData = [
+    { id: 1,  date: '2026-06-05', time: '14:00', duration: '1:32:08', size: '2.14 GB', classNm: '고등수학A', instructor: '대표원장', title: '2026 수학1 - 14강 삼각함수의 정의와 그래프', status: '공개',   views: 128 },
+    { id: 2,  date: '2026-06-05', time: '16:00', duration: '1:18:45', size: '1.83 GB', classNm: '고등수학B', instructor: '김수학',  title: '2026 수학2 - 8강 수열의 극한',            status: '공개',   views: 94  },
+    { id: 3,  date: '2026-06-04', time: '14:00', duration: '1:25:33', size: '1.97 GB', classNm: '중등수학A', instructor: '이중등',  title: '2026 중등수학 - 11강 일차방정식 활용',    status: '공개',   views: 67  },
+    { id: 4,  date: '2026-06-04', time: '10:00', duration: '0:48:22', size: '0.71 GB', classNm: '고등영어',  instructor: '박영어',  title: '수능 영어 독해 - 빈칸 추론 전략 4',      status: '비공개', views: 0   },
+    { id: 5,  date: '2026-06-03', time: '14:00', duration: '1:40:11', size: '2.32 GB', classNm: '고등수학A', instructor: '대표원장', title: '2026 수학1 - 13강 지수함수와 로그함수',   status: '공개',   views: 203 },
+    { id: 6,  date: '2026-06-03', time: '16:00', duration: '1:22:59', size: '1.91 GB', classNm: '고등수학B', instructor: '김수학',  title: '2026 수학2 - 7강 급수와 수렴',           status: '공개',   views: 81  },
+    { id: 7,  date: '2026-06-02', time: '15:00', duration: '-',       size: '-',       classNm: '중등수학A', instructor: '이중등',  title: '2026 중등수학 - 10강 연립방정식',         status: '처리중', views: 0   },
+    { id: 8,  date: '2026-06-01', time: '14:00', duration: '1:29:05', size: '2.06 GB', classNm: '고등수학A', instructor: '대표원장', title: '2026 수학1 - 12강 로그의 성질',          status: '공개',   views: 251 },
+  ];
+
+  let currentData = [...archiveData];
+
+  /* ── 상태 배지 ── */
+  function statusBadge(status) {
+    const map = {
+      '공개':   'bg-emerald-50 text-emerald-700',
+      '비공개': 'bg-slate-100 text-slate-500',
+      '처리중': 'bg-amber-50 text-amber-600',
+    };
+    const icon = {
+      '공개':   'fa-eye',
+      '비공개': 'fa-eye-slash',
+      '처리중': 'fa-compact-disc fa-spin',
+    };
+    return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${map[status] || 'bg-slate-100 text-slate-500'}">
+      <i class="fa-solid ${icon[status] || 'fa-circle'} text-[10px]"></i>${status}
+    </span>`;
+  }
+
+  /* ── 테이블 렌더링 ── */
+  function renderTable(data) {
+    const tbody = document.getElementById('archiveTableBody');
+    document.getElementById('totalCount').textContent = `총 ${data.length}건`;
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-slate-300 text-sm">검색 결과가 없습니다.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map(v => `
+      <tr class="hover:bg-slate-50/50 transition-colors">
+        <td class="py-4 px-6">
+          <div class="w-20 h-12 bg-slate-900 rounded-lg flex items-center justify-center relative overflow-hidden border border-slate-200 cursor-pointer"
+               onclick="openPreviewModal(${v.id})">
+            ${v.status === '처리중'
+              ? `<i class="fa-solid fa-compact-disc fa-spin text-orange-400 text-sm"></i>`
+              : `<i class="fa-solid fa-play text-white/30 text-xs"></i>
+                 <div class="absolute bottom-1 right-1 bg-black/70 text-[9px] text-white px-1 rounded font-mono">${v.duration}</div>`
+            }
+          </div>
+        </td>
+        <td class="py-4 px-6">
+          <div class="font-bold text-slate-900 truncate max-w-xs">${v.title}</div>
+          <div class="text-xs text-slate-400 mt-0.5 flex items-center gap-2">
+            <span>${v.date} ${v.time}</span>
+            <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
+            <span>${v.classNm}</span>
+            <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
+            <span>강사: ${v.instructor}</span>
+            ${v.views > 0 ? `<span class="w-1 h-1 bg-slate-300 rounded-full"></span><span class="text-sky-500"><i class="fa-solid fa-eye text-[10px] mr-0.5"></i>${v.views}</span>` : ''}
+          </div>
+        </td>
+        <td class="py-4 px-6 font-mono text-xs text-slate-500">${v.duration}</td>
+        <td class="py-4 px-6 font-mono text-xs text-slate-500">${v.size}</td>
+        <td class="py-4 px-6">${statusBadge(v.status)}</td>
+        <td class="py-4 px-6">
+          <div class="flex items-center justify-center gap-1">
+            ${v.status !== '처리중' ? `
+              <button onclick="openPreviewModal(${v.id})"
+                class="p-1.5 text-slate-400 hover:text-orange-500 transition-colors" title="다시보기">
+                <i class="fa-solid fa-play text-sm"></i>
+              </button>
+              <button onclick="toggleStatus(${v.id})"
+                class="p-1.5 text-slate-400 hover:text-sky-500 transition-colors" title="${v.status === '공개' ? '비공개로 전환' : '공개로 전환'}">
+                <i class="fa-solid ${v.status === '공개' ? 'fa-eye-slash' : 'fa-eye'} text-sm"></i>
+              </button>
+            ` : ''}
+            <button onclick="confirmDelete(${v.id})"
+              class="p-1.5 text-slate-400 hover:text-red-500 transition-colors" title="삭제">
+              <i class="fa-solid fa-trash text-sm"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  /* ── 필터 ── */
+  function filterArchives(keyword) {
+    currentData = keyword
+      ? archiveData.filter(v => v.title.includes(keyword) || v.instructor.includes(keyword))
+      : [...archiveData];
+    renderTable(currentData);
+  }
+
+  function filterByDate(date) {
+    currentData = date ? archiveData.filter(v => v.date === date) : [...archiveData];
+    renderTable(currentData);
+  }
+
+  function filterByClass(cls) {
+    currentData = cls ? archiveData.filter(v => v.classNm === cls) : [...archiveData];
+    renderTable(currentData);
+  }
+
+  function filterByStatus(status) {
+    currentData = status ? archiveData.filter(v => v.status === status) : [...archiveData];
+    renderTable(currentData);
+  }
+
+  /* ── 상태 토글 ── */
+  function toggleStatus(id) {
+    const item = archiveData.find(v => v.id === id);
+    if (!item) return;
+    item.status = item.status === '공개' ? '비공개' : '공개';
+    const msg = item.status === '공개' ? '다시보기가 공개되었습니다.' : '다시보기가 비공개로 전환되었습니다.';
+    showHermesToast(msg, 'success');
+    renderTable(currentData);
+  }
+
+  /* ── 삭제 ── */
+  function confirmDelete(id) {
+    const item = archiveData.find(v => v.id === id);
+    if (!item) return;
+    if (confirm(`"${item.title}"\n녹화본을 삭제하시겠습니까?\n삭제 후 복구가 불가능합니다.`)) {
+      const idx = archiveData.findIndex(v => v.id === id);
+      if (idx > -1) archiveData.splice(idx, 1);
+      currentData = currentData.filter(v => v.id !== id);
+      renderTable(currentData);
+      showHermesToast('녹화본이 삭제되었습니다.', 'error');
+    }
+  }
+
+  /* ── 미리보기 모달 ── */
+  function openPreviewModal(id) {
+    const item = archiveData.find(v => v.id === id);
+    if (!item) return;
+    document.getElementById('previewTitle').textContent = item.title;
+    document.getElementById('previewMeta').textContent = `${item.date} ${item.time} · ${item.classNm} · 강사: ${item.instructor}`;
+    document.getElementById('previewDuration').textContent = item.duration;
+    document.getElementById('previewPublicSwitch').checked = item.status === '공개';
+    document.getElementById('previewModal').classList.remove('hidden');
+  }
+
+  function closePreviewModal() {
+    document.getElementById('previewModal').classList.add('hidden');
+  }
+
+  function togglePublic(checked) {
+    showHermesToast(checked ? '다시보기가 공개되었습니다.' : '비공개로 전환되었습니다.', 'success');
+  }
+
+  /* ── 업로드 모달 ── */
+  function openUploadModal() {
+    document.getElementById('uploadModal').classList.remove('hidden');
+  }
+
+  function closeUploadModal() {
+    document.getElementById('uploadModal').classList.add('hidden');
+  }
+
+  function handleFileSelect(input) {
+    const file = input.files[0];
+    const msg = document.getElementById('fileSelectedMsg');
+    if (file) {
+      const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+      msg.textContent = `선택된 파일: ${file.name} (${sizeMB} MB)`;
+      msg.classList.remove('hidden');
+    }
+  }
+
+  function submitUpload() {
+    const cls   = document.getElementById('uploadClass').value;
+    const title = document.getElementById('uploadTitle').value.trim();
+    const date  = document.getElementById('uploadDate').value;
+    if (!cls)   { showHermesToast('강좌를 선택해 주세요.', 'error'); return; }
+    if (!title) { showHermesToast('강의 제목을 입력해 주세요.', 'error'); return; }
+    if (!date)  { showHermesToast('녹화 날짜를 선택해 주세요.', 'error'); return; }
+    closeUploadModal();
+    showHermesToast('업로드가 시작되었습니다. 인코딩 완료 후 목록에 표시됩니다.', 'success');
+  }
+
+  /* ── 라이브 타이머 ── */
+  (function () {
+    let sec = 45 * 60 + 12;
+    const el = document.getElementById('liveDuration');
+    if (!el) return;
+    setInterval(function () {
+      sec++;
+      const h = String(Math.floor(sec / 3600)).padStart(2, '0');
+      const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+      const s = String(sec % 60).padStart(2, '0');
+      el.textContent = `진행 시간: ${h}:${m}:${s}`;
+    }, 1000);
+  })();
+
+  /* ── 초기 렌더링 ── */
+  renderTable(archiveData);
+</script>
