@@ -1,0 +1,640 @@
+<title th:fragment="pageTitle">품질 및 호환성 관리 | HERMES</title>
+
+<style>
+  /* 모니터링 바 */
+  .monitor-bar-track { height: 8px; background: #f1f5f9; border-radius: 9999px; overflow: hidden; }
+  .monitor-bar-fill  { height: 100%; border-radius: 9999px; transition: width 0.6s ease; }
+
+  /* 실시간 펄스 */
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .blink { animation: blink 1.4s infinite; }
+
+  /* 로그 행 hover */
+  .log-row { transition: background 0.15s; }
+  .log-row:hover { background: #f8fafc; }
+
+  /* 테스트 결과 셀 */
+  .test-cell-pass { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .test-cell-fail { background: #fef2f2; border: 1px solid #fecaca; }
+  .test-cell-skip { background: #f8fafc; border: 1px solid #e2e8f0; }
+  .test-cell-running { background: #fff7ed; border: 1px solid #fed7aa; }
+</style>
+
+<div class="space-y-6">
+
+  <!-- ① 페이지 헤더 -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">품질 및 호환성 관리</h1>
+      <p class="text-sm text-slate-500 mt-1">기기·브라우저 재생 테스트, 버퍼링 모니터링, 오류 로그를 통합 관리합니다.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-xl" id="systemStatusBadge">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 blink"></span>
+        <span class="text-xs font-bold text-emerald-700" id="systemStatusText">스트리밍 정상</span>
+      </div>
+      <button class="hm-btn-secondary text-xs" onclick="refreshAll()">
+        <i class="fa-solid fa-rotate-right"></i><span>새로고침</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ② 요약 통계 카드 -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-compact-disc"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">모니터링 영상</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">142건</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">호환성 통과율</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5" id="statPassRate">-</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">활성 오류</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5" id="statErrors">-</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-tower-broadcast"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">실시간 재생 수</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5" id="statLive">-</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 탭 패널 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+
+    <!-- 탭 헤더 -->
+    <div class="flex items-center border-b border-slate-100 px-5">
+      <button class="qc-tab-btn px-5 py-3.5 text-sm font-semibold border-b-2 transition-colors"
+        data-tab="tab-test" onclick="switchTab('tab-test', this)">
+        <i class="fa-solid fa-flask mr-1.5"></i>재생 테스트
+      </button>
+      <button class="qc-tab-btn px-5 py-3.5 text-sm font-semibold border-b-2 transition-colors"
+        data-tab="tab-monitor" onclick="switchTab('tab-monitor', this)">
+        <i class="fa-solid fa-chart-line mr-1.5"></i>실시간 모니터링
+      </button>
+      <button class="qc-tab-btn px-5 py-3.5 text-sm font-semibold border-b-2 transition-colors"
+        data-tab="tab-logs" onclick="switchTab('tab-logs', this)">
+        <i class="fa-solid fa-scroll mr-1.5"></i>오류 로그
+        <span class="ml-1.5 px-1.5 py-0.5 bg-red-100 text-red-600 rounded text-[10px] font-bold" id="logBadge">0</span>
+      </button>
+    </div>
+
+    <!-- ── 탭: 재생 테스트 ── -->
+    <div id="tab-test" class="qc-tab-panel p-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- 테스트 설정 -->
+        <div class="space-y-5">
+          <h2 class="text-sm font-bold text-slate-700">
+            <i class="fa-solid fa-sliders text-orange-500 mr-2"></i>테스트 설정
+          </h2>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">대상 영상 선택</label>
+            <select class="hm-input hm-input-orange" id="testVideoSel">
+              <option value="1">수학1 - 14강 삼각함수 (52:10)</option>
+              <option value="2">수학2 - 08강 수열의 극한 (48:30)</option>
+              <option value="3">중등수학 - 12강 연립방정식 (39:15)</option>
+              <option value="4">영어독해 - 빈칸추론 전략 4 (35:00)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-2">테스트 기기 <span class="text-slate-300">(복수 선택)</span></label>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2.5 cursor-pointer">
+                <input type="checkbox" class="test-device accent-orange-500" value="PC(Windows)" checked />
+                <span class="text-sm text-slate-600"><i class="fa-solid fa-display text-slate-400 mr-1.5 w-4"></i>PC (Windows)</span>
+              </label>
+              <label class="flex items-center gap-2.5 cursor-pointer">
+                <input type="checkbox" class="test-device accent-orange-500" value="PC(Mac)" checked />
+                <span class="text-sm text-slate-600"><i class="fa-brands fa-apple text-slate-400 mr-1.5 w-4"></i>PC (Mac)</span>
+              </label>
+              <label class="flex items-center gap-2.5 cursor-pointer">
+                <input type="checkbox" class="test-device accent-orange-500" value="Android" checked />
+                <span class="text-sm text-slate-600"><i class="fa-brands fa-android text-slate-400 mr-1.5 w-4"></i>Android</span>
+              </label>
+              <label class="flex items-center gap-2.5 cursor-pointer">
+                <input type="checkbox" class="test-device accent-orange-500" value="iOS" />
+                <span class="text-sm text-slate-600"><i class="fa-brands fa-apple text-slate-400 mr-1.5 w-4"></i>iOS</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-2">테스트 브라우저</label>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2.5 cursor-pointer">
+                <input type="checkbox" class="test-browser accent-orange-500" value="Chrome" checked />
+                <span class="text-sm text-slate-600"><i class="fa-brands fa-chrome text-slate-400 mr-1.5 w-4"></i>Chrome</span>
+              </label>
+              <label class="flex items-center gap-2.5 cursor-pointer">
+                <input type="checkbox" class="test-browser accent-orange-500" value="Safari" checked />
+                <span class="text-sm text-slate-600"><i class="fa-brands fa-safari text-slate-400 mr-1.5 w-4"></i>Safari</span>
+              </label>
+              <label class="flex items-center gap-2.5 cursor-pointer">
+                <input type="checkbox" class="test-browser accent-orange-500" value="Firefox" />
+                <span class="text-sm text-slate-600"><i class="fa-brands fa-firefox-browser text-slate-400 mr-1.5 w-4"></i>Firefox</span>
+              </label>
+              <label class="flex items-center gap-2.5 cursor-pointer">
+                <input type="checkbox" class="test-browser accent-orange-500" value="Edge" />
+                <span class="text-sm text-slate-600"><i class="fa-brands fa-edge text-slate-400 mr-1.5 w-4"></i>Edge</span>
+              </label>
+            </div>
+          </div>
+
+          <button class="w-full hm-btn-primary hm-btn-orange py-3" id="runTestBtn" onclick="runTest()">
+            <i class="fa-solid fa-play"></i><span>테스트 시작</span>
+          </button>
+        </div>
+
+        <!-- 테스트 결과 매트릭스 -->
+        <div class="lg:col-span-2">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-bold text-slate-700">
+              <i class="fa-solid fa-table-cells text-orange-500 mr-2"></i>호환성 매트릭스
+            </h2>
+            <div class="flex items-center gap-3 text-xs text-slate-400">
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-emerald-200 inline-block"></span>통과</span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-red-200 inline-block"></span>실패</span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-amber-200 inline-block"></span>테스트 중</span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-slate-200 inline-block"></span>미실행</span>
+            </div>
+          </div>
+
+          <div id="testMatrix" class="overflow-x-auto">
+            <div class="flex items-center justify-center h-48 text-slate-300">
+              <div class="text-center">
+                <i class="fa-solid fa-flask text-4xl mb-3"></i>
+                <p class="text-sm">테스트를 시작하면 결과가 여기에 표시됩니다.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 테스트 상세 결과 -->
+          <div id="testDetailArea" class="hidden mt-5 pt-5 border-t border-slate-100">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">테스트 상세 로그</h3>
+            <div class="space-y-2 max-h-48 overflow-y-auto no-scrollbar" id="testDetailLog"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 탭: 실시간 모니터링 ── -->
+    <div id="tab-monitor" class="qc-tab-panel hidden p-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- 좌: 환경별 상태 -->
+        <div class="lg:col-span-2 space-y-5">
+
+          <!-- 기기별 재생 현황 -->
+          <div>
+            <h2 class="text-sm font-bold text-slate-700 mb-4">
+              <i class="fa-solid fa-mobile-screen text-orange-500 mr-2"></i>기기별 재생 현황
+            </h2>
+            <div class="space-y-3" id="deviceMonitor"></div>
+          </div>
+
+          <!-- 브라우저별 현황 -->
+          <div>
+            <h2 class="text-sm font-bold text-slate-700 mb-4">
+              <i class="fa-brands fa-chrome text-orange-500 mr-2"></i>브라우저별 현황
+            </h2>
+            <div class="space-y-3" id="browserMonitor"></div>
+          </div>
+        </div>
+
+        <!-- 우: 버퍼링/지연 현황 -->
+        <div class="space-y-5">
+
+          <!-- 스트리밍 지연 -->
+          <div class="bg-slate-50 rounded-2xl p-5">
+            <h2 class="text-sm font-bold text-slate-700 mb-4">
+              <i class="fa-solid fa-gauge-high text-orange-500 mr-2"></i>실시간 지표
+            </h2>
+            <div class="space-y-4">
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <span class="text-slate-500 font-medium">평균 버퍼링률</span>
+                  <span class="font-bold text-emerald-600" id="bufferingRate">0.8%</span>
+                </div>
+                <div class="monitor-bar-track">
+                  <div class="monitor-bar-fill bg-emerald-400" id="bufferingBar" style="width:0.8%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <span class="text-slate-500 font-medium">평균 응답 지연</span>
+                  <span class="font-bold text-sky-600" id="latencyValue">124ms</span>
+                </div>
+                <div class="monitor-bar-track">
+                  <div class="monitor-bar-fill bg-sky-400" id="latencyBar" style="width:12%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <span class="text-slate-500 font-medium">CDN 히트율</span>
+                  <span class="font-bold text-violet-600" id="cdnRate">94.2%</span>
+                </div>
+                <div class="monitor-bar-track">
+                  <div class="monitor-bar-fill bg-violet-400" id="cdnBar" style="width:94.2%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <span class="text-slate-500 font-medium">오류 발생률</span>
+                  <span class="font-bold text-red-500" id="errorRate">0.3%</span>
+                </div>
+                <div class="monitor-bar-track">
+                  <div class="monitor-bar-fill bg-red-400" id="errorBar" style="width:0.3%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 최근 경보 -->
+          <div class="bg-white border border-slate-100 rounded-2xl p-5">
+            <h2 class="text-sm font-bold text-slate-700 mb-3">
+              <i class="fa-solid fa-bell text-orange-500 mr-2"></i>최근 경보
+            </h2>
+            <div class="space-y-2.5" id="alertList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 탭: 오류 로그 ── -->
+    <div id="tab-logs" class="qc-tab-panel hidden p-6">
+      <!-- 필터 -->
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="w-36">
+            <select class="hm-input hm-input-orange" id="logFilterLevel" onchange="applyLogFilter()">
+              <option value="">전체 수준</option>
+              <option value="ERROR">ERROR</option>
+              <option value="WARN">WARN</option>
+              <option value="INFO">INFO</option>
+            </select>
+          </div>
+          <div class="w-36">
+            <select class="hm-input hm-input-orange" id="logFilterType" onchange="applyLogFilter()">
+              <option value="">전체 유형</option>
+              <option value="재생오류">재생 오류</option>
+              <option value="버퍼링">버퍼링</option>
+              <option value="네트워크">네트워크</option>
+              <option value="DRM오류">DRM 오류</option>
+            </select>
+          </div>
+          <div class="relative w-64">
+            <input type="text" class="hm-input hm-input-orange pl-10" id="logKeyword"
+              placeholder="영상명 또는 기기 검색..." oninput="applyLogFilter()" />
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-slate-400" id="logCount">0건</span>
+          <button onclick="clearLogs()"
+            class="text-xs font-semibold text-red-500 px-3 py-1.5 bg-red-50 hover:bg-red-100 rounded-xl transition-colors">
+            <i class="fa-solid fa-trash mr-1"></i>로그 초기화
+          </button>
+          <button onclick="exportLogs()"
+            class="text-xs font-semibold text-slate-600 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
+            <i class="fa-solid fa-download mr-1"></i>내보내기
+          </button>
+        </div>
+      </div>
+
+      <!-- 로그 테이블 -->
+      <div class="overflow-x-auto rounded-xl border border-slate-100">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-slate-50 text-xs font-bold text-slate-500 tracking-wider">
+              <th class="py-3.5 px-5 text-left w-28">수준</th>
+              <th class="py-3.5 px-5 text-left w-32">유형</th>
+              <th class="py-3.5 px-5 text-left">오류 내용 / 영상</th>
+              <th class="py-3.5 px-5 text-left w-28">기기</th>
+              <th class="py-3.5 px-5 text-left w-24">브라우저</th>
+              <th class="py-3.5 px-5 text-left w-36">발생 시각</th>
+            </tr>
+          </thead>
+          <tbody id="logTableBody" class="divide-y divide-slate-50"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== 페이지 스크립트 ===== -->
+<script>
+  /* ── 더미 오류 로그 ── */
+  let errorLogs = [
+    { id:1,  level:'ERROR', type:'재생오류',  msg:'HLS 스트림 로드 실패 (403 Forbidden)',         video:'수학1 - 14강 삼각함수',       device:'Android',    browser:'Chrome',  time:'2026-06-06 14:32:11' },
+    { id:2,  level:'WARN',  type:'버퍼링',    msg:'버퍼링 지속 시간 초과 (>5s)',                   video:'수학2 - 08강 수열의 극한',     device:'PC(Windows)',browser:'Edge',    time:'2026-06-06 13:58:04' },
+    { id:3,  level:'ERROR', type:'DRM오류',   msg:'라이선스 서버 응답 없음 (timeout)',              video:'영어독해 - 빈칸추론 전략 4',   device:'iOS',        browser:'Safari',  time:'2026-06-06 12:41:30' },
+    { id:4,  level:'WARN',  type:'네트워크',  msg:'CDN 응답 지연 >800ms',                          video:'중등수학 - 12강 연립방정식',   device:'PC(Mac)',    browser:'Safari',  time:'2026-06-06 11:20:17' },
+    { id:5,  level:'ERROR', type:'재생오류',  msg:'비디오 코덱 미지원 (H.265)',                    video:'수학1 - 13강 지수함수',        device:'Android',    browser:'Firefox', time:'2026-06-06 10:05:44' },
+    { id:6,  level:'INFO',  type:'버퍼링',    msg:'버퍼링 회복 완료 (2.3s)',                       video:'수학2 - 07강 급수와 수렴',     device:'PC(Windows)',browser:'Chrome',  time:'2026-06-06 09:50:22' },
+    { id:7,  level:'WARN',  type:'재생오류',  msg:'자막 파일 로드 실패 (.vtt 404)',                video:'영어독해 - 빈칸추론 전략 1',   device:'iOS',        browser:'Safari',  time:'2026-06-06 09:12:08' },
+    { id:8,  level:'ERROR', type:'네트워크',  msg:'세그먼트 다운로드 실패 (3/3 재시도 초과)',       video:'수학1 - 14강 삼각함수',       device:'Android',    browser:'Chrome',  time:'2026-06-05 22:44:55' },
+  ];
+  let displayLogs = [...errorLogs];
+
+  /* ── 테스트 상태 매트릭스 데이터 ── */
+  const presetResults = {
+    'PC(Windows)': { Chrome:'pass', Safari:'skip', Firefox:'pass', Edge:'pass' },
+    'PC(Mac)':     { Chrome:'pass', Safari:'pass', Firefox:'pass', Edge:'skip' },
+    Android:       { Chrome:'pass', Safari:'skip', Firefox:'fail', Edge:'skip' },
+    iOS:           { Chrome:'skip', Safari:'pass', Firefox:'skip', Edge:'skip' },
+  };
+
+  /* ── 통계 초기화 ── */
+  function updateStats() {
+    const errors = errorLogs.filter(l => l.level === 'ERROR').length;
+    document.getElementById('statPassRate').textContent = '97.2%';
+    document.getElementById('statErrors').textContent   = errors + '건';
+    document.getElementById('statLive').textContent     = '218명';
+    document.getElementById('logBadge').textContent     = errors;
+  }
+
+  /* ── 탭 전환 ── */
+  function switchTab(tabId, btn) {
+    document.querySelectorAll('.qc-tab-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.qc-tab-btn').forEach(b => {
+      b.classList.remove('text-orange-600', 'border-orange-500', 'bg-orange-50/40');
+      b.classList.add('text-slate-500', 'border-transparent');
+    });
+    document.getElementById(tabId).classList.remove('hidden');
+    btn.classList.remove('text-slate-500', 'border-transparent');
+    btn.classList.add('text-orange-600', 'border-orange-500', 'bg-orange-50/40');
+  }
+
+  /* ── 재생 테스트 실행 ── */
+  function runTest() {
+    const devices  = [...document.querySelectorAll('.test-device:checked')].map(c => c.value);
+    const browsers = [...document.querySelectorAll('.test-browser:checked')].map(c => c.value);
+    if (!devices.length || !browsers.length) {
+      showHermesToast('기기와 브라우저를 하나 이상 선택해 주세요.', 'error'); return;
+    }
+
+    const btn = document.getElementById('runTestBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>테스트 중...</span>';
+
+    /* 매트릭스 렌더링 (running 상태) */
+    renderMatrix(devices, browsers, {}, true);
+
+    /* 순차 완료 시뮬레이션 */
+    const results = {};
+    devices.forEach(d => { results[d] = {}; browsers.forEach(b => { results[d][b] = 'running'; }); });
+
+    let total = devices.length * browsers.length;
+    let done  = 0;
+    const logLines = [];
+
+    devices.forEach((device, di) => {
+      browsers.forEach((browser, bi) => {
+        const delay = (di * browsers.length + bi) * 600 + 300;
+        setTimeout(() => {
+          const preset = (presetResults[device] || {})[browser];
+          const result = preset === 'skip' ? 'skip' : (Math.random() > 0.12 ? 'pass' : 'fail');
+          results[device][browser] = result;
+          const icon = result === 'pass' ? '✅' : result === 'fail' ? '❌' : '⏭';
+          logLines.unshift(`${icon} [${device} / ${browser}] → ${result === 'pass' ? '재생 정상 (평균 124ms)' : result === 'fail' ? '재생 오류 발생' : '미지원 환경 건너뜀'}`);
+          renderMatrix(devices, browsers, results, false);
+          renderTestLog(logLines);
+          done++;
+          if (done === total) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-play"></i><span>테스트 시작</span>';
+            showHermesToast('호환성 테스트가 완료되었습니다.', 'success');
+          }
+        }, delay);
+      });
+    });
+  }
+
+  function renderMatrix(devices, browsers, results, loading) {
+    const area = document.getElementById('testMatrix');
+    const detail = document.getElementById('testDetailArea');
+    detail.classList.remove('hidden');
+
+    let html = '<table class="w-full border-collapse text-xs"><thead><tr><th class="py-2 px-3 text-left text-slate-400 font-semibold">기기 \\ 브라우저</th>';
+    browsers.forEach(b => { html += `<th class="py-2 px-3 text-center text-slate-500 font-semibold">${b}</th>`; });
+    html += '</tr></thead><tbody>';
+
+    devices.forEach(d => {
+      html += `<tr><td class="py-2 px-3 font-semibold text-slate-600 bg-slate-50">${d}</td>`;
+      browsers.forEach(b => {
+        const r = (results[d] || {})[b] || (loading ? 'running' : 'skip');
+        const cls = r === 'pass' ? 'test-cell-pass' : r === 'fail' ? 'test-cell-fail' : r === 'running' ? 'test-cell-running' : 'test-cell-skip';
+        const icon = r === 'pass' ? '<i class="fa-solid fa-circle-check text-emerald-600"></i>'
+                   : r === 'fail' ? '<i class="fa-solid fa-circle-xmark text-red-500"></i>'
+                   : r === 'running' ? '<i class="fa-solid fa-spinner fa-spin text-orange-400"></i>'
+                   : '<i class="fa-solid fa-minus text-slate-300"></i>';
+        html += `<td class="py-2 px-3 text-center rounded-lg ${cls}">${icon}</td>`;
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    area.innerHTML = html;
+  }
+
+  function renderTestLog(lines) {
+    const el = document.getElementById('testDetailLog');
+    el.innerHTML = lines.map(l => `<p class="text-xs text-slate-600 font-mono py-1 border-b border-slate-50">${l}</p>`).join('');
+  }
+
+  /* ── 모니터링 렌더링 ── */
+  function renderMonitor() {
+    const devices = [
+      { name:'PC (Windows)', icon:'fa-display',         active:92,  total:218, buffering:'0.4%', color:'bg-orange-400' },
+      { name:'PC (Mac)',      icon:'fa-laptop',          active:47,  total:218, buffering:'0.2%', color:'bg-sky-400'    },
+      { name:'Android',      icon:'fa-mobile-screen',   active:58,  total:218, buffering:'1.8%', color:'bg-emerald-400'},
+      { name:'iOS',          icon:'fa-mobile-screen-button', active:21, total:218, buffering:'0.9%', color:'bg-violet-400' },
+    ];
+    document.getElementById('deviceMonitor').innerHTML = devices.map(d => {
+      const pct = Math.round(d.active / d.total * 100);
+      return `
+        <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
+          <div class="w-9 h-9 rounded-xl bg-white border border-slate-100 text-slate-500 flex items-center justify-center shrink-0">
+            <i class="fa-solid ${d.icon} text-sm"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-bold text-slate-700">${d.name}</span>
+              <span class="text-xs text-slate-500">${d.active}명 재생 중</span>
+            </div>
+            <div class="monitor-bar-track">
+              <div class="monitor-bar-fill ${d.color}" style="width:${pct}%"></div>
+            </div>
+          </div>
+          <div class="text-right shrink-0">
+            <p class="text-xs font-bold text-slate-800">${pct}%</p>
+            <p class="text-[10px] text-slate-400">버퍼링 ${d.buffering}</p>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const browsers = [
+      { name:'Chrome',  icon:'fa-brands fa-chrome',          share:58, error:1, color:'bg-sky-400'    },
+      { name:'Safari',  icon:'fa-brands fa-safari',          share:26, error:2, color:'bg-slate-400'  },
+      { name:'Edge',    icon:'fa-brands fa-edge',            share:11, error:0, color:'bg-blue-400'   },
+      { name:'Firefox', icon:'fa-brands fa-firefox-browser', share:5,  error:1, color:'bg-orange-400' },
+    ];
+    document.getElementById('browserMonitor').innerHTML = browsers.map(b => `
+      <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
+        <div class="w-9 h-9 rounded-xl bg-white border border-slate-100 text-slate-500 flex items-center justify-center shrink-0">
+          <i class="${b.icon} text-sm"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-bold text-slate-700">${b.name}</span>
+            <span class="text-xs text-slate-500">${b.share}% 점유</span>
+          </div>
+          <div class="monitor-bar-track">
+            <div class="monitor-bar-fill ${b.color}" style="width:${b.share}%"></div>
+          </div>
+        </div>
+        <div class="shrink-0">
+          ${b.error > 0
+            ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-600">오류 ${b.error}</span>`
+            : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600">정상</span>`}
+        </div>
+      </div>
+    `).join('');
+
+    const alerts = [
+      { color:'text-red-500',  bg:'bg-red-50',   icon:'fa-circle-xmark', msg:'Android Chrome 재생 오류',   time:'14:32' },
+      { color:'text-amber-500',bg:'bg-amber-50',  icon:'fa-triangle-exclamation', msg:'CDN 응답 지연 감지', time:'13:58' },
+      { color:'text-red-500',  bg:'bg-red-50',   icon:'fa-circle-xmark', msg:'iOS Safari DRM 오류',       time:'12:41' },
+    ];
+    document.getElementById('alertList').innerHTML = alerts.map(a => `
+      <div class="flex items-start gap-2.5 py-2 border-b border-slate-50 last:border-0">
+        <i class="fa-solid ${a.icon} ${a.color} text-sm mt-0.5 shrink-0"></i>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs font-medium text-slate-700">${a.msg}</p>
+          <p class="text-[10px] text-slate-400">${a.time}</p>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  /* ── 오류 로그 렌더링 ── */
+  const levelStyle = {
+    ERROR: 'bg-red-100 text-red-700',
+    WARN:  'bg-amber-100 text-amber-700',
+    INFO:  'bg-sky-100 text-sky-700',
+  };
+  const typeStyle = {
+    '재생오류': 'bg-red-50 text-red-600',
+    '버퍼링':   'bg-amber-50 text-amber-600',
+    '네트워크': 'bg-orange-50 text-orange-600',
+    'DRM오류':  'bg-violet-50 text-violet-600',
+  };
+
+  function renderLogs(data) {
+    const tbody = document.getElementById('logTableBody');
+    document.getElementById('logCount').textContent = `${data.length}건`;
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-slate-300 text-sm">수집된 오류 로그가 없습니다.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map(l => `
+      <tr class="log-row">
+        <td class="py-3.5 px-5">
+          <span class="px-2 py-0.5 rounded-full text-xs font-bold ${levelStyle[l.level] || 'bg-slate-100 text-slate-500'}">${l.level}</span>
+        </td>
+        <td class="py-3.5 px-5">
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold ${typeStyle[l.type] || 'bg-slate-100 text-slate-500'}">${l.type}</span>
+        </td>
+        <td class="py-3.5 px-5">
+          <p class="text-xs font-medium text-slate-700">${l.msg}</p>
+          <p class="text-[11px] text-slate-400 mt-0.5">${l.video}</p>
+        </td>
+        <td class="py-3.5 px-5 text-xs text-slate-500">${l.device}</td>
+        <td class="py-3.5 px-5 text-xs text-slate-500">${l.browser}</td>
+        <td class="py-3.5 px-5 text-xs font-mono text-slate-400">${l.time}</td>
+      </tr>
+    `).join('');
+  }
+
+  function applyLogFilter() {
+    const level   = document.getElementById('logFilterLevel').value;
+    const type    = document.getElementById('logFilterType').value;
+    const keyword = document.getElementById('logKeyword').value.trim();
+    displayLogs = errorLogs.filter(l =>
+      (!level   || l.level === level) &&
+      (!type    || l.type  === type) &&
+      (!keyword || l.video.includes(keyword) || l.device.includes(keyword) || l.msg.includes(keyword))
+    );
+    renderLogs(displayLogs);
+  }
+
+  function clearLogs() {
+    if (!confirm('수집된 오류 로그를 모두 초기화하시겠습니까?')) return;
+    errorLogs = []; displayLogs = [];
+    renderLogs([]);
+    updateStats();
+    showHermesToast('오류 로그가 초기화되었습니다.', 'error');
+  }
+
+  function exportLogs() {
+    showHermesToast('오류 로그를 CSV로 내보냅니다.', 'info');
+  }
+
+  /* ── 새로고침 ── */
+  function refreshAll() {
+    showHermesToast('모니터링 데이터를 갱신했습니다.', 'success');
+  }
+
+  /* ── 실시간 지표 시뮬레이션 ── */
+  (function () {
+    setInterval(function () {
+      const buf  = (Math.random() * 2).toFixed(1);
+      const lat  = Math.floor(Math.random() * 80 + 90);
+      const cdn  = (Math.random() * 5 + 90).toFixed(1);
+      const err  = (Math.random() * 0.8).toFixed(1);
+      document.getElementById('bufferingRate').textContent = buf + '%';
+      document.getElementById('bufferingBar').style.width  = buf + '%';
+      document.getElementById('latencyValue').textContent  = lat + 'ms';
+      document.getElementById('latencyBar').style.width    = Math.min(lat / 5, 100) + '%';
+      document.getElementById('cdnRate').textContent       = cdn + '%';
+      document.getElementById('cdnBar').style.width        = cdn + '%';
+      document.getElementById('errorRate').textContent     = err + '%';
+      document.getElementById('errorBar').style.width      = err + '%';
+      const live = Math.floor(Math.random() * 40 + 200);
+      document.getElementById('statLive').textContent      = live + '명';
+    }, 3000);
+  })();
+
+  /* ── 초기화 ── */
+  (function () {
+    const firstBtn = document.querySelector('.qc-tab-btn[data-tab="tab-test"]');
+    if (firstBtn) switchTab('tab-test', firstBtn);
+    updateStats();
+    renderMonitor();
+    renderLogs(errorLogs);
+  })();
+</script>

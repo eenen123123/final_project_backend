@@ -1,0 +1,699 @@
+<title th:fragment="pageTitle">강의 파일 관리 | HERMES</title>
+
+<style>
+  .file-drop-zone {
+    border: 2px dashed #e2e8f0;
+    border-radius: 1rem;
+    transition: border-color 0.2s, background-color 0.2s;
+  }
+  .file-drop-zone.drag-over {
+    border-color: #f97316;
+    background-color: #fff7ed;
+  }
+  .drm-on  { background-color: #fff7ed; border-color: #fed7aa; }
+  .drm-off { background-color: #f8fafc; border-color: #e2e8f0; }
+</style>
+
+<div class="space-y-6">
+
+  <!-- ① 페이지 헤더 -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">강의 파일 관리</h1>
+      <p class="text-sm text-slate-500 mt-1">강의 연계 학습 자료를 업로드하고, 다운로드 권한(DRM)을 제어합니다.</p>
+    </div>
+    <div class="flex items-center gap-2 px-3 py-1.5 bg-orange-50 border border-orange-100 rounded-xl">
+      <i class="fa-solid fa-lock text-orange-500 text-xs"></i>
+      <span class="text-xs font-bold text-orange-600">DRM 권한 제어</span>
+    </div>
+  </div>
+
+  <!-- ② 요약 통계 카드 -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-folder-open"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">전체 파일</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5" id="statTotal">-</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">DRM 보호</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5" id="statDrm">-</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-download"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">이번 달 다운로드</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">1,284회</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-hard-drive"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">자료 용량</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">18.4 GB</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 업로드 + DRM 설정 -->
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+    <!-- 업로드 영역 (3/5) -->
+    <div class="lg:col-span-3 bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-5">
+      <h2 class="text-sm font-bold text-slate-700">
+        <i class="fa-solid fa-file-arrow-up text-orange-500 mr-2"></i>학습 자료 업로드
+      </h2>
+
+      <!-- 드래그 & 드롭 존 -->
+      <div class="file-drop-zone p-8 flex flex-col items-center justify-center text-center cursor-pointer"
+        id="fileDropZone"
+        ondragover="handleDragOver(event)"
+        ondragleave="handleDragLeave()"
+        ondrop="handleDrop(event)"
+        onclick="document.getElementById('materialFileInput').click()">
+        <div class="w-16 h-16 rounded-2xl bg-orange-50 text-orange-400 flex items-center justify-center text-3xl mb-4">
+          <i class="fa-solid fa-file-pdf"></i>
+        </div>
+        <p class="text-sm font-semibold text-slate-600">파일을 드래그하거나 클릭하여 업로드</p>
+        <p class="text-xs text-slate-400 mt-1">PDF, PPT, PPTX, DOC, DOCX, HWP · 최대 500 MB</p>
+        <div class="flex items-center gap-2 mt-4 flex-wrap justify-center">
+          <span class="px-2.5 py-1 bg-red-50 text-red-600 text-xs font-semibold rounded-full">PDF</span>
+          <span class="px-2.5 py-1 bg-orange-50 text-orange-600 text-xs font-semibold rounded-full">PPT</span>
+          <span class="px-2.5 py-1 bg-sky-50 text-sky-600 text-xs font-semibold rounded-full">DOC</span>
+          <span class="px-2.5 py-1 bg-emerald-50 text-emerald-600 text-xs font-semibold rounded-full">HWP</span>
+        </div>
+        <p class="text-xs text-orange-400 font-medium mt-3 hidden" id="fileSelectedMsg"></p>
+      </div>
+      <input type="file" id="materialFileInput" accept=".pdf,.ppt,.pptx,.doc,.docx,.hwp" multiple class="hidden"
+        onchange="handleFileSelect(this.files)" />
+
+      <!-- 파일 연결 정보 -->
+      <div class="space-y-4 pt-4 border-t border-slate-100">
+        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider">강의 연결 정보</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">강좌 선택 <span class="text-red-400">*</span></label>
+            <select class="hm-input hm-input-orange" id="uploadClass">
+              <option value="">강좌를 선택하세요</option>
+              <option value="고등수학A">고등수학 A반</option>
+              <option value="고등수학B">고등수학 B반</option>
+              <option value="중등수학A">중등수학 A반</option>
+              <option value="고등영어">고등영어반</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">자료 유형</label>
+            <select class="hm-input hm-input-orange" id="uploadMaterialType">
+              <option value="강의자료">강의 자료 (PPT/PDF)</option>
+              <option value="문제지">문제지</option>
+              <option value="정답해설">정답 및 해설</option>
+              <option value="부교재">부교재</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">자료 제목 <span class="text-red-400">*</span></label>
+          <input type="text" class="hm-input hm-input-orange" id="uploadTitle"
+            placeholder="예) 14강 삼각함수 강의 자료" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">설명 (선택)</label>
+          <input type="text" class="hm-input hm-input-orange" id="uploadDesc"
+            placeholder="학생에게 안내할 자료 설명을 입력하세요." />
+        </div>
+      </div>
+
+      <!-- 업로드 버튼 -->
+      <button class="w-full hm-btn-primary hm-btn-orange py-3" onclick="startUpload()">
+        <i class="fa-solid fa-cloud-arrow-up"></i>
+        <span>파일 업로드</span>
+      </button>
+    </div>
+
+    <!-- DRM 설정 패널 (2/5) -->
+    <div class="lg:col-span-2 space-y-5">
+
+      <!-- DRM 기본 설정 -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+        <div class="flex items-center gap-2 mb-4">
+          <i class="fa-solid fa-shield-halved text-orange-500"></i>
+          <h2 class="text-sm font-bold text-slate-700">DRM 기본 정책</h2>
+        </div>
+
+        <div class="space-y-4">
+          <!-- 다운로드 허용 -->
+          <div class="flex items-center justify-between py-3 border-b border-slate-50">
+            <div>
+              <p class="text-sm font-medium text-slate-700">다운로드 허용</p>
+              <p class="text-xs text-slate-400 mt-0.5">수강생 다운로드 기본 허용 여부</p>
+            </div>
+            <input type="checkbox" class="hm-switch hm-switch-orange" id="drmAllowDownload" checked
+              onchange="updateDrmPreview()" />
+          </div>
+
+          <!-- 다운로드 횟수 제한 -->
+          <div class="flex items-center justify-between py-3 border-b border-slate-50">
+            <div>
+              <p class="text-sm font-medium text-slate-700">다운로드 횟수 제한</p>
+              <p class="text-xs text-slate-400 mt-0.5">인당 최대 다운로드 횟수</p>
+            </div>
+            <select class="hm-input hm-input-orange w-28 text-xs" id="drmMaxDownloads" onchange="updateDrmPreview()">
+              <option value="0">제한 없음</option>
+              <option value="1">1회</option>
+              <option value="3" selected>3회</option>
+              <option value="5">5회</option>
+              <option value="10">10회</option>
+            </select>
+          </div>
+
+          <!-- 수강생 전용 -->
+          <div class="flex items-center justify-between py-3 border-b border-slate-50">
+            <div>
+              <p class="text-sm font-medium text-slate-700">수강생 전용 잠금</p>
+              <p class="text-xs text-slate-400 mt-0.5">해당 강좌 수강생만 접근 가능</p>
+            </div>
+            <input type="checkbox" class="hm-switch hm-switch-orange" id="drmEnrolledOnly" checked
+              onchange="updateDrmPreview()" />
+          </div>
+
+          <!-- 워터마크 -->
+          <div class="flex items-center justify-between py-3 border-b border-slate-50">
+            <div>
+              <p class="text-sm font-medium text-slate-700">워터마크 삽입</p>
+              <p class="text-xs text-slate-400 mt-0.5">PDF에 학생 ID 워터마크 삽입</p>
+            </div>
+            <input type="checkbox" class="hm-switch hm-switch-orange" id="drmWatermark"
+              onchange="updateDrmPreview()" />
+          </div>
+
+          <!-- 유효 기간 -->
+          <div class="flex items-center justify-between py-3">
+            <div>
+              <p class="text-sm font-medium text-slate-700">접근 유효 기간</p>
+              <p class="text-xs text-slate-400 mt-0.5">수강 종료 후 접근 허용 기간</p>
+            </div>
+            <select class="hm-input hm-input-orange w-28 text-xs" id="drmExpiry" onchange="updateDrmPreview()">
+              <option value="0">제한 없음</option>
+              <option value="7">7일</option>
+              <option value="30" selected>30일</option>
+              <option value="90">90일</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- DRM 현황 요약 -->
+      <div class="rounded-2xl border p-4 drm-on" id="drmSummaryBox">
+        <div class="flex items-center gap-2 mb-3">
+          <i class="fa-solid fa-shield-halved text-orange-500 text-sm"></i>
+          <p class="text-xs font-bold text-orange-700">현재 DRM 정책 요약</p>
+        </div>
+        <ul class="space-y-1.5 text-xs text-slate-600" id="drmSummaryList"></ul>
+      </div>
+
+      <!-- 업로드 대기열 -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-sm font-bold text-slate-700">
+            <i class="fa-solid fa-list-check text-orange-500 mr-1.5"></i>업로드 대기열
+          </h2>
+          <span class="text-xs text-slate-400" id="queueCount">0개</span>
+        </div>
+        <div class="space-y-2" id="uploadQueue">
+          <p class="text-xs text-slate-300 text-center py-4">대기 중인 파일이 없습니다.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ 게시 파일 목록 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+    <div class="flex flex-wrap items-center justify-between gap-3 px-6 pt-5 pb-4 border-b border-slate-100">
+      <h2 class="text-sm font-bold text-slate-700">
+        <i class="fa-solid fa-folder-open text-orange-500 mr-2"></i>게시된 학습 자료
+      </h2>
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="relative w-60">
+          <input type="text" class="hm-input hm-input-orange pl-10" placeholder="파일명 검색..."
+            oninput="applyFilter()" id="filterKeyword" />
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+        </div>
+        <div class="w-36">
+          <select class="hm-input hm-input-orange" onchange="applyFilter()" id="filterClass">
+            <option value="">전체 강좌</option>
+            <option value="고등수학A">고등수학 A</option>
+            <option value="고등수학B">고등수학 B</option>
+            <option value="중등수학A">중등수학 A</option>
+            <option value="고등영어">고등영어</option>
+          </select>
+        </div>
+        <div class="w-36">
+          <select class="hm-input hm-input-orange" onchange="applyFilter()" id="filterMType">
+            <option value="">전체 유형</option>
+            <option value="강의자료">강의 자료</option>
+            <option value="문제지">문제지</option>
+            <option value="정답해설">정답 및 해설</option>
+            <option value="부교재">부교재</option>
+          </select>
+        </div>
+        <div class="w-36">
+          <select class="hm-input hm-input-orange" onchange="applyFilter()" id="filterDrm">
+            <option value="">DRM 전체</option>
+            <option value="true">DRM 보호</option>
+            <option value="false">DRM 없음</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+            <th class="py-4 px-6 w-10">
+              <input type="checkbox" class="rounded" onchange="toggleSelectAll(this)" />
+            </th>
+            <th class="py-4 px-6">파일 정보</th>
+            <th class="py-4 px-6 w-24">유형</th>
+            <th class="py-4 px-6 w-24">파일 크기</th>
+            <th class="py-4 px-6 w-24 text-center">다운로드</th>
+            <th class="py-4 px-6 w-36 text-center">DRM 보호</th>
+            <th class="py-4 px-6 w-28 text-center">제어</th>
+          </tr>
+        </thead>
+        <tbody id="fileTableBody" class="divide-y divide-slate-50 text-sm text-slate-700"></tbody>
+      </table>
+    </div>
+
+    <!-- 일괄 제어 + 페이징 -->
+    <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-t border-slate-50">
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-slate-400" id="fileCount">총 0건</span>
+        <span class="text-slate-200">|</span>
+        <button onclick="bulkToggleDrm(true)"
+          class="text-xs font-semibold text-orange-600 hover:text-orange-700 px-2 py-1 bg-orange-50 rounded-lg">
+          <i class="fa-solid fa-lock mr-1"></i>선택 DRM 설정
+        </button>
+        <button onclick="bulkToggleDrm(false)"
+          class="text-xs font-semibold text-slate-500 hover:text-slate-700 px-2 py-1 bg-slate-100 rounded-lg">
+          <i class="fa-solid fa-lock-open mr-1"></i>선택 DRM 해제
+        </button>
+        <button onclick="bulkDelete()"
+          class="text-xs font-semibold text-red-500 hover:text-red-700 px-2 py-1 bg-red-50 rounded-lg">
+          <i class="fa-solid fa-trash mr-1"></i>선택 삭제
+        </button>
+      </div>
+      <div class="flex items-center gap-1">
+        <button class="w-8 h-8 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs flex items-center justify-center">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <button class="w-8 h-8 rounded-lg bg-orange-500 text-white text-xs flex items-center justify-center font-bold">1</button>
+        <button class="w-8 h-8 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs flex items-center justify-center">2</button>
+        <button class="w-8 h-8 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs flex items-center justify-center">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== DRM 상세 설정 모달 ===== -->
+<div id="drmModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeDrmModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6">
+    <div class="flex items-center justify-between mb-5">
+      <div>
+        <h3 class="text-base font-bold text-slate-800">DRM 개별 설정</h3>
+        <p class="text-xs text-slate-400 mt-0.5" id="drmModalFileName">-</p>
+      </div>
+      <button onclick="closeDrmModal()" class="text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <div class="space-y-4">
+      <div class="flex items-center justify-between py-3 border-b border-slate-100">
+        <p class="text-sm font-medium text-slate-700">DRM 보호 활성</p>
+        <input type="checkbox" class="hm-switch hm-switch-orange" id="modalDrmEnabled" />
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-slate-100">
+        <p class="text-sm font-medium text-slate-700">다운로드 허용</p>
+        <input type="checkbox" class="hm-switch hm-switch-orange" id="modalDrmDownload" checked />
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">인당 다운로드 횟수 제한</label>
+        <select class="hm-input hm-input-orange" id="modalDrmLimit">
+          <option value="0">제한 없음</option>
+          <option value="1">1회</option>
+          <option value="3" selected>3회</option>
+          <option value="5">5회</option>
+          <option value="10">10회</option>
+        </select>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-slate-100">
+        <p class="text-sm font-medium text-slate-700">워터마크 삽입</p>
+        <input type="checkbox" class="hm-switch hm-switch-orange" id="modalDrmWatermark" />
+      </div>
+    </div>
+
+    <div class="flex gap-3 mt-5">
+      <button class="flex-1 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+        onclick="closeDrmModal()">취소</button>
+      <button class="flex-1 hm-btn-primary hm-btn-orange" onclick="saveDrmModal()">
+        <i class="fa-solid fa-shield-halved"></i><span>저장</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 페이지 스크립트 ===== -->
+<script>
+  /* ── 파일 타입 아이콘/컬러 ── */
+  const fileTypeMap = {
+    pdf:  { icon: 'fa-file-pdf',       color: 'text-red-500',    bg: 'bg-red-50'    },
+    ppt:  { icon: 'fa-file-powerpoint', color: 'text-orange-500', bg: 'bg-orange-50' },
+    pptx: { icon: 'fa-file-powerpoint', color: 'text-orange-500', bg: 'bg-orange-50' },
+    doc:  { icon: 'fa-file-word',       color: 'text-sky-500',    bg: 'bg-sky-50'    },
+    docx: { icon: 'fa-file-word',       color: 'text-sky-500',    bg: 'bg-sky-50'    },
+    hwp:  { icon: 'fa-file-lines',      color: 'text-emerald-500',bg: 'bg-emerald-50'},
+  };
+
+  function fileIcon(ext) {
+    const t = fileTypeMap[ext.toLowerCase()] || { icon: 'fa-file', color: 'text-slate-400', bg: 'bg-slate-50' };
+    return `<div class="w-9 h-9 rounded-xl ${t.bg} ${t.color} flex items-center justify-center shrink-0">
+      <i class="fa-solid ${t.icon} text-base"></i>
+    </div>`;
+  }
+
+  /* ── 자료 유형 배지 ── */
+  function mTypeBadge(type) {
+    const map = {
+      '강의자료': 'bg-orange-50 text-orange-600',
+      '문제지':   'bg-sky-50 text-sky-600',
+      '정답해설': 'bg-emerald-50 text-emerald-700',
+      '부교재':   'bg-violet-50 text-violet-600',
+    };
+    return `<span class="px-2 py-0.5 rounded-full text-xs font-semibold ${map[type] || 'bg-slate-100 text-slate-500'}">${type}</span>`;
+  }
+
+  /* ── 더미 데이터 ── */
+  let fileData = [
+    { id:1,  classNm:'고등수학A', title:'14강 삼각함수 강의 자료',    ext:'pdf',  size:'4.2 MB',  mType:'강의자료', uploadDate:'2026-06-05', downloads:87,  drm:true,  drmLimit:3, watermark:true  },
+    { id:2,  classNm:'고등수학A', title:'14강 삼각함수 문제지',        ext:'pdf',  size:'1.8 MB',  mType:'문제지',   uploadDate:'2026-06-05', downloads:74,  drm:true,  drmLimit:3, watermark:false },
+    { id:3,  classNm:'고등수학A', title:'14강 정답 및 해설',           ext:'pdf',  size:'2.1 MB',  mType:'정답해설', uploadDate:'2026-06-05', downloads:61,  drm:true,  drmLimit:1, watermark:false },
+    { id:4,  classNm:'고등수학B', title:'8강 수열의 극한 강의 PPT',    ext:'pptx', size:'18.5 MB', mType:'강의자료', uploadDate:'2026-06-04', downloads:52,  drm:true,  drmLimit:3, watermark:true  },
+    { id:5,  classNm:'고등수학B', title:'8강 문제지',                  ext:'hwp',  size:'3.4 MB',  mType:'문제지',   uploadDate:'2026-06-04', downloads:49,  drm:false, drmLimit:0, watermark:false },
+    { id:6,  classNm:'중등수학A', title:'11강 일차방정식 강의 자료',   ext:'pptx', size:'12.7 MB', mType:'강의자료', uploadDate:'2026-06-03', downloads:38,  drm:true,  drmLimit:5, watermark:false },
+    { id:7,  classNm:'고등영어',  title:'수능 독해 핵심 유형 정리',    ext:'pdf',  size:'8.3 MB',  mType:'부교재',   uploadDate:'2026-06-02', downloads:103, drm:false, drmLimit:0, watermark:false },
+    { id:8,  classNm:'고등영어',  title:'빈칸 추론 4강 문제지',        ext:'docx', size:'2.9 MB',  mType:'문제지',   uploadDate:'2026-06-01', downloads:91,  drm:true,  drmLimit:3, watermark:true  },
+  ];
+  let displayData  = [...fileData];
+  let nextId       = 9;
+  let selectedIds  = new Set();
+  let drmEditId    = null;
+  let uploadQueue  = [];
+
+  /* ── 통계 ── */
+  function updateStats() {
+    document.getElementById('statTotal').textContent = fileData.length + '건';
+    document.getElementById('statDrm').textContent   = fileData.filter(f => f.drm).length + '건';
+  }
+
+  /* ── 테이블 렌더링 ── */
+  function renderTable(data) {
+    const tbody = document.getElementById('fileTableBody');
+    document.getElementById('fileCount').textContent = `총 ${data.length}건`;
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-300 text-sm">게시된 파일이 없습니다.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map(f => `
+      <tr class="hover:bg-slate-50/50 transition-colors ${selectedIds.has(f.id) ? 'bg-orange-50/40' : ''}">
+        <td class="py-4 px-6">
+          <input type="checkbox" class="rounded" ${selectedIds.has(f.id) ? 'checked' : ''}
+            onchange="toggleSelect(${f.id}, this.checked)" />
+        </td>
+        <td class="py-4 px-6">
+          <div class="flex items-center gap-3">
+            ${fileIcon(f.ext)}
+            <div class="min-w-0">
+              <p class="font-bold text-slate-800 truncate max-w-xs">${f.title}</p>
+              <p class="text-xs text-slate-400 mt-0.5 flex items-center gap-1.5">
+                <span>${f.classNm}</span>
+                <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
+                <span class="uppercase font-mono">${f.ext}</span>
+                <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
+                <span>${f.uploadDate}</span>
+              </p>
+            </div>
+          </div>
+        </td>
+        <td class="py-4 px-6">${mTypeBadge(f.mType)}</td>
+        <td class="py-4 px-6 font-mono text-xs text-slate-500">${f.size}</td>
+        <td class="py-4 px-6 text-center">
+          <span class="text-xs font-semibold text-slate-600">
+            <i class="fa-solid fa-download text-slate-300 mr-1"></i>${f.downloads.toLocaleString()}회
+          </span>
+        </td>
+        <td class="py-4 px-6 text-center">
+          <div class="flex items-center justify-center gap-2">
+            <input type="checkbox" class="hm-switch hm-switch-orange"
+              ${f.drm ? 'checked' : ''}
+              onchange="quickToggleDrm(${f.id}, this.checked)" />
+            <span class="text-xs font-semibold ${f.drm ? 'text-orange-600' : 'text-slate-400'}" id="drmLabel-${f.id}">
+              ${f.drm
+                ? `<span class="flex items-center gap-1"><i class="fa-solid fa-lock text-[10px]"></i>보호 중</span>`
+                : `<span class="flex items-center gap-1"><i class="fa-solid fa-lock-open text-[10px]"></i>미적용</span>`
+              }
+            </span>
+          </div>
+          ${f.drm
+            ? `<div class="text-[10px] text-slate-400 mt-1 flex items-center justify-center gap-2">
+                 ${f.drmLimit > 0 ? `<span>최대 ${f.drmLimit}회</span>` : '<span>횟수 무제한</span>'}
+                 ${f.watermark ? '<span>·</span><span>워터마크</span>' : ''}
+               </div>`
+            : ''}
+        </td>
+        <td class="py-4 px-6 text-center">
+          <div class="flex items-center justify-center gap-1">
+            <button onclick="openDrmModal(${f.id})"
+              class="p-1.5 text-slate-400 hover:text-orange-500 transition-colors" title="DRM 상세 설정">
+              <i class="fa-solid fa-shield-halved text-sm"></i>
+            </button>
+            <button onclick="confirmDelete(${f.id})"
+              class="p-1.5 text-slate-400 hover:text-red-500 transition-colors" title="삭제">
+              <i class="fa-solid fa-trash text-sm"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  /* ── 필터 ── */
+  function applyFilter() {
+    const keyword = document.getElementById('filterKeyword').value.trim();
+    const cls     = document.getElementById('filterClass').value;
+    const mType   = document.getElementById('filterMType').value;
+    const drm     = document.getElementById('filterDrm').value;
+    displayData = fileData.filter(f =>
+      (!keyword || f.title.includes(keyword)) &&
+      (!cls     || f.classNm === cls) &&
+      (!mType   || f.mType === mType) &&
+      (drm === '' || String(f.drm) === drm)
+    );
+    renderTable(displayData);
+  }
+
+  /* ── 선택 ── */
+  function toggleSelect(id, checked) {
+    checked ? selectedIds.add(id) : selectedIds.delete(id);
+    renderTable(displayData);
+  }
+  function toggleSelectAll(cb) {
+    displayData.forEach(f => cb.checked ? selectedIds.add(f.id) : selectedIds.delete(f.id));
+    renderTable(displayData);
+  }
+
+  /* ── 일괄 DRM ── */
+  function bulkToggleDrm(enable) {
+    if (selectedIds.size === 0) { showHermesToast('파일을 먼저 선택해 주세요.', 'error'); return; }
+    selectedIds.forEach(id => {
+      const f = fileData.find(f => f.id === id);
+      if (f) f.drm = enable;
+    });
+    updateStats();
+    renderTable(displayData);
+    showHermesToast(enable ? '선택 파일에 DRM이 적용되었습니다.' : 'DRM이 해제되었습니다.', 'success');
+  }
+
+  /* ── 일괄 삭제 ── */
+  function bulkDelete() {
+    if (selectedIds.size === 0) { showHermesToast('파일을 먼저 선택해 주세요.', 'error'); return; }
+    if (!confirm(`선택한 ${selectedIds.size}개 파일을 삭제하시겠습니까?`)) return;
+    fileData    = fileData.filter(f => !selectedIds.has(f.id));
+    displayData = displayData.filter(f => !selectedIds.has(f.id));
+    selectedIds.clear();
+    updateStats();
+    renderTable(displayData);
+    showHermesToast('선택 파일이 삭제되었습니다.', 'error');
+  }
+
+  /* ── 단건 삭제 ── */
+  function confirmDelete(id) {
+    const f = fileData.find(f => f.id === id);
+    if (!f) return;
+    if (!confirm(`"${f.title}"\n이 파일을 삭제하시겠습니까?`)) return;
+    fileData    = fileData.filter(f => f.id !== id);
+    displayData = displayData.filter(f => f.id !== id);
+    selectedIds.delete(id);
+    updateStats();
+    renderTable(displayData);
+    showHermesToast('파일이 삭제되었습니다.', 'error');
+  }
+
+  /* ── 빠른 DRM 토글 ── */
+  function quickToggleDrm(id, checked) {
+    const f = fileData.find(f => f.id === id);
+    if (!f) return;
+    f.drm = checked;
+    updateStats();
+    renderTable(displayData);
+    showHermesToast(checked ? 'DRM 보호가 활성화되었습니다.' : 'DRM이 해제되었습니다.', 'success');
+  }
+
+  /* ── DRM 모달 ── */
+  function openDrmModal(id) {
+    const f = fileData.find(f => f.id === id);
+    if (!f) return;
+    drmEditId = id;
+    document.getElementById('drmModalFileName').textContent = f.title;
+    document.getElementById('modalDrmEnabled').checked   = f.drm;
+    document.getElementById('modalDrmDownload').checked  = true;
+    document.getElementById('modalDrmLimit').value       = f.drmLimit;
+    document.getElementById('modalDrmWatermark').checked = f.watermark;
+    document.getElementById('drmModal').classList.remove('hidden');
+  }
+  function closeDrmModal() {
+    document.getElementById('drmModal').classList.add('hidden');
+    drmEditId = null;
+  }
+  function saveDrmModal() {
+    const f = fileData.find(f => f.id === drmEditId);
+    if (!f) return;
+    f.drm       = document.getElementById('modalDrmEnabled').checked;
+    f.drmLimit  = parseInt(document.getElementById('modalDrmLimit').value);
+    f.watermark = document.getElementById('modalDrmWatermark').checked;
+    closeDrmModal();
+    updateStats();
+    renderTable(displayData);
+    showHermesToast('DRM 설정이 저장되었습니다.', 'success');
+  }
+
+  /* ── 드래그 & 드롭 ── */
+  function handleDragOver(e) {
+    e.preventDefault();
+    document.getElementById('fileDropZone').classList.add('drag-over');
+  }
+  function handleDragLeave() {
+    document.getElementById('fileDropZone').classList.remove('drag-over');
+  }
+  function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('fileDropZone').classList.remove('drag-over');
+    handleFileSelect(e.dataTransfer.files);
+  }
+  function handleFileSelect(files) {
+    if (!files || files.length === 0) return;
+    const msg = document.getElementById('fileSelectedMsg');
+    const names = Array.from(files).map(f => f.name).join(', ');
+    msg.textContent = `선택됨: ${names}`;
+    msg.classList.remove('hidden');
+    Array.from(files).forEach(file => {
+      const item = { id: Date.now() + Math.random(), name: file.name, size: (file.size / 1024 / 1024).toFixed(1) + ' MB', progress: 0, done: false };
+      uploadQueue.push(item);
+    });
+    renderQueue();
+  }
+
+  /* ── 업로드 대기열 렌더링 ── */
+  function renderQueue() {
+    const el = document.getElementById('uploadQueue');
+    const count = document.getElementById('queueCount');
+    count.textContent = uploadQueue.filter(q => !q.done).length + '개';
+    if (uploadQueue.length === 0) {
+      el.innerHTML = `<p class="text-xs text-slate-300 text-center py-4">대기 중인 파일이 없습니다.</p>`;
+      return;
+    }
+    el.innerHTML = uploadQueue.map(q => `
+      <div class="p-3 bg-slate-50 rounded-xl">
+        <div class="flex items-center justify-between mb-1.5">
+          <p class="text-xs font-medium text-slate-700 truncate max-w-[190px]">${q.name}</p>
+          <span class="text-[10px] ${q.done ? 'text-emerald-600 font-bold' : 'text-orange-500'}">${q.done ? '완료' : q.progress + '%'}</span>
+        </div>
+        <div class="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+          <div class="h-full rounded-full transition-all duration-300" style="width:${q.progress}%; background:${q.done ? '#10b981' : '#f97316'};"></div>
+        </div>
+        <p class="text-[10px] text-slate-400 mt-1">${q.size}</p>
+      </div>
+    `).join('');
+  }
+
+  /* ── 업로드 실행 ── */
+  function startUpload() {
+    const cls   = document.getElementById('uploadClass').value;
+    const title = document.getElementById('uploadTitle').value.trim();
+    if (!cls)   { showHermesToast('강좌를 선택해 주세요.', 'error'); return; }
+    if (!title) { showHermesToast('자료 제목을 입력해 주세요.', 'error'); return; }
+    if (uploadQueue.filter(q => !q.done).length === 0) { showHermesToast('업로드할 파일을 선택해 주세요.', 'error'); return; }
+
+    showHermesToast('파일 업로드를 시작합니다.', 'success');
+    uploadQueue.filter(q => !q.done).forEach(q => {
+      const iv = setInterval(() => {
+        q.progress = Math.min(q.progress + Math.floor(Math.random() * 15 + 8), 100);
+        if (q.progress >= 100) { q.done = true; clearInterval(iv); showHermesToast(`"${q.name}" 업로드 완료`, 'success'); }
+        renderQueue();
+      }, 250);
+    });
+  }
+
+  /* ── DRM 현황 요약 ── */
+  function updateDrmPreview() {
+    const allow    = document.getElementById('drmAllowDownload').checked;
+    const limit    = document.getElementById('drmMaxDownloads').value;
+    const enrolled = document.getElementById('drmEnrolledOnly').checked;
+    const wm       = document.getElementById('drmWatermark').checked;
+    const expiry   = document.getElementById('drmExpiry').value;
+
+    const rows = [
+      { icon: allow ? 'fa-circle-check text-emerald-500' : 'fa-circle-xmark text-red-400', text: allow ? '다운로드 허용' : '다운로드 차단' },
+      { icon: 'fa-arrow-down-1-9 text-orange-500', text: limit === '0' ? '횟수 제한 없음' : `인당 최대 ${limit}회` },
+      { icon: enrolled ? 'fa-lock text-orange-500' : 'fa-lock-open text-slate-400', text: enrolled ? '수강생 전용 잠금' : '비수강생도 접근 가능' },
+      { icon: wm ? 'fa-droplet text-violet-500' : 'fa-droplet text-slate-300', text: wm ? '워터마크 삽입 (PDF)' : '워터마크 없음' },
+      { icon: 'fa-clock text-sky-500', text: expiry === '0' ? '기간 제한 없음' : `수강 종료 후 ${expiry}일` },
+    ];
+
+    document.getElementById('drmSummaryList').innerHTML = rows.map(r =>
+      `<li class="flex items-center gap-2"><i class="fa-solid ${r.icon} w-4 text-center text-xs"></i><span>${r.text}</span></li>`
+    ).join('');
+  }
+
+  /* ── 초기화 ── */
+  updateStats();
+  renderTable(fileData);
+  updateDrmPreview();
+</script>

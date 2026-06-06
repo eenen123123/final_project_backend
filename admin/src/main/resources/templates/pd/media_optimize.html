@@ -1,0 +1,651 @@
+<title th:fragment="pageTitle">강의 정보 최적화 | HERMES</title>
+
+<div class="space-y-6">
+
+  <!-- ① 페이지 헤더 -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">강의 정보 최적화</h1>
+      <p class="text-sm text-slate-500 mt-1">카테고리 분류, 강의 상세 정보 수정, 변경 이력을 통합 관리합니다.</p>
+    </div>
+    <div class="flex items-center gap-2 px-3 py-1.5 bg-orange-50 border border-orange-100 rounded-xl">
+      <i class="fa-solid fa-sliders text-orange-500 text-xs"></i>
+      <span class="text-xs font-bold text-orange-600">버전 관리 활성</span>
+    </div>
+  </div>
+
+  <!-- ② 요약 통계 카드 -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-video"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">전체 강의</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5" id="statTotal">-</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-layer-group"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">카테고리 수</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5" id="statCat">-</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-pen-to-square"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">이번 달 수정</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5">24건</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-code-branch"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">버전 이력 수</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5" id="statHistory">-</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 탭 패널 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+
+    <!-- 탭 헤더 -->
+    <div class="flex items-center border-b border-slate-100 px-5">
+      <button class="mo-tab-btn px-5 py-3.5 text-sm font-semibold border-b-2 transition-colors"
+        data-tab="tab-lectures" onclick="switchTab('tab-lectures', this)">
+        <i class="fa-solid fa-video mr-1.5"></i>강의 목록 / 편집
+      </button>
+      <button class="mo-tab-btn px-5 py-3.5 text-sm font-semibold border-b-2 transition-colors"
+        data-tab="tab-category" onclick="switchTab('tab-category', this)">
+        <i class="fa-solid fa-layer-group mr-1.5"></i>카테고리 관리
+      </button>
+      <button class="mo-tab-btn px-5 py-3.5 text-sm font-semibold border-b-2 transition-colors"
+        data-tab="tab-history" onclick="switchTab('tab-history', this)">
+        <i class="fa-solid fa-clock-rotate-left mr-1.5"></i>변경 이력
+      </button>
+    </div>
+
+    <!-- ── 탭: 강의 목록 / 편집 ── -->
+    <div id="tab-lectures" class="mo-tab-panel p-6">
+      <!-- 필터 -->
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="w-40">
+            <select class="hm-input hm-input-orange" id="filterCat" onchange="applyLectureFilter()">
+              <option value="">전체 카테고리</option>
+            </select>
+          </div>
+          <div class="w-36">
+            <select class="hm-input hm-input-orange" id="filterGrade" onchange="applyLectureFilter()">
+              <option value="">전체 학년</option>
+              <option value="고등">고등</option>
+              <option value="중등">중등</option>
+            </select>
+          </div>
+          <div class="relative w-64">
+            <input type="text" class="hm-input hm-input-orange pl-10" id="filterKeyword"
+              placeholder="강의 제목 검색..." oninput="applyLectureFilter()" />
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+          </div>
+        </div>
+        <span class="text-xs text-slate-400" id="lectureCount">총 0건</span>
+      </div>
+
+      <!-- 테이블 -->
+      <div class="overflow-x-auto rounded-xl border border-slate-100">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-slate-50 text-xs font-bold text-slate-500 tracking-wider">
+              <th class="py-3.5 px-5 text-left">강의 제목</th>
+              <th class="py-3.5 px-5 text-left w-32">카테고리</th>
+              <th class="py-3.5 px-5 text-left w-16">버전</th>
+              <th class="py-3.5 px-5 text-left w-40">최근 수정</th>
+              <th class="py-3.5 px-5 text-center w-28">관리</th>
+            </tr>
+          </thead>
+          <tbody id="lectureTableBody" class="divide-y divide-slate-50 text-slate-700"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── 탭: 카테고리 관리 ── -->
+    <div id="tab-category" class="mo-tab-panel hidden p-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- 카테고리 목록 -->
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-bold text-slate-700">카테고리 목록</h2>
+            <button class="hm-btn-primary hm-btn-orange text-xs"
+              onclick="openCatForm()">
+              <i class="fa-solid fa-plus"></i><span>새 카테고리</span>
+            </button>
+          </div>
+          <div class="space-y-2" id="categoryList"></div>
+        </div>
+
+        <!-- 카테고리 등록/수정 폼 -->
+        <div class="bg-slate-50 rounded-2xl p-5" id="catFormArea">
+          <h2 class="text-sm font-bold text-slate-700 mb-4" id="catFormTitle">새 카테고리 등록</h2>
+          <input type="hidden" id="catEditId" />
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-500 mb-1.5">학년 구분 <span class="text-red-400">*</span></label>
+              <select class="hm-input hm-input-orange" id="catGrade">
+                <option value="고등">고등</option>
+                <option value="중등">중등</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-500 mb-1.5">과목 <span class="text-red-400">*</span></label>
+              <select class="hm-input hm-input-orange" id="catSubject">
+                <option value="수학">수학</option>
+                <option value="영어">영어</option>
+                <option value="국어">국어</option>
+                <option value="과학">과학</option>
+                <option value="사회">사회</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-500 mb-1.5">카테고리명 <span class="text-red-400">*</span></label>
+              <input type="text" class="hm-input hm-input-orange" id="catName"
+                placeholder="예) 수학1, 수학2, 영어독해" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-500 mb-1.5">설명</label>
+              <input type="text" class="hm-input hm-input-orange" id="catDesc"
+                placeholder="카테고리 간단 설명 (선택)" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-500 mb-1.5">정렬 순서</label>
+              <input type="number" class="hm-input hm-input-orange" id="catOrder" value="1" min="1" />
+            </div>
+          </div>
+          <div class="flex gap-3 mt-5">
+            <button class="flex-1 py-2.5 text-sm font-semibold text-slate-500 bg-slate-200 hover:bg-slate-300 rounded-xl transition-colors"
+              onclick="resetCatForm()">초기화</button>
+            <button class="flex-1 hm-btn-primary hm-btn-orange" onclick="submitCatForm()">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span id="catSubmitText">등록</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 탭: 변경 이력 ── -->
+    <div id="tab-history" class="mo-tab-panel hidden p-6">
+      <!-- 필터 -->
+      <div class="flex flex-wrap items-center gap-3 mb-6">
+        <div class="w-40">
+          <select class="hm-input hm-input-orange" id="historyFilterType" onchange="applyHistoryFilter()">
+            <option value="">전체 변경 유형</option>
+            <option value="제목수정">제목 수정</option>
+            <option value="설명수정">설명 수정</option>
+            <option value="카테고리변경">카테고리 변경</option>
+            <option value="삭제">삭제</option>
+          </select>
+        </div>
+        <div class="relative w-64">
+          <input type="text" class="hm-input hm-input-orange pl-10" id="historyKeyword"
+            placeholder="강의명 또는 작업자 검색..." oninput="applyHistoryFilter()" />
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+        </div>
+        <button onclick="clearHistory()"
+          class="ml-auto text-xs text-red-400 hover:text-red-600 font-semibold px-3 py-2 bg-red-50 rounded-xl transition-colors">
+          <i class="fa-solid fa-trash mr-1"></i>이력 초기화
+        </button>
+      </div>
+
+      <!-- 타임라인 -->
+      <div class="space-y-0" id="historyTimeline"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== 강의 편집 모달 ===== -->
+<div id="editModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeEditModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4">
+    <div class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-100">
+      <div>
+        <h3 class="text-base font-bold text-slate-800">강의 정보 수정</h3>
+        <p class="text-xs text-slate-400 mt-0.5" id="editModalVersion">-</p>
+      </div>
+      <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+    <div class="px-6 py-5 space-y-4">
+      <input type="hidden" id="editLectureId" />
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">카테고리</label>
+        <select class="hm-input hm-input-orange" id="editCat"></select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">강의 제목 <span class="text-red-400">*</span></label>
+        <input type="text" class="hm-input hm-input-orange" id="editTitle" />
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">강의 설명</label>
+        <textarea class="hm-input hm-input-orange resize-none" id="editDesc" rows="3"
+          placeholder="강의 설명을 입력하세요."></textarea>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">수정 사유 <span class="text-red-400">*</span></label>
+        <input type="text" class="hm-input hm-input-orange" id="editReason"
+          placeholder="변경 이력에 기록될 수정 사유를 입력하세요." />
+      </div>
+    </div>
+    <div class="flex gap-3 px-6 pb-5">
+      <button class="flex-1 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+        onclick="closeEditModal()">취소</button>
+      <button class="flex-1 hm-btn-primary hm-btn-orange" onclick="saveLectureEdit()">
+        <i class="fa-solid fa-floppy-disk"></i><span>수정 저장 (버전 기록)</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 페이지 스크립트 ===== -->
+<script>
+  /* ── 카테고리 데이터 ── */
+  let categories = [
+    { id: 1, grade: '고등', subject: '수학', name: '수학1',    desc: '지수·로그·삼각함수',  order: 1, count: 18 },
+    { id: 2, grade: '고등', subject: '수학', name: '수학2',    desc: '수열·극한·미적분',     order: 2, count: 14 },
+    { id: 3, grade: '고등', subject: '수학', name: '기하',     desc: '벡터·이차곡선',        order: 3, count: 8  },
+    { id: 4, grade: '고등', subject: '영어', name: '영어독해', desc: '수능 유형별 독해 전략', order: 1, count: 12 },
+    { id: 5, grade: '중등', subject: '수학', name: '중등수학', desc: '중1~3 수학 개념 완성',  order: 1, count: 22 },
+  ];
+  let catNextId = 6;
+
+  /* ── 강의 데이터 ── */
+  let lectures = [
+    { id:1,  catId:1, title:'2026 수학1 - 01강 지수의 정의',       desc:'지수의 정의와 성질을 학습합니다.',     version:3, lastEditor:'pd_admin', lastDate:'2026-06-05' },
+    { id:2,  catId:1, title:'2026 수학1 - 02강 로그의 정의',       desc:'로그의 정의와 성질을 학습합니다.',     version:2, lastEditor:'pd_admin', lastDate:'2026-06-04' },
+    { id:3,  catId:1, title:'2026 수학1 - 14강 삼각함수',          desc:'삼각함수의 정의와 그래프를 다룹니다.', version:4, lastEditor:'pd_admin', lastDate:'2026-06-05' },
+    { id:4,  catId:2, title:'2026 수학2 - 07강 급수와 수렴',       desc:'급수와 수렴의 정의 및 판별법',         version:1, lastEditor:'pd_admin', lastDate:'2026-06-03' },
+    { id:5,  catId:2, title:'2026 수학2 - 08강 수열의 극한',       desc:'수열의 극한값과 성질 정리',            version:2, lastEditor:'pd_admin', lastDate:'2026-06-04' },
+    { id:6,  catId:4, title:'수능 영어 - 빈칸 추론 전략 1',        desc:'빈칸 추론 유형의 접근 전략 A',         version:1, lastEditor:'pd_admin', lastDate:'2026-06-01' },
+    { id:7,  catId:4, title:'수능 영어 - 빈칸 추론 전략 2',        desc:'빈칸 추론 유형의 접근 전략 B',         version:2, lastEditor:'pd_admin', lastDate:'2026-06-02' },
+    { id:8,  catId:5, title:'중등수학 - 11강 일차방정식 활용',     desc:'일차방정식 실생활 응용 문제',           version:1, lastEditor:'pd_admin', lastDate:'2026-06-03' },
+    { id:9,  catId:5, title:'중등수학 - 12강 연립방정식',          desc:'연립방정식 풀이와 활용',               version:3, lastEditor:'pd_admin', lastDate:'2026-06-05' },
+    { id:10, catId:3, title:'기하 - 01강 벡터의 정의와 연산',      desc:'벡터의 기본 개념과 연산 규칙',         version:1, lastEditor:'pd_admin', lastDate:'2026-05-30' },
+  ];
+  let lectNextId = 11;
+
+  /* ── 변경 이력 ── */
+  let history = [
+    { id:1,  lectureId:3, lectureTitle:'2026 수학1 - 14강 삼각함수',    type:'제목수정',     before:'14강 삼각함수 입문',    after:'14강 삼각함수',          editor:'pd_admin', date:'2026-06-05 14:32', reason:'제목 간략화' },
+    { id:2,  lectureId:3, lectureTitle:'2026 수학1 - 14강 삼각함수',    type:'설명수정',     before:'삼각함수를 배웁니다.',  after:'삼각함수의 정의와 그래프를 다룹니다.', editor:'pd_admin', date:'2026-06-05 14:30', reason:'설명 보강' },
+    { id:3,  lectureId:9, lectureTitle:'중등수학 - 12강 연립방정식',    type:'카테고리변경', before:'중등수학(구)',           after:'중등수학',               editor:'pd_admin', date:'2026-06-05 11:15', reason:'카테고리 재분류' },
+    { id:4,  lectureId:1, lectureTitle:'2026 수학1 - 01강 지수의 정의', type:'설명수정',     before:'지수를 배웁니다.',      after:'지수의 정의와 성질을 학습합니다.',    editor:'pd_admin', date:'2026-06-04 16:20', reason:'내용 정확도 개선' },
+    { id:5,  lectureId:5, lectureTitle:'2026 수학2 - 08강 수열의 극한', type:'제목수정',     before:'08강 극한',             after:'08강 수열의 극한',       editor:'pd_admin', date:'2026-06-04 10:05', reason:'강의 번호 정렬' },
+    { id:6,  lectureId:7, lectureTitle:'수능 영어 - 빈칸 추론 전략 2',  type:'설명수정',     before:'전략 B',                after:'빈칸 추론 유형의 접근 전략 B',       editor:'pd_admin', date:'2026-06-02 09:30', reason:'상세 설명 추가' },
+  ];
+  let histNextId = 7;
+  let displayHistory = [...history];
+
+  /* ── 카테고리명 조회 ── */
+  function getCatName(catId) {
+    const c = categories.find(c => c.id === catId);
+    return c ? `${c.grade} ${c.subject} · ${c.name}` : '-';
+  }
+
+  /* ── 통계 업데이트 ── */
+  function updateStats() {
+    document.getElementById('statTotal').textContent   = lectures.length + '건';
+    document.getElementById('statCat').textContent     = categories.length + '개';
+    document.getElementById('statHistory').textContent = history.length + '건';
+  }
+
+  /* ── 카테고리 셀렉트 동기화 ── */
+  function syncCatSelect(selId) {
+    const sel = document.getElementById(selId);
+    if (!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = (selId === 'filterCat' ? '<option value="">전체 카테고리</option>' : '') +
+      categories.map(c =>
+        `<option value="${c.id}">${c.grade} ${c.subject} · ${c.name}</option>`
+      ).join('');
+    if (prev) sel.value = prev;
+  }
+
+  /* ── 강의 테이블 렌더링 ── */
+  function renderLectures(data) {
+    const tbody = document.getElementById('lectureTableBody');
+    document.getElementById('lectureCount').textContent = `총 ${data.length}건`;
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-slate-300 text-sm">강의가 없습니다.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map(l => `
+      <tr class="hover:bg-slate-50/50 transition-colors">
+        <td class="py-4 px-5">
+          <p class="font-bold text-slate-800">${l.title}</p>
+          <p class="text-xs text-slate-400 mt-0.5 truncate max-w-md">${l.desc || '-'}</p>
+        </td>
+        <td class="py-4 px-5">
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-600">${getCatName(l.catId)}</span>
+        </td>
+        <td class="py-4 px-5">
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-mono font-bold
+            ${l.version >= 3 ? 'bg-violet-50 text-violet-700' : 'bg-slate-100 text-slate-500'}">
+            <i class="fa-solid fa-code-branch text-[9px]"></i>v${l.version}
+          </span>
+        </td>
+        <td class="py-4 px-5 text-xs text-slate-500">
+          <div>${l.lastDate}</div>
+          <div class="text-slate-400">${l.lastEditor}</div>
+        </td>
+        <td class="py-4 px-5 text-center">
+          <div class="flex items-center justify-center gap-1">
+            <button onclick="openEditModal(${l.id})"
+              class="p-1.5 text-slate-400 hover:text-orange-500 transition-colors" title="수정">
+              <i class="fa-solid fa-pen text-sm"></i>
+            </button>
+            <button onclick="confirmDeleteLecture(${l.id})"
+              class="p-1.5 text-slate-400 hover:text-red-500 transition-colors" title="삭제">
+              <i class="fa-solid fa-trash text-sm"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  /* ── 강의 필터 ── */
+  function applyLectureFilter() {
+    const catId   = parseInt(document.getElementById('filterCat').value) || 0;
+    const grade   = document.getElementById('filterGrade').value;
+    const keyword = document.getElementById('filterKeyword').value.trim();
+    const data = lectures.filter(l => {
+      const cat = categories.find(c => c.id === l.catId);
+      return (!catId   || l.catId === catId) &&
+             (!grade   || (cat && cat.grade === grade)) &&
+             (!keyword || l.title.includes(keyword));
+    });
+    renderLectures(data);
+  }
+
+  /* ── 강의 삭제 ── */
+  function confirmDeleteLecture(id) {
+    const l = lectures.find(l => l.id === id);
+    if (!l) return;
+    if (!confirm(`"${l.title}"\n이 강의를 삭제하시겠습니까?\n변경 이력도 함께 제거됩니다.`)) return;
+    history.push({ id: histNextId++, lectureId: id, lectureTitle: l.title, type: '삭제', before: l.title, after: '-', editor: 'pd_admin', date: new Date().toISOString().slice(0,16).replace('T',' '), reason: '강의 삭제' });
+    lectures = lectures.filter(l => l.id !== id);
+    updateStats();
+    applyLectureFilter();
+    applyHistoryFilter();
+    showHermesToast('강의가 삭제되었습니다.', 'error');
+  }
+
+  /* ── 강의 편집 모달 ── */
+  function openEditModal(id) {
+    const l = lectures.find(l => l.id === id);
+    if (!l) return;
+    document.getElementById('editLectureId').value  = id;
+    document.getElementById('editModalVersion').textContent = `현재 버전 v${l.version} · 저장 시 v${l.version + 1}로 갱신`;
+    document.getElementById('editTitle').value = l.title;
+    document.getElementById('editDesc').value  = l.desc || '';
+    document.getElementById('editReason').value = '';
+    syncCatSelect('editCat');
+    document.getElementById('editCat').value = l.catId;
+    document.getElementById('editModal').classList.remove('hidden');
+  }
+  function closeEditModal() {
+    document.getElementById('editModal').classList.add('hidden');
+  }
+  function saveLectureEdit() {
+    const id     = parseInt(document.getElementById('editLectureId').value);
+    const title  = document.getElementById('editTitle').value.trim();
+    const desc   = document.getElementById('editDesc').value.trim();
+    const catId  = parseInt(document.getElementById('editCat').value);
+    const reason = document.getElementById('editReason').value.trim();
+    const l = lectures.find(l => l.id === id);
+    if (!l) return;
+    if (!title)  { showHermesToast('제목을 입력해 주세요.', 'error'); return; }
+    if (!reason) { showHermesToast('수정 사유를 입력해 주세요.', 'error'); return; }
+
+    const now = new Date().toISOString().slice(0,16).replace('T',' ');
+
+    if (l.title !== title) {
+      history.unshift({ id: histNextId++, lectureId: id, lectureTitle: title, type: '제목수정', before: l.title, after: title, editor: 'pd_admin', date: now, reason });
+    }
+    if (l.desc !== desc) {
+      history.unshift({ id: histNextId++, lectureId: id, lectureTitle: title, type: '설명수정', before: l.desc, after: desc, editor: 'pd_admin', date: now, reason });
+    }
+    if (l.catId !== catId) {
+      const oldCat = getCatName(l.catId);
+      const newCat = getCatName(catId);
+      history.unshift({ id: histNextId++, lectureId: id, lectureTitle: title, type: '카테고리변경', before: oldCat, after: newCat, editor: 'pd_admin', date: now, reason });
+    }
+
+    l.title      = title;
+    l.desc       = desc;
+    l.catId      = catId;
+    l.version   += 1;
+    l.lastEditor = 'pd_admin';
+    l.lastDate   = now.slice(0, 10);
+
+    closeEditModal();
+    updateStats();
+    applyLectureFilter();
+    applyHistoryFilter();
+    showHermesToast(`강의 정보가 v${l.version}으로 저장되었습니다.`, 'success');
+  }
+
+  /* ── 카테고리 목록 렌더링 ── */
+  function renderCategories() {
+    const el = document.getElementById('categoryList');
+    if (categories.length === 0) {
+      el.innerHTML = `<p class="text-xs text-slate-300 text-center py-6">등록된 카테고리가 없습니다.</p>`;
+      return;
+    }
+    const gradeGroups = {};
+    categories.forEach(c => {
+      const key = c.grade + ' ' + c.subject;
+      if (!gradeGroups[key]) gradeGroups[key] = [];
+      gradeGroups[key].push(c);
+    });
+
+    el.innerHTML = Object.entries(gradeGroups).map(([group, cats]) => `
+      <div class="mb-4">
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">${group}</p>
+        <div class="space-y-1.5">
+          ${cats.sort((a,b) => a.order - b.order).map(c => `
+            <div class="flex items-center gap-3 px-4 py-3 bg-white border border-slate-100 rounded-xl hover:border-orange-200 transition-colors">
+              <div class="w-8 h-8 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-layer-group text-xs"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-slate-800">${c.name}</p>
+                <p class="text-xs text-slate-400 truncate">${c.desc || '-'} · 강의 ${c.count}개</p>
+              </div>
+              <div class="flex items-center gap-1 shrink-0">
+                <button onclick="openCatEdit(${c.id})"
+                  class="p-1.5 text-slate-400 hover:text-orange-500 transition-colors">
+                  <i class="fa-solid fa-pen text-xs"></i>
+                </button>
+                <button onclick="confirmDeleteCat(${c.id})"
+                  class="p-1.5 text-slate-400 hover:text-red-500 transition-colors">
+                  <i class="fa-solid fa-trash text-xs"></i>
+                </button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  /* ── 카테고리 폼 ── */
+  function openCatForm() {
+    resetCatForm();
+    document.getElementById('catFormTitle').textContent = '새 카테고리 등록';
+    document.getElementById('catSubmitText').textContent = '등록';
+  }
+  function openCatEdit(id) {
+    const c = categories.find(c => c.id === id);
+    if (!c) return;
+    document.getElementById('catEditId').value  = id;
+    document.getElementById('catGrade').value   = c.grade;
+    document.getElementById('catSubject').value = c.subject;
+    document.getElementById('catName').value    = c.name;
+    document.getElementById('catDesc').value    = c.desc;
+    document.getElementById('catOrder').value   = c.order;
+    document.getElementById('catFormTitle').textContent  = '카테고리 수정';
+    document.getElementById('catSubmitText').textContent = '수정';
+  }
+  function resetCatForm() {
+    document.getElementById('catEditId').value  = '';
+    document.getElementById('catName').value    = '';
+    document.getElementById('catDesc').value    = '';
+    document.getElementById('catOrder').value   = '1';
+    document.getElementById('catFormTitle').textContent  = '새 카테고리 등록';
+    document.getElementById('catSubmitText').textContent = '등록';
+  }
+  function submitCatForm() {
+    const name  = document.getElementById('catName').value.trim();
+    const grade = document.getElementById('catGrade').value;
+    const subj  = document.getElementById('catSubject').value;
+    const desc  = document.getElementById('catDesc').value.trim();
+    const order = parseInt(document.getElementById('catOrder').value) || 1;
+    const editId = parseInt(document.getElementById('catEditId').value) || 0;
+    if (!name) { showHermesToast('카테고리명을 입력해 주세요.', 'error'); return; }
+    if (editId) {
+      const c = categories.find(c => c.id === editId);
+      if (c) Object.assign(c, { grade, subject: subj, name, desc, order });
+      showHermesToast('카테고리가 수정되었습니다.', 'success');
+    } else {
+      categories.push({ id: catNextId++, grade, subject: subj, name, desc, order, count: 0 });
+      showHermesToast('카테고리가 등록되었습니다.', 'success');
+    }
+    resetCatForm();
+    renderCategories();
+    syncCatSelect('filterCat');
+    syncCatSelect('editCat');
+    updateStats();
+  }
+  function confirmDeleteCat(id) {
+    const c = categories.find(c => c.id === id);
+    if (!c) return;
+    if (c.count > 0) { showHermesToast(`강의가 연결된 카테고리는 삭제할 수 없습니다. (${c.count}개 강의)`, 'error'); return; }
+    if (!confirm(`"${c.name}" 카테고리를 삭제하시겠습니까?`)) return;
+    categories = categories.filter(c => c.id !== id);
+    renderCategories();
+    syncCatSelect('filterCat');
+    syncCatSelect('editCat');
+    updateStats();
+    showHermesToast('카테고리가 삭제되었습니다.', 'error');
+  }
+
+  /* ── 변경 이력 타임라인 렌더링 ── */
+  const historyTypeStyle = {
+    '제목수정':     { color: 'bg-sky-100 text-sky-700',    dot: 'bg-sky-400',    icon: 'fa-pen' },
+    '설명수정':     { color: 'bg-slate-100 text-slate-600', dot: 'bg-slate-400',  icon: 'fa-align-left' },
+    '카테고리변경': { color: 'bg-orange-100 text-orange-700', dot: 'bg-orange-400', icon: 'fa-layer-group' },
+    '삭제':         { color: 'bg-red-100 text-red-700',    dot: 'bg-red-400',    icon: 'fa-trash' },
+  };
+
+  function renderHistory(data) {
+    const el = document.getElementById('historyTimeline');
+    if (data.length === 0) {
+      el.innerHTML = `<p class="text-sm text-slate-300 text-center py-10">변경 이력이 없습니다.</p>`;
+      return;
+    }
+    el.innerHTML = data.map((h, idx) => {
+      const s = historyTypeStyle[h.type] || { color: 'bg-slate-100 text-slate-600', dot: 'bg-slate-300', icon: 'fa-circle' };
+      const isLast = idx === data.length - 1;
+      return `
+        <div class="relative pl-8 ${isLast ? '' : 'pb-6'}">
+          <div class="absolute left-0 top-1.5 w-4 h-4 rounded-full ${s.dot} border-2 border-white shadow-sm flex items-center justify-center">
+            <i class="fa-solid ${s.icon} text-white" style="font-size:7px;"></i>
+          </div>
+          ${!isLast ? '<div class="absolute left-[7px] top-5 bottom-0 w-px bg-slate-100"></div>' : ''}
+          <div class="bg-white border border-slate-100 rounded-xl p-4 hover:border-orange-200 transition-colors">
+            <div class="flex items-start justify-between gap-3 mb-2">
+              <div>
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${s.color} mr-2">${h.type}</span>
+                <span class="text-sm font-bold text-slate-800">${h.lectureTitle}</span>
+              </div>
+              <span class="text-xs text-slate-400 whitespace-nowrap shrink-0">${h.date}</span>
+            </div>
+            ${h.type !== '삭제' ? `
+              <div class="grid grid-cols-2 gap-2 mt-2">
+                <div class="bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+                  <p class="text-[10px] text-red-400 font-semibold mb-0.5">변경 전</p>
+                  <p class="text-xs text-slate-700 line-clamp-2">${h.before}</p>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2">
+                  <p class="text-[10px] text-emerald-600 font-semibold mb-0.5">변경 후</p>
+                  <p class="text-xs text-slate-700 line-clamp-2">${h.after}</p>
+                </div>
+              </div>
+            ` : ''}
+            <div class="flex items-center gap-2 mt-2 pt-2 border-t border-slate-50">
+              <i class="fa-solid fa-user text-slate-300 text-xs"></i>
+              <span class="text-xs text-slate-400">${h.editor}</span>
+              <span class="text-slate-200 text-xs">·</span>
+              <i class="fa-solid fa-comment-dots text-slate-300 text-xs"></i>
+              <span class="text-xs text-slate-400 italic">${h.reason}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function applyHistoryFilter() {
+    const type    = document.getElementById('historyFilterType').value;
+    const keyword = document.getElementById('historyKeyword').value.trim();
+    displayHistory = history.filter(h =>
+      (!type    || h.type === type) &&
+      (!keyword || h.lectureTitle.includes(keyword) || h.editor.includes(keyword))
+    );
+    renderHistory(displayHistory);
+  }
+
+  function clearHistory() {
+    if (!confirm('변경 이력을 모두 초기화하시겠습니까?')) return;
+    history = [];
+    displayHistory = [];
+    renderHistory([]);
+    updateStats();
+    showHermesToast('변경 이력이 초기화되었습니다.', 'error');
+  }
+
+  /* ── 탭 전환 ── */
+  function switchTab(tabId, btn) {
+    document.querySelectorAll('.mo-tab-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.mo-tab-btn').forEach(b => {
+      b.classList.remove('text-orange-600', 'border-orange-500', 'bg-orange-50/40');
+      b.classList.add('text-slate-500', 'border-transparent');
+    });
+    document.getElementById(tabId).classList.remove('hidden');
+    btn.classList.remove('text-slate-500', 'border-transparent');
+    btn.classList.add('text-orange-600', 'border-orange-500', 'bg-orange-50/40');
+  }
+
+  /* ── 초기화 ── */
+  (function () {
+    const firstBtn = document.querySelector('.mo-tab-btn[data-tab="tab-lectures"]');
+    if (firstBtn) switchTab('tab-lectures', firstBtn);
+    updateStats();
+    syncCatSelect('filterCat');
+    syncCatSelect('editCat');
+    renderLectures(lectures);
+    renderCategories();
+    renderHistory(history);
+  })();
+</script>
