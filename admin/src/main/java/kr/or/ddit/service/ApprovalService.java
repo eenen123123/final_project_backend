@@ -22,8 +22,10 @@ import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.service.member.MemberService;
 import kr.or.ddit.mapper.ApprovalMapper;
+import kr.or.ddit.service.event.ApprovalCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 
 @Slf4j
 @Service
@@ -34,6 +36,7 @@ public class ApprovalService {
     private final MemberService memberService;
     private final AdminEmployeeService adminEmployeeService;
     private final ObjectMapper objectMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 결재 양식 리스트 조회
@@ -326,6 +329,7 @@ public class ApprovalService {
                     if (resultMaster == 0) {
                         throw new FinalProjectException(ErrorCode.FAILED_TO_APPROVE_APPROVAL);
                     }
+                    eventPublisher.publishEvent(new ApprovalCompletedEvent(master.getAprvlDocSn()));
                 }
                 break;
             }

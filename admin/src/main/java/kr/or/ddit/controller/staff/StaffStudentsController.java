@@ -6,6 +6,7 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -17,8 +18,10 @@ import org.springframework.web.multipart.MultipartFile;
 import kr.or.ddit.finalProject.dto.member.MemberCreateLogDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
+import kr.or.ddit.finalProject.dto.staff.AdminActivityType;
 import kr.or.ddit.finalProject.service.file.CloudinaryUploadService;
 import kr.or.ddit.finalProject.service.staff.StaffService;
+import kr.or.ddit.service.AdminActivityApprovalService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,6 +45,9 @@ public class StaffStudentsController {
 
     @Autowired
     CloudinaryUploadService cloudinaryUploadService;
+
+    @Autowired
+    AdminActivityApprovalService activityApprovalService;
 
     /**
      * 학생 관리 메인 화면 이동 및 초기 데이터 조회
@@ -146,16 +152,20 @@ public class StaffStudentsController {
         }
 
         try {
-            staffService.registerStudent(memberDto, memberCreateLog, profileUrl, loginAdmin);            
-        } catch (FinalProjectException e) {
-            log.warn("[createStudent] 등록 실패: {}", e.getMessage());
-            return "redirect:/admin/employees/students?error=" + URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
-        } catch (IllegalArgumentException e) {
-            log.warn("[createStudent] 유효성 검사 실패: {}", e.getMessage());
-            return "redirect:/admin/employees/students?error=" + URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
+            Map<String, Object> data = new LinkedHashMap<>();
+            data.put("memberDto", memberDto);
+            data.put("memberCreateLog", memberCreateLog);
+            data.put("profileUrl", profileUrl);
+
+            activityApprovalService.submitForApproval(
+                loginAdmin, AdminActivityType.STUDENT_REGISTER,
+                memberDto.getUserName() + " (" + memberDto.getUserId() + ")", data);
+        } catch (Exception e) {
+            log.warn("[createStudent] 결재 요청 실패: {}", e.getMessage());
+            return "redirect:/admin/employees/students?error=" + URLEncoder.encode("결재 요청에 실패했습니다: " + e.getMessage(), StandardCharsets.UTF_8);
         }
 
-        return "redirect:/admin/employees?success=" + URLEncoder.encode("회원이 성공적으로 등록되었습니다.", StandardCharsets.UTF_8);
+        return "redirect:/admin/employees/students?success=" + URLEncoder.encode("결재 요청이 완료되었습니다. 승인 후 처리됩니다.", StandardCharsets.UTF_8);
     }
     
     /**
@@ -202,11 +212,17 @@ public class StaffStudentsController {
         memberDto.setEnable(enable);
 
         try {
-            staffService.updateStudent(memberDto, loginAdminId);
+            Map<String, Object> data = new LinkedHashMap<>();
+            data.put("memberDto", memberDto);
+
+            activityApprovalService.submitForApproval(
+                loginAdminId, AdminActivityType.STUDENT_UPDATE, userId, data);
+
             return ResponseEntity.ok(Map.of("result", "success",
-                    "profileUrl", finalProfileUrl != null ? finalProfileUrl : ""));
+                    "profileUrl", finalProfileUrl != null ? finalProfileUrl : "",
+                    "message", "결재 요청이 완료되었습니다. 승인 후 처리됩니다."));
         } catch (Exception e) {
-            log.error("[updateStudent] 수정 실패. userId={}, cause={}", userId, e.getMessage());
+            log.error("[updateStudent] 결재 요청 실패. userId={}, cause={}", userId, e.getMessage());
             return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("result", "error", "message", e.getMessage()));
         }
@@ -229,13 +245,19 @@ public class StaffStudentsController {
         // 요청 본문에서 탈퇴 사유 추출
         String withdrawRsn = body.get("withdrawRsn");
 
-        // 서비스 호출하여 회원 탈퇴 처리
         try {
-            staffService.retireStudent(userId, withdrawRsn, loginUserId);
-            return ResponseEntity.ok(Map.of("result", "success"));
-        } catch (FinalProjectException e) {
-            log.warn("[retireStudent] 탈퇴 처리 실패. userId={}, cause={}", userId, e.getMessage());
-            return ResponseEntity.status(e.getErrorCode().getStatus())
+            Map<String, Object> data = new LinkedHashMap<>();
+            data.put("userId", userId);
+            data.put("withdrawRsn", withdrawRsn);
+
+            activityApprovalService.submitForApproval(
+                loginUserId, AdminActivityType.STUDENT_RETIRE, userId, data);
+
+            return ResponseEntity.ok(Map.of("result", "success",
+                "message", "결재 요청이 완료되었습니다. 승인 후 처리됩니다."));
+        } catch (Exception e) {
+            log.warn("[retireStudent] 결재 요청 실패. userId={}, cause={}", userId, e.getMessage());
+            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
                                 .body(Map.of("result", "error", "message", e.getMessage()));
         }
     }
