@@ -1,5 +1,7 @@
 package kr.or.ddit.controller.board.notice;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,6 +22,12 @@ import lombok.RequiredArgsConstructor;
 public class NoticeController {
 
     private final NoticeService noticeService;
+
+    // GET /api/notice
+    @GetMapping
+    public ResponseEntity<List<NoticeDto>> getNoticeList() {
+        return ResponseEntity.ok(noticeService.getAll());
+    }
 
     // GET /api/notice/paged?page=1&size=10&keyword=xxx&noticeTypeCd=01
     @GetMapping("/paged")

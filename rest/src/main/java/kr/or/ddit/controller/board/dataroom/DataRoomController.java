@@ -1,5 +1,7 @@
 package kr.or.ddit.controller.board.dataroom;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,6 +22,13 @@ import lombok.RequiredArgsConstructor;
 public class DataRoomController {
 
     private final DataRoomService dataRoomService;
+
+    // GET /api/dataroom?dataCtg=01
+    @GetMapping
+    public ResponseEntity<List<DataRoomDto>> getDataRoomList(
+            @RequestParam(required = false) String dataCtg) {
+        return ResponseEntity.ok(dataRoomService.getAll(dataCtg));
+    }
 
     // GET /api/dataroom/paged?page=1&size=10&keyword=xxx&dataCtg=01
     @GetMapping("/paged")
