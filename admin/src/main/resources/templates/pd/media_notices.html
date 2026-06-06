@@ -1,0 +1,538 @@
+<title th:fragment="pageTitle">영상 관련 공지 연동 | HERMES</title>
+
+<!-- Toast UI Editor CSS -->
+<link rel="stylesheet" th:href="@{/css/vendor/toast-ui/toastui-editor.min.css}" />
+<link rel="stylesheet" th:href="@{/css/vendor/toast-ui/tui-color-picker.min.css}" />
+<link rel="stylesheet" th:href="@{/css/vendor/toast-ui/toastui-editor-plugin-color-syntax.min.css}" />
+
+<style>
+  .toastui-editor-defaultUI {
+    border: 1px solid #f97316;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .toastui-editor-defaultUI:focus-within {
+    border-color: #f97316;
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.08);
+  }
+  .toastui-editor-toolbar { border-radius: 0.75rem 0.75rem 0 0; }
+  .toastui-editor-contents, .toastui-editor .ProseMirror {
+    font-family: "Noto Sans KR", sans-serif;
+  }
+</style>
+
+<div class="space-y-6">
+
+  <!-- ① 페이지 헤더 -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">영상 관련 공지 연동</h1>
+      <p class="text-sm text-slate-500 mt-1">신규 강의 안내 및 시스템 점검 공지사항을 작성하고 관리합니다.</p>
+    </div>
+    <div class="flex items-center gap-2 px-3 py-1.5 bg-orange-50 border border-orange-100 rounded-xl">
+      <i class="fa-solid fa-shield-halved text-orange-500 text-xs"></i>
+      <span class="text-xs font-bold text-orange-600">PD 전용 권한</span>
+    </div>
+  </div>
+
+  <!-- ② 요약 통계 카드 -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-bullhorn"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">전체 공지</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5" id="statTotal">-</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-clapperboard"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">강의 안내</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5" id="statLecture">-</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-screwdriver-wrench"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">시스템 점검</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5" id="statMaint">-</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-window-restore"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">팝업 공개 중</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5" id="statPopup">-</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 탭 패널 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+
+    <!-- 탭 헤더 -->
+    <div class="flex items-center border-b border-slate-100 px-5">
+      <button class="mn-tab-btn px-5 py-3.5 text-sm font-semibold border-b-2 transition-colors"
+        data-tab="tab-list" onclick="switchTab('tab-list', this)">
+        <i class="fa-solid fa-list mr-1.5"></i>공지 목록
+      </button>
+      <button class="mn-tab-btn px-5 py-3.5 text-sm font-semibold border-b-2 transition-colors"
+        data-tab="tab-write" onclick="switchTab('tab-write', this)">
+        <i class="fa-solid fa-pen-to-square mr-1.5"></i>공지 작성
+        <span class="ml-1.5 px-1.5 py-0.5 bg-orange-100 text-orange-600 rounded text-[10px] font-bold">PD</span>
+      </button>
+    </div>
+
+    <!-- ── 탭: 공지 목록 ── -->
+    <div id="tab-list" class="mn-tab-panel p-6">
+
+      <!-- 필터 -->
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="w-36">
+            <select class="hm-input hm-input-orange" id="filterType" onchange="applyFilter()">
+              <option value="">전체 유형</option>
+              <option value="강의안내">강의 안내</option>
+              <option value="시스템점검">시스템 점검</option>
+            </select>
+          </div>
+          <div class="w-36">
+            <select class="hm-input hm-input-orange" id="filterPopup" onchange="applyFilter()">
+              <option value="">팝업 전체</option>
+              <option value="Y">팝업 노출</option>
+              <option value="N">미노출</option>
+            </select>
+          </div>
+          <div class="relative w-72">
+            <input type="text" class="hm-input hm-input-orange pl-10" id="filterKeyword"
+              placeholder="제목 검색..." oninput="applyFilter()" />
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+          </div>
+        </div>
+        <button class="hm-btn-primary hm-btn-orange"
+          onclick="switchTab('tab-write', document.querySelector('.mn-tab-btn[data-tab=tab-write]')); resetForm()">
+          <i class="fa-solid fa-plus"></i>
+          <span>새 공지 작성</span>
+        </button>
+      </div>
+
+      <!-- 테이블 -->
+      <div class="overflow-x-auto rounded-xl border border-slate-100">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-slate-50 text-xs font-bold text-slate-500 tracking-wider">
+              <th class="py-3.5 px-4 text-center w-14">번호</th>
+              <th class="py-3.5 px-4 text-center w-28">유형</th>
+              <th class="py-3.5 px-4 text-left">제목</th>
+              <th class="py-3.5 px-4 text-center w-16">팝업</th>
+              <th class="py-3.5 px-4 text-center w-28">등록일</th>
+              <th class="py-3.5 px-4 text-center w-28">등록자</th>
+              <th class="py-3.5 px-4 text-center w-28">관리 <span class="text-orange-400 font-normal">(PD)</span></th>
+            </tr>
+          </thead>
+          <tbody id="noticeTableBody" class="divide-y divide-slate-50 text-slate-700"></tbody>
+        </table>
+      </div>
+
+      <!-- 페이징 -->
+      <div class="flex items-center justify-between mt-4 pt-4 border-t border-slate-50">
+        <p class="text-xs text-slate-400" id="noticeCount">총 0건</p>
+        <div class="flex items-center gap-1">
+          <button class="w-8 h-8 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs flex items-center justify-center">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <button class="w-8 h-8 rounded-lg bg-orange-500 text-white text-xs flex items-center justify-center font-bold">1</button>
+          <button class="w-8 h-8 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs flex items-center justify-center">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 탭: 공지 작성 ── -->
+    <div id="tab-write" class="mn-tab-panel hidden p-6">
+
+      <!-- PD 권한 안내 배너 -->
+      <div class="flex items-center gap-3 px-4 py-3 bg-orange-50 border border-orange-100 rounded-xl mb-6">
+        <i class="fa-solid fa-shield-halved text-orange-500"></i>
+        <p class="text-sm text-orange-700">이 작성 화면은 <strong>PD 권한 계정 전용</strong>입니다. 작성된 공지는 전체 수강생에게 노출됩니다.</p>
+      </div>
+
+      <form id="noticeForm" onsubmit="submitNotice(event)">
+        <input type="hidden" id="editId" value="" />
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <!-- 공지 유형 -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">
+              공지 유형 <span class="text-red-400">*</span>
+            </label>
+            <select class="hm-input hm-input-orange" id="formType" required>
+              <option value="">유형을 선택하세요</option>
+              <option value="강의안내">강의 안내</option>
+              <option value="시스템점검">시스템 점검</option>
+            </select>
+          </div>
+
+          <!-- 팝업 노출 -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">팝업 노출</label>
+            <div class="flex items-center gap-6 h-10">
+              <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                <input type="radio" name="formPopup" value="Y" class="accent-orange-500" id="popupY" />
+                <span>Y (노출)</span>
+              </label>
+              <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                <input type="radio" name="formPopup" value="N" checked class="accent-orange-500" id="popupN" />
+                <span>N (미노출)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- 작성자 -->
+        <div class="mb-6">
+          <label class="block text-xs font-semibold text-slate-600 mb-1.5">작성자 (PD)</label>
+          <input type="text" class="hm-input bg-slate-50" id="formAuthor"
+            th:value="${currentUser}" value="pd_admin" readonly />
+        </div>
+
+        <!-- 제목 -->
+        <div class="mb-6">
+          <label class="block text-xs font-semibold text-slate-600 mb-1.5">
+            제목 <span class="text-red-400">*</span>
+          </label>
+          <input type="text" class="hm-input hm-input-orange" id="formTitle"
+            placeholder="공지 제목을 입력하세요." required />
+        </div>
+
+        <!-- 내용 -->
+        <div class="mb-8">
+          <label class="block text-xs font-semibold text-slate-600 mb-1.5">
+            내용 <span class="text-red-400">*</span>
+          </label>
+          <div id="editor"></div>
+          <input type="hidden" id="formContent" />
+        </div>
+
+        <!-- 버튼 -->
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+          <button type="button"
+            class="px-6 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+            onclick="resetForm()">
+            초기화
+          </button>
+          <button type="button"
+            class="px-6 py-2.5 text-sm font-semibold text-slate-600 border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors"
+            onclick="switchTab('tab-list', document.querySelector('.mn-tab-btn[data-tab=tab-list]'))">
+            취소
+          </button>
+          <button type="submit" class="hm-btn-primary hm-btn-orange px-8">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span id="submitBtnText">공지 등록</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== 공지 상세 모달 ===== -->
+<div id="detailModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeDetailModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4">
+    <div class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-100">
+      <h3 class="text-base font-bold text-slate-800" id="modalTitle">공지 상세</h3>
+      <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+    <div class="px-6 py-5 space-y-4">
+      <div class="grid grid-cols-2 gap-4 bg-slate-50 rounded-xl p-4">
+        <div>
+          <p class="text-xs text-slate-400 mb-0.5">유형</p>
+          <p class="text-sm font-semibold text-slate-800" id="modalType">-</p>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400 mb-0.5">팝업 노출</p>
+          <p class="text-sm font-semibold text-slate-800" id="modalPopup">-</p>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400 mb-0.5">등록자</p>
+          <p class="text-sm font-semibold text-slate-800" id="modalAuthor">-</p>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400 mb-0.5">등록일</p>
+          <p class="text-sm font-semibold text-slate-800" id="modalDate">-</p>
+        </div>
+      </div>
+      <div>
+        <p class="text-xs text-slate-400 mb-1.5 font-semibold uppercase tracking-wider">내용</p>
+        <div class="bg-white border border-slate-100 rounded-xl p-4 text-sm text-slate-700 leading-relaxed min-h-24" id="modalContent">-</div>
+      </div>
+    </div>
+    <div class="flex justify-end gap-3 px-6 pb-5">
+      <button onclick="closeDetailModal()"
+        class="px-5 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
+        닫기
+      </button>
+      <button onclick="openEdit(currentDetailId)"
+        class="px-5 py-2.5 text-sm font-semibold text-orange-600 border border-orange-200 hover:bg-orange-50 rounded-xl transition-colors">
+        <i class="fa-solid fa-pen mr-1"></i>수정 (PD)
+      </button>
+      <button onclick="confirmDelete(currentDetailId)"
+        class="hm-btn-danger text-xs px-5">
+        <i class="fa-solid fa-trash"></i>삭제 (PD)
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Toast UI Editor JS ===== -->
+<script defer th:src="@{/js/vendor/toast-ui/toastui-editor-all.min.js}"></script>
+<script defer th:src="@{/js/vendor/toast-ui/ko-kr.min.js}"></script>
+<script defer th:src="@{/js/vendor/toast-ui/tui-color-picker.min.js}"></script>
+<script defer th:src="@{/js/vendor/toast-ui/toastui-editor-plugin-color-syntax.min.js}"></script>
+
+<!-- ===== 페이지 스크립트 ===== -->
+<script>
+  /* ── 더미 데이터 ── */
+  let noticeData = [
+    { id: 1,  type: '강의안내',   title: '[신규 강좌] 2027 수능 대비 수학1 집중반 개강 안내',                        popup: 'Y', author: 'pd_admin', date: '2026-06-05', content: '<p>안녕하세요. HERMES 교육센터입니다.<br>2027 수능 대비 수학1 집중반이 오는 6월 10일(수) 개강합니다.<br>수강 신청은 HERMES 앱 또는 홈페이지에서 가능합니다.</p>' },
+    { id: 2,  type: '시스템점검', title: '[점검] 6월 8일(토) 영상 스트리밍 서버 정기 점검 안내',                    popup: 'Y', author: 'pd_admin', date: '2026-06-04', content: '<p>정기 서버 점검이 아래와 같이 진행됩니다.<br>점검 일시: 2026-06-08 02:00 ~ 06:00<br>점검 내용: 스트리밍 엔진 버전 업그레이드</p>' },
+    { id: 3,  type: '강의안내',   title: '[업데이트] 고등영어 VOD 5~8강 다시보기 업로드 완료',                      popup: 'N', author: 'pd_admin', date: '2026-06-03', content: '<p>고등영어반 5강 ~ 8강 다시보기 영상 업로드가 완료되었습니다.<br>마이페이지 > 수강 중 강좌에서 확인하실 수 있습니다.</p>' },
+    { id: 4,  type: '강의안내',   title: '[신규 강좌] 중등수학 개념완성 여름방학 특강 개강 안내',                    popup: 'N', author: 'pd_admin', date: '2026-06-01', content: '<p>여름방학 특강 일정이 확정되었습니다.<br>대상: 중등 1~3학년 / 기간: 7월 14일 ~ 8월 8일</p>' },
+    { id: 5,  type: '시스템점검', title: '[긴급 점검] 5월 28일 라이브 스트리밍 장애 및 복구 완료 안내',             popup: 'N', author: 'pd_admin', date: '2026-05-28', content: '<p>오후 2시 ~ 3시 30분 사이 라이브 스트리밍 서비스에 장애가 발생하였습니다.<br>현재는 완전히 복구된 상태입니다. 불편을 드려 죄송합니다.</p>' },
+  ];
+  let nextId = 6;
+  let currentDetailId = null;
+  let editor = null;
+  let displayData = [...noticeData];
+
+  /* ── 유형 배지 ── */
+  function typeBadge(type) {
+    const map = {
+      '강의안내':   'bg-sky-50 text-sky-700',
+      '시스템점검': 'bg-amber-50 text-amber-700',
+    };
+    const icon = {
+      '강의안내':   'fa-clapperboard',
+      '시스템점검': 'fa-screwdriver-wrench',
+    };
+    return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${map[type] || 'bg-slate-100 text-slate-500'}">
+      <i class="fa-solid ${icon[type] || 'fa-circle'} text-[10px]"></i>${type === '강의안내' ? '강의 안내' : '시스템 점검'}
+    </span>`;
+  }
+
+  /* ── 통계 업데이트 ── */
+  function updateStats() {
+    document.getElementById('statTotal').textContent   = noticeData.length + '건';
+    document.getElementById('statLecture').textContent = noticeData.filter(n => n.type === '강의안내').length + '건';
+    document.getElementById('statMaint').textContent   = noticeData.filter(n => n.type === '시스템점검').length + '건';
+    document.getElementById('statPopup').textContent   = noticeData.filter(n => n.popup === 'Y').length + '건';
+  }
+
+  /* ── 테이블 렌더링 ── */
+  function renderTable(data) {
+    const tbody = document.getElementById('noticeTableBody');
+    document.getElementById('noticeCount').textContent = `총 ${data.length}건`;
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-300 text-sm">등록된 공지가 없습니다.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map((n, idx) => `
+      <tr class="hover:bg-slate-50/50 transition-colors">
+        <td class="py-3.5 px-4 text-center text-slate-400 text-xs">${data.length - idx}</td>
+        <td class="py-3.5 px-4 text-center">${typeBadge(n.type)}</td>
+        <td class="py-3.5 px-4">
+          <button onclick="openDetail(${n.id})"
+            class="text-left font-medium text-slate-800 hover:text-orange-600 transition-colors line-clamp-1">
+            ${n.popup === 'Y' ? '<span class="mr-1.5 px-1.5 py-0.5 bg-orange-100 text-orange-600 text-[10px] font-bold rounded">팝업</span>' : ''}${n.title}
+          </button>
+        </td>
+        <td class="py-3.5 px-4 text-center">
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold ${n.popup === 'Y' ? 'bg-violet-50 text-violet-700' : 'bg-slate-100 text-slate-400'}">
+            ${n.popup}
+          </span>
+        </td>
+        <td class="py-3.5 px-4 text-center text-xs text-slate-500">${n.date}</td>
+        <td class="py-3.5 px-4 text-center text-xs text-slate-500">${n.author}</td>
+        <td class="py-3.5 px-4 text-center">
+          <div class="flex items-center justify-center gap-1">
+            <button onclick="openEdit(${n.id})"
+              class="p-1.5 text-slate-400 hover:text-orange-500 transition-colors" title="수정 (PD)">
+              <i class="fa-solid fa-pen text-sm"></i>
+            </button>
+            <button onclick="confirmDelete(${n.id})"
+              class="p-1.5 text-slate-400 hover:text-red-500 transition-colors" title="삭제 (PD)">
+              <i class="fa-solid fa-trash text-sm"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  /* ── 필터 ── */
+  function applyFilter() {
+    const type    = document.getElementById('filterType').value;
+    const popup   = document.getElementById('filterPopup').value;
+    const keyword = document.getElementById('filterKeyword').value.trim();
+    displayData = noticeData.filter(n =>
+      (!type    || n.type === type) &&
+      (!popup   || n.popup === popup) &&
+      (!keyword || n.title.includes(keyword))
+    );
+    renderTable(displayData);
+  }
+
+  /* ── 삭제 ── */
+  function confirmDelete(id) {
+    const item = noticeData.find(n => n.id === id);
+    if (!item) return;
+    if (confirm(`"${item.title}"\n이 공지를 삭제하시겠습니까?`)) {
+      noticeData = noticeData.filter(n => n.id !== id);
+      applyFilter();
+      updateStats();
+      closeDetailModal();
+      showHermesToast('공지가 삭제되었습니다.', 'error');
+    }
+  }
+
+  /* ── 상세 모달 ── */
+  function openDetail(id) {
+    const n = noticeData.find(n => n.id === id);
+    if (!n) return;
+    currentDetailId = id;
+    document.getElementById('modalTitle').textContent   = n.title;
+    document.getElementById('modalType').textContent    = n.type === '강의안내' ? '강의 안내' : '시스템 점검';
+    document.getElementById('modalPopup').textContent   = n.popup === 'Y' ? 'Y (팝업 노출)' : 'N (미노출)';
+    document.getElementById('modalAuthor').textContent  = n.author;
+    document.getElementById('modalDate').textContent    = n.date;
+    document.getElementById('modalContent').innerHTML   = n.content || '내용 없음';
+    document.getElementById('detailModal').classList.remove('hidden');
+  }
+
+  function closeDetailModal() {
+    document.getElementById('detailModal').classList.add('hidden');
+    currentDetailId = null;
+  }
+
+  /* ── 수정 열기 ── */
+  function openEdit(id) {
+    const n = noticeData.find(n => n.id === id);
+    if (!n) return;
+    closeDetailModal();
+    document.getElementById('editId').value   = id;
+    document.getElementById('formType').value = n.type;
+    document.getElementById('formTitle').value = n.title;
+    document.getElementById(n.popup === 'Y' ? 'popupY' : 'popupN').checked = true;
+    document.getElementById('submitBtnText').textContent = '공지 수정';
+    if (editor) editor.setHTML(n.content || '');
+    switchTab('tab-write', document.querySelector('.mn-tab-btn[data-tab=tab-write]'));
+  }
+
+  /* ── 폼 초기화 ── */
+  function resetForm() {
+    document.getElementById('editId').value = '';
+    document.getElementById('formType').value = '';
+    document.getElementById('formTitle').value = '';
+    document.getElementById('popupN').checked = true;
+    document.getElementById('submitBtnText').textContent = '공지 등록';
+    if (editor) editor.setHTML('');
+  }
+
+  /* ── 폼 제출 ── */
+  function submitNotice(e) {
+    e.preventDefault();
+    const type  = document.getElementById('formType').value;
+    const title = document.getElementById('formTitle').value.trim();
+    const popup = document.querySelector('input[name="formPopup"]:checked').value;
+    const content = editor ? editor.getHTML() : '';
+
+    if (!type)  { showHermesToast('공지 유형을 선택해 주세요.', 'error'); return; }
+    if (!title) { showHermesToast('제목을 입력해 주세요.', 'error'); return; }
+
+    const editId = document.getElementById('editId').value;
+
+    if (editId) {
+      const item = noticeData.find(n => n.id === parseInt(editId));
+      if (item) {
+        item.type    = type;
+        item.title   = title;
+        item.popup   = popup;
+        item.content = content;
+      }
+      showHermesToast('공지가 수정되었습니다.', 'success');
+    } else {
+      noticeData.unshift({
+        id: nextId++,
+        type, title, popup, content,
+        author: document.getElementById('formAuthor').value,
+        date: new Date().toISOString().slice(0, 10),
+      });
+      showHermesToast('공지가 등록되었습니다.', 'success');
+    }
+
+    resetForm();
+    applyFilter();
+    updateStats();
+    switchTab('tab-list', document.querySelector('.mn-tab-btn[data-tab=tab-list]'));
+  }
+
+  /* ── 탭 전환 ── */
+  function switchTab(tabId, btn) {
+    document.querySelectorAll('.mn-tab-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.mn-tab-btn').forEach(b => {
+      b.classList.remove('text-orange-600', 'border-orange-500', 'bg-orange-50/40');
+      b.classList.add('text-slate-500', 'border-transparent');
+    });
+    document.getElementById(tabId).classList.remove('hidden');
+    btn.classList.remove('text-slate-500', 'border-transparent');
+    btn.classList.add('text-orange-600', 'border-orange-500', 'bg-orange-50/40');
+  }
+
+  /* ── 초기화 ── */
+  document.addEventListener('DOMContentLoaded', function () {
+    /* 탭 초기 활성 */
+    const firstBtn = document.querySelector('.mn-tab-btn[data-tab="tab-list"]');
+    if (firstBtn) switchTab('tab-list', firstBtn);
+
+    /* 통계 & 테이블 */
+    updateStats();
+    renderTable(noticeData);
+
+    /* Toast UI Editor 초기화 */
+    if (typeof toastui !== 'undefined') {
+      editor = new toastui.Editor({
+        el: document.querySelector('#editor'),
+        height: '400px',
+        initialEditType: 'wysiwyg',
+        previewStyle: 'tab',
+        language: 'ko-KR',
+        usageStatistics: false,
+        plugins: [toastui.Editor.plugin.colorSyntax].filter(Boolean),
+        hooks: {
+          addImageBlobHook: async (blob, callback) => {
+            const formData = new FormData();
+            formData.append('image', blob);
+            const res = await fetch('/admin/board/upload/editor-image', { method: 'POST', body: formData });
+            const { url } = await res.json();
+            callback(url, '이미지');
+          }
+        },
+      });
+    }
+  });
+</script>

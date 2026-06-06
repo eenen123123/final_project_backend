@@ -1,16 +1,31 @@
 <div class="sidebar-section">
   <p
-    class="sidebar-title text-blue-500"
+  class="sidebar-title text-blue-500"
   >
   행정 전용 권한
 </p>
 <ul class="sidebar-list">
+  <!-- 1 그룹: 통합 운영 및 소통 -->
+  <li>
+    <a href="/admin/calendar" class="sidebar-link">
+      <i class="fa-solid fa-calendar-days sidebar-icon"></i>
+      <span class="sidebar-link-text">통합 일정 관리</span>
+    </a>
+  </li>
+  <li>
+    <a href="/admin/notifications/parent" class="sidebar-link">
+      <i class="fa-solid fa-bell sidebar-icon"></i>
+      <span class="sidebar-link-text">실시간 공지 / 안내 발송</span>
+    </a>
+  </li>
   <li>
     <a href="/admin/attendance" class="sidebar-link">
       <i class="fa-solid fa-calendar-check sidebar-icon"></i>
       <span class="sidebar-link-text">출결 관리</span>
     </a>
   </li>
+
+  <!-- 2 그룹: 인사 및 사용자 관리 -->
   <li>
     <a href="/admin/employees" class="sidebar-link">
       <i class="fa-solid fa-users-gear sidebar-icon"></i>
@@ -24,27 +39,17 @@
     </a>
   </li>
   <li>
-    <a href="/admin/certificates" class="sidebar-link">
-      <i class="fa-solid fa-certificate sidebar-icon"></i>
-      <span class="sidebar-link-text">증명서 발급 관리</span>
-    </a>
-  </li>
-  <li>
     <a href="/admin/blacklist" class="sidebar-link">
       <i class="fa-solid fa-user-slash sidebar-icon"></i>
       <span class="sidebar-link-text">블랙리스트 관리</span>
     </a>
   </li>
+
+  <!-- 3 그룹: 재무 및 물류 -->
   <li>
     <a href="/admin/billing" class="sidebar-link">
       <i class="fa-solid fa-money-check-dollar sidebar-icon"></i>
       <span class="sidebar-link-text">원비 및 수납 관리</span>
-    </a>
-  </li>
-  <li>
-    <a href="/admin/logistics" class="sidebar-link">
-      <i class="fa-solid fa-boxes-stacked sidebar-icon"></i>
-      <span class="sidebar-link-text">교재 및 물류 관리</span>
     </a>
   </li>
   <li>
@@ -53,17 +58,25 @@
       <span class="sidebar-link-text">지출 및 영수증 관리</span>
     </a>
   </li>
-    <li>
-      <a href="/admin/facilities" class="sidebar-link">
-        <i class="fa-solid fa-building-user sidebar-icon"></i>
-        <span class="sidebar-link-text">시설 및 업체 관리</span>
-      </a>
-    </li>
-    <li>
-      <a href="/admin/notifications/parent" class="sidebar-link">
-        <i class="fa-solid fa-bell sidebar-icon"></i>
-        <span class="sidebar-link-text">실시간 공지 / 안내 발송</span>
-      </a>
-    </li>
+  <li>
+    <a href="/admin/logistics" class="sidebar-link">
+      <i class="fa-solid fa-boxes-stacked sidebar-icon"></i>
+      <span class="sidebar-link-text">교재 및 물류 관리</span>
+    </a>
+  </li>
+
+  <!-- 4그룹: 시설 및 지원 -->
+  <li>
+    <a href="/admin/facilities" class="sidebar-link">
+      <i class="fa-solid fa-building-user sidebar-icon"></i>
+      <span class="sidebar-link-text">시설 및 업체 관리</span>
+    </a>
+  </li>
+  <li>
+    <a href="/admin/certificates" class="sidebar-link">
+      <i class="fa-solid fa-certificate sidebar-icon"></i>
+      <span class="sidebar-link-text">증명서 발급 관리</span>
+    </a>
+  </li>
   </ul>
 </div>
