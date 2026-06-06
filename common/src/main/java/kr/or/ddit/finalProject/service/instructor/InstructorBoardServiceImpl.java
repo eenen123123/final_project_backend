@@ -145,4 +145,9 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
         instructorBoardMapper.updateClassroomQnaAnswer(postSn, answrUserId, answCn);
     }
 
+    @Override
+    public int getUnansweredQnaCount(Long classSn) {
+        return instructorBoardMapper.selectUnansweredQnaCount(classSn);
+    }
+
 }

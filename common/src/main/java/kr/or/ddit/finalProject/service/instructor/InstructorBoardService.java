@@ -56,4 +56,6 @@ public interface InstructorBoardService {
     void insertClassroomQna(InstructorBoardDto dto);
 
     void answerClassroomQna(Long postSn, String answrUserId, String answCn);
+
+    int getUnansweredQnaCount(Long classSn);
 }

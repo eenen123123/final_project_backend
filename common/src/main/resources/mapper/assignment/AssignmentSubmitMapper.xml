@@ -38,6 +38,14 @@
     ORDER BY cm.REG_DT ASC
   </select>
 
+  <select id="selectPendingGradeCount" resultType="int">
+    SELECT COUNT(*)
+    FROM ASSIGNMENT_SUBMIT s
+         INNER JOIN ASSIGNMENT_BOARD ab ON ab.ASGMT_SN = s.ASGMT_SN
+    WHERE ab.CLASS_SN = #{classSn}
+      AND s.GRDD_YN   = 'N'
+  </select>
+
   <update id="updateGrade">
     UPDATE ASSIGNMENT_SUBMIT
     SET SCORE    = #{score},

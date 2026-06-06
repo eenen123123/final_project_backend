@@ -182,6 +182,24 @@
     </select>
 
     <!--
+        이번 주 강의 완료 이력이 없는 활성 수강생 수
+    -->
+    <select id="selectInactiveStudentCount" resultType="int">
+        SELECT COUNT(*)
+        FROM CLASSROOM_MEMBER cm
+        WHERE cm.CLASS_SN     = #{classSn}
+          AND cm.ENRL_STAT_CD = '01'
+          AND cm.USER_ID NOT IN (
+              SELECT DISTINCT USER_ID
+              FROM STUDENT_CONTENT_PROGRESS
+              WHERE CLASS_SN = #{classSn}
+                AND CMPL_YN  = 'Y'
+                AND CMPL_DT >= TO_DATE(#{weekStart}, 'YYYYMMDD')
+                AND CMPL_DT  &lt; TO_DATE(#{weekEnd}, 'YYYYMMDD') + 1
+          )
+    </select>
+
+    <!--
         마감일이 미래인 과제 수
     -->
     <select id="selectUpcomingAssignmentCount" resultType="int">

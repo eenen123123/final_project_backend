@@ -25,19 +25,16 @@
         <p class="text-sm font-bold text-blue-900 mt-0.5 truncate"
            th:text="${todayQuestion.content}">관계대명사 who와 which의 차이를 설명하시오</p>
       </div>
-      <button class="bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-blue-700 flex-shrink-0 transition-colors">
-        풀기 →
-      </button>
     </div>
 
     <div class="grid grid-cols-3 gap-4">
 
-      <!-- 주간 학습 시간 바 차트 -->
+      <!-- 주간 강의 완료 현황 바 차트 -->
       <div class="col-span-2 bg-white border border-slate-200/80 rounded-2xl flex flex-col justify-between shadow-sm overflow-hidden">
         <div class="bg-sky-50/60 px-5 py-3.5 border-b border-slate-200/40">
-          <h3 class="text-xs font-black text-slate-800 tracking-tight">이번 주 학습 시간</h3>
+          <h3 class="text-xs font-black text-slate-800 tracking-tight">이번 주 강의 완료 현황</h3>
           <p class="text-[11px] text-slate-400 mt-0.5">
-            지난주 대비 <span class="text-blue-600 font-bold" th:text="${weeklyCompareText}">30분 더</span> 공부했어요
+            지난주 대비 <span class="text-blue-600 font-bold" th:text="${weeklyCompareText}">3강 더</span> 완료했어요
           </p>
         </div>
         <div class="p-5 pt-7 flex items-end justify-between px-7" style="height:8.5rem;">
@@ -58,7 +55,7 @@
         <div class="bg-sky-50/60 px-5 py-3.5 border-b border-slate-200/40">
           <h3 class="text-xs font-black text-slate-800 tracking-tight">학습 달성률</h3>
           <p class="text-[11px] text-slate-400 mt-0.5"
-             th:text="${calendarMonth + '월 목표치 기준'}">5월 목표치 기준</p>
+             th:text="${calendarMonth + '월 달성 현황'}">5월 달성 현황</p>
         </div>
         <div class="grid grid-cols-3 gap-1 p-5 py-5">
           <div th:each="item, stat : ${achievements}" class="flex flex-col items-center gap-2.5">
@@ -80,6 +77,43 @@
         </div>
       </div>
 
+    </div>
+
+    <!-- 액션 아이템 -->
+    <div th:if="${unansweredQnaCount > 0 or pendingGradeCount > 0 or inactiveStudentCount > 0}" class="flex flex-col gap-2">
+      <div th:if="${unansweredQnaCount > 0}"
+           class="bg-amber-50 border border-amber-100 rounded-xl p-3.5 flex items-center gap-3">
+        <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center text-amber-500 text-sm flex-shrink-0">
+          <i class="fa-solid fa-comment-dots"></i>
+        </div>
+        <p class="flex-1 text-xs font-bold text-amber-800">
+          답변 대기 중인 Q&A가 <span class="text-amber-600" th:text="${unansweredQnaCount}">0</span>건 있습니다.
+        </p>
+        <a th:href="@{/instructor/classroom/detail/{sn}/qna(sn=${classroom.classSn})}"
+           class="text-[11px] font-bold text-amber-600 hover:underline flex-shrink-0">확인 →</a>
+      </div>
+      <div th:if="${pendingGradeCount > 0}"
+           class="bg-indigo-50 border border-indigo-100 rounded-xl p-3.5 flex items-center gap-3">
+        <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-500 text-sm flex-shrink-0">
+          <i class="fa-solid fa-pen-to-square"></i>
+        </div>
+        <p class="flex-1 text-xs font-bold text-indigo-800">
+          채점 대기 중인 과제가 <span class="text-indigo-600" th:text="${pendingGradeCount}">0</span>건 있습니다.
+        </p>
+        <a th:href="@{/instructor/classroom/detail/{sn}/assignments(sn=${classroom.classSn})}"
+           class="text-[11px] font-bold text-indigo-600 hover:underline flex-shrink-0">확인 →</a>
+      </div>
+      <div th:if="${inactiveStudentCount > 0}"
+           class="bg-rose-50 border border-rose-100 rounded-xl p-3.5 flex items-center gap-3">
+        <div class="w-8 h-8 bg-rose-100 rounded-lg flex items-center justify-center text-rose-500 text-sm flex-shrink-0">
+          <i class="fa-solid fa-user-clock"></i>
+        </div>
+        <p class="flex-1 text-xs font-bold text-rose-800">
+          이번 주 강의를 수강하지 않은 학생이 <span class="text-rose-600" th:text="${inactiveStudentCount}">0</span>명 있습니다.
+        </p>
+        <a th:href="@{/instructor/classroom/detail/{sn}/members(sn=${classroom.classSn})}"
+           class="text-[11px] font-bold text-rose-600 hover:underline flex-shrink-0">확인 →</a>
+      </div>
     </div>
 
     <!-- 최근 공지사항 -->
