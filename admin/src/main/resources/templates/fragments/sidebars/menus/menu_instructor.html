@@ -1,6 +1,22 @@
 <div class="sidebar-section">
-  <p class="sidebar-title text-sky-500">선생님 전용 권한</p>
+  <p class="sidebar-title text-sky-500">강사 전용 권한</p>
   <ul class="sidebar-list">
+
+    <!-- 1 그룹: 당일 업무 및 전체 학습 현황 파악 -->
+    <li>
+      <a href="/instructor/learning/overview" class="sidebar-link">
+        <i class="fa-solid fa-chart-line sidebar-icon"></i>
+        <span class="sidebar-link-text">전체 학습 현황</span>
+      </a>
+    </li>
+    <li>
+      <a href="/instructor/journals" class="sidebar-link">
+        <i class="fa-solid fa-book sidebar-icon"></i>
+        <span class="sidebar-link-text">업무 일지</span>
+      </a>
+    </li>
+
+    <!-- 2 그룹: 담당 클래스 및 수업 자료 관리 -->
     <li>
       <a href="/instructor/classroom/list" class="sidebar-link">
         <i class="fa-solid fa-chalkboard sidebar-icon"></i>
@@ -19,12 +35,8 @@
         <span class="sidebar-link-text">강좌 자료 관리</span>
       </a>
     </li>
-    <li>
-      <a href="/instructor/learning/overview" class="sidebar-link">
-        <i class="fa-solid fa-chart-line sidebar-icon"></i>
-        <span class="sidebar-link-text">전체 학습 현황</span>
-      </a>
-    </li>
+
+    <!-- 3 그룹: 문항 출제 및 AI 출제 지원 평가 -->
     <li>
       <a href="/instructor/exams" class="sidebar-link">
         <i class="fa-solid fa-marker sidebar-icon"></i>
@@ -33,10 +45,14 @@
     </li>
     <li>
       <a href="/instructor/ai-questions" class="sidebar-link group">
-        <i class="fa-solid fa-wand-magic-sparkles sidebar-icon group-hover:text-sky-400"></i>
+        <i
+          class="fa-solid fa-wand-magic-sparkles sidebar-icon group-hover:text-sky-400"
+        ></i>
         <span class="sidebar-link-text">AI 문항 생성 지원</span>
       </a>
     </li>
+
+    <!-- 4 그룹: 강사 커뮤니티 및 개인 설정 -->
     <li>
       <a href="/instructor/board" class="sidebar-link">
         <i class="fa-solid fa-clipboard sidebar-icon"></i>
@@ -44,13 +60,7 @@
       </a>
     </li>
     <li>
-      <a href="/instructor/journals" class="sidebar-link">
-        <i class="fa-solid fa-book sidebar-icon"></i>
-        <span class="sidebar-link-text">업무 일지</span>
-      </a>
-    </li>
-    <li>
-      <a href="/instructor/profile/teacher" class="sidebar-link">
+      <a href="/instructor/profile/instructor" class="sidebar-link">
         <i class="fa-solid fa-address-card sidebar-icon"></i>
         <span class="sidebar-link-text">개인 페이지 관리</span>
       </a>

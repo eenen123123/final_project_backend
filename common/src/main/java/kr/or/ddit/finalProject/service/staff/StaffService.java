@@ -83,6 +83,9 @@ public interface  StaffService {
      */
     List<EmployeeDetailDto> retrieveEmployeeList();
 
+    /** 단일 직원 상세 조회 (수정 전 스냅샷용) */
+    EmployeeDetailDto retrieveEmployeeDetailById(String userId);
+
     /**
      * 재직 중인 직원 목록 조회 (권한 설정 페이지용)
      *
@@ -142,6 +145,11 @@ public interface  StaffService {
      * 직원 목록 동적 검색 + 서버 페이징 (keyword, year, status, deptCd, jbgrCd, emplTypeCd, page, screenSize)
      */
     PageResponse<EmployeeDetailDto> searchEmployeeList(PaginationInfo<Map<String, Object>> paging);
+
+    /**
+     * 재직 중인 직원 동적 검색 + 서버 페이징 (권한 설정 페이지 전용: keyword, deptCd, jbgrNm, online)
+     */
+    PageResponse<EmployeeDetailDto> searchActiveEmployeeList(PaginationInfo<Map<String, Object>> paging);
 
     /**
      * 학생 목록 동적 검색 (keyword, year, userRole, enable)

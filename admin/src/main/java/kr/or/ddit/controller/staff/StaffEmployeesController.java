@@ -20,6 +20,8 @@ import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.service.file.CloudinaryUploadService;
 import kr.or.ddit.finalProject.service.staff.StaffService;
+import kr.or.ddit.finalProject.dto.staff.AdminActivityType;
+import kr.or.ddit.service.AdminActivityApprovalService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
@@ -48,6 +51,9 @@ public class StaffEmployeesController {
 
     @Autowired
     CloudinaryUploadService cloudinaryUploadService;
+
+    @Autowired
+    AdminActivityApprovalService activityApprovalService;
 
     /**
      * 직원 관리 메인 화면 이동 및 초기 데이터 조회
@@ -137,20 +143,42 @@ public class StaffEmployeesController {
         }
 
         try {
-            staffService.registerEmployee(memberDto, employeeInfoDto, employeeSalary, profileUrl, loginAdminId);
-        } catch (FinalProjectException e) {
-            log.warn("[createEmployee] 등록 실패: {}", e.getMessage());
-            return "redirect:/admin/employees?error=" + URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
-        } catch (IllegalArgumentException e) {
-            log.warn("[createEmployee] 유효성 검사 실패: {}", e.getMessage());
-            return "redirect:/admin/employees?error=" + URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
+            Map<String, Object> data = new LinkedHashMap<>();
+            data.put("memberDto", memberDto);
+            data.put("employeeInfoDto", employeeInfoDto);
+            data.put("employeeSalaryDto", employeeSalary);
+            data.put("profileUrl", profileUrl);
+
+            activityApprovalService.submitForApproval(
+                loginAdminId, AdminActivityType.EMPLOYEE_REGISTER,
+                memberDto.getUserName() + " (" + memberDto.getUserId() + ")", data);
+        } catch (Exception e) {
+            log.warn("[createEmployee] 결재 요청 실패: {}", e.getMessage());
+            return "redirect:/admin/employees?error=" + URLEncoder.encode("결재 요청에 실패했습니다: " + e.getMessage(), StandardCharsets.UTF_8);
         }
 
-        return "redirect:/admin/employees?success=" + URLEncoder.encode("직원이 성공적으로 등록되었습니다.", StandardCharsets.UTF_8);
+        return "redirect:/admin/employees?success=" + URLEncoder.encode("결재 요청이 완료되었습니다. 승인 후 처리됩니다.", StandardCharsets.UTF_8);
     }
 
     private static final int HR_SCREEN_SIZE = 10;
     private static final int HR_BLOCK_SIZE  = 5;
+
+    /**
+     * 현재 로그인한 관리자 본인의 직원 상세 정보 조회 (헤더 프로필 모달용)
+     */
+    @GetMapping("/me/profile")
+    @ResponseBody
+    public ResponseEntity<EmployeeDetailDto> getMyProfile(Principal principal) {
+        if (principal == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        try {
+            EmployeeDetailDto detail = staffService.retrieveEmployeeDetailById(principal.getName());
+            if (detail == null) return ResponseEntity.notFound().build();
+            return ResponseEntity.ok(detail);
+        } catch (Exception e) {
+            log.error("[getMyProfile] 조회 실패: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
     /**
      * 직원 목록 동적 검색 + 서버 페이징 (AJAX)
@@ -274,12 +302,44 @@ public class StaffEmployeesController {
             employeeSalaryDto.setBaseSalary(baseSalary);
         }
 
-        // 서비스 호출하여 직원 정보 업데이트
         try {
-            staffService.updateEmployee(memberDto, employeeInfoDto, employeeSalaryDto, loginAdminId);
-            return ResponseEntity.ok(Map.of("result", "success", "profileUrl", finalProfileUrl != null ? finalProfileUrl : ""));
+            // 수정 전 상태 캡처 (before)
+            Map<String, Object> beforeData = new LinkedHashMap<>();
+            try {
+                EmployeeDetailDto before = staffService.retrieveEmployeeDetailById(userId);
+                if (before != null) {
+                    beforeData.put("memberDto", before.getMember());
+                    EmployeeInfoDto bInfo = before.getEmployeeInfo();
+                    if (bInfo != null) {
+                        bInfo.setDeptNm(before.getDeptNm());
+                        bInfo.setJbgrNm(before.getJbgrNm());
+                    }
+                    beforeData.put("employeeInfoDto", bInfo);
+                    Map<String, Object> bSalary = new LinkedHashMap<>();
+                    bSalary.put("baseSalary", before.getBaseSalary());
+                    beforeData.put("employeeSalaryDto", bSalary);
+                }
+            } catch (Exception e) {
+                log.warn("[updateEmployee] before 상태 조회 실패: {}", e.getMessage());
+            }
+
+            Map<String, Object> afterData = new LinkedHashMap<>();
+            afterData.put("memberDto", memberDto);
+            afterData.put("employeeInfoDto", employeeInfoDto);
+            afterData.put("employeeSalaryDto", employeeSalaryDto);
+
+            Map<String, Object> data = new LinkedHashMap<>();
+            if (!beforeData.isEmpty()) data.put("before", beforeData);
+            data.put("after", afterData);
+
+            activityApprovalService.submitForApproval(
+                loginAdminId, AdminActivityType.EMPLOYEE_UPDATE, userId, data);
+
+            return ResponseEntity.ok(Map.of("result", "success",
+                "profileUrl", finalProfileUrl != null ? finalProfileUrl : "",
+                "message", "결재 요청이 완료되었습니다. 승인 후 처리됩니다."));
         } catch (Exception e) {
-            log.error("[updateEmployee] 수정 실패. userId={}, cause={}", userId, e.getMessage());
+            log.error("[updateEmployee] 결재 요청 실패. userId={}, cause={}", userId, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("result", "error", "message", e.getMessage()));
         }
@@ -306,13 +366,19 @@ public class StaffEmployeesController {
         // 요청 본문에서 퇴사 사유 추출
         String retmtRsn = body.get("retmtRsn");
 
-        // 서비스 호출하여 직원 퇴사 처리
         try {
-            staffService.retireEmployee(userId, retmtRsn, loginUserId);
-            return ResponseEntity.ok(Map.of("result", "success"));
-        } catch (FinalProjectException e) {
-            log.warn("[retireEmployee] 퇴사 처리 실패. userId={}, cause={}", userId, e.getMessage());
-            return ResponseEntity.status(e.getErrorCode().getStatus())
+            Map<String, Object> data = new LinkedHashMap<>();
+            data.put("userId", userId);
+            data.put("retmtRsn", retmtRsn);
+
+            activityApprovalService.submitForApproval(
+                loginUserId, AdminActivityType.EMPLOYEE_RETIRE, userId, data);
+
+            return ResponseEntity.ok(Map.of("result", "success",
+                "message", "결재 요청이 완료되었습니다. 승인 후 처리됩니다."));
+        } catch (Exception e) {
+            log.warn("[retireEmployee] 결재 요청 실패. userId={}, cause={}", userId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                 .body(Map.of("result", "error", "message", e.getMessage()));
         }
 

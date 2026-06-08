@@ -22,21 +22,19 @@ import lombok.RequiredArgsConstructor;
 /**
  * 강사 개인 페이지 관리 컨트롤러
  *
- * [URL 구조]
- *   GET  /instructor/profile/teacher                         → 프로필 페이지 조회
- *   POST /instructor/profile/teacher/image                   → 프로필 이미지 업로드
- *   POST /instructor/profile/teacher/image/delete            → 프로필 이미지 제거
- *   POST /instructor/profile/teacher/intro                   → 소개글 수정
- *   POST /instructor/profile/teacher/careers                 → 약력 항목 등록
- *   POST /instructor/profile/teacher/careers/{sn}/update     → 약력 항목 수정
- *   POST /instructor/profile/teacher/careers/{sn}/delete     → 약력 항목 소프트 딜리트
+ * [URL 구조] GET /instructor/profile/instructor → 프로필 페이지 조회 POST
+ * /instructor/profile/instructor/image → 프로필 이미지 업로드 POST
+ * /instructor/profile/instructor/image/delete → 프로필 이미지 제거 POST
+ * /instructor/profile/instructor/intro → 소개글 수정 POST
+ * /instructor/profile/instructor/careers → 약력 항목 등록 POST
+ * /instructor/profile/instructor/careers/{sn}/update → 약력 항목 수정 POST
+ * /instructor/profile/instructor/careers/{sn}/delete → 약력 항목 소프트 딜리트
  *
- * [접근 제어]
- *   로그인한 강사 본인의 프로필만 관리합니다.
- *   instrUserId는 항상 Authentication에서 추출하며, 요청 파라미터로 받지 않습니다.
+ * [접근 제어] 로그인한 강사 본인의 프로필만 관리합니다. instrUserId는 항상 Authentication에서 추출하며, 요청
+ * 파라미터로 받지 않습니다.
  */
 @Controller
-@RequestMapping("/instructor/profile/teacher")
+@RequestMapping("/instructor/profile/instructor")
 @RequiredArgsConstructor
 public class InstructorProfileController {
 
@@ -45,7 +43,6 @@ public class InstructorProfileController {
     // ──────────────────────────────────────────────
     // 프로필 페이지 조회
     // ──────────────────────────────────────────────
-
     @GetMapping
     public String profilePage(Model model, Authentication auth) {
         String instrUserId = auth.getName();
@@ -70,68 +67,62 @@ public class InstructorProfileController {
     // ──────────────────────────────────────────────
     // 프로필 이미지 업로드
     // ──────────────────────────────────────────────
-
     @PostMapping("/image")
     public String uploadProfileImage(
             @RequestParam("imageFile") MultipartFile imageFile,
             Authentication auth) {
 
         profileService.updateProfileImage(auth.getName(), imageFile);
-        return "redirect:/instructor/profile/teacher";
+        return "redirect:/instructor/profile/instructor";
     }
 
     // ──────────────────────────────────────────────
     // 프로필 이미지 제거
     // ──────────────────────────────────────────────
-
     @PostMapping("/image/delete")
     public String deleteProfileImage(Authentication auth) {
         profileService.removeProfileImage(auth.getName());
-        return "redirect:/instructor/profile/teacher";
+        return "redirect:/instructor/profile/instructor";
     }
 
     // ──────────────────────────────────────────────
     // 소개글 수정
     // ──────────────────────────────────────────────
-
     @PostMapping("/intro")
     public String updateIntro(InstructorIntroUpdateRequest request, Authentication auth) {
         // 빈 문자열 → null 변환은 서비스에서 처리
         profileService.updateIntro(auth.getName(), request.getInstrIntro());
-        return "redirect:/instructor/profile/teacher";
+        return "redirect:/instructor/profile/instructor";
     }
 
     // ──────────────────────────────────────────────
     // 약력 항목 등록
     // ──────────────────────────────────────────────
-
     @PostMapping("/careers")
     public String addCareer(InstructorCareerSaveRequest request, Authentication auth) {
         profileService.addCareer(auth.getName(), request);
-        return "redirect:/instructor/profile/teacher";
+        return "redirect:/instructor/profile/instructor";
     }
 
     // ──────────────────────────────────────────────
     // 약력 항목 수정
     // ──────────────────────────────────────────────
-
     @PostMapping("/careers/{careerSn}/update")
     public String updateCareer(@PathVariable Long careerSn,
-                               InstructorCareerSaveRequest request,
-                               Authentication auth) {
+            InstructorCareerSaveRequest request,
+            Authentication auth) {
         // 소유권 확인은 서비스에서 처리
         profileService.modifyCareer(careerSn, auth.getName(), request);
-        return "redirect:/instructor/profile/teacher";
+        return "redirect:/instructor/profile/instructor";
     }
 
     // ──────────────────────────────────────────────
     // 약력 항목 소프트 딜리트
     // ──────────────────────────────────────────────
-
     @PostMapping("/careers/{careerSn}/delete")
     public String deleteCareer(@PathVariable Long careerSn, Authentication auth) {
         // 소유권 확인 및 DEL_YN='Y' 처리는 서비스에서 처리
         profileService.removeCareer(careerSn, auth.getName());
-        return "redirect:/instructor/profile/teacher";
+        return "redirect:/instructor/profile/instructor";
     }
 }

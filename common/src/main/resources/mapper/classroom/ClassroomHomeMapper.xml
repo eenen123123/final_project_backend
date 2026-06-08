@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.classroom.ClassroomHomeMapper">
+
+    <!--
+        주간 강의 완료 건수 (요일별)
+        weekStart / weekEnd : 'YYYYMMDD' 형식 문자열을 TO_DATE로 변환
+        반환: DAY_DATE(YYYYMMDD 문자열), CNT(완료 건수)
+    -->
+    <select id="selectWeeklyCompletions" resultType="map">
+        SELECT
+            TO_CHAR(TRUNC(CMPL_DT), 'YYYYMMDD') AS DAY_DATE,
+            COUNT(*)                              AS CNT
+        FROM STUDENT_CONTENT_PROGRESS
+        WHERE CLASS_SN = #{classSn}
+          AND CMPL_YN  = 'Y'
+          AND CMPL_DT >= TO_DATE(#{weekStart}, 'YYYYMMDD')
+          AND CMPL_DT  &lt; TO_DATE(#{weekEnd},   'YYYYMMDD') + 1
+        GROUP BY TRUNC(CMPL_DT)
+        ORDER BY TRUNC(CMPL_DT)
+    </select>
+
+    <!--
+        특정 기간 전체 완료 건수 (이번 주 vs 지난 주 비교용)
+    -->
+    <select id="selectTotalCompletionsInRange" resultType="int">
+        SELECT COUNT(*)
+        FROM STUDENT_CONTENT_PROGRESS
+        WHERE CLASS_SN = #{classSn}
+          AND CMPL_YN  = 'Y'
+          AND CMPL_DT >= TO_DATE(#{rangeStart}, 'YYYYMMDD')
+          AND CMPL_DT  &lt; TO_DATE(#{rangeEnd}, 'YYYYMMDD') + 1
+    </select>
+
+    <!--
+        강의 수강률(%)
+        = 활성 수강생의 완료 강의 수 / (활성 수강생 수 × 공개 강의 수) × 100
+    -->
+    <select id="selectAvgProgressRate" resultType="java.lang.Double">
+        SELECT
+            CASE
+                WHEN NVL(s.TOTAL_STUDENTS, 0) = 0
+                  OR NVL(lect.TOTAL_LECTURES, 0) = 0 THEN 0
+                ELSE ROUND(
+                    NVL(prog.TOTAL_COMPLETED, 0) * 100.0
+                    / (s.TOTAL_STUDENTS * lect.TOTAL_LECTURES),
+                    1
+                )
+            END
+        FROM DUAL
+        LEFT JOIN (
+            SELECT COUNT(*) AS TOTAL_STUDENTS
+            FROM CLASSROOM_MEMBER
+            WHERE CLASS_SN = #{classSn}
+              AND ENRL_STAT_CD IN ('01', '02')
+        ) s ON 1 = 1
+        LEFT JOIN (
+            SELECT COUNT(*) AS TOTAL_LECTURES
+            FROM LECTURE
+            WHERE COURSE_SN = (
+                SELECT COURSE_SN FROM CLASSROOM WHERE CLASS_SN = #{classSn}
+            )
+              AND OPNN_YN = 'Y'
+        ) lect ON 1 = 1
+        LEFT JOIN (
+            SELECT COUNT(*) AS TOTAL_COMPLETED
+            FROM STUDENT_CONTENT_PROGRESS scp
+            JOIN CLASSROOM_MEMBER cm
+              ON scp.CLASS_SN = cm.CLASS_SN
+             AND scp.USER_ID  = cm.USER_ID
+             AND cm.ENRL_STAT_CD IN ('01', '02')
+            WHERE scp.CMPL_YN = 'Y'
+              AND scp.CLASS_SN = #{classSn}
+        ) prog ON 1 = 1
+    </select>
+
+    <!--
+        과제 제출률(%)
+        = 제출 건수 / (과제 수 × 활성 수강생 수) × 100
+    -->
+    <select id="selectAssignmentSubmitRate" resultType="java.lang.Double">
+        SELECT
+            CASE
+                WHEN NVL(a.TOTAL_ASGMT, 0) = 0
+                  OR NVL(s.ACTIVE_CNT, 0) = 0 THEN 0
+                ELSE ROUND(
+                    NVL(sub.SUBMIT_CNT, 0) * 100.0
+                    / (a.TOTAL_ASGMT * s.ACTIVE_CNT),
+                    1
+                )
+            END
+        FROM DUAL
+        LEFT JOIN (
+            SELECT COUNT(*) AS TOTAL_ASGMT
+            FROM ASSIGNMENT_BOARD
+            WHERE CLASS_SN = #{classSn}
+        ) a ON 1 = 1
+        LEFT JOIN (
+            SELECT COUNT(*) AS ACTIVE_CNT
+            FROM CLASSROOM_MEMBER
+            WHERE CLASS_SN = #{classSn}
+              AND ENRL_STAT_CD = '01'
+        ) s ON 1 = 1
+        LEFT JOIN (
+            SELECT COUNT(*) AS SUBMIT_CNT
+            FROM ASSIGNMENT_SUBMIT asub
+            JOIN ASSIGNMENT_BOARD ab ON asub.ASGMT_SN = ab.ASGMT_SN
+            WHERE ab.CLASS_SN = #{classSn}
+        ) sub ON 1 = 1
+    </select>
+
+    <!--
+        시험 응시률(%)
+        = 해당 클래스 최신 시험의 EXAM_TAKER 수 / 활성 수강생 수 × 100
+        시험이 없으면 0 반환
+
+        [수정 이유]
+        형제 인라인 뷰끼리는 서로 참조 불가(ORA-00904).
+        스칼라 서브쿼리로 latest.EXAM_SN 참조 문제를 해소.
+    -->
+    <select id="selectExamTakerRate" resultType="java.lang.Double">
+        SELECT
+            CASE
+                WHEN (
+                    SELECT COUNT(*)
+                    FROM CLASSROOM_MEMBER
+                    WHERE CLASS_SN = #{classSn}
+                      AND ENRL_STAT_CD = '01'
+                ) = 0
+                  OR (
+                    SELECT COUNT(*)
+                    FROM EXAM
+                    WHERE CLASS_SN = #{classSn}
+                      AND EXAM_STAT_CD != '99'
+                ) = 0
+                THEN 0
+                ELSE ROUND(
+                    (
+                        SELECT COUNT(*)
+                        FROM EXAM_TAKER
+                        WHERE EXAM_SN = (
+                            SELECT EXAM_SN
+                            FROM EXAM
+                            WHERE CLASS_SN = #{classSn}
+                              AND EXAM_STAT_CD != '99'
+                            ORDER BY EXAM_REG_DT DESC
+                            FETCH FIRST 1 ROWS ONLY
+                        )
+                    ) * 100.0
+                    / (
+                        SELECT COUNT(*)
+                        FROM CLASSROOM_MEMBER
+                        WHERE CLASS_SN = #{classSn}
+                          AND ENRL_STAT_CD = '01'
+                    ),
+                    1
+                )
+            END
+        FROM DUAL
+    </select>
+
+    <!--
+        이번 달 이벤트 날짜 목록(YYYYMMDD)
+        시험 시작일 + 과제 마감일을 합산하여 중복 제거
+    -->
+    <select id="selectEventDatesThisMonth" resultType="String">
+        SELECT DISTINCT EVENT_DATE FROM (
+            SELECT TO_CHAR(TRUNC(EXAM_STRT_DT), 'YYYYMMDD') AS EVENT_DATE
+            FROM EXAM
+            WHERE CLASS_SN     = #{classSn}
+              AND EXAM_STAT_CD != '99'
+              AND TO_CHAR(EXAM_STRT_DT, 'YYYYMM') = LPAD(#{year}, 4, '0') || LPAD(#{month}, 2, '0')
+            UNION
+            SELECT TO_CHAR(TRUNC(SBMT_DDLN_DT), 'YYYYMMDD')
+            FROM ASSIGNMENT_BOARD
+            WHERE CLASS_SN = #{classSn}
+              AND SBMT_DDLN_DT IS NOT NULL
+              AND TO_CHAR(SBMT_DDLN_DT, 'YYYYMM') = LPAD(#{year}, 4, '0') || LPAD(#{month}, 2, '0')
+        )
+    </select>
+
+    <!--
+        이번 주 강의 완료 이력이 없는 활성 수강생 수
+    -->
+    <select id="selectInactiveStudentCount" resultType="int">
+        SELECT COUNT(*)
+        FROM CLASSROOM_MEMBER cm
+        WHERE cm.CLASS_SN     = #{classSn}
+          AND cm.ENRL_STAT_CD = '01'
+          AND cm.USER_ID NOT IN (
+              SELECT DISTINCT USER_ID
+              FROM STUDENT_CONTENT_PROGRESS
+              WHERE CLASS_SN = #{classSn}
+                AND CMPL_YN  = 'Y'
+                AND CMPL_DT >= TO_DATE(#{weekStart}, 'YYYYMMDD')
+                AND CMPL_DT  &lt; TO_DATE(#{weekEnd}, 'YYYYMMDD') + 1
+          )
+    </select>
+
+    <!--
+        마감일이 미래인 과제 수
+    -->
+    <select id="selectUpcomingAssignmentCount" resultType="int">
+        SELECT COUNT(*)
+        FROM ASSIGNMENT_BOARD
+        WHERE CLASS_SN     = #{classSn}
+          AND SBMT_DDLN_DT > SYSDATE
+    </select>
+
+    <!--
+        오늘 진행 중인 시험 (EXAM_STRT_DT ≤ 오늘 ≤ EXAM_END_DT)
+        없으면 null, 복수면 가장 최근 등록 건 반환
+    -->
+    <select id="selectTodayExam" resultType="map">
+        SELECT
+            E.EXAM_SN      AS examSn,
+            E.EXAM_REG_NM  AS examRegNm,
+            C.COURSE_NM    AS courseNm
+        FROM EXAM E
+        JOIN CLASSROOM  CL ON CL.CLASS_SN  = E.CLASS_SN
+        JOIN COURSE     C  ON C.COURSE_SN  = CL.COURSE_SN
+        WHERE E.CLASS_SN     = #{classSn}
+          AND E.EXAM_STAT_CD != '99'
+          AND TRUNC(SYSDATE) BETWEEN TRUNC(E.EXAM_STRT_DT) AND TRUNC(E.EXAM_END_DT)
+        ORDER BY E.EXAM_REG_DT DESC
+        FETCH FIRST 1 ROWS ONLY
+    </select>
+
+</mapper>

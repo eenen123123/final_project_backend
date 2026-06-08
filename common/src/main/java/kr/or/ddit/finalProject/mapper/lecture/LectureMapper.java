@@ -6,9 +6,13 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import kr.or.ddit.finalProject.dto.lecture.LectureDto;
+import kr.or.ddit.finalProject.dto.lecture.LectureProgressDto;
 
 @Mapper
 public interface LectureMapper {
+
+    List<LectureProgressDto> selectLecturesWithProgress(@Param("classSn") Long classSn);
+
 
     List<LectureDto> selectLectureByCourseSn(@Param("courseSn") Long courseSn);
 

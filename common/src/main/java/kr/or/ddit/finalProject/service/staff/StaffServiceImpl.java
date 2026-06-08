@@ -109,6 +109,11 @@ public class StaffServiceImpl implements StaffService{
         return staffMapper.selectEmployeeList();
     }
 
+    @Override
+    public EmployeeDetailDto retrieveEmployeeDetailById(String userId) {
+        return staffMapper.selectEmployeeDetailByUserId(userId);
+    }
+
     /**
      * 재직 중인 직원 리스트 조회
      */
@@ -255,6 +260,13 @@ public class StaffServiceImpl implements StaffService{
     public PageResponse<EmployeeDetailDto> searchEmployeeList(PaginationInfo<Map<String, Object>> paging) {
         List<EmployeeDetailDto> items = staffMapper.searchEmployeeList(paging);
         int totalCount = staffMapper.countSearchEmployeeList(paging);
+        return new PageResponse<>(items, totalCount);
+    }
+
+    @Override
+    public PageResponse<EmployeeDetailDto> searchActiveEmployeeList(PaginationInfo<Map<String, Object>> paging) {
+        List<EmployeeDetailDto> items = staffMapper.searchActiveEmployeeList(paging);
+        int totalCount = staffMapper.countSearchActiveEmployeeList(paging);
         return new PageResponse<>(items, totalCount);
     }
 

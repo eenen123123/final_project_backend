@@ -1,0 +1,1 @@
+alter table course drop column subj_cl_id;

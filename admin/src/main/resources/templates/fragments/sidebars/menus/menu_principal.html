@@ -5,23 +5,26 @@
     원장 전용 권한
   </p>
   <ul class="sidebar-list">
+    <!-- 1 그룹: 실시간 모니터링 및 일정 -->
     <li>
-      <a href="/admin/settings/permissions" class="sidebar-link">
-        <i class="fa-solid fa-user-shield sidebar-icon"></i>
-        <span class="sidebar-link-text">관리자 권한 설정</span>
+      <a href="/admin/monitoring" class="sidebar-link">
+        <i class="fa-solid fa-desktop sidebar-icon"></i>
+        <span class="sidebar-link-text">학사 운영 모니터링</span>
       </a>
     </li>
     <li>
-      <a href="/admin/students/approve" class="sidebar-link">
-        <i class="fa-solid fa-user-check sidebar-icon"></i>
-        <span class="sidebar-link-text">학생 관리 최종 승인</span>
-      </a>
+        <a href="/admin/calendar" class="sidebar-link">
+            <i class="fa-solid fa-calendar-days sidebar-icon"></i>
+            <span class="sidebar-link-text">통합 일정 관리</span>
+        </a>
     </li>
+
+    <!-- 2 그룹: 최종 승인 및 결재 -->
     <li>
-      <a href="/admin/finance" class="sidebar-link">
-        <i class="fa-solid fa-coins sidebar-icon"></i>
-        <span class="sidebar-link-text">매출 및 재무 분석</span>
-      </a>
+        <a href="/admin/approval" class="sidebar-link">
+            <i class="fa-solid fa-file-signature sidebar-icon"></i>
+            <span class="sidebar-link-text">내부 전자 결재</span>
+        </a>
     </li>
     <li>
       <a href="/admin/payments/approve" class="sidebar-link">
@@ -30,9 +33,17 @@
       </a>
     </li>
     <li>
-      <a href="/admin/monitoring" class="sidebar-link">
-        <i class="fa-solid fa-desktop sidebar-icon"></i>
-        <span class="sidebar-link-text">학사 운영 모니터링</span>
+      <a href="/admin/students/approve" class="sidebar-link">
+        <i class="fa-solid fa-user-check sidebar-icon"></i>
+        <span class="sidebar-link-text">학생 관리 최종 승인</span>
+      </a>
+    </li>
+
+    <!-- 3 그룹: 경영 분석 및 보안 설정 -->
+    <li>
+      <a href="/admin/finance" class="sidebar-link">
+        <i class="fa-solid fa-coins sidebar-icon"></i>
+        <span class="sidebar-link-text">매출 및 재무 분석</span>
       </a>
     </li>
     <li>
@@ -41,5 +52,12 @@
         <span class="sidebar-link-text">서비스 품질 관리</span>
       </a>
     </li>
+    <li>
+      <a href="/admin/settings/permissions" class="sidebar-link">
+        <i class="fa-solid fa-user-shield sidebar-icon"></i>
+        <span class="sidebar-link-text">관리자 권한 설정</span>
+      </a>
+    </li>
+    
   </ul>
 </div>
