@@ -98,7 +98,12 @@ public enum ErrorCode {
     MEMBER_REGISTER_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "회원 등록에 실패했습니다."),
     MEMBER_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "회원 정보 수정에 실패했습니다."),
     MEMBER_RETIRE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "회원 탈퇴 처리에 실패했습니다."),
-    MEMBER_ALREADY_RETIRED(HttpStatus.BAD_REQUEST, "이미 탈퇴 처리된 회원입니다.");
+    MEMBER_ALREADY_RETIRED(HttpStatus.BAD_REQUEST, "이미 탈퇴 처리된 회원입니다."),
+
+
+    // 쪽지 관련
+
+    POST_MESSAGE_CREATE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "쪽지 발송에 실패했습니다.");
 
     // =============================
     private final HttpStatus status;
