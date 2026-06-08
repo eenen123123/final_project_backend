@@ -286,10 +286,34 @@ public class StaffEmployeesController {
         }
 
         try {
+            // 수정 전 상태 캡처 (before)
+            Map<String, Object> beforeData = new LinkedHashMap<>();
+            try {
+                EmployeeDetailDto before = staffService.retrieveEmployeeDetailById(userId);
+                if (before != null) {
+                    beforeData.put("memberDto", before.getMember());
+                    EmployeeInfoDto bInfo = before.getEmployeeInfo();
+                    if (bInfo != null) {
+                        bInfo.setDeptNm(before.getDeptNm());
+                        bInfo.setJbgrNm(before.getJbgrNm());
+                    }
+                    beforeData.put("employeeInfoDto", bInfo);
+                    Map<String, Object> bSalary = new LinkedHashMap<>();
+                    bSalary.put("baseSalary", before.getBaseSalary());
+                    beforeData.put("employeeSalaryDto", bSalary);
+                }
+            } catch (Exception e) {
+                log.warn("[updateEmployee] before 상태 조회 실패: {}", e.getMessage());
+            }
+
+            Map<String, Object> afterData = new LinkedHashMap<>();
+            afterData.put("memberDto", memberDto);
+            afterData.put("employeeInfoDto", employeeInfoDto);
+            afterData.put("employeeSalaryDto", employeeSalaryDto);
+
             Map<String, Object> data = new LinkedHashMap<>();
-            data.put("memberDto", memberDto);
-            data.put("employeeInfoDto", employeeInfoDto);
-            data.put("employeeSalaryDto", employeeSalaryDto);
+            if (!beforeData.isEmpty()) data.put("before", beforeData);
+            data.put("after", afterData);
 
             activityApprovalService.submitForApproval(
                 loginAdminId, AdminActivityType.EMPLOYEE_UPDATE, userId, data);

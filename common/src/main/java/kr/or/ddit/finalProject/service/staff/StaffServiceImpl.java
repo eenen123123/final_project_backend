@@ -109,6 +109,11 @@ public class StaffServiceImpl implements StaffService{
         return staffMapper.selectEmployeeList();
     }
 
+    @Override
+    public EmployeeDetailDto retrieveEmployeeDetailById(String userId) {
+        return staffMapper.selectEmployeeDetailByUserId(userId);
+    }
+
     /**
      * 재직 중인 직원 리스트 조회
      */

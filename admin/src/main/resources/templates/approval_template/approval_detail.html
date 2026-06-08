@@ -55,6 +55,17 @@
       height: 2px;
       margin-top: 1.25rem;
     }
+
+    /* 공문서 양식 스타일 */
+    .doc-wrap { font-family: '맑은 고딕', 'Malgun Gothic', dotum, sans-serif; font-size: 13px; color: #000; }
+    .doc-title { text-align: center; font-size: 22px; font-weight: bold; letter-spacing: 8px; margin: 4px 0 14px; }
+    .doc-table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
+    .doc-table th, .doc-table td { border: 1px solid #555; padding: 5px 10px; vertical-align: middle; }
+    .doc-th { background: #e8e8e8; font-weight: bold; text-align: center; white-space: nowrap; }
+    .doc-section-head { background: #d0d0d0; font-weight: bold; text-align: center; font-size: 12px; letter-spacing: 2px; }
+    .doc-changed { background: #fffbeb; }
+    .doc-changed-val { color: #b45309; font-weight: bold; }
+    .doc-col-head { background: #ececec; font-weight: bold; text-align: center; font-size: 11px; }
   </style>
 </th:block>
 
@@ -385,9 +396,163 @@
     });
   }
 
+  /* ── systemPayload 시각화 ── */
+  const ACTION_CONFIG = {
+    EMPLOYEE_REGISTER: { label: '직원 신규 등록', color: 'bg-emerald-100 text-emerald-700', border: 'border-emerald-200', icon: 'fa-user-plus',     dot: 'bg-emerald-500' },
+    EMPLOYEE_UPDATE:   { label: '직원 정보 수정', color: 'bg-sky-100 text-sky-700',         border: 'border-sky-200',     icon: 'fa-pen-to-square', dot: 'bg-sky-500'     },
+    EMPLOYEE_RETIRE:   { label: '직원 퇴사 처리', color: 'bg-red-100 text-red-700',         border: 'border-red-200',     icon: 'fa-user-minus',    dot: 'bg-red-500'     },
+    STUDENT_REGISTER:  { label: '학생 신규 등록', color: 'bg-violet-100 text-violet-700',   border: 'border-violet-200',  icon: 'fa-user-plus',     dot: 'bg-violet-500'  },
+    STUDENT_UPDATE:    { label: '학생 정보 수정', color: 'bg-amber-100 text-amber-700',     border: 'border-amber-200',   icon: 'fa-pen-to-square', dot: 'bg-amber-500'   },
+    STUDENT_RETIRE:    { label: '학생 탈퇴 처리', color: 'bg-slate-100 text-slate-600',     border: 'border-slate-200',   icon: 'fa-user-minus',    dot: 'bg-slate-400'   },
+  };
+
+  const SECTION_CONFIG = {
+    memberDto:         { label: '기본 회원 정보', icon: 'fa-user',         color: 'text-violet-500' },
+    employeeInfoDto:   { label: '직원 근무 정보', icon: 'fa-id-badge',     color: 'text-sky-500'    },
+    employeeSalaryDto: { label: '급여 정보',      icon: 'fa-won-sign',     color: 'text-emerald-500'},
+    studentDto:        { label: '학생 정보',      icon: 'fa-user-graduate',color: 'text-violet-500' },
+  };
+
+  const FIELD_LABELS = {
+    userId: '사용자 ID', userName: '이름', userGndrCd: '성별', userBrdt: '생년월일',
+    userTelno: '연락처', userEmailAddr: '이메일', userZip: '우편번호',
+    userAddr: '주소', userDaddr: '상세주소',
+    deptCd: '부서 코드', deptNm: '부서명', jbgrCd: '직급 코드', jbgrNm: '직급명',
+    joinYmd: '입사일', retmtYmd: '퇴사일', retmtRsn: '퇴사 사유',
+    emplStatCd: '재직 상태', emplTypeCd: '고용 유형', chrgDutyCn: '담당 업무',
+    baseSalary: '기본급 (만원)', applyYmd: '급여 적용일',
+    studentId: '학번', grade: '학년', classNm: '반',
+  };
+
+  const FIELD_TRANSFORMS = {
+    userGndrCd:  v => v === 'M' ? '남성' : v === 'F' ? '여성' : v,
+    emplStatCd:  v => ({ '01':'재직', '02':'퇴직', '03':'휴직' }[v] || v),
+    emplTypeCd:  v => ({ '01':'정규직', '02':'계약직', '03':'아르바이트' }[v] || v),
+    userTelno:   v => {
+      const d = String(v).replace(/-/g, '');
+      if (d.length === 11) return d.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+      if (d.length === 10) return d.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+      return v;
+    },
+  };
+
+  function fmt(key, val) {
+    if (val === null || val === undefined || val === '') return '-';
+    return FIELD_TRANSFORMS[key] ? FIELD_TRANSFORMS[key](String(val)) : String(val);
+  }
+
+  function renderSystemPayload(payload) {
+    const cfg = ACTION_CONFIG[payload.actionType] || {
+      label: payload.actionType, color: 'bg-slate-100 text-slate-600',
+      border: 'border-slate-200', icon: 'fa-file-lines', dot: 'bg-slate-400'
+    };
+    const data = payload.data || {};
+
+    let html = `<div class="doc-wrap">
+      <div class="doc-title">${cfg.label}</div>
+      <table class="doc-table">
+        <colgroup><col width="12%"><col width="38%"><col width="12%"><col></colgroup>
+        <tbody>
+          <tr>
+            <td class="doc-th">기안자</td>
+            <td>${payload.actorUserId || '-'}</td>
+            <td class="doc-th">처리 유형</td>
+            <td>${cfg.label}</td>
+          </tr>
+          <tr>
+            <td class="doc-th">처리 대상</td>
+            <td colspan="3">${payload.displayText || '-'}</td>
+          </tr>
+        </tbody>
+      </table>`;
+
+    if (data.before && data.after) {
+      /* ── 수정: 변경 전/후 비교표 ── */
+      const before = data.before;
+      const after  = data.after;
+      const sectionKeys = [...new Set([...Object.keys(before), ...Object.keys(after)])];
+
+      sectionKeys.forEach(dtoKey => {
+        const bDto = before[dtoKey] || {};
+        const aDto = after[dtoKey]  || {};
+        const sec  = SECTION_CONFIG[dtoKey] || { label: dtoKey };
+
+        /* after에 실제 제출된 키만 표시 (미제출 필드는 제외) */
+        const visibleKeys = Object.keys(aDto).filter(k => {
+          const av = aDto[k];
+          return av !== null && av !== '' && av !== undefined;
+        });
+        if (visibleKeys.length === 0) return;
+
+        html += `
+        <table class="doc-table">
+          <colgroup><col width="15%"><col><col></colgroup>
+          <tbody>
+            <tr><td class="doc-section-head" colspan="3">[ ${sec.label} ]</td></tr>
+            <tr>
+              <td class="doc-col-head">항목</td>
+              <td class="doc-col-head">변경 전</td>
+              <td class="doc-col-head">변경 후</td>
+            </tr>`;
+
+        visibleKeys.forEach(key => {
+          const bVal   = fmt(key, bDto[key]);
+          const aVal   = fmt(key, aDto[key]);
+          const changed = bVal !== aVal;
+          html += `
+            <tr${changed ? ' class="doc-changed"' : ''}>
+              <td class="doc-th">${FIELD_LABELS[key] || key}</td>
+              <td>${bVal}</td>
+              <td${changed ? ' class="doc-changed-val"' : ''}>${changed ? '→ ' : ''}${aVal}</td>
+            </tr>`;
+        });
+
+        html += `</tbody></table>`;
+      });
+
+    } else {
+      /* ── 등록/퇴사: 단순 목록표 ── */
+      Object.entries(data).forEach(([dtoKey, dtoVal]) => {
+        if (!dtoVal || typeof dtoVal !== 'object') return;
+        const sec    = SECTION_CONFIG[dtoKey] || { label: dtoKey };
+        const fields = Object.entries(dtoVal).filter(([, v]) => v !== null && v !== '' && v !== undefined);
+        if (fields.length === 0) return;
+
+        html += `
+        <table class="doc-table">
+          <colgroup><col width="20%"><col></colgroup>
+          <tbody>
+            <tr><td class="doc-section-head" colspan="2">[ ${sec.label} ]</td></tr>`;
+
+        fields.forEach(([key, val]) => {
+          html += `
+            <tr>
+              <td class="doc-th">${FIELD_LABELS[key] || key}</td>
+              <td>${fmt(key, val)}</td>
+            </tr>`;
+        });
+
+        html += `</tbody></table>`;
+      });
+    }
+
+    html += `</div>`;
+    return html;
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
-    // 결재 내용은 수정 불가능하도록 설정
     const aprvlDocCn = document.getElementById("aprvlDocCn");
+    const raw = aprvlDocCn.textContent.trim();
+
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed.systemPayload === true) {
+        aprvlDocCn.innerHTML = renderSystemPayload(parsed);
+        return; /* 시각화 완료 — 폼 비활성 불필요 */
+      }
+    } catch (_) { /* JSON이 아닌 일반 HTML 내용이면 그대로 표시 */ }
+
+    /* 일반 결재 문서: 입력 필드만 비활성화 */
     aprvlDocCn.querySelectorAll("input, textarea, select").forEach((el) => {
       el.setAttribute("disabled", "disabled");
     });
