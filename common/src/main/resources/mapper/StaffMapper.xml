@@ -31,6 +31,7 @@
             <result property="chrgDutyCn" column="CHRG_DUTY_CN" />
             <result property="emplTypeCd" column="EMPL_TYPE_CD" />
             <result property="ctrctEndYmd" column="CTRCT_END_YMD" />
+            <result property="mntUserId" column="MNT_USER_ID" />
         </association>
     </resultMap>
 
@@ -168,10 +169,11 @@
             ei.CHRG_DUTY_CN AS EI_CHRG_DUTY_CN,
             ei.EMPL_TYPE_CD AS EI_EMPL_TYPE_CD,
             ei.CTRCT_END_YMD AS EI_CTRCT_END_YMD,
+            ei.MNT_USER_ID AS EI_MNT_USER_ID,
 
             /* DEPARTMENT 테이블 */
             d.DEPT_NM,
-            
+
             /* 직급명 */
             j.JBGR_NM,
 
@@ -740,4 +742,97 @@
             AND NOT EXISTS (SELECT 1 FROM ADMINLOGIN_LOG l WHERE l.USER_ID = m.USER_ID AND l.LOGOUT_DT IS NULL)
         </if>
     </select>
+
+    <!-- ═══════════════════════════════════════════
+         조직 관리: 부서 CRUD
+    ═══════════════════════════════════════════ -->
+    <insert id="insertDepartment" parameterType="kr.or.ddit.finalProject.dto.employee.DepartmentDto">
+        INSERT INTO DEPARTMENT (DEPT_CD, PRNT_DEPT_CD, DEPT_NM, USE_YN, INTL_TEL_NO, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT)
+        VALUES (#{deptCd}, #{prntDeptCd, jdbcType=VARCHAR}, #{deptNm}, 'Y',
+                #{intlTelNo, jdbcType=VARCHAR}, #{rgtrId}, #{rgtrId}, SYSTIMESTAMP, SYSTIMESTAMP)
+    </insert>
+
+    <update id="updateDepartment" parameterType="kr.or.ddit.finalProject.dto.employee.DepartmentDto">
+        UPDATE DEPARTMENT
+        SET DEPT_NM      = #{deptNm},
+            PRNT_DEPT_CD = #{prntDeptCd, jdbcType=VARCHAR},
+            INTL_TEL_NO  = #{intlTelNo, jdbcType=VARCHAR},
+            LAST_MDFR_ID = #{lastMdfrId},
+            MDFCN_DT     = SYSTIMESTAMP
+        WHERE DEPT_CD = #{deptCd}
+    </update>
+
+    <update id="toggleDeptUseYn">
+        UPDATE DEPARTMENT
+        SET USE_YN       = #{useYn},
+            LAST_MDFR_ID = #{loginUserId},
+            MDFCN_DT     = SYSTIMESTAMP
+        WHERE DEPT_CD = #{deptCd}
+    </update>
+
+    <!-- ═══════════════════════════════════════════
+         조직 관리: 직급 CRUD
+    ═══════════════════════════════════════════ -->
+    <select id="selectAllJobGradeDtos" resultType="kr.or.ddit.finalProject.dto.employee.JobGradeDto">
+        SELECT JBGR_CD, JBGR_NM, SORT_ORD, USE_YN, BASE_ANN_LV_DAYS, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT, DEPT_CD
+        FROM JOB_GRADE
+        ORDER BY SORT_ORD
+    </select>
+
+    <select id="selectJobGradeListPaged" resultType="kr.or.ddit.finalProject.dto.employee.JobGradeDto">
+        SELECT JBGR_CD, JBGR_NM, DEPT_CD, SORT_ORD, USE_YN, BASE_ANN_LV_DAYS
+        FROM JOB_GRADE
+        <where>
+            <if test="deptCd != null and deptCd != ''">AND DEPT_CD = #{deptCd}</if>
+            <if test="useYn  != null and useYn  != ''">AND USE_YN  = #{useYn}</if>
+        </where>
+        ORDER BY SORT_ORD NULLS LAST, JBGR_CD
+        OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
+    </select>
+
+    <select id="countJobGradeListPaged" resultType="int">
+        SELECT COUNT(*) FROM JOB_GRADE
+        <where>
+            <if test="deptCd != null and deptCd != ''">AND DEPT_CD = #{deptCd}</if>
+            <if test="useYn  != null and useYn  != ''">AND USE_YN  = #{useYn}</if>
+        </where>
+    </select>
+
+    <insert id="insertJobGrade" parameterType="kr.or.ddit.finalProject.dto.employee.JobGradeDto">
+        INSERT INTO JOB_GRADE (JBGR_CD, JBGR_NM, SORT_ORD, USE_YN, BASE_ANN_LV_DAYS, DEPT_CD, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT)
+        VALUES (#{jbgrCd}, #{jbgrNm}, #{sortOrd, jdbcType=NUMERIC}, 'Y',
+                NVL(#{baseAnnLvDays, jdbcType=NUMERIC}, 15), #{deptCd, jdbcType=VARCHAR},
+                #{rgtrId}, #{rgtrId}, SYSTIMESTAMP, SYSTIMESTAMP)
+    </insert>
+
+    <update id="updateJobGrade" parameterType="kr.or.ddit.finalProject.dto.employee.JobGradeDto">
+        UPDATE JOB_GRADE
+        SET JBGR_NM          = #{jbgrNm},
+            SORT_ORD          = #{sortOrd, jdbcType=NUMERIC},
+            BASE_ANN_LV_DAYS  = #{baseAnnLvDays, jdbcType=NUMERIC},
+            DEPT_CD           = #{deptCd, jdbcType=VARCHAR},
+            LAST_MDFR_ID      = #{lastMdfrId},
+            MDFCN_DT          = SYSTIMESTAMP
+        WHERE JBGR_CD = #{jbgrCd}
+    </update>
+
+    <update id="toggleJbgrUseYn">
+        UPDATE JOB_GRADE
+        SET USE_YN       = #{useYn},
+            LAST_MDFR_ID = #{loginUserId},
+            MDFCN_DT     = SYSTIMESTAMP
+        WHERE JBGR_CD = #{jbgrCd}
+    </update>
+
+    <!-- ═══════════════════════════════════════════
+         조직 관리: 사수(MNT_USER_ID) 배정
+    ═══════════════════════════════════════════ -->
+    <update id="updateMntUserId">
+        UPDATE EMPLOYEE_INFO
+        SET MNT_USER_ID  = #{mntUserId, jdbcType=VARCHAR},
+            LAST_MDFR_ID = #{loginUserId},
+            MDFCN_DT     = SYSTIMESTAMP
+        WHERE USER_ID = #{userId}
+    </update>
+
 </mapper>

@@ -50,6 +50,9 @@ public interface  StaffService {
      * @return 시스템에 등록된 전체 부서 정보 DTO 리스트
      */
     List<DepartmentDto> retrieveDepartmentList();
+    void addDepartment(DepartmentDto dept);
+    void modifyDepartment(DepartmentDto dept);
+    void toggleDeptUseYn(String deptCd, String useYn, String loginUserId);
 
     /**
      * 직급 리스트 조회
@@ -58,6 +61,14 @@ public interface  StaffService {
      * @return 시스템에 등록된 전체 직급 정보 DTO 리스트
      */
     List<JobGradeDto> retrieveJobGradeList();
+    List<JobGradeDto> retrieveAllJobGradeList();
+    void addJobGrade(JobGradeDto jbgr);
+    void modifyJobGrade(JobGradeDto jbgr);
+    void toggleJbgrUseYn(String jbgrCd, String useYn, String loginUserId);
+    void assignMntUserId(String userId, String mntUserId, String loginUserId);
+
+    /** 직급 목록 DB 페이징+필터 */
+    Map<String, Object> searchJobGradeList(String deptCd, String useYn, int page, int size);
 
     /**
      * 신규 직원 통합 등록 (계정 + 인사 + 급여 + 프로필 파일)

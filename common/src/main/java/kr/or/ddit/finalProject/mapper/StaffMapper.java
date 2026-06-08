@@ -22,8 +22,25 @@ public interface StaffMapper {
     // 부서 리스트 조회
     List<DepartmentDto> selectDepartmentList();
     
+    // 부서 CRUD (조직 관리 페이지용)
+    void insertDepartment(DepartmentDto dept);
+    void updateDepartment(DepartmentDto dept);
+    void toggleDeptUseYn(@Param("deptCd") String deptCd, @Param("useYn") String useYn, @Param("loginUserId") String loginUserId);
+
     // 직급 리스트 조회
     List<JobGradeDto> selectJobGradeList();
+
+    // 직급 전체 조회 (USE_YN 무관, 조직 관리 페이지용)
+    List<JobGradeDto> selectAllJobGradeDtos();
+
+    // 직금 CRUD (조직 관리 페이지용)
+    void insertJobGrade(JobGradeDto jbgr);
+    void updateJobGrade(JobGradeDto jbgr);
+    void toggleJbgrUseYn(@Param("jbgrCd") String jbgrCd, @Param("useYn") String useYn, @Param("loginUserId") String loginUserId);
+
+    // 직급 목록 DB 페이징+필터 (조직 관리 직급 탭용)
+    List<JobGradeDto> selectJobGradeListPaged(Map<String, Object> params);
+    int countJobGradeListPaged(Map<String, Object> params);
 
     // 직원 등록
     void insertEmployee(MemberDto memberDto);
@@ -45,6 +62,9 @@ public interface StaffMapper {
 
     // 입사 연도 목록 조회 (중복 제거)
     List<Integer> selectJoinYearList();
+
+    // 사수(MNT_USER_ID) 배정/해제
+    void updateMntUserId(@Param("userId") String userId, @Param("mntUserId") String mntUserId, @Param("loginUserId") String loginUserId);
 
     // 직원 중복 조회
     int checkIdExists(String usrId);
