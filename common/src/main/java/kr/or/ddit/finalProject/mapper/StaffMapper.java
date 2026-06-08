@@ -37,6 +37,9 @@ public interface StaffMapper {
     // 직원 리스트 조회
     List<EmployeeDetailDto> selectEmployeeList();
 
+    // 단일 직원 상세 조회 (수정 전 스냅샷용)
+    EmployeeDetailDto selectEmployeeDetailByUserId(String userId);
+
     // 재직 중인 직원 리스트 조회 (ENABLE = 'Y')
     List<EmployeeDetailDto> selectActiveEmployeeList();
 
