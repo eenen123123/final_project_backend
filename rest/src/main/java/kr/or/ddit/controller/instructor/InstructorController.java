@@ -7,9 +7,11 @@ import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import kr.or.ddit.finalProject.dto.instructor.InstructorDetailResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorListResponse;
 import kr.or.ddit.finalProject.mapper.instructor.InstructorMapper;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +38,15 @@ public class InstructorController {
                 ));
 
         return ResponseEntity.ok(grouped);
+    }
+
+    @GetMapping("/{instrUuid}")
+    public ResponseEntity<InstructorDetailResponse> getInstructorDetail(@PathVariable String instrUuid) {
+        InstructorDetailResponse detail = instructorMapper.selectInstructorByUuid(instrUuid);
+        if (detail == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(detail);
     }
 
 }

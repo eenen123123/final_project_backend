@@ -1,14 +1,16 @@
 package kr.or.ddit.finalProject.dto.instructor;
 
+import java.util.List;
+
 import lombok.Data;
 
 @Data
-public class InstructorListResponse {
+public class InstructorDetailResponse {
 
-    private Long subjectClId;
-    private String subjectClNm;
     private String instrUuid;
     private String userName;
+    private String instrIntro;
     private String instrProfileImg;
+    private List<InstructorCareerDto> careers;
 
 }
