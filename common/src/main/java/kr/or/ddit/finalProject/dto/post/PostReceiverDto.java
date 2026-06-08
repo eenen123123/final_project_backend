@@ -20,4 +20,7 @@ public class PostReceiverDto implements Serializable {
     private LocalDateTime ntceCfmtnDt; // 수신자가 읽은 일시 (CFMTN_YN='Y' 시 기록)
     private String delYn; // 논리 삭제 · DEFAULT 'N'
     private LocalDateTime delDt;
+    private String archiveYn;
+
+    private boolean liked;
 }
