@@ -18,7 +18,8 @@ public class LayoutThymeleafViewResolver extends ThymeleafViewResolver {
     protected View loadView(String viewName, Locale locale) throws Exception {
 
         // 1. 예외 케이스 처리 (기존 코드 그대로 유지)
-        if (viewName.startsWith("redirect:") || viewName.startsWith("forward:") || viewName.equals("error")) {
+        if (viewName.startsWith("redirect:") || viewName.startsWith("forward:")
+                || viewName.equals("error")) {
             return super.loadView(viewName, locale);
         }
 
@@ -45,10 +46,15 @@ public class LayoutThymeleafViewResolver extends ThymeleafViewResolver {
             public void render(@Nullable Map<String, ?> model, @NonNull HttpServletRequest request,
                     @NonNull HttpServletResponse response) throws Exception {
 
+                if (request.getUserPrincipal() != null) {
+                    request.setAttribute("adminName", request.getUserPrincipal().getName());
+                }
+
                 Map<String, Object> mergedModel = new HashMap<>(model);
                 mergedModel.put("contentPage", pureViewName);
 
-                View layoutView = LayoutThymeleafViewResolver.super.loadView(layoutTemplate, locale);
+                View layoutView =
+                        LayoutThymeleafViewResolver.super.loadView(layoutTemplate, locale);
                 if (layoutView != null) {
                     layoutView.render(mergedModel, request, response);
                 }

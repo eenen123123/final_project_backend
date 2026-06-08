@@ -67,16 +67,16 @@ public class NoteController {
     }
 
     @GetMapping("/write")
-    public String getWriteNotePage(
-            @RequestParam(required = false) String replyTo,
-            @RequestParam(required = false) String subject,
-            Model model, Authentication authentication) {
+    public String getWriteNotePage(@RequestParam(required = false) String replyTo,
+            @RequestParam(required = false) String subject, Model model,
+            Authentication authentication) {
         String userId = authentication.getName();
         Map<String, List<AdminMemberDto>> groupedAdminUsers =
                 memberService.getGroupedAdminUsers(userId);
         model.addAttribute("groupedAdminUsers", groupedAdminUsers);
         model.addAttribute("replyTo", replyTo != null ? replyTo : "");
-        model.addAttribute("replySubject", subject != null && !subject.isBlank() ? "Re: " + subject : "");
+        model.addAttribute("replySubject",
+                subject != null && !subject.isBlank() ? "Re: " + subject : "");
         return "/note/noteForm";
     }
 
@@ -102,31 +102,36 @@ public class NoteController {
     }
 
     @PostMapping("/delete")
-    public ResponseEntity<Void> deleteNote(@RequestParam Long postSn, Authentication authentication) {
+    public ResponseEntity<Void> deleteNote(@RequestParam Long postSn,
+            Authentication authentication) {
         postService.deletePost(postSn, authentication);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/restore")
-    public ResponseEntity<Void> restoreNote(@RequestParam Long postSn, Authentication authentication) {
+    public ResponseEntity<Void> restoreNote(@RequestParam Long postSn,
+            Authentication authentication) {
         postService.restorePost(postSn, authentication);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/delete/permanent")
-    public ResponseEntity<Void> permanentDeleteNote(@RequestParam Long postSn, Authentication authentication) {
+    public ResponseEntity<Void> permanentDeleteNote(@RequestParam Long postSn,
+            Authentication authentication) {
         postService.permanentDeletePost(postSn, authentication);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/archive")
-    public ResponseEntity<Void> archiveNote(@RequestParam Long postSn, Authentication authentication) {
+    public ResponseEntity<Void> archiveNote(@RequestParam Long postSn,
+            Authentication authentication) {
         postService.archivePost(postSn, authentication);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/archive/cancel")
-    public ResponseEntity<Void> unarchiveNote(@RequestParam Long postSn, Authentication authentication) {
+    public ResponseEntity<Void> unarchiveNote(@RequestParam Long postSn,
+            Authentication authentication) {
         postService.unarchivePost(postSn, authentication);
         return ResponseEntity.ok().build();
     }
