@@ -249,3 +249,16 @@ insert into classroom_member (
            sysdate );
 
 commit;
+
+
+insert into classroom_member (
+   enrl_sn,
+   class_sn,
+   user_id,
+   enrl_stat_cd,
+   rgtr_id
+) values ( seq_classroom_member.nextval,
+           21,
+           'testuser104',
+           '01',
+           'testuser104' );
