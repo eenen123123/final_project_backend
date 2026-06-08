@@ -164,6 +164,23 @@ public class StaffEmployeesController {
     private static final int HR_BLOCK_SIZE  = 5;
 
     /**
+     * 현재 로그인한 관리자 본인의 직원 상세 정보 조회 (헤더 프로필 모달용)
+     */
+    @GetMapping("/me/profile")
+    @ResponseBody
+    public ResponseEntity<EmployeeDetailDto> getMyProfile(Principal principal) {
+        if (principal == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        try {
+            EmployeeDetailDto detail = staffService.retrieveEmployeeDetailById(principal.getName());
+            if (detail == null) return ResponseEntity.notFound().build();
+            return ResponseEntity.ok(detail);
+        } catch (Exception e) {
+            log.error("[getMyProfile] 조회 실패: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
      * 직원 목록 동적 검색 + 서버 페이징 (AJAX)
      */
     @GetMapping("/employees/search")
@@ -286,10 +303,34 @@ public class StaffEmployeesController {
         }
 
         try {
+            // 수정 전 상태 캡처 (before)
+            Map<String, Object> beforeData = new LinkedHashMap<>();
+            try {
+                EmployeeDetailDto before = staffService.retrieveEmployeeDetailById(userId);
+                if (before != null) {
+                    beforeData.put("memberDto", before.getMember());
+                    EmployeeInfoDto bInfo = before.getEmployeeInfo();
+                    if (bInfo != null) {
+                        bInfo.setDeptNm(before.getDeptNm());
+                        bInfo.setJbgrNm(before.getJbgrNm());
+                    }
+                    beforeData.put("employeeInfoDto", bInfo);
+                    Map<String, Object> bSalary = new LinkedHashMap<>();
+                    bSalary.put("baseSalary", before.getBaseSalary());
+                    beforeData.put("employeeSalaryDto", bSalary);
+                }
+            } catch (Exception e) {
+                log.warn("[updateEmployee] before 상태 조회 실패: {}", e.getMessage());
+            }
+
+            Map<String, Object> afterData = new LinkedHashMap<>();
+            afterData.put("memberDto", memberDto);
+            afterData.put("employeeInfoDto", employeeInfoDto);
+            afterData.put("employeeSalaryDto", employeeSalaryDto);
+
             Map<String, Object> data = new LinkedHashMap<>();
-            data.put("memberDto", memberDto);
-            data.put("employeeInfoDto", employeeInfoDto);
-            data.put("employeeSalaryDto", employeeSalaryDto);
+            if (!beforeData.isEmpty()) data.put("before", beforeData);
+            data.put("after", afterData);
 
             activityApprovalService.submitForApproval(
                 loginAdminId, AdminActivityType.EMPLOYEE_UPDATE, userId, data);

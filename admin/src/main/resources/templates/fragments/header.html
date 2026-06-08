@@ -1,5 +1,5 @@
+<th:block th:fragment="headerFragment">
 <header
-    th:fragment="headerFragment"
     class="w-full h-20 bg-[#121212] border-b border-white/5 flex items-center justify-between px-6 shrink-0 z-30 shadow-lg"
 >
     <div class="flex items-center gap-6">
@@ -60,8 +60,9 @@
 
         <div class="w-[1px] h-6 bg-white/10 mx-1"></div>
 
-        <a
-            href="/admin/settings"
+        <button
+            type="button"
+            onclick="openMyProfileModal()"
             class="flex items-center gap-3 pl-2 py-1.5 pr-3 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/5 transition-all group cursor-pointer"
         >
             <div
@@ -79,11 +80,11 @@
                 <p
                     class="text-[10px] text-slate-500 font-medium tracking-wide group-hover:text-violet-400 transition-colors"
                 >
-                    계정 설정
+                    내 정보 보기
                     <i class="fa-solid fa-angle-right text-[8px] ml-0.5"></i>
                 </p>
             </div>
-        </a>
+        </button>
         <div>
             <a
                 href="/logout"
@@ -94,3 +95,163 @@
         </div>
     </div>
 </header>
+
+<!-- ══════════════════════════════════════════════════════
+     내 정보 보기 모달 (헤더 전역)
+══════════════════════════════════════════════════════ -->
+<div id="modal-my-profile" class="fixed inset-0 bg-black/50 z-[200] hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+
+    <!-- 모달 헤더 -->
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+      <h2 class="text-base font-bold text-slate-800">
+        <i class="fa-solid fa-id-card mr-2 text-violet-500"></i>내 직원 정보
+      </h2>
+      <button type="button" onclick="closeMyProfileModal()" class="text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <!-- 모달 바디 (스크롤) -->
+    <div class="overflow-y-auto flex-1 p-6 space-y-5">
+
+      <!-- 프로필 헤더 -->
+      <div class="flex items-center gap-4">
+        <div class="w-16 h-16 flex-shrink-0">
+          <img id="mp-avatar-img" class="w-16 h-16 rounded-2xl object-cover hidden" alt="프로필">
+          <div id="mp-avatar-initials" class="w-16 h-16 rounded-2xl bg-violet-100 flex items-center justify-center text-2xl font-bold text-violet-600"></div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-xl text-slate-800" id="mp-name">-</span>
+            <span id="mp-status-badge" class="px-2 py-0.5 rounded-full text-xs font-bold"></span>
+          </div>
+          <p class="text-sm text-slate-500 mt-0.5" id="mp-id">-</p>
+          <div class="flex items-center gap-1.5 mt-1">
+            <span class="text-xs text-slate-500 font-medium" id="mp-dept">-</span>
+            <span class="text-xs text-slate-300">·</span>
+            <span class="text-xs text-slate-500" id="mp-role">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 기본 정보 -->
+      <div>
+        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">기본 정보</p>
+        <div class="bg-slate-50 rounded-xl divide-y divide-slate-100">
+          <div class="flex items-center px-4 py-2.5 gap-3">
+            <span class="text-xs text-slate-400 w-20 shrink-0">연락처</span>
+            <span class="text-sm font-medium text-slate-700" id="mp-phone">-</span>
+          </div>
+          <div class="flex items-center px-4 py-2.5 gap-3">
+            <span class="text-xs text-slate-400 w-20 shrink-0">이메일</span>
+            <span class="text-sm font-medium text-slate-700 break-all" id="mp-email">-</span>
+          </div>
+          <div class="flex items-center px-4 py-2.5 gap-3">
+            <span class="text-xs text-slate-400 w-20 shrink-0">주소</span>
+            <span class="text-sm font-medium text-slate-700" id="mp-addr">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 인사 정보 -->
+      <div>
+        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">인사 정보</p>
+        <div class="bg-slate-50 rounded-xl divide-y divide-slate-100">
+          <div class="flex items-center px-4 py-2.5 gap-3">
+            <span class="text-xs text-slate-400 w-20 shrink-0">입사일</span>
+            <span class="text-sm font-medium text-slate-700" id="mp-join">-</span>
+          </div>
+          <div class="flex items-center px-4 py-2.5 gap-3">
+            <span class="text-xs text-slate-400 w-20 shrink-0">근무 유형</span>
+            <span class="text-sm font-medium text-slate-700" id="mp-work-type">-</span>
+          </div>
+          <div class="flex items-center px-4 py-2.5 gap-3">
+            <span class="text-xs text-slate-400 w-20 shrink-0">급여</span>
+            <span class="text-sm font-medium text-slate-700" id="mp-salary">-</span>
+          </div>
+          <div class="flex items-center px-4 py-2.5 gap-3">
+            <span class="text-xs text-slate-400 w-20 shrink-0">담당 업무</span>
+            <span class="text-sm font-medium text-slate-700" id="mp-duty">-</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 모달 푸터 -->
+    <div class="px-6 py-4 border-t border-slate-100 flex justify-end">
+      <button type="button" onclick="closeMyProfileModal()" class="px-5 py-2 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">닫기</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function openMyProfileModal() {
+    const modal = document.getElementById('modal-my-profile');
+    modal.classList.remove('hidden');
+
+    fetch('/admin/me/profile')
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(d => {
+        const m = d.member || {};
+        const ei = d.employeeInfo || {};
+
+        /* 아바타 */
+        const img = document.getElementById('mp-avatar-img');
+        const ini = document.getElementById('mp-avatar-initials');
+        if (m.userProfile && m.userProfile.startsWith('http')) {
+          img.src = m.userProfile;
+          img.classList.remove('hidden');
+          ini.classList.add('hidden');
+        } else {
+          ini.textContent = (m.userName || '?').charAt(0);
+          ini.classList.remove('hidden');
+          img.classList.add('hidden');
+        }
+
+        /* 기본 */
+        document.getElementById('mp-name').textContent = m.userName || '-';
+        document.getElementById('mp-id').textContent   = m.userId   || '-';
+        document.getElementById('mp-dept').textContent = d.deptNm   || '-';
+        document.getElementById('mp-role').textContent = d.jbgrNm   || '-';
+
+        /* 상태 배지 */
+        const badge = document.getElementById('mp-status-badge');
+        const statMap = { '01': ['재직', 'bg-emerald-100 text-emerald-700'], '02': ['휴직', 'bg-amber-100 text-amber-700'], '03': ['퇴사', 'bg-red-100 text-red-600'] };
+        const [statLabel, statCls] = statMap[ei.emplStatCd] || ['-', 'bg-slate-100 text-slate-500'];
+        badge.textContent = statLabel;
+        badge.className = 'px-2 py-0.5 rounded-full text-xs font-bold ' + statCls;
+
+        /* 연락처 하이픈 포맷 */
+        const tel = m.userTelno || '';
+        const d10 = tel.replace(/-/g, '');
+        const fmtTel = d10.length === 11 ? d10.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')
+                     : d10.length === 10 ? d10.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3') : tel;
+        document.getElementById('mp-phone').textContent = fmtTel || '-';
+        document.getElementById('mp-email').textContent = m.userEmailAddr || '-';
+
+        const addr = [m.userAddr, m.userDaddr].filter(Boolean).join(' ');
+        document.getElementById('mp-addr').textContent = addr || '-';
+
+        /* 인사 */
+        document.getElementById('mp-join').textContent = ei.joinYmd ? String(ei.joinYmd).substring(0, 10) : '-';
+        const typeMap = { '01': '정규직', '02': '계약직', '03': '파트타임' };
+        document.getElementById('mp-work-type').textContent = typeMap[ei.emplTypeCd] || '-';
+        document.getElementById('mp-salary').textContent = d.baseSalary != null ? d.baseSalary + ' 만원' : '-';
+        document.getElementById('mp-duty').textContent = ei.chrgDutyCn || '-';
+      })
+      .catch(() => alert('내 정보를 불러오는 데 실패했습니다.'));
+  }
+
+  function closeMyProfileModal() {
+    document.getElementById('modal-my-profile').classList.add('hidden');
+  }
+
+  /* ESC 키로 닫기 */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeMyProfileModal();
+  });
+</script>
+</th:block>
