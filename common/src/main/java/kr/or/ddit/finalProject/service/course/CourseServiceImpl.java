@@ -6,7 +6,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import kr.or.ddit.finalProject.dto.course.CourseDto;
+import kr.or.ddit.finalProject.dto.course.CourseListDto;
+import kr.or.ddit.finalProject.dto.course.SubjectClassificationDto;
+import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.mapper.course.CourseMapper;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -74,4 +78,26 @@ public class CourseServiceImpl implements CourseService {
         courseMapper.deleteCourse(courseSn);
     }
 
+    // 전체 강좌 조회 (페이징 + 검색)
+    @Override
+    public List<CourseListDto> retrieveCourseList(PaginationInfo<CourseListDto> paginationInfo) {
+        return courseMapper.selectCourseList(paginationInfo);
+    }
+
+    @Override
+    public int retrieveCourseListCount(PaginationInfo<CourseListDto> paginationInfo) {
+        return courseMapper.selectCourseListCount(paginationInfo);
+    }
+
+    // 과목 분류 목록 조회
+    @Override
+    public List<SubjectClassificationDto> retrieveSubjectClassificationList() {
+        return courseMapper.selectSubjectClassificationList();
+    }
+
+    // 과목 분류별 강사 조회
+    @Override
+    public List<MemberDto> retrieveInstructorsBySubjClId(Long subjClId) {
+        return courseMapper.selectInstructorsBySubjClId(subjClId);
+    }
 }

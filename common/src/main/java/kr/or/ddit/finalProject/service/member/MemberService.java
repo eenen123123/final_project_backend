@@ -1,5 +1,7 @@
 package kr.or.ddit.finalProject.service.member;
 
+import java.util.List;
+import java.util.Map;
 import kr.or.ddit.finalProject.dto.auth.AuthTokens;
 import kr.or.ddit.finalProject.dto.member.AdminMemberDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
@@ -101,5 +103,7 @@ public interface MemberService {
      * @param memberDto 수정할 회원 정보를 담은 MemberDto 객체
      */
     void updateMember(MemberDto memberDto);
+
+    Map<String, List<AdminMemberDto>> getGroupedAdminUsers(String currentUserId);
 
 }

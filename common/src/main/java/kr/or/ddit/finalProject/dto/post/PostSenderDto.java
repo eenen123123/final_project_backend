@@ -18,4 +18,5 @@ public class PostSenderDto implements Serializable {
     private Long ntceSn; // 복합PK(2/2) · NTCE_MST.NTCE_SN 참조
     private String delYn; // 논리 삭제 · DEFAULT 'N' 권장
     private LocalDateTime delDt;
+    private String archiveYn;
 }

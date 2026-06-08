@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.post.PostMapper">
+
+
+    <resultMap id="postResultMap" type="kr.or.ddit.finalProject.dto.post.PostMasterDto">
+        <id property="ntceSn" column="ntce_sn"/>
+        <result property="ntceSj" column="ntce_sj"/>
+        <result property="ntceCn" column="ntce_cn"/>
+        <result property="ntceSndDt" column="ntce_snd_dt"/>
+        <result property="ntceTypeCd" column="ntce_type_cd"/>
+        <result property="sndrUserId" column="sndr_user_id"/>
+        <result property="rcvrUserId" column="rcvr_user_id"/>
+        <result property="sndrName" column="sndr_name"/>
+        <result property="sndrJbgrNm" column="sndr_jbgr_nm"/>
+        <result property="rcvrName" column="rcvr_name"/>
+        <result property="rcvrJbgrNm" column="rcvr_jbgr_nm"/>
+
+    </resultMap>
+
+    <resultMap id="postSenderResultMap" type="kr.or.ddit.finalProject.dto.post.PostSenderDto">
+        <id property="ntceSn" column="ntce_sn"/>
+        <result property="sndrUserId" column="sender_user_id"/>
+        <result property="delYn" column="del_yn"/>
+        <result property="delDt" column="del_dt"/>
+    </resultMap>
+
+    <resultMap id="postReceiverResultMap" type="kr.or.ddit.finalProject.dto.post.PostReceiverDto">
+        <id property="rcvrUserId" column="rcvr_user_id"/>
+        <result property="ntceSn" column="ntce_sn"/>
+        <result property="ntceCfmtnYn" column="ntce_cfmtn_yn"/>
+        <result property="ntceCfmtnDt" column="ntce_cfmtn_dt"/>
+        <result property="delYn" column="del_yn"/>
+        <result property="delDt" column="del_dt"/>
+    </resultMap>
+
+    <sql id="postSearchWhere">
+        <trim prefix="WHERE" prefixOverrides="AND">
+            <if test="paginationInfo.detailCondition != null">
+                <if test="paginationInfo.detailCondition.keyword != null and paginationInfo.detailCondition.keyword != ''">
+                    <if test="paginationInfo.detailCondition.searchType != null and paginationInfo.detailCondition.searchType != ''">
+                        <if test="paginationInfo.detailCondition.searchType == 'title'">
+                            AND instr(pm.ntce_sj, #{paginationInfo.detailCondition.keyword}) &gt; 0
+                        </if>
+                        <if test="paginationInfo.detailCondition.searchType == 'content'">
+                            AND instr(pm.ntce_cn, #{paginationInfo.detailCondition.keyword}) &gt; 0
+                        </if>
+                        <if test="paginationInfo.detailCondition.searchType =='sender'">
+                            AND instr(ps.sndr_user_id, #{paginationInfo.detailCondition.keyword}) &gt; 0
+                        </if>
+                        <if test="paginationInfo.detailCondition.searchType =='receiver'">
+                            AND instr(pr.rcvr_user_id, #{paginationInfo.detailCondition.keyword}) &gt; 0
+                        </if>
+                    </if>
+                </if>
+                <if test="paginationInfo.detailCondition.box != 'trash'">
+                    <if test="paginationInfo.detailCondition.readType != null and paginationInfo.detailCondition.readType != ''">
+                        <if test="paginationInfo.detailCondition.readType == 'read'">
+                            AND pr.ntce_cfmtn_yn = 'Y'
+                        </if>
+                        <if test="paginationInfo.detailCondition.readType == 'unread'">
+                            AND pr.ntce_cfmtn_yn = 'N'
+                        </if>
+                    </if>
+                </if>
+                <if test="paginationInfo.detailCondition.box != null and paginationInfo.detailCondition.box != ''">
+                    <if test="paginationInfo.detailCondition.box == 'received'">
+                        AND pr.rcvr_user_id = #{userId}
+                        AND NVL(pr.del_yn, 'N') = 'N' AND NVL(pr.archive_yn, 'N') = 'N'
+                    </if>
+                    <if test="paginationInfo.detailCondition.box == 'sent'">
+                        AND ps.sndr_user_id = #{userId}
+                        AND NVL(ps.del_yn, 'N') = 'N' AND NVL(ps.archive_yn, 'N') = 'N'
+                    </if>
+                    <if test="paginationInfo.detailCondition.box == 'self'">
+                        AND ps.sndr_user_id = #{userId} AND pr.rcvr_user_id = #{userId}
+                        AND NVL(ps.del_yn, 'N') = 'N' AND NVL(pr.del_yn, 'N') = 'N'
+                        AND NVL(ps.archive_yn, 'N') = 'N' AND NVL(pr.archive_yn, 'N') = 'N'
+                    </if>
+                    <if test="paginationInfo.detailCondition.box == 'archive'">
+                        AND (
+                            (pr.rcvr_user_id = #{userId} AND pr.archive_yn = 'Y' AND NVL(pr.del_yn, 'N') = 'N')
+                            OR (ps.sndr_user_id = #{userId} AND ps.archive_yn = 'Y' AND NVL(ps.del_yn, 'N') = 'N')
+                        )
+                    </if>
+                    <if test="paginationInfo.detailCondition.box == 'trash'">
+                        AND (
+                            (pr.rcvr_user_id = #{userId} AND pr.del_yn = 'S')
+                            OR (ps.sndr_user_id = #{userId} AND ps.del_yn = 'S')
+                        )
+                    </if>
+                </if>
+                <if test="paginationInfo.detailCondition.postType != null and paginationInfo.detailCondition.box != 'trash'">
+                    AND pm.ntce_type_cd = #{paginationInfo.detailCondition.postType}
+                </if>
+            </if>
+        </trim>
+    </sql>
+
+    <!-- insertPostMaster -->
+
+    <insert id="insertPostMaster" useGeneratedKeys="true" keyProperty="ntceSn" keyColumn="ntce_sn" parameterType="kr.or.ddit.finalProject.dto.post.PostMasterDto">
+        insert into post_master (ntce_sj, ntce_cn, ntce_snd_dt, ntce_type_cd)
+        values (#{ntceSj}, #{ntceCn}, #{ntceSndDt}, #{ntceTypeCd})
+
+    </insert>
+
+    <!-- insertPostSender -->
+
+    <insert id="insertPostSender">
+        insert into post_sender (ntce_sn, sndr_user_id, del_yn, archive_yn)
+        values (#{ntceSn}, #{sndrUserId}, 'N', 'N')
+    </insert>
+
+    <!-- insertPostReceiver -->
+
+    <insert id="insertPostReceiver">
+        insert into post_receiver (ntce_sn, rcvr_user_id, del_yn, archive_yn)
+        values (#{ntceSn}, #{rcvrUserId}, 'N', 'N')
+    </insert>
+
+    <!-- insertPostReceivers (배치) -->
+
+    <insert id="insertPostReceivers">
+        insert all
+        <foreach collection="list" item="r">
+            into post_receiver (ntce_sn, rcvr_user_id, del_yn, archive_yn) values (#{r.ntceSn}, #{r.rcvrUserId}, 'N', 'N')
+        </foreach>
+        select 1 from dual
+    </insert>
+
+    <!-- selectPostById -->
+
+    <select id="selectPostById" resultMap="postResultMap">
+        select
+            pm.ntce_sn, pm.ntce_sj, pm.ntce_cn, pm.ntce_snd_dt, pm.ntce_type_cd,
+            ps.sndr_user_id, sndr_m.user_name as sndr_name, sndr_jg.jbgr_nm as sndr_jbgr_nm,
+            pr.rcvr_user_id, rcvr_m.user_name as rcvr_name, rcvr_jg.jbgr_nm as rcvr_jbgr_nm
+        from post_master pm
+        left join post_receiver pr on pm.ntce_sn = pr.ntce_sn
+            and pr.rcvr_user_id = (
+                case
+                    when exists (select 1 from post_receiver where ntce_sn = pm.ntce_sn and rcvr_user_id = #{userId})
+                    then #{userId}
+                    else (select min(rcvr_user_id) from post_receiver where ntce_sn = pm.ntce_sn)
+                end
+            )
+        left join post_sender ps on pm.ntce_sn = ps.ntce_sn
+        left join member sndr_m on ps.sndr_user_id = sndr_m.user_id
+        left join employee_info sndr_ei on ps.sndr_user_id = sndr_ei.user_id
+        left join job_grade sndr_jg on sndr_ei.jbgr_cd = sndr_jg.jbgr_cd
+        left join member rcvr_m on pr.rcvr_user_id = rcvr_m.user_id
+        left join employee_info rcvr_ei on pr.rcvr_user_id = rcvr_ei.user_id
+        left join job_grade rcvr_jg on rcvr_ei.jbgr_cd = rcvr_jg.jbgr_cd
+        where pm.ntce_sn = #{postSn}
+    </select>
+
+    <!-- selectPostList -->
+
+    <select id="selectPostList" resultMap="postResultMap">
+        select
+            pm.ntce_sn, pm.ntce_sj, pm.ntce_cn, pm.ntce_snd_dt, pm.ntce_type_cd,
+            ps.sndr_user_id, sndr_m.user_name as sndr_name, sndr_jg.jbgr_nm as sndr_jbgr_nm,
+            pr.rcvr_user_id, rcvr_m.user_name as rcvr_name, rcvr_jg.jbgr_nm as rcvr_jbgr_nm
+        from post_master pm
+        left join post_receiver pr on pm.ntce_sn = pr.ntce_sn
+            and pr.rcvr_user_id = (
+                case
+                    when exists (select 1 from post_receiver where ntce_sn = pm.ntce_sn and rcvr_user_id = #{userId})
+                    then #{userId}
+                    else (select min(rcvr_user_id) from post_receiver where ntce_sn = pm.ntce_sn)
+                end
+            )
+        left join post_sender ps on pm.ntce_sn = ps.ntce_sn
+        left join member sndr_m on ps.sndr_user_id = sndr_m.user_id
+        left join employee_info sndr_ei on ps.sndr_user_id = sndr_ei.user_id
+        left join job_grade sndr_jg on sndr_ei.jbgr_cd = sndr_jg.jbgr_cd
+        left join member rcvr_m on pr.rcvr_user_id = rcvr_m.user_id
+        left join employee_info rcvr_ei on pr.rcvr_user_id = rcvr_ei.user_id
+        left join job_grade rcvr_jg on rcvr_ei.jbgr_cd = rcvr_jg.jbgr_cd
+        <include refid="postSearchWhere"/>
+        order by pm.ntce_snd_dt desc
+    </select>
+
+    <!-- selectPostListCount -->
+
+    <select id="selectPostListCount" resultType="int">
+        select count(distinct pm.ntce_sn)
+        from post_master pm
+        left join post_receiver pr on pm.ntce_sn = pr.ntce_sn
+            and pr.rcvr_user_id = (
+                case
+                    when exists (select 1 from post_receiver where ntce_sn = pm.ntce_sn and rcvr_user_id = #{userId})
+                    then #{userId}
+                    else (select min(rcvr_user_id) from post_receiver where ntce_sn = pm.ntce_sn)
+                end
+            )
+        left join post_sender ps on pm.ntce_sn = ps.ntce_sn
+        <include refid="postSearchWhere"/>
+    </select>
+
+    <!-- updateSenderDelStatus / updateReceiverDelStatus -->
+
+    <update id="updateSenderDelStatus">
+        update post_sender
+        set del_yn = #{delYn}, del_dt = sysdate
+        where ntce_sn = #{postSn} and sndr_user_id = #{userId}
+    </update>
+
+    <update id="updateReceiverDelStatus">
+        update post_receiver
+        set del_yn = #{delYn}, del_dt = sysdate
+        where ntce_sn = #{postSn} and rcvr_user_id = #{userId}
+    </update>
+
+    <update id="updateSenderArchiveYn">
+        update post_sender
+        set archive_yn = #{archiveYn}
+        where ntce_sn = #{postSn} and sndr_user_id = #{userId}
+    </update>
+
+    <update id="updateReceiverArchiveYn">
+        update post_receiver
+        set archive_yn = #{archiveYn}
+        where ntce_sn = #{postSn} and rcvr_user_id = #{userId}
+    </update>
+</mapper>

@@ -21,6 +21,7 @@ import kr.or.ddit.finalProject.dto.message.MessageRoomParticipantDto;
 import kr.or.ddit.finalProject.dto.message.MessageRoomSummaryDto;
 import kr.or.ddit.finalProject.mapper.MemberMapper;
 import kr.or.ddit.finalProject.service.chat.ChatService;
+import kr.or.ddit.finalProject.service.member.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ChatRoomPageController {
 
     private final ChatService chatService;
+    private final MemberService memberService;
     private final MemberMapper memberMapper;
 
     @GetMapping("/list")
@@ -58,10 +60,9 @@ public class ChatRoomPageController {
         MessageRoomDto room = chatService.getGroupChatRoom(roomSn, authentication);
         model.addAttribute("room", room);
 
-        Map<String, List<MessageRoomParticipantDto>> groupedParticipants =
-                room.getParticipants().stream()
-                        .collect(Collectors.groupingBy(MessageRoomParticipantDto::getPartDeptNm,
-                                LinkedHashMap::new, Collectors.toList()));
+        Map<String, List<MessageRoomParticipantDto>> groupedParticipants = room.getParticipants()
+                .stream().collect(Collectors.groupingBy(MessageRoomParticipantDto::getPartDeptNm,
+                        LinkedHashMap::new, Collectors.toList()));
         model.addAttribute("groupedParticipants", groupedParticipants);
 
         List<MessageContentDto> messages =
@@ -78,10 +79,8 @@ public class ChatRoomPageController {
     @GetMapping("/create")
     public String createChatRoom(Model model, Authentication authentication) {
         String userId = authentication.getName();
-        List<AdminMemberDto> adminUsers = memberMapper.getAdminUsers(userId);
-        Map<String, List<AdminMemberDto>> groupedAdminUsers = adminUsers.stream()
-                .collect(Collectors.groupingBy(adminUser -> adminUser.getEmployeeInfo().getDeptNm(),
-                        LinkedHashMap::new, Collectors.toList()));
+        Map<String, List<AdminMemberDto>> groupedAdminUsers =
+                memberService.getGroupedAdminUsers(userId);
         model.addAttribute("groupedAdminUsers", groupedAdminUsers);
         return "admin:/chat/createChatRoom";
     }
