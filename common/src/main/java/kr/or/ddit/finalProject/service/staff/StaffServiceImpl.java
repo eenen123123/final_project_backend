@@ -43,20 +43,40 @@ public class StaffServiceImpl implements StaffService{
 
     private final StaffMapper staffMapper;
 
-    /**
-     * 부서 리스트 조회
-     */
-    @Override
-    public List<DepartmentDto> retrieveDepartmentList() {
-        return staffMapper.selectDepartmentList();
+    @Override public List<DepartmentDto> retrieveDepartmentList()  { return staffMapper.selectDepartmentList(); }
+    @Override public void addDepartment(DepartmentDto dept)        { staffMapper.insertDepartment(dept); }
+    @Override public void modifyDepartment(DepartmentDto dept)     { staffMapper.updateDepartment(dept); }
+    @Override public void toggleDeptUseYn(String deptCd, String useYn, String loginUserId) {
+        staffMapper.toggleDeptUseYn(deptCd, useYn, loginUserId);
     }
 
-    /**
-     * 직급 리스트 조회
-     */
+    @Override public List<JobGradeDto> retrieveJobGradeList()      { return staffMapper.selectJobGradeList(); }
+    @Override public List<JobGradeDto> retrieveAllJobGradeList()   { return staffMapper.selectAllJobGradeDtos(); }
+    @Override public void addJobGrade(JobGradeDto jbgr)            { staffMapper.insertJobGrade(jbgr); }
+    @Override public void modifyJobGrade(JobGradeDto jbgr)         { staffMapper.updateJobGrade(jbgr); }
+    @Override public void toggleJbgrUseYn(String jbgrCd, String useYn, String loginUserId) {
+        staffMapper.toggleJbgrUseYn(jbgrCd, useYn, loginUserId);
+    }
+    @Override public void assignMntUserId(String userId, String mntUserId, String loginUserId) {
+        staffMapper.updateMntUserId(userId, mntUserId, loginUserId);
+    }
+
     @Override
-    public List<JobGradeDto> retrieveJobGradeList() {
-        return staffMapper.selectJobGradeList();
+    public Map<String, Object> searchJobGradeList(String deptCd, String useYn, int page, int size) {
+        Map<String, Object> params = new java.util.HashMap<>();
+        params.put("deptCd", (deptCd != null && !deptCd.isBlank()) ? deptCd : null);
+        params.put("useYn",  (useYn  != null && !useYn.isBlank())  ? useYn  : null);
+        params.put("offset", (page - 1) * size);
+        params.put("size",   size);
+        List<JobGradeDto> list  = staffMapper.selectJobGradeListPaged(params);
+        int               total = staffMapper.countJobGradeListPaged(params);
+        Map<String, Object> result = new java.util.LinkedHashMap<>();
+        result.put("list",       list);
+        result.put("total",      total);
+        result.put("page",       page);
+        result.put("size",       size);
+        result.put("totalPages", (int) Math.ceil((double) total / size));
+        return result;
     }
 
     /**
