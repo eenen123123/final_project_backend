@@ -164,6 +164,23 @@ public class StaffEmployeesController {
     private static final int HR_BLOCK_SIZE  = 5;
 
     /**
+     * 현재 로그인한 관리자 본인의 직원 상세 정보 조회 (헤더 프로필 모달용)
+     */
+    @GetMapping("/me/profile")
+    @ResponseBody
+    public ResponseEntity<EmployeeDetailDto> getMyProfile(Principal principal) {
+        if (principal == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        try {
+            EmployeeDetailDto detail = staffService.retrieveEmployeeDetailById(principal.getName());
+            if (detail == null) return ResponseEntity.notFound().build();
+            return ResponseEntity.ok(detail);
+        } catch (Exception e) {
+            log.error("[getMyProfile] 조회 실패: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
      * 직원 목록 동적 검색 + 서버 페이징 (AJAX)
      */
     @GetMapping("/employees/search")
