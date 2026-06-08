@@ -514,9 +514,11 @@
 
 <script>
   // Tom Select 초기화
-  document.querySelectorAll("select[data-ts-defer]").forEach(function (el) {
-    window.initTomSelect(el);
-  });
+  try {
+    document.querySelectorAll("select[data-ts-defer]").forEach(function (el) {
+      window.initTomSelect(el);
+    });
+  } catch (e) {}
 
   // 토스트 알림
   function showToast(message, type) {
