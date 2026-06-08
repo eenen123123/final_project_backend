@@ -1,7 +1,10 @@
 package kr.or.ddit.finalProject.dto.member;
 
 public enum MemberRoleEnum {
-    ROLE_ADMIN("ADMIN"), ROLE_USER("USER"), ROLE_PARENT("PARENT"), ROLE_STUDENT("STUDENT");
+    ROLE_ADMIN("ADMIN"), // 관리자
+    ROLE_USER("USER"), // 일반 사용자
+    ROLE_PARENT("PARENT"), // 학부모
+    ROLE_STUDENT("STUDENT"); // 학생
 
     private final String role;
 

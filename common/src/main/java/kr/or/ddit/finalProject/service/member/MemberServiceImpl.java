@@ -1,6 +1,10 @@
 package kr.or.ddit.finalProject.service.member;
 
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -218,4 +222,15 @@ public class MemberServiceImpl implements MemberService {
         }
         memberMapper.updateMember(memberDto);
     }
+
+    @Override
+    public Map<String, List<AdminMemberDto>> getGroupedAdminUsers(String currentUserId) {
+        List<AdminMemberDto> adminUsers = memberMapper.getAdminUsers(currentUserId);
+        Map<String, List<AdminMemberDto>> groupedAdminUsers = adminUsers.stream()
+                .collect(Collectors.groupingBy(adminUser -> adminUser.getEmployeeInfo().getDeptNm(),
+                        LinkedHashMap::new, Collectors.toList()));
+        return groupedAdminUsers;
+    }
+
+
 }
