@@ -60,4 +60,19 @@
     ORDER BY m.USER_NAME ASC
   </select>
 
+
+  <select id="selectClassroomsByUserId" resultType="kr.or.ddit.finalProject.dto.classroom.ClassroomListResponse">
+    SELECT
+        cl.CLASS_SN    AS classSn,
+        cl.CLASS_NM    AS classNm,
+        c.COURSE_NM    AS courseNm,
+        cl.CLASS_STAT_CD AS classStatCd
+    FROM CLASSROOM_MEMBER cm
+    JOIN CLASSROOM cl ON cm.CLASS_SN = cl.CLASS_SN
+    JOIN COURSE c     ON cl.COURSE_SN = c.COURSE_SN
+    WHERE cm.USER_ID = #{userId}
+      AND cm.ENRL_STAT_CD = '01'
+    ORDER BY cm.REG_DT DESC
+  </select>
+
 </mapper>
