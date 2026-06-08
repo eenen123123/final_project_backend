@@ -46,6 +46,7 @@ public class LayoutThymeleafViewResolver extends ThymeleafViewResolver {
             public void render(@Nullable Map<String, ?> model, @NonNull HttpServletRequest request,
                     @NonNull HttpServletResponse response) throws Exception {
 
+                // 로그인한 사용자 아이디를 모델에 추가 (adminName)
                 if (request.getUserPrincipal() != null) {
                     request.setAttribute("adminName", request.getUserPrincipal().getName());
                 }
