@@ -63,10 +63,15 @@ public class AdminActivityExecutionService {
         staffService.registerEmployee(memberDto, employeeInfoDto, employeeSalaryDto, profileUrl, actorUserId);
     }
 
+    @SuppressWarnings("unchecked")
     private void executeEmployeeUpdate(Map<String, Object> data, String actorUserId) {
-        MemberDto memberDto = objectMapper.convertValue(data.get("memberDto"), MemberDto.class);
-        EmployeeInfoDto employeeInfoDto = objectMapper.convertValue(data.get("employeeInfoDto"), EmployeeInfoDto.class);
-        EmployeeSalaryDto employeeSalaryDto = objectMapper.convertValue(data.get("employeeSalaryDto"), EmployeeSalaryDto.class);
+        // before/after 구조로 저장된 경우 after에서 실제 데이터 추출
+        Map<String, Object> effectiveData = data.containsKey("after")
+            ? (Map<String, Object>) data.get("after")
+            : data;
+        MemberDto memberDto = objectMapper.convertValue(effectiveData.get("memberDto"), MemberDto.class);
+        EmployeeInfoDto employeeInfoDto = objectMapper.convertValue(effectiveData.get("employeeInfoDto"), EmployeeInfoDto.class);
+        EmployeeSalaryDto employeeSalaryDto = objectMapper.convertValue(effectiveData.get("employeeSalaryDto"), EmployeeSalaryDto.class);
         staffService.updateEmployee(memberDto, employeeInfoDto, employeeSalaryDto, actorUserId);
     }
 

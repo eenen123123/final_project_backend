@@ -83,6 +83,9 @@ public interface  StaffService {
      */
     List<EmployeeDetailDto> retrieveEmployeeList();
 
+    /** 단일 직원 상세 조회 (수정 전 스냅샷용) */
+    EmployeeDetailDto retrieveEmployeeDetailById(String userId);
+
     /**
      * 재직 중인 직원 목록 조회 (권한 설정 페이지용)
      *
