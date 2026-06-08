@@ -27,4 +27,14 @@ public interface PostMapper {
 
     int insertPostReceiver(PostReceiverDto postReceiverDto);
 
+    int insertPostReceivers(@Param("list") List<PostReceiverDto> list);
+
+    int updateSenderDelStatus(@Param("postSn") Long postSn, @Param("userId") String userId, @Param("delYn") String delYn);
+
+    int updateReceiverDelStatus(@Param("postSn") Long postSn, @Param("userId") String userId, @Param("delYn") String delYn);
+
+    int updateSenderArchiveYn(@Param("postSn") Long postSn, @Param("userId") String userId, @Param("archiveYn") String archiveYn);
+
+    int updateReceiverArchiveYn(@Param("postSn") Long postSn, @Param("userId") String userId, @Param("archiveYn") String archiveYn);
+
 }

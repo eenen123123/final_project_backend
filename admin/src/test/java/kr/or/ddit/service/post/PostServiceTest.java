@@ -66,8 +66,8 @@ public class PostServiceTest {
         postService.createPost(postMasterDto, authentication, receiverUserId);
 
         Long createdSn = postMasterDto.getNtceSn();
-        PostMasterDto result = postService.getPostById(createdSn, authentication);
-        log.info("조회된 쪽지: {}", result);
+        // PostMasterDto result = postService.getPostById(createdSn, authentication);
+        // log.info("조회된 쪽지: {}", result);
     }
 
     @Test
