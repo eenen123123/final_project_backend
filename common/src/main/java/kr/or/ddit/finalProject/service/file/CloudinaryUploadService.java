@@ -39,4 +39,13 @@ public class CloudinaryUploadService {
         Map<?, ?> uploadResult = cloudinary.uploader().upload(file.getBytes(), Map.of());
         return (String) uploadResult.get("url");
     }
+
+    public String uploadBytesToCloudinary(byte[] bytes, String contentType) throws IOException {
+        if (contentType == null
+                || !(contentType.startsWith("image/") || contentType.equals("application/pdf"))) {
+            throw new FinalProjectException(ErrorCode.INVALID_FILE_TYPE_TO_CLOUDINARY);
+        }
+        Map<?, ?> uploadResult = cloudinary.uploader().upload(bytes, Map.of());
+        return (String) uploadResult.get("url");
+    }
 }
