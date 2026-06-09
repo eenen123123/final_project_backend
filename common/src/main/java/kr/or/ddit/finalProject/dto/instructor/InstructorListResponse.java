@@ -7,7 +7,7 @@ public class InstructorListResponse {
 
     private Long subjectClId;
     private String subjectClNm;
-    private String instrUserId;
+    private String instrUuid;
     private String userName;
     private String instrProfileImg;
 

@@ -2,7 +2,7 @@ package kr.or.ddit.finalProject.mapper;
 
 import java.util.List;
 import java.util.Map;
-
+import java.util.Optional;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -21,11 +21,14 @@ import kr.or.ddit.finalProject.dto.member.MemberWithdrawLogDto;
 public interface StaffMapper {
     // 부서 리스트 조회
     List<DepartmentDto> selectDepartmentList();
-    
+
     // 부서 CRUD (조직 관리 페이지용)
     void insertDepartment(DepartmentDto dept);
+
     void updateDepartment(DepartmentDto dept);
-    void toggleDeptUseYn(@Param("deptCd") String deptCd, @Param("useYn") String useYn, @Param("loginUserId") String loginUserId);
+
+    void toggleDeptUseYn(@Param("deptCd") String deptCd, @Param("useYn") String useYn,
+            @Param("loginUserId") String loginUserId);
 
     // 직급 리스트 조회
     List<JobGradeDto> selectJobGradeList();
@@ -35,11 +38,15 @@ public interface StaffMapper {
 
     // 직급 CRUD (조직 관리 페이지용)
     void insertJobGrade(JobGradeDto jbgr);
+
     void updateJobGrade(JobGradeDto jbgr);
-    void toggleJbgrUseYn(@Param("jbgrCd") String jbgrCd, @Param("useYn") String useYn, @Param("loginUserId") String loginUserId);
+
+    void toggleJbgrUseYn(@Param("jbgrCd") String jbgrCd, @Param("useYn") String useYn,
+            @Param("loginUserId") String loginUserId);
 
     // 직급 목록 DB 페이징+필터 (조직 관리 직급 탭용)
     List<JobGradeDto> selectJobGradeListPaged(Map<String, Object> params);
+
     int countJobGradeListPaged(Map<String, Object> params);
 
     // 직원 등록
@@ -64,7 +71,8 @@ public interface StaffMapper {
     List<Integer> selectJoinYearList();
 
     // 사수(MNT_USER_ID) 배정/해제
-    void updateMntUserId(@Param("userId") String userId, @Param("mntUserId") String mntUserId, @Param("loginUserId") String loginUserId);
+    void updateMntUserId(@Param("userId") String userId, @Param("mntUserId") String mntUserId,
+            @Param("loginUserId") String loginUserId);
 
     // 직원 중복 조회
     int checkIdExists(String usrId);
@@ -91,10 +99,12 @@ public interface StaffMapper {
     int updateMemberDisabled(String userId);
 
     // 퇴사 처리: EMPLOYEE_INFO 상태, 퇴사일, 퇴사사유 변경
-    int updateEmployeeRetired(@Param("userId") String userId, @Param("retmtRsn") String retmtRsn, @Param("loginUserId") String loginUserId);
+    int updateEmployeeRetired(@Param("userId") String userId, @Param("retmtRsn") String retmtRsn,
+            @Param("loginUserId") String loginUserId);
 
     // 퇴사 처리: EMPLOYEE_SALARY 현재 급여 비활성화
-    int updateEmployeeSalaryInactive(@Param("userId") String userId, @Param("loginUserId") String loginUserId);
+    int updateEmployeeSalaryInactive(@Param("userId") String userId,
+            @Param("loginUserId") String loginUserId);
 
     // 직원 목록 동적 검색 (서버 페이징)
     List<EmployeeDetailDto> searchEmployeeList(PaginationInfo<Map<String, Object>> paging);
@@ -128,4 +138,6 @@ public interface StaffMapper {
 
     // 학생 탈퇴 로그 정보 저장 (MEMBER_WITHDRAW_LOG)
     int updateMemberWithdrwa(MemberWithdrawLogDto withdrawLog);
+
+    Optional<MemberDto> selectStudent(@Param("userId") String userId);
 }

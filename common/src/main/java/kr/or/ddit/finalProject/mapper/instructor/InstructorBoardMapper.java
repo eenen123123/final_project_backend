@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto;
+import kr.or.ddit.finalProject.dto.instructor.InstructorRecentPostResponse;
 
 @Mapper
 public interface InstructorBoardMapper {
@@ -47,4 +48,7 @@ public interface InstructorBoardMapper {
                                  @Param("answCn") String answCn);
 
     int selectUnansweredQnaCount(@Param("classSn") Long classSn);
+
+    List<InstructorRecentPostResponse> selectRecentPosts(@Param("instrUuid") String instrUuid,
+                                                         @Param("size") int size);
 }

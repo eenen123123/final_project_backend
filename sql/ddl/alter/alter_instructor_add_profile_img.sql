@@ -1,3 +1,0 @@
--- INSTRUCTOR 테이블에 강사 공개 프로필 이미지 컬럼 추가
--- (MEMBER.USER_PROFILE은 계정 프로필 사진 전용이므로 별도 저장)
-ALTER TABLE INSTRUCTOR ADD (INSTR_PROFILE_IMG VARCHAR2(500));

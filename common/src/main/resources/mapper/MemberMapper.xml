@@ -227,4 +227,11 @@
     </update>
 
 
+    <!-- updateUserRole -->
+
+    <update id="updateUserRole">
+        UPDATE MEMBER
+        SET USER_ROLE = #{role}
+        WHERE USER_ID = #{userId}   
+    </update>
 </mapper>
