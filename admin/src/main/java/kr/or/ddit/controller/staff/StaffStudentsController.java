@@ -14,15 +14,18 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
-
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import kr.or.ddit.finalProject.dto.member.MemberCreateLogDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.dto.staff.AdminActivityType;
 import kr.or.ddit.finalProject.service.file.CloudinaryUploadService;
+import kr.or.ddit.finalProject.service.member.ParentService;
+import kr.or.ddit.finalProject.service.sms.SmsService;
 import kr.or.ddit.finalProject.service.staff.StaffService;
 import kr.or.ddit.service.AdminActivityApprovalService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -49,6 +52,10 @@ public class StaffStudentsController {
     @Autowired
     AdminActivityApprovalService activityApprovalService;
 
+
+    @Autowired
+    ParentService parentService;
+
     /**
      * 학생 관리 메인 화면 이동 및 초기 데이터 조회
      * 
@@ -73,7 +80,7 @@ public class StaffStudentsController {
 
         // 2. 가입 연도별 필터링 기능을 지원하기 위해 시스템에 등록된 전체 가입 연도 목록을 조회한다.
         List<Integer> joinYearList = staffService.retrieveMemberJoinYearList();
-        
+
         model.addAttribute("studentList", studentList);
         model.addAttribute("joinYearList", joinYearList);
 
@@ -82,6 +89,7 @@ public class StaffStudentsController {
 
     private static final int PAGE_SIZE = 10;
     private static final int BLOCK_SIZE = 5;
+
     /**
      * 학생 목록 동적 검색 + 서버 페이징 (AJAX)
      */
@@ -95,17 +103,20 @@ public class StaffStudentsController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int screenSize,
             @RequestParam(required = false) String orderBy,
-            @RequestParam(required = false) String orderDirection
-        ) {
+            @RequestParam(required = false) String orderDirection) {
         Map<String, Object> params = new HashMap<>();
-        if (keyword != null && !keyword.isBlank())  params.put("keyword",  keyword.trim());
-        if (year != null && !year.isBlank())        params.put("year",     year.trim());
-        if (userRole != null && !userRole.isBlank()) params.put("userRole", userRole.trim());
-        if (enable != null && !enable.isBlank())    params.put("enable",   enable.trim());
+        if (keyword != null && !keyword.isBlank())
+            params.put("keyword", keyword.trim());
+        if (year != null && !year.isBlank())
+            params.put("year", year.trim());
+        if (userRole != null && !userRole.isBlank())
+            params.put("userRole", userRole.trim());
+        if (enable != null && !enable.isBlank())
+            params.put("enable", enable.trim());
 
         String safeDir = "DESC".equalsIgnoreCase(orderDirection) ? "DESC" : "ASC";
-        PaginationInfo<Map<String, Object>> paging = 
-            new PaginationInfo<>(screenSize, BLOCK_SIZE, page, orderBy, safeDir);
+        PaginationInfo<Map<String, Object>> paging =
+                new PaginationInfo<>(screenSize, BLOCK_SIZE, page, orderBy, safeDir);
         paging.setDetailCondition(params);
 
         return ResponseEntity.ok(staffService.searchStudentList(paging));
@@ -116,8 +127,7 @@ public class StaffStudentsController {
      */
     @GetMapping("/employees/students/next-id")
     @ResponseBody
-    public ResponseEntity<String> getNextStudentId(
-            @RequestParam String baseId,
+    public ResponseEntity<String> getNextStudentId(@RequestParam String baseId,
             @RequestParam String defaultSerial) {
         String nextId = staffService.getNextAvailableId(baseId, defaultSerial);
         return ResponseEntity.ok(nextId);
@@ -127,12 +137,8 @@ public class StaffStudentsController {
      * 신규 회원 등록 처리
      */
     @PostMapping("/employees/students")
-    public String createStudent(
-        MemberDto memberDto,
-        MemberCreateLogDto memberCreateLog,
-        @RequestParam(required = false) MultipartFile profileImage,
-        Principal principal
-    ) {
+    public String createStudent(MemberDto memberDto, MemberCreateLogDto memberCreateLog,
+            @RequestParam(required = false) MultipartFile profileImage, Principal principal) {
         // 로그인한 관리자의 ID를 꺼냄
         String loginAdmin = "SYSTEM"; // 기본값
 
@@ -147,7 +153,8 @@ public class StaffStudentsController {
                 profileUrl = cloudinaryUploadService.uploadFileToCloudinary(profileImage);
             } catch (Exception e) {
                 log.error("[createStudent] Cloudinary 업로드 실패: {}", e.getMessage());
-                return "redirect:/admin/employees/students?error=" + URLEncoder.encode("프로필 이미지 업로드에 실패했습니다.", StandardCharsets.UTF_8);
+                return "redirect:/admin/employees/students?error="
+                        + URLEncoder.encode("프로필 이미지 업로드에 실패했습니다.", StandardCharsets.UTF_8);
             }
         }
 
@@ -157,24 +164,25 @@ public class StaffStudentsController {
             data.put("memberCreateLog", memberCreateLog);
             data.put("profileUrl", profileUrl);
 
-            activityApprovalService.submitForApproval(
-                loginAdmin, AdminActivityType.STUDENT_REGISTER,
-                memberDto.getUserName() + " (" + memberDto.getUserId() + ")", data);
+            activityApprovalService.submitForApproval(loginAdmin,
+                    AdminActivityType.STUDENT_REGISTER,
+                    memberDto.getUserName() + " (" + memberDto.getUserId() + ")", data);
         } catch (Exception e) {
             log.warn("[createStudent] 결재 요청 실패: {}", e.getMessage());
-            return "redirect:/admin/employees/students?error=" + URLEncoder.encode("결재 요청에 실패했습니다: " + e.getMessage(), StandardCharsets.UTF_8);
+            return "redirect:/admin/employees/students?error="
+                    + URLEncoder.encode("결재 요청에 실패했습니다: " + e.getMessage(), StandardCharsets.UTF_8);
         }
 
-        return "redirect:/admin/employees/students?success=" + URLEncoder.encode("결재 요청이 완료되었습니다. 승인 후 처리됩니다.", StandardCharsets.UTF_8);
+        return "redirect:/admin/employees/students?success="
+                + URLEncoder.encode("결재 요청이 완료되었습니다. 승인 후 처리됩니다.", StandardCharsets.UTF_8);
     }
-    
+
     /**
      * 학생 정보 수정
      */
     @PutMapping("/students/update")
     @ResponseBody
-    public ResponseEntity<Map<String, String>> updateStudent(
-            @RequestParam String userId,
+    public ResponseEntity<Map<String, String>> updateStudent(@RequestParam String userId,
             @RequestParam(required = false) String userName,
             @RequestParam(required = false) String userTelno,
             @RequestParam(required = false) String userEmailAddr,
@@ -184,9 +192,7 @@ public class StaffStudentsController {
             @RequestParam(required = false) String userProfile,
             @RequestParam(required = false) String userRole,
             @RequestParam(required = false) String enable,
-            @RequestParam(required = false) MultipartFile editProfileImage,
-            Principal principal
-    ) {
+            @RequestParam(required = false) MultipartFile editProfileImage, Principal principal) {
         String loginAdminId = principal != null ? principal.getName() : "SYSTEM";
 
         // 새 이미지가 있으면 Cloudinary 업로드, 없으면 기존 URL 유지
@@ -215,12 +221,12 @@ public class StaffStudentsController {
             Map<String, Object> data = new LinkedHashMap<>();
             data.put("memberDto", memberDto);
 
-            activityApprovalService.submitForApproval(
-                loginAdminId, AdminActivityType.STUDENT_UPDATE, userId, data);
+            activityApprovalService.submitForApproval(loginAdminId,
+                    AdminActivityType.STUDENT_UPDATE, userId, data);
 
-            return ResponseEntity.ok(Map.of("result", "success",
-                    "profileUrl", finalProfileUrl != null ? finalProfileUrl : "",
-                    "message", "결재 요청이 완료되었습니다. 승인 후 처리됩니다."));
+            return ResponseEntity.ok(Map.of("result", "success", "profileUrl",
+                    finalProfileUrl != null ? finalProfileUrl : "", "message",
+                    "결재 요청이 완료되었습니다. 승인 후 처리됩니다."));
         } catch (Exception e) {
             log.error("[updateStudent] 결재 요청 실패. userId={}, cause={}", userId, e.getMessage());
             return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
@@ -233,11 +239,8 @@ public class StaffStudentsController {
      */
     @PutMapping("/students/{userId}/retirement")
     @ResponseBody
-    public ResponseEntity<Map<String, String>>retireStudent(
-        @PathVariable String userId,
-        @RequestBody Map<String, String> body,
-        Principal principal
-    ) {
+    public ResponseEntity<Map<String, String>> retireStudent(@PathVariable String userId,
+            @RequestBody Map<String, String> body, Principal principal) {
 
         // 로그인한 관리자의 ID를 꺼냄
         String loginUserId = principal != null ? principal.getName() : "SYSTEM";
@@ -250,16 +253,36 @@ public class StaffStudentsController {
             data.put("userId", userId);
             data.put("withdrawRsn", withdrawRsn);
 
-            activityApprovalService.submitForApproval(
-                loginUserId, AdminActivityType.STUDENT_RETIRE, userId, data);
+            activityApprovalService.submitForApproval(loginUserId, AdminActivityType.STUDENT_RETIRE,
+                    userId, data);
 
-            return ResponseEntity.ok(Map.of("result", "success",
-                "message", "결재 요청이 완료되었습니다. 승인 후 처리됩니다."));
+            return ResponseEntity
+                    .ok(Map.of("result", "success", "message", "결재 요청이 완료되었습니다. 승인 후 처리됩니다."));
         } catch (Exception e) {
             log.warn("[retireStudent] 결재 요청 실패. userId={}, cause={}", userId, e.getMessage());
             return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
-                                .body(Map.of("result", "error", "message", e.getMessage()));
+                    .body(Map.of("result", "error", "message", e.getMessage()));
         }
     }
-    
+
+    @PostMapping("/parent/join-message/send")
+    @ResponseBody
+    public ResponseEntity<Void> sendParentJoinMessage(@RequestParam String studentId,
+            @RequestParam String parentPhone) {
+        // String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toString();
+        // TODO: Rest API 서버 URL을 환경변수나 설정파일에서 읽어오도록 수정 필요
+        String baseUrl = "http://localhost:9001"; // Rest API 서버의 URL로 고정 
+        parentService.sendParentJoinLink(parentPhone, baseUrl, studentId);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/parent/join-message")
+    public String parentJoinMessage(Model model) {
+        List<MemberDto> studentList = staffService.retrieveStudentList();
+        model.addAttribute("studentList", studentList);
+
+        return "admin:/staff/sendJoinMessageToParent";
+    }
+
 }

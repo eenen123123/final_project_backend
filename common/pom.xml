@@ -104,7 +104,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
-        
+
         <!-- Data Faker -->
         <dependency>
             <groupId>net.datafaker</groupId>
@@ -113,6 +113,12 @@
             <scope>compile</scope>
         </dependency>
 
+        <!-- Solapi -->
+        <dependency>
+            <groupId>net.nurigo</groupId>
+            <artifactId>sdk</artifactId>
+            <version>4.3.0</version>
+        </dependency>
     </dependencies>
 
     <build>
