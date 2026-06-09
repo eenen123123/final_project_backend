@@ -9,12 +9,14 @@ import kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto;
 import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
 import kr.or.ddit.finalProject.dto.member.MemberCreateLogDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
+import kr.or.ddit.finalProject.service.file.CloudinaryUploadService;
 import kr.or.ddit.finalProject.service.staff.StaffService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Base64;
 import java.util.Map;
 
 @Slf4j
@@ -24,6 +26,7 @@ public class AdminActivityExecutionService {
 
     private final ApprovalService approvalService;
     private final StaffService staffService;
+    private final CloudinaryUploadService cloudinaryUploadService;
     private final ObjectMapper objectMapper;
 
     @Transactional
@@ -68,7 +71,7 @@ public class AdminActivityExecutionService {
         MemberDto memberDto = objectMapper.convertValue(data.get("memberDto"), MemberDto.class);
         EmployeeInfoDto employeeInfoDto = objectMapper.convertValue(data.get("employeeInfoDto"), EmployeeInfoDto.class);
         EmployeeSalaryDto employeeSalaryDto = objectMapper.convertValue(data.get("employeeSalaryDto"), EmployeeSalaryDto.class);
-        String profileUrl = (String) data.get("profileUrl");
+        String profileUrl = uploadPendingImage(data);
         staffService.registerEmployee(memberDto, employeeInfoDto, employeeSalaryDto, profileUrl, actorUserId);
     }
 
@@ -79,6 +82,9 @@ public class AdminActivityExecutionService {
             ? (Map<String, Object>) data.get("after")
             : data;
         MemberDto memberDto = objectMapper.convertValue(effectiveData.get("memberDto"), MemberDto.class);
+        // 새 이미지가 pending 상태로 저장되어 있으면 지금 Cloudinary에 업로드
+        String newProfileUrl = uploadPendingImage(effectiveData);
+        if (newProfileUrl != null) memberDto.setUserProfile(newProfileUrl);
         EmployeeInfoDto employeeInfoDto = objectMapper.convertValue(effectiveData.get("employeeInfoDto"), EmployeeInfoDto.class);
         EmployeeSalaryDto employeeSalaryDto = objectMapper.convertValue(effectiveData.get("employeeSalaryDto"), EmployeeSalaryDto.class);
         staffService.updateEmployee(memberDto, employeeInfoDto, employeeSalaryDto, actorUserId);
@@ -150,5 +156,19 @@ public class AdminActivityExecutionService {
         String userId    = (String) data.get("userId");
         String mntUserId = (String) data.get("mntUserId");
         staffService.assignMntUserId(userId, mntUserId != null && !mntUserId.isBlank() ? mntUserId : null, actorUserId);
+    }
+
+    /* 페이로드에 base64 이미지가 있으면 Cloudinary에 업로드하고 URL을 반환, 없으면 null */
+    private String uploadPendingImage(Map<String, Object> data) {
+        String base64      = (String) data.get("profileImageBase64");
+        String contentType = (String) data.get("profileImageType");
+        if (base64 == null || base64.isBlank()) return null;
+        try {
+            byte[] bytes = Base64.getDecoder().decode(base64);
+            return cloudinaryUploadService.uploadBytesToCloudinary(bytes, contentType);
+        } catch (Exception e) {
+            log.error("[AdminExecution] Cloudinary 업로드 실패: {}", e.getMessage(), e);
+            return null;
+        }
     }
 }

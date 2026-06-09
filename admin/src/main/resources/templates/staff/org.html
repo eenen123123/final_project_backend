@@ -17,13 +17,13 @@
 <!-- ───────── 탭 ───────── -->
 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
   <div class="flex border-b border-slate-100 px-6">
-    <button class="org-tab active py-3.5 px-4 text-sm -mb-px" onclick="switchTab('tab-dept',this)">
+    <button class="emp-tab-btn active org-tab active py-3.5 px-4 text-sm -mb-px" onclick="switchTab('tab-dept',this)">
       <i class="fa-solid fa-building mr-1.5"></i>부서 관리
     </button>
-    <button class="org-tab py-3.5 px-4 text-sm text-slate-500 -mb-px" onclick="switchTab('tab-grade',this)">
+    <button class="emp-tab-btn org-tab py-3.5 px-4 text-sm text-slate-500 -mb-px" onclick="switchTab('tab-grade',this)">
       <i class="fa-solid fa-layer-group mr-1.5"></i>직급 관리
     </button>
-    <button class="org-tab py-3.5 px-4 text-sm text-slate-500 -mb-px" onclick="switchTab('tab-mapping',this)">
+    <button class="emp-tab-btn org-tab py-3.5 px-4 text-sm text-slate-500 -mb-px" onclick="switchTab('tab-mapping',this)">
       <i class="fa-solid fa-sitemap mr-1.5"></i>사수 배정
     </button>
   </div>
@@ -32,7 +32,7 @@
   <div id="tab-dept" class="org-panel p-6">
     <div class="flex justify-between items-center mb-4">
       <p class="text-sm text-slate-500">부서 목록 · 총 <span id="dept-count" class="font-bold text-slate-700">0</span>개</p>
-      <button onclick="openDeptModal()" class="hm-btn-primary text-sm px-4 py-2">
+      <button onclick="openDeptModal()" class="hm-btn-primary hm-btn-blue text-sm px-4 py-2">
         <i class="fa-solid fa-plus mr-1"></i>부서 추가
       </button>
     </div>
@@ -63,7 +63,7 @@
             </td>
             <td class="py-3 px-4">
               <div class="flex items-center gap-2">
-                <button onclick="openDeptModal(this.closest('tr'))" class="text-xs text-violet-500 hover:underline font-semibold">수정</button>
+                <button onclick="openDeptModal(this.closest('tr'))" class="text-xs text-[#3b82f6] hover:underline font-semibold">수정</button>
                 <button th:data-cd="${d.deptCd}"
                         th:data-toggle="${d.useYn == 'Y' ? 'N' : 'Y'}"
                         onclick="toggleDept(this.dataset.cd, this.dataset.toggle)"
@@ -81,18 +81,18 @@
   <div id="tab-grade" class="org-panel p-6 hidden">
     <div class="flex flex-wrap gap-3 mb-4 items-center justify-between">
       <div class="flex gap-3 items-center">
-        <select id="grade-dept-filter" class="hm-input" style="width:11rem" onchange="loadGrades(1)">
+        <select id="grade-dept-filter" class="hm-input hm-input-blue " style="width:11rem" onchange="loadGrades(1)">
           <option value="">전체 부서</option>
           <option th:each="d : ${deptList}" th:value="${d.deptCd}" th:text="${d.deptNm}"></option>
         </select>
-        <select id="grade-use-filter" class="hm-input" style="width:9rem" onchange="loadGrades(1)">
+        <select id="grade-use-filter" class="hm-input hm-input-blue" style="width:9rem" onchange="loadGrades(1)">
           <option value="">전체 상태</option>
           <option value="Y">사용중</option>
           <option value="N">미사용</option>
         </select>
         <p class="text-sm text-slate-500">총 <span id="grade-count" class="font-bold text-slate-700">0</span>개</p>
       </div>
-      <button onclick="openGradeModal()" class="hm-btn-primary text-sm px-4 py-2">
+      <button onclick="openGradeModal()" class="hm-btn-primary hm-btn-blue text-sm px-4 py-2">
         <i class="fa-solid fa-plus mr-1"></i>직급 추가
       </button>
     </div>
@@ -277,6 +277,7 @@
 </div>
 
 <link rel="stylesheet" href="/css/staff/org.css" />
+<link rel="stylesheet" href="/css/staff/employees.css" />
 
 <script src="/js/staff/org.js"></script>
 

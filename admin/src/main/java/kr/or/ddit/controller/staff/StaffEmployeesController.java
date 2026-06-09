@@ -3,6 +3,7 @@ package kr.or.ddit.controller.staff;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
+import java.util.Base64;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +18,6 @@ import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto;
 import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
-import kr.or.ddit.finalProject.exception.FinalProjectException;
-import kr.or.ddit.finalProject.service.file.CloudinaryUploadService;
 import kr.or.ddit.finalProject.service.staff.StaffService;
 import kr.or.ddit.finalProject.dto.staff.AdminActivityType;
 import kr.or.ddit.service.AdminActivityApprovalService;
@@ -48,9 +47,6 @@ public class StaffEmployeesController {
 
     @Autowired
     StaffService staffService;
-
-    @Autowired
-    CloudinaryUploadService cloudinaryUploadService;
 
     @Autowired
     AdminActivityApprovalService activityApprovalService;
@@ -131,14 +127,16 @@ public class StaffEmployeesController {
             loginAdminId = principal.getName(); // 세션이나 토큰에 저장된 로그인 ID
         }
 
-        // 프로필 사진 cloudinary 업로드
-        String profileUrl = null;
+        // 이미지는 base64로 인코딩하여 결재 페이로드에 저장 — 실제 Cloudinary 업로드는 최종 결재 후 실행
+        String profileImageBase64 = null;
+        String profileImageType   = null;
         if (profileImage != null && !profileImage.isEmpty()) {
             try {
-                profileUrl = cloudinaryUploadService.uploadFileToCloudinary(profileImage);
+                profileImageBase64 = Base64.getEncoder().encodeToString(profileImage.getBytes());
+                profileImageType   = profileImage.getContentType();
             } catch (Exception e) {
-                log.error("[createEmployee] Cloudinary 업로드 실패: {}", e.getMessage());
-                return "redirect:/admin/employees?error=" + URLEncoder.encode("프로필 이미지 업로드에 실패했습니다.", StandardCharsets.UTF_8);
+                log.error("[createEmployee] 이미지 인코딩 실패: {}", e.getMessage());
+                return "redirect:/admin/employees?error=" + URLEncoder.encode("프로필 이미지 처리에 실패했습니다.", StandardCharsets.UTF_8);
             }
         }
 
@@ -147,7 +145,8 @@ public class StaffEmployeesController {
             data.put("memberDto", memberDto);
             data.put("employeeInfoDto", employeeInfoDto);
             data.put("employeeSalaryDto", employeeSalary);
-            data.put("profileUrl", profileUrl);
+            data.put("profileImageBase64", profileImageBase64);
+            data.put("profileImageType",   profileImageType);
 
             activityApprovalService.submitForApproval(
                 loginAdminId, AdminActivityType.EMPLOYEE_REGISTER,
@@ -257,13 +256,15 @@ public class StaffEmployeesController {
         // 로그인한 관리자의 ID를 꺼냄
         String loginAdminId = principal != null ? principal.getName() : "SYSTEM";
 
-        // 새 파일이 있으면 Cloudinary 업로드, 없으면 기존 URL 유지
-        String finalProfileUrl = userProfile;
+        // 새 파일은 base64로 인코딩하여 결재 페이로드에 저장 — Cloudinary 업로드는 최종 결재 후 실행
+        String profileImageBase64 = null;
+        String profileImageType   = null;
         if (editProfileImage != null && !editProfileImage.isEmpty()) {
             try {
-                finalProfileUrl = cloudinaryUploadService.uploadFileToCloudinary(editProfileImage);
+                profileImageBase64 = Base64.getEncoder().encodeToString(editProfileImage.getBytes());
+                profileImageType   = editProfileImage.getContentType();
             } catch (Exception e) {
-                log.error("[updateEmployee] Cloudinary 업로드 실패 : {}", e.getMessage());
+                log.error("[updateEmployee] 이미지 인코딩 실패: {}", e.getMessage());
             }
         }
 
@@ -276,7 +277,7 @@ public class StaffEmployeesController {
         memberDto.setUserZip(userZip);
         memberDto.setUserAddr(userAddr);
         memberDto.setUserDaddr(userDaddr);
-        memberDto.setUserProfile(finalProfileUrl);
+        memberDto.setUserProfile(userProfile); /* 기존 URL 유지 — 신규 이미지는 결재 후 덮어씀 */
         if (userBrdt != null && !userBrdt.isBlank()) {
             memberDto.setUserBrdt(java.time.LocalDate.parse(userBrdt.substring(0, 10)));
         }
@@ -327,6 +328,8 @@ public class StaffEmployeesController {
             afterData.put("memberDto", memberDto);
             afterData.put("employeeInfoDto", employeeInfoDto);
             afterData.put("employeeSalaryDto", employeeSalaryDto);
+            afterData.put("profileImageBase64", profileImageBase64);
+            afterData.put("profileImageType",   profileImageType);
 
             Map<String, Object> data = new LinkedHashMap<>();
             if (!beforeData.isEmpty()) data.put("before", beforeData);
@@ -336,7 +339,7 @@ public class StaffEmployeesController {
                 loginAdminId, AdminActivityType.EMPLOYEE_UPDATE, userId, data);
 
             return ResponseEntity.ok(Map.of("result", "success",
-                "profileUrl", finalProfileUrl != null ? finalProfileUrl : "",
+                "profileUrl", userProfile != null ? userProfile : "",
                 "message", "결재 요청이 완료되었습니다. 승인 후 처리됩니다."));
         } catch (Exception e) {
             log.error("[updateEmployee] 결재 요청 실패. userId={}, cause={}", userId, e.getMessage());

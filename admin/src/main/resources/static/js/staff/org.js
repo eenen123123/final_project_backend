@@ -83,7 +83,7 @@ function renderGrades(list) {
       <td class="py-3 px-4">${badge}</td>
       <td class="py-3 px-4">
         <div class="flex items-center gap-2">
-          <button onclick="openGradeModal(this.closest('tr'))" class="text-xs text-violet-500 hover:underline font-semibold">수정</button>
+          <button onclick="openGradeModal(this.closest('tr'))" class="text-xs text-[#3b82f6] hover:underline font-semibold">수정</button>
           <button data-cd="${esc(g.jbgrCd)}" data-toggle="${toggleVal}"
                   onclick="toggleGrade(this.dataset.cd, this.dataset.toggle)"
                   class="text-xs text-slate-400 hover:underline">${toggleTxt}</button>
@@ -98,10 +98,8 @@ function renderGradePagination(cur, total) {
   if (total <= 1) { el.innerHTML = ''; return; }
   let html = '';
   for (let i = 1; i <= total; i++) {
-    const cls = i === cur
-      ? 'bg-violet-600 text-white border-violet-600'
-      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50';
-    html += `<button onclick="loadGrades(${i})" class="w-8 h-8 rounded-lg border text-xs font-semibold ${cls}">${i}</button>`;
+    const cls = i === cur ? 'active' : '';
+    html += `<button onclick="loadGrades(${i})" class="emp-page-btn ${cls}">${i}</button>`;
   }
   el.innerHTML = html;
 }
@@ -114,7 +112,7 @@ function esc(s) {
 function openDeptModal(row) {
   const isEdit = !!row;
   document.getElementById('dept-modal-title').innerHTML =
-    `<i class="fa-solid fa-building mr-2 text-violet-500"></i>${isEdit ? '부서 수정' : '부서 추가'}`;
+    `<i class="fa-solid fa-building mr-2 text-blue-500"></i>${isEdit ? '부서 수정' : '부서 추가'}`;
   document.getElementById('dept-edit-cd').value = isEdit ? row.dataset.cd : '';
   document.getElementById('dept-cd').value       = isEdit ? row.dataset.cd : '';
   document.getElementById('dept-cd').readOnly    = isEdit;
@@ -161,7 +159,7 @@ function toggleDept(deptCd, newUseYn) {
 function openGradeModal(row) {
   const isEdit = !!row;
   document.getElementById('grade-modal-title').innerHTML =
-    `<i class="fa-solid fa-layer-group mr-2 text-violet-500"></i>${isEdit ? '직급 수정' : '직급 추가'}`;
+    `<i class="fa-solid fa-layer-group mr-2 text-blue-500"></i>${isEdit ? '직급 수정' : '직급 추가'}`;
   document.getElementById('grade-edit-cd').value = isEdit ? row.dataset.cd : '';
   document.getElementById('grade-cd').value       = isEdit ? row.dataset.cd : '';
   document.getElementById('grade-cd').readOnly    = isEdit;
@@ -351,7 +349,7 @@ function renderKanban(supIds, empMap) {
     teamsEl.innerHTML = `
       <div class="mnt-col flex-shrink-0 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50
                    flex flex-col items-center justify-center cursor-pointer
-                   hover:border-violet-300 hover:bg-violet-50 transition-colors"
+                   hover:border-blue-300 hover:bg-blue-50 transition-colors"
            style="width:210px; min-height:240px"
            onclick="openAddTeamModal()"
            ondragover="event.preventDefault()"
@@ -368,19 +366,19 @@ function renderKanban(supIds, empMap) {
     const members = getTeamDescendants(sid);
     const avatar  = sup.userProfile && sup.userProfile.startsWith('http')
       ? `<img src="${esc(sup.userProfile)}" class="w-9 h-9 rounded-lg object-cover flex-shrink-0">`
-      : `<div class="w-9 h-9 rounded-lg bg-violet-100 flex items-center justify-center text-sm font-bold text-violet-600 flex-shrink-0">${esc((sup.userName||'?').charAt(0))}</div>`;
+      : `<div class="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600 flex-shrink-0">${esc((sup.userName||'?').charAt(0))}</div>`;
     return `
       <div class="mnt-col flex-shrink-0 rounded-xl border border-slate-200 bg-white overflow-hidden"
            style="width:210px" data-sup-id="${esc(sid)}"
            ondragover="event.preventDefault()"
            ondrop="onDropToTeam(event,this)">
-        <div class="bg-violet-50 border-b border-violet-100 px-3 py-3 flex items-center gap-2.5">
+        <div class="bg-blue-50 border-b border-blue-100 px-3 py-3 flex items-center gap-2.5">
           ${avatar}
           <div class="min-w-0 flex-1">
             <p class="font-bold text-sm text-slate-800 truncate">${esc(sup.userName||sid)}</p>
             <p class="text-xs text-slate-400 truncate">${esc(sup.jbgrNm||'')}${sup.deptNm?' · '+esc(sup.deptNm):''}</p>
           </div>
-          <span class="text-xs bg-violet-100 text-violet-600 font-bold px-1.5 py-0.5 rounded-md flex-shrink-0">${members.length}명</span>
+          <span class="text-xs bg-blue-100 text-blue-600 font-bold px-1.5 py-0.5 rounded-md flex-shrink-0">${members.length}명</span>
           <button onclick="event.stopPropagation(); dissolveTeam('${esc(sid)}')"
                   title="팀 전체 해제"
                   class="flex-shrink-0 w-5 h-5 rounded-full bg-slate-200 hover:bg-red-100 hover:text-red-500
@@ -395,7 +393,7 @@ function renderKanban(supIds, empMap) {
     <div onclick="openAddTeamModal()"
          class="mnt-col flex-shrink-0 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50
                 flex flex-col items-center justify-center cursor-pointer
-                hover:border-violet-300 hover:bg-violet-50 transition-colors"
+                hover:border-blue-300 hover:bg-blue-50 transition-colors"
          style="width:64px; height:80px; align-self:flex-start"
          ondragover="event.preventDefault()"
          ondrop="onDropToNewTeam(event)">
@@ -412,7 +410,7 @@ function renderOrgTree(supIds, empMap, savedScrollLeft, savedScrollTop) {
       <div class="flex flex-col items-center justify-center h-full gap-3 text-slate-300">
         <div class="w-20 h-20 rounded-full border-2 border-dashed border-slate-200 bg-slate-50
                      flex flex-col items-center justify-center cursor-pointer
-                     hover:border-violet-300 hover:bg-violet-50 transition-colors"
+                     hover:border-blue-300 hover:bg-blue-50 transition-colors"
              onclick="openAddTeamModal()"
              ondragover="event.preventDefault()"
              ondrop="onDropToNewTeam(event)">
@@ -454,7 +452,7 @@ function buildTreeHtml(userId, empMap) {
 
   const avatar = emp.userProfile && emp.userProfile.startsWith('http')
     ? `<img src="${esc(emp.userProfile)}" class="w-8 h-8 rounded-full object-cover mx-auto mb-1">`
-    : `<div class="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-sm font-bold text-violet-600 mx-auto mb-1">${esc((emp.userName||'?').charAt(0))}</div>`;
+    : `<div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600 mx-auto mb-1">${esc((emp.userName||'?').charAt(0))}</div>`;
 
   const dissolveBtn = isRoot
     ? `<button onclick="event.stopPropagation(); dissolveTeam('${esc(userId)}')"
@@ -504,11 +502,11 @@ function onDropToTreeNode(event, nodeEl) {
 function renderEmpCard(emp) {
   const avatar = emp.userProfile && emp.userProfile.startsWith('http')
     ? `<img src="${esc(emp.userProfile)}" class="w-7 h-7 rounded-md object-cover flex-shrink-0">`
-    : `<div class="w-7 h-7 rounded-md bg-violet-100 flex items-center justify-center text-xs font-bold text-violet-600 flex-shrink-0">${esc((emp.userName||'?').charAt(0))}</div>`;
+    : `<div class="w-7 h-7 rounded-md bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-600 flex-shrink-0">${esc((emp.userName||'?').charAt(0))}</div>`;
   const statCls = emp.emplStatCd==='01' ? 'text-emerald-600' : emp.emplStatCd==='02' ? 'text-amber-500' : 'text-red-400';
   const statTxt = emp.emplStatCd==='01' ? '재직' : emp.emplStatCd==='02' ? '휴직' : '퇴사';
   return `
-    <div class="emp-card bg-white border border-slate-100 hover:border-violet-200 hover:bg-violet-50
+    <div class="emp-card bg-white border border-slate-100 hover:border-blue-200 hover:bg-blue-50
                 rounded-lg p-2 flex items-center gap-2 cursor-grab select-none transition-colors shadow-sm"
          draggable="true" data-uid="${esc(emp.userId)}" data-mnt="${esc(emp.mntUserId||'')}">
       ${avatar}
