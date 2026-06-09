@@ -127,6 +127,9 @@ public interface StaffMapper {
     // 학생 리스트 조회
     List<MemberDto> selectStudentList();
 
+    // 단일 학생 조회
+    MemberDto selectStudentByUserId(String userId);
+
     // 가입 연도 목록 조회 (중복 제거)
     List<Integer> selectStudentJoinYearList();
 

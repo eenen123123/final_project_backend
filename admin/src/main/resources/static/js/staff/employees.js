@@ -696,7 +696,7 @@ function saveDetailEdit() {
         syncRowCells(row);
         toggleDetailEdit();
         openDetail(selectedEmpId);
-        showHermesToast("인사 기록이 수정되었습니다.", "success");
+        showHermesToast("결재 요청이 완료되었습니다. 승인 후 처리됩니다.", "success");
       } else {
         showHermesToast("수정 실패: " + (data.message || "서버 오류"), "error");
       }
