@@ -26,6 +26,7 @@ public class SmsService {
         message.setFrom(from);
         message.setTo(to);
         message.setText(text);
+        message.setSubject("[HERMES 학원]");
 
         messageService.sendOne(new SingleMessageSendingRequest(message));
     }
