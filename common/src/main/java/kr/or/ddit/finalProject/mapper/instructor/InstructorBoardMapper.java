@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto;
+import kr.or.ddit.finalProject.dto.instructor.InstructorQnaAnswerDto;
 import kr.or.ddit.finalProject.dto.instructor.InstructorRecentPostResponse;
 
 @Mapper
@@ -51,4 +52,14 @@ public interface InstructorBoardMapper {
 
     List<InstructorRecentPostResponse> selectRecentPosts(@Param("instrUuid") String instrUuid,
                                                          @Param("size") int size);
+
+    // ── 공개 강사 게시판 Q&A 답변 ──────────────────────────────────
+
+    InstructorQnaAnswerDto selectInstructorQnaAnswer(@Param("postSn") Long postSn);
+
+    int insertInstructorQna(@Param("postSn") Long postSn);
+
+    int updateInstructorQnaAnswer(@Param("postSn") Long postSn,
+                                  @Param("answrUserId") String answrUserId,
+                                  @Param("answCn") String answCn);
 }

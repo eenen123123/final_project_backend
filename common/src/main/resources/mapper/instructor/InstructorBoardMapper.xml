@@ -273,6 +273,34 @@
             WHERE ROWNUM &lt;= #{size}
       </select>
 
+      <!-- ── 공개 강사 게시판 Q&A 답변 ─────────────────────────────── -->
+
+      <select id="selectInstructorQnaAnswer"
+              resultType="kr.or.ddit.finalProject.dto.instructor.InstructorQnaAnswerDto">
+            SELECT
+                  IQ.ANSW_YN  AS answYn,
+                  IQ.ANSW_CN  AS answCn,
+                  M.USER_NAME AS answrUserNm,
+                  TO_CHAR(IQ.ANSW_DT, 'YYYY-MM-DD HH24:MI') AS answDt
+            FROM INSTRUCTOR_QNA IQ
+            LEFT JOIN MEMBER M ON IQ.ANSWR_USER_ID = M.USER_ID
+            WHERE IQ.POST_SN = #{postSn}
+      </select>
+
+      <insert id="insertInstructorQna">
+            INSERT INTO INSTRUCTOR_QNA (POST_SN, ANSW_YN, SECR_YN)
+            VALUES (#{postSn}, 'N', 'N')
+      </insert>
+
+      <update id="updateInstructorQnaAnswer">
+            UPDATE INSTRUCTOR_QNA
+            SET ANSW_CN       = #{answCn},
+                ANSWR_USER_ID = #{answrUserId},
+                ANSW_DT       = SYSDATE,
+                ANSW_YN       = 'Y'
+            WHERE POST_SN = #{postSn}
+      </update>
+
       <select id="selectUnansweredQnaCount" resultType="int">
             SELECT COUNT(*)
             FROM INSTRUCTOR_BOARD IB

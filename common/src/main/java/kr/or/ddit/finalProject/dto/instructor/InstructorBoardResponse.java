@@ -27,4 +27,10 @@ public class InstructorBoardResponse implements Serializable {
     private String mdfcnDt; // 게시글 수정일
     private String atchFileId; // 첨부파일 ID
 
+    // Q&A 답변 필드 (boardTypeCd='03' 일 때만 채워짐)
+    private String answYn;
+    private String answCn;
+    private String answrUserNm;
+    private String answDt;
+
 }
