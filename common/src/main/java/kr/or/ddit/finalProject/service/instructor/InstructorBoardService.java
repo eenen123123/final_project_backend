@@ -58,4 +58,8 @@ public interface InstructorBoardService {
     void answerClassroomQna(Long postSn, String answrUserId, String answCn);
 
     int getUnansweredQnaCount(Long classSn);
+
+    // ── 공개 강사 게시판 Q&A 답변 ──────────────────────────────────
+
+    void answerInstructorQna(Long postSn, String answrUserId, String answCn);
 }

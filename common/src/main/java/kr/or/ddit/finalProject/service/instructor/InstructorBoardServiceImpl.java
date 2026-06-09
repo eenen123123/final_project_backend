@@ -5,8 +5,11 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto;
 import kr.or.ddit.finalProject.dto.instructor.InstructorBoardResponse;
+import kr.or.ddit.finalProject.dto.instructor.InstructorQnaAnswerDto;
 import kr.or.ddit.finalProject.mapper.instructor.InstructorBoardMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +55,7 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
         }
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String userName = original.getMemberDto() != null ? original.getMemberDto().getUserName() : "";
-        return InstructorBoardResponse.builder()
+        InstructorBoardResponse response = InstructorBoardResponse.builder()
                 .postSn(original.getPostSn())
                 .useYn(original.getUseYn())
                 .boardTypeCd(original.getBoardTypeCd())
@@ -64,12 +67,28 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
                 .mdfcnDt(original.getMdfcnDt() != null ? original.getMdfcnDt().format(formatter) : null)
                 .atchFileId(original.getAtchFileId() != null ? original.getAtchFileId().toString() : null)
                 .build();
+
+        if ("03".equals(original.getBoardTypeCd())) {
+            InstructorQnaAnswerDto answer = instructorBoardMapper.selectInstructorQnaAnswer(original.getPostSn());
+            if (answer != null) {
+                response.setAnswYn(answer.getAnswYn());
+                response.setAnswCn(answer.getAnswCn());
+                response.setAnswrUserNm(answer.getAnswrUserNm());
+                response.setAnswDt(answer.getAnswDt());
+            }
+        }
+
+        return response;
     }
 
     @Override
+    @Transactional
     public int insertInstructorBoard(InstructorBoardDto instructorBoardDto) {
         int rowcnt = instructorBoardMapper.insertInstructorBoard(instructorBoardDto);
         if (rowcnt > 0) {
+            if ("03".equals(instructorBoardDto.getBoardTypeCd())) {
+                instructorBoardMapper.insertInstructorQna(instructorBoardDto.getPostSn());
+            }
             log.info("게시글 등록 성공 : {}", instructorBoardDto);
         } else {
             log.warn("게시글 등록 실패 : {}", instructorBoardDto);
@@ -148,6 +167,14 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     @Override
     public int getUnansweredQnaCount(Long classSn) {
         return instructorBoardMapper.selectUnansweredQnaCount(classSn);
+    }
+
+    // ── 공개 강사 게시판 Q&A 답변 ──────────────────────────────────
+
+    @Override
+    @Transactional
+    public void answerInstructorQna(Long postSn, String answrUserId, String answCn) {
+        instructorBoardMapper.updateInstructorQnaAnswer(postSn, answrUserId, answCn);
     }
 
 }

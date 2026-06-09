@@ -16,7 +16,7 @@
 
 <!-- ───────── 탭 ───────── -->
 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
-  <div class="flex border-b border-slate-100 px-6">
+  <div class="flex items-center border-b border-slate-100 px-6">
     <button class="emp-tab-btn active org-tab active py-3.5 px-4 text-sm -mb-px" onclick="switchTab('tab-dept',this)">
       <i class="fa-solid fa-building mr-1.5"></i>부서 관리
     </button>
@@ -26,6 +26,17 @@
     <button class="emp-tab-btn org-tab py-3.5 px-4 text-sm text-slate-500 -mb-px" onclick="switchTab('tab-mapping',this)">
       <i class="fa-solid fa-sitemap mr-1.5"></i>사수 배정
     </button>
+    <!-- 사수 배정 일괄 등록 (탭 헤더 우측 고정) -->
+    <div id="mnt-save-bar" class="hidden ml-auto flex items-center gap-3">
+      <span class="text-xs text-slate-500">
+        <i class="fa-solid fa-clock-rotate-left text-blue-400 mr-1"></i>
+        <span id="mnt-pending-count">0</span>건 대기 중
+      </span>
+      <button onclick="cancelPendingChanges()" class="text-xs text-slate-400 hover:text-slate-600 font-semibold px-2 py-1">취소</button>
+      <button id="mnt-flush-btn" onclick="flushPendingChanges()" class="hm-btn-primary hm-btn-blue text-xs px-4 py-2">
+        <i class="fa-solid fa-paper-plane mr-1.5"></i>일괄 등록
+      </button>
+    </div>
   </div>
 
   <!-- ══════ 탭1: 부서 관리 ══════ -->
@@ -83,7 +94,7 @@
       <div class="flex gap-3 items-center">
         <select id="grade-dept-filter" class="hm-input hm-input-blue " style="width:11rem" onchange="loadGrades(1)">
           <option value="">전체 부서</option>
-          <option th:each="d : ${deptList}" th:value="${d.deptCd}" th:text="${d.deptNm}"></option>
+          <option th:each="d : ${deptList}" th:if="${d.useYn=='Y'}" th:value="${d.deptCd}" th:text="${d.deptNm}"></option>
         </select>
         <select id="grade-use-filter" class="hm-input hm-input-blue" style="width:9rem" onchange="loadGrades(1)">
           <option value="">전체 상태</option>
@@ -125,6 +136,7 @@
       <button class="mnt-dept-btn active" data-dept="" onclick="selectMntDept(this)">전체</button>
       <button th:each="d : ${deptList}"
               th:data-dept="${d.deptCd}"
+              th:if="${d.useYn == 'Y'}"
               th:text="${d.deptNm}"
               onclick="selectMntDept(this)"
               class="mnt-dept-btn"></button>
@@ -182,6 +194,21 @@
       </div>
 
     </div>
+
+    <!-- 일괄 등록 바 -->
+    <div id="mnt-save-bar" class="hidden mt-4 flex items-center justify-between bg-blue-50 border border-blue-200 rounded-xl px-5 py-3">
+      <p class="text-sm text-slate-600">
+        <i class="fa-solid fa-clock-rotate-left text-blue-400 mr-2"></i>
+        <span id="mnt-pending-count">0</span>건의 변경 사항이 대기 중입니다.
+      </p>
+      <div class="flex gap-2">
+        <button onclick="cancelPendingChanges()" class="hm-btn-ghost px-4 py-2 text-sm">취소</button>
+        <button id="mnt-flush-btn" onclick="flushPendingChanges()" class="hm-btn-primary hm-btn-blue px-5 py-2 text-sm">
+          <i class="fa-solid fa-paper-plane mr-1.5"></i>일괄 등록
+        </button>
+      </div>
+    </div>
+
   </div>
 </div>
 

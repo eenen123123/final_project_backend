@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -92,7 +93,7 @@ public class InstructorBoardController {
      */
     @GetMapping("/insertForm")
     public String getInsertForm(Model model) {
-        model.addAttribute("boardTypes", getBoardTypeList());
+        model.addAttribute("boardTypes", getBoardTypes());
         return "admin:/instructor/boardInsertForm";
     }
 
@@ -155,13 +156,8 @@ public class InstructorBoardController {
                 .boardTypeCd(responseDto.getBoardTypeCd()).postSj(responseDto.getTitle())
                 .postCn(sanitize(responseDto.getContent())).build();
         model.addAttribute("board", board);
-        model.addAttribute("boardTypes", getBoardTypeList());
+        model.addAttribute("boardTypes", getBoardTypes());
         return "admin:/instructor/boardInsertForm";
-    }
-
-    private List<CommonCodeDto> getBoardTypeList() {
-        return commonCodeMapper.selectByClCode("100").stream()
-                .filter(c -> !"01".equals(c.getComCd())).toList();
     }
 
     /**
@@ -212,6 +208,19 @@ public class InstructorBoardController {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         instructorBoardService.deleteInstructorBoard(postSn, userId);
         redirectAttributes.addFlashAttribute("successMessage", "게시글이 삭제되었습니다.");
+        return "redirect:/instructor/board/detail/" + postSn;
+    }
+
+    /**
+     * 강사 게시판 Q&A 답변 등록
+     */
+    @PostMapping("/answer/{postSn}")
+    public String answerBoard(@PathVariable Long postSn,
+            @RequestParam String answCn,
+            RedirectAttributes redirectAttributes) {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        instructorBoardService.answerInstructorQna(postSn, userId, answCn);
+        redirectAttributes.addFlashAttribute("successMessage", "답변이 등록되었습니다.");
         return "redirect:/instructor/board/detail/" + postSn;
     }
 

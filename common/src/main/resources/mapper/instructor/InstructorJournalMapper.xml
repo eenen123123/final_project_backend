@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="kr.or.ddit.finalProject.mapper.journal.InstructorJournalMapper">
+<mapper namespace="kr.or.ddit.finalProject.mapper.instructor.InstructorJournalMapper">
 
     <!--
         공통 SELECT 컬럼 절 (목록·상세 공유)
@@ -33,7 +33,7 @@
     <!-- 특정 강사의 일지 목록 (강사 본인용)          -->
     <!-- ──────────────────────────────────────────── -->
     <select id="selectJournalListByInstructor"
-            resultType="kr.or.ddit.finalProject.dto.journal.InstructorJournalDto">
+            resultType="kr.or.ddit.finalProject.dto.instructor.InstructorJournalDto">
         SELECT <include refid="journalColumns"/>
         <include refid="journalFrom"/>
         WHERE j.INSTR_USER_ID = #{instrUserId}
@@ -44,7 +44,7 @@
     <!-- 전체 강사 일지 목록 (수석 강사 / 원장용)    -->
     <!-- ──────────────────────────────────────────── -->
     <select id="selectAllJournalList"
-            resultType="kr.or.ddit.finalProject.dto.journal.InstructorJournalDto">
+            resultType="kr.or.ddit.finalProject.dto.instructor.InstructorJournalDto">
         SELECT <include refid="journalColumns"/>
         <include refid="journalFrom"/>
         ORDER BY j.JRNL_DT DESC, j.JRNL_SN DESC
@@ -54,7 +54,7 @@
     <!-- 일지 단건 상세 조회                          -->
     <!-- ──────────────────────────────────────────── -->
     <select id="selectJournalBySn"
-            resultType="kr.or.ddit.finalProject.dto.journal.InstructorJournalDto">
+            resultType="kr.or.ddit.finalProject.dto.instructor.InstructorJournalDto">
         SELECT <include refid="journalColumns"/>
         <include refid="journalFrom"/>
         WHERE j.JRNL_SN = #{jrnlSn}
@@ -65,7 +65,7 @@
     <!-- useGeneratedKeys: INSERT 후 PK를 dto.jrnlSn 에 자동 주입 -->
     <!-- ──────────────────────────────────────────── -->
     <insert id="insertJournal"
-            parameterType="kr.or.ddit.finalProject.dto.journal.InstructorJournalDto"
+            parameterType="kr.or.ddit.finalProject.dto.instructor.InstructorJournalDto"
             useGeneratedKeys="true"
             keyProperty="jrnlSn"
             keyColumn="JRNL_SN">
@@ -87,7 +87,7 @@
     <!-- MDFCN_DT 를 CURRENT_TIMESTAMP 로 갱신       -->
     <!-- ──────────────────────────────────────────── -->
     <update id="updateJournal"
-            parameterType="kr.or.ddit.finalProject.dto.journal.InstructorJournalDto">
+            parameterType="kr.or.ddit.finalProject.dto.instructor.InstructorJournalDto">
         UPDATE INSTRUCTOR_JOURNAL
         SET
             JRNL_TITLE = #{jrnlTitle},

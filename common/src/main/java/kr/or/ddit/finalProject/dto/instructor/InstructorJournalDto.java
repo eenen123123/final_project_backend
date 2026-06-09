@@ -1,4 +1,4 @@
-package kr.or.ddit.finalProject.dto.journal;
+package kr.or.ddit.finalProject.dto.instructor;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

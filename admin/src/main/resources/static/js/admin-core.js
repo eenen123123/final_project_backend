@@ -46,3 +46,30 @@ function showHermesToast(message, type = "success") {
     }, 300);
   }, 3000);
 }
+
+function showHermesLoading(message = '처리 중...') {
+  let el = document.getElementById('hm-loading-overlay');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'hm-loading-overlay';
+    el.className = 'fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm';
+    el.innerHTML = `
+      <div class="bg-white rounded-2xl shadow-2xl px-10 py-8 flex flex-col items-center gap-4 min-w-[200px]">
+        <svg class="animate-spin h-10 w-10" style="color:#7c3aed" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        </svg>
+        <p id="hm-loading-msg" class="text-sm font-semibold text-slate-700 text-center">${message}</p>
+      </div>`;
+    document.body.appendChild(el);
+  } else {
+    const msg = el.querySelector('#hm-loading-msg');
+    if (msg) msg.textContent = message;
+    el.classList.remove('hidden');
+  }
+}
+
+function hideHermesLoading() {
+  const el = document.getElementById('hm-loading-overlay');
+  if (el) el.classList.add('hidden');
+}
