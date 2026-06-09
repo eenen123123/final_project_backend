@@ -41,6 +41,7 @@
             DEPT_CD, PRNT_DEPT_CD, DEPT_NM, USE_YN, INTL_TEL_NO, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
         FROM
             DEPARTMENT
+        ORDER BY LENGTH(DEPT_CD) ASC, DEPT_CD ASC
     </select>      
 
     <select id="selectJobGradeList" resultType="kr.or.ddit.finalProject.dto.employee.JobGradeDto">
