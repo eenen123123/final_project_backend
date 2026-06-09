@@ -148,9 +148,8 @@ public class StaffStudentsController {
                 profileImageBase64 = Base64.getEncoder().encodeToString(profileImage.getBytes());
                 profileImageType   = profileImage.getContentType();
             } catch (Exception e) {
-                log.error("[createStudent] Cloudinary 업로드 실패: {}", e.getMessage());
-                return "redirect:/admin/employees/students?error="
-                        + URLEncoder.encode("프로필 이미지 업로드에 실패했습니다.", StandardCharsets.UTF_8);
+                log.error("[createStudent] 이미지 인코딩 실패: {}", e.getMessage());
+                return "redirect:/admin/employees/students?error=" + URLEncoder.encode("프로필 이미지 처리에 실패했습니다.", StandardCharsets.UTF_8);
             }
         }
 
@@ -170,8 +169,7 @@ public class StaffStudentsController {
                     + URLEncoder.encode("결재 요청에 실패했습니다: " + e.getMessage(), StandardCharsets.UTF_8);
         }
 
-        return "redirect:/admin/employees/students?success="
-                + URLEncoder.encode("결재 요청이 완료되었습니다. 승인 후 처리됩니다.", StandardCharsets.UTF_8);
+        return "redirect:/admin/employees/students?success=" + URLEncoder.encode("결재에 등록되었습니다.", StandardCharsets.UTF_8);
     }
 
     /**
