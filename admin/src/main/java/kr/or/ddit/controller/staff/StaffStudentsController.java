@@ -18,7 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 import kr.or.ddit.finalProject.dto.member.MemberCreateLogDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.dto.staff.AdminActivityType;
-import kr.or.ddit.finalProject.service.file.CloudinaryUploadService;
 import kr.or.ddit.finalProject.service.member.ParentService;
 import kr.or.ddit.finalProject.service.staff.StaffService;
 import kr.or.ddit.service.AdminActivityApprovalService;
@@ -242,8 +241,8 @@ public class StaffStudentsController {
                     AdminActivityType.STUDENT_UPDATE, userId, data);
 
             return ResponseEntity.ok(Map.of("result", "success", "profileUrl",
-                    finalProfileUrl != null ? finalProfileUrl : "", "message",
-                    "결재 요청이 완료되었습니다. 승인 후 처리됩니다."));
+                    userProfile != null ? userProfile : "", "message",
+                    "결재에 등록되었습니다."));
         } catch (Exception e) {
             log.error("[updateStudent] 결재 요청 실패. userId={}, cause={}", userId, e.getMessage());
             return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
