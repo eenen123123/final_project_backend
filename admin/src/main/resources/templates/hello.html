@@ -1,53 +1,30 @@
 <title th:fragment="pageTitle">테스트 페이지 | HERMES</title>
 
 <div>
-  <!-- <h1 th:text="${message}">Hello, Thymeleaf!</h1> -->
+  <input
+    type="text"
+    name="message"
+    placeholder="Enter a message to send"
+    class="border-solid border-2 border-gray-500 rounded-md px-4 py-2"
+  />
+  <button
+    type="submit"
+    class="border-solid border-2 border-gray-500 rounded-md px-4 py-2"
+  >
+    Send Notification
+  </button>
 
-  <p>테스트 페이지</p>
-  <p>파일 업로드 및 사용자의 정보를 확인할 수 있습니다.</p>
-
-  <div th:if="${user != null}">
-    <p th:text="'User ID: ' + ${user.userId}">User ID:</p>
-    <p th:text="'User Name: ' + ${user.userName}">User Name:</p>
-    <p th:text="'User Email: ' + ${user.userEmailAddr}">User Email:</p>
-    <p th:text="'User Role: ' + ${user.memRoles}">User Role:</p>
+  <div class="mt-4">
+    <a href="/" class="text-blue-500 hover:underline">Go to Home</a>
   </div>
-
-  <div th:if="${user != null}">
-    <form action="" method="post" enctype="multipart/form-data">
-      <input type="file" name="file" id="file" />
-      <button type="submit">Upload File</button>
-    </form>
-  </div>
-  <!-- 
-    private Integer atchFileDtlSn; // 첨부파일 상세 ID PK sequence
-    private Integer atchFileId; // 첨부파일 ID
-    private String orgnFileNm; // 원본 파일명
-    private String savePathNm; // 저장 경로
-    private String saveFileNm; // 저장 파일명
-    private String fileExtNm; // 파일 확장자
-    private Long fileSizeCnt; // 파일 사이즈
-    private String fileCn; // 파일 내용
-    private String regDt; // 최초 등록 시점
-    private String rgtrId; // 최초 등록자 ID 
-    private String delYn; // 삭제 여부
-    private String delDt; // 삭제 시점
-    private String delUserId; // 삭제자 ID
-    private Integer dwnldCnt; // 다운로드 횟수  
-
--->
-  <div th:if="${fileResponse != null}">
-    <h2>업로드된 파일 정보</h2>
-    <p th:text="'Original Filename: ' + ${fileResponse.orgnFileNm}">
-      Original Filename:
-    </p>
-    <p th:text="'Saved Path: ' + ${fileResponse.savePathNm}">Saved Path:</p>
-    <p th:text="'File Size: ' + ${fileResponse.fileSizeCnt} + ' bytes'">
-      File Size:
-    </p>
-  </div>
-
-  <div>
-    <a href="/">Go to Home</a>
-  </div>
+  <script>
+    document
+      .querySelector("button[type='submit']")
+      .addEventListener("click", function () {
+        const message = document.querySelector("input[name='message']").value;
+        fetch("/admin/test/noti?message=" + encodeURIComponent(message), {
+          method: "GET",
+        });
+      });
+  </script>
 </div>

@@ -11,10 +11,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import kr.or.ddit.finalProject.dto.member.AdminMemberDto;
+import kr.or.ddit.finalProject.dto.notification.NotificationType;
 import kr.or.ddit.finalProject.dto.post.PostMasterDto;
 import kr.or.ddit.finalProject.dto.post.PostSearchCondition;
 import kr.or.ddit.finalProject.dto.post.PostTypeEnum;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
+import kr.or.ddit.finalProject.service.NotificationService;
 import kr.or.ddit.finalProject.service.member.MemberService;
 import kr.or.ddit.finalProject.service.post.PostService;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,7 @@ public class NoteController {
 
     private final PostService postService;
     private final MemberService memberService;
+    private final NotificationService notificationService;
 
     @GetMapping
     public String getNoteListPage(@RequestParam(name = "page", defaultValue = "1") int page, // 페이지 번호, 기본값은 1
@@ -82,6 +85,9 @@ public class NoteController {
         PostMasterDto postMasterDto = PostMasterDto.builder().ntceSj(title).ntceCn(content).build();
         postMasterDto.setNtceTypeCd(PostTypeEnum.PERSONAL);
         postService.createPost(postMasterDto, authentication, receiverUserIds);
+
+
+
         return ResponseEntity.status(302).header("Location", "/admin/note?box=sent").build();
     }
 

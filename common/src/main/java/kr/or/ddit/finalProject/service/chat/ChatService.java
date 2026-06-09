@@ -88,4 +88,5 @@ public interface ChatService {
      */
     void updateLastReadMessage(long roomSn, String userId, long msgSn);
 
+    List<String> getChatRoomParticipantIds(long roomSn);
 }

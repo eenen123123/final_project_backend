@@ -4,12 +4,14 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
+import org.springframework.messaging.converter.SimpleMessageConverter;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.dto.notification.NotificationType;
 import kr.or.ddit.finalProject.dto.post.PostMasterDto;
 import kr.or.ddit.finalProject.dto.post.PostReceiverDto;
 import kr.or.ddit.finalProject.dto.post.PostSearchCondition;
@@ -18,6 +20,7 @@ import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.mapper.post.PostMapper;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
+import kr.or.ddit.finalProject.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -25,8 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class PostServiceImpl implements PostService {
 
     private final PostMapper postMapper;
-
-
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -43,10 +45,21 @@ public class PostServiceImpl implements PostService {
             senderDto.setNtceSn(postSn);
             postMapper.insertPostSender(senderDto);
             // 수신자 정보 저장
-            List<PostReceiverDto> receivers = Arrays.stream(receiverUserIds)
-                    .map(id -> { PostReceiverDto r = new PostReceiverDto(); r.setNtceSn(postSn); r.setRcvrUserId(id); return r; })
-                    .collect(Collectors.toList());
+            List<PostReceiverDto> receivers = Arrays.stream(receiverUserIds).map(id -> {
+                PostReceiverDto r = new PostReceiverDto();
+                r.setNtceSn(postSn);
+                r.setRcvrUserId(id);
+                return r;
+            }).collect(Collectors.toList());
             postMapper.insertPostReceivers(receivers);
+
+            // 알림 전송
+            for (String rcvrUserId : receiverUserIds) {
+                notificationService.sendNotification(rcvrUserId, userId, NotificationType.POST,
+                        "[쪽지] %s: %s".formatted(userId, postMasterDto.getNtceSj()),
+                        "/admin/note?box=received");
+            }
+
         } else {
             throw new FinalProjectException(ErrorCode.POST_MESSAGE_CREATE_FAIL);
         }
@@ -54,7 +67,7 @@ public class PostServiceImpl implements PostService {
 
     private void applyDelStatus(Long postSn, String userId, String delYn) {
         int updated = postMapper.updateSenderDelStatus(postSn, userId, delYn)
-                    + postMapper.updateReceiverDelStatus(postSn, userId, delYn);
+                + postMapper.updateReceiverDelStatus(postSn, userId, delYn);
         if (updated == 0) {
             throw new FinalProjectException(ErrorCode.POST_NOT_FOUND);
         }
@@ -77,7 +90,7 @@ public class PostServiceImpl implements PostService {
 
     private void applyArchiveYn(Long postSn, String userId, String archiveYn) {
         int updated = postMapper.updateSenderArchiveYn(postSn, userId, archiveYn)
-                    + postMapper.updateReceiverArchiveYn(postSn, userId, archiveYn);
+                + postMapper.updateReceiverArchiveYn(postSn, userId, archiveYn);
         if (updated == 0) {
             throw new FinalProjectException(ErrorCode.POST_NOT_FOUND);
         }
@@ -94,9 +107,11 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostMasterDto getPostById(Long postSn, String rcvrUserId, Authentication authentication) {
+    public PostMasterDto getPostById(Long postSn, String rcvrUserId,
+            Authentication authentication) {
         String currentUserId = authentication.getName();
-        String queryUserId = (rcvrUserId != null && !rcvrUserId.isBlank()) ? rcvrUserId : currentUserId;
+        String queryUserId =
+                (rcvrUserId != null && !rcvrUserId.isBlank()) ? rcvrUserId : currentUserId;
 
         PostMasterDto post = postMapper.selectPostById(postSn, queryUserId);
         if (post == null) {

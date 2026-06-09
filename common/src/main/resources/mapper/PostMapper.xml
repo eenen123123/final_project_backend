@@ -69,10 +69,12 @@
                     <if test="paginationInfo.detailCondition.box == 'received'">
                         AND pr.rcvr_user_id = #{userId}
                         AND NVL(pr.del_yn, 'N') = 'N' AND NVL(pr.archive_yn, 'N') = 'N'
+                        and ps.sndr_user_id != #{userId}
                     </if>
                     <if test="paginationInfo.detailCondition.box == 'sent'">
                         AND ps.sndr_user_id = #{userId}
                         AND NVL(ps.del_yn, 'N') = 'N' AND NVL(ps.archive_yn, 'N') = 'N'
+                        and pr.rcvr_user_id != #{userId}
                     </if>
                     <if test="paginationInfo.detailCondition.box == 'self'">
                         AND ps.sndr_user_id = #{userId} AND pr.rcvr_user_id = #{userId}
