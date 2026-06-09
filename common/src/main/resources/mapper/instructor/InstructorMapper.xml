@@ -18,10 +18,16 @@
     <result property="userName"        column="USER_NAME" />
     <result property="instrIntro"      column="INSTR_INTRO" />
     <result property="instrProfileImg" column="INSTR_PROFILE_IMG" />
+    <result property="subject"         column="SUBJECT" />
+    <result property="lectureCount"    column="LECTURE_COUNT" />
     <collection property="careers"
                 ofType="kr.or.ddit.finalProject.dto.instructor.InstructorCareerDto"
                 column="INSTR_USER_ID"
                 select="selectCareersByUserId" />
+    <collection property="books"
+                ofType="kr.or.ddit.finalProject.dto.instructor.InstructorCareerDto"
+                column="INSTR_USER_ID"
+                select="selectBooksByUserId" />
   </resultMap>
 
   <select id="selectInstructorsBySubject" resultMap="instructorListResponseMap">
@@ -46,7 +52,14 @@
         i.INSTR_UUID,
         i.INSTR_INTRO,
         i.INSTR_PROFILE_IMG,
-        m.USER_NAME
+        m.USER_NAME,
+        (SELECT LISTAGG(SUBJ_CL_NM, ', ') WITHIN GROUP (ORDER BY SUBJ_CL_NM)
+         FROM (SELECT DISTINCT sc.SUBJ_CL_NM
+               FROM COURSE c
+               JOIN SUBJECT s  ON s.SUBJ_ID    = c.SUBJ_ID
+               JOIN SUBJECT_CLASSIFICATION sc ON sc.SUBJ_CL_ID = s.SUBJ_CL_ID
+               WHERE c.INSTR_USER_ID = i.INSTR_USER_ID)) AS SUBJECT,
+        (SELECT COUNT(*) FROM COURSE WHERE INSTR_USER_ID = i.INSTR_USER_ID) AS LECTURE_COUNT
     FROM INSTRUCTOR i
     JOIN MEMBER m ON m.USER_ID = i.INSTR_USER_ID
     WHERE i.INSTR_UUID = #{instrUuid}
@@ -65,8 +78,27 @@
         SORT_ORD       AS sortOrd
     FROM INSTRUCTOR_CAREER
     WHERE INSTR_USER_ID = #{instrUserId}
+      AND CAREER_TYPE_CD = '01'
       AND DEL_YN = 'N'
-    ORDER BY CAREER_TYPE_CD, SORT_ORD
+    ORDER BY SORT_ORD
+  </select>
+
+  <select id="selectBooksByUserId"
+          parameterType="string"
+          resultType="kr.or.ddit.finalProject.dto.instructor.InstructorCareerDto">
+    SELECT
+        CAREER_SN      AS careerSn,
+        INSTR_USER_ID  AS instrUserId,
+        CAREER_TYPE_CD AS careerTypeCd,
+        CAREER_STRT_YR AS careerStrtYr,
+        CAREER_END_YR  AS careerEndYr,
+        CAREER_CONT    AS careerCont,
+        SORT_ORD       AS sortOrd
+    FROM INSTRUCTOR_CAREER
+    WHERE INSTR_USER_ID = #{instrUserId}
+      AND CAREER_TYPE_CD = '02'
+      AND DEL_YN = 'N'
+    ORDER BY SORT_ORD
   </select>
 
 </mapper>

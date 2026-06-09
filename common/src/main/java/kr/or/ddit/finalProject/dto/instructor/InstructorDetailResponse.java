@@ -11,6 +11,9 @@ public class InstructorDetailResponse {
     private String userName;
     private String instrIntro;
     private String instrProfileImg;
+    private String subject;
+    private Integer lectureCount;
     private List<InstructorCareerDto> careers;
+    private List<InstructorCareerDto> books;
 
 }
