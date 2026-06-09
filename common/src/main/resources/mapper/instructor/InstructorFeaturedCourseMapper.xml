@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.instructor.InstructorFeaturedCourseMapper">
+
+  <select id="selectFeaturedCourses"
+          resultType="kr.or.ddit.finalProject.dto.instructor.InstructorFeaturedCourseResponse">
+    SELECT
+        fc.COURSE_SN      AS courseSn,
+        c.COURSE_NM       AS courseNm,
+        fc.DISPLAY_ORDER  AS displayOrder
+    FROM INSTRUCTOR_FEATURED_COURSE fc
+    JOIN COURSE c ON c.COURSE_SN = fc.COURSE_SN
+    WHERE fc.INSTR_UUID = #{instrUuid}
+    ORDER BY fc.DISPLAY_ORDER
+    FETCH FIRST 4 ROWS ONLY
+  </select>
+
+</mapper>
