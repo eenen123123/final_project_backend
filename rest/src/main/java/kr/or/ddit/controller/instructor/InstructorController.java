@@ -131,6 +131,11 @@ public class InstructorController {
             return ResponseEntity.notFound().build();
         }
         instructorBoardMapper.incrementViewCount(postSn);
+        detail.setPrevPost(instructorBoardMapper.selectPrevPost(instrUuid, detail.getBoardTypeCd(), postSn));
+        detail.setNextPost(instructorBoardMapper.selectNextPost(instrUuid, detail.getBoardTypeCd(), postSn));
+        if ("Y".equals(detail.getHasFile())) {
+            detail.setFiles(instructorBoardMapper.selectBoardFiles(postSn));
+        }
         return ResponseEntity.ok(detail);
     }
 

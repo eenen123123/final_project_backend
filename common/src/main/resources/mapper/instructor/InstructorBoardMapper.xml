@@ -311,6 +311,47 @@
               AND IQ.ANSW_YN       = 'N'
       </select>
 
+      <select id="selectPrevPost"
+              resultType="kr.or.ddit.finalProject.dto.instructor.PostNavItem">
+            SELECT IB.POST_SN AS postSn, IB.POST_SJ AS title
+            FROM INSTRUCTOR_BOARD IB
+                  INNER JOIN INSTRUCTOR I ON IB.INSTR_USER_ID = I.INSTR_USER_ID
+            WHERE I.INSTR_UUID     = #{instrUuid}
+              AND IB.BOARD_TYPE_CD = #{boardTypeCd}
+              AND IB.CLASS_SN      IS NULL
+              AND IB.USE_YN        = 'Y'
+              AND IB.POST_SN       &lt; #{postSn}
+            ORDER BY IB.POST_SN DESC
+            FETCH FIRST 1 ROWS ONLY
+      </select>
+
+      <select id="selectNextPost"
+              resultType="kr.or.ddit.finalProject.dto.instructor.PostNavItem">
+            SELECT IB.POST_SN AS postSn, IB.POST_SJ AS title
+            FROM INSTRUCTOR_BOARD IB
+                  INNER JOIN INSTRUCTOR I ON IB.INSTR_USER_ID = I.INSTR_USER_ID
+            WHERE I.INSTR_UUID     = #{instrUuid}
+              AND IB.BOARD_TYPE_CD = #{boardTypeCd}
+              AND IB.CLASS_SN      IS NULL
+              AND IB.USE_YN        = 'Y'
+              AND IB.POST_SN       &gt; #{postSn}
+            ORDER BY IB.POST_SN ASC
+            FETCH FIRST 1 ROWS ONLY
+      </select>
+
+      <select id="selectBoardFiles"
+              resultType="kr.or.ddit.finalProject.dto.instructor.InstructorBoardFileItem">
+            SELECT
+                  CAF.ATCH_FILE_DTL_SN AS atchFileDtlSn,
+                  CAF.ORGN_FILE_NM     AS fileName,
+                  CAF.SAVE_PATH_NM     AS fileUrl
+            FROM CMMT_ATCH_FILE_DTL CAF
+                  INNER JOIN INSTRUCTOR_BOARD IB ON IB.ATCH_FILE_ID = CAF.ATCH_FILE_ID
+            WHERE IB.POST_SN  = #{postSn}
+              AND CAF.DEL_YN  = 'N'
+            ORDER BY CAF.ATCH_FILE_DTL_SN ASC
+      </select>
+
       <update id="incrementViewCount">
             UPDATE INSTRUCTOR_BOARD
             SET INQ_CNT = INQ_CNT + 1

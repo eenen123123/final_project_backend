@@ -6,10 +6,12 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto;
+import kr.or.ddit.finalProject.dto.instructor.InstructorBoardFileItem;
 import kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardDetail;
 import kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardItem;
 import kr.or.ddit.finalProject.dto.instructor.InstructorQnaAnswerDto;
 import kr.or.ddit.finalProject.dto.instructor.InstructorRecentPostResponse;
+import kr.or.ddit.finalProject.dto.instructor.PostNavItem;
 
 @Mapper
 public interface InstructorBoardMapper {
@@ -66,6 +68,16 @@ public interface InstructorBoardMapper {
                                   @Param("answCn") String answCn);
 
     int incrementViewCount(@Param("postSn") Long postSn);
+
+    PostNavItem selectPrevPost(@Param("instrUuid") String instrUuid,
+                               @Param("boardTypeCd") String boardTypeCd,
+                               @Param("postSn") Long postSn);
+
+    PostNavItem selectNextPost(@Param("instrUuid") String instrUuid,
+                               @Param("boardTypeCd") String boardTypeCd,
+                               @Param("postSn") Long postSn);
+
+    List<InstructorBoardFileItem> selectBoardFiles(@Param("postSn") Long postSn);
 
     // ── 공개 강사 게시판 (React 프론트용 페이징 목록 + 상세) ──────────
 

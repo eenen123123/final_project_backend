@@ -1,5 +1,7 @@
 package kr.or.ddit.finalProject.dto.instructor;
 
+import java.util.List;
+
 import lombok.Data;
 
 @Data
@@ -17,4 +19,9 @@ public class InstructorPublicBoardDetail {
     private String answerContent;
     private String answererName;
     private String answerDt;
+    // 이전/다음글 (같은 boardType 내)
+    private PostNavItem prevPost;
+    private PostNavItem nextPost;
+    // 첨부파일 목록 (hasFile='Y' 일 때만 채워짐)
+    private List<InstructorBoardFileItem> files;
 }
