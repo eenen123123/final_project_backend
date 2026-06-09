@@ -1,11 +1,11 @@
-package kr.or.ddit.finalProject.mapper.journal;
+package kr.or.ddit.finalProject.mapper.instructor;
 
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import kr.or.ddit.finalProject.dto.journal.InstructorJournalDto;
+import kr.or.ddit.finalProject.dto.instructor.InstructorJournalDto;
 
 /**
  * 업무 일지 Mapper
