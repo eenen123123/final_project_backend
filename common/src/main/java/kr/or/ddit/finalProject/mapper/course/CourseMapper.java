@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Param;
 import kr.or.ddit.finalProject.dto.course.CourseDto;
 import kr.or.ddit.finalProject.dto.course.CourseListDto;
 import kr.or.ddit.finalProject.dto.course.SubjectClassificationDto;
+import kr.or.ddit.finalProject.dto.instructor.InstructorPublicCourseResponse;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
 
@@ -40,5 +41,7 @@ public interface CourseMapper {
     List<SubjectClassificationDto> selectSubjectClassificationList();
 
     List<MemberDto> selectInstructorsBySubjClId(@Param("subjClId") Long subjClId);
+
+    List<InstructorPublicCourseResponse> selectCoursesByInstrUuid(@Param("instrUuid") String instrUuid);
 
 }

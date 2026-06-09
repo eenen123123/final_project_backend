@@ -6,6 +6,8 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto;
+import kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardDetail;
+import kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardItem;
 import kr.or.ddit.finalProject.dto.instructor.InstructorQnaAnswerDto;
 import kr.or.ddit.finalProject.dto.instructor.InstructorRecentPostResponse;
 
@@ -62,4 +64,17 @@ public interface InstructorBoardMapper {
     int updateInstructorQnaAnswer(@Param("postSn") Long postSn,
                                   @Param("answrUserId") String answrUserId,
                                   @Param("answCn") String answCn);
+
+    // ── 공개 강사 게시판 (React 프론트용 페이징 목록 + 상세) ──────────
+
+    int selectPublicBoardCount(@Param("instrUuid") String instrUuid,
+                               @Param("boardTypeCd") String boardTypeCd);
+
+    List<InstructorPublicBoardItem> selectPublicBoardList(@Param("instrUuid") String instrUuid,
+                                                          @Param("boardTypeCd") String boardTypeCd,
+                                                          @Param("offset") int offset,
+                                                          @Param("limit") int limit);
+
+    InstructorPublicBoardDetail selectPublicBoardDetail(@Param("instrUuid") String instrUuid,
+                                                        @Param("postSn") Long postSn);
 }

@@ -311,4 +311,65 @@
               AND IQ.ANSW_YN       = 'N'
       </select>
 
+      <!-- ── 공개 강사 게시판 페이징 목록 / 상세 (React 프론트용) ──────── -->
+
+      <select id="selectPublicBoardCount" resultType="int">
+            SELECT COUNT(*)
+            FROM INSTRUCTOR_BOARD IB
+                  INNER JOIN INSTRUCTOR I ON IB.INSTR_USER_ID = I.INSTR_USER_ID
+            WHERE I.INSTR_UUID     = #{instrUuid}
+              AND IB.BOARD_TYPE_CD = #{boardTypeCd}
+              AND IB.CLASS_SN      IS NULL
+              AND IB.USE_YN        = 'Y'
+      </select>
+
+      <select id="selectPublicBoardList"
+              resultType="kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardItem">
+            SELECT
+                  IB.POST_SN                                               AS postSn,
+                  IB.POST_SJ                                               AS title,
+                  TO_CHAR(IB.REG_DT, 'YYYY-MM-DD')                        AS regDt,
+                  IB.INQ_CNT                                               AS viewCount,
+                  M.USER_NAME                                              AS writerNickname,
+                  IQ.ANSW_YN                                               AS answerYn,
+                  CASE WHEN IB.ATCH_FILE_ID IS NOT NULL THEN 'Y' ELSE 'N' END AS hasFile
+            FROM INSTRUCTOR_BOARD IB
+                  INNER JOIN INSTRUCTOR I  ON IB.INSTR_USER_ID = I.INSTR_USER_ID
+                  INNER JOIN MEMBER M      ON IB.WRTR_USER_ID  = M.USER_ID
+                  LEFT  JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN   = IB.POST_SN
+                                               AND IB.BOARD_TYPE_CD = '03'
+            WHERE I.INSTR_UUID     = #{instrUuid}
+              AND IB.BOARD_TYPE_CD = #{boardTypeCd}
+              AND IB.CLASS_SN      IS NULL
+              AND IB.USE_YN        = 'Y'
+            ORDER BY IB.REG_DT DESC
+            OFFSET #{offset} ROWS FETCH NEXT #{limit} ROWS ONLY
+      </select>
+
+      <select id="selectPublicBoardDetail"
+              resultType="kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardDetail">
+            SELECT
+                  IB.POST_SN                                               AS postSn,
+                  IB.BOARD_TYPE_CD                                         AS boardTypeCd,
+                  IB.POST_SJ                                               AS title,
+                  IB.POST_CN                                               AS content,
+                  M.USER_NAME                                              AS writerNickname,
+                  TO_CHAR(IB.REG_DT, 'YYYY-MM-DD HH24:MI:SS')             AS regDt,
+                  IB.INQ_CNT                                               AS viewCount,
+                  CASE WHEN IB.ATCH_FILE_ID IS NOT NULL THEN 'Y' ELSE 'N' END AS hasFile,
+                  IQ.ANSW_YN                                               AS answerYn,
+                  IQ.ANSW_CN                                               AS answerContent,
+                  AM.USER_NAME                                             AS answererName,
+                  TO_CHAR(IQ.ANSW_DT, 'YYYY-MM-DD HH24:MI')               AS answerDt
+            FROM INSTRUCTOR_BOARD IB
+                  INNER JOIN INSTRUCTOR I  ON IB.INSTR_USER_ID = I.INSTR_USER_ID
+                  INNER JOIN MEMBER M      ON IB.WRTR_USER_ID  = M.USER_ID
+                  LEFT  JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN   = IB.POST_SN
+                  LEFT  JOIN MEMBER AM     ON IQ.ANSWR_USER_ID = AM.USER_ID
+            WHERE I.INSTR_UUID = #{instrUuid}
+              AND IB.POST_SN   = #{postSn}
+              AND IB.CLASS_SN  IS NULL
+              AND IB.USE_YN    = 'Y'
+      </select>
+
 </mapper>
