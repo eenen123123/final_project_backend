@@ -22,6 +22,7 @@
     th:action="${textbookDto.textbookSn != null} ? @{/admin/textbook/{sn}(sn=${textbookDto.textbookSn})} : @{/admin/textbook/new}"
     th:object="${textbookDto}" method="post" enctype="multipart/form-data" class="space-y-6">
 
+    <!-- ① 기본 정보 -->
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
       <h2 class="text-base font-bold text-slate-800 pb-3 border-b border-slate-100 flex items-center">
         <i class="fa-solid fa-book mr-2 text-blue-500"></i>기본 정보
@@ -29,28 +30,41 @@
 
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-5 gap-y-4">
 
+        <!-- 태그라인 (제목 위 빨간 글씨) -->
+        <div class="md:col-span-4">
+          <label class="block text-[13px] font-semibold text-slate-700 mb-1.5">태그라인
+            <span class="text-[11px] font-normal text-slate-400 ml-1">제목 위에 표시되는 시리즈명 (예: 만점 N제 2027 담금질)</span>
+          </label>
+          <input type="text" th:field="*{tagline}" class="hm-input w-full" placeholder="예: 만점 N제 2027 담금질" />
+        </div>
+
+        <!-- 교재명 -->
         <div class="md:col-span-4">
           <label class="block text-[13px] font-semibold text-slate-700 mb-1.5">
-            교재명 <span class="text-rose-500 ml-0.5">*</span>
+            교재명 (제목) <span class="text-rose-500 ml-0.5">*</span>
           </label>
           <input type="text" th:field="*{textbookNm}" class="hm-input w-full" placeholder="교재명을 입력하세요" required />
         </div>
 
+        <!-- 저자명 -->
         <div class="md:col-span-2">
           <label class="block text-[13px] font-semibold text-slate-700 mb-1.5">저자명</label>
           <input type="text" th:field="*{authrNm}" class="hm-input w-full" placeholder="저자명을 입력하세요" />
         </div>
 
+        <!-- 출판사명 -->
         <div class="md:col-span-2">
           <label class="block text-[13px] font-semibold text-slate-700 mb-1.5">출판사명</label>
           <input type="text" th:field="*{pubrNm}" class="hm-input w-full" placeholder="출판사명을 입력하세요" />
         </div>
 
+        <!-- ISBN -->
         <div class="md:col-span-2">
           <label class="block text-[13px] font-semibold text-slate-700 mb-1.5">ISBN(국제표준도서번호)</label>
           <input type="text" th:field="*{isbnNo}" class="hm-input w-full" placeholder="ISBN-13 입력" maxlength="13" />
         </div>
 
+        <!-- 과목 -->
         <div class="md:col-span-2">
           <label class="block text-[13px] font-semibold text-slate-700 mb-1.5">
             과목 <span class="text-rose-500 ml-0.5">*</span>
@@ -61,15 +75,87 @@
           </select>
         </div>
 
+        <!-- 간략 요약 -->
         <div class="md:col-span-4">
-          <label class="block text-[13px] font-semibold text-slate-700 mb-1.5">대상 학년 설명</label>
-          <textarea th:field="*{trgtGrdCn}" class="hm-input w-full h-24 resize-none leading-relaxed"
-            placeholder="예: 고등학교 3학년 대상 수능 대비 교재"></textarea>
+          <label class="block text-[13px] font-semibold text-slate-700 mb-1.5">간략 요약
+            <span class="text-[11px] font-normal text-slate-400 ml-1">교재 상세 페이지에 2~3줄로 표시됩니다.</span>
+          </label>
+          <textarea th:field="*{bookSmry}" class="hm-input w-full h-20 resize-none leading-relaxed"
+            placeholder="예: 고난도 기출 + 고퀄리티 자작문항&#10;만점 N제 2027 담금질"></textarea>
+        </div>
+
+        <!-- 상세 설명 -->
+        <div class="md:col-span-4">
+          <label class="block text-[13px] font-semibold text-slate-700 mb-1.5">상세 설명
+            <span class="text-[11px] font-normal text-slate-400 ml-1">교재 구성, 특징 등 상세 내용을 입력하세요.</span>
+          </label>
+          <textarea th:field="*{trgtGrdCn}" class="hm-input w-full h-32 resize-none leading-relaxed"
+            placeholder="예: [교재구성]&#10;- 최신 6개년 평가원 기출 수록&#10;&#10;[교재특징]&#10;- 고난도 문항 완벽 분석"></textarea>
+        </div>
+
+        <!-- 목차 -->
+        <div class="md:col-span-4">
+          <label class="block text-[13px] font-semibold text-slate-700 mb-1.5">목차</label>
+          <textarea th:field="*{tocCn}" class="hm-input w-full h-24 resize-none leading-relaxed"
+            placeholder="예: 1강. 수열의 극한&#10;2강. 급수&#10;3강. 미분법"></textarea>
         </div>
 
       </div>
     </div>
 
+    <!-- ② 강사 연결 -->
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
+      <h2 class="text-base font-bold text-slate-800 pb-3 border-b border-slate-100 flex items-center">
+        <i class="fa-solid fa-chalkboard-user mr-2 text-amber-500"></i>강사 및 강좌 연결
+      </h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+        <!-- 강사 선택 -->
+        <div>
+          <label class="block text-[13px] font-semibold text-slate-700 mb-1.5">강사 선택
+            <span class="text-[11px] font-normal text-slate-400 ml-1">없으면 '강사 정보 없음'으로 표시됩니다.</span>
+          </label>
+          <div class="flex gap-2">
+            <input type="text" id="instrUserNm" class="hm-input flex-1"
+              th:value="${textbookDto.instrUserId != null} ? '강사 선택됨' : ''" placeholder="강사를 선택하세요" readonly />
+            <input type="hidden" th:field="*{instrUserId}" id="instrUserId" />
+            <button type="button" onclick="openInstrPopup()"
+              class="hm-btn-ghost text-sm px-3.5 py-2 whitespace-nowrap cursor-pointer">
+              <i class="fa-solid fa-magnifying-glass mr-1.5"></i>선택
+            </button>
+            <button type="button" onclick="clearInstr()"
+              class="hm-btn-ghost text-sm px-3 py-2 text-rose-400 hover:text-rose-600 cursor-pointer">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 연결 강좌 (UI만, 추후 구현) -->
+        <div>
+          <label class="block text-[13px] font-semibold text-slate-700 mb-1.5">연결 강좌
+            <span class="text-[11px] font-normal text-slate-400 ml-1">없으면 '연결된 강좌 없음'으로 표시됩니다.</span>
+          </label>
+          <div class="flex gap-2">
+            <input type="text" id="courseNm" class="hm-input flex-1" placeholder="강좌를 선택하세요" readonly />
+            <button type="button" onclick="openCoursePopup()"
+              class="hm-btn-ghost text-sm px-3.5 py-2 whitespace-nowrap cursor-pointer">
+              <i class="fa-solid fa-magnifying-glass mr-1.5"></i>선택
+            </button>
+            <button type="button" onclick="clearCourse()"
+              class="hm-btn-ghost text-sm px-3 py-2 text-rose-400 hover:text-rose-600 cursor-pointer">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1.5">
+            <i class="fa-solid fa-circle-info mr-1"></i>강좌 연결 기능은 추후 구현 예정입니다.
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ③ 가격 정보 -->
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
       <h2 class="text-base font-bold text-slate-800 pb-3 border-b border-slate-100 flex items-center">
         <i class="fa-solid fa-won-sign mr-2 text-emerald-500"></i>가격 정보
@@ -82,12 +168,10 @@
           </label>
           <input type="number" th:field="*{salePrcAmt}" class="hm-input w-full" placeholder="0" min="0" required />
         </div>
-
         <div>
           <label class="block text-[13px] font-semibold text-slate-700 mb-1.5">매입 원가 (원)</label>
           <input type="number" th:field="*{purchPrcAmt}" class="hm-input w-full" placeholder="0" min="0" />
         </div>
-
         <div>
           <label class="block text-[13px] font-semibold text-slate-700 mb-1.5">배송비 (원)</label>
           <input type="number" th:field="*{dlvrAmt}" class="hm-input w-full" placeholder="0" min="0" />
@@ -95,6 +179,7 @@
       </div>
     </div>
 
+    <!-- ④ 이미지 및 재고 -->
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
       <h2 class="text-base font-bold text-slate-800 pb-3 border-b border-slate-100 flex items-center">
         <i class="fa-solid fa-image mr-2 text-violet-500"></i>이미지 및 재고
@@ -118,9 +203,9 @@
             </label>
 
             <div id="previewContainer" th:classappend="${textbookDto.thmbImg != null} ? '' : 'hidden'"
-              class="relative w-full h-56 rounded-2xl overflow-hidden border border-slate-200/80 shadow-sm bg-slate-100 group">
+              class="relative w-full h-48 rounded-2xl overflow-hidden border border-slate-200/80 shadow-sm bg-slate-100 group">
               <img id="previewImg" th:src="${textbookDto.thmbImg != null} ? ${textbookDto.thmbImg} : ''"
-                alt="교재 표지 미리보기" class="w-full h-full object-cover" />
+                alt="교재 표지 미리보기" class="w-full h-full object-contain" />
               <div
                 class="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
               </div>
@@ -138,22 +223,43 @@
         </div>
 
         <div th:if="${textbookDto.textbookSn == null}" class="flex-1 w-full pt-0 md:pt-7">
-          <div class="max-w-md bg-slate-50/70 border border-slate-100 rounded-2xl p-5">
-            <label class="block text-[13px] font-semibold text-slate-700 mb-1.5">
-              초기 재고 수량 <span class="text-rose-500 ml-0.5">*</span>
-            </label>
-            <input type="number" name="initInvtCnt" class="hm-input w-full bg-white" placeholder="0" min="0" value="0"
-              required />
-            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-              <i class="fa-solid fa-circle-info mr-1 text-slate-400"></i>
-              등록 시 초기 재고 수량이 물류 시스템에 자동으로 최초 입고 처리됩니다.
-            </p>
+          <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-5 h-full">
+          <label class="block text-[13px] font-semibold text-slate-700 mb-1.5">
+            초기 재고 수량 <span class="text-rose-500 ml-0.5">*</span>
+          </label>
+          <div class="flex gap-2 mb-2">
+            <input type="number" name="initInvtCnt" id="initInvtCnt" class="hm-input flex-1 bg-white" placeholder="0" min="0"
+              value="0" required />
+          </div>
+          <div class="flex gap-2 mb-2">
+            <button type="button" onclick="addQty(10)"
+              class="flex-1 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer">
+              +10
+            </button>
+            <button type="button" onclick="addQty(100)"
+              class="flex-1 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer">
+              +100
+            </button>
+            <button type="button" onclick="addQty(1000)"
+              class="flex-1 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer">
+              +1000
+            </button>
+            <button type="button" onclick="resetQty()"
+              class="px-3 py-1.5 text-xs font-bold text-rose-400 bg-white border border-slate-200 rounded-lg hover:bg-rose-50 hover:border-rose-200 transition-colors cursor-pointer">
+              초기화
+            </button>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            <i class="fa-solid fa-circle-info mr-1 text-slate-400"></i>
+            등록 시 초기 재고 수량이 물류 시스템에 자동으로 최초 입고 처리됩니다.
+          </p>
           </div>
         </div>
 
       </div>
     </div>
 
+    <!-- 버튼 -->
     <div class="flex justify-end items-center gap-3 pt-2">
       <a th:href="@{/admin/textbook}" class="hm-btn-ghost py-2.5 px-5 text-sm">
         <i class="fa-solid fa-xmark mr-1.5"></i>
@@ -179,13 +285,11 @@
 
     if (input.files && input.files[0]) {
       const file = input.files[0];
-
       if (!file.type.startsWith('image/')) {
         alert('이미지 파일만 업로드할 수 있습니다.');
         input.value = '';
         return;
       }
-
       const reader = new FileReader();
       reader.onload = function (e) {
         preview.src = e.target.result;
@@ -210,4 +314,34 @@
     placeholder.classList.remove('hidden');
     isImgDeleted.value = 'Y';
   }
+
+  // 강사 선택 팝업 (추후 구현)
+  function openInstrPopup() {
+    alert('강사 선택 팝업은 추후 구현 예정입니다.');
+  }
+
+  function clearInstr() {
+    document.getElementById('instrUserNm').value = '';
+    document.getElementById('instrUserId').value = '';
+  }
+
+  // 강좌 선택 팝업 (추후 구현)
+  function openCoursePopup() {
+    alert('강좌 선택 팝업은 추후 구현 예정입니다.');
+  }
+
+  function clearCourse() {
+    document.getElementById('courseNm').value = '';
+  }
+
+  function addQty(amount){
+    const input = document.getElementById('initInvtCnt');
+    let current = parseInt(input.value) || 0;
+    input.value = current + amount;
+  }
+
+  function resetQty() {
+      document.getElementById('initInvtCnt').value = 0;
+    }
+
 </script>
