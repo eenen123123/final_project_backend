@@ -136,6 +136,7 @@
       <button class="mnt-dept-btn active" data-dept="" onclick="selectMntDept(this)">전체</button>
       <button th:each="d : ${deptList}"
               th:data-dept="${d.deptCd}"
+              th:if="${d.useYn == 'Y'}"
               th:text="${d.deptNm}"
               onclick="selectMntDept(this)"
               class="mnt-dept-btn"></button>
