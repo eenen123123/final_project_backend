@@ -36,4 +36,6 @@ public interface MessageMapper {
 
     void updateLastReadMessage(@Param("roomSn") Long roomSn, @Param("userId") String userId,
             @Param("msgSn") long msgSn);
+
+    List<String> selectChatRoomParticipantIds(Long roomSn);
 }

@@ -28,7 +28,10 @@ function showHermesToast(message, type = "success") {
       ? '<i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>'
       : '<i class="fa-solid fa-circle-exclamation text-white text-sm"></i>';
 
-  toast.innerHTML = `${icon} <span>${message}</span>`;
+  // 메시지 내 줄바꿈을 <br> 태그로 변환하여 HTML로 표시
+  const brokenMessage = message.replaceAll("\n", "<br>");
+
+  toast.innerHTML = `${icon} <span>${brokenMessage}</span>`;
   container.appendChild(toast);
 
   setTimeout(() => {

@@ -18,8 +18,10 @@ import kr.or.ddit.finalProject.dto.approval.ApprovalDocProgressEnum;
 import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
 import kr.or.ddit.finalProject.dto.member.AdminMemberDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
+import kr.or.ddit.finalProject.dto.notification.NotificationType;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
+import kr.or.ddit.finalProject.service.NotificationService;
 import kr.or.ddit.finalProject.service.member.MemberService;
 import kr.or.ddit.mapper.ApprovalMapper;
 import kr.or.ddit.service.event.ApprovalCompletedEvent;
@@ -37,6 +39,7 @@ public class ApprovalService {
     private final AdminEmployeeService adminEmployeeService;
     private final ObjectMapper objectMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final NotificationService notificationService;
 
     /**
      * 결재 양식 리스트 조회
@@ -156,6 +159,13 @@ public class ApprovalService {
                         : ApprovalLineProgressEnum.WAITING);
                 approvalMapper.insertApprovalLine(line);
             }
+            if (isPending && !lineData.isEmpty()) {
+                notificationService.sendNotification(
+                        (String) lineData.get(0).get("aprvrUserId"),
+                        userId, NotificationType.APPROVAL,
+                        "결재 요청: " + master.getAprvlDocSj(),
+                        "/admin/approval/" + master.getAprvlDocSn());
+            }
         } catch (Exception e) {
             throw new FinalProjectException(ErrorCode.FILE_READ_ERROR);
         }
@@ -188,6 +198,13 @@ public class ApprovalService {
                 line.setAprvlPrgrsCd(isPending && i == 0 ? ApprovalLineProgressEnum.IN_PROGRESS
                         : ApprovalLineProgressEnum.WAITING);
                 approvalMapper.insertApprovalLine(line);
+            }
+            if (isPending && !lineData.isEmpty()) {
+                notificationService.sendNotification(
+                        (String) lineData.get(0).get("aprvrUserId"),
+                        userId, NotificationType.APPROVAL,
+                        "결재 요청: " + master.getAprvlDocSj(),
+                        "/admin/approval/" + master.getAprvlDocSn());
             }
         } catch (Exception e) {
             throw new FinalProjectException(ErrorCode.FILE_READ_ERROR);
@@ -322,6 +339,12 @@ public class ApprovalService {
                     if (resultNext == 0) {
                         throw new FinalProjectException(ErrorCode.FAILED_TO_APPROVE_APPROVAL);
                     }
+                    // 다음 결재자에게 알림
+                    notificationService.sendNotification(
+                            nextLine.getAprvrUserId(), name,
+                            NotificationType.APPROVAL,
+                            "결재 요청: " + master.getAprvlDocSj(),
+                            "/admin/approval/" + aprvlDocSn);
                 } else {
                     // 더 이상 결재선이 없으면, 문서 상태를 승인으로 변경
                     master.setAprvlPrgrsCd(ApprovalDocProgressEnum.APPROVED);
@@ -329,6 +352,12 @@ public class ApprovalService {
                     if (resultMaster == 0) {
                         throw new FinalProjectException(ErrorCode.FAILED_TO_APPROVE_APPROVAL);
                     }
+                    // 기안자에게 최종 승인 알림
+                    notificationService.sendNotification(
+                            master.getDrftUserId(), name,
+                            NotificationType.APPROVAL,
+                            "결재 승인됨: " + master.getAprvlDocSj(),
+                            "/admin/approval/" + aprvlDocSn);
                     eventPublisher.publishEvent(new ApprovalCompletedEvent(master.getAprvlDocSn()));
                 }
                 break;

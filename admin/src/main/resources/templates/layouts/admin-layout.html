@@ -19,7 +19,10 @@
     />
 
     <!-- tom-select.css 를 먼저 로드해야 admin-core.css 의 오버라이드가 !important 없이 동작함 -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css"
+    />
     <link rel="stylesheet" th:href="@{/css/admin-core.css}" />
     <link rel="stylesheet" th:href="@{/css/sidebar-admin.css}" />
   </head>
@@ -55,9 +58,15 @@
         });
       };
 
-      document.querySelectorAll("select.hm-input:not([data-ts-defer])").forEach(function (el) {
-        window.initTomSelect(el);
-      });
+      document
+        .querySelectorAll("select.hm-input:not([data-ts-defer])")
+        .forEach(function (el) {
+          window.initTomSelect(el);
+        });
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+    <script th:src="@{/js/notification.js}" defer></script>
   </body>
 </html>

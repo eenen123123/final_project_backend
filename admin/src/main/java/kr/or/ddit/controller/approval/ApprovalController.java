@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import kr.or.ddit.finalProject.dto.approval.ApprovalMasterDto;
+import kr.or.ddit.finalProject.service.NotificationService;
 import kr.or.ddit.service.ApprovalService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 public class ApprovalController {
 
     private final ApprovalService approvalService;
+    private final NotificationService notificationService;
 
     @PostMapping
     public String postApproval(@ModelAttribute ApprovalMasterDto masterDto,
