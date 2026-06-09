@@ -135,7 +135,7 @@
     </div>
 
     <!-- 좌우 패널 (높이 고정) -->
-    <div class="flex gap-4" style="height:500px">
+    <div class="flex gap-4" style="height:calc(93vh - 280px); min-height:600px">
 
       <!-- ◀ 왼쪽: 미배정 + 필터 -->
       <div class="flex flex-col rounded-xl border border-slate-200 bg-white overflow-hidden flex-shrink-0" style="width:290px">
@@ -292,7 +292,7 @@
   .emp-card:active { cursor: grabbing; }
 
   /* ── Org Chart Tree (행정/PD 부서) ── */
-  .org-tree-wrap { overflow: auto; display: flex; justify-content: center; align-items: flex-start; width: 100%; min-height: 100%; padding: 1.5rem 1rem; }
+  .org-tree-wrap { overflow: auto; width: 100%; min-height: 100%; padding: 1.5rem 1rem; }
   .org-tree { display: inline-flex; flex-direction: column; align-items: center; }
   .org-tree ul { display: flex; padding-top: 24px; position: relative; list-style: none; margin: 0; }
   .org-tree ul::before { content: ''; position: absolute; top: 0; left: 50%; border-left: 1.5px solid #cbd5e1; height: 24px; }
@@ -619,18 +619,27 @@
 
     document.getElementById('mnt-unassigned-count').textContent = `${list.length}명`;
     const container = document.getElementById('mnt-unassigned-list');
+    const savedScrollTop = container.scrollTop;
     if (!list.length) {
       container.innerHTML = '<p class="text-xs text-slate-400 text-center py-10">조건에 맞는<br>미배정 직원이 없습니다.</p>';
       return;
     }
     container.innerHTML = list.map(e => renderEmpCard(e)).join('');
+    container.scrollTop = savedScrollTop;
   }
 
   /* ── 오른쪽: 뷰 모드에 따라 칸반 or 트리로 분기 ── */
   function renderTeams() {
     const teamsEl  = document.getElementById('mnt-teams');
     const wrapEl   = teamsEl.parentElement;
-    const empMap   = {};
+
+    /* 렌더 전 스크롤 위치 저장 */
+    const treeWrap      = document.getElementById('org-tree-wrap');
+    const savedTreeLeft = treeWrap ? treeWrap.scrollLeft : null;
+    const savedTreeTop  = treeWrap ? treeWrap.scrollTop  : null;
+    const savedWrapLeft = wrapEl.scrollLeft;
+
+    const empMap = {};
     allEmps.forEach(e => { empMap[e.userId] = e; });
 
     const dbLeaders = allEmps.filter(e => e.mntUserId && e.mntUserId === e.userId).map(e => e.userId);
@@ -642,13 +651,15 @@
       wrapEl.className  = 'flex-1 overflow-auto';
       teamsEl.className = 'h-full';
       teamsEl.removeAttribute('style');
-      renderOrgTree(supIds, empMap);
+      renderOrgTree(supIds, empMap, savedTreeLeft, savedTreeTop);
     } else {
       /* 칸반 뷰: 가로 스크롤 */
       wrapEl.className  = 'flex-1 overflow-x-auto overflow-y-hidden';
       teamsEl.className = 'flex gap-3 h-full items-start';
       teamsEl.style.minWidth = 'max-content';
       renderKanban(supIds, empMap);
+      /* 칸반 스크롤 복원 */
+      requestAnimationFrame(() => { wrapEl.scrollLeft = savedWrapLeft; });
     }
   }
 
@@ -713,7 +724,7 @@
   }
 
   /* ── 트리 뷰 (행정팀 / PD팀) ── */
-  function renderOrgTree(supIds, empMap) {
+  function renderOrgTree(supIds, empMap, savedScrollLeft, savedScrollTop) {
     const teamsEl = document.getElementById('mnt-teams');
 
     if (!supIds.length) {
@@ -733,13 +744,25 @@
     }
 
     teamsEl.innerHTML = `
-      <div class="org-tree-wrap">
+      <div class="org-tree-wrap" id="org-tree-wrap">
         ${supIds.map(sid => `
           <div class="org-tree">
             <ul>${buildTreeHtml(sid, empMap)}</ul>
           </div>
         `).join('')}
       </div>`;
+
+    /* 스크롤 복원: 이전 위치가 있으면 복원, 최초 로드면 중앙 정렬 */
+    requestAnimationFrame(() => {
+      const wrap = document.getElementById('org-tree-wrap');
+      if (!wrap) return;
+      if (savedScrollLeft !== null && savedScrollLeft !== undefined) {
+        wrap.scrollLeft = savedScrollLeft;
+        wrap.scrollTop  = savedScrollTop ?? 0;
+      } else {
+        wrap.scrollLeft = (wrap.scrollWidth - wrap.clientWidth) / 2;
+      }
+    });
   }
 
   /* 재귀 트리 노드 HTML 생성 */
@@ -764,6 +787,9 @@
     const nodeHtml = `
       <div class="tree-node ${isRoot ? 'tree-node-root' : ''} relative"
            data-uid="${esc(userId)}"
+           data-mnt="${esc(emp.mntUserId || '')}"
+           ${!isRoot ? 'draggable="true"' : ''}
+           style="${!isRoot ? 'cursor:grab;' : ''}"
            ondragover="event.preventDefault()"
            ondrop="onDropToTreeNode(event, this)">
         ${dissolveBtn}
@@ -788,6 +814,9 @@
     if (!dragUserId) return;
     const targetId = nodeEl.dataset.uid;
     if (!targetId || dragUserId === targetId || dragCurMnt === targetId) return;
+    /* 자신의 하위 직원에게 드롭 시 순환 참조 방지 */
+    const descendants = getTeamDescendants(dragUserId);
+    if (descendants.some(e => e.userId === targetId)) return;
     saveMntMapping(dragUserId, targetId);
   }
 
@@ -892,8 +921,15 @@
           body: JSON.stringify({ mntUserId: null })
         }).then(r => r.json())
       )
-    ).then(() => loadMntKanban())
-     .catch(err => alert('해제 중 오류: ' + err.message));
+    ).then(() => {
+      /* 로컬 업데이트: re-fetch 없이 allEmps 수정 후 렌더 */
+      targets.forEach(uid => {
+        const emp = allEmps.find(e => e.userId === uid);
+        if (emp) emp.mntUserId = null;
+      });
+      renderUnassigned();
+      renderTeams();
+    }).catch(err => alert('해제 중 오류: ' + err.message));
   }
 
   /* ── "+" 영역 드롭 → 드래그한 직원을 팀장으로 등록 (mntUserId = 자기 자신) ── */
@@ -950,7 +986,13 @@
       )
     ).then(() => {
       dragUserId = null;
-      loadMntKanban();
+      /* 로컬 업데이트: re-fetch 없이 allEmps 수정 후 렌더 */
+      targets.forEach(uid => {
+        const emp = allEmps.find(e => e.userId === uid);
+        if (emp) emp.mntUserId = null;
+      });
+      renderUnassigned();
+      renderTeams();
     }).catch(err => {
       dragUserId = null;
       alert('배정 해제 중 오류가 발생했습니다.\n' + err.message);
@@ -968,8 +1010,17 @@
     })
     .then(d => {
       dragUserId = null;
-      if (d.result === 'success') loadMntKanban();
-      else alert('배정 실패: ' + (d.message || '알 수 없는 오류'));
+      if (d.result === 'success') {
+        /* 로컬 업데이트: re-fetch 없이 allEmps 수정 후 렌더 (깜박임 없음) */
+        const emp = allEmps.find(e => e.userId === userId);
+        if (emp) emp.mntUserId = newMntUserId;
+        /* 팀장(자기 자신)으로 등록된 경우 extraSups에서 제거 (DB leader로 전환) */
+        if (newMntUserId === userId) extraSups = extraSups.filter(id => id !== userId);
+        renderUnassigned();
+        renderTeams();
+      } else {
+        alert('배정 실패: ' + (d.message || '알 수 없는 오류'));
+      }
     })
     .catch(err => {
       dragUserId = null;
@@ -979,7 +1030,7 @@
 
   /* ── DnD 이벤트 위임 ── */
   document.addEventListener('dragstart', e => {
-    const card = e.target.closest('.emp-card');
+    const card = e.target.closest('.emp-card') || e.target.closest('.tree-node[draggable]');
     if (!card) return;
     dragUserId = card.dataset.uid;
     dragCurMnt = card.dataset.mnt;
@@ -988,7 +1039,7 @@
     requestAnimationFrame(() => { card.style.opacity = '0.45'; });
   });
   document.addEventListener('dragend', e => {
-    const card = e.target.closest('.emp-card');
+    const card = e.target.closest('.emp-card') || e.target.closest('.tree-node[draggable]');
     if (card) card.style.opacity = '';
     dragUserId = null;
     document.querySelectorAll('.mnt-col.drag-over, .tree-node.drag-over, #mnt-unassigned-list.drag-over')
