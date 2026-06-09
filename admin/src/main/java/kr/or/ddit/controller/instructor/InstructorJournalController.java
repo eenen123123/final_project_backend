@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import kr.or.ddit.finalProject.dto.journal.InstructorJournalDto;
-import kr.or.ddit.finalProject.service.journal.InstructorJournalService;
+import kr.or.ddit.finalProject.dto.instructor.InstructorJournalDto;
+import kr.or.ddit.finalProject.service.instructor.InstructorJournalService;
 import lombok.RequiredArgsConstructor;
 
 /**
