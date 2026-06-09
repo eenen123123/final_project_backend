@@ -208,7 +208,7 @@ public class StaffStudentsController {
         memberDto.setUserZip(userZip);
         memberDto.setUserAddr(userAddr);
         memberDto.setUserDaddr(userDaddr);
-        memberDto.setUserProfile(userProfile); /* 기존 URL 유지 — 신규 이미지는 결재 후 덮어씀 */
+        memberDto.setUserProfile(profileImageBase64 != null ? "__PENDING__" : userProfile);
         memberDto.setUserRole(userRole);
         memberDto.setEnable(enable);
 
