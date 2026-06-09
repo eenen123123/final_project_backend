@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.mapper.AuditLogMapper">
+
+    <insert id="insertAuditLog" parameterType="kr.or.ddit.dto.AuditLogDto">
+        INSERT INTO HERMES_ADMIN_AUDIT_LOG
+            (trace_id, admin_id, member_ip, http_method, request_uri, request_params, status_code)
+        VALUES
+            (#{traceId}, #{adminId}, #{memberIp}, #{httpMethod}, #{requestUri}, #{requestParams}, #{statusCode})
+    </insert>
+
+</mapper>
