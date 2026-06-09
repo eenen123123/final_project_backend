@@ -96,4 +96,5 @@ public class AdminActivityApprovalService {
             throw new RuntimeException("결재선 직렬화 실패: " + e.getMessage(), e);
         }
     }
+
 }
