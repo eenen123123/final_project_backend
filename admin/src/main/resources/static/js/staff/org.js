@@ -1,9 +1,13 @@
 /* ── 탭 전환 ── */
 function switchTab(id, btn) {
   document.querySelectorAll('.org-panel').forEach(p => p.classList.add('hidden'));
-  document.querySelectorAll('.org-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.org-tab').forEach(b => {
+    b.classList.remove('active');
+    b.classList.add('text-slate-500');
+  });
   document.getElementById(id).classList.remove('hidden');
   btn.classList.add('active');
+  btn.classList.remove('text-slate-500');
   if (id === 'tab-grade')   loadGradesOnce();
   if (id === 'tab-mapping') loadMntKanbanOnce();
 }
@@ -216,6 +220,7 @@ let allEmps         = [];
 let extraSups       = []; /* "팀 추가"로 만든 임시 사수 열 */
 let dragUserId      = null;
 let dragCurMnt      = null;
+let pendingChanges  = new Map(); /* userId → newMntUserId (일괄 등록 대기 목록) */
 
 /* 트리 뷰 사용 부서 (행정팀 D100, PD팀 D200) */
 const TREE_VIEW_DEPTS = new Set(['D100', 'D200']);
@@ -270,6 +275,11 @@ function loadMntKanban() {
     })
     .then(emps => {
       allEmps = emps;
+      /* 대기 중인 변경 사항을 서버 데이터 위에 다시 적용 */
+      pendingChanges.forEach((mntId, uid) => {
+        const emp = allEmps.find(e => e.userId === uid);
+        if (emp) emp.mntUserId = mntId;
+      });
       renderUnassigned();
       renderTeams();
     })
@@ -592,22 +602,10 @@ function dissolveTeam(supId) {
   const members = getTeamDescendants(supId);
   const targets = [supId, ...members.map(e => e.userId)];
   extraSups = extraSups.filter(id => id !== supId);
-  Promise.all(
-    targets.map(uid =>
-      fetch(`/admin/org/mapping/${uid}`, {
-        method: 'PUT', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ mntUserId: null })
-      }).then(r => r.json())
-    )
-  ).then(() => {
-    /* 로컬 업데이트: re-fetch 없이 allEmps 수정 후 렌더 */
-    targets.forEach(uid => {
-      const emp = allEmps.find(e => e.userId === uid);
-      if (emp) emp.mntUserId = null;
-    });
-    renderUnassigned();
-    renderTeams();
-  }).catch(err => alert('해제 중 오류: ' + err.message));
+  targets.forEach(uid => applyMntChange(uid, null));
+  renderUnassigned();
+  renderTeams();
+  updatePendingBar();
 }
 
 /* ── "+" 영역 드롭 → 드래그한 직원을 팀장으로 등록 (mntUserId = 자기 자신) ── */
@@ -644,66 +642,74 @@ function onDropToUnassigned(event) {
   event.preventDefault();
   if (!dragUserId || !dragCurMnt) return; /* 이미 미배정 */
 
-  /* 하위 직원이 있으면 cascade로 함께 초기화 */
   const descendants = getTeamDescendants(dragUserId);
-  if (!descendants.length) {
-    saveMntMapping(dragUserId, null);
-    return;
-  }
-
   const targets = [dragUserId, ...descendants.map(e => e.userId)];
-  Promise.all(
-    targets.map(uid =>
-      fetch(`/admin/org/mapping/${uid}`, {
-        method: 'PUT', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ mntUserId: null })
-      }).then(r => {
-        if (!r.ok) throw new Error(`서버 오류 ${r.status}`);
-        return r.json();
-      })
-    )
-  ).then(() => {
-    dragUserId = null;
-    /* 로컬 업데이트: re-fetch 없이 allEmps 수정 후 렌더 */
-    targets.forEach(uid => {
-      const emp = allEmps.find(e => e.userId === uid);
-      if (emp) emp.mntUserId = null;
-    });
-    renderUnassigned();
-    renderTeams();
-  }).catch(err => {
-    dragUserId = null;
-    alert('배정 해제 중 오류가 발생했습니다.\n' + err.message);
-  });
+  targets.forEach(uid => applyMntChange(uid, null));
+  dragUserId = null;
+  renderUnassigned();
+  renderTeams();
+  updatePendingBar();
 }
 
 function saveMntMapping(userId, newMntUserId) {
-  fetch(`/admin/org/mapping/${userId}`, {
-    method: 'PUT', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ mntUserId: newMntUserId })
-  })
-  .then(r => {
+  applyMntChange(userId, newMntUserId);
+  if (newMntUserId === userId) extraSups = extraSups.filter(id => id !== userId);
+  dragUserId = null;
+  renderUnassigned();
+  renderTeams();
+  updatePendingBar();
+}
+
+function applyMntChange(userId, newMntUserId) {
+  const emp = allEmps.find(e => e.userId === userId);
+  if (emp) emp.mntUserId = newMntUserId;
+  pendingChanges.set(userId, newMntUserId);
+}
+
+function updatePendingBar() {
+  const bar = document.getElementById('mnt-save-bar');
+  const ct  = document.getElementById('mnt-pending-count');
+  if (!bar) return;
+  if (pendingChanges.size > 0) {
+    bar.classList.remove('hidden');
+    if (ct) ct.textContent = pendingChanges.size;
+  } else {
+    bar.classList.add('hidden');
+  }
+}
+
+async function flushPendingChanges() {
+  if (!pendingChanges.size) return;
+  const btn = document.getElementById('mnt-flush-btn');
+  if (btn) btn.disabled = true;
+  const payload = [...pendingChanges.entries()].map(([userId, mntUserId]) => ({ userId, mntUserId: mntUserId ?? '' }));
+  try {
+    const r = await fetch('/admin/org/mapping/batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
     if (!r.ok) throw new Error(`서버 오류 ${r.status}`);
-    return r.json();
-  })
-  .then(d => {
-    dragUserId = null;
+    const d = await r.json();
     if (d.result === 'success') {
-      /* 로컬 업데이트: re-fetch 없이 allEmps 수정 후 렌더 (깜박임 없음) */
-      const emp = allEmps.find(e => e.userId === userId);
-      if (emp) emp.mntUserId = newMntUserId;
-      /* 팀장(자기 자신)으로 등록된 경우 extraSups에서 제거 (DB leader로 전환) */
-      if (newMntUserId === userId) extraSups = extraSups.filter(id => id !== userId);
-      renderUnassigned();
-      renderTeams();
+      pendingChanges.clear();
+      updatePendingBar();
+      showHermesToast('결재에 등록되었습니다.');
     } else {
-      alert('배정 실패: ' + (d.message || '알 수 없는 오류'));
+      showHermesToast('등록 실패: ' + (d.message || '알 수 없는 오류'), 'error');
     }
-  })
-  .catch(err => {
-    dragUserId = null;
-    alert('배정 저장 중 오류가 발생했습니다.\n' + err.message);
-  });
+  } catch (err) {
+    showHermesToast('저장 중 오류가 발생했습니다: ' + err.message, 'error');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function cancelPendingChanges() {
+  pendingChanges.clear();
+  mntKanbanLoaded = false;
+  loadMntKanban();
+  updatePendingBar();
 }
 
 /* ── DnD 이벤트 위임 ── */

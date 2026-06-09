@@ -5,9 +5,10 @@ import java.util.Optional;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-
+import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.member.AdminMemberDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
 
 @Mapper
 public interface MemberMapper {
@@ -35,5 +36,8 @@ public interface MemberMapper {
     int updateMember(MemberDto memberDto);
 
     int updateUserRole(@Param("userId") String userId, @Param("role") String role);
+
+    PageResponse<MemberDto> selectStudentListWithPaging(
+            @Param("paging") PaginationInfo<MemberDto> paging);
 
 }

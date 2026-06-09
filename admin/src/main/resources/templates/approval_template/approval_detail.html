@@ -417,6 +417,7 @@
     userId: '사용자 ID', userName: '이름', userGndrCd: '성별', userBrdt: '생년월일',
     userTelno: '연락처', userEmailAddr: '이메일', userZip: '우편번호',
     userAddr: '주소', userDaddr: '상세주소',
+    userRole: '권한', enable: '계정 상태', userProfile: '프로필 사진',
     deptCd: '부서 코드', deptNm: '부서명', jbgrCd: '직급 코드', jbgrNm: '직급명',
     joinYmd: '입사일', retmtYmd: '퇴사일', retmtRsn: '퇴사 사유',
     emplStatCd: '재직 상태', emplTypeCd: '고용 유형', chrgDutyCn: '담당 업무',
@@ -428,6 +429,9 @@
     userGndrCd:  v => v === 'M' ? '남성' : v === 'F' ? '여성' : v,
     emplStatCd:  v => ({ '01':'재직', '02':'퇴직', '03':'휴직' }[v] || v),
     emplTypeCd:  v => ({ '01':'정규직', '02':'계약직', '03':'아르바이트' }[v] || v),
+    userRole:    v => ({ 'ROLE_ADMIN':'관리자', 'ROLE_USER':'학생', 'ROLE_STUDENT':'학생' }[v] || v),
+    enable:      v => (v === '1' || String(v).toLowerCase() === 'true') ? '활성' : '비활성',
+    userProfile: v => v === '__PENDING__' ? '새 이미지 (결재 후 반영)' : (v && String(v).startsWith('http')) ? '등록됨' : '-',
     userTelno:   v => {
       const d = String(v).replace(/-/g, '');
       if (d.length === 11) return d.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
@@ -473,8 +477,11 @@
       const sectionKeys = [...new Set([...Object.keys(before), ...Object.keys(after)])];
 
       sectionKeys.forEach(dtoKey => {
-        const bDto = before[dtoKey] || {};
-        const aDto = after[dtoKey]  || {};
+        const bRaw = before[dtoKey];
+        const aRaw = after[dtoKey];
+        if (aRaw !== null && typeof aRaw !== 'object') return;
+        const bDto = bRaw || {};
+        const aDto = aRaw || {};
         const sec  = SECTION_CONFIG[dtoKey] || { label: dtoKey };
 
         /* after에 실제 제출된 키만 표시 (미제출 필드는 제외) */

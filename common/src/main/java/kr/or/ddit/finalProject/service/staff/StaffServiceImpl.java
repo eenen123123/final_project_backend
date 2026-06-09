@@ -305,6 +305,11 @@ public class StaffServiceImpl implements StaffService{
         return staffMapper.selectStudentList();
     }
 
+    @Override
+    public MemberDto retrieveStudentById(String userId) {
+        return staffMapper.selectStudentByUserId(userId);
+    }
+
     /**
      * 가입 연도 목록 조회
      */

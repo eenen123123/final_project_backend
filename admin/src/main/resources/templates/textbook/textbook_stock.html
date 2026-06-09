@@ -1,0 +1,227 @@
+<title th:fragment="pageTitle">교재 재고 관리 | HERMES</title>
+
+<div class="space-y-6">
+
+  <!-- ① 페이지 헤더 -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">교재 재고 관리</h1>
+      <p class="text-sm text-slate-500 mt-1">재고 현황을 확인하고 입출고 내역을 관리합니다.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <a th:href="@{/admin/textbook}" class="hm-btn-ghost">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>목록으로</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- ② 재고 현황 카드 -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-boxes-stacked"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">총 재고</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5"
+           th:text="${inventoryDto?.totInvtCnt + '권' ?: '0권'}">0권</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-box-open"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">판매 가능</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5"
+           th:text="${inventoryDto?.salableCnt + '권' ?: '0권'}">0권</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-cart-shopping"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">판매 완료</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5"
+           th:text="${inventoryDto?.saleCmplCnt + '권' ?: '0권'}">0권</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">파손/폐기</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5"
+           th:text="${inventoryDto?.dmgdDspslCnt + '권' ?: '0권'}">0권</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 재고 수정 폼 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+    <h2 class="text-sm font-bold text-slate-700 pb-3 border-b border-slate-100 mb-5">
+      <i class="fa-solid fa-pen mr-2 text-blue-500"></i>재고 수정
+    </h2>
+    <form th:action="@{/admin/textbook/stock/{sn}(sn=${textbookSn})}"
+          th:object="${inventoryDto}"
+          method="post"
+          class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+      <!-- 총 재고 -->
+      <div>
+        <label class="block text-xs font-bold text-slate-500 mb-1.5">총 재고 수량</label>
+        <input type="number" th:field="*{totInvtCnt}" class="hm-input w-full" min="0" />
+      </div>
+
+      <!-- 판매 가능 -->
+      <div>
+        <label class="block text-xs font-bold text-slate-500 mb-1.5">판매 가능 수량</label>
+        <input type="number" th:field="*{salableCnt}" class="hm-input w-full" min="0" />
+      </div>
+
+      <!-- 최소 유지 수량 -->
+      <div>
+        <label class="block text-xs font-bold text-slate-500 mb-1.5">최소 유지 수량</label>
+        <input type="number" th:field="*{minKeepCnt}" class="hm-input w-full" min="0" />
+      </div>
+
+      <!-- 파손/폐기 -->
+      <div>
+        <label class="block text-xs font-bold text-slate-500 mb-1.5">파손/폐기 수량</label>
+        <input type="number" th:field="*{dmgdDspslCnt}" class="hm-input w-full" min="0" />
+      </div>
+
+      <!-- 재고 상태 -->
+      <div>
+        <label class="block text-xs font-bold text-slate-500 mb-1.5">재고 상태</label>
+        <select th:field="*{invtStatCd}" class="hm-input w-full">
+          <option value="10">정상</option>
+          <option value="20">품절</option>
+          <option value="30">입고대기</option>
+        </select>
+      </div>
+
+      <!-- 버튼 -->
+      <div class="md:col-span-3 flex justify-end gap-3 pt-2">
+        <button type="submit" class="hm-btn-primary">
+          <i class="fa-solid fa-floppy-disk"></i>
+          <span>재고 수정</span>
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- ④ 입출고 내역 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="px-6 pt-5 pb-3 border-b border-slate-100">
+      <h2 class="text-sm font-bold text-slate-700">
+        <i class="fa-solid fa-clock-rotate-left mr-2 text-violet-500"></i>입출고 내역
+      </h2>
+    </div>
+
+    <!-- 검색 필터 -->
+    <div class="px-6 py-4 border-b border-slate-100">
+      <form th:action="@{/admin/textbook/stock/{sn}(sn=${textbookSn})}" method="get"
+            class="flex flex-wrap items-center gap-3">
+        <!-- 입출고 유형 -->
+        <select name="ioTypeCd" class="hm-input w-36">
+          <option value="">전체</option>
+          <option value="10" th:selected="${param.ioTypeCd == '10'}">입고</option>
+          <option value="20" th:selected="${param.ioTypeCd == '20'}">출고</option>
+        </select>
+        <!-- 시작일 -->
+        <input type="date" name="startDt" th:value="${param.startDt}" class="hm-input w-40" />
+        <span class="text-slate-400 text-sm">~</span>
+        <!-- 종료일 -->
+        <input type="date" name="endDt" th:value="${param.endDt}" class="hm-input w-40" />
+        <!-- 키워드 -->
+        <input type="text" name="keyword" th:value="${param.keyword}"
+               class="hm-input w-40" placeholder="처리자 ID 검색" />
+        <button type="submit" class="hm-btn-primary">
+          <i class="fa-solid fa-search"></i>
+          <span>검색</span>
+        </button>
+        <a th:href="@{/admin/textbook/stock/{sn}(sn=${textbookSn})}" class="hm-btn-ghost">초기화</a>
+      </form>
+    </div>
+
+    <!-- 내역 테이블 -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+            <th class="py-4 px-6 text-center">유형</th>
+            <th class="py-4 px-6 text-right">변경 수량</th>
+            <th class="py-4 px-6 text-right">변경 전</th>
+            <th class="py-4 px-6 text-right">변경 후</th>
+            <th class="py-4 px-6 text-center">처리자</th>
+            <th class="py-4 px-6 text-center">처리일시</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+
+          <!-- 데이터 없을 때 -->
+          <tr th:if="${#lists.isEmpty(historyList)}">
+            <td colspan="6" class="py-16 text-center text-slate-400 text-sm">
+              입출고 내역이 없습니다.
+            </td>
+          </tr>
+
+          <!-- 내역 목록 -->
+          <tr th:each="history : ${historyList}" class="hover:bg-slate-50/50 transition-colors">
+            <!-- 유형 -->
+            <td class="py-4 px-6 text-center">
+              <span th:if="${history.ioTypeCd == '10'}"
+                    class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-600">
+                <i class="fa-solid fa-arrow-down mr-1"></i>입고
+              </span>
+              <span th:if="${history.ioTypeCd == '20'}"
+                    class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-600">
+                <i class="fa-solid fa-arrow-up mr-1"></i>출고
+              </span>
+            </td>
+            <!-- 변경 수량 -->
+            <td class="py-4 px-6 text-right font-bold"
+                th:classappend="${history.ioTypeCd == '10'} ? 'text-emerald-600' : 'text-rose-600'"
+                th:text="${history.ioTypeCd == '10'} ? '+' + history.chgCnt : '-' + history.chgCnt">0</td>
+            <!-- 변경 전 -->
+            <td class="py-4 px-6 text-right text-slate-500" th:text="${history.bfrChgCnt}">0</td>
+            <!-- 변경 후 -->
+            <td class="py-4 px-6 text-right text-slate-700 font-medium" th:text="${history.aftChgCnt}">0</td>
+            <!-- 처리자 -->
+            <td class="py-4 px-6 text-center text-slate-600" th:text="${history.procUserId}">-</td>
+            <!-- 처리일시 -->
+            <td class="py-4 px-6 text-center text-xs text-slate-500"
+                th:text="${#temporals.format(history.procDt, 'yyyy.MM.dd HH:mm')}">-</td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 페이지네이션 -->
+    <div th:if="${paginationInfo.totalPage > 1}"
+         class="flex items-center justify-center gap-1 py-5 border-t border-slate-100">
+      <a th:href="@{/admin/textbook/stock/{sn}(sn=${textbookSn}, page=${paginationInfo.startPage - 1}, ioTypeCd=${param.ioTypeCd}, startDt=${param.startDt}, endDt=${param.endDt}, keyword=${param.keyword})}"
+         th:classappend="${paginationInfo.startPage == 1} ? 'pointer-events-none opacity-30' : ''"
+         class="w-8 h-8 flex items-center justify-center border border-slate-200 rounded text-slate-400 hover:bg-slate-50 text-sm">‹</a>
+
+      <th:block th:each="p : ${#numbers.sequence(paginationInfo.startPage, paginationInfo.endPage)}">
+        <a th:href="@{/admin/textbook/stock/{sn}(sn=${textbookSn}, page=${p}, ioTypeCd=${param.ioTypeCd}, startDt=${param.startDt}, endDt=${param.endDt}, keyword=${param.keyword})}"
+           th:text="${p}"
+           th:classappend="${p == paginationInfo.page} ? 'bg-blue-950 text-white border-blue-950' : 'text-slate-500 border-slate-200 hover:bg-slate-50'"
+           class="w-8 h-8 flex items-center justify-center border rounded text-xs font-medium transition-colors">1</a>
+      </th:block>
+
+      <a th:href="@{/admin/textbook/stock/{sn}(sn=${textbookSn}, page=${paginationInfo.endPage + 1}, ioTypeCd=${param.ioTypeCd}, startDt=${param.startDt}, endDt=${param.endDt}, keyword=${param.keyword})}"
+         th:classappend="${paginationInfo.endPage >= paginationInfo.totalPage} ? 'pointer-events-none opacity-30' : ''"
+         class="w-8 h-8 flex items-center justify-center border border-slate-200 rounded text-slate-400 hover:bg-slate-50 text-sm">›</a>
+    </div>
+
+  </div>
+
+</div>
