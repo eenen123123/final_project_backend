@@ -92,7 +92,7 @@ public class InstructorBoardController {
      */
     @GetMapping("/insertForm")
     public String getInsertForm(Model model) {
-        model.addAttribute("boardTypes", getBoardTypeList());
+        model.addAttribute("boardTypes", getBoardTypes());
         return "admin:/instructor/boardInsertForm";
     }
 
@@ -155,13 +155,8 @@ public class InstructorBoardController {
                 .boardTypeCd(responseDto.getBoardTypeCd()).postSj(responseDto.getTitle())
                 .postCn(sanitize(responseDto.getContent())).build();
         model.addAttribute("board", board);
-        model.addAttribute("boardTypes", getBoardTypeList());
+        model.addAttribute("boardTypes", getBoardTypes());
         return "admin:/instructor/boardInsertForm";
-    }
-
-    private List<CommonCodeDto> getBoardTypeList() {
-        return commonCodeMapper.selectByClCode("100").stream()
-                .filter(c -> !"01".equals(c.getComCd())).toList();
     }
 
     /**

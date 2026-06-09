@@ -55,8 +55,6 @@ public class InstructorExamController {
 
         model.addAttribute("questions", questions);
         model.addAttribute("exams", exams);
-        // 시험 등록 폼에서 문항 선택 체크박스에 사용
-        model.addAttribute("allQuestions", questions);
 
         return "admin:/instructor/exam";
     }
