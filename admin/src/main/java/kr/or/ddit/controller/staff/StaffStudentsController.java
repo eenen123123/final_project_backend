@@ -269,7 +269,9 @@ public class StaffStudentsController {
     @ResponseBody
     public ResponseEntity<Void> sendParentJoinMessage(@RequestParam String studentId,
             @RequestParam String parentPhone) {
-        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toString();
+        // String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toString();
+        // TODO: Rest API 서버 URL을 환경변수나 설정파일에서 읽어오도록 수정 필요
+        String baseUrl = "http://localhost:9001"; // Rest API 서버의 URL로 고정 
         parentService.sendParentJoinLink(parentPhone, baseUrl, studentId);
 
         return ResponseEntity.ok().build();
@@ -279,10 +281,6 @@ public class StaffStudentsController {
     public String parentJoinMessage(Model model) {
         List<MemberDto> studentList = staffService.retrieveStudentList();
         model.addAttribute("studentList", studentList);
-
-        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toString();
-
-        log.info("baseUrl: {}", baseUrl);
 
         return "admin:/staff/sendJoinMessageToParent";
     }

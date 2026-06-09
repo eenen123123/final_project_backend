@@ -34,4 +34,11 @@
         DELETE FROM parent_join_link
         WHERE link_id = #{linkId}
     </delete>
+
+    <!-- insertParentChildRelation -->
+
+    <insert id="insertParentChildRelation">
+        insert into student (std_user_id, prnt_user_id, prnt_telno)
+        values (#{stdUserId}, #{prntUserId}, #{prntTelno})
+    </insert>
 </mapper>

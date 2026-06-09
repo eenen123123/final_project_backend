@@ -3,7 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="kr.or.ddit.finalProject.mapper.StaffMapper">
-    
+
     <resultMap id="EmployeeDetailResultMap" type="kr.or.ddit.finalProject.dto.employee.EmployeeDetailDto">
 
         <id property="userId" column="M_USER_ID" />
@@ -26,7 +26,7 @@
             <result property="jbgrCd" column="JBGR_CD" />
             <result property="joinYmd" column="JOIN_YMD" />
             <result property="retmtYmd" column="RETMT_YMD" />
-            <result property="emplStatCd" column="EMPL_STAT_CD" /> 
+            <result property="emplStatCd" column="EMPL_STAT_CD" />
             <result property="atchFileId" column="ATCH_FILE_ID" />
             <result property="chrgDutyCn" column="CHRG_DUTY_CN" />
             <result property="emplTypeCd" column="EMPL_TYPE_CD" />
@@ -41,7 +41,7 @@
             DEPT_CD, PRNT_DEPT_CD, DEPT_NM, USE_YN, INTL_TEL_NO, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
         FROM
             DEPARTMENT
-    </select>      
+    </select>
 
     <select id="selectJobGradeList" resultType="kr.or.ddit.finalProject.dto.employee.JobGradeDto">
         SELECT
@@ -108,14 +108,14 @@
             , SYSTIMESTAMP
             , #{emplTypeCd, jdbcType=CHAR}
             
-            <choose>
-                <when test="ctrctEndYmd != null and ctrctEndYmd != ''">
+        <choose>
+            <when test="ctrctEndYmd != null and ctrctEndYmd != ''">
                     , TO_DATE(SUBSTR(#{ctrctEndYmd, jdbcType=VARCHAR}, 1, 10), 'YYYY-MM-DD')
-                </when>
-                <otherwise>
+            </when>
+            <otherwise>
                     , NULL
-                </otherwise>
-            </choose>
+            </otherwise>
+        </choose>
         )
     </insert>
 
@@ -132,7 +132,7 @@
         )
     </insert>
 
-    <!-- selectEmployeeList --> 
+    <!-- selectEmployeeList -->
     <select id="selectEmployeeList" resultMap="EmployeeDetailResultMap">
         SELECT
             /* MEMBER 테이블 (M_ 접두사) */
@@ -465,44 +465,44 @@
             EMPL_STAT_CD    = #{emplStatCd, jdbcType=CHAR},
             EMPL_TYPE_CD    = #{emplTypeCd, jdbcType=CHAR},
             CTRCT_END_YMD   = <choose>
-                                <when test="ctrctEndYmd != null and ctrctEndYmd != ''">TO_DATE(SUBSTR(#{ctrctEndYmd, jdbcType=VARCHAR}, 1, 10), 'YYYY-MM-DD')</when>
-                                <otherwise>NULL</otherwise>
-                              </choose>,
+        <when test="ctrctEndYmd != null and ctrctEndYmd != ''">TO_DATE(SUBSTR(#{ctrctEndYmd, jdbcType=VARCHAR}, 1, 10), 'YYYY-MM-DD')</when>
+        <otherwise>NULL</otherwise>
+    </choose>,
             CHRG_DUTY_CN    = #{chrgDutyCn, jdbcType=VARCHAR},
             LAST_MDFR_ID    = #{lastMdfrId, jdbcType=VARCHAR},
             MDFCN_DT        = SYSTIMESTAMP
         WHERE USER_ID = #{userId, jdbcType=VARCHAR}
-    </update>
+</update>
 
-    <!-- selectCurrentSalary -->
-    <select id="selectCurrentSalary" parameterType="String" resultType="kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto">
+<!-- selectCurrentSalary -->
+<select id="selectCurrentSalary" parameterType="String" resultType="kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto">
         SELECT BASE_SALARY
         FROM EMPLOYEE_SALARY
         WHERE USER_ID = #{userId}
           AND USE_YN = 'Y'
-    </select>
-    
+</select>
 
-    <!-- deactivateCurrentSalary: 현재 적용 급여를 이력으로 전환 -->
-    <update id="deactivateCurrentSalary" parameterType="String">
+
+<!-- deactivateCurrentSalary: 현재 적용 급여를 이력으로 전환 -->
+<update id="deactivateCurrentSalary" parameterType="String">
         UPDATE EMPLOYEE_SALARY SET
             USE_YN   = 'N',
             MDFCN_DT = SYSTIMESTAMP
         WHERE USER_ID = #{userId, jdbcType=VARCHAR}
           AND USE_YN = 'Y'
-    </update>
+</update>
 
-    <!-- 퇴사: MEMBER 계정 비활성화 --> 
-    <update id="updateMemberDisabled" parameterType="String">
+<!-- 퇴사: MEMBER 계정 비활성화 -->
+<update id="updateMemberDisabled" parameterType="String">
         UPDATE MEMBER SET
             ENABLE   = 'N',
             MOD_DATE = SYSTIMESTAMP
         WHERE USER_ID = #{userId}
           AND ENABLE = 'Y'
-    </update>
+</update>
 
-    <!-- 퇴사: EMPLOYEE_INFO 상태, 퇴사일, 퇴사사유 변경 --> 
-    <update id="updateEmployeeRetired">
+<!-- 퇴사: EMPLOYEE_INFO 상태, 퇴사일, 퇴사사유 변경 -->
+<update id="updateEmployeeRetired">
         UPDATE EMPLOYEE_INFO SET
             EMPL_STAT_CD = '03',
             RETMT_YMD    = SYSTIMESTAMP,
@@ -511,20 +511,20 @@
             MDFCN_DT     = SYSTIMESTAMP       
         WHERE USER_ID = #{userId}
           AND NVL(EMPL_STAT_CD, '00') != '03' 
-    </update>
+</update>
 
-    <!-- 퇴사: EMPLOYEE_SALARY 현재 급여 비활성화 --> 
-    <update id="updateEmployeeSalaryInactive">
+<!-- 퇴사: EMPLOYEE_SALARY 현재 급여 비활성화 -->
+<update id="updateEmployeeSalaryInactive">
         UPDATE EMPLOYEE_SALARY SET
             USE_YN       = 'N',
             LAST_MDFR_ID = #{loginUserId},
             MDFCN_DT     = SYSTIMESTAMP
         WHERE USER_ID = #{userId}
           AND USE_YN = 'Y'                
-    </update>
+</update>
 
-    <!-- selectStudentList --> 
-    <select id="selectStudentList" resultType="kr.or.ddit.finalProject.dto.member.MemberDto">
+<!-- selectStudentList -->
+<select id="selectStudentList" resultType="kr.or.ddit.finalProject.dto.member.MemberDto">
         SELECT
             USER_ID
             , USER_ENPSWD
@@ -546,56 +546,56 @@
         FROM
             MEMBER
         WHERE USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
-    </select>    
+</select>
 
-    <!-- searchStudentList: 학생 목록 동적 검색 + 서버 페이징 -->
-    <select id="searchStudentList" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo" resultType="kr.or.ddit.finalProject.dto.member.MemberDto">
+<!-- searchStudentList: 학생 목록 동적 검색 + 서버 페이징 -->
+<select id="searchStudentList" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo" resultType="kr.or.ddit.finalProject.dto.member.MemberDto">
         SELECT
             USER_ID, USER_ENPSWD, USER_NAME, USER_ENRRNO, USER_GNDR_CD, USER_BRDT,
             JOIN_DT, USER_TELNO, USER_EMAIL_ADDR, USER_ZIP, USER_ADDR, USER_DADDR,
             USER_PROFILE, REG_DATE, MOD_DATE, ENABLE, USER_ROLE
         FROM MEMBER
         WHERE USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
-        <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
+    <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
             AND USER_NAME LIKE '%' || #{detailCondition.keyword} || '%'
-        </if>
-        <if test="detailCondition != null and detailCondition.year != null and detailCondition.year != ''">
+    </if>
+    <if test="detailCondition != null and detailCondition.year != null and detailCondition.year != ''">
             AND TO_CHAR(JOIN_DT, 'YYYY') = #{detailCondition.year}
-        </if>
-        <if test="detailCondition != null and detailCondition.userRole != null and detailCondition.userRole != ''">
+    </if>
+    <if test="detailCondition != null and detailCondition.userRole != null and detailCondition.userRole != ''">
             AND USER_ROLE = #{detailCondition.userRole}
-        </if>
-        <if test="detailCondition != null and detailCondition.enable != null and detailCondition.enable != ''">
+    </if>
+    <if test="detailCondition != null and detailCondition.enable != null and detailCondition.enable != ''">
             AND ENABLE = #{detailCondition.enable}
-        </if>
+    </if>
         ORDER BY
-        <choose>
-            <when test="orderBy == 'name'">USER_NAME</when>
-            <when test="orderBy == 'role'">USER_ROLE</when>
-            <when test="orderBy == 'enable'">ENABLE</when>
-            <when test="orderBy == 'join'">JOIN_DT</when>
-            <otherwise>USER_ID</otherwise>
-        </choose>
-        <choose>
-            <when test="orderDirection == 'DESC'">DESC</when>
-            <otherwise>ASC</otherwise>
-        </choose>
+    <choose>
+        <when test="orderBy == 'name'">USER_NAME</when>
+        <when test="orderBy == 'role'">USER_ROLE</when>
+        <when test="orderBy == 'enable'">ENABLE</when>
+        <when test="orderBy == 'join'">JOIN_DT</when>
+        <otherwise>USER_ID</otherwise>
+    </choose>
+    <choose>
+        <when test="orderDirection == 'DESC'">DESC</when>
+        <otherwise>ASC</otherwise>
+    </choose>
         NULLS LAST
         OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
-    </select>
+</select>
 
-    <!-- selectStudentJoinYearList -->
-    <select id="selectStudentJoinYearList">
+<!-- selectStudentJoinYearList -->
+<select id="selectStudentJoinYearList">
         SELECT DISTINCT TO_CHAR(JOIN_DT, 'YYYY') AS JOIN_YEAR
           FROM MEMBER
           WHERE USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
             AND JOIN_DT IS NOT NULL
           ORDER BY JOIN_YEAR
-    </select>
+</select>
 
-    <!-- insertStudentLog --> 
+<!-- insertStudentLog -->
 
-    <insert id="insertStudentLog" parameterType="kr.or.ddit.finalProject.dto.member.MemberCreateLogDto">
+<insert id="insertStudentLog" parameterType="kr.or.ddit.finalProject.dto.member.MemberCreateLogDto">
         INSERT
         INTO
         MEMBER_CREATE_LOG
@@ -607,11 +607,11 @@
             , MDFCN_DT
         )
         VALUES(#{userId}, #{rgtrId}, #{lastMdfrId}, SYSTIMESTAMP, SYSTIMESTAMP)
-    </insert>
+</insert>
 
-    <!-- updateMemberWithdrwa --> 
+<!-- updateMemberWithdrwa -->
 
-    <insert id="updateMemberWithdrwa" parameterType="kr.or.ddit.finalProject.dto.member.MemberWithdrawLogDto">
+<insert id="updateMemberWithdrwa" parameterType="kr.or.ddit.finalProject.dto.member.MemberWithdrawLogDto">
         INSERT
         INTO
         MEMBER_WITHDRAW_LOG
@@ -624,29 +624,29 @@
             , MDFCN_DT
         )
         VALUES(#{userId}, #{withdrawRsn}, #{rgtrId}, #{lastMdfrId}, SYSTIMESTAMP , SYSTIMESTAMP )
-    </insert>
+</insert>
 
-    <!-- countSearchStudentList -->
-    <select id="countSearchStudentList" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo" resultType="int">
+<!-- countSearchStudentList -->
+<select id="countSearchStudentList" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo" resultType="int">
         SELECT COUNT(*)
         FROM MEMBER
         WHERE USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
-        <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
+    <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
             AND USER_NAME LIKE '%' || #{detailCondition.keyword} || '%'
-        </if>
-        <if test="detailCondition != null and detailCondition.year != null and detailCondition.year != ''">
+    </if>
+    <if test="detailCondition != null and detailCondition.year != null and detailCondition.year != ''">
             AND TO_CHAR(JOIN_DT, 'YYYY') = #{detailCondition.year}
-        </if>
-        <if test="detailCondition != null and detailCondition.userRole != null and detailCondition.userRole != ''">
+    </if>
+    <if test="detailCondition != null and detailCondition.userRole != null and detailCondition.userRole != ''">
             AND USER_ROLE = #{detailCondition.userRole}
-        </if>
-        <if test="detailCondition != null and detailCondition.enable != null and detailCondition.enable != ''">
+    </if>
+    <if test="detailCondition != null and detailCondition.enable != null and detailCondition.enable != ''">
             AND ENABLE = #{detailCondition.enable}
-        </if>
-    </select>
+    </if>
+</select>
 
-    <!-- searchActiveEmployeeList: 재직 중인 직원 동적 검색 + 서버 페이징 (권한 설정 페이지용) -->
-    <select id="searchActiveEmployeeList" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo" resultMap="EmployeeDetailResultMap">
+<!-- searchActiveEmployeeList: 재직 중인 직원 동적 검색 + 서버 페이징 (권한 설정 페이지용) -->
+<select id="searchActiveEmployeeList" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo" resultMap="EmployeeDetailResultMap">
         SELECT
             m.USER_ID AS M_USER_ID,
             m.USER_ENPSWD AS M_USER_ENPSWD,
@@ -688,71 +688,71 @@
         LEFT JOIN EMPLOYEE_SALARY es ON m.USER_ID = es.USER_ID AND es.USE_YN = 'Y'
         WHERE m.USER_ROLE = 'ROLE_ADMIN'
           AND m.ENABLE = 'Y'
-        <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
+    <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
             AND m.USER_NAME LIKE '%' || #{detailCondition.keyword} || '%'
-        </if>
-        <if test="detailCondition != null and detailCondition.deptCd != null and detailCondition.deptCd != ''">
+    </if>
+    <if test="detailCondition != null and detailCondition.deptCd != null and detailCondition.deptCd != ''">
             AND ei.DEPT_CD = #{detailCondition.deptCd}
-        </if>
-        <if test="detailCondition != null and detailCondition.jbgrNm != null and detailCondition.jbgrNm != ''">
+    </if>
+    <if test="detailCondition != null and detailCondition.jbgrNm != null and detailCondition.jbgrNm != ''">
             AND TRIM(j.JBGR_NM) = #{detailCondition.jbgrNm}
-        </if>
-        <if test="detailCondition != null and detailCondition.online != null and detailCondition.online == &quot;Y&quot;">
+    </if>
+    <if test="detailCondition != null and detailCondition.online != null and detailCondition.online == &quot;Y&quot;">
             AND EXISTS (SELECT 1 FROM ADMINLOGIN_LOG l WHERE l.USER_ID = m.USER_ID AND l.LOGOUT_DT IS NULL)
-        </if>
-        <if test="detailCondition != null and detailCondition.online != null and detailCondition.online == &quot;N&quot;">
+    </if>
+    <if test="detailCondition != null and detailCondition.online != null and detailCondition.online == &quot;N&quot;">
             AND NOT EXISTS (SELECT 1 FROM ADMINLOGIN_LOG l WHERE l.USER_ID = m.USER_ID AND l.LOGOUT_DT IS NULL)
-        </if>
+    </if>
         ORDER BY
-        <choose>
-            <when test="orderBy == 'name'">m.USER_NAME</when>
-            <when test="orderBy == 'dept'">d.DEPT_NM</when>
-            <when test="orderBy == 'jbgr'">j.JBGR_NM</when>
-            <otherwise>m.USER_ID</otherwise>
-        </choose>
-        <choose>
-            <when test="orderDirection == 'DESC'">DESC</when>
-            <otherwise>ASC</otherwise>
-        </choose>
+    <choose>
+        <when test="orderBy == 'name'">m.USER_NAME</when>
+        <when test="orderBy == 'dept'">d.DEPT_NM</when>
+        <when test="orderBy == 'jbgr'">j.JBGR_NM</when>
+        <otherwise>m.USER_ID</otherwise>
+    </choose>
+    <choose>
+        <when test="orderDirection == 'DESC'">DESC</when>
+        <otherwise>ASC</otherwise>
+    </choose>
         NULLS LAST
         OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
-    </select>
+</select>
 
-    <!-- countSearchActiveEmployeeList: 전체 건수 (페이지 버튼 계산용) -->
-    <select id="countSearchActiveEmployeeList" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo" resultType="int">
+<!-- countSearchActiveEmployeeList: 전체 건수 (페이지 버튼 계산용) -->
+<select id="countSearchActiveEmployeeList" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo" resultType="int">
         SELECT COUNT(*)
         FROM MEMBER m
         LEFT JOIN EMPLOYEE_INFO ei ON m.USER_ID = ei.USER_ID
         LEFT JOIN JOB_GRADE j ON ei.JBGR_CD = j.JBGR_CD
         WHERE m.USER_ROLE = 'ROLE_ADMIN'
           AND m.ENABLE = 'Y'
-        <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
+    <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
             AND m.USER_NAME LIKE '%' || #{detailCondition.keyword} || '%'
-        </if>
-        <if test="detailCondition != null and detailCondition.deptCd != null and detailCondition.deptCd != ''">
+    </if>
+    <if test="detailCondition != null and detailCondition.deptCd != null and detailCondition.deptCd != ''">
             AND ei.DEPT_CD = #{detailCondition.deptCd}
-        </if>
-        <if test="detailCondition != null and detailCondition.jbgrNm != null and detailCondition.jbgrNm != ''">
+    </if>
+    <if test="detailCondition != null and detailCondition.jbgrNm != null and detailCondition.jbgrNm != ''">
             AND TRIM(j.JBGR_NM) = #{detailCondition.jbgrNm}
-        </if>
-        <if test="detailCondition != null and detailCondition.online != null and detailCondition.online == &quot;Y&quot;">
+    </if>
+    <if test="detailCondition != null and detailCondition.online != null and detailCondition.online == &quot;Y&quot;">
             AND EXISTS (SELECT 1 FROM ADMINLOGIN_LOG l WHERE l.USER_ID = m.USER_ID AND l.LOGOUT_DT IS NULL)
-        </if>
-        <if test="detailCondition != null and detailCondition.online != null and detailCondition.online == &quot;N&quot;">
+    </if>
+    <if test="detailCondition != null and detailCondition.online != null and detailCondition.online == &quot;N&quot;">
             AND NOT EXISTS (SELECT 1 FROM ADMINLOGIN_LOG l WHERE l.USER_ID = m.USER_ID AND l.LOGOUT_DT IS NULL)
-        </if>
-    </select>
+    </if>
+</select>
 
-    <!-- ═══════════════════════════════════════════
+<!-- ═══════════════════════════════════════════
          조직 관리: 부서 CRUD
     ═══════════════════════════════════════════ -->
-    <insert id="insertDepartment" parameterType="kr.or.ddit.finalProject.dto.employee.DepartmentDto">
+<insert id="insertDepartment" parameterType="kr.or.ddit.finalProject.dto.employee.DepartmentDto">
         INSERT INTO DEPARTMENT (DEPT_CD, PRNT_DEPT_CD, DEPT_NM, USE_YN, INTL_TEL_NO, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT)
         VALUES (#{deptCd}, #{prntDeptCd, jdbcType=VARCHAR}, #{deptNm}, 'Y',
                 #{intlTelNo, jdbcType=VARCHAR}, #{rgtrId}, #{rgtrId}, SYSTIMESTAMP, SYSTIMESTAMP)
-    </insert>
+</insert>
 
-    <update id="updateDepartment" parameterType="kr.or.ddit.finalProject.dto.employee.DepartmentDto">
+<update id="updateDepartment" parameterType="kr.or.ddit.finalProject.dto.employee.DepartmentDto">
         UPDATE DEPARTMENT
         SET DEPT_NM      = #{deptNm},
             PRNT_DEPT_CD = #{prntDeptCd, jdbcType=VARCHAR},
@@ -760,52 +760,52 @@
             LAST_MDFR_ID = #{lastMdfrId},
             MDFCN_DT     = SYSTIMESTAMP
         WHERE DEPT_CD = #{deptCd}
-    </update>
+</update>
 
-    <update id="toggleDeptUseYn">
+<update id="toggleDeptUseYn">
         UPDATE DEPARTMENT
         SET USE_YN       = #{useYn},
             LAST_MDFR_ID = #{loginUserId},
             MDFCN_DT     = SYSTIMESTAMP
         WHERE DEPT_CD = #{deptCd}
-    </update>
+</update>
 
-    <!-- ═══════════════════════════════════════════
+<!-- ═══════════════════════════════════════════
          조직 관리: 직급 CRUD
     ═══════════════════════════════════════════ -->
-    <select id="selectAllJobGradeDtos" resultType="kr.or.ddit.finalProject.dto.employee.JobGradeDto">
+<select id="selectAllJobGradeDtos" resultType="kr.or.ddit.finalProject.dto.employee.JobGradeDto">
         SELECT JBGR_CD, JBGR_NM, SORT_ORD, USE_YN, BASE_ANN_LV_DAYS, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT, DEPT_CD
         FROM JOB_GRADE
         ORDER BY SORT_ORD
-    </select>
+</select>
 
-    <select id="selectJobGradeListPaged" resultType="kr.or.ddit.finalProject.dto.employee.JobGradeDto">
+<select id="selectJobGradeListPaged" resultType="kr.or.ddit.finalProject.dto.employee.JobGradeDto">
         SELECT JBGR_CD, JBGR_NM, DEPT_CD, SORT_ORD, USE_YN, BASE_ANN_LV_DAYS
         FROM JOB_GRADE
-        <where>
-            <if test="deptCd != null and deptCd != ''">AND DEPT_CD = #{deptCd}</if>
-            <if test="useYn  != null and useYn  != ''">AND USE_YN  = #{useYn}</if>
-        </where>
+    <where>
+        <if test="deptCd != null and deptCd != ''">AND DEPT_CD = #{deptCd}</if>
+        <if test="useYn != null and useYn != ''">AND USE_YN  = #{useYn}</if>
+    </where>
         ORDER BY SORT_ORD NULLS LAST, JBGR_CD
         OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
-    </select>
+</select>
 
-    <select id="countJobGradeListPaged" resultType="int">
+<select id="countJobGradeListPaged" resultType="int">
         SELECT COUNT(*) FROM JOB_GRADE
-        <where>
-            <if test="deptCd != null and deptCd != ''">AND DEPT_CD = #{deptCd}</if>
-            <if test="useYn  != null and useYn  != ''">AND USE_YN  = #{useYn}</if>
-        </where>
-    </select>
+    <where>
+        <if test="deptCd != null and deptCd != ''">AND DEPT_CD = #{deptCd}</if>
+        <if test="useYn != null and useYn != ''">AND USE_YN  = #{useYn}</if>
+    </where>
+</select>
 
-    <insert id="insertJobGrade" parameterType="kr.or.ddit.finalProject.dto.employee.JobGradeDto">
+<insert id="insertJobGrade" parameterType="kr.or.ddit.finalProject.dto.employee.JobGradeDto">
         INSERT INTO JOB_GRADE (JBGR_CD, JBGR_NM, SORT_ORD, USE_YN, BASE_ANN_LV_DAYS, DEPT_CD, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT)
         VALUES (#{jbgrCd}, #{jbgrNm}, #{sortOrd, jdbcType=NUMERIC}, 'Y',
                 NVL(#{baseAnnLvDays, jdbcType=NUMERIC}, 15), #{deptCd, jdbcType=VARCHAR},
                 #{rgtrId}, #{rgtrId}, SYSTIMESTAMP, SYSTIMESTAMP)
-    </insert>
+</insert>
 
-    <update id="updateJobGrade" parameterType="kr.or.ddit.finalProject.dto.employee.JobGradeDto">
+<update id="updateJobGrade" parameterType="kr.or.ddit.finalProject.dto.employee.JobGradeDto">
         UPDATE JOB_GRADE
         SET JBGR_NM          = #{jbgrNm},
             SORT_ORD          = #{sortOrd, jdbcType=NUMERIC},
@@ -814,25 +814,32 @@
             LAST_MDFR_ID      = #{lastMdfrId},
             MDFCN_DT          = SYSTIMESTAMP
         WHERE JBGR_CD = #{jbgrCd}
-    </update>
+</update>
 
-    <update id="toggleJbgrUseYn">
+<update id="toggleJbgrUseYn">
         UPDATE JOB_GRADE
         SET USE_YN       = #{useYn},
             LAST_MDFR_ID = #{loginUserId},
             MDFCN_DT     = SYSTIMESTAMP
         WHERE JBGR_CD = #{jbgrCd}
-    </update>
+</update>
 
-    <!-- ═══════════════════════════════════════════
+<!-- ═══════════════════════════════════════════
          조직 관리: 사수(MNT_USER_ID) 배정
     ═══════════════════════════════════════════ -->
-    <update id="updateMntUserId">
+<update id="updateMntUserId">
         UPDATE EMPLOYEE_INFO
         SET MNT_USER_ID  = #{mntUserId, jdbcType=VARCHAR},
             LAST_MDFR_ID = #{loginUserId},
             MDFCN_DT     = SYSTIMESTAMP
         WHERE USER_ID = #{userId}
-    </update>
+</update>
+
+<select id="selectStudent" parameterType="String" resultType="MemberDto">
+        SELECT *
+        FROM MEMBER
+        WHERE USER_ID = #{userId}
+              and USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
+</select>
 
 </mapper>

@@ -26,13 +26,4 @@ public class SmsServiceTest {
         // smsService.sendSms(to, text);
     }
 
-    @Test
-    void getJoinTokenFromJoinLinkTest() {
-        String joinLink =
-                "http://localhost:9001/parent/join?token=fcaaecf8-c6de-40c0-ba78-3b35789dbc3b";
-
-        // 토큰 추출
-        String token = parentService.getJoinTokenFromJoinLink(joinLink);
-        log.info("추출된 토큰: {}", token);
-    }
 }

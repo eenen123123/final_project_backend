@@ -105,7 +105,7 @@ public enum ErrorCode {
     STUDENT_NOT_FOUND(HttpStatus.NOT_FOUND, "학생을 찾을 수 없습니다."),
     INVALID_JOIN_LINK(HttpStatus.BAD_REQUEST, "유효하지 않은 회원가입 링크입니다."),
     EXPIRED_JOIN_LINK(HttpStatus.BAD_REQUEST, "만료된 회원가입 링크입니다."),
-
+    PARENT_REGISTER_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "부모 회원 등록에 실패했습니다."),
 
     // 쪽지 관련
 

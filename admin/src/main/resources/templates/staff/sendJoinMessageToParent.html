@@ -319,17 +319,16 @@
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: params.toString(),
     })
-      .then((r) => r.json())
-      .then((data) => {
+      .then((res) => {
         closeSmsModal();
-        if (data.result === "success") {
+        if (res.status === 200) {
           smsTodaySentCount++;
           document.getElementById("today-sent-count").textContent =
             smsTodaySentCount;
           showHermesToast("가입 링크가 발송되었습니다.", "success");
         } else {
           showHermesToast(
-            "발송 실패: " + (data.message || "알 수 없는 오류"),
+            "발송 실패: " + (res.statusText || "알 수 없는 오류"),
             "error",
           );
         }
