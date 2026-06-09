@@ -249,6 +249,30 @@
             WHERE POST_SN = #{postSn}
       </update>
 
+      <select id="selectRecentPosts"
+              resultType="kr.or.ddit.finalProject.dto.instructor.InstructorRecentPostResponse">
+            SELECT *
+            FROM (
+                  SELECT
+                        IB.POST_SN AS postSn,
+                        IB.POST_SJ AS title,
+                        IB.REG_DT  AS regDt,
+                        CASE IB.BOARD_TYPE_CD
+                              WHEN '02' THEN 'notice'
+                              WHEN '03' THEN 'qna'
+                              WHEN '04' THEN 'dataroom'
+                        END        AS boardType
+                  FROM INSTRUCTOR_BOARD IB
+                  JOIN INSTRUCTOR I ON I.INSTR_USER_ID = IB.INSTR_USER_ID
+                  WHERE I.INSTR_UUID      = #{instrUuid}
+                    AND IB.BOARD_TYPE_CD  IN ('02', '03', '04')
+                    AND IB.CLASS_SN       IS NULL
+                    AND IB.USE_YN         = 'Y'
+                  ORDER BY IB.REG_DT DESC
+            )
+            WHERE ROWNUM &lt;= #{size}
+      </select>
+
       <select id="selectUnansweredQnaCount" resultType="int">
             SELECT COUNT(*)
             FROM INSTRUCTOR_BOARD IB

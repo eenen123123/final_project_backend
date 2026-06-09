@@ -36,7 +36,7 @@ public interface StaffMapper {
     // 직급 전체 조회 (USE_YN 무관, 조직 관리 페이지용)
     List<JobGradeDto> selectAllJobGradeDtos();
 
-    // 직금 CRUD (조직 관리 페이지용)
+    // 직급 CRUD (조직 관리 페이지용)
     void insertJobGrade(JobGradeDto jbgr);
 
     void updateJobGrade(JobGradeDto jbgr);

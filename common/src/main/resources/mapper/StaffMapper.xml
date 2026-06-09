@@ -36,11 +36,13 @@
     </resultMap>
 
 
+    <!-- selectDepartmentList -->
     <select id="selectDepartmentList" resultType="kr.or.ddit.finalProject.dto.employee.DepartmentDto">
         SELECT
             DEPT_CD, PRNT_DEPT_CD, DEPT_NM, USE_YN, INTL_TEL_NO, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
         FROM
             DEPARTMENT
+        ORDER BY LENGTH(DEPT_CD) ASC, DEPT_CD ASC
     </select>
 
     <select id="selectJobGradeList" resultType="kr.or.ddit.finalProject.dto.employee.JobGradeDto">
@@ -762,6 +764,9 @@
         WHERE DEPT_CD = #{deptCd}
 </update>
 
+<!-- ═══════════════════════════════════════════
+         조직 관리: 부서 활성화/비활성화
+    ═══════════════════════════════════════════ -->
 <update id="toggleDeptUseYn">
         UPDATE DEPARTMENT
         SET USE_YN       = #{useYn},
@@ -834,12 +839,5 @@
             MDFCN_DT     = SYSTIMESTAMP
         WHERE USER_ID = #{userId}
 </update>
-
-<select id="selectStudent" parameterType="String" resultType="MemberDto">
-        SELECT *
-        FROM MEMBER
-        WHERE USER_ID = #{userId}
-              and USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
-</select>
 
 </mapper>

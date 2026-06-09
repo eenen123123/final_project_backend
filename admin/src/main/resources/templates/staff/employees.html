@@ -113,7 +113,7 @@
           <select class="hm-input hm-input-blue" id="hr-dept-filter" style="width:10rem"
             onchange="onHrDeptChange(this.value)">
             <option value="">전체 부서</option>
-            <option th:each="dept : ${departmentlist}" th:value="${dept.deptCd}" th:text="${dept.deptNm}">
+            <option th:each="dept : ${departmentlist}" th:if="${dept.useYn == 'Y'}" th:value="${dept.deptCd}" th:text="${dept.deptNm}">
             </option>
           </select>
           <select class="hm-input hm-input-blue" id="hr-role-filter" style="width:10rem" onchange="filterHrList()">
