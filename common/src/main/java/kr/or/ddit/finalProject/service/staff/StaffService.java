@@ -173,6 +173,8 @@ public interface  StaffService {
      */
     List<MemberDto> retrieveStudentList();
 
+    MemberDto retrieveStudentById(String userId);
+
     /**
      * 시스템 등록 학생의 전체 가입 연도 고유 목록 조회
      * 

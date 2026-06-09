@@ -99,12 +99,17 @@ public class AdminActivityExecutionService {
     private void executeStudentRegister(Map<String, Object> data, String actorUserId) {
         MemberDto memberDto = objectMapper.convertValue(data.get("memberDto"), MemberDto.class);
         MemberCreateLogDto memberCreateLog = objectMapper.convertValue(data.get("memberCreateLog"), MemberCreateLogDto.class);
-        String profileUrl = (String) data.get("profileUrl");
+        String profileUrl = uploadPendingImage(data);
         staffService.registerStudent(memberDto, memberCreateLog, profileUrl, actorUserId);
     }
 
+    @SuppressWarnings("unchecked")
     private void executeStudentUpdate(Map<String, Object> data, String actorUserId) {
-        MemberDto memberDto = objectMapper.convertValue(data.get("memberDto"), MemberDto.class);
+        Map<String, Object> effectiveData = data.containsKey("after")
+                ? (Map<String, Object>) data.get("after") : data;
+        MemberDto memberDto = objectMapper.convertValue(effectiveData.get("memberDto"), MemberDto.class);
+        String newProfileUrl = uploadPendingImage(effectiveData);
+        if (newProfileUrl != null) memberDto.setUserProfile(newProfileUrl);
         staffService.updateStudent(memberDto, actorUserId);
     }
 
