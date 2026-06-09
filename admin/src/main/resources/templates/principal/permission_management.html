@@ -81,6 +81,7 @@
                 onchange="onPermDeptChange(this.value)">
           <option value="">전체 부서</option>
           <option th:each="dept : ${departmentList}"
+                  th:if="${dept.useYn == 'Y'}"
                   th:value="${dept.deptCd}"
                   th:text="${dept.deptNm}"></option>
         </select>
