@@ -3,8 +3,10 @@ package kr.or.ddit.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.or.ddit.finalProject.dto.approval.ApprovalMasterDto;
+import kr.or.ddit.finalProject.dto.employee.DepartmentDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto;
+import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
 import kr.or.ddit.finalProject.dto.member.MemberCreateLogDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.service.staff.StaffService;
@@ -46,6 +48,13 @@ public class AdminActivityExecutionService {
                 case "STUDENT_REGISTER"  -> executeStudentRegister(data, actorUserId);
                 case "STUDENT_UPDATE"    -> executeStudentUpdate(data, actorUserId);
                 case "STUDENT_RETIRE"    -> executeStudentRetire(data, actorUserId);
+                case "DEPT_CREATE"       -> executeDeptCreate(data, actorUserId);
+                case "DEPT_UPDATE"       -> executeDeptUpdate(data, actorUserId);
+                case "DEPT_TOGGLE"       -> executeDeptToggle(data, actorUserId);
+                case "GRADE_CREATE"      -> executeGradeCreate(data, actorUserId);
+                case "GRADE_UPDATE"      -> executeGradeUpdate(data, actorUserId);
+                case "GRADE_TOGGLE"      -> executeGradeToggle(data, actorUserId);
+                case "MNT_MAPPING"       -> executeMntMapping(data, actorUserId);
                 default -> log.warn("[AdminExecution] 알 수 없는 actionType: {}", actionType);
             }
             log.info("[AdminExecution] 결재 승인 후 실행 완료: docSn={}, type={}", aprvlDocSn, actionType);
@@ -97,5 +106,49 @@ public class AdminActivityExecutionService {
         String userId = (String) data.get("userId");
         String withdrawRsn = (String) data.get("withdrawRsn");
         staffService.retireStudent(userId, withdrawRsn, actorUserId);
+    }
+
+    /* ── 조직 관리 ── */
+
+    private void executeDeptCreate(Map<String, Object> data, String actorUserId) {
+        DepartmentDto dept = objectMapper.convertValue(data.get("dept"), DepartmentDto.class);
+        dept.setRgtrId(actorUserId);
+        staffService.addDepartment(dept);
+    }
+
+    private void executeDeptUpdate(Map<String, Object> data, String actorUserId) {
+        DepartmentDto dept = objectMapper.convertValue(data.get("dept"), DepartmentDto.class);
+        dept.setLastMdfrId(actorUserId);
+        staffService.modifyDepartment(dept);
+    }
+
+    private void executeDeptToggle(Map<String, Object> data, String actorUserId) {
+        String deptCd = (String) data.get("deptCd");
+        String useYn  = (String) data.get("useYn");
+        staffService.toggleDeptUseYn(deptCd, useYn, actorUserId);
+    }
+
+    private void executeGradeCreate(Map<String, Object> data, String actorUserId) {
+        JobGradeDto jbgr = objectMapper.convertValue(data.get("jbgr"), JobGradeDto.class);
+        jbgr.setRgtrId(actorUserId);
+        staffService.addJobGrade(jbgr);
+    }
+
+    private void executeGradeUpdate(Map<String, Object> data, String actorUserId) {
+        JobGradeDto jbgr = objectMapper.convertValue(data.get("jbgr"), JobGradeDto.class);
+        jbgr.setLastMdfrId(actorUserId);
+        staffService.modifyJobGrade(jbgr);
+    }
+
+    private void executeGradeToggle(Map<String, Object> data, String actorUserId) {
+        String jbgrCd = (String) data.get("jbgrCd");
+        String useYn  = (String) data.get("useYn");
+        staffService.toggleJbgrUseYn(jbgrCd, useYn, actorUserId);
+    }
+
+    private void executeMntMapping(Map<String, Object> data, String actorUserId) {
+        String userId    = (String) data.get("userId");
+        String mntUserId = (String) data.get("mntUserId");
+        staffService.assignMntUserId(userId, mntUserId != null && !mntUserId.isBlank() ? mntUserId : null, actorUserId);
     }
 }
