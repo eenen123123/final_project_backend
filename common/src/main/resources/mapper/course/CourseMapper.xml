@@ -210,6 +210,45 @@
   ORDER BY C.SORT_ORD ASC, C.COURSE_SN ASC
 </select>
 
+<!-- 강사 UUID + 강좌 번호로 강좌 상세 조회 (공개 강사 페이지용) -->
+<select id="selectCourseDetailByUuidAndSn"
+        resultType="kr.or.ddit.finalProject.dto.instructor.CourseDetailResponse">
+  SELECT
+    C.COURSE_SN        AS courseSn,
+    C.COURSE_NM        AS title,
+    C.COURSE_EXPLN_CN  AS description,
+    C.COURSE_PRICE     AS price,
+    C.THMB_IMG         AS thumbnailUrl,
+    S.SUBJ_NM          AS category,
+    C.TOT_LRN_TIME_CNT AS totalDuration,
+    (SELECT COUNT(*)
+     FROM CLASSROOM CL
+     JOIN CLASSROOM_MEMBER CM ON CL.CLASS_SN = CM.CLASS_SN
+     WHERE CL.COURSE_SN = C.COURSE_SN) AS studentCount
+  FROM COURSE C
+  INNER JOIN INSTRUCTOR I ON C.INSTR_USER_ID = I.INSTR_USER_ID
+  LEFT  JOIN SUBJECT S    ON C.SUBJ_ID = S.SUBJ_ID
+  WHERE I.INSTR_UUID = #{instrUuid}
+    AND C.COURSE_SN  = #{courseSn}
+    AND C.OPNN_YN    = 'Y'
+</select>
+
+<!-- 강좌의 강의 목록 조회 (공개 강사 페이지용) -->
+<select id="selectPublicCourseLectures"
+        resultType="kr.or.ddit.finalProject.dto.instructor.CourseLectureItem">
+  SELECT
+    LECTURE_SN       AS lectureSn,
+    LECTURE_NM       AS title,
+    LECTURE_DURATION AS duration,
+    LECTURE_TYPE_CD  AS typeCd,
+    SORT_ORD         AS sortOrd,
+    LOCK_YN          AS lockYn
+  FROM LECTURE
+  WHERE COURSE_SN = #{courseSn}
+    AND OPNN_YN   = 'Y'
+  ORDER BY SORT_ORD ASC, LECTURE_SN ASC
+</select>
+
 <!-- 과목 분류별 강사 목록 조회 -->
 <select id="selectInstructorsBySubjClId" resultType="kr.or.ddit.finalProject.dto.member.MemberDto">
   SELECT DISTINCT m.USER_ID, m.USER_NAME

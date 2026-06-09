@@ -18,6 +18,7 @@ import kr.or.ddit.finalProject.dto.instructor.InstructorFeaturedCourseResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorListResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardDetail;
 import kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardItem;
+import kr.or.ddit.finalProject.dto.instructor.CourseDetailResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorPublicCourseResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorRecentPostResponse;
 import kr.or.ddit.finalProject.mapper.course.CourseMapper;
@@ -79,6 +80,19 @@ public class InstructorController {
     public ResponseEntity<List<InstructorPublicCourseResponse>> getCourses(
             @PathVariable String instrUuid) {
         return ResponseEntity.ok(courseMapper.selectCoursesByInstrUuid(instrUuid));
+    }
+
+    // GET /api/instructors/{instrUuid}/courses/{courseSn}
+    @GetMapping("/{instrUuid}/courses/{courseSn}")
+    public ResponseEntity<CourseDetailResponse> getCourseDetail(
+            @PathVariable String instrUuid,
+            @PathVariable Long courseSn) {
+        CourseDetailResponse detail = courseMapper.selectCourseDetailByUuidAndSn(instrUuid, courseSn);
+        if (detail == null) {
+            return ResponseEntity.notFound().build();
+        }
+        detail.setLectures(courseMapper.selectPublicCourseLectures(courseSn));
+        return ResponseEntity.ok(detail);
     }
 
     // GET /api/instructors/{instrUuid}/board/notice?page=0&size=10
