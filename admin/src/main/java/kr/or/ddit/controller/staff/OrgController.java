@@ -188,22 +188,26 @@ public class OrgController {
 
     /* ═══════════ 사수 매핑 ═══════════ */
 
-    @PutMapping("/mapping/{userId}")
+    @PostMapping("/mapping/batch")
     @ResponseBody
-    public ResponseEntity<Map<String, String>> assignMnt(@PathVariable String userId,
-                                                          @RequestBody Map<String, String> body, Principal p) {
+    public ResponseEntity<Map<String, String>> batchAssignMnt(
+            @RequestBody List<Map<String, String>> assignments, Principal p) {
         String actorId = p != null ? p.getName() : "SYSTEM";
         try {
-            String mntUserId = body.getOrDefault("mntUserId", null);
-            String summary = mntUserId != null && !mntUserId.isBlank()
-                ? userId + " → 사수: " + mntUserId
-                : userId + " → 배정 해제";
-            activityApprovalService.submitForApproval(actorId, AdminActivityType.MNT_MAPPING,
-                summary, Map.of("userId", userId, "mntUserId", mntUserId != null ? mntUserId : ""));
+            for (Map<String, String> entry : assignments) {
+                String userId    = entry.get("userId");
+                String mntUserId = entry.get("mntUserId");
+                if (userId == null || userId.isBlank()) continue;
+                String summary = mntUserId != null && !mntUserId.isBlank()
+                    ? userId + " → 사수: " + mntUserId
+                    : userId + " → 배정 해제";
+                activityApprovalService.submitForApproval(actorId, AdminActivityType.MNT_MAPPING,
+                    summary, Map.of("userId", userId, "mntUserId", mntUserId != null ? mntUserId : ""));
+            }
             return ResponseEntity.ok(Map.of("result", "success",
-                "message", "결재 요청이 완료되었습니다. 승인 후 처리됩니다."));
+                "message", "결재에 등록되었습니다."));
         } catch (Exception e) {
-            log.error("[OrgController] 사수 배정 결재 요청 실패: userId={}, {}", userId, e.getMessage());
+            log.error("[OrgController] 사수 배정 일괄 결재 요청 실패: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("result", "error", "message", e.getMessage()));
         }
