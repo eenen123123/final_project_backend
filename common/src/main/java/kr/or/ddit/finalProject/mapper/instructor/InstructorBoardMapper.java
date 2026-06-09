@@ -65,6 +65,8 @@ public interface InstructorBoardMapper {
                                   @Param("answrUserId") String answrUserId,
                                   @Param("answCn") String answCn);
 
+    int incrementViewCount(@Param("postSn") Long postSn);
+
     // ── 공개 강사 게시판 (React 프론트용 페이징 목록 + 상세) ──────────
 
     int selectPublicBoardCount(@Param("instrUuid") String instrUuid,

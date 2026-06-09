@@ -219,8 +219,12 @@ public class InstructorBoardController {
             @RequestParam String answCn,
             RedirectAttributes redirectAttributes) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        instructorBoardService.answerInstructorQna(postSn, userId, answCn);
-        redirectAttributes.addFlashAttribute("successMessage", "답변이 등록되었습니다.");
+        int rows = instructorBoardService.answerInstructorQna(postSn, userId, answCn);
+        if (rows == 0) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Q&A 게시글에만 답변을 등록할 수 있습니다.");
+        } else {
+            redirectAttributes.addFlashAttribute("successMessage", "답변이 등록되었습니다.");
+        }
         return "redirect:/instructor/board/detail/" + postSn;
     }
 

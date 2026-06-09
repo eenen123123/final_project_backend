@@ -8,7 +8,7 @@ public class InstructorPublicBoardDetail {
     private String boardTypeCd;
     private String title;
     private String content;
-    private String writerNickname;
+    private String writerName;
     private String regDt;
     private Integer viewCount;
     private String hasFile;

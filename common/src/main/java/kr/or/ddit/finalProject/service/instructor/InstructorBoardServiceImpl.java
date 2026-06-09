@@ -173,8 +173,8 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
 
     @Override
     @Transactional
-    public void answerInstructorQna(Long postSn, String answrUserId, String answCn) {
-        instructorBoardMapper.updateInstructorQnaAnswer(postSn, answrUserId, answCn);
+    public int answerInstructorQna(Long postSn, String answrUserId, String answCn) {
+        return instructorBoardMapper.updateInstructorQnaAnswer(postSn, answrUserId, answCn);
     }
 
 }

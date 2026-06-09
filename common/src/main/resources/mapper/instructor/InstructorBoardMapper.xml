@@ -311,16 +311,29 @@
               AND IQ.ANSW_YN       = 'N'
       </select>
 
+      <update id="incrementViewCount">
+            UPDATE INSTRUCTOR_BOARD
+            SET INQ_CNT = INQ_CNT + 1
+            WHERE POST_SN = #{postSn}
+              AND USE_YN  = 'Y'
+      </update>
+
       <!-- ── 공개 강사 게시판 페이징 목록 / 상세 (React 프론트용) ──────── -->
 
       <select id="selectPublicBoardCount" resultType="int">
             SELECT COUNT(*)
             FROM INSTRUCTOR_BOARD IB
                   INNER JOIN INSTRUCTOR I ON IB.INSTR_USER_ID = I.INSTR_USER_ID
+                  <if test="'03'.equals(boardTypeCd)">
+                  LEFT JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
+                  </if>
             WHERE I.INSTR_UUID     = #{instrUuid}
               AND IB.BOARD_TYPE_CD = #{boardTypeCd}
               AND IB.CLASS_SN      IS NULL
               AND IB.USE_YN        = 'Y'
+              <if test="'03'.equals(boardTypeCd)">
+              AND IQ.SECR_YN = 'N'
+              </if>
       </select>
 
       <select id="selectPublicBoardList"
@@ -330,18 +343,21 @@
                   IB.POST_SJ                                               AS title,
                   TO_CHAR(IB.REG_DT, 'YYYY-MM-DD')                        AS regDt,
                   IB.INQ_CNT                                               AS viewCount,
-                  M.USER_NAME                                              AS writerNickname,
+                  M.USER_NAME                                              AS writerName,
                   IQ.ANSW_YN                                               AS answerYn,
                   CASE WHEN IB.ATCH_FILE_ID IS NOT NULL THEN 'Y' ELSE 'N' END AS hasFile
             FROM INSTRUCTOR_BOARD IB
                   INNER JOIN INSTRUCTOR I  ON IB.INSTR_USER_ID = I.INSTR_USER_ID
-                  INNER JOIN MEMBER M      ON IB.WRTR_USER_ID  = M.USER_ID
+                  LEFT  JOIN MEMBER M      ON IB.WRTR_USER_ID  = M.USER_ID
                   LEFT  JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN   = IB.POST_SN
                                                AND IB.BOARD_TYPE_CD = '03'
             WHERE I.INSTR_UUID     = #{instrUuid}
               AND IB.BOARD_TYPE_CD = #{boardTypeCd}
               AND IB.CLASS_SN      IS NULL
               AND IB.USE_YN        = 'Y'
+              <if test="'03'.equals(boardTypeCd)">
+              AND IQ.SECR_YN = 'N'
+              </if>
             ORDER BY IB.REG_DT DESC
             OFFSET #{offset} ROWS FETCH NEXT #{limit} ROWS ONLY
       </select>
@@ -353,7 +369,7 @@
                   IB.BOARD_TYPE_CD                                         AS boardTypeCd,
                   IB.POST_SJ                                               AS title,
                   IB.POST_CN                                               AS content,
-                  M.USER_NAME                                              AS writerNickname,
+                  M.USER_NAME                                              AS writerName,
                   TO_CHAR(IB.REG_DT, 'YYYY-MM-DD HH24:MI:SS')             AS regDt,
                   IB.INQ_CNT                                               AS viewCount,
                   CASE WHEN IB.ATCH_FILE_ID IS NOT NULL THEN 'Y' ELSE 'N' END AS hasFile,
@@ -363,13 +379,14 @@
                   TO_CHAR(IQ.ANSW_DT, 'YYYY-MM-DD HH24:MI')               AS answerDt
             FROM INSTRUCTOR_BOARD IB
                   INNER JOIN INSTRUCTOR I  ON IB.INSTR_USER_ID = I.INSTR_USER_ID
-                  INNER JOIN MEMBER M      ON IB.WRTR_USER_ID  = M.USER_ID
+                  LEFT  JOIN MEMBER M      ON IB.WRTR_USER_ID  = M.USER_ID
                   LEFT  JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN   = IB.POST_SN
                   LEFT  JOIN MEMBER AM     ON IQ.ANSWR_USER_ID = AM.USER_ID
             WHERE I.INSTR_UUID = #{instrUuid}
               AND IB.POST_SN   = #{postSn}
               AND IB.CLASS_SN  IS NULL
               AND IB.USE_YN    = 'Y'
+              AND (IQ.POST_SN IS NULL OR IQ.SECR_YN = 'N')
       </select>
 
 </mapper>

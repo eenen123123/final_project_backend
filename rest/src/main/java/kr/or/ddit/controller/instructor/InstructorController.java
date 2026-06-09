@@ -130,6 +130,7 @@ public class InstructorController {
         if (detail == null) {
             return ResponseEntity.notFound().build();
         }
+        instructorBoardMapper.incrementViewCount(postSn);
         return ResponseEntity.ok(detail);
     }
 
