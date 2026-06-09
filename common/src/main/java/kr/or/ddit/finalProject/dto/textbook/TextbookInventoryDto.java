@@ -14,15 +14,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TextbookInventoryDto implements Serializable {
 
-    private Long invtSn; // 복합PK(1/2) 시퀀스
-    private Long textbookSn; // 복합PK(2/2)
-    private Integer totInvtCnt;
-    private Integer salableCnt;
-    private Integer saleCmplCnt;
-    private Integer rsrvWaitCnt;
-    private Integer dmgdDspslCnt;
-    private Integer minKeepCnt;
-    private String invtStatCd; // COM_CD 공통코드 참조
+    private Long invtSn; // 재고 일련번호
+    private Long textbookSn; // 교재 일련번호
+    private Integer totInvtCnt; // 총 재고 수량
+    private Integer salableCnt; // 판매 가능 수량
+    private Integer saleCmplCnt; // 판매 완료 수량
+    private Integer rsrvWaitCnt; // 예약 대기 수량
+    private Integer dmgdDspslCnt; // 파손/폐기 수량
+    private Integer minKeepCnt; // 최소 유지 수량 (이하면 재입고 필요)
+    private String invtStatCd; // 재고 상태 코드 (10:정상 / 20:품절 / 30:입고대기)
     private String rgtrId;
     private String lastMdfrId;
     private LocalDateTime regDt;
