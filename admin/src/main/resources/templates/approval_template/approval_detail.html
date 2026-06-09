@@ -422,13 +422,13 @@
     joinYmd: '입사일', retmtYmd: '퇴사일', retmtRsn: '퇴사 사유',
     emplStatCd: '재직 상태', emplTypeCd: '고용 유형', chrgDutyCn: '담당 업무',
     baseSalary: '기본급 (만원)', applyYmd: '급여 적용일',
-    studentId: '학번', grade: '학년', classNm: '반',
+    studentId: '학번', grade: '학년', classNm: '반', ctrctEndYmd:'계약 종료일'
   };
 
   const FIELD_TRANSFORMS = {
     userGndrCd:  v => v === 'M' ? '남성' : v === 'F' ? '여성' : v,
     emplStatCd:  v => ({ '01':'재직', '02':'퇴직', '03':'휴직' }[v] || v),
-    emplTypeCd:  v => ({ '01':'정규직', '02':'계약직', '03':'아르바이트' }[v] || v),
+    emplTypeCd:  v => ({ '01':'정규직', '02':'계약직', '03':'파트타임' }[v] || v),
     userRole:    v => ({ 'ROLE_ADMIN':'관리자', 'ROLE_USER':'학생', 'ROLE_STUDENT':'학생' }[v] || v),
     enable:      v => (v === '1' || String(v).toLowerCase() === 'true') ? '활성' : '비활성',
     userProfile: v => v === '__PENDING__' ? '새 이미지 (결재 후 반영)' : (v && String(v).startsWith('http')) ? '등록됨' : '-',
