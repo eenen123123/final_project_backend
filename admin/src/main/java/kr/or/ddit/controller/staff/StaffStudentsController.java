@@ -3,6 +3,7 @@ package kr.or.ddit.controller.staff;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -41,9 +42,6 @@ public class StaffStudentsController {
 
     @Autowired
     StaffService staffService;
-
-    @Autowired
-    CloudinaryUploadService cloudinaryUploadService;
 
     @Autowired
     AdminActivityApprovalService activityApprovalService;
@@ -142,15 +140,17 @@ public class StaffStudentsController {
             loginAdmin = principal.getName(); // 세션이나 토큰에 저장된 로그인 ID
         }
 
-        // 프로필 사진 cloudinary 업로드
-        String profileUrl = null;
+        // 이미지는 base64로 인코딩하여 결재 페이로드에 저장 — Cloudinary 업로드는 최종 결재 후 실행
+        String profileImageBase64 = null;
+        String profileImageType = null;
         if (profileImage != null && !profileImage.isEmpty()) {
             try {
-                profileUrl = cloudinaryUploadService.uploadFileToCloudinary(profileImage);
+                profileImageBase64 = Base64.getEncoder().encodeToString(profileImage.getBytes());
+                profileImageType = profileImage.getContentType();
             } catch (Exception e) {
-                log.error("[createStudent] Cloudinary 업로드 실패: {}", e.getMessage());
+                log.error("[createStudent] 이미지 인코딩 실패: {}", e.getMessage());
                 return "redirect:/admin/employees/students?error="
-                        + URLEncoder.encode("프로필 이미지 업로드에 실패했습니다.", StandardCharsets.UTF_8);
+                        + URLEncoder.encode("프로필 이미지 처리에 실패했습니다.", StandardCharsets.UTF_8);
             }
         }
 
@@ -158,7 +158,8 @@ public class StaffStudentsController {
             Map<String, Object> data = new LinkedHashMap<>();
             data.put("memberDto", memberDto);
             data.put("memberCreateLog", memberCreateLog);
-            data.put("profileUrl", profileUrl);
+            data.put("profileImageBase64", profileImageBase64);
+            data.put("profileImageType", profileImageType);
 
             activityApprovalService.submitForApproval(loginAdmin,
                     AdminActivityType.STUDENT_REGISTER,
@@ -170,7 +171,7 @@ public class StaffStudentsController {
         }
 
         return "redirect:/admin/employees/students?success="
-                + URLEncoder.encode("결재 요청이 완료되었습니다. 승인 후 처리됩니다.", StandardCharsets.UTF_8);
+                + URLEncoder.encode("결재에 등록되었습니다.", StandardCharsets.UTF_8);
     }
 
     /**
@@ -191,13 +192,16 @@ public class StaffStudentsController {
             @RequestParam(required = false) MultipartFile editProfileImage, Principal principal) {
         String loginAdminId = principal != null ? principal.getName() : "SYSTEM";
 
-        // 새 이미지가 있으면 Cloudinary 업로드, 없으면 기존 URL 유지
-        String finalProfileUrl = userProfile;
+        // 새 이미지는 base64로 인코딩하여 결재 페이로드에 저장 — Cloudinary 업로드는 최종 결재 후 실행
+        String profileImageBase64 = null;
+        String profileImageType = null;
         if (editProfileImage != null && !editProfileImage.isEmpty()) {
             try {
-                finalProfileUrl = cloudinaryUploadService.uploadFileToCloudinary(editProfileImage);
+                profileImageBase64 =
+                        Base64.getEncoder().encodeToString(editProfileImage.getBytes());
+                profileImageType = editProfileImage.getContentType();
             } catch (Exception e) {
-                log.error("[updateStudent] Cloudinary 업로드 실패: {}", e.getMessage());
+                log.error("[updateStudent] 이미지 인코딩 실패: {}", e.getMessage());
             }
         }
 
@@ -209,20 +213,36 @@ public class StaffStudentsController {
         memberDto.setUserZip(userZip);
         memberDto.setUserAddr(userAddr);
         memberDto.setUserDaddr(userDaddr);
-        memberDto.setUserProfile(finalProfileUrl);
+        memberDto.setUserProfile(profileImageBase64 != null ? "__PENDING__" : userProfile);
         memberDto.setUserRole(userRole);
         memberDto.setEnable(enable);
 
         try {
+            // 수정 전 상태 캡처 (before)
+            Map<String, Object> beforeData = new LinkedHashMap<>();
+            try {
+                MemberDto before = staffService.retrieveStudentById(userId);
+                if (before != null)
+                    beforeData.put("memberDto", before);
+            } catch (Exception e) {
+                log.warn("[updateStudent] before 상태 조회 실패: {}", e.getMessage());
+            }
+
+            Map<String, Object> afterData = new LinkedHashMap<>();
+            afterData.put("memberDto", memberDto);
+            afterData.put("profileImageBase64", profileImageBase64);
+            afterData.put("profileImageType", profileImageType);
+
             Map<String, Object> data = new LinkedHashMap<>();
-            data.put("memberDto", memberDto);
+            if (!beforeData.isEmpty())
+                data.put("before", beforeData);
+            data.put("after", afterData);
 
             activityApprovalService.submitForApproval(loginAdminId,
                     AdminActivityType.STUDENT_UPDATE, userId, data);
 
             return ResponseEntity.ok(Map.of("result", "success", "profileUrl",
-                    finalProfileUrl != null ? finalProfileUrl : "", "message",
-                    "결재 요청이 완료되었습니다. 승인 후 처리됩니다."));
+                    userProfile != null ? userProfile : "", "message", "결재에 등록되었습니다."));
         } catch (Exception e) {
             log.error("[updateStudent] 결재 요청 실패. userId={}, cause={}", userId, e.getMessage());
             return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
