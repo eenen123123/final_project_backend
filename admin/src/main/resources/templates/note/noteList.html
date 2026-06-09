@@ -308,7 +308,10 @@
         </th:block>
       </div>
       <span class="text-xs text-slate-400"
-        >총 <strong class="text-slate-600" th:text="${#lists.size(postList)}">0</strong>건</span
+        >총
+        <strong class="text-slate-600" th:text="${#lists.size(postList)}"
+          >0</strong
+        >건</span
       >
     </div>
 
@@ -320,7 +323,8 @@
           <col style="width: 16%" />
           <col style="width: 16%" />
           <col style="width: 20%" />
-          <col /> <!-- 내용: 나머지 공간 자동 분배 -->
+          <col />
+          <!-- 내용: 나머지 공간 자동 분배 -->
           <col style="width: 13%" />
           <col style="width: 4rem" />
           <col style="width: 4rem" />
@@ -333,161 +337,205 @@
                 class="rounded border-slate-300 text-violet-600 cursor-pointer"
               />
             </th>
-            <th>보낸사람</th>
-            <th>받은사람</th>
+            <th th:text="${box == 'sent' ? '받은사람' : '보낸사람'}">
+              보낸사람
+            </th>
+            <th th:if="${box == 'archive'}">받은사람</th>
             <th>제목</th>
             <th>내용</th>
             <th>날짜</th>
-            <th style="text-align: center"
-                th:text="${box == 'archive'} ? '보관해제' : (${box == 'trash'} ? '복원' : '삭제')">삭제</th>
-            <th style="text-align: center"
-                th:text="${box == 'archive'} ? '삭제' : (${box == 'trash'} ? '완전삭제' : '보관')">보관</th>
+            <th
+              style="text-align: center"
+              th:text="${box == 'archive'} ? '보관해제' : (${box == 'trash'} ? '복원' : '삭제')"
+            >
+              삭제
+            </th>
+            <th
+              style="text-align: center"
+              th:text="${box == 'archive'} ? '삭제' : (${box == 'trash'} ? '완전삭제' : '보관')"
+            >
+              보관
+            </th>
           </tr>
         </thead>
         <tbody>
-          <tr th:each="post : ${postList}" class="unread" style="cursor:pointer"
-              th:data-post-sn="${post.ntceSn}"
-              th:data-rcvr-user-id="${post.rcvrUserId}"
-              onclick="window.open('/admin/note/read?postSn=' + this.dataset.postSn + '&rcvrUserId=' + this.dataset.rcvrUserId, '_blank', 'width=1000,height=600')">
-
-              <td style="text-align: center" onclick="event.stopPropagation()">
-                <input
-                  type="checkbox"
-                  class="rounded border-slate-300 text-violet-600 cursor-pointer"
-                />
-              </td>
-              <td>
-                <div class="flex items-center gap-2">
-                  <span
-                    class="w-7 h-7 rounded-full bg-violet-100 text-violet-700 text-xs font-bold flex items-center justify-center flex-shrink-0"
-                    th:text="${#strings.substring(post.sndrName, 0, 1)}"
-                    >A</span
-                  >
-                  <div>
-                    <div class="flex items-center gap-1.5">
-                      <p
-                        class="text-sm font-medium text-slate-800"
-                        th:text="${post.sndrName}"
-                      >
-                        보낸사람
-                      </p>
-                      <span
-                        class="text-[10px] text-slate-400"
-                        th:text="${post.sndrJbgrNm}"
-                        >직급</span
-                      >
-                    </div>
+          <tr
+            th:each="post : ${postList}"
+            class="unread"
+            style="cursor: pointer"
+            th:data-post-sn="${post.ntceSn}"
+            th:data-rcvr-user-id="${post.rcvrUserId}"
+            onclick="
+              window.open(
+                '/admin/note/read?postSn=' +
+                  this.dataset.postSn +
+                  '&rcvrUserId=' +
+                  this.dataset.rcvrUserId,
+                '_blank',
+                'width=1000,height=600',
+              )
+            "
+          >
+            <td style="text-align: center" onclick="event.stopPropagation()">
+              <input
+                type="checkbox"
+                class="rounded border-slate-300 text-violet-600 cursor-pointer"
+              />
+            </td>
+            <td>
+              <div class="flex items-center gap-2">
+                <span
+                  class="w-7 h-7 rounded-full bg-violet-100 text-violet-700 text-xs font-bold flex items-center justify-center flex-shrink-0"
+                  th:text="${#strings.substring(post.sndrName, 0, 1)}"
+                  >A</span
+                >
+                <div>
+                  <div class="flex items-center gap-1.5">
                     <p
-                      class="text-xs text-slate-400"
-                      th:text="${post.sndrUserId}"
+                      class="text-sm font-medium text-slate-800"
+                      th:text="${box == 'sent' ? post.rcvrName : post.sndrName}"
+                    ></p>
+                    <span
+                      class="text-[10px] text-slate-400"
+                      th:text="${box == 'sent' ? post.rcvrJbgrNm : post.sndrJbgrNm}"
+                      >직급</span
                     >
-                      아이디
-                    </p>
                   </div>
-                </div>
-              </td>
-              <td>
-                <div class="flex items-center gap-2">
-                  <span
-                    class="w-7 h-7 rounded-full bg-violet-100 text-violet-700 text-xs font-bold flex items-center justify-center flex-shrink-0"
-                    th:text="${#strings.substring(post.rcvrName, 0, 1)}"
-                    >A</span
+                  <p
+                    class="text-xs text-slate-400"
+                    th:text="${box == 'sent' ? post.rcvrUserId : post.sndrUserId}"
                   >
-                  <div>
-                    <div class="flex items-center gap-1.5">
-                      <p
-                        class="text-sm font-medium text-slate-800"
-                        th:text="${post.rcvrName}"
-                      >
-                        받는사람
-                      </p>
-                      <span
-                        class="text-[10px] text-slate-400"
-                        th:text="${post.rcvrJbgrNm}"
-                        >직급</span
-                      >
-                    </div>
-                    <p
-                      class="text-xs text-slate-400"
-                      th:text="${post.rcvrUserId}"
-                    >
-                      아이디
-                    </p>
-                  </div>
+                    아이디
+                  </p>
                 </div>
-              </td>
-              <td>
-                <span class="note-subject" th:text="${post.ntceSj}"
+              </div>
+            </td>
+            <td th:if="${box == 'archive'}">
+              <div class="flex items-center gap-2">
+                <span
+                  class="w-7 h-7 rounded-full bg-violet-100 text-violet-700 text-xs font-bold flex items-center justify-center flex-shrink-0"
+                  th:text="${#strings.substring(post.rcvrName, 0, 1)}"
+                  >A</span
+                >
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <p
+                      class="text-sm font-medium text-slate-800"
+                      th:text="${post.rcvrName}"
+                    >
+                      받는사람
+                    </p>
+                    <span
+                      class="text-[10px] text-slate-400"
+                      th:text="${post.rcvrJbgrNm}"
+                      >직급</span
+                    >
+                  </div>
+                  <p
+                    class="text-xs text-slate-400"
+                    th:text="${post.rcvrUserId}"
+                  >
+                    아이디
+                  </p>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="note-subject" th:text="${post.ntceSj}"
                 >쪽지 제목</span
-                >
-              </td>
-              <td class="note-content-preview" th:text="${post.ntceCn}">
-                쪽지 내용
-              </td>
-                <td
-                class="text-slate-400 text-xs"
-                th:text="${#temporals.format(post.ntceSndDt, 'yyyy.MM.dd (E) HH:mm:ss')}"
               >
-                <!-- 2026-06-05T16:04:08.959923 형식이라 바꿔주기 -->
+            </td>
+            <td class="note-content-preview" th:text="${post.ntceCn}">
+              쪽지 내용
+            </td>
+            <td
+              class="text-slate-400 text-xs"
+              th:text="${#temporals.format(post.ntceSndDt, 'yyyy.MM.dd (E) HH:mm:ss')}"
+            >
+              <!-- 2026-06-05T16:04:08.959923 형식이라 바꿔주기 -->
 
-                2026-06-05 09:30
-              </td>
-              <!-- 휴지통/보관함이 아닐 때: 삭제(→휴지통) + 보관 -->
-              <td th:if="${box != 'trash' and box != 'archive'}" style="text-align: center" onclick="event.stopPropagation()">
-                <button
-                  class="text-slate-300 hover:text-red-500 transition-colors text-sm"
-                  onclick="deleteNote(this.closest('tr').dataset.postSn)"
-                >
-                  <i class="fa-solid fa-trash"></i>
-                </button>
-              </td>
-              <td th:if="${box != 'trash' and box != 'archive'}" style="text-align: center" onclick="event.stopPropagation()">
-                <button
-                  class="text-slate-300 hover:text-violet-500 transition-colors text-sm"
-                  title="보관"
-                  onclick="archiveNote(this.closest('tr').dataset.postSn)"
-                >
-                  <i class="fa-solid fa-box-archive"></i>
-                </button>
-              </td>
-              <!-- 보관함일 때: 보관 해제 + 삭제 -->
-              <td th:if="${box == 'archive'}" style="text-align: center" onclick="event.stopPropagation()">
-                <button
-                  class="text-slate-300 hover:text-violet-500 transition-colors text-sm"
-                  title="보관 해제"
-                  onclick="unarchiveNote(this.closest('tr').dataset.postSn)"
-                >
-                  <i class="fa-solid fa-box-open"></i>
-                </button>
-              </td>
-              <td th:if="${box == 'archive'}" style="text-align: center" onclick="event.stopPropagation()">
-                <button
-                  class="text-slate-300 hover:text-red-500 transition-colors text-sm"
-                  title="삭제"
-                  onclick="deleteNote(this.closest('tr').dataset.postSn)"
-                >
-                  <i class="fa-solid fa-trash"></i>
-                </button>
-              </td>
-              <!-- 휴지통일 때: 복원 + 완전삭제 -->
-              <td th:if="${box == 'trash'}" style="text-align: center" onclick="event.stopPropagation()">
-                <button
-                  class="text-slate-300 hover:text-green-500 transition-colors text-sm"
-                  title="복원"
-                  onclick="restoreNote(this.closest('tr').dataset.postSn)"
-                >
-                  <i class="fa-solid fa-rotate-left"></i>
-                </button>
-              </td>
-              <td th:if="${box == 'trash'}" style="text-align: center" onclick="event.stopPropagation()">
-                <button
-                  class="text-slate-300 hover:text-red-500 transition-colors text-sm"
-                  title="완전 삭제"
-                  onclick="permanentDeleteNote(this.closest('tr').dataset.postSn)"
-                >
-                  <i class="fa-solid fa-trash"></i>
-                </button>
-              </td>
+              2026-06-05 09:30
+            </td>
+            <!-- 휴지통/보관함이 아닐 때: 삭제(→휴지통) + 보관 -->
+            <td
+              th:if="${box != 'trash' and box != 'archive'}"
+              style="text-align: center"
+              onclick="event.stopPropagation()"
+            >
+              <button
+                class="text-slate-300 hover:text-red-500 transition-colors text-sm"
+                onclick="deleteNote(this.closest('tr').dataset.postSn)"
+              >
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </td>
+            <td
+              th:if="${box != 'trash' and box != 'archive'}"
+              style="text-align: center"
+              onclick="event.stopPropagation()"
+            >
+              <button
+                class="text-slate-300 hover:text-violet-500 transition-colors text-sm"
+                title="보관"
+                onclick="archiveNote(this.closest('tr').dataset.postSn)"
+              >
+                <i class="fa-solid fa-box-archive"></i>
+              </button>
+            </td>
+            <!-- 보관함일 때: 보관 해제 + 삭제 -->
+            <td
+              th:if="${box == 'archive'}"
+              style="text-align: center"
+              onclick="event.stopPropagation()"
+            >
+              <button
+                class="text-slate-300 hover:text-violet-500 transition-colors text-sm"
+                title="보관 해제"
+                onclick="unarchiveNote(this.closest('tr').dataset.postSn)"
+              >
+                <i class="fa-solid fa-box-open"></i>
+              </button>
+            </td>
+            <td
+              th:if="${box == 'archive'}"
+              style="text-align: center"
+              onclick="event.stopPropagation()"
+            >
+              <button
+                class="text-slate-300 hover:text-red-500 transition-colors text-sm"
+                title="삭제"
+                onclick="deleteNote(this.closest('tr').dataset.postSn)"
+              >
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </td>
+            <!-- 휴지통일 때: 복원 + 완전삭제 -->
+            <td
+              th:if="${box == 'trash'}"
+              style="text-align: center"
+              onclick="event.stopPropagation()"
+            >
+              <button
+                class="text-slate-300 hover:text-green-500 transition-colors text-sm"
+                title="복원"
+                onclick="restoreNote(this.closest('tr').dataset.postSn)"
+              >
+                <i class="fa-solid fa-rotate-left"></i>
+              </button>
+            </td>
+            <td
+              th:if="${box == 'trash'}"
+              style="text-align: center"
+              onclick="event.stopPropagation()"
+            >
+              <button
+                class="text-slate-300 hover:text-red-500 transition-colors text-sm"
+                title="완전 삭제"
+                onclick="permanentDeleteNote(this.closest('tr').dataset.postSn)"
+              >
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </td>
           </tr>
 
           <!-- 빈 상태 (데이터 없을 때 표시) -->
@@ -509,127 +557,193 @@
           <p class="text-sm font-medium">받은 쪽지가 없습니다.</p>
         </div>
       </div>
+    </div>
   </div>
-</div>
 
-<script>
-  // Tom Select 초기화
-  try {
-    document.querySelectorAll("select[data-ts-defer]").forEach(function (el) {
-      window.initTomSelect(el);
-    });
-  } catch (e) {}
+  <script>
+    // Tom Select 초기화
+    try {
+      document.querySelectorAll("select[data-ts-defer]").forEach(function (el) {
+        window.initTomSelect(el);
+      });
+    } catch (e) {}
 
-  // 토스트 알림
-  function showToast(message, type) {
-    const colors = type === 'error'
-      ? 'bg-red-600 text-white'
-      : 'bg-slate-800 text-white';
-    const toast = document.createElement('div');
-    toast.className = 'fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-sm font-medium transition-all duration-300 ' + colors;
-    toast.style.opacity = '0';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    requestAnimationFrame(() => { toast.style.opacity = '1'; });
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      setTimeout(() => toast.remove(), 300);
-    }, 2500);
-  }
+    // 토스트 알림
+    function showToast(message, type) {
+      const colors =
+        type === "error" ? "bg-red-600 text-white" : "bg-slate-800 text-white";
+      const toast = document.createElement("div");
+      toast.className =
+        "fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-sm font-medium transition-all duration-300 " +
+        colors;
+      toast.style.opacity = "0";
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      requestAnimationFrame(() => {
+        toast.style.opacity = "1";
+      });
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    }
 
-  // 헤더 체크박스 indeterminate 동기화
-  function syncHeaderCheckbox() {
-    const headerCb = document.querySelector('thead input[type=checkbox]');
-    const rowCbs = [...document.querySelectorAll('tbody input[type=checkbox]')];
-    if (!headerCb) return;
-    const checkedCount = rowCbs.filter(cb => cb.checked).length;
-    headerCb.indeterminate = checkedCount > 0 && checkedCount < rowCbs.length;
-    headerCb.checked = rowCbs.length > 0 && checkedCount === rowCbs.length;
-  }
+    // 헤더 체크박스 indeterminate 동기화
+    function syncHeaderCheckbox() {
+      const headerCb = document.querySelector("thead input[type=checkbox]");
+      const rowCbs = [
+        ...document.querySelectorAll("tbody input[type=checkbox]"),
+      ];
+      if (!headerCb) return;
+      const checkedCount = rowCbs.filter((cb) => cb.checked).length;
+      headerCb.indeterminate = checkedCount > 0 && checkedCount < rowCbs.length;
+      headerCb.checked = rowCbs.length > 0 && checkedCount === rowCbs.length;
+    }
 
-  // 체크된 행의 postSn 수집
-  function getCheckedPostSns() {
-    return [...document.querySelectorAll('tbody tr')]
-      .filter(tr => tr.querySelector('input[type=checkbox]')?.checked)
-      .map(tr => tr.dataset.postSn)
-      .filter(Boolean);
-  }
+    // 체크된 행의 postSn 수집
+    function getCheckedPostSns() {
+      return [...document.querySelectorAll("tbody tr")]
+        .filter((tr) => tr.querySelector("input[type=checkbox]")?.checked)
+        .map((tr) => tr.dataset.postSn)
+        .filter(Boolean);
+    }
 
-  // 일괄 처리 공통
-  async function batchAction(url, postSns, successMsg) {
-    if (!postSns.length) { showToast('선택된 쪽지가 없습니다.', 'error'); return; }
-    await Promise.all(postSns.map(sn => fetch(url + '?postSn=' + sn, { method: 'POST' })));
-    showToast(successMsg);
-    refreshNoteList();
-  }
+    // 일괄 처리 공통
+    async function batchAction(url, postSns, successMsg) {
+      if (!postSns.length) {
+        showToast("선택된 쪽지가 없습니다.", "error");
+        return;
+      }
+      await Promise.all(
+        postSns.map((sn) => fetch(url + "?postSn=" + sn, { method: "POST" })),
+      );
+      showToast(successMsg);
+      refreshNoteList();
+    }
 
-  function batchDelete() {
-    batchAction('/admin/note/delete', getCheckedPostSns(), '선택한 쪽지를 휴지통으로 이동했습니다.');
-  }
-  function batchArchive() {
-    batchAction('/admin/note/archive', getCheckedPostSns(), '선택한 쪽지를 보관함으로 이동했습니다.');
-  }
-  function batchUnarchive() {
-    batchAction('/admin/note/archive/cancel', getCheckedPostSns(), '보관을 해제했습니다.');
-  }
-  function batchRestore() {
-    batchAction('/admin/note/restore', getCheckedPostSns(), '선택한 쪽지를 복원했습니다.');
-  }
-  async function batchPermanentDelete() {
-    const sns = getCheckedPostSns();
-    if (!sns.length) { showToast('선택된 쪽지가 없습니다.', 'error'); return; }
-    if (!confirm('완전히 삭제하면 복원할 수 없습니다. 선택된 ' + sns.length + '건을 삭제하시겠습니까?')) return;
-    await Promise.all(sns.map(sn => fetch('/admin/note/delete/permanent?postSn=' + sn, { method: 'POST' })));
-    showToast('영구 삭제했습니다.');
-    refreshNoteList();
-  }
+    function batchDelete() {
+      batchAction(
+        "/admin/note/delete",
+        getCheckedPostSns(),
+        "선택한 쪽지를 휴지통으로 이동했습니다.",
+      );
+    }
+    function batchArchive() {
+      batchAction(
+        "/admin/note/archive",
+        getCheckedPostSns(),
+        "선택한 쪽지를 보관함으로 이동했습니다.",
+      );
+    }
+    function batchUnarchive() {
+      batchAction(
+        "/admin/note/archive/cancel",
+        getCheckedPostSns(),
+        "보관을 해제했습니다.",
+      );
+    }
+    function batchRestore() {
+      batchAction(
+        "/admin/note/restore",
+        getCheckedPostSns(),
+        "선택한 쪽지를 복원했습니다.",
+      );
+    }
+    async function batchPermanentDelete() {
+      const sns = getCheckedPostSns();
+      if (!sns.length) {
+        showToast("선택된 쪽지가 없습니다.", "error");
+        return;
+      }
+      if (
+        !confirm(
+          "완전히 삭제하면 복원할 수 없습니다. 선택된 " +
+            sns.length +
+            "건을 삭제하시겠습니까?",
+        )
+      )
+        return;
+      await Promise.all(
+        sns.map((sn) =>
+          fetch("/admin/note/delete/permanent?postSn=" + sn, {
+            method: "POST",
+          }),
+        ),
+      );
+      showToast("영구 삭제했습니다.");
+      refreshNoteList();
+    }
 
-  // 개별 액션
-  function deleteNote(postSn) {
-    fetch('/admin/note/delete?postSn=' + postSn, { method: 'POST' })
-      .then(() => { showToast('휴지통으로 이동했습니다.'); refreshNoteList(); });
-  }
-  function restoreNote(postSn) {
-    fetch('/admin/note/restore?postSn=' + postSn, { method: 'POST' })
-      .then(() => { showToast('복원했습니다.'); refreshNoteList(); });
-  }
-  function archiveNote(postSn) {
-    fetch('/admin/note/archive?postSn=' + postSn, { method: 'POST' })
-      .then(() => { showToast('보관함으로 이동했습니다.'); refreshNoteList(); });
-  }
-  function unarchiveNote(postSn) {
-    fetch('/admin/note/archive/cancel?postSn=' + postSn, { method: 'POST' })
-      .then(() => { showToast('보관을 해제했습니다.'); refreshNoteList(); });
-  }
-  function permanentDeleteNote(postSn) {
-    if (!confirm('완전히 삭제하면 복원할 수 없습니다. 삭제하시겠습니까?')) return;
-    fetch('/admin/note/delete/permanent?postSn=' + postSn, { method: 'POST' })
-      .then(() => { showToast('영구 삭제했습니다.'); refreshNoteList(); });
-  }
+    // 개별 액션
+    function deleteNote(postSn) {
+      fetch("/admin/note/delete?postSn=" + postSn, { method: "POST" }).then(
+        () => {
+          showToast("휴지통으로 이동했습니다.");
+          refreshNoteList();
+        },
+      );
+    }
+    function restoreNote(postSn) {
+      fetch("/admin/note/restore?postSn=" + postSn, { method: "POST" }).then(
+        () => {
+          showToast("복원했습니다.");
+          refreshNoteList();
+        },
+      );
+    }
+    function archiveNote(postSn) {
+      fetch("/admin/note/archive?postSn=" + postSn, { method: "POST" }).then(
+        () => {
+          showToast("보관함으로 이동했습니다.");
+          refreshNoteList();
+        },
+      );
+    }
+    function unarchiveNote(postSn) {
+      fetch("/admin/note/archive/cancel?postSn=" + postSn, {
+        method: "POST",
+      }).then(() => {
+        showToast("보관을 해제했습니다.");
+        refreshNoteList();
+      });
+    }
+    function permanentDeleteNote(postSn) {
+      if (!confirm("완전히 삭제하면 복원할 수 없습니다. 삭제하시겠습니까?"))
+        return;
+      fetch("/admin/note/delete/permanent?postSn=" + postSn, {
+        method: "POST",
+      }).then(() => {
+        showToast("영구 삭제했습니다.");
+        refreshNoteList();
+      });
+    }
 
-  // 목록 새로고침 (팝업에서도 호출)
-  function refreshNoteList() {
-    location.reload();
-  }
+    // 목록 새로고침 (팝업에서도 호출)
+    function refreshNoteList() {
+      location.reload();
+    }
 
-  // 체크박스 이벤트 초기화 (최초 로드 및 새로고침 후 재호출)
-  function initNoteList() {
-    const headerCb = document.querySelector('thead input[type=checkbox]');
-    if (headerCb) {
-      headerCb.addEventListener('change', function () {
-        document.querySelectorAll('tbody input[type=checkbox]').forEach(cb => {
-          cb.checked = this.checked;
-          cb.closest('tr').classList.toggle('bg-violet-50', this.checked);
+    // 체크박스 이벤트 초기화 (최초 로드 및 새로고침 후 재호출)
+    function initNoteList() {
+      const headerCb = document.querySelector("thead input[type=checkbox]");
+      if (headerCb) {
+        headerCb.addEventListener("change", function () {
+          document
+            .querySelectorAll("tbody input[type=checkbox]")
+            .forEach((cb) => {
+              cb.checked = this.checked;
+              cb.closest("tr").classList.toggle("bg-violet-50", this.checked);
+            });
+        });
+      }
+      document.querySelectorAll("tbody input[type=checkbox]").forEach((cb) => {
+        cb.addEventListener("change", function () {
+          this.closest("tr").classList.toggle("bg-violet-50", this.checked);
+          syncHeaderCheckbox();
         });
       });
     }
-    document.querySelectorAll('tbody input[type=checkbox]').forEach(cb => {
-      cb.addEventListener('change', function () {
-        this.closest('tr').classList.toggle('bg-violet-50', this.checked);
-        syncHeaderCheckbox();
-      });
-    });
-  }
 
-  initNoteList();
-</script>
+    initNoteList();
+  </script>
+</div>

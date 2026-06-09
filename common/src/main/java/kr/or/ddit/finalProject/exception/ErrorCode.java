@@ -9,6 +9,9 @@ import org.springframework.http.HttpStatus;
 //@formatter:off
 public enum ErrorCode {
 
+    
+    NOTIFICATION_ACCESS_DENIED(HttpStatus.FORBIDDEN, "알림에 대한 접근 권한이 없습니다."),
+
     // 요청 관련
     NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 리소스를 찾을 수 없습니다."),
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),

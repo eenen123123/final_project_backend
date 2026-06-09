@@ -35,6 +35,12 @@ public class StompSubscriptionInterceptor implements ChannelInterceptor {
                 if (!isParticipant) {
                     throw new FinalProjectException(ErrorCode.CHAT_ROOM_ACCESS_DENIED);
                 }
+            } else if (destination != null && destination.startsWith("/topic/notifications/")) {
+                String userId = user.getName();
+                String destUserId = destination.replace("/topic/notifications/", "");
+                if (!userId.equals(destUserId)) {
+                    throw new FinalProjectException(ErrorCode.NOTIFICATION_ACCESS_DENIED);
+                }
             }
         }
         return message;
