@@ -31,6 +31,11 @@ public class TextbookDto implements Serializable {
     private LocalDateTime regDt;
     private LocalDateTime mdfcnDt;
 
+    private String tagline; // 제목 위 태그라인
+    private String bookSmry; // 2~3줄 간략 요약
+    private String tocCn; // 목차
+    private String instrUserId; // 연결 강사 ID (null 허용)
+
     // JOIN 전용 필드 (DB 컬럼 없음)
     private String subjNm; // 과목명 (SUBJECT.SUBJ_NM)
     private String subjClNm; // 과목 대분류명 (SUBJECT_CLASSIFICATION.SUBJ_CL_NM)

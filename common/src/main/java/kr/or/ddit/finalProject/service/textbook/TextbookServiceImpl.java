@@ -80,4 +80,19 @@ public class TextbookServiceImpl implements TextbookService {
         }
         textbookMapper.deleteTextbook(textbookSn, currentUserId);
     }
+
+    @Override
+    public int retrieveNewTextbookCountThisMonth() {
+        return textbookMapper.countNewTextbookThisMonth();
+    }
+
+    @Override
+    public int retrieveDangerTextbookCount() {
+        return textbookMapper.countDangerTextbook();
+    }
+
+    @Override
+    public int retrieveSoldOutTextbookCount() {
+        return textbookMapper.countSoldOutTextbook();
+    }
 }
