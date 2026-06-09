@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.NotificationMapper">
+
+    <resultMap id="notificationResultMap" type="kr.or.ddit.finalProject.dto.notification.NotificationDto">
+        <id property="notiSn" column="NOTI_SN"/>
+        <result property="rcvrUserId" column="RCVR_USER_ID"/>
+        <result property="sndrUserId" column="SNDR_USER_ID"/>
+        <result property="notiType" column="NOTI_TYPE" javaType="kr.or.ddit.finalProject.dto.notification.NotificationType" typeHandler="kr.or.ddit.finalProject.dto.notification.NotificationTypeHandler"/>
+        <result property="notiCn" column="NOTI_CN"/>
+        <result property="linkUrl" column="LINK_URL"/>
+        <result property="rcptDt" column="RCPT_DT"/>
+        <result property="readYn" column="READ_YN"/>
+        <result property="readDt" column="READ_DT"/>
+    </resultMap>
+
+    <insert id="insertNotification" parameterType="kr.or.ddit.finalProject.dto.notification.NotificationDto" useGeneratedKeys="true" keyProperty="notiSn" keyColumn="NOTI_SN">
+        INSERT INTO NOTIFICATION (
+            RCVR_USER_ID,
+            SNDR_USER_ID,
+            NOTI_TYPE,
+            NOTI_CN,
+            LINK_URL
+        ) VALUES (
+            #{rcvrUserId},
+            #{sndrUserId},
+            #{notiType, typeHandler=kr.or.ddit.finalProject.dto.notification.NotificationTypeHandler},
+            #{notiCn},
+            #{linkUrl}
+        )
+    </insert>
+
+    <select id="selectUnreadNotifications" resultMap="notificationResultMap">
+        SELECT NOTI_SN, RCVR_USER_ID, SNDR_USER_ID, NOTI_TYPE,
+               NOTI_CN, LINK_URL, RCPT_DT, READ_YN, READ_DT
+        FROM   NOTIFICATION
+        WHERE  RCVR_USER_ID = #{userId}
+          AND  READ_YN = 'N'
+        ORDER BY RCPT_DT DESC
+    </select>
+
+    <update id="markAsRead">
+        UPDATE NOTIFICATION
+        SET    READ_YN = 'Y',
+               READ_DT = SYSTIMESTAMP
+        WHERE  NOTI_SN     = #{notiSn}
+                    AND  RCVR_USER_ID = #{userId}
+                     
+    </update>
+
+    <!-- selectAllNotifications -->
+
+    <select id="selectAllNotifications" resultMap="notificationResultMap" parameterType="string">
+        select noti_sn, rcvr_user_id, sndr_user_id, noti_type, noti_cn, link_url, rcpt_dt, read_yn, read_dt
+        from notification
+        where rcvr_user_id = #{userId}
+        order by rcpt_dt desc
+        FETCH FIRST 30 ROWS ONLY
+    </select>
+</mapper>

@@ -2,6 +2,7 @@ package kr.or.ddit.finalProject.service.chat;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ public class ChatServiceImpl implements ChatService {
 
     private final MemberMapper memberMapper;
     private final MessageMapper messageMapper;
+
 
     @Override
     @Transactional
@@ -196,4 +198,12 @@ public class ChatServiceImpl implements ChatService {
         messageMapper.updateLastReadMessage(roomSn, userId, msgSn);
 
     }
+
+    // ChatServiceImpl
+    @Override
+    public List<String> getChatRoomParticipantIds(long roomSn) {
+        return messageMapper.selectChatRoomParticipantIds(roomSn);
+    }
+
+
 }
