@@ -1,8 +1,8 @@
-package kr.or.ddit.finalProject.service.journal;
+package kr.or.ddit.finalProject.service.instructor;
 
 import java.util.List;
 
-import kr.or.ddit.finalProject.dto.journal.InstructorJournalDto;
+import kr.or.ddit.finalProject.dto.instructor.InstructorJournalDto;
 
 /**
  * 업무 일지 서비스 인터페이스

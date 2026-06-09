@@ -1,0 +1,181 @@
+<title th:fragment="pageTitle">교재 관리 | HERMES</title>
+
+<div class="space-y-6">
+
+  <!-- ① 페이지 헤더 -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">교재 관리</h1>
+      <p class="text-sm text-slate-500 mt-1">등록된 교재 목록을 조회하고 관리합니다.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <a th:href="@{/admin/textbook/new}" class="hm-btn-primary">
+        <i class="fa-solid fa-plus"></i>
+        <span>교재 등록</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- ② 요약 통계 카드 -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-book"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">전체 교재</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5" th:text="${totalCount + '권'}">0권</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 검색 + 필터 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+    <form th:action="@{/admin/textbook}" method="get" class="flex flex-wrap items-center gap-3">
+      <!-- 키워드 검색 -->
+      <div class="w-full sm:w-72 relative">
+        <input type="text" name="keyword" th:value="${param.keyword}"
+               class="hm-input pl-10" placeholder="교재명 검색..." />
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+      </div>
+      <!-- 과목 필터 -->
+      <div class="w-full sm:w-40">
+        <select name="subjClId" class="hm-input">
+          <option value="">과목 전체</option>
+          <option th:each="sc : ${subjClList}"
+                  th:value="${sc.subjClId}"
+                  th:text="${sc.subjClNm}"
+                  th:selected="${param.subjClId == sc.subjClId.toString()}">과목명</option>
+        </select>
+      </div>
+      <button type="submit" class="hm-btn-primary">
+        <i class="fa-solid fa-search"></i>
+        <span>검색</span>
+      </button>
+      <a th:href="@{/admin/textbook}" class="hm-btn-ghost">초기화</a>
+    </form>
+  </div>
+
+  <!-- ④ 교재 목록 테이블 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+            <th class="py-4 px-6">교재 정보</th>
+            <th class="py-4 px-6">과목</th>
+            <th class="py-4 px-6">저자 / 출판사</th>
+            <th class="py-4 px-6 text-right">판매가</th>
+            <th class="py-4 px-6 text-right">배송비</th>
+            <th class="py-4 px-6 text-center">등록일</th>
+            <th class="py-4 px-6 text-center">관리</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+
+          <!-- 데이터 없을 때 -->
+          <tr th:if="${#lists.isEmpty(textbookList)}">
+            <td colspan="7" class="py-20 text-center text-slate-400 text-sm">
+              등록된 교재가 없습니다.
+            </td>
+          </tr>
+
+          <!-- 교재 목록 -->
+          <tr th:each="textbook : ${textbookList}"
+              class="hover:bg-slate-50/50 transition-colors">
+            <!-- 교재 정보 -->
+            <td class="py-4 px-6">
+              <div class="flex items-center gap-3">
+                <!-- 썸네일 -->
+                <div class="w-10 h-12 rounded-lg overflow-hidden border border-slate-200 shrink-0 bg-slate-100 flex items-center justify-center">
+                  <img th:if="${textbook.thmbImg != null}"
+                       th:src="${textbook.thmbImg}" alt="교재 표지"
+                       class="w-full h-full object-cover" />
+                  <i th:if="${textbook.thmbImg == null}"
+                     class="fa-solid fa-book text-slate-300"></i>
+                </div>
+                <div>
+                  <p class="font-bold text-slate-800" th:text="${textbook.textbookNm}">교재명</p>
+                  <p class="text-xs text-slate-400" th:text="${textbook.isbnNo}">ISBN</p>
+                </div>
+              </div>
+            </td>
+            <!-- 과목 -->
+            <td class="py-4 px-6">
+              <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-600"
+                    th:text="${textbook.subjClNm ?: '-'}">과목</span>
+            </td>
+            <!-- 저자/출판사 -->
+            <td class="py-4 px-6">
+              <p class="text-sm text-slate-700" th:text="${textbook.authrNm ?: '-'}">저자명</p>
+              <p class="text-xs text-slate-400" th:text="${textbook.pubrNm ?: '-'}">출판사</p>
+            </td>
+            <!-- 판매가 -->
+            <td class="py-4 px-6 text-right">
+              <span class="font-bold text-slate-800"
+                    th:text="${#numbers.formatInteger(textbook.salePrcAmt, 1, 'COMMA') + '원'}">0원</span>
+            </td>
+            <!-- 배송비 -->
+            <td class="py-4 px-6 text-right">
+              <span class="text-slate-600"
+                    th:text="${textbook.dlvrAmt != null ? #numbers.formatInteger(textbook.dlvrAmt, 1, 'COMMA') + '원' : '0원'}">0원</span>
+            </td>
+            <!-- 등록일 -->
+            <td class="py-4 px-6 text-center">
+              <span class="text-xs text-slate-500"
+                    th:text="${#temporals.format(textbook.regDt, 'yyyy.MM.dd')}">2026.01.01</span>
+            </td>
+            <!-- 관리 버튼 -->
+            <td class="py-4 px-6 text-center">
+              <div class="flex items-center justify-center gap-2">
+                <a th:href="@{/admin/textbook/{sn}(sn=${textbook.textbookSn})}"
+                   class="hm-btn-ghost text-xs px-3 py-1.5">
+                  <i class="fa-solid fa-pen"></i>
+                  <span>수정</span>
+                </a>
+                <a th:href="@{/admin/textbook/stock/{sn}(sn=${textbook.textbookSn})}"
+                   class="hm-btn-ghost text-xs px-3 py-1.5">
+                  <i class="fa-solid fa-box"></i>
+                  <span>재고</span>
+                </a>
+                <form th:action="@{/admin/textbook/{sn}/delete(sn=${textbook.textbookSn})}"
+                      method="post"
+                      onsubmit="return confirm('정말 삭제하시겠습니까?')">
+                  <button type="submit" class="hm-btn-ghost text-xs px-3 py-1.5 text-rose-500 hover:bg-rose-50">
+                    <i class="fa-solid fa-trash"></i>
+                    <span>삭제</span>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 페이지네이션 -->
+    <div th:if="${paginationInfo.totalPage > 1}"
+         class="flex items-center justify-center gap-1 py-5 border-t border-slate-100">
+      <!-- 이전 -->
+      <a th:href="@{/admin/textbook(page=${paginationInfo.startPage - 1}, keyword=${param.keyword}, subjClId=${param.subjClId})}"
+         th:classappend="${paginationInfo.startPage == 1} ? 'pointer-events-none opacity-30' : ''"
+         class="w-8 h-8 flex items-center justify-center border border-slate-200 rounded text-slate-400 hover:bg-slate-50 text-sm">‹</a>
+
+      <!-- 페이지 번호 -->
+      <th:block th:each="p : ${#numbers.sequence(paginationInfo.startPage, paginationInfo.endPage)}">
+        <a th:href="@{/admin/textbook(page=${p}, keyword=${param.keyword}, subjClId=${param.subjClId})}"
+           th:text="${p}"
+           th:classappend="${p == paginationInfo.page} ? 'bg-blue-950 text-white border-blue-950' : 'text-slate-500 border-slate-200 hover:bg-slate-50'"
+           class="w-8 h-8 flex items-center justify-center border rounded text-xs font-medium transition-colors">1</a>
+      </th:block>
+
+      <!-- 다음 -->
+      <a th:href="@{/admin/textbook(page=${paginationInfo.endPage + 1}, keyword=${param.keyword}, subjClId=${param.subjClId})}"
+         th:classappend="${paginationInfo.endPage >= paginationInfo.totalPage} ? 'pointer-events-none opacity-30' : ''"
+         class="w-8 h-8 flex items-center justify-center border border-slate-200 rounded text-slate-400 hover:bg-slate-50 text-sm">›</a>
+    </div>
+
+  </div>
+
+</div>

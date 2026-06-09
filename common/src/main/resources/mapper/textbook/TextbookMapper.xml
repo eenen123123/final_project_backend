@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.textbook.TextbookMapper">
+
+    <resultMap id="textbookResultMap" type="kr.or.ddit.finalProject.dto.textbook.TextbookDto">
+        <id property="textbookSn" column="TEXTBOOK_SN"/>
+        <result property="textbookNm"   column="TEXTBOOK_NM"/>
+        <result property="pubrNm"       column="PUBR_NM"/>
+        <result property="authrNm"      column="AUTHR_NM"/>
+        <result property="isbnNo"       column="ISBN_NO"/>
+        <result property="trgtGrdCn"    column="TRGT_GRD_CN"/>
+        <result property="subjCd"       column="SUBJ_CD"/>
+        <result property="salePrcAmt"   column="SALE_PRC_AMT"/>
+        <result property="purchPrcAmt"  column="PURCH_PRC_AMT"/>
+        <result property="dlvrAmt"      column="DLVR_AMT"/>
+        <result property="thmbImg"      column="THMB_IMG"/>
+        <result property="useYn"        column="USE_YN"/>
+        <result property="rgtrId"       column="RGTR_ID"/>
+        <result property="lastMdfrId"   column="LAST_MDFR_ID"/>
+        <result property="regDt"        column="REG_DT"/>
+        <result property="mdfcnDt"      column="MDFCN_DT"/>
+        <!-- JOIN 필드 -->
+        <result property="subjNm"       column="SUBJ_NM"/>
+        <result property="subjClNm"     column="SUBJ_CL_NM"/>
+        <result property="subjClId"     column="SUBJ_CL_ID"/>
+    </resultMap>
+
+    <!-- 검색 조건 -->
+    <sql id="textbookSearchWhere">
+        <trim prefix="WHERE" prefixOverrides="AND">
+            AND t.USE_YN = 'Y'
+            <if test="detailCondition != null">
+                <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
+                    AND instr(t.TEXTBOOK_NM, #{detailCondition.keyword}) &gt; 0
+                </if>
+                <if test="detailCondition.instrUserNm != null and detailCondition.instrUserNm != ''">
+                    AND t.AUTHR_NM = #{detailCondition.instrUserNm}
+                </if>
+            </if>
+        </trim>
+    </sql>
+
+    <!-- 교재 목록 조회 (페이징 + 필터) -->
+    <select id="selectTextbookList" resultMap="textbookResultMap">
+        SELECT
+            t.TEXTBOOK_SN, t.TEXTBOOK_NM, t.PUBR_NM, t.AUTHR_NM,
+            t.ISBN_NO, t.TRGT_GRD_CN, t.SUBJ_CD,
+            t.SALE_PRC_AMT, t.PURCH_PRC_AMT, t.DLVR_AMT,
+            t.THMB_IMG, t.USE_YN, t.RGTR_ID, t.LAST_MDFR_ID,
+            t.REG_DT, t.MDFCN_DT,
+            NULL           AS SUBJ_NM,
+            t.SUBJ_CL_ID   AS SUBJ_CL_ID,
+            sc.SUBJ_CL_NM  AS SUBJ_CL_NM
+        FROM TEXTBOOK t
+        LEFT JOIN SUBJECT_CLASSIFICATION sc ON t.SUBJ_CL_ID = sc.SUBJ_CL_ID
+        <include refid="textbookSearchWhere"/>
+        ORDER BY t.REG_DT DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <!-- 교재 총 개수 (페이징용) -->
+    <select id="countTextbookList" resultType="int">
+        SELECT COUNT(*)
+        FROM TEXTBOOK t
+        LEFT JOIN SUBJECT_CLASSIFICATION sc ON t.SUBJ_CL_ID = sc.SUBJ_CL_ID
+        <include refid="textbookSearchWhere"/>
+    </select>
+
+    <!-- 교재 단건 조회 -->
+    <select id="selectTextbookBySn" resultMap="textbookResultMap">
+        SELECT
+            t.TEXTBOOK_SN, t.TEXTBOOK_NM, t.PUBR_NM, t.AUTHR_NM,
+            t.ISBN_NO, t.TRGT_GRD_CN, t.SUBJ_CD,
+            t.SALE_PRC_AMT, t.PURCH_PRC_AMT, t.DLVR_AMT,
+            t.THMB_IMG, t.USE_YN, t.RGTR_ID, t.LAST_MDFR_ID,
+            t.REG_DT, t.MDFCN_DT,
+            NULL           AS SUBJ_NM,
+            t.SUBJ_CL_ID   AS SUBJ_CL_ID,
+            sc.SUBJ_CL_NM  AS SUBJ_CL_NM
+        FROM TEXTBOOK t
+        LEFT JOIN SUBJECT_CLASSIFICATION sc ON t.SUBJ_CL_ID = sc.SUBJ_CL_ID
+        WHERE t.TEXTBOOK_SN = #{textbookSn}
+        AND t.USE_YN = 'Y'
+    </select>
+
+    <!-- 교재 등록 -->
+    <insert id="insertTextbook" parameterType="kr.or.ddit.finalProject.dto.textbook.TextbookDto">
+        INSERT INTO TEXTBOOK (
+            TEXTBOOK_NM, PUBR_NM, AUTHR_NM, ISBN_NO,
+            TRGT_GRD_CN, SUBJ_CD, SUBJ_CL_ID, SALE_PRC_AMT, PURCH_PRC_AMT,
+            DLVR_AMT, THMB_IMG, USE_YN, RGTR_ID,
+            LAST_MDFR_ID, REG_DT, MDFCN_DT
+        ) VALUES (
+            #{textbookNm}, #{pubrNm, jdbcType=VARCHAR}, #{authrNm, jdbcType=VARCHAR},
+            #{isbnNo, jdbcType=VARCHAR}, #{trgtGrdCn, jdbcType=VARCHAR},
+            #{subjCd, jdbcType=CHAR}, #{subjClId, jdbcType=NUMERIC}, #{salePrcAmt},
+            #{purchPrcAmt, jdbcType=NUMERIC}, #{dlvrAmt, jdbcType=NUMERIC},
+            #{thmbImg, jdbcType=VARCHAR}, NVL(#{useYn, jdbcType=CHAR}, 'Y'),
+            #{rgtrId}, #{lastMdfrId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <!-- 교재 수정 -->
+    <update id="updateTextbook" parameterType="kr.or.ddit.finalProject.dto.textbook.TextbookDto">
+        UPDATE TEXTBOOK
+        SET
+            TEXTBOOK_NM     = #{textbookNm}
+            , PUBR_NM       = #{pubrNm, jdbcType=VARCHAR}
+            , AUTHR_NM      = #{authrNm, jdbcType=VARCHAR}
+            , ISBN_NO       = #{isbnNo, jdbcType=VARCHAR}
+            , TRGT_GRD_CN   = #{trgtGrdCn, jdbcType=VARCHAR}
+            , SUBJ_CD       = #{subjCd, jdbcType=CHAR}
+            , SUBJ_CL_ID    = #{subjClId, jdbcType=NUMERIC}
+            , SALE_PRC_AMT  = #{salePrcAmt}
+            , PURCH_PRC_AMT = #{purchPrcAmt, jdbcType=NUMERIC}
+            , DLVR_AMT      = #{dlvrAmt, jdbcType=NUMERIC}
+            , THMB_IMG      = #{thmbImg, jdbcType=VARCHAR}
+            , LAST_MDFR_ID  = #{lastMdfrId}
+            , MDFCN_DT      = CURRENT_TIMESTAMP
+        WHERE TEXTBOOK_SN = #{textbookSn}
+    </update>
+
+    <!-- 교재 삭제 (논리 삭제) -->
+    <update id="deleteTextbook">
+        UPDATE TEXTBOOK
+        SET
+            USE_YN          = 'N'
+            , LAST_MDFR_ID  = #{lastMdfrId}
+            , MDFCN_DT      = CURRENT_TIMESTAMP
+        WHERE TEXTBOOK_SN = #{textbookSn}
+    </update>
+
+</mapper>

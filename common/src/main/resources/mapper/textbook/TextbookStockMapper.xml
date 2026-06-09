@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.textbook.TextbookStockMapper">
+
+    <!-- ============================= -->
+    <!-- TEXTBOOK_INVENTORY resultMap  -->
+    <!-- ============================= -->
+    <resultMap id="textbookInventoryResultMap" type="kr.or.ddit.finalProject.dto.textbook.TextbookInventoryDto">
+        <id property="invtSn"           column="INVT_SN"/>
+        <id property="textbookSn"       column="TEXTBOOK_SN"/>
+        <result property="totInvtCnt"   column="TOT_INVT_CNT"/>
+        <result property="salableCnt"   column="SALABLE_CNT"/>
+        <result property="saleCmplCnt"  column="SALE_CMPL_CNT"/>
+        <result property="rsrvWaitCnt"  column="RSRV_WAIT_CNT"/>
+        <result property="dmgdDspslCnt" column="DMGD_DSPSL_CNT"/>
+        <result property="minKeepCnt"   column="MIN_KEEP_CNT"/>
+        <result property="invtStatCd"   column="INVT_STAT_CD"/>
+        <result property="rgtrId"       column="RGTR_ID"/>
+        <result property="lastMdfrId"   column="LAST_MDFR_ID"/>
+        <result property="regDt"        column="REG_DT"/>
+        <result property="mdfcnDt"      column="MDFCN_DT"/>
+    </resultMap>
+
+    <!-- ============================= -->
+    <!-- TEXTBOOK_HISTORY resultMap    -->
+    <!-- ============================= -->
+    <resultMap id="textbookHistoryResultMap" type="kr.or.ddit.finalProject.dto.textbook.TextbookHistoryDto">
+        <id property="invtHistSn"       column="INVT_HIST_SN"/>
+        <id property="textbookSn"       column="TEXTBOOK_SN"/>
+        <result property="ioTypeCd"     column="IO_TYPE_CD"/>
+        <result property="chgCnt"       column="CHG_CNT"/>
+        <result property="bfrChgCnt"    column="BFR_CHG_CNT"/>
+        <result property="aftChgCnt"    column="AFT_CHG_CNT"/>
+        <result property="relDutyTypeCd" column="REL_DUTY_TYPE_CD"/>
+        <result property="relDutyId"    column="REL_DUTY_ID"/>
+        <result property="procDt"       column="PROC_DT"/>
+        <result property="procUserId"   column="PROC_USER_ID"/>
+    </resultMap>
+
+    <!-- ============================= -->
+    <!-- 재고 조회                     -->
+    <!-- ============================= -->
+
+    <!-- 재고 단건 조회 -->
+    <select id="selectInventoryByTextbookSn" resultMap="textbookInventoryResultMap">
+        SELECT
+            INVT_SN, TEXTBOOK_SN, TOT_INVT_CNT, SALABLE_CNT,
+            SALE_CMPL_CNT, RSRV_WAIT_CNT, DMGD_DSPSL_CNT,
+            MIN_KEEP_CNT, INVT_STAT_CD, RGTR_ID, LAST_MDFR_ID,
+            REG_DT, MDFCN_DT
+        FROM TEXTBOOK_INVENTORY
+        WHERE TEXTBOOK_SN = #{textbookSn}
+    </select>
+
+    <!-- ============================= -->
+    <!-- 재고 등록 (교재 등록 시 초기화) -->
+    <!-- ============================= -->
+    <insert id="insertInventory" parameterType="kr.or.ddit.finalProject.dto.textbook.TextbookInventoryDto">
+        INSERT INTO TEXTBOOK_INVENTORY (
+            TEXTBOOK_SN, TOT_INVT_CNT, SALABLE_CNT,
+            SALE_CMPL_CNT, RSRV_WAIT_CNT, DMGD_DSPSL_CNT,
+            MIN_KEEP_CNT, INVT_STAT_CD, RGTR_ID,
+            LAST_MDFR_ID, REG_DT, MDFCN_DT
+        ) VALUES (
+            #{textbookSn},
+            #{totInvtCnt},
+            #{salableCnt},
+            NVL(#{saleCmplCnt, jdbcType=NUMERIC}, 0),
+            NVL(#{rsrvWaitCnt, jdbcType=NUMERIC}, 0),
+            NVL(#{dmgdDspslCnt, jdbcType=NUMERIC}, 0),
+            NVL(#{minKeepCnt, jdbcType=NUMERIC}, 0),
+            NVL(#{invtStatCd, jdbcType=CHAR}, '10'),
+            #{rgtrId},
+            #{lastMdfrId},
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <!-- 재고 수정 -->
+    <update id="updateInventory" parameterType="kr.or.ddit.finalProject.dto.textbook.TextbookInventoryDto">
+        UPDATE TEXTBOOK_INVENTORY
+        SET
+            TOT_INVT_CNT   = #{totInvtCnt}
+            , SALABLE_CNT  = #{salableCnt}
+            , SALE_CMPL_CNT = #{saleCmplCnt, jdbcType=NUMERIC}
+            , RSRV_WAIT_CNT = #{rsrvWaitCnt, jdbcType=NUMERIC}
+            , DMGD_DSPSL_CNT = #{dmgdDspslCnt, jdbcType=NUMERIC}
+            , MIN_KEEP_CNT = #{minKeepCnt, jdbcType=NUMERIC}
+            , INVT_STAT_CD = #{invtStatCd, jdbcType=CHAR}
+            , LAST_MDFR_ID = #{lastMdfrId}
+            , MDFCN_DT     = CURRENT_TIMESTAMP
+        WHERE TEXTBOOK_SN = #{textbookSn}
+    </update>
+
+    <!-- ============================= -->
+    <!-- 입출고 내역                   -->
+    <!-- ============================= -->
+
+    <!-- 입출고 내역 등록 -->
+    <insert id="insertHistory" parameterType="kr.or.ddit.finalProject.dto.textbook.TextbookHistoryDto">
+        INSERT INTO TEXTBOOK_HISTORY (
+            TEXTBOOK_SN, IO_TYPE_CD, CHG_CNT,
+            BFR_CHG_CNT, AFT_CHG_CNT,
+            REL_DUTY_TYPE_CD, REL_DUTY_ID,
+            PROC_DT, PROC_USER_ID
+        ) VALUES (
+            #{textbookSn},
+            #{ioTypeCd},
+            #{chgCnt},
+            #{bfrChgCnt, jdbcType=NUMERIC},
+            #{aftChgCnt, jdbcType=NUMERIC},
+            #{relDutyTypeCd, jdbcType=CHAR},
+            #{relDutyId, jdbcType=NUMERIC},
+            CURRENT_TIMESTAMP,
+            #{procUserId}
+        )
+    </insert>
+
+    <!-- 입출고 내역 검색 조건 -->
+    <sql id="historySearchWhere">
+        <trim prefix="WHERE" prefixOverrides="AND">
+            AND h.TEXTBOOK_SN = #{detailCondition.textbookSn}
+            <if test="detailCondition.ioTypeCd != null and detailCondition.ioTypeCd != ''">
+                AND h.IO_TYPE_CD = #{detailCondition.ioTypeCd}
+            </if>
+            <if test="detailCondition.startDt != null and detailCondition.startDt != ''">
+                AND h.PROC_DT &gt;= TO_DATE(#{detailCondition.startDt}, 'YYYY-MM-DD')
+            </if>
+            <if test="detailCondition.endDt != null and detailCondition.endDt != ''">
+                AND h.PROC_DT &lt; TO_DATE(#{detailCondition.endDt}, 'YYYY-MM-DD') + 1
+            </if>
+            <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
+                AND instr(h.PROC_USER_ID, #{detailCondition.keyword}) &gt; 0
+            </if>
+        </trim>
+    </sql>
+
+    <!-- 입출고 내역 목록 조회 (페이징 + 검색) -->
+    <select id="selectHistoryList" resultMap="textbookHistoryResultMap">
+        SELECT
+            INVT_HIST_SN, TEXTBOOK_SN, IO_TYPE_CD, CHG_CNT,
+            BFR_CHG_CNT, AFT_CHG_CNT, REL_DUTY_TYPE_CD,
+            REL_DUTY_ID, PROC_DT, PROC_USER_ID
+        FROM TEXTBOOK_HISTORY h
+        <include refid="historySearchWhere"/>
+        ORDER BY h.PROC_DT DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <!-- 입출고 내역 총 개수 (페이징용) -->
+    <select id="countHistoryList" resultType="int">
+        SELECT COUNT(*)
+        FROM TEXTBOOK_HISTORY h
+        <include refid="historySearchWhere"/>
+    </select>
+
+</mapper>
