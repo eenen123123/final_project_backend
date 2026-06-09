@@ -15,14 +15,14 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import kr.or.ddit.finalProject.dto.member.MemberCreateLogDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.dto.staff.AdminActivityType;
+import kr.or.ddit.finalProject.service.file.CloudinaryUploadService;
+import kr.or.ddit.finalProject.service.member.ParentService;
 import kr.or.ddit.finalProject.service.staff.StaffService;
 import kr.or.ddit.service.AdminActivityApprovalService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -142,14 +142,15 @@ public class StaffStudentsController {
 
         // 이미지는 base64로 인코딩하여 결재 페이로드에 저장 — Cloudinary 업로드는 최종 결재 후 실행
         String profileImageBase64 = null;
-        String profileImageType   = null;
+        String profileImageType = null;
         if (profileImage != null && !profileImage.isEmpty()) {
             try {
                 profileImageBase64 = Base64.getEncoder().encodeToString(profileImage.getBytes());
-                profileImageType   = profileImage.getContentType();
+                profileImageType = profileImage.getContentType();
             } catch (Exception e) {
                 log.error("[createStudent] 이미지 인코딩 실패: {}", e.getMessage());
-                return "redirect:/admin/employees/students?error=" + URLEncoder.encode("프로필 이미지 처리에 실패했습니다.", StandardCharsets.UTF_8);
+                return "redirect:/admin/employees/students?error="
+                        + URLEncoder.encode("프로필 이미지 처리에 실패했습니다.", StandardCharsets.UTF_8);
             }
         }
 
@@ -158,7 +159,7 @@ public class StaffStudentsController {
             data.put("memberDto", memberDto);
             data.put("memberCreateLog", memberCreateLog);
             data.put("profileImageBase64", profileImageBase64);
-            data.put("profileImageType",   profileImageType);
+            data.put("profileImageType", profileImageType);
 
             activityApprovalService.submitForApproval(loginAdmin,
                     AdminActivityType.STUDENT_REGISTER,
@@ -169,7 +170,8 @@ public class StaffStudentsController {
                     + URLEncoder.encode("결재 요청에 실패했습니다: " + e.getMessage(), StandardCharsets.UTF_8);
         }
 
-        return "redirect:/admin/employees/students?success=" + URLEncoder.encode("결재에 등록되었습니다.", StandardCharsets.UTF_8);
+        return "redirect:/admin/employees/students?success="
+                + URLEncoder.encode("결재에 등록되었습니다.", StandardCharsets.UTF_8);
     }
 
     /**
@@ -192,11 +194,12 @@ public class StaffStudentsController {
 
         // 새 이미지는 base64로 인코딩하여 결재 페이로드에 저장 — Cloudinary 업로드는 최종 결재 후 실행
         String profileImageBase64 = null;
-        String profileImageType   = null;
+        String profileImageType = null;
         if (editProfileImage != null && !editProfileImage.isEmpty()) {
             try {
-                profileImageBase64 = Base64.getEncoder().encodeToString(editProfileImage.getBytes());
-                profileImageType   = editProfileImage.getContentType();
+                profileImageBase64 =
+                        Base64.getEncoder().encodeToString(editProfileImage.getBytes());
+                profileImageType = editProfileImage.getContentType();
             } catch (Exception e) {
                 log.error("[updateStudent] 이미지 인코딩 실패: {}", e.getMessage());
             }
@@ -219,7 +222,8 @@ public class StaffStudentsController {
             Map<String, Object> beforeData = new LinkedHashMap<>();
             try {
                 MemberDto before = staffService.retrieveStudentById(userId);
-                if (before != null) beforeData.put("memberDto", before);
+                if (before != null)
+                    beforeData.put("memberDto", before);
             } catch (Exception e) {
                 log.warn("[updateStudent] before 상태 조회 실패: {}", e.getMessage());
             }
@@ -227,18 +231,18 @@ public class StaffStudentsController {
             Map<String, Object> afterData = new LinkedHashMap<>();
             afterData.put("memberDto", memberDto);
             afterData.put("profileImageBase64", profileImageBase64);
-            afterData.put("profileImageType",   profileImageType);
+            afterData.put("profileImageType", profileImageType);
 
             Map<String, Object> data = new LinkedHashMap<>();
-            if (!beforeData.isEmpty()) data.put("before", beforeData);
+            if (!beforeData.isEmpty())
+                data.put("before", beforeData);
             data.put("after", afterData);
 
             activityApprovalService.submitForApproval(loginAdminId,
                     AdminActivityType.STUDENT_UPDATE, userId, data);
 
-            return ResponseEntity.ok(Map.of("result", "success",
-                    "profileUrl", userProfile != null ? userProfile : "",
-                    "message", "결재에 등록되었습니다."));
+            return ResponseEntity.ok(Map.of("result", "success", "profileUrl",
+                    userProfile != null ? userProfile : "", "message", "결재에 등록되었습니다."));
         } catch (Exception e) {
             log.error("[updateStudent] 결재 요청 실패. userId={}, cause={}", userId, e.getMessage());
             return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
@@ -275,6 +279,27 @@ public class StaffStudentsController {
             return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("result", "error", "message", e.getMessage()));
         }
+    }
+
+    @PostMapping("/parent/join-message/send")
+    @ResponseBody
+    public ResponseEntity<Void> sendParentJoinMessage(@RequestParam String studentId,
+            @RequestParam String parentPhone) {
+        // String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toString();
+        // TODO: Rest API 서버 URL을 환경변수나 설정파일에서 읽어오도록 수정 필요
+        String baseUrl = "http://localhost:9001"; // Rest API 서버의 URL로 고정 
+        parentService.sendParentJoinLink(parentPhone, baseUrl, studentId);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/parent/join-message")
+    public String parentJoinMessage(Model model, @RequestParam(defaultValue = "1") int page) {
+
+        List<MemberDto> studentList = staffService.retrieveStudentList();
+        model.addAttribute("studentList", studentList);
+
+        return "admin:/staff/sendJoinMessageToParent";
     }
 
 }
