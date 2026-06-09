@@ -14,18 +14,14 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import kr.or.ddit.finalProject.dto.member.MemberCreateLogDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
-import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.dto.staff.AdminActivityType;
 import kr.or.ddit.finalProject.service.file.CloudinaryUploadService;
 import kr.or.ddit.finalProject.service.member.ParentService;
-import kr.or.ddit.finalProject.service.sms.SmsService;
 import kr.or.ddit.finalProject.service.staff.StaffService;
 import kr.or.ddit.service.AdminActivityApprovalService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -278,7 +274,8 @@ public class StaffStudentsController {
     }
 
     @GetMapping("/parent/join-message")
-    public String parentJoinMessage(Model model) {
+    public String parentJoinMessage(Model model, @RequestParam(defaultValue = "1") int page) {
+
         List<MemberDto> studentList = staffService.retrieveStudentList();
         model.addAttribute("studentList", studentList);
 

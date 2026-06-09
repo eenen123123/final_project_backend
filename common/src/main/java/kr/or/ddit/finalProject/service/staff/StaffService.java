@@ -41,7 +41,7 @@ import kr.or.ddit.finalProject.dto.member.MemberDto;
  * ↑ (Implements)
  * [StaffServiceImpl] -> [StaffMapper]
  */
-public interface  StaffService {
+public interface StaffService {
 
     /**
      * 부서 리스트 조회
@@ -50,8 +50,11 @@ public interface  StaffService {
      * @return 시스템에 등록된 전체 부서 정보 DTO 리스트
      */
     List<DepartmentDto> retrieveDepartmentList();
+
     void addDepartment(DepartmentDto dept);
+
     void modifyDepartment(DepartmentDto dept);
+
     void toggleDeptUseYn(String deptCd, String useYn, String loginUserId);
 
     /**
@@ -61,10 +64,15 @@ public interface  StaffService {
      * @return 시스템에 등록된 전체 직급 정보 DTO 리스트
      */
     List<JobGradeDto> retrieveJobGradeList();
+
     List<JobGradeDto> retrieveAllJobGradeList();
+
     void addJobGrade(JobGradeDto jbgr);
+
     void modifyJobGrade(JobGradeDto jbgr);
+
     void toggleJbgrUseYn(String jbgrCd, String useYn, String loginUserId);
+
     void assignMntUserId(String userId, String mntUserId, String loginUserId);
 
     /** 직급 목록 DB 페이징+필터 */
@@ -84,7 +92,8 @@ public interface  StaffService {
      * @param profileImage      cloudinary에 저장할 프로필 이미지 파일 (MultipartFile)
      * @param loginAdminId      해당 등록 작업을 수행할 이력 추적용 관리자 ID
      */
-    void registerEmployee(MemberDto memberDto, EmployeeInfoDto employeeInfoDto, EmployeeSalaryDto employeeSalaryDto, String  profileUrl, String loginAdminId);
+    void registerEmployee(MemberDto memberDto, EmployeeInfoDto employeeInfoDto,
+            EmployeeSalaryDto employeeSalaryDto, String profileUrl, String loginAdminId);
 
     /**
      * 인사 대시보드용 전체 직원 목록 조회
@@ -136,7 +145,8 @@ public interface  StaffService {
      * @param employeeSalaryDto 변경할 급여 정보
      * @param loginAdminId      작업을 수행한 관리자 ID (이력 기록용)
      */
-    void updateEmployee(MemberDto memberDto, EmployeeInfoDto employeeInfoDto, EmployeeSalaryDto employeeSalaryDto, String loginAdminId);
+    void updateEmployee(MemberDto memberDto, EmployeeInfoDto employeeInfoDto,
+            EmployeeSalaryDto employeeSalaryDto, String loginAdminId);
 
     /**
      * 직원 퇴사 처리 (계정 및 인사 정보 비활성화)
@@ -151,7 +161,7 @@ public interface  StaffService {
      * @param loginUserId   작업을 진행한 관리자 ID
      */
     void retireEmployee(String userId, String retmtRsn, String loginUserId);
-    
+
     /**
      * 직원 목록 동적 검색 + 서버 페이징 (keyword, year, status, deptCd, jbgrCd, emplTypeCd, page, screenSize)
      */
@@ -160,7 +170,8 @@ public interface  StaffService {
     /**
      * 재직 중인 직원 동적 검색 + 서버 페이징 (권한 설정 페이지 전용: keyword, deptCd, jbgrNm, online)
      */
-    PageResponse<EmployeeDetailDto> searchActiveEmployeeList(PaginationInfo<Map<String, Object>> paging);
+    PageResponse<EmployeeDetailDto> searchActiveEmployeeList(
+            PaginationInfo<Map<String, Object>> paging);
 
     /**
      * 학생 목록 동적 검색 (keyword, year, userRole, enable)
@@ -188,7 +199,8 @@ public interface  StaffService {
      * @param profileUrl
      * @param loginAdmin
      */
-    void registerStudent(MemberDto memberDto, MemberCreateLogDto memberCreateLog, String profileUrl, String loginAdmin);
+    void registerStudent(MemberDto memberDto, MemberCreateLogDto memberCreateLog, String profileUrl,
+            String loginAdmin);
 
     /**
      * 학생 상세 정보 수정 (계정 + 프로필 파일)
@@ -198,5 +210,5 @@ public interface  StaffService {
     /**
      * 학생 탈퇴 처리 (계정 및 인사 정보 비활성화)
      */
-	void retireStudent(String userId, String withdrawRsn, String loginUserId);
+    void retireStudent(String userId, String withdrawRsn, String loginUserId);
 }

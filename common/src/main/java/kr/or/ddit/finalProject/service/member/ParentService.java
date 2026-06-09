@@ -43,7 +43,9 @@ public class ParentService {
         String restUrl = baseUrl.replace(":8080", ":9001");
         String token = java.util.UUID.randomUUID().toString();
         String joinLink = restUrl + "/parent/join?token=" + token;
-        String text = "[HERMES 학원] 학부모 회원가입 링크입니다.\n" + joinLink;
+        String text =
+                "\n학부모 등록 링크입니다.\n\n사이트에서 회원가입 후 아래의 링크로 접속해 학부모 등록을 완료하세요.\n\n타인에게 공유하지 마세요!! \n\n"
+                        + joinLink;
 
 
 
