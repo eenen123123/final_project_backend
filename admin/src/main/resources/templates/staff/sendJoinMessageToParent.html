@@ -1,0 +1,353 @@
+<title th:fragment="pageTitle">학부모 가입 링크 전송 | HERMES</title>
+
+<div class="space-y-6">
+  <!-- 페이지 헤더 -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-xl font-bold text-slate-800">
+        학부모 회원가입 링크 전송
+      </h1>
+      <p class="text-sm text-slate-500 mt-0.5">
+        미가입 학부모에게 회원가입 링크를 SMS로 발송합니다.
+      </p>
+    </div>
+  </div>
+
+  <!-- 요약 카드 -->
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+    <div
+      class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3"
+    >
+      <div
+        class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center"
+      >
+        <i class="fa-solid fa-users text-[#3b82f6]"></i>
+      </div>
+      <div>
+        <p class="text-xs text-slate-500">전체 학생</p>
+        <p
+          class="text-xl font-bold text-slate-800"
+          th:text="${studentList != null ? #lists.size(studentList) : 0}"
+        >
+          0
+        </p>
+      </div>
+    </div>
+    <div
+      class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3"
+    >
+      <div
+        class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center"
+      >
+        <i class="fa-solid fa-paper-plane text-emerald-600"></i>
+      </div>
+      <div>
+        <p class="text-xs text-slate-500">오늘 발송</p>
+        <p class="text-xl font-bold text-slate-800" id="today-sent-count">0</p>
+      </div>
+    </div>
+    <div
+      class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3"
+    >
+      <div
+        class="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center"
+      >
+        <i class="fa-solid fa-link text-violet-600"></i>
+      </div>
+      <div>
+        <p class="text-xs text-slate-500">링크 발송 안내</p>
+        <p class="text-xs text-slate-600 font-medium mt-0.5">
+          버튼을 눌러 개별 발송
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 학생 테이블 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+    <!-- 검색 -->
+    <div class="flex flex-wrap gap-3 p-6 pb-4 items-center justify-between">
+      <div class="relative">
+        <i
+          class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"
+        ></i>
+        <input
+          type="text"
+          id="sms-search"
+          placeholder="학생명 검색..."
+          class="hm-input hm-input-blue"
+          style="width: 12rem; padding: 0.65rem 2rem 0.65rem 1rem"
+          oninput="filterSmsTable()"
+        />
+      </div>
+    </div>
+
+    <!-- 테이블 -->
+    <div
+      class="overflow-x-auto border-t border-slate-100"
+      style="min-height: 20rem"
+    >
+      <table class="w-full text-sm table-fixed">
+        <colgroup>
+          <col style="width: 22%" />
+          <col style="width: 14%" />
+          <col style="width: 16%" />
+          <col style="width: 30%" />
+          <col style="width: 12%" />
+          <col style="width: 6%" />
+        </colgroup>
+        <thead>
+          <tr class="bg-slate-50 text-slate-500 text-xs">
+            <th class="text-left py-3 px-5 font-semibold">학생명</th>
+            <th class="text-left py-3 px-4 font-semibold">생년월일</th>
+            <th class="text-left py-3 px-4 font-semibold">연락처</th>
+            <th class="text-left py-3 px-4 font-semibold">주소</th>
+            <th class="text-left py-3 px-4 font-semibold">가입일</th>
+            <th class="text-left py-3 px-4 font-semibold">전송</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50" id="sms-table-body">
+          <tr th:if="${studentList == null or #lists.isEmpty(studentList)}">
+            <td colspan="6" class="text-center py-10 text-sm text-slate-400">
+              등록된 학생이 없습니다.
+            </td>
+          </tr>
+          <tr
+            th:each="student : ${studentList}"
+            class="sms-data-row hover:bg-slate-50/60 transition-colors"
+            th:data-name="${student.userName}"
+          >
+            <!-- 학생명 + 아이디 -->
+            <td class="py-3 px-5">
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-xs font-bold text-[#3b82f6] shrink-0"
+                  th:text="${#strings.substring(student.userName, 0, 1)}"
+                >
+                  ?
+                </div>
+                <div class="min-w-0">
+                  <p
+                    class="font-semibold text-slate-800 truncate"
+                    th:text="${student.userName}"
+                  ></p>
+                  <p
+                    class="text-xs text-slate-400 truncate"
+                    th:text="${student.userId}"
+                  ></p>
+                </div>
+              </div>
+            </td>
+
+            <!-- 생년월일 -->
+            <td
+              class="py-3 px-4 text-slate-600 text-xs"
+              th:text="${student.userBrdt ?: '-'}"
+            >
+              -
+            </td>
+
+            <!-- 연락처 -->
+            <td
+              class="py-3 px-4 text-slate-600 text-xs"
+              th:text="${student.userTelno ?: '-'}"
+            >
+              -
+            </td>
+
+            <!-- 주소 -->
+            <td
+              class="py-3 px-4 text-slate-500 text-xs truncate"
+              th:text="${(student.userAddr != null ? student.userAddr : '') +
+                        (student.userDaddr != null and not #strings.isEmpty(student.userDaddr) ? ' ' + student.userDaddr : '') +
+                        (student.userZip != null ? ' (' + student.userZip + ')' : '')}"
+            >
+              -
+            </td>
+
+            <!-- 가입일 -->
+            <td
+              class="py-3 px-4 text-slate-500 text-xs whitespace-nowrap"
+              th:text="${student.joinDt != null ? #temporals.format(student.joinDt, 'yyyy.MM.dd') : '-'}"
+            >
+              -
+            </td>
+
+            <!-- 전송 버튼 -->
+            <td class="py-3 px-4">
+              <button
+                type="button"
+                th:data-id="${student.userId}"
+                th:data-name="${student.userName}"
+                onclick="
+                  openSmsModal(
+                    this.getAttribute('data-id'),
+                    this.getAttribute('data-name'),
+                  )
+                "
+                class="text-xs font-semibold text-white bg-[#3b82f6] hover:bg-blue-700 px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1 whitespace-nowrap"
+              >
+                <i class="fa-solid fa-paper-plane text-[9px]"></i>전송
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  MODAL: 학부모 가입 링크 전송                        -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div
+  id="modal-send-sms"
+  class="fixed inset-0 bg-black/40 z-50 hidden items-center justify-center p-4"
+>
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
+    <!-- 헤더 -->
+    <div
+      class="flex items-center justify-between px-6 py-4 border-b border-slate-100"
+    >
+      <h3 class="text-base font-bold text-slate-800">
+        <i class="fa-solid fa-paper-plane mr-2 text-[#3b82f6]"></i>가입 링크
+        전송
+      </h3>
+      <button
+        onclick="closeSmsModal()"
+        class="text-slate-400 hover:text-slate-600"
+      >
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <!-- 본문 -->
+    <div class="p-6 space-y-4">
+      <div
+        class="bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-start gap-2"
+      >
+        <i
+          class="fa-solid fa-circle-info text-blue-500 text-sm shrink-0 mt-0.5"
+        ></i>
+        <p class="text-xs text-blue-700 leading-relaxed">
+          학생 <strong id="sms-student-name"></strong>의 학부모에게<br />
+          회원가입 링크를 SMS로 발송합니다.
+        </p>
+      </div>
+
+      <input type="hidden" id="sms-student-id" />
+
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">
+          학부모 전화번호 <span class="text-red-400">*</span>
+        </label>
+        <input
+          type="text"
+          id="sms-parent-phone"
+          class="hm-input hm-input-blue w-full"
+          placeholder="010-0000-0000"
+          maxlength="13"
+          oninput="formatSmsPhone(this)"
+          onkeydown="if (event.key === 'Enter') sendJoinLink();"
+        />
+      </div>
+    </div>
+
+    <!-- 하단 버튼 -->
+    <div class="flex gap-3 px-6 py-4 border-t border-slate-100">
+      <button
+        onclick="closeSmsModal()"
+        class="flex-1 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+      >
+        취소
+      </button>
+      <button
+        onclick="sendJoinLink()"
+        class="flex-1 hm-btn-primary hm-btn-blue"
+      >
+        <i class="fa-solid fa-paper-plane"></i>발송
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let smsTodaySentCount = 0;
+
+  function openSmsModal(studentId, studentName) {
+    document.getElementById("sms-student-id").value = studentId;
+    document.getElementById("sms-student-name").textContent = studentName;
+    document.getElementById("sms-parent-phone").value = "";
+    const modal = document.getElementById("modal-send-sms");
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    setTimeout(() => document.getElementById("sms-parent-phone").focus(), 100);
+  }
+
+  function closeSmsModal() {
+    const modal = document.getElementById("modal-send-sms");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  }
+
+  function formatSmsPhone(input) {
+    let v = input.value.replace(/\D/g, "");
+    if (v.length <= 3) {
+      input.value = v;
+    } else if (v.length <= 7) {
+      input.value = v.slice(0, 3) + "-" + v.slice(3);
+    } else {
+      input.value = v.slice(0, 3) + "-" + v.slice(3, 7) + "-" + v.slice(7, 11);
+    }
+  }
+
+  function sendJoinLink() {
+    const studentId = document.getElementById("sms-student-id").value;
+    const parentPhone = document
+      .getElementById("sms-parent-phone")
+      .value.trim();
+
+    if (!parentPhone) {
+      showHermesToast("학부모 전화번호를 입력해 주세요.", "error");
+      return;
+    }
+
+    const params = new URLSearchParams({ studentId, parentPhone });
+
+    fetch("/admin/parent/join-message/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params.toString(),
+    })
+      .then((res) => {
+        closeSmsModal();
+        if (res.status === 200) {
+          smsTodaySentCount++;
+          document.getElementById("today-sent-count").textContent =
+            smsTodaySentCount;
+          showHermesToast("가입 링크가 발송되었습니다.", "success");
+        } else {
+          showHermesToast(
+            "발송 실패: " + (res.statusText || "알 수 없는 오류"),
+            "error",
+          );
+        }
+      })
+      .catch(() => showHermesToast("서버 오류가 발생했습니다.", "error"));
+  }
+
+  function filterSmsTable() {
+    const keyword = document.getElementById("sms-search").value.toLowerCase();
+    document.querySelectorAll(".sms-data-row").forEach((row) => {
+      const name = (row.getAttribute("data-name") || "").toLowerCase();
+      row.style.display = name.includes(keyword) ? "" : "none";
+    });
+  }
+
+  /* 모달 바깥 클릭 시 닫기 */
+  document
+    .getElementById("modal-send-sms")
+    .addEventListener("click", function (e) {
+      if (e.target === this) closeSmsModal();
+    });
+</script>

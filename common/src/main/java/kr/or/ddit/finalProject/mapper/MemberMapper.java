@@ -34,4 +34,6 @@ public interface MemberMapper {
 
     int updateMember(MemberDto memberDto);
 
+    int updateUserRole(@Param("userId") String userId, @Param("role") String role);
+
 }

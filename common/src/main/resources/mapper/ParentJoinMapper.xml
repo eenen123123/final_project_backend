@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.ParentJoinMapper">
+
+    <insert id="insertParentJoinLink" parameterType="kr.or.ddit.finalProject.dto.user.ParentJoinLinkDto" useGeneratedKeys="true" keyProperty="linkId" keyColumn="link_id">
+        INSERT INTO parent_join_link (std_user_id, join_link_addr, link_expr_dt)
+        VALUES (#{stdUserId}, #{joinLinkAddr}, SYSTIMESTAMP + INTERVAL '7' DAY)
+    </insert>
+
+
+
+
+    <!-- findByJoinLinkAddr -->
+
+    <select id="findByJoinLinkAddr" parameterType="String" resultType="kr.or.ddit.finalProject.dto.user.ParentJoinLinkDto">
+        SELECT link_id, std_user_id, join_link_addr, link_expr_dt
+        FROM parent_join_link
+        WHERE join_link_addr = #{joinLinkAddr}
+    </select>
+
+    <!-- findByStudentId -->
+
+    <select id="findByStudentId" parameterType="String" resultType="kr.or.ddit.finalProject.dto.user.ParentJoinLinkDto">
+        SELECT link_id, std_user_id, join_link_addr, link_expr_dt
+        FROM parent_join_link
+        WHERE std_user_id = #{studentId}
+    </select>
+
+    <!-- deleteParentJoinLink -->
+
+    <delete id="deleteParentJoinLink" parameterType="Long">
+        DELETE FROM parent_join_link
+        WHERE link_id = #{linkId}
+    </delete>
+
+    <!-- insertParentChildRelation -->
+
+    <insert id="insertParentChildRelation">
+        insert into student (std_user_id, prnt_user_id, prnt_telno)
+        values (#{stdUserId}, #{prntUserId}, #{prntTelno})
+    </insert>
+</mapper>

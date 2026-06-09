@@ -76,7 +76,10 @@ public class AuthController {
      */
     @PostMapping("/refresh")
     public ResponseEntity<SigninResponseRecord> refresh(
-            @CookieValue(name = "refreshToken") String refreshToken) {
+            @CookieValue(name = "refreshToken", required = false) String refreshToken) {
+        if (refreshToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         log.info("리프레시 토큰 갱신 시도: {}", refreshToken);
         AuthTokens tokens = memberService.reissueToken(refreshToken);
         ResponseCookie refreshCookie = createRefreshTokenCookie(tokens.refreshToken());
@@ -95,7 +98,10 @@ public class AuthController {
      * @return 로그아웃 성공 시 200 OK 상태로 반환, 실패 시 400 Bad Request 상태로 반환
      */
     @PostMapping("/logout")
-    public ResponseEntity<Void> signout(@CookieValue(name = "refreshToken") String refreshToken) {
+    public ResponseEntity<Void> signout(@CookieValue(name = "refreshToken", required = false) String refreshToken) {
+        if (refreshToken == null) {
+            return ResponseEntity.ok().header("Set-Cookie", deleteRefreshTokenCookie().toString()).build();
+        }
         memberService.logout(refreshToken);
         ResponseCookie deleteCookie = deleteRefreshTokenCookie();
         return ResponseEntity.ok().header("Set-Cookie", deleteCookie.toString()).build();
