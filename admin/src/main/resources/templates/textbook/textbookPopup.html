@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>강좌 선택</title>
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" th:href="@{/css/admin-core.css}" />
+  <style>
+    body { font-family: 'Noto Sans KR', sans-serif; }
+  </style>
+</head>
+<body class="bg-white text-slate-800 flex flex-col h-screen overflow-hidden">
+
+  <!-- 헤더 -->
+  <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 bg-white shrink-0">
+    <h1 class="text-sm font-bold text-slate-800">
+      <i class="fa-solid fa-chalkboard-user mr-2 text-amber-500"></i>강좌 선택
+    </h1>
+    <button type="button" onclick="window.close()"
+      class="text-slate-400 hover:text-slate-600 cursor-pointer text-lg leading-none">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+
+  <!-- 대분류 필터 -->
+  <div class="px-5 py-2.5 border-b border-slate-100 shrink-0">
+    <div class="flex flex-wrap gap-1.5">
+      <button type="button" onclick="setSubjCl(null, this)"
+        class="subj-btn active px-3 py-1 text-xs font-semibold rounded-full border border-amber-400 bg-amber-400 text-white cursor-pointer transition-colors">
+        전체
+      </button>
+      <button th:each="sc : ${subjClList}" type="button"
+        th:onclick="|setSubjCl(${sc.subjClId}, this)|"
+        th:text="${sc.subjClNm}"
+        class="subj-btn px-3 py-1 text-xs font-semibold rounded-full border border-slate-200 bg-white text-slate-600 hover:border-amber-300 hover:text-amber-600 cursor-pointer transition-colors">
+      </button>
+    </div>
+  </div>
+
+  <!-- 검색 -->
+  <div class="px-5 py-3 border-b border-slate-100 shrink-0">
+    <div class="flex gap-2">
+      <input type="text" id="searchInput" class="hm-input flex-1 text-sm"
+        placeholder="강좌명 또는 강사명으로 검색..."
+        onkeydown="if(event.key==='Enter') applyFilters()" />
+      <button type="button" onclick="applyFilters()"
+        class="hm-btn-primary text-sm px-4 py-2 cursor-pointer whitespace-nowrap">
+        <i class="fa-solid fa-magnifying-glass mr-1.5"></i>검색
+      </button>
+    </div>
+  </div>
+
+  <!-- 목록 -->
+  <div class="flex-1 overflow-y-auto">
+    <table class="w-full text-sm">
+      <thead class="sticky top-0 bg-slate-50 border-b border-slate-100">
+        <tr class="text-left text-slate-500 text-xs">
+          <th class="px-5 py-3 font-semibold">강좌명</th>
+          <th class="px-4 py-3 font-semibold w-28">강사</th>
+          <th class="px-4 py-3 font-semibold w-24">과목</th>
+        </tr>
+      </thead>
+      <tbody id="courseTableBody">
+        <tr th:each="course : ${courseList}"
+            th:data-sn="${course.courseSn}"
+            th:data-nm="${course.courseNm}"
+            th:data-instr="${course.instrUserNm}"
+            th:data-subj-cl-id="${course.subjClId}"
+            class="border-t border-slate-100 hover:bg-amber-50 cursor-pointer transition-colors"
+            onclick="selectCourse(this)">
+          <td class="px-5 py-3 font-medium text-slate-800" th:text="${course.courseNm}"></td>
+          <td class="px-4 py-3 text-slate-500" th:text="${course.instrUserNm ?: '-'}"></td>
+          <td class="px-4 py-3 text-slate-500" th:text="${course.subjNm ?: '-'}"></td>
+        </tr>
+      </tbody>
+    </table>
+    <div id="emptyMsg" class="hidden py-10 text-center text-sm text-slate-400">
+      검색 결과가 없습니다.
+    </div>
+    <div th:if="${#lists.isEmpty(courseList)}" class="py-10 text-center text-sm text-slate-400">
+      등록된 강좌가 없습니다.
+    </div>
+  </div>
+
+  <script>
+    let activeSubjClId = null;
+
+    function setSubjCl(subjClId, btn) {
+      activeSubjClId = subjClId;
+      document.querySelectorAll('.subj-btn').forEach(function (b) {
+        b.classList.remove('active', 'bg-amber-400', 'border-amber-400', 'text-white');
+        b.classList.add('bg-white', 'border-slate-200', 'text-slate-600');
+      });
+      btn.classList.add('active', 'bg-amber-400', 'border-amber-400', 'text-white');
+      btn.classList.remove('bg-white', 'border-slate-200', 'text-slate-600');
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const kw = document.getElementById('searchInput').value.trim().toLowerCase();
+      let visible = 0;
+      document.querySelectorAll('#courseTableBody tr[data-sn]').forEach(function (row) {
+        const nm = (row.dataset.nm || '').toLowerCase();
+        const instr = (row.dataset.instr || '').toLowerCase();
+        const subjClId = row.dataset.subjClId ? Number(row.dataset.subjClId) : null;
+
+        const matchKeyword = !kw || nm.includes(kw) || instr.includes(kw);
+        const matchSubjCl = activeSubjClId === null || subjClId === activeSubjClId;
+
+        const show = matchKeyword && matchSubjCl;
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+      document.getElementById('emptyMsg').classList.toggle('hidden', visible > 0);
+    }
+
+    function selectCourse(row) {
+      if (window.opener && !window.opener.closed) {
+        window.opener.selectCourse(row.dataset.sn, row.dataset.nm, row.dataset.instr);
+      }
+      window.close();
+    }
+  </script>
+</body>
+</html>

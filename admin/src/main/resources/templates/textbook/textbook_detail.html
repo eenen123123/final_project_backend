@@ -3,22 +3,20 @@
 <div class="space-y-6 max-w-5xl mx-auto">
 
   <!-- 헤더 -->
-  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-5 border-b border-slate-100">
-    <div>
-      <p class="text-xs font-semibold text-amber-500 mb-1" th:if="${textbookDto.tagline != null}" th:text="${textbookDto.tagline}">태그라인</p>
-      <h1 class="text-2xl font-bold text-slate-900 tracking-tight" th:text="${textbookDto.textbookNm}">교재명</h1>
-      <p class="text-sm text-slate-400 mt-1">
-        등록일 <span th:text="${#temporals.format(textbookDto.regDt, 'yyyy.MM.dd HH:mm')}">2026.01.01</span>
-        · 등록자 <span th:text="${textbookDto.rgtrId}">-</span>
-      </p>
-    </div>
+  <div class="flex justify-between items-center pb-5 border-b border-slate-100">
+    <a th:href="@{/admin/textbook}" class="hm-btn-ghost text-sm py-2 px-3.5">
+      <i class="fa-solid fa-arrow-left mr-1.5"></i>목록으로
+    </a>
     <div class="flex items-center gap-2">
-      <a th:href="@{/admin/textbook}" class="hm-btn-ghost text-sm py-2 px-3.5">
-        <i class="fa-solid fa-arrow-left mr-1.5"></i>목록으로
-      </a>
       <a th:href="@{/admin/textbook/{sn}(sn=${textbookDto.textbookSn})}" class="hm-btn-ghost text-sm py-2 px-3.5">
         <i class="fa-solid fa-pen mr-1.5"></i>수정
       </a>
+      <form th:action="@{/admin/textbook/{sn}/delete(sn=${textbookDto.textbookSn})}" method="post" id="deleteForm" class="inline">
+        <button type="button" onclick="confirmDelete()"
+          class="hm-btn-ghost text-sm py-2 px-3.5 text-rose-500 hover:text-rose-700 cursor-pointer">
+          <i class="fa-solid fa-trash mr-1.5"></i>삭제
+        </button>
+      </form>
       <a th:href="@{/admin/textbook/stock/{sn}(sn=${textbookDto.textbookSn})}" class="hm-btn-primary text-sm py-2 px-3.5">
         <i class="fa-solid fa-boxes-stacked mr-1.5"></i>재고 관리
       </a>
@@ -77,13 +75,38 @@
 
         <div class="flex items-start gap-3">
           <span class="text-xs font-bold text-slate-400 w-20 shrink-0 pt-0.5">과목</span>
-          <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-bold bg-blue-50 text-blue-600"
-                th:text="${textbookDto.subjClNm ?: '-'}">-</span>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-bold bg-blue-50 text-blue-600"
+                  th:text="${textbookDto.subjClNm ?: '-'}">-</span>
+            <th:block th:if="${textbookDto.subjNm != null}">
+              <i class="fa-solid fa-chevron-right text-slate-300 text-[10px]"></i>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-bold bg-violet-50 text-violet-600"
+                    th:text="${textbookDto.subjNm}"></span>
+            </th:block>
+          </div>
         </div>
 
-        <div class="flex items-start gap-3">
-          <span class="text-xs font-bold text-slate-400 w-20 shrink-0 pt-0.5">연결 강사</span>
-          <span class="text-slate-700" th:text="${textbookDto.instrUserId ?: '강사 정보 없음'}">-</span>
+        <!-- 연결 강좌 + 담당 강사 카드 (전체 너비) -->
+        <div class="sm:col-span-2">
+          <div th:if="${textbookDto.courseSn != null}"
+            class="flex items-center gap-4 rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-white px-4 py-3.5">
+            <div class="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-chalkboard-user text-amber-500 text-sm"></i>
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm font-semibold text-slate-800 truncate" th:text="${textbookDto.courseNm}"></p>
+              <p class="flex items-center gap-1.5 mt-0.5">
+                <i class="fa-solid fa-user-tie text-amber-400 text-[11px]"></i>
+                <span class="text-xs text-slate-500"
+                      th:text="${textbookDto.instrUserNm != null} ? ${textbookDto.instrUserNm + ' 강사'} : '강사 정보 없음'"></span>
+              </p>
+            </div>
+          </div>
+          <div th:if="${textbookDto.courseSn == null}"
+            class="flex items-center gap-2.5 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3.5 text-slate-400">
+            <i class="fa-solid fa-chalkboard-user text-slate-300"></i>
+            <span class="text-sm">연결된 강좌가 없습니다.</span>
+          </div>
         </div>
 
         <div class="flex items-start gap-3">
@@ -185,3 +208,11 @@
   </div>
 
 </div>
+
+<script>
+  function confirmDelete() {
+    if (confirm('교재를 삭제하시겠습니까?\n삭제된 교재는 목록에서 숨겨집니다.')) {
+      document.getElementById('deleteForm').submit();
+    }
+  }
+</script>
