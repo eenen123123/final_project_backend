@@ -100,4 +100,9 @@ public class TextbookServiceImpl implements TextbookService {
     public int retrieveArchivedTextbookCount() {
         return textbookMapper.countArchivedTextbook();
     }
+
+    @Override
+    public List<TextbookDto> retrieveTextbookListByCourseSn(Long courseSn) {
+        return textbookMapper.selectTextbookListByCourseSn(courseSn);
+    }
 }

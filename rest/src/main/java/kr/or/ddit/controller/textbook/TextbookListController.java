@@ -49,4 +49,12 @@ public class TextbookListController {
         TextbookDto textbookDto = textbookService.retrieveTextbookBySn(textbookSn);
         return ResponseEntity.ok(textbookDto);
     }
+
+    @GetMapping("/course/{courseSn}")
+    public ResponseEntity<List<TextbookDto>> getTextbookListByCourseSn(
+            @PathVariable Long courseSn) {
+        List<TextbookDto> textbooks = textbookService.retrieveTextbookListByCourseSn(courseSn);
+        return ResponseEntity.ok(textbooks);
+    }
+
 }

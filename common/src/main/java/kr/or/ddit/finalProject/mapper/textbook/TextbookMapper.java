@@ -37,4 +37,6 @@ public interface TextbookMapper {
     int countSoldOutTextbook();
 
     int countArchivedTextbook();
+
+    List<TextbookDto> selectTextbookListByCourseSn(Long courseSn);
 }
