@@ -12,7 +12,9 @@ import org.springframework.web.multipart.MultipartFile;
 import kr.or.ddit.finalProject.dto.file.FileCtxType;
 import kr.or.ddit.finalProject.dto.file.FileDto;
 import kr.or.ddit.finalProject.dto.message.MessageContentDto;
+import kr.or.ddit.finalProject.dto.notification.NotificationType;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
+import kr.or.ddit.finalProject.service.NotificationService;
 import kr.or.ddit.finalProject.service.chat.ChatService;
 import kr.or.ddit.finalProject.service.file.FileUploadService;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +28,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RestController
 public class ChatMessageController {
 
-    private final SimpMessagingTemplate messagingTemplate;
     private final ChatService chatService;
     private final FileUploadService fileUploadService;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final NotificationService notificationService;
 
     @MessageMapping("/chat/send")
     public ResponseEntity<MessageContentDto> sendMessage(MessageContentDto messageContent,
@@ -41,6 +44,21 @@ public class ChatMessageController {
 
         messagingTemplate.convertAndSend("/topic/messages/" + messageContent.getRoomSn(),
                 messageContent);
+
+        // 채팅방을 보고 있지 않은 참여자들에게 알림 전송
+        String senderName = messageContent.getUserName() != null ? messageContent.getUserName()
+                : messageContent.getSendrUserId();
+        String notiCn = "[채팅] " + senderName + ": " + messageContent.getMsgCn();
+        String linkUrl = "/admin/chat/page?roomSn=" + messageContent.getRoomSn();
+
+        List<String> participants =
+                chatService.getChatRoomParticipantIds(messageContent.getRoomSn());
+        for (String userId : participants) {
+            if (!userId.equals(messageContent.getSendrUserId())) {
+                notificationService.sendNotification(userId, messageContent.getSendrUserId(),
+                        NotificationType.CHAT, notiCn, linkUrl);
+            }
+        }
 
         return ResponseEntity.ok(messageContent); // 클라이언트에게도 메시지 내용을 반환
     }
@@ -92,6 +110,19 @@ public class ChatMessageController {
         msg.setFileNm(fileDto.getOrgnFileNm());
 
         messagingTemplate.convertAndSend("/topic/messages/" + roomSn, msg);
+
+        String fileNotiCn = msg.getUserName() != null
+                ? "[채팅] " + msg.getUserName() + ": " + (msgTypeCd.equals("02") ? "[이미지]" : "[파일]")
+                : "[채팅] " + userId + ": " + (msgTypeCd.equals("02") ? "[이미지]" : "[파일]");
+        String fileLinkUrl = "/admin/chat/page?roomSn=" + roomSn;
+
+        List<String> participants = chatService.getChatRoomParticipantIds(Long.parseLong(roomSn));
+        for (String participantId : participants) {
+            if (!participantId.equals(userId)) {
+                notificationService.sendNotification(participantId, userId, NotificationType.CHAT,
+                        fileNotiCn, fileLinkUrl);
+            }
+        }
 
         return ResponseEntity.ok(msg);
     }

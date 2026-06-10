@@ -225,7 +225,7 @@
             #{sendrUserId},
             COALESCE(#{msgTypeCd}, '01'),
             #{msgCn},
-            #{atchFileId, jdbcType=VARCHAR}                                        <!-- null 전달 시 Oracle이 JdbcType=OTHER를 거부(ORA-17004)하므로 명시 필요 -->
+            #{atchFileId, jdbcType=VARCHAR}                                                <!-- null 전달 시 Oracle이 JdbcType=OTHER를 거부(ORA-17004)하므로 명시 필요 -->
         )
     </insert>
 
@@ -297,5 +297,13 @@
             WHERE PART_USER_ID = #{otherId}
         )
         AND mr.DEL_YN = 'N'
+    </select>
+
+    <!-- selectChatRoomParticipantIds -->
+
+    <select id="selectChatRoomParticipantIds">
+        SELECT PART_USER_ID
+        FROM MESSAGE_ROOM_PARTICIPANT
+        WHERE ROOM_SN = #{roomSn}
     </select>
 </mapper>

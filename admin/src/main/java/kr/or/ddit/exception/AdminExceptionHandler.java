@@ -9,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import kr.or.ddit.finalProject.exception.ErrorCode;
@@ -66,6 +67,13 @@ public class AdminExceptionHandler {
         redirectAttributes.addFlashAttribute("status", HttpStatus.BAD_REQUEST.value());
         redirectAttributes.addFlashAttribute("errorMessage", "요청 형식이 올바르지 않습니다.");
         return "redirect:/admin/error";
+    }
+
+    // 정적 리소스 404 (브라우저 확장 프로그램 등이 .map 파일 요청하는 경우 포함)
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Void> handle(NoResourceFoundException ex) {
+        log.warn("[NoResource] {}", ex.getMessage());
+        return ResponseEntity.notFound().build();
     }
 
     // 그 외 예상치 못한 예외

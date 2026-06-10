@@ -383,16 +383,26 @@
     }
     if (!confirm(`결재를 ${label}하시겠습니까?`)) return;
 
+    const loadingMsg = action === "approve" ? "결재 처리 중..." : "반려 처리 중...";
+    if (typeof showHermesLoading === "function") showHermesLoading(loadingMsg);
+
     fetch(`/admin/approval/${docSn}/${action}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ aprvlRsnCn: comment }),
     }).then((r) => {
-      if (r.ok) location.reload();
-      else
+      if (r.ok) {
+        if (typeof showHermesLoading === "function") showHermesLoading("처리 완료, 페이지 이동 중...");
+        location.reload();
+      } else {
+        if (typeof hideHermesLoading === "function") hideHermesLoading();
         r.json().then((e) =>
           alert("오류: " + (e.message || "처리에 실패했습니다.")),
         );
+      }
+    }).catch(() => {
+      if (typeof hideHermesLoading === "function") hideHermesLoading();
+      alert("네트워크 오류가 발생했습니다.");
     });
   }
 
@@ -422,13 +432,13 @@
     joinYmd: '입사일', retmtYmd: '퇴사일', retmtRsn: '퇴사 사유',
     emplStatCd: '재직 상태', emplTypeCd: '고용 유형', chrgDutyCn: '담당 업무',
     baseSalary: '기본급 (만원)', applyYmd: '급여 적용일',
-    studentId: '학번', grade: '학년', classNm: '반',
+    studentId: '학번', grade: '학년', classNm: '반', ctrctEndYmd:'계약 종료일'
   };
 
   const FIELD_TRANSFORMS = {
     userGndrCd:  v => v === 'M' ? '남성' : v === 'F' ? '여성' : v,
     emplStatCd:  v => ({ '01':'재직', '02':'퇴직', '03':'휴직' }[v] || v),
-    emplTypeCd:  v => ({ '01':'정규직', '02':'계약직', '03':'아르바이트' }[v] || v),
+    emplTypeCd:  v => ({ '01':'정규직', '02':'계약직', '03':'파트타임' }[v] || v),
     userRole:    v => ({ 'ROLE_ADMIN':'관리자', 'ROLE_USER':'학생', 'ROLE_STUDENT':'학생' }[v] || v),
     enable:      v => (v === '1' || String(v).toLowerCase() === 'true') ? '활성' : '비활성',
     userProfile: v => v === '__PENDING__' ? '새 이미지 (결재 후 반영)' : (v && String(v).startsWith('http')) ? '등록됨' : '-',

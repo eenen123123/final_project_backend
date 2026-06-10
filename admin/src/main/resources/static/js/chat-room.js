@@ -238,10 +238,16 @@ function formatFileSize(bytes) {
 }
 
 const ALLOWED_MIME_TYPES = new Set([
-  "image/jpeg", "image/png", "image/gif", "image/webp",
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
   "application/pdf",
-  "video/mp4", "video/webm", "video/ogg",
-  "application/zip", "application/x-zip-compressed",
+  "video/mp4",
+  "video/webm",
+  "video/ogg",
+  "application/zip",
+  "application/x-zip-compressed",
 ]);
 
 function showToast(msg) {
@@ -304,7 +310,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   chatMessages.addEventListener("scroll", () => {
     pinnedToBottom =
-      chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight < 20;
+      chatMessages.scrollHeight -
+        chatMessages.scrollTop -
+        chatMessages.clientHeight <
+      20;
     if (chatMessages.scrollTop === 0) {
       loadMoreMessages();
     }
@@ -320,7 +329,9 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     document.getElementById("filePreviewName").textContent = file.name;
-    document.getElementById("filePreviewSize").textContent = formatFileSize(file.size);
+    document.getElementById("filePreviewSize").textContent = formatFileSize(
+      file.size,
+    );
     preview.classList.remove("hidden");
     preview.classList.add("flex");
     messageInput.value = file.name;
