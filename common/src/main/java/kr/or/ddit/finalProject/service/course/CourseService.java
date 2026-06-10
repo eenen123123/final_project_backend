@@ -1,9 +1,10 @@
 package kr.or.ddit.finalProject.service.course;
 
 import java.util.List;
-
+import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.course.CourseDto;
 import kr.or.ddit.finalProject.dto.course.CourseListDto;
+import kr.or.ddit.finalProject.dto.course.CourseResponseDto;
 import kr.or.ddit.finalProject.dto.course.SubjectClassificationDto;
 import kr.or.ddit.finalProject.dto.course.SubjectDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
@@ -39,4 +40,10 @@ public interface CourseService {
     // 과목 분류별 강사 목록 조회
     List<MemberDto> retrieveInstructorsBySubjClId(Long subjClId);
 
+
+
+    PageResponse<CourseResponseDto> retrieveCourseListForMain(String category, String keyword,
+            int page);
+
+    CourseResponseDto retrieveCourse(Long courseId);
 }
