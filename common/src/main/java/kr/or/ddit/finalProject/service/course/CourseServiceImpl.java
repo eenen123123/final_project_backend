@@ -4,9 +4,11 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.course.CourseDto;
 import kr.or.ddit.finalProject.dto.course.CourseListDto;
+import kr.or.ddit.finalProject.dto.course.CourseResponseDto;
+import kr.or.ddit.finalProject.dto.course.CourseSearchCondition;
 import kr.or.ddit.finalProject.dto.course.SubjectClassificationDto;
 import kr.or.ddit.finalProject.dto.course.SubjectDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
@@ -107,4 +109,41 @@ public class CourseServiceImpl implements CourseService {
     public List<MemberDto> retrieveInstructorsBySubjClId(Long subjClId) {
         return courseMapper.selectInstructorsBySubjClId(subjClId);
     }
+
+    @Override
+    public PageResponse<CourseResponseDto> retrieveCourseListForMain(String category,
+            String keyword, int page) {
+
+        PaginationInfo<CourseSearchCondition> paginationInfo = new PaginationInfo<>(10, page);
+        CourseSearchCondition searchCondition = new CourseSearchCondition();
+        switch (category) {
+            case "instructor":
+                searchCondition.setInstructorName(keyword);
+                break;
+            case "subject":
+                searchCondition.setSubjectName(keyword);
+                break;
+            case "courseName":
+                searchCondition.setCourseName(keyword);
+                break;
+            default:
+                break;
+        }
+        paginationInfo.setDetailCondition(searchCondition);
+
+        int totalCount = courseMapper.selectCourseListCountForMain(paginationInfo);
+        List<CourseResponseDto> items = courseMapper.selectCourseListForMain(paginationInfo);
+        return new PageResponse<>(items, totalCount);
+
+
+
+    }
+
+    @Override
+    public CourseResponseDto retrieveCourse(Long courseId) {
+        return courseMapper.selectCourseById(courseId);
+    }
+
+
+
 }
