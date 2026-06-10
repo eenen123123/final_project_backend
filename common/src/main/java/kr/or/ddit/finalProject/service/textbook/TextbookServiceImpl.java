@@ -95,4 +95,9 @@ public class TextbookServiceImpl implements TextbookService {
     public int retrieveSoldOutTextbookCount() {
         return textbookMapper.countSoldOutTextbook();
     }
+
+    @Override
+    public int retrieveArchivedTextbookCount() {
+        return textbookMapper.countArchivedTextbook();
+    }
 }

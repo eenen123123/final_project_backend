@@ -9,6 +9,7 @@ public class LectureDto {
     private Long courseSn;
     private String lectureNm;
     private String lectureTypeCd;
+    private String atchFileId; // 영상 파일 아이디
     private Integer lectureDuration;
     private String lectureExplnCn;
     private String opnnYn;

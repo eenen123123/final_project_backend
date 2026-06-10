@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -101,8 +102,8 @@ public class AdminExceptionHandler {
         saveErrorLog(ex.getClass().getSimpleName(), request.getRequestURI(), ex.getMessage());
 
         if (isAjax(request)) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "서버 내부 오류가 발생했습니다."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse(
+                    HttpStatus.INTERNAL_SERVER_ERROR.value(), "서버 내부 오류가 발생했습니다."));
         }
         redirectAttributes.addFlashAttribute("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
         redirectAttributes.addFlashAttribute("errorMessage", "서버 내부 오류가 발생했습니다.");
@@ -133,5 +134,6 @@ public class AdminExceptionHandler {
         return "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
     }
 
-    record ErrorResponse(int status, String message) {}
+    record ErrorResponse(int status, String message) {
+    }
 }

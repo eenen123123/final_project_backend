@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -36,6 +38,15 @@ public class FileUploadService {
     private String fileServerPath;
 
     private final RestClient restClient = RestClient.create();
+    private final RestClient videoRestClient = buildVideoRestClient();
+
+    private static RestClient buildVideoRestClient() {
+        org.springframework.http.client.SimpleClientHttpRequestFactory factory =
+                new org.springframework.http.client.SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(30_000);
+        factory.setReadTimeout(0); // 타임아웃 없음 (대용량 영상 업로드)
+        return RestClient.builder().requestFactory(factory).build();
+    }
     private final FileMapper fileUploadMapper;
 
     /*  
@@ -187,6 +198,33 @@ public class FileUploadService {
         return uploadFile(file, userId, 1, ctxType, ctxId);
     }
 
+    /** 관리자 전용 영상 업로드. 영상 magic bytes 검증 후 파일 서버에 저장한다. */
+    public FileDto uploadVideoFile(MultipartFile file, String userId, FileCtxType ctxType,
+            String ctxId) {
+        if (file.isEmpty()) {
+            throw new FinalProjectException(ErrorCode.FILE_EMPTY);
+        }
+        try {
+            validateVideoMagicBytes(file);
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("file", streamingResource(file));
+
+            StoredFileResponse fileResponse =
+                    videoRestClient.post().uri(fileServerPath).contentType(MediaType.MULTIPART_FORM_DATA)
+                            .headers(this::relayAuthorizationHeader).body(body).retrieve()
+                            .body(StoredFileResponse.class);
+            log.info("영상 파일 서버 업로드 성공: {}", fileResponse);
+            return insertFileInfoToDatabase(fileResponse, userId, 1, ctxType, ctxId);
+        } catch (RestClientResponseException e) {
+            log.error("영상 파일 서버 업로드 실패. status={}, body={}", e.getStatusCode(),
+                    e.getResponseBodyAsString(), e);
+            throw new FinalProjectException(ErrorCode.FILE_UPLOAD_FAILED, e);
+        } catch (IOException e) {
+            log.error("영상 파일 처리 중 오류 발생", e);
+            throw new FinalProjectException(ErrorCode.FILE_UPLOAD_FAILED, e);
+        }
+    }
+
     /**
      * atchFileId를 명시적으로 지정해 파일을 특정 그룹에 귀속시키는 업로드 메서드입니다.
      *
@@ -287,6 +325,15 @@ public class FileUploadService {
         };
     }
 
+    private Resource streamingResource(MultipartFile file) throws IOException {
+        return new InputStreamResource(file.getInputStream()) {
+            @Override
+            public String getFilename() { return file.getOriginalFilename(); }
+            @Override
+            public long contentLength() { return file.getSize(); }
+        };
+    }
+
     // Content-Type 헤더는 클라이언트가 조작 가능하므로 파일 시그니처(Magic Bytes)로 실제 포맷을 검증
     private void validateMagicBytes(MultipartFile file) {
         byte[] header = new byte[12];
@@ -297,6 +344,19 @@ public class FileUploadService {
             throw new FinalProjectException(ErrorCode.FILE_READ_ERROR, e);
         }
         if (read < 4 || !isSupportedFormat(header, read)) {
+            throw new FinalProjectException(ErrorCode.INVALID_FILE_TYPE);
+        }
+    }
+
+    private void validateVideoMagicBytes(MultipartFile file) {
+        byte[] header = new byte[12];
+        int read;
+        try (InputStream in = file.getInputStream()) {
+            read = in.read(header);
+        } catch (IOException e) {
+            throw new FinalProjectException(ErrorCode.FILE_READ_ERROR, e);
+        }
+        if (read < 4 || !isVideoFormat(header, read)) {
             throw new FinalProjectException(ErrorCode.INVALID_FILE_TYPE);
         }
     }
@@ -313,6 +373,16 @@ public class FileUploadService {
                 && b[8] == 0x57 && b[9] == 0x45 && b[10] == 0x42 && b[11] == 0x50) return true;
         // PDF: %PDF
         return len >= 4 && b[0] == 0x25 && b[1] == 0x50 && b[2] == 0x44 && b[3] == 0x46;
+    }
+
+    private boolean isVideoFormat(byte[] b, int len) {
+        // MP4/MOV: ftyp box at offset 4
+        if (len >= 8 && b[4] == 0x66 && b[5] == 0x74 && b[6] == 0x79 && b[7] == 0x70) return true;
+        // AVI: RIFF....AVI
+        if (len >= 12 && b[0] == 0x52 && b[1] == 0x49 && b[2] == 0x46 && b[3] == 0x46
+                && b[8] == 0x41 && b[9] == 0x56 && b[10] == 0x49 && b[11] == 0x20) return true;
+        // MKV/WebM: 1A 45 DF A3
+        return len >= 4 && b[0] == 0x1A && b[1] == 0x45 && b[2] == (byte) 0xDF && b[3] == (byte) 0xA3;
     }
 
     private void relayAuthorizationHeader(HttpHeaders headers) {
