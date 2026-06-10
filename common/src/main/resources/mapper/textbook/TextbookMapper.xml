@@ -6,31 +6,31 @@
 
     <resultMap id="textbookResultMap" type="kr.or.ddit.finalProject.dto.textbook.TextbookDto">
         <id property="textbookSn" column="TEXTBOOK_SN"/>
-        <result property="textbookNm"   column="TEXTBOOK_NM"/>
-        <result property="pubrNm"       column="PUBR_NM"/>
-        <result property="authrNm"      column="AUTHR_NM"/>
-        <result property="isbnNo"       column="ISBN_NO"/>
-        <result property="trgtGrdCn"    column="TRGT_GRD_CN"/>
-        <result property="subjId"       column="SUBJ_ID"/>
-        <result property="salePrcAmt"   column="SALE_PRC_AMT"/>
-        <result property="purchPrcAmt"  column="PURCH_PRC_AMT"/>
-        <result property="dlvrAmt"      column="DLVR_AMT"/>
-        <result property="thmbImg"      column="THMB_IMG"/>
-        <result property="useYn"        column="USE_YN"/>
-        <result property="rgtrId"       column="RGTR_ID"/>
-        <result property="lastMdfrId"   column="LAST_MDFR_ID"/>
-        <result property="regDt"        column="REG_DT"/>
-        <result property="mdfcnDt"      column="MDFCN_DT"/>
-        <result property="tagline"      column="TAGLINE"/>
-        <result property="bookSmry"     column="BOOK_SMRY"/>
-        <result property="tocCn"        column="TOC_CN"/>
-        <result property="courseSn"     column="COURSE_SN"/>
+        <result property="textbookNm" column="TEXTBOOK_NM"/>
+        <result property="pubrNm" column="PUBR_NM"/>
+        <result property="authrNm" column="AUTHR_NM"/>
+        <result property="isbnNo" column="ISBN_NO"/>
+        <result property="trgtGrdCn" column="TRGT_GRD_CN"/>
+        <result property="subjId" column="SUBJ_ID"/>
+        <result property="salePrcAmt" column="SALE_PRC_AMT"/>
+        <result property="purchPrcAmt" column="PURCH_PRC_AMT"/>
+        <result property="dlvrAmt" column="DLVR_AMT"/>
+        <result property="thmbImg" column="THMB_IMG"/>
+        <result property="useYn" column="USE_YN"/>
+        <result property="rgtrId" column="RGTR_ID"/>
+        <result property="lastMdfrId" column="LAST_MDFR_ID"/>
+        <result property="regDt" column="REG_DT"/>
+        <result property="mdfcnDt" column="MDFCN_DT"/>
+        <result property="tagline" column="TAGLINE"/>
+        <result property="bookSmry" column="BOOK_SMRY"/>
+        <result property="tocCn" column="TOC_CN"/>
+        <result property="courseSn" column="COURSE_SN"/>
         <!-- JOIN 필드 -->
-        <result property="subjNm"       column="SUBJ_NM"/>
-        <result property="subjClNm"     column="SUBJ_CL_NM"/>
-        <result property="subjClId"     column="SUBJ_CL_ID"/>
-        <result property="instrUserNm"  column="INSTR_USER_NM"/>
-        <result property="courseNm"     column="COURSE_NM"/>
+        <result property="subjNm" column="SUBJ_NM"/>
+        <result property="subjClNm" column="SUBJ_CL_NM"/>
+        <result property="subjClId" column="SUBJ_CL_ID"/>
+        <result property="instrUserNm" column="INSTR_USER_NM"/>
+        <result property="courseNm" column="COURSE_NM"/>
     </resultMap>
 
     <!-- 검색 조건 -->
@@ -125,8 +125,7 @@
     </select>
 
     <!-- 교재 등록 -->
-    <insert id="insertTextbook"
-        parameterType="kr.or.ddit.finalProject.dto.textbook.TextbookDto">
+    <insert id="insertTextbook" parameterType="kr.or.ddit.finalProject.dto.textbook.TextbookDto">
         <selectKey keyProperty="textbookSn" resultType="Long" order="AFTER">
             SELECT "TEAM1_202512AF"."ISEQ$$_433531".CURRVAL FROM DUAL
         </selectKey>
@@ -181,6 +180,15 @@
             , MDFCN_DT      = CURRENT_TIMESTAMP
         WHERE TEXTBOOK_SN = #{textbookSn}
     </update>
+
+    <!-- selectTextbookListByCourseSn -->
+
+    <select id="selectTextbookListByCourseSn" resultType="kr.or.ddit.finalProject.dto.textbook.TextbookDto" parameterType="long">
+        SELECT *
+        FROM TEXTBOOK
+        WHERE COURSE_SN = #{courseSn}
+        AND USE_YN = 'Y'
+    </select>
 
     <!-- 이번 달 신규 등록 수 -->
     <select id="countNewTextbookThisMonth" resultType="int">

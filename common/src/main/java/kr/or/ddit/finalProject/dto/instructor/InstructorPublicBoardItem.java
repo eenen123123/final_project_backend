@@ -8,7 +8,7 @@ public class InstructorPublicBoardItem {
     private String title;
     private String regDt;
     private Integer viewCount;
-    private String writerNickname; // QnA: 질문자 닉네임
+    private String writerName;
     private String answerYn;       // QnA: 답변 여부
     private String hasFile;        // 자료실: 첨부파일 존재 여부 (Y/N)
 }

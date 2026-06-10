@@ -42,7 +42,6 @@ public class InstructorCurriculumController {
     // =====================================================================
     // 커리큘럼 CRUD
     // =====================================================================
-
     @GetMapping
     public String curriculumMainPage(Model model, Authentication authentication) {
         String loginInstructorId = authentication.getName();
@@ -81,7 +80,6 @@ public class InstructorCurriculumController {
         CurriculumDto curriculumDto = new CurriculumDto();
         curriculumDto.setCurriculumId(curriculumId);
         curriculumDto.setTitle(request.getTitle());
-
         curriculumService.modifyCurriculum(curriculumDto, loginInstructorId);
         return ResponseEntity.ok("SUCCESS");
     }
@@ -99,7 +97,6 @@ public class InstructorCurriculumController {
     // =====================================================================
     // 강좌(Course) CRUD
     // =====================================================================
-
     @GetMapping("/{curriculumId}/courses")
     @ResponseBody
     public ResponseEntity<List<CourseDto>> getCourseList(@PathVariable Long curriculumId) {
@@ -120,7 +117,6 @@ public class InstructorCurriculumController {
         courseDto.setCourseExplnCn(request.getCourseExplnCn());
         courseDto.setOpnnYn(request.getOpnnYn() != null ? request.getOpnnYn() : "Y");
         courseDto.setSortOrd(request.getSortOrd());
-        courseDto.setPrereqCourseSn(request.getPrereqCourseSn());
         courseDto.setInstrUserId(loginInstructorId);
         courseDto.setRgtrId(loginInstructorId);
         courseDto.setLastMdfrId(loginInstructorId);
@@ -145,8 +141,6 @@ public class InstructorCurriculumController {
         courseDto.setCourseExplnCn(request.getCourseExplnCn());
         courseDto.setOpnnYn(request.getOpnnYn());
         courseDto.setSortOrd(request.getSortOrd());
-        courseDto.setPrereqCourseSn(request.getPrereqCourseSn());
-
         courseService.modifyCourse(courseDto, loginInstructorId);
         return ResponseEntity.ok("SUCCESS");
     }
@@ -164,7 +158,6 @@ public class InstructorCurriculumController {
     // =====================================================================
     // 강의(Lecture) CRUD
     // =====================================================================
-
     @GetMapping("/courses/{courseSn}/lectures")
     @ResponseBody
     public ResponseEntity<List<LectureDto>> getLectureList(@PathVariable Long courseSn) {
@@ -234,7 +227,6 @@ public class InstructorCurriculumController {
     // =====================================================================
     // 공통
     // =====================================================================
-
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseBody
     public ResponseEntity<String> handleNotFound(IllegalArgumentException e) {

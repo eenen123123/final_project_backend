@@ -18,6 +18,7 @@ import kr.or.ddit.finalProject.dto.instructor.InstructorFeaturedCourseResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorListResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardDetail;
 import kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardItem;
+import kr.or.ddit.finalProject.dto.instructor.CourseDetailResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorPublicCourseResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorRecentPostResponse;
 import kr.or.ddit.finalProject.mapper.course.CourseMapper;
@@ -81,6 +82,19 @@ public class InstructorController {
         return ResponseEntity.ok(courseMapper.selectCoursesByInstrUuid(instrUuid));
     }
 
+    // GET /api/instructors/{instrUuid}/courses/{courseSn}
+    @GetMapping("/{instrUuid}/courses/{courseSn}")
+    public ResponseEntity<CourseDetailResponse> getCourseDetail(
+            @PathVariable String instrUuid,
+            @PathVariable Long courseSn) {
+        CourseDetailResponse detail = courseMapper.selectCourseDetailByUuidAndSn(instrUuid, courseSn);
+        if (detail == null) {
+            return ResponseEntity.notFound().build();
+        }
+        detail.setLectures(courseMapper.selectPublicCourseLectures(courseSn));
+        return ResponseEntity.ok(detail);
+    }
+
     // GET /api/instructors/{instrUuid}/board/notice?page=0&size=10
     @GetMapping("/{instrUuid}/board/notice")
     public ResponseEntity<PageResponse<InstructorPublicBoardItem>> getNoticeList(
@@ -107,9 +121,9 @@ public class InstructorController {
         return ResponseEntity.ok(new PageResponse<>(items, total));
     }
 
-    // GET /api/instructors/{instrUuid}/board/material?page=0&size=10
-    @GetMapping("/{instrUuid}/board/material")
-    public ResponseEntity<PageResponse<InstructorPublicBoardItem>> getMaterialList(
+    // GET /api/instructors/{instrUuid}/board/dataroom?page=0&size=10
+    @GetMapping("/{instrUuid}/board/dataroom")
+    public ResponseEntity<PageResponse<InstructorPublicBoardItem>> getDataroomList(
             @PathVariable String instrUuid,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -129,6 +143,12 @@ public class InstructorController {
                 instructorBoardMapper.selectPublicBoardDetail(instrUuid, postSn);
         if (detail == null) {
             return ResponseEntity.notFound().build();
+        }
+        instructorBoardMapper.incrementViewCount(postSn);
+        detail.setPrevPost(instructorBoardMapper.selectPrevPost(instrUuid, detail.getBoardTypeCd(), postSn));
+        detail.setNextPost(instructorBoardMapper.selectNextPost(instrUuid, detail.getBoardTypeCd(), postSn));
+        if ("Y".equals(detail.getHasFile())) {
+            detail.setFiles(instructorBoardMapper.selectBoardFiles(postSn));
         }
         return ResponseEntity.ok(detail);
     }

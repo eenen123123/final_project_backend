@@ -9,12 +9,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import kr.or.ddit.finalProject.dto.common.PageResponse;
-import kr.or.ddit.finalProject.dto.course.CourseDto;
-import kr.or.ddit.finalProject.dto.course.CourseListDto;
 import kr.or.ddit.finalProject.dto.course.CourseResponseDto;
 import kr.or.ddit.finalProject.dto.course.SubjectClassificationDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
-import kr.or.ddit.finalProject.paging.PaginationInfo;
 import kr.or.ddit.finalProject.service.course.CourseService;
 import lombok.RequiredArgsConstructor;
 
@@ -25,20 +22,19 @@ public class CourseListController {
 
     private final CourseService courseService;
 
-    // GET /api/course?page=1&size=8&subjClId=1&instrUserNm=정승제
+    // GET /api/course?page=1&size=8&subjClId=1&instrNm=정승제
     @GetMapping
     public ResponseEntity<PageResponse<CourseResponseDto>> getCourseList(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "") String category,
             @RequestParam(defaultValue = "") String keyword
-
     ) {
-        PageResponse<CourseResponseDto> courseList =
-                courseService.retrieveCourseListForMain(category, keyword, page);
+        PageResponse<CourseResponseDto> courseList
+                = courseService.retrieveCourseListForMain(category, keyword, page);
         return ResponseEntity.ok(courseList);
     }
 
-    // GET /api/course/subject-classification <엔드포인트 추가>
+    // GET /api/course/subject-classification
     @GetMapping("/subject-classification")
     public ResponseEntity<List<SubjectClassificationDto>> getSubjectClassificationList() {
         return ResponseEntity.ok(courseService.retrieveSubjectClassificationList());

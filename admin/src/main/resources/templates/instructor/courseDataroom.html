@@ -78,7 +78,7 @@
                             <span id="file-label" class="text-xs text-slate-500 truncate">파일을 선택하세요</span>
                             <input type="file" id="file-input" class="hidden" onchange="onFileSelected(this)" />
                         </label>
-                        <button onclick="uploadMaterial()" class="btn-form-save whitespace-nowrap">
+                        <button onclick="uploadDataroom()" class="btn-form-save whitespace-nowrap">
                             <i class="fa-solid fa-upload mr-1"></i>업로드
                         </button>
                     </div>
@@ -125,7 +125,7 @@
             // 기존 파일 항목 제거
             list.querySelectorAll('.file-item').forEach(el => el.remove());
 
-            fetch(`/instructor/course/materials/${courseSn}/files`)
+            fetch(`/instructor/course/dataroom/${courseSn}/files`)
                 .then(r => r.json())
                 .then(files => {
                     loading.classList.add('hidden');
@@ -157,7 +157,7 @@
                         <i class="fa-solid fa-arrow-down text-[10px]"></i>
                     </a>
                     <button class="btn-icon btn-icon-danger" title="삭제"
-                            onclick="event.stopPropagation(); deleteMaterial(${f.atchFileDtlSn})">
+                            onclick="event.stopPropagation(); deleteDataroom(${f.atchFileDtlSn})">
                         <i class="fa-solid fa-trash text-[10px]"></i>
                     </button>
                 </div>`;
@@ -169,7 +169,7 @@
             label.textContent = input.files[0] ? input.files[0].name : '파일을 선택하세요';
         }
 
-        function uploadMaterial() {
+        function uploadDataroom() {
             if (!selectedCourseSn) return;
             const input = document.getElementById('file-input');
             if (!input.files[0]) {
@@ -179,7 +179,7 @@
             const formData = new FormData();
             formData.append('file', input.files[0]);
 
-            fetch(`/instructor/course/materials/${selectedCourseSn}/files`, {
+            fetch(`/instructor/course/dataroom/${selectedCourseSn}/files`, {
                 method: 'POST',
                 body: formData,
                 headers: {'X-Requested-With': 'XMLHttpRequest'}
@@ -196,9 +196,9 @@
             .catch(e => alert(e.message));
         }
 
-        function deleteMaterial(atchFileDtlSn) {
+        function deleteDataroom(atchFileDtlSn) {
             if (!confirm('자료를 삭제하시겠습니까?')) return;
-            fetch(`/instructor/course/materials/files/${atchFileDtlSn}?courseSn=${selectedCourseSn}`, {
+            fetch(`/instructor/course/dataroom/files/${atchFileDtlSn}?courseSn=${selectedCourseSn}`, {
                 method: 'DELETE',
                 headers: {'X-Requested-With': 'XMLHttpRequest'}
             })

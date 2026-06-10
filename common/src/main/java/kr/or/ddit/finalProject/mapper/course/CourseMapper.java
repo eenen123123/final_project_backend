@@ -5,12 +5,14 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import kr.or.ddit.finalProject.dto.course.AdminCourseSearchCondition;
 import kr.or.ddit.finalProject.dto.course.CourseDto;
-import kr.or.ddit.finalProject.dto.course.CourseListDto;
 import kr.or.ddit.finalProject.dto.course.CourseResponseDto;
 import kr.or.ddit.finalProject.dto.course.CourseSearchCondition;
 import kr.or.ddit.finalProject.dto.course.SubjectClassificationDto;
 import kr.or.ddit.finalProject.dto.course.SubjectDto;
+import kr.or.ddit.finalProject.dto.instructor.CourseDetailResponse;
+import kr.or.ddit.finalProject.dto.instructor.CourseLectureItem;
 import kr.or.ddit.finalProject.dto.instructor.InstructorPublicCourseResponse;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
@@ -24,6 +26,8 @@ public interface CourseMapper {
 
     CourseDto selectCourseBySn(@Param("courseSn") Long courseSn);
 
+    CourseDto selectCourseAdminDetail(@Param("courseSn") Long courseSn);
+
     int insertCourse(CourseDto courseDto);
 
     int updateCourse(CourseDto courseDto);
@@ -35,12 +39,10 @@ public interface CourseMapper {
     int updateCourseAtchFileId(@Param("courseSn") Long courseSn,
             @Param("atchFileId") String atchFileId);
 
-    // 전체 강좌 조회 (페이징 + 검색)
-    List<CourseListDto> selectCourseList(PaginationInfo<CourseListDto> paginationInfo);
+    List<CourseDto> selectCourseList(PaginationInfo<AdminCourseSearchCondition> paginationInfo);
 
-    int selectCourseListCount(PaginationInfo<CourseListDto> paginationInfo);
+    int selectCourseListCount(PaginationInfo<AdminCourseSearchCondition> paginationInfo);
 
-    // 과목 분류 목록 조회
     List<SubjectClassificationDto> selectSubjectClassificationList();
 
     List<SubjectDto> selectSubjectsBySubjClId(@Param("subjClId") Long subjClId);
@@ -49,6 +51,11 @@ public interface CourseMapper {
 
     List<InstructorPublicCourseResponse> selectCoursesByInstrUuid(
             @Param("instrUuid") String instrUuid);
+
+    CourseDetailResponse selectCourseDetailByUuidAndSn(@Param("instrUuid") String instrUuid,
+            @Param("courseSn") Long courseSn);
+
+    List<CourseLectureItem> selectPublicCourseLectures(@Param("courseSn") Long courseSn);
 
     List<CourseResponseDto> selectCourseListForMain(
             @Param("paginationInfo") PaginationInfo<CourseSearchCondition> paginationInfo);
