@@ -5,6 +5,7 @@ import java.util.List;
 import kr.or.ddit.finalProject.dto.course.CourseDto;
 import kr.or.ddit.finalProject.dto.course.CourseListDto;
 import kr.or.ddit.finalProject.dto.course.SubjectClassificationDto;
+import kr.or.ddit.finalProject.dto.course.SubjectDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
 
@@ -31,6 +32,9 @@ public interface CourseService {
 
     // 과목 분류 목록 조회 (전체강좌 필터링용)
     List<SubjectClassificationDto> retrieveSubjectClassificationList();
+
+    // 대분류별 소분류 목록 조회
+    List<SubjectDto> retrieveSubjectsBySubjClId(Long subjClId);
 
     // 과목 분류별 강사 목록 조회
     List<MemberDto> retrieveInstructorsBySubjClId(Long subjClId);
