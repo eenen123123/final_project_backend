@@ -30,7 +30,7 @@ public class CourseDto implements Serializable {
     private String lastMdfrId;
     private LocalDateTime regDt;
     private LocalDateTime mdfcnDt;
-    private Long subjClId;
+    // private Long subjClId;
     private Integer sortOrd;
     private Long prereqCourseSn;
 
