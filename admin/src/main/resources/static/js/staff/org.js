@@ -37,7 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('#grade-dept-filter option[value]').forEach(opt => {
     if (opt.value) deptMap[opt.value] = opt.textContent.trim();
   });
-  if (allMntGradeOpts.length === 0) initMntGradeOpts(); /* 혹시 비어있으면 재시도 */
+  if (allMntGradeOpts.length === 0) initMntGradeOpts();
+  loadCommonCodes('mnt-stat-filter', '200', '전체 상태');
 });
 
 /* ─────────────── 직급 DB 페이징+필터 ─────────────── */

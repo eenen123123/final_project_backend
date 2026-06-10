@@ -48,6 +48,7 @@ async function navigateToEmployees(btn) {
     currMain.querySelectorAll('select.hm-input:not([data-ts-defer])').forEach(el => {
       if (!el.tomselect && window.initTomSelect) window.initTomSelect(el);
     });
+    await initDeferredSelects(currMain);
 
     history.pushState({ url: '/admin/employees' }, doc.title || '', '/admin/employees');
     if (doc.title) document.title = doc.title;
@@ -83,7 +84,8 @@ async function doFilterHrList(page) {
   const params = new URLSearchParams();
   if (keyword) params.set("keyword",  keyword);
   if (year)    params.set("year",     year);
-  if (type)    params.set("userRole", type);
+  const typeToRole = { '일반': 'ROLE_USER', '오프라인': 'ROLE_STUDENT' };
+  if (type)    params.set("userRole", typeToRole[type] || type);
   if (status)  params.set("enable",   status);
   if (hrSortCol) {
     params.set("orderBy",        hrSortCol);
@@ -489,7 +491,7 @@ function openResignConfirm() {
     showHermesToast("탈퇴 사유를 선택해주세요.", "error");
     return;
   }
-  if (reasonVal === "기타" && (!detail || !detail.value.trim())) {
+  if (reasonVal === "04" && (!detail || !detail.value.trim())) {
     showHermesToast("기타 사유를 입력해주세요.", "error");
     return;
   }
@@ -502,7 +504,7 @@ function openResignConfirm() {
 function onResignReasonChange(elOrVal) {
   const val = typeof elOrVal === "string" ? elOrVal : elOrVal.value || "";
   const detail = document.getElementById("resign-reason-detail");
-  if (val === "기타") {
+  if (val === "04") {
     detail.classList.remove("hidden");
     detail.focus();
   } else {
@@ -515,13 +517,13 @@ function executeResign() {
   const reasonSelectEl = document.getElementById("resign-reason");
   const reasonDetail   = document.getElementById("resign-reason-detail");
   const selectedVal    = reasonSelectEl.tomselect ? reasonSelectEl.tomselect.getValue() : reasonSelectEl.value;
-  let withdrawRsn      = selectedVal === "기타" ? (reasonDetail.value || "").trim() : selectedVal;
+  let withdrawRsn      = selectedVal === "04" ? (reasonDetail.value || "").trim() : selectedVal;
 
   if (!withdrawRsn) {
-    showHermesToast(selectedVal === "기타" ? "기타 사유를 입력해주세요." : "탈퇴 사유를 선택해주세요.", "error");
+    showHermesToast(selectedVal === "04" ? "기타 사유를 입력해주세요." : "탈퇴 사유를 선택해주세요.", "error");
     return;
   }
-  if (selectedVal === "기타") withdrawRsn = "기타: " + withdrawRsn;
+  if (selectedVal === "04") withdrawRsn = "기타: " + withdrawRsn;
 
   fetch("/admin/students/" + selectedEmpId + "/retirement", {
     method: "PUT",
@@ -842,7 +844,5 @@ document.querySelectorAll('[id^="modal-"]').forEach((m) => {
 
 /* 탈퇴 사유 select: 모달 하단에 있어 드롭다운을 위로 펼치게 한다 */
 document.addEventListener("DOMContentLoaded", function () {
-  const el = document.getElementById("resign-reason");
-  const ts = el && el.tomselect;
-  if (ts) ts.wrapper.classList.add("ts-dropup");
+  initDeferredSelects();
 });

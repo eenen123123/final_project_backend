@@ -73,3 +73,58 @@ function hideHermesLoading() {
   const el = document.getElementById('hm-loading-overlay');
   if (el) el.classList.add('hidden');
 }
+
+/**
+ * 공통코드 API에서 옵션을 로딩하여 select 엘리먼트에 채웁니다.
+ * - select에 data-ts-defer 속성이 필요합니다 (Tom Select 자동 초기화 방지).
+ * - 로딩 완료 후 Tom Select를 초기화합니다.
+ * @param {string} selectId   - select 엘리먼트의 id
+ * @param {string} clCode     - 공통코드 분류번호 (예: '200', '201')
+ * @param {string} [allLabel] - 첫 번째 빈 옵션 텍스트. null이면 빈 옵션 없음
+ */
+async function loadCommonCodes(selectId, clCode, allLabel = null) {
+  const el = document.getElementById(selectId);
+  if (!el) return;
+  try {
+    const res = await fetch('/admin/common-codes/options/' + encodeURIComponent(clCode));
+    const codes = await res.json();
+    el.innerHTML = '';
+    if (allLabel !== null) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = allLabel;
+      el.appendChild(opt);
+    }
+    codes.forEach(function (c) {
+      const opt = document.createElement('option');
+      opt.value = c.comCd;
+      opt.textContent = c.comCdNm;
+      el.appendChild(opt);
+    });
+  } catch (e) {
+    console.warn('[loadCommonCodes] 로딩 실패:', clCode, e);
+  }
+  if (window.initTomSelect) window.initTomSelect(el);
+}
+
+/**
+ * root 내 [data-ts-defer][data-cl-code] select를 모두 찾아 loadCommonCodes를 병렬 실행합니다.
+ * - data-cl-code  : 공통코드 분류번호 (예: "200")
+ * - data-all-label: 첫 번째 빈 옵션 텍스트. 없으면 빈 옵션 없음
+ * - data-ts-dropup: 속성이 있으면 Tom Select 드롭다운을 위로 펼침
+ * @param {Element} [root=document] - 탐색 범위 (탭 이동 시 새 main 요소 전달)
+ */
+async function initDeferredSelects(root) {
+  const selects = Array.from(
+    (root || document).querySelectorAll('select[data-ts-defer][data-cl-code]')
+  );
+  await Promise.all(selects.map(function (el) {
+    const clCode   = el.getAttribute('data-cl-code');
+    const allLabel = el.hasAttribute('data-all-label') ? el.getAttribute('data-all-label') : null;
+    return loadCommonCodes(el.id, clCode, allLabel).then(function () {
+      if (el.hasAttribute('data-ts-dropup') && el.tomselect) {
+        el.tomselect.wrapper.classList.add('ts-dropup');
+      }
+    });
+  }));
+}
