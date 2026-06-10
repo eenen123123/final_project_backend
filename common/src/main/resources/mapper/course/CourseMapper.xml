@@ -107,10 +107,11 @@
     SELECT COUNT(*) FROM LECTURE WHERE COURSE_SN = #{courseSn}
   </select>
 
-  <!-- 공개 강좌 목록 검색 조건 (OPNN_YN = 'Y' 고정) -->
   <sql id="courseListSearchWhere">
     <trim prefix="WHERE" prefixOverrides="AND">
-      AND c.OPNN_YN = 'Y'
+      <if test="detailCondition != null and detailCondition.opnnYn != null and detailCondition.opnnYn != ''">
+        AND c.OPNN_YN = #{detailCondition.opnnYn}
+      </if>
       <if test="detailCondition != null">
         <if test="detailCondition.instrNm != null and detailCondition.instrNm != ''">
           AND m.USER_NAME LIKE '%' || #{detailCondition.instrNm} || '%'
@@ -122,7 +123,8 @@
           AND c.SUBJ_ID = #{detailCondition.subjId}
         </if>
         <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
-          AND c.COURSE_NM LIKE '%' || #{detailCondition.keyword} || '%'
+          AND (c.COURSE_NM LIKE '%' || #{detailCondition.keyword} || '%'
+            OR m.USER_NAME LIKE '%' || #{detailCondition.keyword} || '%')
         </if>
       </if>
     </trim>

@@ -35,6 +35,7 @@ public class CourseListController {
         CourseSearchCondition condition = CourseSearchCondition.builder()
                 .subjClId(subjClId)
                 .instrNm(instrNm)
+                .opnnYn("Y")
                 .build();
 
         PaginationInfo<CourseSearchCondition> paginationInfo = new PaginationInfo<>(size, 5, page);
