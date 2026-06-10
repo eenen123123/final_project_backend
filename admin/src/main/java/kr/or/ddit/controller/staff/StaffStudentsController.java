@@ -71,11 +71,7 @@ public class StaffStudentsController {
         // 1. 학생 관리 대시보드 테이블에 노출할 전체 학생 상세 목록 데이터를 조회한다.
         List<MemberDto> studentList = staffService.retrieveStudentList();
 
-        // 2. 가입 연도별 필터링 기능을 지원하기 위해 시스템에 등록된 전체 가입 연도 목록을 조회한다.
-        List<Integer> joinYearList = staffService.retrieveMemberJoinYearList();
-
         model.addAttribute("studentList", studentList);
-        model.addAttribute("joinYearList", joinYearList);
 
         return "admin:/staff/students";
     }

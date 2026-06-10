@@ -98,14 +98,16 @@ public class PrincipalSystemMonitoringController {
             @RequestParam(required = false) String userId,
             @RequestParam(required = false) String fromDt,
             @RequestParam(required = false) String toDt,
+            @RequestParam(required = false) String sessionStatus,
             @RequestParam(defaultValue = "1")  int page,
             @RequestParam(defaultValue = "10") int screenSize) {
         
         // 1. 요청 파라미터의 유효성을 검증하고 쿼리 맵에 적재한다.
         Map<String, Object> params = new HashMap<>();
-        if (hasText(userId)) params.put("userId", userId.trim());
-        if (hasText(fromDt)) params.put("fromDt", fromDt.trim());
-        if (hasText(toDt))   params.put("toDt",   toDt.trim());
+        if (hasText(userId))        params.put("userId",        userId.trim());
+        if (hasText(fromDt))        params.put("fromDt",        fromDt.trim());
+        if (hasText(toDt))          params.put("toDt",          toDt.trim());
+        if (hasText(sessionStatus)) params.put("sessionStatus", sessionStatus.trim());
 
         // 2. 화면 크기, 페이징 블록 크기, 요청 페이지 정보를 기반으로 페이징 엔티티를 빌드한다.
         PaginationInfo<Map<String, Object>> paging =

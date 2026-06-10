@@ -96,7 +96,7 @@
         <button data-sub-tab="sub-admin-audit"
           class="admin-sub-btn px-4 py-2 text-sm font-semibold rounded-lg transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100"
           onclick="switchSubTab('admin-sub-btn', 'sub-admin-audit', this)">
-          <i class="fa-solid fa-file-shield mr-1.5 text-xs"></i>활동 감사 로그
+        <i class="fa-solid fa-file-shield mr-1.5 text-xs"></i>활동 감사 로그
         </button>
       </div>
 
@@ -110,6 +110,11 @@
           <input id="inp-aa-fromDt" type="date" class="hm-input" style="width:9rem" />
           <span class="text-slate-400 text-sm">~</span>
           <input id="inp-aa-toDt" type="date" class="hm-input" style="width:9rem" />
+          <select id="inp-aa-session" class="hm-input" style="width:10rem">
+            <option value="">세션 상태</option>
+            <option value="online">접속 중</option>
+            <option value="offline">종료</option>
+          </select>
           <button class="hm-btn-secondary text-sm px-3 py-2 whitespace-nowrap" onclick="resetAndSearch('aa')">
             <i class="fa-solid fa-rotate-left mr-1"></i>초기화
           </button>
@@ -155,7 +160,7 @@
             <option>PUT</option>
             <option>DELETE</option>
           </select>
-          <select id="inp-aud-status" class="hm-input" style="width:7rem">
+          <select id="inp-aud-status" class="hm-input" style="width:10rem">
             <option value="">상태 코드</option>
             <option>200</option>
             <option>400</option>
@@ -491,7 +496,7 @@
 
   /* ─── 초기화 버튼 ──────────────────────────────────────────────── */
   const RESET_IDS = {
-    aa:   ['inp-aa-userId', 'inp-aa-fromDt', 'inp-aa-toDt'],
+    aa:   ['inp-aa-userId', 'inp-aa-fromDt', 'inp-aa-toDt', 'inp-aa-session'],
     aud:  ['inp-aud-keyword', 'inp-aud-method', 'inp-aud-status'],
     ma:   ['inp-ma-userId', 'inp-ma-success', 'inp-ma-fromDt'],
     mact: ['inp-mact-userId', 'inp-mact-type', 'inp-mact-fromDt'],
@@ -501,7 +506,13 @@
   function resetAndSearch(type) {
     (RESET_IDS[type] || []).forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.value = '';
+
+      if (!el) return;
+      if (el.tomselect) el.tomselect.setValue('');
+      else {
+        el.value = '';
+        if (el.type === 'date') el.style.color = '#94a3b8';
+      }
     });
     goPage(type, 1);
   }
@@ -509,12 +520,14 @@
   /* ─── 1. 관리자 접속 이력 ─────────────────────────────────────── */
   async function searchAdminAccess(page = 1) {
     const params = new URLSearchParams({ page, screenSize: SCREEN_SIZE });
-    const userId = document.getElementById('inp-aa-userId').value.trim();
-    const fromDt = document.getElementById('inp-aa-fromDt').value;
-    const toDt   = document.getElementById('inp-aa-toDt').value;
-    if (userId) params.set('userId', userId);
-    if (fromDt) params.set('fromDt', fromDt);
-    if (toDt)   params.set('toDt',   toDt);
+    const userId  = document.getElementById('inp-aa-userId').value.trim();
+    const fromDt  = document.getElementById('inp-aa-fromDt').value;
+    const toDt    = document.getElementById('inp-aa-toDt').value;
+    const session = document.getElementById('inp-aa-session').value;
+    if (userId)  params.set('userId', userId);
+    if (fromDt)  params.set('fromDt', fromDt);
+    if (toDt)    params.set('toDt',   toDt);
+    if (session) params.set('sessionStatus', session);
 
     try {
       const data = await fetch('/admin/system/monitoring/admin-access?' + params).then(r => r.json());
@@ -592,7 +605,6 @@
     tbody.innerHTML = items.map(r => {
       const mCls = METHOD_BADGE[r.httpMethod] || 'bg-slate-100 text-slate-600';
       const sCls = statusBadgeClass(r.statusCode);
-      const rawParams = r.requestParams || '(없음)';
       return `<tr class="hover:bg-slate-50/50 transition-colors">
         <td class="py-3.5 px-5 font-mono text-xs text-slate-400">${esc(r.auditId)}</td>
         <td class="py-3.5 px-5 font-semibold text-slate-800">${esc(r.adminId)}</td>
@@ -608,7 +620,9 @@
         <td class="py-3.5 px-5 text-center">
           <button class="text-slate-400 hover:text-violet-600 p-1.5 transition-colors"
                   title="요청 파라미터 상세"
-                  onclick="openAuditDetailModal('${esc(r.auditId)}', ${JSON.stringify(rawParams).replace(/'/g, "\\'")})">
+                  data-audit-id="${esc(r.auditId)}"
+                  data-row="${esc(JSON.stringify(r))}"
+                  onclick="openAuditDetailModal(this.dataset.auditId, this.dataset.row)">
             <i class="fa-solid fa-file-lines text-base"></i>
           </button>
         </td>
@@ -761,9 +775,14 @@
   }
 
   /* ─── 모달 ──────────────────────────────────────────────────────── */
-  function openAuditDetailModal(auditId, params) {
-    document.getElementById('auditDetailTitle').textContent = `감사 로그 #${auditId} — 요청 파라미터`;
-    document.getElementById('auditDetailContent').textContent = params || '(없음)';
+  function openAuditDetailModal(auditId, rowJson) {
+    document.getElementById('auditDetailTitle').textContent = `감사 로그 #${auditId}`;
+    try {
+      const parsed = JSON.parse(rowJson);
+      document.getElementById('auditDetailContent').textContent = JSON.stringify(parsed, null, 2);
+    } catch (e) {
+      document.getElementById('auditDetailContent').textContent = rowJson || '(없음)';
+    }
     const m = document.getElementById('auditDetailModal');
     m.classList.remove('hidden'); m.classList.add('flex');
   }
@@ -808,5 +827,35 @@
     searchMemberAccess(1);
     searchMemberActivity(1);
     searchSysError(1);
+
+    /* 필터 자동 검색 - 텍스트 debounce 300ms, select/date 즉시 */
+    const SEARCH_FN = {
+      aa: searchAdminAccess, 
+      aud: searchAdminAudit,
+      ma: searchMemberAccess,
+      mact: searchMemberActivity,
+      err: searchSysError
+    };
+    function debounce(fn, ms = 300) {
+      let t;
+      return () => { clearTimeout(t);
+        t = setTimeout(() => fn(1), ms);
+      };
+    }
+    Object.entries(RESET_IDS).forEach(([type, ids]) => {
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const isText = el.tagName !== 'SELECT' && el.type !== 'date';
+        el.addEventListener(isText ? 'input' : 'change', 
+        isText ? debounce(SEARCH_FN[type]) : () => SEARCH_FN[type](1));
+      });
+    });
+    /* 날짜 input 빈 상태 글자색 보정 */
+    document.querySelectorAll('input[type="date"].hm-input').forEach(el => {
+      const syncColor = () => { el.style.color = el.value ? '#1e293b' : '#94a3b8'; };
+      syncColor();
+      el.addEventListener('change', syncColor);
+    });
   })();
 </script>

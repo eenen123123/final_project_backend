@@ -53,6 +53,7 @@ async function navigateToStudents(btn) {
     currMain.querySelectorAll('select.hm-input:not([data-ts-defer])').forEach(el => {
       if (!el.tomselect && window.initTomSelect) window.initTomSelect(el);
     });
+    await initDeferredSelects(currMain);
 
     history.pushState({ url: '/admin/employees/students' }, doc.title || '', '/admin/employees/students');
     if (doc.title) document.title = doc.title;
@@ -789,7 +790,7 @@ function openResignConfirmDirect(id, name) {
 function onResignReasonChange(elOrVal) {
   const val = typeof elOrVal === "string" ? elOrVal : elOrVal.value || "";
   const detail = document.getElementById("resign-reason-detail");
-  if (val === "기타") {
+  if (val === "04") {
     detail.classList.remove("hidden");
     detail.focus();
   } else {
@@ -805,18 +806,18 @@ function executeResign() {
     ? reasonSelectEl.tomselect.getValue()
     : reasonSelectEl.value;
   let retmtRsn =
-    selectedVal === "기타" ? (reasonDetail.value || "").trim() : selectedVal;
+    selectedVal === "04" ? (reasonDetail.value || "").trim() : selectedVal;
 
   if (!retmtRsn) {
     showHermesToast(
-      selectedVal === "기타"
+      selectedVal === "04"
         ? "기타 사유를 입력해주세요."
         : "퇴사 사유를 선택해주세요.",
       "error",
     );
     return;
   }
-  if (selectedVal === "기타") retmtRsn = "기타: " + retmtRsn;
+  if (selectedVal === "04") retmtRsn = "기타: " + retmtRsn;
   if (!retmtRsn) {
     showHermesToast("퇴사 사유를 입력해주세요.", "error");
     return;
@@ -1561,12 +1562,7 @@ function blurValidateEmail(el) {
     showHermesToast("이메일은 100자 이하로 입력해주세요.", "error");
 }
 
-/* ─── 퇴사 사유 select: 모달 하단에 있어 드롭다운을 위로 펼치게 한다 ───
-       TomSelect 라이브러리/전역 init 이후 실행되도록 DOMContentLoaded 에서
-       기존 인스턴스의 wrapper 에 ts-dropup 클래스만 부여한다. */
+/* ─── 공통코드 옵션 동적 로딩 (data-ts-defer select들) ─── */
 document.addEventListener("DOMContentLoaded", function () {
-  const ts =
-    document.getElementById("resign-reason") &&
-    document.getElementById("resign-reason").tomselect;
-  if (ts) ts.wrapper.classList.add("ts-dropup");
+  initDeferredSelects();
 });

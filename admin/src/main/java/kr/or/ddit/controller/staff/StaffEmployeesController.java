@@ -90,13 +90,9 @@ public class StaffEmployeesController {
         //3. 화면 상단 검색 조건 필터 구성을 위한 직급명 메타데이터 목록을 조회한다.
         List<JobGradeDto> jobgradelist = staffService.retrieveJobGradeList();
 
-        //4. 입사 연도별 필터링 기능을 지원하기 위해 시스템에 등록된 전체 입사 연도 목록을 조회한다.
-        List<Integer> joinYearList = staffService.retrieveJoinYearList();
-
-        // 5. 조회된 4가지 목록 데이터를 Thymeleaf 템플릿 엔진에서 식별할 수 있도록 Model 객체에 바인딩한다.
+        // 4. 조회된 목록 데이터를 Thymeleaf 템플릿 엔진에서 식별할 수 있도록 Model 객체에 바인딩한다.
         model.addAttribute("departmentlist", departmentlist);
         model.addAttribute("jobgradelist", jobgradelist);
-        model.addAttribute("joinYearList", joinYearList);
         model.addAttribute("employeeList", employeeList);
 
         // 6. 직원 목록 화면을 렌더링할 admin 권한 전용 staff/employees 뷰 템플릿 경로를 반환한다.

@@ -82,19 +82,14 @@
             <input type="text" id="hr-search" placeholder="학생명 검색..." class="hm-input hm-input-blue"
               style="width:10rem; line-height:1rem; padding:0.65rem 1.75rem 0.65rem 1rem" oninput="filterHrList()">
           </div>
-          <select class="hm-input hm-input-blue" id="hr-year" style="width:10rem" onchange="filterHrList()">
-            <option value="">전체 연도</option>
-            <option th:each="year : ${joinYearList}" th:value="${year}" th:text="${year + '년'}"></option>
+          <select class="hm-input hm-input-blue" id="hr-year" style="width:10rem" onchange="filterHrList()"
+                  data-ts-defer data-cl-code="218" data-all-label="전체 연도">
           </select>
-          <select class="hm-input hm-input-blue" id="hr-type-filter" style="width:10rem" onchange="filterHrList()">
-            <option value="">전체 유형</option>
-            <option value="ROLE_USER">일반</option>
-            <option value="ROLE_STUDENT">오프라인</option>
+          <select class="hm-input hm-input-blue" id="hr-type-filter" style="width:10rem" onchange="filterHrList()"
+                  data-ts-defer data-cl-code="220" data-all-label="전체 유형">
           </select>
-          <select class="hm-input hm-input-blue" id="hr-status-filter" style="width:10rem" onchange="filterHrList()">
-            <option value="">전체 상태</option>
-            <option value="Y">정상</option>
-            <option value="N">탈퇴</option>
+          <select class="hm-input hm-input-blue" id="hr-status-filter" style="width:10rem" onchange="filterHrList()"
+                  data-ts-defer data-cl-code="219" data-all-label="전체 상태">
           </select>
           <button type="button" onclick="resetHrFilter()" class="hm-btn-secondary text-sm px-3 py-2 whitespace-nowrap">
             <i class="fa-solid fa-rotate-left mr-1"></i>초기화
@@ -453,12 +448,7 @@
               <div class="grid grid-cols-2 gap-2 mb-3">
                 <div class="col-span-2">
                   <label class="form-label">탈퇴 사유
-                    <select class="hm-input hm-input-danger hm-lg" id="resign-reason" onchange="onResignReasonChange(this)">
-                      <option value="">선택</option>
-                      <option value="본인 요청">본인 요청</option>
-                      <option value="장기 미접속">장기 미접속</option>
-                      <option value="운영 정책 위반">운영 정책 위반</option>
-                      <option value="기타">기타</option>
+                    <select class="hm-input hm-input-danger hm-lg" id="resign-reason" onchange="onResignReasonChange(this)" data-ts-defer data-cl-code="203" data-all-label="선택" data-ts-dropup>
                     </select>
                     <textarea id="resign-reason-detail" class="hm-input hm-input-danger mt-1 text-sm resize-none hidden"
                       rows="2" maxlength="1000" placeholder="기타 사유를 직접 입력해주세요."></textarea>

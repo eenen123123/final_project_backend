@@ -97,17 +97,12 @@
               style="width:10rem; line-height:1rem; padding:0.65rem 1.75rem 0.65rem 1rem" oninput="filterHrList()">
           </div>
 
-          <select class="hm-input hm-input-blue" id="hr-year" style="width:10rem" onchange="filterHrList()">
-            <option value="">전체 연도</option>
-            <option th:each="year : ${joinYearList}" th:value="${year}" th:text="${year + '년'}">
-            </option>
+          <select class="hm-input hm-input-blue" id="hr-year" style="width:10rem" onchange="filterHrList()"
+                  data-ts-defer data-cl-code="218" data-all-label="전체 연도">
           </select>
 
-          <select class="hm-input hm-input-blue" id="hr-status-filter" style="width:10rem" onchange="filterHrList()">
-            <option value="">전체 상태</option>
-            <option value="01">재직 중</option>
-            <option value="02">휴직 중</option>
-            <option value="03">퇴사</option>
+          <select class="hm-input hm-input-blue" id="hr-status-filter" style="width:10rem" onchange="filterHrList()"
+                  data-ts-defer data-cl-code="200" data-all-label="전체 상태">
           </select>
 
           <select class="hm-input hm-input-blue" id="hr-dept-filter" style="width:10rem"
@@ -122,11 +117,8 @@
               th:data-dept="${jobGrade.deptCd}">
             </option>
           </select>
-          <select class="hm-input hm-input-blue" id="hr-type-filter" style="width:10rem" onchange="filterHrList()">
-            <option value="">전체 근무형태</option>
-            <option value="01">정규직</option>
-            <option value="02">계약직</option>
-            <option value="03">파트타임</option>
+          <select class="hm-input hm-input-blue" id="hr-type-filter" style="width:10rem" onchange="filterHrList()"
+                  data-ts-defer data-cl-code="201" data-all-label="전체 근무형태">
           </select>
           <button type="button" onclick="resetHrFilter()" class="hm-btn-secondary text-sm px-3 py-2 whitespace-nowrap">
             <i class="fa-solid fa-rotate-left mr-1"></i>초기화
@@ -354,11 +346,8 @@
                 </div> -->
                 <div>
                   <label class="form-label">근무 유형 <span class="required">*</span></label>
-                  <select class="hm-input hm-input-blue hm-lg" id="new-work-type" name="emplTypeCd" onchange="toggleContractPeriod(this.value)">
-                    <option value="">선택</option>
-                    <option value="01">정규직</option>
-                    <option value="02">계약직</option>
-                    <option value="03">파트타임</option>
+                  <select class="hm-input hm-input-blue hm-lg" id="new-work-type" name="emplTypeCd" onchange="toggleContractPeriod(this.value)"
+                          data-ts-defer data-cl-code="201" data-all-label="선택">
                   </select>
                 </div>
                 <div id="contract-period-wrap" class="col-span-2 hidden">
@@ -578,20 +567,16 @@
               </div>
               <div>
                 <label class="form-label">재직 상태
-                  <select class="hm-input hm-input-blue hm-lg" id="edit-status">
-                    <option value="01">재직</option>
-                    <option value="02">휴직</option>
-                    <option value="03">퇴사</option>
+                  <select class="hm-input hm-input-blue hm-lg" id="edit-status"
+                          data-ts-defer data-cl-code="200">
                   </select>
                 </label>
               </div>
               <div>
                 <label class="form-label">근무 유형
                   <select class="hm-input hm-input-blue hm-lg" id="edit-work-type"
-                    onchange="toggleEditContractPeriod(this.value)">
-                    <option value="01">정규직</option>
-                    <option value="02">계약직</option>
-                    <option value="03">파트타임</option>
+                    onchange="toggleEditContractPeriod(this.value)"
+                    data-ts-defer data-cl-code="201">
                   </select>
                 </label>
               </div>
@@ -624,12 +609,8 @@
                 <div>
                   <label class="form-label">퇴사 사유
                     <select class="hm-input hm-input-danger hm-lg" id="resign-reason"
-                      onchange="onResignReasonChange(this)">
-                      <option value="">선택</option>
-                      <option value="개인 사정">개인 사정</option>
-                      <option value="계약 만료">계약 만료</option>
-                      <option value="권고사직">권고사직</option>
-                      <option value="기타">기타</option>
+                      onchange="onResignReasonChange(this)"
+                      data-ts-defer data-cl-code="202" data-all-label="선택" data-ts-dropup>
                     </select>
                     <textarea id="resign-reason-detail" class="hm-input hm-input-danger mt-1 text-sm resize-none hidden"
                       rows="2" maxlength="1000" placeholder="기타 사유를 직접 입력해주세요."></textarea>
