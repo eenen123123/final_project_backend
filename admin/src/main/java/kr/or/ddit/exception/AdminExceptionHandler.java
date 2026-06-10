@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -83,11 +84,25 @@ public class AdminExceptionHandler {
         log.error("[Unhandled Exception]", ex);
 
         if (isAjax(request)) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "서버 내부 오류가 발생했습니다."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse(
+                    HttpStatus.INTERNAL_SERVER_ERROR.value(), "서버 내부 오류가 발생했습니다."));
         }
         redirectAttributes.addFlashAttribute("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
         redirectAttributes.addFlashAttribute("errorMessage", "서버 내부 오류가 발생했습니다.");
+        return "redirect:/admin/error";
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public Object handle(MissingServletRequestParameterException ex, HttpServletRequest request,
+            RedirectAttributes redirectAttributes) {
+        log.warn("[MissingServletRequestParameter] {}", ex.getMessage());
+
+        if (isAjax(request)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    new ErrorResponse(HttpStatus.BAD_REQUEST.value(), "필수 요청 파라미터가 누락되었습니다."));
+        }
+        redirectAttributes.addFlashAttribute("status", HttpStatus.BAD_REQUEST.value());
+        redirectAttributes.addFlashAttribute("errorMessage", "필수 요청 파라미터가 누락되었습니다.");
         return "redirect:/admin/error";
     }
 
@@ -95,5 +110,6 @@ public class AdminExceptionHandler {
         return "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
     }
 
-    record ErrorResponse(int status, String message) {}
+    record ErrorResponse(int status, String message) {
+    }
 }
