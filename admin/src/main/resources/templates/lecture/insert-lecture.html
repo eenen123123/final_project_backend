@@ -151,10 +151,11 @@
         <form
           id="lectureForm"
           class="space-y-5"
-          th:action="@{/admin/lecture/insert}"
+          th:action="@{/admin/lectures/insert}"
           method="post"
         >
           <input type="hidden" name="courseSn" th:value="${course.courseSn}" />
+          <input type="hidden" name="atchFileId" id="atchFileId" />
 
           <!-- 강의명 -->
           <div>
@@ -170,19 +171,8 @@
             />
           </div>
 
-          <!-- 강의 유형 + 정렬 순서 -->
+          <!-- 정렬 순서 -->
           <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-medium text-slate-500 mb-1.5">
-                강의 유형 <span class="text-red-400">*</span>
-              </label>
-              <select name="lectureTypeCd" class="hm-input hm-input-orange">
-                <option value="VOD">영상 강의 (VOD)</option>
-                <option value="LIVE">라이브 강의</option>
-                <option value="QUIZ">퀴즈</option>
-                <option value="DOC">자료</option>
-              </select>
-            </div>
             <div>
               <label class="block text-xs font-medium text-slate-500 mb-1.5"
                 >정렬 순서</label
@@ -425,8 +415,10 @@
 </div>
 
 <!-- ===== 페이지 스크립트 ===== -->
-<script>
+<script th:inline="javascript">
+  const COURSE_SN = /*[[${course.courseSn}]]*/ "";
   let selectedFile = null;
+  let uploading = false;
 
   /* ── 드래그 & 드롭 ── */
   function handleDragOver(e) {
@@ -445,34 +437,101 @@
   function handleFileSelect(files) {
     if (!files || files.length === 0) return;
     const file = files[0];
+    if (!file.type.startsWith("video/")) {
+      showHermesToast("동영상 파일만 업로드할 수 있습니다.", "error");
+      return;
+    }
     selectedFile = file;
-    const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+
+    const sizeMB = file.size / 1024 / 1024;
     const sizeText =
-      sizeMB >= 1024 ? (sizeMB / 1024).toFixed(2) + " GB" : sizeMB + " MB";
+      sizeMB >= 1024
+        ? (sizeMB / 1024).toFixed(2) + " GB"
+        : sizeMB.toFixed(1) + " MB";
 
     document.getElementById("selectedFileName").textContent = file.name;
     document.getElementById("selectedFileSize").textContent = sizeText;
     document.getElementById("dropPlaceholder").classList.add("hidden");
     document.getElementById("fileSelectedInfo").classList.remove("hidden");
+    document.getElementById("uploadProgress").classList.add("hidden");
+    setProgress(0);
   }
 
   function clearVideo(e) {
     e.stopPropagation();
+    if (uploading) return;
     selectedFile = null;
     document.getElementById("videoFileInput").value = "";
+    document.getElementById("atchFileId").value = "";
     document.getElementById("dropPlaceholder").classList.remove("hidden");
     document.getElementById("fileSelectedInfo").classList.add("hidden");
   }
 
+  function setProgress(pct) {
+    document.getElementById("progressBar").style.width = pct + "%";
+    document.getElementById("progressPct").textContent = pct + "%";
+  }
+
+  /* ── 영상 업로드 (XHR - 진행률 추적) ── */
+  function uploadVideo(file) {
+    return new Promise((resolve) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("courseSn", COURSE_SN);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/admin/lecture/video/upload");
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          setProgress(Math.round((e.loaded / e.total) * 100));
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          setProgress(100);
+          resolve(JSON.parse(xhr.responseText));
+        } else {
+          showHermesToast("영상 업로드에 실패했습니다.", "error");
+          resolve(null);
+        }
+      };
+
+      xhr.onerror = () => {
+        showHermesToast("영상 업로드 중 오류가 발생했습니다.", "error");
+        resolve(null);
+      };
+
+      document.getElementById("uploadProgress").classList.remove("hidden");
+      xhr.send(formData);
+    });
+  }
+
   /* ── 등록 ── */
-  function submitLecture() {
+  async function submitLecture() {
+    if (uploading) return;
+
     const nm = document.getElementById("lectureNm").value.trim();
     if (!nm) {
       showHermesToast("강의명을 입력해 주세요.", "error");
       document.getElementById("lectureNm").focus();
       return;
     }
-    // TODO: 영상 파일 업로드 후 form submit
+
+    if (selectedFile) {
+      uploading = true;
+      showHermesToast("영상을 업로드하는 중입니다...", "success");
+
+      const fileServerId = await uploadVideo(selectedFile);
+      uploading = false;
+
+      if (!fileServerId) return;
+
+      document.getElementById("atchFileId").value = fileServerId;
+      showHermesToast("영상 업로드 완료. 강의를 등록합니다.", "success");
+    }
+
     document.getElementById("lectureForm").submit();
   }
 </script>

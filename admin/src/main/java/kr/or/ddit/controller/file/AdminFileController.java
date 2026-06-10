@@ -41,6 +41,23 @@ public class AdminFileController {
     @Value("${file.server.api-key}")
     private String apiKey;
 
+    @PostMapping("/api/admin/lecture/video/upload")
+    public ResponseEntity<Long> uploadLectureVideo(@RequestParam("file") MultipartFile file,
+            @RequestParam("courseSn") String courseSn,
+            Authentication authentication) {
+
+        if (file == null || file.isEmpty()) {
+            throw new FinalProjectException(ErrorCode.FILE_EMPTY);
+        }
+        if (file.getContentType() == null || !file.getContentType().startsWith("video/")) {
+            throw new FinalProjectException(ErrorCode.INVALID_FILE_TYPE);
+        }
+
+        FileDto fileDto = fileUploadService.uploadVideoFile(file, authentication.getName(),
+                FileCtxType.COURSE, courseSn);
+        return ResponseEntity.ok(fileDto.getFileServerId());
+    }
+
     // TipTap 에디터 파일 업로드
     @PostMapping("/api/files/upload")
     public ResponseEntity<Long> uploadFile(@RequestParam("file") MultipartFile file,

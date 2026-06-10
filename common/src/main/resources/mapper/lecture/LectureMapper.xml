@@ -15,6 +15,7 @@
     <result property="opnnYn"          column="OPNN_YN" />
     <result property="lockYn"          column="LOCK_YN" />
     <result property="prereqLectureSn" column="PREREQ_LECTURE_SN" />
+    <result property="atchFileId"       column="ATCH_FILE_ID" />
     <result property="sortOrd"         column="SORT_ORD" />
     <result property="rgtrId"          column="RGTR_ID" />
     <result property="lastMdfrId"      column="LAST_MDFR_ID" />
@@ -73,13 +74,14 @@
 
   <insert id="insertLecture" parameterType="kr.or.ddit.finalProject.dto.lecture.LectureDto">
     INSERT INTO LECTURE (
-      COURSE_SN, LECTURE_NM, LECTURE_TYPE_CD, LECTURE_DURATION,
-      LECTURE_EXPLN_CN, OPNN_YN, LOCK_YN, PREREQ_LECTURE_SN,
-      SORT_ORD, RGTR_ID, LAST_MDFR_ID
+      COURSE_SN, LECTURE_NM, LECTURE_TYPE_CD, ATCH_FILE_ID,
+      LECTURE_DURATION, LECTURE_EXPLN_CN, OPNN_YN, LOCK_YN,
+      PREREQ_LECTURE_SN, SORT_ORD, RGTR_ID, LAST_MDFR_ID
     ) VALUES (
       #{courseSn},
       #{lectureNm},
       #{lectureTypeCd, jdbcType=VARCHAR},
+      #{atchFileId, jdbcType=VARCHAR},
       #{lectureDuration, jdbcType=NUMERIC},
       #{lectureExplnCn, jdbcType=VARCHAR},
       NVL(#{opnnYn, jdbcType=CHAR}, 'Y'),
