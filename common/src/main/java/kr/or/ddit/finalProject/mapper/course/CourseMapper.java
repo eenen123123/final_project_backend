@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import kr.or.ddit.finalProject.dto.course.AdminCourseSearchCondition;
 import kr.or.ddit.finalProject.dto.course.CourseDto;
 import kr.or.ddit.finalProject.dto.course.CourseResponseDto;
 import kr.or.ddit.finalProject.dto.course.CourseSearchCondition;
@@ -38,9 +39,9 @@ public interface CourseMapper {
     int updateCourseAtchFileId(@Param("courseSn") Long courseSn,
             @Param("atchFileId") String atchFileId);
 
-    List<CourseDto> selectCourseList(PaginationInfo<CourseSearchCondition> paginationInfo);
+    List<CourseDto> selectCourseList(PaginationInfo<AdminCourseSearchCondition> paginationInfo);
 
-    int selectCourseListCount(PaginationInfo<CourseSearchCondition> paginationInfo);
+    int selectCourseListCount(PaginationInfo<AdminCourseSearchCondition> paginationInfo);
 
     List<SubjectClassificationDto> selectSubjectClassificationList();
 

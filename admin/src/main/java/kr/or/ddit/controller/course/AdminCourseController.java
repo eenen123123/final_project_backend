@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import kr.or.ddit.finalProject.dto.course.CourseDto;
-import kr.or.ddit.finalProject.dto.course.CourseSearchCondition;
+import kr.or.ddit.finalProject.dto.course.AdminCourseSearchCondition;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
 import kr.or.ddit.finalProject.service.course.CourseService;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +27,8 @@ public class AdminCourseController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String opnnYn,
             Model model) {
-        PaginationInfo<CourseSearchCondition> paginationInfo = new PaginationInfo<>(10, 5, page);
-        CourseSearchCondition condition = CourseSearchCondition.builder()
+        PaginationInfo<AdminCourseSearchCondition> paginationInfo = new PaginationInfo<>(10, 5, page);
+        AdminCourseSearchCondition condition = AdminCourseSearchCondition.builder()
                 .keyword(keyword).opnnYn(opnnYn).build();
         paginationInfo.setDetailCondition(condition);
         int totalCount = courseService.retrieveCourseListCount(paginationInfo);

@@ -14,11 +14,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.List;
-
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import kr.or.ddit.finalProject.dto.course.CourseSearchCondition;
+import kr.or.ddit.finalProject.dto.course.AdminCourseSearchCondition;
 import kr.or.ddit.finalProject.dto.course.SubjectDto;
 import kr.or.ddit.finalProject.dto.textbook.TextbookDto;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
@@ -48,7 +46,7 @@ public class TextbookController {
     // 강좌 선택 팝업
     @GetMapping("/popup/courses")
     public String coursePopup(Model model) {
-        model.addAttribute("courseList", courseService.retrieveCourseList(new PaginationInfo<CourseSearchCondition>(1000, 1)));
+        model.addAttribute("courseList", courseService.retrieveCourseList(new PaginationInfo<AdminCourseSearchCondition>(1000, 1)));
         model.addAttribute("subjClList", courseService.retrieveSubjectClassificationList());
         return "textbook/textbookPopup";
     }
@@ -93,7 +91,7 @@ public class TextbookController {
     public String textbookNewForm(Model model) {
         model.addAttribute("textbookDto", new TextbookDto());
         model.addAttribute("subjClList", courseService.retrieveSubjectClassificationList());
-        model.addAttribute("courseList", courseService.retrieveCourseList(new PaginationInfo<CourseSearchCondition>(1000, 1)));
+        model.addAttribute("courseList", courseService.retrieveCourseList(new PaginationInfo<AdminCourseSearchCondition>(1000, 1)));
         return "admin:/textbook/textbook_form";
     }
 
@@ -126,7 +124,7 @@ public class TextbookController {
         TextbookDto textbookDto = textbookService.retrieveTextbookBySn(textbookSn);
         model.addAttribute("textbookDto", textbookDto);
         model.addAttribute("subjClList", courseService.retrieveSubjectClassificationList());
-        model.addAttribute("courseList", courseService.retrieveCourseList(new PaginationInfo<CourseSearchCondition>(1000, 1)));
+        model.addAttribute("courseList", courseService.retrieveCourseList(new PaginationInfo<AdminCourseSearchCondition>(1000, 1)));
         return "admin:/textbook/textbook_form";
     }
 

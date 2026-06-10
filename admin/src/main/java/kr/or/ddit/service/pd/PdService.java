@@ -6,9 +6,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import kr.or.ddit.finalProject.dto.course.AdminCourseSearchCondition;
 import kr.or.ddit.finalProject.dto.course.CourseDto;
-import kr.or.ddit.finalProject.dto.course.CourseSearchCondition;
-
 import kr.or.ddit.finalProject.mapper.course.CourseMapper;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +19,7 @@ public class PdService {
     private final CourseMapper courseMapper;
 
     public List<CourseDto> getCourseList() {
-        PaginationInfo<CourseSearchCondition> paginationInfo = new PaginationInfo<>(100, 1);
+        PaginationInfo<AdminCourseSearchCondition> paginationInfo = new PaginationInfo<>(100, 1);
         return courseMapper.selectCourseList(paginationInfo);
     }
 
