@@ -1,0 +1,478 @@
+<title th:fragment="pageTitle">강의 등록 | HERMES</title>
+
+<style>
+  .upload-zone {
+    border: 2px dashed #e2e8f0;
+    border-radius: 1rem;
+    transition:
+      border-color 0.2s,
+      background-color 0.2s;
+  }
+  .upload-zone.drag-over {
+    border-color: #f97316;
+    background-color: #fff7ed;
+  }
+  .progress-bar-track {
+    height: 6px;
+    background-color: #f1f5f9;
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f97316, #fb923c);
+    border-radius: 9999px;
+    transition: width 0.4s ease;
+  }
+</style>
+
+<div class="space-y-6">
+  <!-- ① 페이지 헤더 -->
+  <div
+    class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+  >
+    <div>
+      <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+        <a href="/admin/course" class="hover:text-orange-500 transition-colors"
+          >강좌 관리</a
+        >
+        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        <span th:text="${course.courseNm}" class="text-slate-600 font-medium"
+          >강좌명</span
+        >
+        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        <span class="text-orange-500 font-medium">강의 등록</span>
+      </div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
+        강의 등록
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">
+        영상 파일과 강의 정보를 입력하여 강좌에 새 강의를 추가합니다.
+      </p>
+
+      <p>추후 강좌 목록이나 강좌 정보에서 이 페이지로 이동</p>
+    </div>
+    <a
+      href="/admin/course"
+      class="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors shrink-0"
+    >
+      <i class="fa-solid fa-arrow-left text-xs"></i>
+      <span>목록으로</span>
+    </a>
+  </div>
+
+  <!-- ② 메인 레이아웃 -->
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+    <!-- 왼쪽: 등록 폼 (3/5) -->
+    <div class="lg:col-span-3 space-y-5">
+      <!-- 영상 업로드 -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <h2 class="text-sm font-bold text-slate-700 mb-4">
+          <i class="fa-solid fa-video text-orange-500 mr-2"></i>강의 영상
+        </h2>
+
+        <div
+          class="upload-zone p-8 flex flex-col items-center justify-center text-center cursor-pointer"
+          id="videoDropZone"
+          ondragover="handleDragOver(event)"
+          ondragleave="handleDragLeave()"
+          ondrop="handleDrop(event)"
+          onclick="document.getElementById('videoFileInput').click()"
+        >
+          <div id="dropPlaceholder">
+            <div
+              class="w-16 h-16 rounded-2xl bg-orange-50 text-orange-400 flex items-center justify-center text-3xl mb-4 mx-auto"
+            >
+              <i class="fa-solid fa-clapperboard"></i>
+            </div>
+            <p class="text-sm font-semibold text-slate-600">
+              파일을 드래그하거나 클릭하여 업로드
+            </p>
+            <p class="text-xs text-slate-400 mt-1">
+              MP4, MOV, AVI, MKV · 최대 10 GB
+            </p>
+          </div>
+          <div id="fileSelectedInfo" class="hidden w-full">
+            <div class="flex items-center gap-4 bg-orange-50 rounded-xl p-4">
+              <div
+                class="w-12 h-12 rounded-xl bg-orange-100 text-orange-500 flex items-center justify-center text-xl shrink-0"
+              >
+                <i class="fa-solid fa-file-video"></i>
+              </div>
+              <div class="text-left flex-1 min-w-0">
+                <p
+                  class="text-sm font-bold text-slate-800 truncate"
+                  id="selectedFileName"
+                >
+                  -
+                </p>
+                <p class="text-xs text-slate-500 mt-0.5" id="selectedFileSize">
+                  -
+                </p>
+              </div>
+              <button
+                onclick="clearVideo(event)"
+                class="text-slate-400 hover:text-red-500 transition-colors shrink-0 p-1"
+              >
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <!-- 진행률 (업로드 중일 때) -->
+            <div class="mt-3 hidden" id="uploadProgress">
+              <div class="flex justify-between text-xs text-slate-500 mb-1">
+                <span>업로드 중...</span>
+                <span id="progressPct">0%</span>
+              </div>
+              <div class="progress-bar-track">
+                <div
+                  class="progress-bar-fill"
+                  id="progressBar"
+                  style="width: 0%"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <input
+          type="file"
+          id="videoFileInput"
+          accept="video/*"
+          class="hidden"
+          onchange="handleFileSelect(this.files)"
+        />
+      </div>
+
+      <!-- 강의 정보 입력 -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <h2 class="text-sm font-bold text-slate-700 mb-5">
+          <i class="fa-solid fa-circle-info text-orange-500 mr-2"></i>강의 정보
+        </h2>
+
+        <form
+          id="lectureForm"
+          class="space-y-5"
+          th:action="@{/admin/lecture/insert}"
+          method="post"
+        >
+          <input type="hidden" name="courseSn" th:value="${course.courseSn}" />
+
+          <!-- 강의명 -->
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">
+              강의명 <span class="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              name="lectureNm"
+              id="lectureNm"
+              class="hm-input hm-input-orange"
+              placeholder="예) 15강 삼각함수의 활용"
+            />
+          </div>
+
+          <!-- 강의 유형 + 정렬 순서 -->
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-500 mb-1.5">
+                강의 유형 <span class="text-red-400">*</span>
+              </label>
+              <select name="lectureTypeCd" class="hm-input hm-input-orange">
+                <option value="VOD">영상 강의 (VOD)</option>
+                <option value="LIVE">라이브 강의</option>
+                <option value="QUIZ">퀴즈</option>
+                <option value="DOC">자료</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-500 mb-1.5"
+                >정렬 순서</label
+              >
+              <input
+                type="number"
+                name="sortOrd"
+                id="sortOrd"
+                class="hm-input hm-input-orange"
+                th:value="${lectures != null ? lectures.size() + 1 : 1}"
+                min="1"
+              />
+            </div>
+          </div>
+
+          <!-- 강의 설명 -->
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5"
+              >강의 설명</label
+            >
+            <textarea
+              name="lectureExplnCn"
+              id="lectureExplnCn"
+              rows="4"
+              class="hm-input hm-input-orange resize-none"
+              placeholder="이 강의에서 다루는 내용을 간략히 설명해 주세요."
+            ></textarea>
+          </div>
+
+          <!-- 공개 여부 + 잠금 여부 -->
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-500 mb-2"
+                >공개 여부</label
+              >
+              <div class="flex items-center gap-5 h-10">
+                <label
+                  class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    name="opnnYn"
+                    value="Y"
+                    checked
+                    class="accent-orange-500"
+                  />
+                  <span>공개</span>
+                </label>
+                <label
+                  class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    name="opnnYn"
+                    value="N"
+                    class="accent-orange-500"
+                  />
+                  <span>비공개</span>
+                </label>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-500 mb-2"
+                >수강 잠금</label
+              >
+              <div class="flex items-center gap-5 h-10">
+                <label
+                  class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    name="lockYn"
+                    value="N"
+                    checked
+                    class="accent-orange-500"
+                  />
+                  <span>해제</span>
+                </label>
+                <label
+                  class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    name="lockYn"
+                    value="Y"
+                    class="accent-orange-500"
+                  />
+                  <span>잠금</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 선행 강의 -->
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5"
+              >선행 강의</label
+            >
+            <select name="prereqLectureSn" class="hm-input hm-input-orange">
+              <option value="">없음 (바로 수강 가능)</option>
+              <option
+                th:each="lec : ${lectures}"
+                th:value="${lec.lectureSn}"
+                th:text="${lec.sortOrd + '. ' + lec.lectureNm}"
+              >
+                강의명
+              </option>
+            </select>
+          </div>
+
+          <!-- 등록 버튼 -->
+          <button
+            type="button"
+            onclick="submitLecture()"
+            class="w-full hm-btn-primary hm-btn-orange py-3.5 text-base"
+          >
+            <i class="fa-solid fa-circle-plus text-lg"></i>
+            <span>강의 등록</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 오른쪽: 강좌 정보 + 기존 강의 목록 (2/5) -->
+    <div class="lg:col-span-2 space-y-5">
+      <!-- 강좌 정보 -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+        <h2 class="text-sm font-bold text-slate-700 mb-4">
+          <i class="fa-solid fa-book-open text-orange-500 mr-2"></i>강좌 정보
+        </h2>
+        <div class="space-y-3">
+          <div>
+            <p class="text-xs text-slate-400">강좌명</p>
+            <p
+              class="text-sm font-bold text-slate-800 mt-0.5"
+              th:text="${course.courseNm}"
+            >
+              -
+            </p>
+          </div>
+          <div th:if="${course.courseExplnCn}">
+            <p class="text-xs text-slate-400">강좌 설명</p>
+            <p
+              class="text-xs text-slate-600 mt-0.5 leading-relaxed line-clamp-3"
+              th:text="${course.courseExplnCn}"
+            >
+              -
+            </p>
+          </div>
+          <div class="flex items-center gap-4 pt-1">
+            <div class="flex-1 bg-slate-50 rounded-xl p-3 text-center">
+              <p class="text-xs text-slate-400">총 강의 수</p>
+              <p class="text-lg font-bold text-slate-800 mt-0.5">
+                <span th:text="${lectures != null ? lectures.size() : 0}"
+                  >0</span
+                >
+                <span class="text-xs text-slate-400 font-normal">개</span>
+              </p>
+            </div>
+            <div
+              class="flex-1 bg-slate-50 rounded-xl p-3 text-center"
+              th:if="${course.coursePrice != null}"
+            >
+              <p class="text-xs text-slate-400">수강료</p>
+              <p
+                class="text-sm font-bold text-slate-800 mt-0.5"
+                th:text="${#numbers.formatInteger(course.coursePrice, 1, 'COMMA') + '원'}"
+              >
+                -
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 기존 강의 목록 -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+        <div class="px-5 pt-4 pb-3 border-b border-slate-100">
+          <h2 class="text-sm font-bold text-slate-700">
+            <i class="fa-solid fa-list text-orange-500 mr-2"></i>등록된 강의
+          </h2>
+        </div>
+
+        <div class="overflow-y-auto" style="max-height: 480px">
+          <!-- 강의 없을 때 -->
+          <div
+            th:if="${lectures == null or lectures.isEmpty()}"
+            class="py-12 text-center"
+          >
+            <div
+              class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-300 flex items-center justify-center text-xl mx-auto mb-3"
+            >
+              <i class="fa-solid fa-film"></i>
+            </div>
+            <p class="text-xs text-slate-400">등록된 강의가 없습니다.</p>
+          </div>
+
+          <!-- 강의 목록 -->
+          <ul
+            th:unless="${lectures == null or lectures.isEmpty()}"
+            class="divide-y divide-slate-50"
+          >
+            <li
+              th:each="lec, iter : ${lectures}"
+              class="flex items-center gap-3 px-5 py-3 hover:bg-slate-50/70 transition-colors"
+            >
+              <span
+                class="w-6 h-6 rounded-lg bg-orange-50 text-orange-500 text-xs font-bold flex items-center justify-center shrink-0"
+                th:text="${iter.index + 1}"
+                >1</span
+              >
+              <div class="flex-1 min-w-0">
+                <p
+                  class="text-sm font-medium text-slate-700 truncate"
+                  th:text="${lec.lectureNm}"
+                >
+                  강의명
+                </p>
+                <div class="flex items-center gap-1.5 mt-0.5">
+                  <span
+                    class="text-[10px] px-1.5 py-0.5 rounded-full font-semibold"
+                    th:classappend="${lec.opnnYn == 'Y'} ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'"
+                    th:text="${lec.opnnYn == 'Y'} ? '공개' : '비공개'"
+                    >공개</span
+                  >
+                  <span
+                    th:if="${lec.lockYn == 'Y'}"
+                    class="text-[10px] px-1.5 py-0.5 rounded-full font-semibold bg-amber-50 text-amber-600"
+                  >
+                    <i class="fa-solid fa-lock text-[9px] mr-0.5"></i>잠금
+                  </span>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 페이지 스크립트 ===== -->
+<script>
+  let selectedFile = null;
+
+  /* ── 드래그 & 드롭 ── */
+  function handleDragOver(e) {
+    e.preventDefault();
+    document.getElementById("videoDropZone").classList.add("drag-over");
+  }
+  function handleDragLeave() {
+    document.getElementById("videoDropZone").classList.remove("drag-over");
+  }
+  function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById("videoDropZone").classList.remove("drag-over");
+    handleFileSelect(e.dataTransfer.files);
+  }
+
+  function handleFileSelect(files) {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    selectedFile = file;
+    const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+    const sizeText =
+      sizeMB >= 1024 ? (sizeMB / 1024).toFixed(2) + " GB" : sizeMB + " MB";
+
+    document.getElementById("selectedFileName").textContent = file.name;
+    document.getElementById("selectedFileSize").textContent = sizeText;
+    document.getElementById("dropPlaceholder").classList.add("hidden");
+    document.getElementById("fileSelectedInfo").classList.remove("hidden");
+  }
+
+  function clearVideo(e) {
+    e.stopPropagation();
+    selectedFile = null;
+    document.getElementById("videoFileInput").value = "";
+    document.getElementById("dropPlaceholder").classList.remove("hidden");
+    document.getElementById("fileSelectedInfo").classList.add("hidden");
+  }
+
+  /* ── 등록 ── */
+  function submitLecture() {
+    const nm = document.getElementById("lectureNm").value.trim();
+    if (!nm) {
+      showHermesToast("강의명을 입력해 주세요.", "error");
+      document.getElementById("lectureNm").focus();
+      return;
+    }
+    // TODO: 영상 파일 업로드 후 form submit
+    document.getElementById("lectureForm").submit();
+  }
+</script>
