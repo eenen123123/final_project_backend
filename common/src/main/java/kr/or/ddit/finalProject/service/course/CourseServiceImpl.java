@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import kr.or.ddit.finalProject.dto.course.CourseDto;
-import kr.or.ddit.finalProject.dto.course.CourseListDto;
+import kr.or.ddit.finalProject.dto.course.CourseSearchCondition;
 import kr.or.ddit.finalProject.dto.course.SubjectClassificationDto;
 import kr.or.ddit.finalProject.dto.course.SubjectDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
@@ -79,30 +79,26 @@ public class CourseServiceImpl implements CourseService {
         courseMapper.deleteCourse(courseSn);
     }
 
-    // 전체 강좌 조회 (페이징 + 검색)
     @Override
-    public List<CourseListDto> retrieveCourseList(PaginationInfo<CourseListDto> paginationInfo) {
+    public List<CourseDto> retrieveCourseList(PaginationInfo<CourseSearchCondition> paginationInfo) {
         return courseMapper.selectCourseList(paginationInfo);
     }
 
     @Override
-    public int retrieveCourseListCount(PaginationInfo<CourseListDto> paginationInfo) {
+    public int retrieveCourseListCount(PaginationInfo<CourseSearchCondition> paginationInfo) {
         return courseMapper.selectCourseListCount(paginationInfo);
     }
 
-    // 과목 분류 목록 조회
     @Override
     public List<SubjectClassificationDto> retrieveSubjectClassificationList() {
         return courseMapper.selectSubjectClassificationList();
     }
 
-    // 대분류별 소분류 목록 조회
     @Override
     public List<SubjectDto> retrieveSubjectsBySubjClId(Long subjClId) {
         return courseMapper.selectSubjectsBySubjClId(subjClId);
     }
 
-    // 과목 분류별 강사 조회
     @Override
     public List<MemberDto> retrieveInstructorsBySubjClId(Long subjClId) {
         return courseMapper.selectInstructorsBySubjClId(subjClId);

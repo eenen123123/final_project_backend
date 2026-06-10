@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import kr.or.ddit.finalProject.dto.common.PageResponse;
-import kr.or.ddit.finalProject.dto.course.CourseListDto;
+import kr.or.ddit.finalProject.dto.course.CourseDto;
+import kr.or.ddit.finalProject.dto.course.CourseSearchCondition;
 import kr.or.ddit.finalProject.dto.course.SubjectClassificationDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
@@ -23,26 +24,29 @@ public class CourseListController {
 
     private final CourseService courseService;
 
-    // GET /api/course?page=1&size=8&subjClId=1&instrUserNm=정승제
+    // GET /api/course?page=1&size=8&subjClId=1&instrNm=정승제
     @GetMapping
-    public ResponseEntity<PageResponse<CourseListDto>> getCourseList(
-            @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "8") int size,
+    public ResponseEntity<PageResponse<CourseDto>> getCourseList(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "8") int size,
             @RequestParam(required = false) Long subjClId,
-            @RequestParam(required = false) String instrUserNm) {
+            @RequestParam(required = false) String instrNm) {
 
-        CourseListDto condition =
-                CourseListDto.builder().subjClId(subjClId).instrUserNm(instrUserNm).build();
+        CourseSearchCondition condition = CourseSearchCondition.builder()
+                .subjClId(subjClId)
+                .instrNm(instrNm)
+                .build();
 
-        PaginationInfo<CourseListDto> paginationInfo = new PaginationInfo<>(size, 5, page);
+        PaginationInfo<CourseSearchCondition> paginationInfo = new PaginationInfo<>(size, 5, page);
         paginationInfo.setDetailCondition(condition);
 
         int totalCount = courseService.retrieveCourseListCount(paginationInfo);
-        List<CourseListDto> items = courseService.retrieveCourseList(paginationInfo);
+        List<CourseDto> items = courseService.retrieveCourseList(paginationInfo);
 
         return ResponseEntity.ok(new PageResponse<>(items, totalCount));
     }
 
-    // GET /api/course/subject-classification <엔드포인트 추가>
+    // GET /api/course/subject-classification
     @GetMapping("/subject-classification")
     public ResponseEntity<List<SubjectClassificationDto>> getSubjectClassificationList() {
         return ResponseEntity.ok(courseService.retrieveSubjectClassificationList());

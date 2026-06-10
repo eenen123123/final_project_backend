@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import kr.or.ddit.finalProject.dto.course.CourseDto;
-import kr.or.ddit.finalProject.dto.course.CourseListDto;
+import kr.or.ddit.finalProject.dto.course.CourseSearchCondition;
 import kr.or.ddit.finalProject.dto.course.SubjectClassificationDto;
 import kr.or.ddit.finalProject.dto.course.SubjectDto;
 import kr.or.ddit.finalProject.dto.instructor.CourseDetailResponse;
@@ -35,12 +35,10 @@ public interface CourseMapper {
     int updateCourseAtchFileId(@Param("courseSn") Long courseSn,
             @Param("atchFileId") String atchFileId);
 
-    // 전체 강좌 조회 (페이징 + 검색)
-    List<CourseListDto> selectCourseList(PaginationInfo<CourseListDto> paginationInfo);
+    List<CourseDto> selectCourseList(PaginationInfo<CourseSearchCondition> paginationInfo);
 
-    int selectCourseListCount(PaginationInfo<CourseListDto> paginationInfo);
+    int selectCourseListCount(PaginationInfo<CourseSearchCondition> paginationInfo);
 
-    // 과목 분류 목록 조회
     List<SubjectClassificationDto> selectSubjectClassificationList();
 
     List<SubjectDto> selectSubjectsBySubjClId(@Param("subjClId") Long subjClId);
