@@ -13,9 +13,9 @@
           >강좌 관리</a
         >
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        <span th:text="${course.courseNm}" class="text-slate-600 font-medium"
-          >강좌명</span
-        >
+        <a th:href="@{/admin/course/detail(courseSn=${course.courseSn})}"
+          th:text="${course.courseNm}"
+          class="text-slate-600 font-medium hover:text-orange-500 transition-colors">강좌명</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
         <span class="text-orange-500 font-medium">강의 목록</span>
       </div>
