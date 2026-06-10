@@ -10,6 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CourseSearchCondition {
+
     private String instructorName;
     private String subjectName;
     private String courseName;

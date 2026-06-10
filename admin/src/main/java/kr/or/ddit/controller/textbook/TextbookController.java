@@ -14,11 +14,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.List;
-
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import kr.or.ddit.finalProject.dto.course.CourseListDto;
+import kr.or.ddit.finalProject.dto.course.AdminCourseSearchCondition;
 import kr.or.ddit.finalProject.dto.course.SubjectDto;
 import kr.or.ddit.finalProject.dto.textbook.TextbookDto;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
@@ -27,7 +25,6 @@ import kr.or.ddit.finalProject.service.file.CloudinaryUploadService;
 import kr.or.ddit.finalProject.service.textbook.TextbookService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 
 @Slf4j
 @Controller
@@ -49,7 +46,7 @@ public class TextbookController {
     // 강좌 선택 팝업
     @GetMapping("/popup/courses")
     public String coursePopup(Model model) {
-        model.addAttribute("courseList", courseService.retrieveCourseList(new PaginationInfo<CourseListDto>(1000, 1)));
+        model.addAttribute("courseList", courseService.retrieveCourseList(new PaginationInfo<AdminCourseSearchCondition>(1000, 1)));
         model.addAttribute("subjClList", courseService.retrieveSubjectClassificationList());
         return "textbook/textbookPopup";
     }
@@ -94,7 +91,7 @@ public class TextbookController {
     public String textbookNewForm(Model model) {
         model.addAttribute("textbookDto", new TextbookDto());
         model.addAttribute("subjClList", courseService.retrieveSubjectClassificationList());
-        model.addAttribute("courseList", courseService.retrieveCourseList(new PaginationInfo<CourseListDto>(1000, 1)));
+        model.addAttribute("courseList", courseService.retrieveCourseList(new PaginationInfo<AdminCourseSearchCondition>(1000, 1)));
         return "admin:/textbook/textbook_form";
     }
 
@@ -127,7 +124,7 @@ public class TextbookController {
         TextbookDto textbookDto = textbookService.retrieveTextbookBySn(textbookSn);
         model.addAttribute("textbookDto", textbookDto);
         model.addAttribute("subjClList", courseService.retrieveSubjectClassificationList());
-        model.addAttribute("courseList", courseService.retrieveCourseList(new PaginationInfo<CourseListDto>(1000, 1)));
+        model.addAttribute("courseList", courseService.retrieveCourseList(new PaginationInfo<AdminCourseSearchCondition>(1000, 1)));
         return "admin:/textbook/textbook_form";
     }
 
@@ -144,8 +141,7 @@ public class TextbookController {
         // 이미지 삭제 처리
         if ("Y".equals(isImgDeleted)) {
             textbookDto.setThmbImg(null);
-        }
-        // 새 이미지 업로드
+        } // 새 이미지 업로드
         else if (thmbImgFile != null && !thmbImgFile.isEmpty()) {
             String imgUrl = cloudinaryUploadService.uploadFileToCloudinary(thmbImgFile);
             textbookDto.setThmbImg(imgUrl);

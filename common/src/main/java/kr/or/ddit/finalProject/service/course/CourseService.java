@@ -1,9 +1,10 @@
 package kr.or.ddit.finalProject.service.course;
 
 import java.util.List;
+
 import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.dto.course.AdminCourseSearchCondition;
 import kr.or.ddit.finalProject.dto.course.CourseDto;
-import kr.or.ddit.finalProject.dto.course.CourseListDto;
 import kr.or.ddit.finalProject.dto.course.CourseResponseDto;
 import kr.or.ddit.finalProject.dto.course.SubjectClassificationDto;
 import kr.or.ddit.finalProject.dto.course.SubjectDto;
@@ -18,6 +19,8 @@ public interface CourseService {
 
     CourseDto retrieveCourseBySn(Long courseSn);
 
+    CourseDto retrieveCourseAdminDetail(Long courseSn);
+
     void updateCourseAtchFileId(Long courseSn, String atchFileId);
 
     boolean createCourse(CourseDto courseDto);
@@ -26,21 +29,15 @@ public interface CourseService {
 
     void removeCourse(Long courseSn, String currentUserId);
 
-    // 전체 강좌 조회 (페이징 + 검색)
-    List<CourseListDto> retrieveCourseList(PaginationInfo<CourseListDto> paginationInfo);
+    List<CourseDto> retrieveCourseList(PaginationInfo<AdminCourseSearchCondition> paginationInfo);
 
-    int retrieveCourseListCount(PaginationInfo<CourseListDto> paginationInfo);
+    int retrieveCourseListCount(PaginationInfo<AdminCourseSearchCondition> paginationInfo);
 
-    // 과목 분류 목록 조회 (전체강좌 필터링용)
     List<SubjectClassificationDto> retrieveSubjectClassificationList();
 
-    // 대분류별 소분류 목록 조회
     List<SubjectDto> retrieveSubjectsBySubjClId(Long subjClId);
 
-    // 과목 분류별 강사 목록 조회
     List<MemberDto> retrieveInstructorsBySubjClId(Long subjClId);
-
-
 
     PageResponse<CourseResponseDto> retrieveCourseListForMain(String category, String keyword,
             int page);

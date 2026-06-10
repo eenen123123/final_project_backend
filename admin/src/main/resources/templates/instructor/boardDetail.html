@@ -120,13 +120,32 @@
       </h3>
     </div>
 
-    <!-- 기존 답변 표시 -->
+    <!-- 기존 답변 표시 (수정 토글 포함) -->
     <div th:if="${board.answYn == 'Y'}" class="px-8 py-6">
-      <div class="mb-2 flex items-center gap-3 text-sm text-slate-500">
-        <span><i class="fa-regular fa-user mr-1"></i><span th:text="${board.answrUserNm}"></span></span>
-        <span><i class="fa-regular fa-calendar mr-1"></i><span th:text="${board.answDt}"></span></span>
+      <div id="answerView">
+        <div class="mb-2 flex items-center justify-between">
+          <div class="flex items-center gap-3 text-sm text-slate-500">
+            <span><i class="fa-regular fa-user mr-1"></i><span th:text="${board.answrUserNm}"></span></span>
+            <span><i class="fa-regular fa-calendar mr-1"></i><span th:text="${board.answDt}"></span></span>
+          </div>
+          <button type="button" onclick="toggleAnswerEdit()" class="hm-btn-secondary text-sm">
+            <i class="fa-solid fa-pen mr-1"></i>수정
+          </button>
+        </div>
+        <p class="whitespace-pre-wrap text-base leading-relaxed text-slate-700" th:text="${board.answCn}"></p>
       </div>
-      <p class="whitespace-pre-wrap text-base leading-relaxed text-slate-700" th:text="${board.answCn}"></p>
+      <form id="answerEditForm" class="hidden"
+            th:action="@{/instructor/board/answer/{postSn}(postSn=${board.postSn})}" method="post">
+        <textarea name="answCn" rows="5" required
+                  th:text="${board.answCn}"
+                  class="w-full rounded-xl border border-amber-300 bg-white px-4 py-3 text-sm text-slate-700 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"></textarea>
+        <div class="mt-3 flex justify-end gap-2">
+          <button type="button" onclick="toggleAnswerEdit()" class="hm-btn-secondary text-sm">취소</button>
+          <button type="submit" class="hm-btn-primary hm-btn-sky text-sm">
+            <i class="fa-solid fa-paper-plane mr-1"></i>답변 수정
+          </button>
+        </div>
+      </form>
     </div>
 
     <!-- 답변 입력 폼 (미답변 상태일 때만) -->
@@ -184,6 +203,10 @@
 </div>
 
 <script>
+  function toggleAnswerEdit() {
+    document.getElementById("answerView").classList.toggle("hidden");
+    document.getElementById("answerEditForm").classList.toggle("hidden");
+  }
   function openDeleteModal() {
     const modal = document.getElementById("deleteModal");
     modal.classList.remove("hidden");

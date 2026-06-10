@@ -4,9 +4,10 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.dto.course.AdminCourseSearchCondition;
 import kr.or.ddit.finalProject.dto.course.CourseDto;
-import kr.or.ddit.finalProject.dto.course.CourseListDto;
 import kr.or.ddit.finalProject.dto.course.CourseResponseDto;
 import kr.or.ddit.finalProject.dto.course.CourseSearchCondition;
 import kr.or.ddit.finalProject.dto.course.SubjectClassificationDto;
@@ -36,6 +37,11 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public CourseDto retrieveCourseBySn(Long courseSn) {
         return courseMapper.selectCourseBySn(courseSn);
+    }
+
+    @Override
+    public CourseDto retrieveCourseAdminDetail(Long courseSn) {
+        return courseMapper.selectCourseAdminDetail(courseSn);
     }
 
     @Override
@@ -81,30 +87,26 @@ public class CourseServiceImpl implements CourseService {
         courseMapper.deleteCourse(courseSn);
     }
 
-    // 전체 강좌 조회 (페이징 + 검색)
     @Override
-    public List<CourseListDto> retrieveCourseList(PaginationInfo<CourseListDto> paginationInfo) {
+    public List<CourseDto> retrieveCourseList(PaginationInfo<AdminCourseSearchCondition> paginationInfo) {
         return courseMapper.selectCourseList(paginationInfo);
     }
 
     @Override
-    public int retrieveCourseListCount(PaginationInfo<CourseListDto> paginationInfo) {
+    public int retrieveCourseListCount(PaginationInfo<AdminCourseSearchCondition> paginationInfo) {
         return courseMapper.selectCourseListCount(paginationInfo);
     }
 
-    // 과목 분류 목록 조회
     @Override
     public List<SubjectClassificationDto> retrieveSubjectClassificationList() {
         return courseMapper.selectSubjectClassificationList();
     }
 
-    // 대분류별 소분류 목록 조회
     @Override
     public List<SubjectDto> retrieveSubjectsBySubjClId(Long subjClId) {
         return courseMapper.selectSubjectsBySubjClId(subjClId);
     }
 
-    // 과목 분류별 강사 조회
     @Override
     public List<MemberDto> retrieveInstructorsBySubjClId(Long subjClId) {
         return courseMapper.selectInstructorsBySubjClId(subjClId);
@@ -135,15 +137,11 @@ public class CourseServiceImpl implements CourseService {
         List<CourseResponseDto> items = courseMapper.selectCourseListForMain(paginationInfo);
         return new PageResponse<>(items, totalCount);
 
-
-
     }
 
     @Override
     public CourseResponseDto retrieveCourse(Long courseId) {
         return courseMapper.selectCourseById(courseId);
     }
-
-
 
 }
