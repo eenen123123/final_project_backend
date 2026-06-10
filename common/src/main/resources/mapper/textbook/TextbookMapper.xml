@@ -21,10 +21,15 @@
         <result property="lastMdfrId"   column="LAST_MDFR_ID"/>
         <result property="regDt"        column="REG_DT"/>
         <result property="mdfcnDt"      column="MDFCN_DT"/>
+        <result property="tagline"      column="TAGLINE"/>
+        <result property="bookSmry"     column="BOOK_SMRY"/>
+        <result property="tocCn"        column="TOC_CN"/>
+        <result property="instrUserId"  column="INSTR_USER_ID"/>
         <!-- JOIN 필드 -->
         <result property="subjNm"       column="SUBJ_NM"/>
         <result property="subjClNm"     column="SUBJ_CL_NM"/>
         <result property="subjClId"     column="SUBJ_CL_ID"/>
+        <result property="instrUserNm" column="INSTR_USER_NM"/>
     </resultMap>
 
     <!-- 검색 조건 -->
@@ -36,7 +41,7 @@
                     AND instr(t.TEXTBOOK_NM, #{detailCondition.keyword}) &gt; 0
                 </if>
                 <if test="detailCondition.instrUserNm != null and detailCondition.instrUserNm != ''">
-                    AND t.AUTHR_NM = #{detailCondition.instrUserNm}
+                    AND m.USER_NAME = #{detailCondition.instrUserNm}
                 </if>
             </if>
         </trim>
@@ -46,15 +51,18 @@
     <select id="selectTextbookList" resultMap="textbookResultMap">
         SELECT
             t.TEXTBOOK_SN, t.TEXTBOOK_NM, t.PUBR_NM, t.AUTHR_NM,
+            t.TAGLINE, t.BOOK_SMRY, t.TOC_CN, t.INSTR_USER_ID,
             t.ISBN_NO, t.TRGT_GRD_CN, t.SUBJ_CD,
             t.SALE_PRC_AMT, t.PURCH_PRC_AMT, t.DLVR_AMT,
             t.THMB_IMG, t.USE_YN, t.RGTR_ID, t.LAST_MDFR_ID,
             t.REG_DT, t.MDFCN_DT,
             NULL           AS SUBJ_NM,
             t.SUBJ_CL_ID   AS SUBJ_CL_ID,
-            sc.SUBJ_CL_NM  AS SUBJ_CL_NM
+            sc.SUBJ_CL_NM  AS SUBJ_CL_NM,
+            m.USER_NAME AS INSTR_USER_NM
         FROM TEXTBOOK t
         LEFT JOIN SUBJECT_CLASSIFICATION sc ON t.SUBJ_CL_ID = sc.SUBJ_CL_ID
+        LEFT JOIN MEMBER m ON t.INSTR_USER_ID = m.USER_ID
         <include refid="textbookSearchWhere"/>
         ORDER BY t.REG_DT DESC
         OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
@@ -72,31 +80,42 @@
     <select id="selectTextbookBySn" resultMap="textbookResultMap">
         SELECT
             t.TEXTBOOK_SN, t.TEXTBOOK_NM, t.PUBR_NM, t.AUTHR_NM,
+            t.TAGLINE, t.BOOK_SMRY, t.TOC_CN, t.INSTR_USER_ID,
             t.ISBN_NO, t.TRGT_GRD_CN, t.SUBJ_CD,
             t.SALE_PRC_AMT, t.PURCH_PRC_AMT, t.DLVR_AMT,
             t.THMB_IMG, t.USE_YN, t.RGTR_ID, t.LAST_MDFR_ID,
             t.REG_DT, t.MDFCN_DT,
             NULL           AS SUBJ_NM,
             t.SUBJ_CL_ID   AS SUBJ_CL_ID,
-            sc.SUBJ_CL_NM  AS SUBJ_CL_NM
+            sc.SUBJ_CL_NM  AS SUBJ_CL_NM,
+            m.USER_NAME AS INSTR_USER_NM
         FROM TEXTBOOK t
         LEFT JOIN SUBJECT_CLASSIFICATION sc ON t.SUBJ_CL_ID = sc.SUBJ_CL_ID
+        LEFT JOIN MEMBER m ON t.INSTR_USER_ID = m.USER_ID
         WHERE t.TEXTBOOK_SN = #{textbookSn}
         AND t.USE_YN = 'Y'
     </select>
 
     <!-- 교재 등록 -->
-    <insert id="insertTextbook" parameterType="kr.or.ddit.finalProject.dto.textbook.TextbookDto">
+    <insert id="insertTextbook"
+        parameterType="kr.or.ddit.finalProject.dto.textbook.TextbookDto">
+        <selectKey keyProperty="textbookSn" resultType="Long" order="AFTER">
+            SELECT "TEAM1_202512AF"."ISEQ$$_433531".CURRVAL FROM DUAL
+        </selectKey>
         INSERT INTO TEXTBOOK (
             TEXTBOOK_NM, PUBR_NM, AUTHR_NM, ISBN_NO,
-            TRGT_GRD_CN, SUBJ_CD, SUBJ_CL_ID, SALE_PRC_AMT, PURCH_PRC_AMT,
-            DLVR_AMT, THMB_IMG, USE_YN, RGTR_ID,
+            TRGT_GRD_CN, SUBJ_CD, SUBJ_CL_ID,
+            TAGLINE, BOOK_SMRY, TOC_CN, INSTR_USER_ID,
+            SALE_PRC_AMT, PURCH_PRC_AMT, DLVR_AMT,
+            THMB_IMG, USE_YN, RGTR_ID,
             LAST_MDFR_ID, REG_DT, MDFCN_DT
         ) VALUES (
             #{textbookNm}, #{pubrNm, jdbcType=VARCHAR}, #{authrNm, jdbcType=VARCHAR},
             #{isbnNo, jdbcType=VARCHAR}, #{trgtGrdCn, jdbcType=VARCHAR},
-            #{subjCd, jdbcType=CHAR}, #{subjClId, jdbcType=NUMERIC}, #{salePrcAmt},
-            #{purchPrcAmt, jdbcType=NUMERIC}, #{dlvrAmt, jdbcType=NUMERIC},
+            #{subjCd, jdbcType=CHAR}, #{subjClId, jdbcType=NUMERIC},
+            #{tagline, jdbcType=VARCHAR}, #{bookSmry, jdbcType=VARCHAR},
+            #{tocCn, jdbcType=VARCHAR}, #{instrUserId, jdbcType=VARCHAR},
+            #{salePrcAmt}, #{purchPrcAmt, jdbcType=NUMERIC}, #{dlvrAmt, jdbcType=NUMERIC},
             #{thmbImg, jdbcType=VARCHAR}, NVL(#{useYn, jdbcType=CHAR}, 'Y'),
             #{rgtrId}, #{lastMdfrId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
         )
@@ -113,6 +132,10 @@
             , TRGT_GRD_CN   = #{trgtGrdCn, jdbcType=VARCHAR}
             , SUBJ_CD       = #{subjCd, jdbcType=CHAR}
             , SUBJ_CL_ID    = #{subjClId, jdbcType=NUMERIC}
+            , TAGLINE       = #{tagline, jdbcType=VARCHAR}
+            , BOOK_SMRY     = #{bookSmry, jdbcType=VARCHAR}
+            , TOC_CN        = #{tocCn, jdbcType=VARCHAR}
+            , INSTR_USER_ID = #{instrUserId, jdbcType=VARCHAR}
             , SALE_PRC_AMT  = #{salePrcAmt}
             , PURCH_PRC_AMT = #{purchPrcAmt, jdbcType=NUMERIC}
             , DLVR_AMT      = #{dlvrAmt, jdbcType=NUMERIC}
@@ -131,5 +154,32 @@
             , MDFCN_DT      = CURRENT_TIMESTAMP
         WHERE TEXTBOOK_SN = #{textbookSn}
     </update>
+
+    <!-- 이번 달 신규 등록 수 -->
+    <select id="countNewTextbookThisMonth" resultType="int">
+        SELECT COUNT(*)
+        FROM TEXTBOOK
+        WHERE USE_YN = 'Y'
+        AND TRUNC(REG_DT, 'MM') = TRUNC(SYSDATE, 'MM')
+    </select>
+
+    <!-- 재고 위험 (최소 유지 수량 이하) -->
+    <select id="countDangerTextbook" resultType="int">
+        SELECT COUNT(*)
+        FROM TEXTBOOK t
+        JOIN TEXTBOOK_INVENTORY i ON t.TEXTBOOK_SN = i.TEXTBOOK_SN
+        WHERE t.USE_YN = 'Y'
+        AND i.SALABLE_CNT &lt;= i.MIN_KEEP_CNT
+        AND i.SALABLE_CNT &gt; 0
+    </select>
+
+    <!-- 품절 (재고 0) -->
+    <select id="countSoldOutTextbook" resultType="int">
+        SELECT COUNT(*)
+        FROM TEXTBOOK t
+        JOIN TEXTBOOK_INVENTORY i ON t.TEXTBOOK_SN = i.TEXTBOOK_SN
+        WHERE t.USE_YN = 'Y'
+        AND i.SALABLE_CNT = 0
+    </select>
 
 </mapper>

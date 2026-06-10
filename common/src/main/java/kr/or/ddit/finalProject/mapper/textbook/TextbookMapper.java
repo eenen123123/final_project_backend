@@ -29,4 +29,10 @@ public interface TextbookMapper {
     // 교재 삭제 (논리 삭제)
     int deleteTextbook(@Param("textbookSn") Long textbookSn,
             @Param("lastMdfrId") String lastMdfrId);
+
+    int countNewTextbookThisMonth();
+
+    int countDangerTextbook();
+
+    int countSoldOutTextbook();
 }
