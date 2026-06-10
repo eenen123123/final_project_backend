@@ -37,6 +37,11 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    public CourseDto retrieveCourseAdminDetail(Long courseSn) {
+        return courseMapper.selectCourseAdminDetail(courseSn);
+    }
+
+    @Override
     @Transactional
     public void updateCourseAtchFileId(Long courseSn, String atchFileId) {
         courseMapper.updateCourseAtchFileId(courseSn, atchFileId);

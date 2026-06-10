@@ -24,6 +24,8 @@ public interface CourseMapper {
 
     CourseDto selectCourseBySn(@Param("courseSn") Long courseSn);
 
+    CourseDto selectCourseAdminDetail(@Param("courseSn") Long courseSn);
+
     int insertCourse(CourseDto courseDto);
 
     int updateCourse(CourseDto courseDto);

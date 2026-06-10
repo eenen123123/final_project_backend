@@ -40,8 +40,9 @@ public class AdminCourseController {
     }
 
     @GetMapping("/detail")
-    public String courseDetail(Model model) {
-        model.addAttribute("course", null);
+    public String courseDetail(@RequestParam Long courseSn, Model model) {
+        CourseDto course = courseService.retrieveCourseAdminDetail(courseSn);
+        model.addAttribute("course", course);
         return "admin:/course/detail-course";
     }
 

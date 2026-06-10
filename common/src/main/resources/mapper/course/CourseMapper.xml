@@ -27,6 +27,35 @@
     <result property="curriculumTitle" column="CURRICULUM_TITLE" />
   </resultMap>
 
+  <resultMap id="courseAdminDetailMap" type="kr.or.ddit.finalProject.dto.course.CourseDto" extends="courseMap">
+    <result property="instrNm"         column="INSTR_NM" />
+    <result property="curriculumTitle" column="CURRICULUM_TITLE" />
+    <result property="subjNm"          column="SUBJ_NM" />
+    <result property="subjClId"        column="SUBJ_CL_ID" />
+    <result property="subjClNm"        column="SUBJ_CL_NM" />
+    <result property="lectureCnt"      column="LECTURE_CNT" />
+  </resultMap>
+
+  <select id="selectCourseAdminDetail" resultMap="courseAdminDetailMap">
+  SELECT
+    c.COURSE_SN, c.CURRICULUM_ID, c.SUBJ_ID, c.INSTR_USER_ID,
+    c.COURSE_NM, c.COURSE_EXPLN_CN, c.THMB_IMG, c.TOT_LRN_TIME_CNT,
+    c.OPNN_YN, c.COURSE_PRICE, c.SORT_ORD,
+    c.RGTR_ID, c.LAST_MDFR_ID, c.REG_DT, c.MDFCN_DT,
+    m.USER_NAME  AS INSTR_NM,
+    cur.TITLE    AS CURRICULUM_TITLE,
+    s.SUBJ_NM    AS SUBJ_NM,
+    sc.SUBJ_CL_ID AS SUBJ_CL_ID,
+    sc.SUBJ_CL_NM AS SUBJ_CL_NM,
+    (SELECT COUNT(*) FROM LECTURE l WHERE l.COURSE_SN = c.COURSE_SN) AS LECTURE_CNT
+  FROM COURSE c
+  JOIN MEMBER m         ON c.INSTR_USER_ID = m.USER_ID
+  LEFT JOIN CURRICULUM cur ON c.CURRICULUM_ID = cur.CURRICULUM_ID
+  LEFT JOIN SUBJECT s   ON c.SUBJ_ID = s.SUBJ_ID
+  LEFT JOIN SUBJECT_CLASSIFICATION sc ON s.SUBJ_CL_ID = sc.SUBJ_CL_ID
+  WHERE c.COURSE_SN = #{courseSn}
+  </select>
+
   <select id="selectCoursesByInstructor" resultMap="courseWithTitleMap">
     SELECT
       c.COURSE_SN, c.CURRICULUM_ID, c.INSTR_USER_ID, c.COURSE_NM,

@@ -17,6 +17,8 @@ public interface CourseService {
 
     CourseDto retrieveCourseBySn(Long courseSn);
 
+    CourseDto retrieveCourseAdminDetail(Long courseSn);
+
     void updateCourseAtchFileId(Long courseSn, String atchFileId);
 
     boolean createCourse(CourseDto courseDto);
