@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import kr.or.ddit.finalProject.aop.ActivityTargetIdHolder;
 import kr.or.ddit.finalProject.dto.board.QnaDto;
 import kr.or.ddit.finalProject.dto.board.req.QnaSearchCondition;
 import kr.or.ddit.finalProject.dto.common.PageResponse;
@@ -62,6 +63,9 @@ public class QnaServiceImpl implements QnaService {
         dto.setPopupExpsYn("N");
         boardMapper.insertBoard(dto);
         qnaMapper.insertQna(dto);
+
+        // TargetID
+        ActivityTargetIdHolder.set(String.valueOf(dto.getPostSn()));
     }
 
     @Override
