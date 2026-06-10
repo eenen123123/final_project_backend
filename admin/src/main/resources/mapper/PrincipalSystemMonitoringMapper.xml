@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.mapper.PrincipalSystemMonitoringMapper">
+
+    <!-- ================================================================
+         ResultMaps
+    ================================================================ -->
+    <resultMap id="LoginLogRM" type="kr.or.ddit.finalProject.dto.log.LoginLogDto">
+        <id     property="logId"     column="LOG_ID"/>
+        <result property="userId"    column="USER_ID"/>
+        <result property="loginIp"   column="LOGIN_IP"/>
+        <result property="loginDt"   column="LOGIN_DT"/>
+        <result property="logoutDt"  column="LOGOUT_DT"/>
+        <result property="sessionId" column="SESSION_ID"/>
+    </resultMap>
+
+    <resultMap id="AuditLogRM" type="kr.or.ddit.finalProject.dto.log.AdminAuditLogDto">
+        <id     property="auditId"       column="AUDIT_ID"/>
+        <result property="traceId"       column="TRACE_ID"/>
+        <result property="adminId"       column="ADMIN_ID"/>
+        <result property="memberIp"      column="MEMBER_IP"/>
+        <result property="httpMethod"    column="HTTP_METHOD"/>
+        <result property="requestUri"    column="REQUEST_URI"/>
+        <result property="requestParams" column="REQUEST_PARAMS"/>
+        <result property="statusCode"    column="STATUS_CODE"/>
+        <result property="createdAt"     column="CREATED_AT"/>
+    </resultMap>
+
+    <resultMap id="MemberLoginLogRM" type="kr.or.ddit.finalProject.dto.log.MemberLoginLogDto">
+        <id     property="logId"          column="LOG_ID"/>
+        <result property="inputUserId"    column="INPUT_USER_ID"/>
+        <result property="userId"         column="USER_ID"/>
+        <result property="loginSuccessYn" column="LOGIN_SUCCESS_YN"/>
+        <result property="failRsn"        column="FAIL_RSN"/>
+        <result property="loginDt"        column="LOGIN_DT"/>
+        <result property="logoutDt"       column="LOGOUT_DT"/>
+        <result property="loginIp"        column="LOGIN_IP"/>
+        <result property="onlineYn"       column="ONLINE_YN"/>
+    </resultMap>
+
+    <resultMap id="MemberActivityLogRM" type="kr.or.ddit.finalProject.dto.log.MemberActivityLogDto">
+        <id     property="activityId"   column="ACTIVITY_ID"/>
+        <result property="userId"       column="USER_ID"/>
+        <result property="activityType" column="ACTIVITY_TYPE"/>
+        <result property="targetId"     column="TARGET_ID"/>
+        <result property="activityIp"   column="ACTIVITY_IP"/>
+        <result property="createdAt"    column="CREATED_AT"/>
+    </resultMap>
+
+    <resultMap id="SystemErrorLogRM" type="kr.or.ddit.finalProject.dto.log.SystemErrorLogDto">
+        <id     property="errorId"      column="ERROR_ID"/>
+        <result property="traceId"      column="TRACE_ID"/>
+        <result property="errorCode"    column="ERROR_CODE"/>
+        <result property="requestUri"   column="REQUEST_URI"/>
+        <result property="errorMessage" column="ERROR_MESSAGE"/>
+        <result property="createdAt"    column="CREATED_AT"/>
+    </resultMap>
+
+    <!-- ================================================================
+         공통 WHERE 절 fragments
+    ================================================================ -->
+    <sql id="adminLoginLogWhere">
+        <where>
+            <if test="detailCondition != null and detailCondition.userId != null and detailCondition.userId != ''">
+                AND UPPER(USER_ID) LIKE '%' || UPPER(#{detailCondition.userId}) || '%'
+            </if>
+            <if test="detailCondition != null and detailCondition.fromDt != null and detailCondition.fromDt != ''">
+                AND LOGIN_DT >= TO_DATE(#{detailCondition.fromDt}, 'YYYY-MM-DD')
+            </if>
+            <if test="detailCondition != null and detailCondition.toDt != null and detailCondition.toDt != ''">
+                AND LOGIN_DT &lt; TO_DATE(#{detailCondition.toDt}, 'YYYY-MM-DD') + 1
+            </if>
+        </where>
+    </sql>
+
+    <sql id="adminAuditLogWhere">
+        <where>
+            <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
+                AND (UPPER(ADMIN_ID) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%'
+                  OR UPPER(REQUEST_URI) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%')
+            </if>
+            <if test="detailCondition != null and detailCondition.httpMethod != null and detailCondition.httpMethod != ''">
+                AND HTTP_METHOD = #{detailCondition.httpMethod}
+            </if>
+            <if test="detailCondition != null and detailCondition.statusCode != null and detailCondition.statusCode != ''">
+                AND STATUS_CODE = #{detailCondition.statusCode}
+            </if>
+        </where>
+    </sql>
+
+    <sql id="memberLoginLogWhere">
+        <where>
+            <if test="detailCondition != null and detailCondition.userId != null and detailCondition.userId != ''">
+                AND (UPPER(INPUT_USER_ID) LIKE '%' || UPPER(#{detailCondition.userId}) || '%'
+                  OR UPPER(USER_ID) LIKE '%' || UPPER(#{detailCondition.userId}) || '%')
+            </if>
+            <if test="detailCondition != null and detailCondition.loginSuccessYn != null and detailCondition.loginSuccessYn != ''">
+                AND LOGIN_SUCCESS_YN = #{detailCondition.loginSuccessYn}
+            </if>
+            <if test="detailCondition != null and detailCondition.fromDt != null and detailCondition.fromDt != ''">
+                AND LOGIN_DT >= TO_DATE(#{detailCondition.fromDt}, 'YYYY-MM-DD')
+            </if>
+        </where>
+    </sql>
+
+    <sql id="memberActivityLogWhere">
+        <where>
+            <if test="detailCondition != null and detailCondition.userId != null and detailCondition.userId != ''">
+                AND UPPER(USER_ID) LIKE '%' || UPPER(#{detailCondition.userId}) || '%'
+            </if>
+            <if test="detailCondition != null and detailCondition.activityType != null and detailCondition.activityType != ''">
+                AND ACTIVITY_TYPE = #{detailCondition.activityType}
+            </if>
+            <if test="detailCondition != null and detailCondition.fromDt != null and detailCondition.fromDt != ''">
+                AND CREATED_AT >= TO_DATE(#{detailCondition.fromDt}, 'YYYY-MM-DD')
+            </if>
+        </where>
+    </sql>
+
+    <sql id="systemErrorLogWhere">
+        <where>
+            <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
+                AND (UPPER(ERROR_CODE) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%'
+                  OR UPPER(REQUEST_URI) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%')
+            </if>
+            <if test="detailCondition != null and detailCondition.fromDt != null and detailCondition.fromDt != ''">
+                AND CREATED_AT >= TO_DATE(#{detailCondition.fromDt}, 'YYYY-MM-DD')
+            </if>
+        </where>
+    </sql>
+
+    <!-- ================================================================
+         1. 관리자 접속 이력 (ADMINLOGIN_LOG)
+    ================================================================ -->
+    <select id="searchAdminLoginLog" resultMap="LoginLogRM">
+        SELECT LOG_ID, USER_ID, LOGIN_IP, LOGIN_DT, LOGOUT_DT, SESSION_ID
+        FROM ADMINLOGIN_LOG
+        <include refid="adminLoginLogWhere"/>
+        ORDER BY LOGIN_DT DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <select id="countAdminLoginLog" resultType="int">
+        SELECT COUNT(*)
+        FROM ADMINLOGIN_LOG
+        <include refid="adminLoginLogWhere"/>
+    </select>
+
+    <!-- ================================================================
+         2. 관리자 활동 감사 로그 (HERMES_ADMIN_AUDIT_LOG)
+    ================================================================ -->
+    <select id="searchAdminAuditLog" resultMap="AuditLogRM">
+        SELECT AUDIT_ID, TRACE_ID, ADMIN_ID, MEMBER_IP,
+               HTTP_METHOD, REQUEST_URI, REQUEST_PARAMS, STATUS_CODE,
+               TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
+        FROM HERMES_ADMIN_AUDIT_LOG
+        <include refid="adminAuditLogWhere"/>
+        ORDER BY CREATED_AT DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <select id="countAdminAuditLog" resultType="int">
+        SELECT COUNT(*)
+        FROM HERMES_ADMIN_AUDIT_LOG
+        <include refid="adminAuditLogWhere"/>
+    </select>
+
+    <!-- ================================================================
+         3. 사용자 접속 이력 (MEMBER_LOGIN_LOG)
+    ================================================================ -->
+    <select id="searchMemberLoginLog" resultMap="MemberLoginLogRM">
+        SELECT LOG_ID, INPUT_USER_ID, USER_ID, LOGIN_SUCCESS_YN,
+               FAIL_RSN, LOGIN_DT, LOGOUT_DT, LOGIN_IP, ONLINE_YN
+        FROM MEMBER_LOGIN_LOG
+        <include refid="memberLoginLogWhere"/>
+        ORDER BY LOGIN_DT DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <select id="countMemberLoginLog" resultType="int">
+        SELECT COUNT(*)
+        FROM MEMBER_LOGIN_LOG
+        <include refid="memberLoginLogWhere"/>
+    </select>
+
+    <!-- ================================================================
+         4. 사용자 활동 이력 (MEMBER_ACTIVITY_LOG)
+    ================================================================ -->
+    <select id="searchMemberActivityLog" resultMap="MemberActivityLogRM">
+        SELECT ACTIVITY_ID, USER_ID, ACTIVITY_TYPE, TARGET_ID,
+               ACTIVITY_IP,
+               TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
+        FROM MEMBER_ACTIVITY_LOG
+        <include refid="memberActivityLogWhere"/>
+        ORDER BY CREATED_AT DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <select id="countMemberActivityLog" resultType="int">
+        SELECT COUNT(*)
+        FROM MEMBER_ACTIVITY_LOG
+        <include refid="memberActivityLogWhere"/>
+    </select>
+
+    <!-- ================================================================
+         5. 시스템 에러 로그 (SYSTEM_ERROR_LOG)
+    ================================================================ -->
+    <select id="searchSystemErrorLog" resultMap="SystemErrorLogRM">
+        SELECT ERROR_ID, TRACE_ID, ERROR_CODE, REQUEST_URI,
+               ERROR_MESSAGE,
+               TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
+        FROM SYSTEM_ERROR_LOG
+        <include refid="systemErrorLogWhere"/>
+        ORDER BY CREATED_AT DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <select id="countSystemErrorLog" resultType="int">
+        SELECT COUNT(*)
+        FROM SYSTEM_ERROR_LOG
+        <include refid="systemErrorLogWhere"/>
+    </select>
+
+    <!-- ================================================================
+         상단 요약 카드 통계 (오늘 기준)
+    ================================================================ -->
+    <select id="selectSummaryStats" resultType="map">
+        SELECT
+            (SELECT COUNT(*) FROM ADMINLOGIN_LOG
+             WHERE TRUNC(LOGIN_DT) = TRUNC(SYSDATE))           AS "adminAccessToday",
+            (SELECT COUNT(*) FROM MEMBER_LOGIN_LOG
+             WHERE LOGIN_SUCCESS_YN = 'N'
+               AND TRUNC(LOGIN_DT) = TRUNC(SYSDATE))           AS "loginFailToday",
+            (SELECT COUNT(*) FROM MEMBER_ACTIVITY_LOG
+             WHERE TRUNC(CREATED_AT) = TRUNC(SYSDATE))         AS "memberActivityToday",
+            (SELECT COUNT(*) FROM SYSTEM_ERROR_LOG
+             WHERE TRUNC(CREATED_AT) = TRUNC(SYSDATE))         AS "sysErrorToday"
+        FROM DUAL
+    </select>
+
+</mapper>
