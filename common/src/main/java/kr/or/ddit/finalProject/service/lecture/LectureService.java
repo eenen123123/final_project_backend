@@ -8,6 +8,8 @@ public interface LectureService {
 
     List<LectureDto> retrieveLectureByCourseSn(Long courseSn);
 
+    LectureDto retrieveLectureBySn(Long lectureSn);
+
     boolean createLecture(LectureDto lectureDto);
 
     void modifyLecture(LectureDto lectureDto, String currentUserId);

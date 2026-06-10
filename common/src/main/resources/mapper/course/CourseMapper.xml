@@ -54,8 +54,8 @@
     SELECT
       COURSE_SN, CURRICULUM_ID, SUBJ_ID,
       INSTR_USER_ID, COURSE_NM, COURSE_EXPLN_CN, THMB_IMG,
-      TOT_LRN_TIME_CNT, OPNN_YN,
-      COURSE_PRICE, SORT_ORD,
+      TOT_LRN_TIME_CNT, OPNN_YN, 
+      COURSE_PRICE, SORT_ORD,  
       RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
     FROM COURSE
     WHERE COURSE_SN = #{courseSn}
@@ -71,6 +71,7 @@
     ) VALUES (
       #{curriculumId, jdbcType=NUMERIC},
       #{subjId, jdbcType=NUMERIC},
+                                                  <!-- #{subjClId, jdbcType=NUMERIC}, -->
       #{instrUserId},
       #{courseNm},
       #{courseExplnCn, jdbcType=VARCHAR},
@@ -195,6 +196,7 @@
   ORDER BY C.SORT_ORD ASC, C.COURSE_SN ASC
   </select>
 
+
   <!-- 대분류별 소분류 목록 조회 -->
   <select id="selectSubjectsBySubjClId" resultType="kr.or.ddit.finalProject.dto.course.SubjectDto">
   SELECT SUBJ_ID, SUBJ_NM
@@ -238,6 +240,10 @@
   WHERE COURSE_SN = #{courseSn}
     AND OPNN_YN   = 'Y'
   ORDER BY SORT_ORD ASC, LECTURE_SN ASC
+  </select>
+
+  <!-- 과목 분류별 강사 목록 조회 -->
+  <select id="selectInstructorsBySubjClId" resultType="kr.or.ddit.finalProject.dto.member.MemberDto">
   </select>
 
   <!-- 과목 분류별 강사 목록 조회 -->

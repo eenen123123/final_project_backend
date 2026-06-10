@@ -1,0 +1,812 @@
+<title th:fragment="pageTitle">시스템 로그 관리 | HERMES</title>
+
+<div class="space-y-6">
+
+  <!-- ① 페이지 헤더 -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">시스템 로그 관리</h1>
+      <p class="text-sm text-slate-500 mt-1">관리자 접속·활동 감사, 사용자 접속·활동, 시스템 에러 로그를 통합 조회합니다.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 bg-white border border-slate-100 shadow-sm px-3 py-2 rounded-xl text-xs font-medium text-slate-500">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        실시간 데이터
+      </div>
+    </div>
+  </div>
+
+  <!-- ② 요약 통계 카드 -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-user-shield"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">오늘 관리자 접속</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5"
+           th:text="${summaryStats != null and summaryStats['adminAccessToday'] != null ? summaryStats['adminAccessToday'] + '건' : '0건'}">0건</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-circle-xmark"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">로그인 실패 (오늘)</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5"
+           th:text="${summaryStats != null and summaryStats['loginFailToday'] != null ? summaryStats['loginFailToday'] + '건' : '0건'}">0건</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-users"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">사용자 활동 (오늘)</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5"
+           th:text="${summaryStats != null and summaryStats['memberActivityToday'] != null ? summaryStats['memberActivityToday'] + '건' : '0건'}">0건</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">시스템 에러 (오늘)</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5"
+           th:text="${summaryStats != null and summaryStats['sysErrorToday'] != null ? summaryStats['sysErrorToday'] + '건' : '0건'}">0건</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 대탭 (3개 메인 메뉴) -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+
+    <!-- 대탭 버튼 -->
+    <div class="flex border-b border-slate-200 px-6 pt-4 gap-1 bg-slate-50/60">
+      <button data-main-tab="main-admin"
+        class="main-tab-btn px-6 py-3 text-sm font-bold rounded-t-xl transition-all text-slate-500 hover:text-violet-600 border-b-2 border-transparent"
+        onclick="switchMainTab('main-admin', this)">
+        <i class="fa-solid fa-user-shield mr-2"></i>관리자 로그
+      </button>
+      <button data-main-tab="main-member"
+        class="main-tab-btn px-6 py-3 text-sm font-bold rounded-t-xl transition-all text-slate-500 hover:text-violet-600 border-b-2 border-transparent"
+        onclick="switchMainTab('main-member', this)">
+        <i class="fa-solid fa-users mr-2"></i>사용자 로그
+      </button>
+      <button data-main-tab="main-error"
+        class="main-tab-btn px-6 py-3 text-sm font-bold rounded-t-xl transition-all text-slate-500 hover:text-violet-600 border-b-2 border-transparent"
+        onclick="switchMainTab('main-error', this)">
+        <i class="fa-solid fa-bug mr-2"></i>시스템 에러 로그
+      </button>
+    </div>
+
+
+    <!-- ===================== 대탭 1: 관리자 로그 ===================== -->
+    <div id="main-admin" class="main-tab-panel">
+
+      <!-- 소탭 버튼 -->
+      <div class="flex border-b border-slate-100 px-8 pt-3 gap-1">
+        <button data-sub-tab="sub-admin-access"
+          class="admin-sub-btn px-4 py-2 text-sm font-semibold rounded-lg transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+          onclick="switchSubTab('admin-sub-btn', 'sub-admin-access', this)">
+          <i class="fa-solid fa-arrow-right-to-bracket mr-1.5 text-xs"></i>관리자 접속 이력
+        </button>
+        <button data-sub-tab="sub-admin-audit"
+          class="admin-sub-btn px-4 py-2 text-sm font-semibold rounded-lg transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+          onclick="switchSubTab('admin-sub-btn', 'sub-admin-audit', this)">
+          <i class="fa-solid fa-file-shield mr-1.5 text-xs"></i>활동 감사 로그
+        </button>
+      </div>
+
+      <!-- 소탭 1-1: 관리자 접속 이력 (ADMINLOGIN_LOG) -->
+      <div id="sub-admin-access" class="admin-sub-panel p-6 space-y-5">
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input id="inp-aa-userId" type="text" class="hm-input pr-9" style="width:10rem" placeholder="관리자 ID 검색..." />
+          </div>
+          <input id="inp-aa-fromDt" type="date" class="hm-input" style="width:9rem" />
+          <span class="text-slate-400 text-sm">~</span>
+          <input id="inp-aa-toDt" type="date" class="hm-input" style="width:9rem" />
+          <button class="hm-btn-secondary text-sm px-3 py-2 whitespace-nowrap" onclick="resetAndSearch('aa')">
+            <i class="fa-solid fa-rotate-left mr-1"></i>초기화
+          </button>
+          <button class="hm-btn-primary text-sm px-3 py-2 whitespace-nowrap" onclick="searchAdminAccess(1)">
+            <i class="fa-solid fa-magnifying-glass mr-1"></i>조회
+          </button>
+        </div>
+
+        <div class="rounded-xl border border-slate-100 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+                  <th class="py-4 px-6">로그 번호</th>
+                  <th class="py-4 px-6">관리자 ID</th>
+                  <th class="py-4 px-6">접속 IP</th>
+                  <th class="py-4 px-6">로그인 일시</th>
+                  <th class="py-4 px-6">로그아웃 일시</th>
+                  <th class="py-4 px-6 text-center">세션 상태</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-admin-access" class="divide-y divide-slate-50 text-sm text-slate-700"></tbody>
+            </table>
+          </div>
+          <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+            <p class="text-xs text-slate-400" id="pg-info-admin-access"></p>
+            <div id="pg-admin-access" class="flex items-center gap-1"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 소탭 1-2: 관리자 활동 감사 로그 (HERMES_ADMIN_AUDIT_LOG) -->
+      <div id="sub-admin-audit" class="admin-sub-panel p-6 space-y-5 hidden">
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input id="inp-aud-keyword" type="text" class="hm-input pr-9" style="width:11rem" placeholder="관리자 ID 또는 URI..." />
+          </div>
+          <select id="inp-aud-method" class="hm-input" style="width:8rem">
+            <option value="">HTTP 메서드</option>
+            <option>GET</option>
+            <option>POST</option>
+            <option>PUT</option>
+            <option>DELETE</option>
+          </select>
+          <select id="inp-aud-status" class="hm-input" style="width:7rem">
+            <option value="">상태 코드</option>
+            <option>200</option>
+            <option>400</option>
+            <option>403</option>
+            <option>500</option>
+          </select>
+          <button class="hm-btn-secondary text-sm px-3 py-2 whitespace-nowrap" onclick="resetAndSearch('aud')">
+            <i class="fa-solid fa-rotate-left mr-1"></i>초기화
+          </button>
+          <button class="hm-btn-primary text-sm px-3 py-2 whitespace-nowrap" onclick="searchAdminAudit(1)">
+            <i class="fa-solid fa-magnifying-glass mr-1"></i>조회
+          </button>
+        </div>
+
+        <div class="rounded-xl border border-slate-100 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+                  <th class="py-4 px-5">감사 번호</th>
+                  <th class="py-4 px-5">관리자 ID</th>
+                  <th class="py-4 px-5">접속 IP</th>
+                  <th class="py-4 px-5 text-center">메서드</th>
+                  <th class="py-4 px-5">요청 URI</th>
+                  <th class="py-4 px-5 text-center">상태</th>
+                  <th class="py-4 px-5">발생 일시</th>
+                  <th class="py-4 px-5 text-center">상세</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-admin-audit" class="divide-y divide-slate-50 text-sm text-slate-700"></tbody>
+            </table>
+          </div>
+          <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+            <p class="text-xs text-slate-400" id="pg-info-admin-audit"></p>
+            <div id="pg-admin-audit" class="flex items-center gap-1"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main-admin -->
+
+
+    <!-- ===================== 대탭 2: 사용자 로그 ===================== -->
+    <div id="main-member" class="main-tab-panel hidden">
+
+      <!-- 소탭 버튼 -->
+      <div class="flex border-b border-slate-100 px-8 pt-3 gap-1">
+        <button data-sub-tab="sub-member-access"
+          class="member-sub-btn px-4 py-2 text-sm font-semibold rounded-lg transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+          onclick="switchSubTab('member-sub-btn', 'sub-member-access', this)">
+          <i class="fa-solid fa-arrow-right-to-bracket mr-1.5 text-xs"></i>사용자 접속 이력
+        </button>
+        <button data-sub-tab="sub-member-activity"
+          class="member-sub-btn px-4 py-2 text-sm font-semibold rounded-lg transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+          onclick="switchSubTab('member-sub-btn', 'sub-member-activity', this)">
+          <i class="fa-solid fa-chart-line mr-1.5 text-xs"></i>사용자 활동 이력
+        </button>
+      </div>
+
+      <!-- 소탭 2-1: 사용자 접속 이력 (MEMBER_LOGIN_LOG) -->
+      <div id="sub-member-access" class="member-sub-panel p-6 space-y-5">
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input id="inp-ma-userId" type="text" class="hm-input pr-9" style="width:10rem" placeholder="사용자 ID 검색..." />
+          </div>
+          <select id="inp-ma-success" class="hm-input" style="width:9rem">
+            <option value="">성공 여부</option>
+            <option value="Y">성공 (Y)</option>
+            <option value="N">실패 (N)</option>
+          </select>
+          <input id="inp-ma-fromDt" type="date" class="hm-input" style="width:9rem" />
+          <button class="hm-btn-secondary text-sm px-3 py-2 whitespace-nowrap" onclick="resetAndSearch('ma')">
+            <i class="fa-solid fa-rotate-left mr-1"></i>초기화
+          </button>
+          <button class="hm-btn-primary text-sm px-3 py-2 whitespace-nowrap" onclick="searchMemberAccess(1)">
+            <i class="fa-solid fa-magnifying-glass mr-1"></i>조회
+          </button>
+        </div>
+
+        <div class="rounded-xl border border-slate-100 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+                  <th class="py-4 px-6">로그 번호</th>
+                  <th class="py-4 px-6">입력 ID</th>
+                  <th class="py-4 px-6">실제 회원 ID</th>
+                  <th class="py-4 px-6 text-center">성공 여부</th>
+                  <th class="py-4 px-6">실패 사유</th>
+                  <th class="py-4 px-6">로그인 일시</th>
+                  <th class="py-4 px-6">접속 IP</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-member-access" class="divide-y divide-slate-50 text-sm text-slate-700"></tbody>
+            </table>
+          </div>
+          <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+            <p class="text-xs text-slate-400" id="pg-info-member-access"></p>
+            <div id="pg-member-access" class="flex items-center gap-1"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 소탭 2-2: 사용자 활동 이력 (MEMBER_ACTIVITY_LOG) -->
+      <div id="sub-member-activity" class="member-sub-panel p-6 space-y-5 hidden">
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input id="inp-mact-userId" type="text" class="hm-input pr-9" style="width:10rem" placeholder="사용자 ID 검색..." />
+          </div>
+          <select id="inp-mact-type" class="hm-input" style="width:10rem">
+            <option value="">활동 유형 전체</option>
+            <option>강의 재생</option>
+            <option>과제 제출</option>
+            <option>게시글 조회</option>
+            <option>댓글 작성</option>
+            <option>자료 다운로드</option>
+          </select>
+          <input id="inp-mact-fromDt" type="date" class="hm-input" style="width:9rem" />
+          <button class="hm-btn-secondary text-sm px-3 py-2 whitespace-nowrap" onclick="resetAndSearch('mact')">
+            <i class="fa-solid fa-rotate-left mr-1"></i>초기화
+          </button>
+          <button class="hm-btn-primary text-sm px-3 py-2 whitespace-nowrap" onclick="searchMemberActivity(1)">
+            <i class="fa-solid fa-magnifying-glass mr-1"></i>조회
+          </button>
+        </div>
+
+        <div class="rounded-xl border border-slate-100 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+                  <th class="py-4 px-6">활동 번호</th>
+                  <th class="py-4 px-6">사용자 ID</th>
+                  <th class="py-4 px-6">활동 유형</th>
+                  <th class="py-4 px-6">대상 번호</th>
+                  <th class="py-4 px-6">발생 IP</th>
+                  <th class="py-4 px-6">활동 일시</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-member-activity" class="divide-y divide-slate-50 text-sm text-slate-700"></tbody>
+            </table>
+          </div>
+          <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+            <p class="text-xs text-slate-400" id="pg-info-member-activity"></p>
+            <div id="pg-member-activity" class="flex items-center gap-1"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main-member -->
+
+
+    <!-- ===================== 대탭 3: 시스템 에러 로그 ===================== -->
+    <div id="main-error" class="main-tab-panel p-6 space-y-5 hidden">
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+          <input id="inp-err-keyword" type="text" class="hm-input pr-9" style="width:11rem" placeholder="에러 코드 또는 URI..." />
+        </div>
+        <input id="inp-err-fromDt" type="date" class="hm-input" style="width:9rem" />
+        <button class="hm-btn-secondary text-sm px-3 py-2 whitespace-nowrap" onclick="resetAndSearch('err')">
+          <i class="fa-solid fa-rotate-left mr-1"></i>초기화
+        </button>
+        <button class="hm-btn-primary text-sm px-3 py-2 whitespace-nowrap" onclick="searchSysError(1)">
+          <i class="fa-solid fa-magnifying-glass mr-1"></i>조회
+        </button>
+      </div>
+
+      <div class="rounded-xl border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+                <th class="py-4 px-6">에러 번호</th>
+                <th class="py-4 px-6">TRACE ID</th>
+                <th class="py-4 px-6">에러 코드</th>
+                <th class="py-4 px-6">발생 URI</th>
+                <th class="py-4 px-6">발생 일시</th>
+                <th class="py-4 px-6 text-center">상세</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-error" class="divide-y divide-slate-50 text-sm text-slate-700"></tbody>
+          </table>
+        </div>
+        <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+          <p class="text-xs text-slate-400" id="pg-info-error"></p>
+          <div id="pg-error" class="flex items-center gap-1"></div>
+        </div>
+      </div>
+    </div><!-- /main-error -->
+
+  </div><!-- /카드 -->
+</div>
+
+
+<!-- ===== 감사 로그 상세 모달 ===== -->
+<div id="auditDetailModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+      <div>
+        <h3 class="text-base font-bold text-slate-800" id="auditDetailTitle">감사 로그 상세</h3>
+        <p class="text-xs text-slate-400 mt-0.5">요청 파라미터 (REQUEST_PARAMS)</p>
+      </div>
+      <button onclick="closeAuditDetailModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 flex items-center justify-center transition-all">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="p-6">
+      <pre id="auditDetailContent" class="bg-slate-50 rounded-xl border border-slate-100 p-4 text-xs font-mono text-slate-700 overflow-auto max-h-72 whitespace-pre-wrap leading-relaxed"></pre>
+    </div>
+    <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end">
+      <button onclick="closeAuditDetailModal()" class="hm-btn-primary !bg-slate-600 hover:!bg-slate-700 !py-2 !px-5">닫기</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== 에러 로그 상세 모달 ===== -->
+<div id="errorDetailModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-rose-100 bg-rose-50/50">
+      <div>
+        <h3 class="text-base font-bold text-rose-800" id="errorDetailTitle">시스템 에러 상세</h3>
+        <p class="text-xs text-rose-400 mt-0.5">에러 메시지 (ERROR_MESSAGE)</p>
+      </div>
+      <button onclick="closeErrorDetailModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-rose-100 hover:text-rose-700 flex items-center justify-center transition-all">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="p-6">
+      <pre id="errorDetailContent" class="bg-slate-950 rounded-xl p-4 text-xs font-mono text-rose-300 overflow-auto max-h-72 whitespace-pre-wrap leading-relaxed"></pre>
+    </div>
+    <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end">
+      <button onclick="closeErrorDetailModal()" class="hm-btn-primary !bg-slate-600 hover:!bg-slate-700 !py-2 !px-5">닫기</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== 페이지 스크립트 ===== -->
+<script>
+  /* ─── 공통 유틸 ─────────────────────────────────────────────────── */
+  function esc(v) {
+    if (v == null) return '';
+    return String(v)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /* Jackson 기본 설정 시 LocalDateTime → 배열 [y,mo,d,h,mi,s], 설정 시 ISO 문자열 */
+  function formatDt(dt) {
+    if (!dt) return '—';
+    if (Array.isArray(dt)) {
+      const [y, mo, d, h = 0, mi = 0, s = 0] = dt;
+      return `${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')} `
+           + `${String(h).padStart(2,'0')}:${String(mi).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+    return String(dt).replace('T', ' ').substring(0, 19);
+  }
+
+  const SCREEN_SIZE = 10;
+  const BLOCK_SIZE  = 5;
+
+  /* ─── 탭 전환 ──────────────────────────────────────────────────── */
+  function switchMainTab(tabId, btn) {
+    document.querySelectorAll('.main-tab-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.main-tab-btn').forEach(b => {
+      b.classList.remove('text-violet-600', 'border-violet-500', 'bg-white');
+      b.classList.add('text-slate-500', 'border-transparent');
+    });
+    document.getElementById(tabId).classList.remove('hidden');
+    btn.classList.remove('text-slate-500', 'border-transparent');
+    btn.classList.add('text-violet-600', 'border-violet-500', 'bg-white');
+  }
+
+  function switchSubTab(btnClass, panelId, btn) {
+    const parentPanel = btn.closest('.main-tab-panel');
+    parentPanel.querySelectorAll('.' + btnClass).forEach(b => {
+      b.classList.remove('text-violet-600', 'bg-violet-50', 'font-bold');
+      b.classList.add('text-slate-400');
+    });
+    const prefix = panelId.replace(/-[^-]+$/, '-');
+    parentPanel.querySelectorAll('[id^="' + prefix + '"]').forEach(p => p.classList.add('hidden'));
+    document.getElementById(panelId).classList.remove('hidden');
+    btn.classList.remove('text-slate-400');
+    btn.classList.add('text-violet-600', 'bg-violet-50', 'font-bold');
+  }
+
+  /* ─── 서버사이드 페이지네이션 렌더 ─────────────────────────────── */
+  function renderPagination(pgId, infoId, totalCount, page, type) {
+    const info = document.getElementById(infoId);
+    const pg   = document.getElementById(pgId);
+    if (!pg) return;
+
+    const totalPage = Math.max(1, Math.ceil(totalCount / SCREEN_SIZE));
+    const start = totalCount === 0 ? 0 : (page - 1) * SCREEN_SIZE + 1;
+    const end   = Math.min(page * SCREEN_SIZE, totalCount);
+
+    if (info) {
+      info.textContent = totalCount === 0
+        ? '데이터가 없습니다.'
+        : `전체 ${totalCount}건 중 ${start} – ${end} 표시`;
+    }
+
+    if (totalPage <= 1) { pg.innerHTML = ''; return; }
+
+    const blockEnd   = Math.ceil(page / BLOCK_SIZE) * BLOCK_SIZE;
+    const blockStart = Math.max(blockEnd - BLOCK_SIZE + 1, 1);
+    const realEnd    = Math.min(blockEnd, totalPage);
+
+    let html = '';
+    if (blockStart > 1)
+      html += `<button onclick="goPage('${type}',${blockStart - 1})"
+                class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 text-xs flex items-center justify-center">‹</button>`;
+    for (let p = blockStart; p <= realEnd; p++) {
+      const cls = p === page ? 'bg-violet-600 text-white font-bold' : 'text-slate-400 hover:bg-slate-100';
+      html += `<button onclick="goPage('${type}',${p})"
+                class="w-8 h-8 rounded-lg ${cls} text-xs flex items-center justify-center">${p}</button>`;
+    }
+    if (realEnd < totalPage)
+      html += `<button onclick="goPage('${type}',${realEnd + 1})"
+                class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 text-xs flex items-center justify-center">›</button>`;
+    pg.innerHTML = html;
+  }
+
+  function goPage(type, page) {
+    ({ aa: searchAdminAccess, aud: searchAdminAudit,
+       ma: searchMemberAccess, mact: searchMemberActivity,
+       err: searchSysError })[type]?.(page);
+  }
+
+  /* ─── 초기화 버튼 ──────────────────────────────────────────────── */
+  const RESET_IDS = {
+    aa:   ['inp-aa-userId', 'inp-aa-fromDt', 'inp-aa-toDt'],
+    aud:  ['inp-aud-keyword', 'inp-aud-method', 'inp-aud-status'],
+    ma:   ['inp-ma-userId', 'inp-ma-success', 'inp-ma-fromDt'],
+    mact: ['inp-mact-userId', 'inp-mact-type', 'inp-mact-fromDt'],
+    err:  ['inp-err-keyword', 'inp-err-fromDt']
+  };
+
+  function resetAndSearch(type) {
+    (RESET_IDS[type] || []).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    goPage(type, 1);
+  }
+
+  /* ─── 1. 관리자 접속 이력 ─────────────────────────────────────── */
+  async function searchAdminAccess(page = 1) {
+    const params = new URLSearchParams({ page, screenSize: SCREEN_SIZE });
+    const userId = document.getElementById('inp-aa-userId').value.trim();
+    const fromDt = document.getElementById('inp-aa-fromDt').value;
+    const toDt   = document.getElementById('inp-aa-toDt').value;
+    if (userId) params.set('userId', userId);
+    if (fromDt) params.set('fromDt', fromDt);
+    if (toDt)   params.set('toDt',   toDt);
+
+    try {
+      const data = await fetch('/admin/system/monitoring/admin-access?' + params).then(r => r.json());
+      renderAdminAccessTable(data.items);
+      renderPagination('pg-admin-access', 'pg-info-admin-access', data.totalCount, page, 'aa');
+    } catch (e) { console.error('관리자 접속 이력 조회 실패', e); }
+  }
+
+  function renderAdminAccessTable(items) {
+    const tbody = document.getElementById('tbody-admin-access');
+    if (!items || items.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-sm text-slate-400">조회된 데이터가 없습니다.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = items.map(r => {
+      const initial = esc((r.userId || '?').charAt(0).toUpperCase());
+      const status = r.logoutDt
+        ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500">
+             <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> 종료</span>`
+        : `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
+             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 접속 중</span>`;
+      return `<tr class="hover:bg-slate-50/50 transition-colors">
+        <td class="py-4 px-6 font-mono text-xs text-slate-400">${esc(r.logId)}</td>
+        <td class="py-4 px-6">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center text-xs font-bold shrink-0">${initial}</div>
+            <p class="font-semibold text-slate-800">${esc(r.userId)}</p>
+          </div>
+        </td>
+        <td class="py-4 px-6 font-mono text-xs">${esc(r.loginIp) || '—'}</td>
+        <td class="py-4 px-6 text-xs text-slate-500 font-mono">${formatDt(r.loginDt)}</td>
+        <td class="py-4 px-6 text-xs text-slate-500 font-mono">${formatDt(r.logoutDt)}</td>
+        <td class="py-4 px-6 text-center">${status}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  /* ─── 2. 관리자 활동 감사 로그 ──────────────────────────────────── */
+  async function searchAdminAudit(page = 1) {
+    const params = new URLSearchParams({ page, screenSize: SCREEN_SIZE });
+    const keyword    = document.getElementById('inp-aud-keyword').value.trim();
+    const httpMethod = document.getElementById('inp-aud-method').value;
+    const statusCode = document.getElementById('inp-aud-status').value;
+    if (keyword)    params.set('keyword',    keyword);
+    if (httpMethod) params.set('httpMethod', httpMethod);
+    if (statusCode) params.set('statusCode', statusCode);
+
+    try {
+      const data = await fetch('/admin/system/monitoring/admin-audit?' + params).then(r => r.json());
+      renderAdminAuditTable(data.items);
+      renderPagination('pg-admin-audit', 'pg-info-admin-audit', data.totalCount, page, 'aud');
+    } catch (e) { console.error('관리자 감사 로그 조회 실패', e); }
+  }
+
+  const METHOD_BADGE = {
+    GET:    'bg-sky-100 text-sky-700',
+    POST:   'bg-amber-100 text-amber-700',
+    PUT:    'bg-indigo-100 text-indigo-700',
+    DELETE: 'bg-rose-100 text-rose-700'
+  };
+
+  function statusBadgeClass(code) {
+    const n = parseInt(code);
+    if (n >= 500) return 'bg-rose-100 text-rose-700';
+    if (n >= 400) return 'bg-amber-100 text-amber-700';
+    return 'bg-emerald-100 text-emerald-700';
+  }
+
+  function renderAdminAuditTable(items) {
+    const tbody = document.getElementById('tbody-admin-audit');
+    if (!items || items.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center py-10 text-sm text-slate-400">조회된 데이터가 없습니다.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = items.map(r => {
+      const mCls = METHOD_BADGE[r.httpMethod] || 'bg-slate-100 text-slate-600';
+      const sCls = statusBadgeClass(r.statusCode);
+      const rawParams = r.requestParams || '(없음)';
+      return `<tr class="hover:bg-slate-50/50 transition-colors">
+        <td class="py-3.5 px-5 font-mono text-xs text-slate-400">${esc(r.auditId)}</td>
+        <td class="py-3.5 px-5 font-semibold text-slate-800">${esc(r.adminId)}</td>
+        <td class="py-3.5 px-5 font-mono text-xs">${esc(r.memberIp) || '—'}</td>
+        <td class="py-3.5 px-5 text-center">
+          <span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${mCls}">${esc(r.httpMethod)}</span>
+        </td>
+        <td class="py-3.5 px-5 text-xs font-mono text-slate-600">${esc(r.requestUri)}</td>
+        <td class="py-3.5 px-5 text-center">
+          <span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${sCls}">${esc(r.statusCode)}</span>
+        </td>
+        <td class="py-3.5 px-5 text-xs text-slate-500 font-mono">${esc(r.createdAt) || '—'}</td>
+        <td class="py-3.5 px-5 text-center">
+          <button class="text-slate-400 hover:text-violet-600 p-1.5 transition-colors"
+                  title="요청 파라미터 상세"
+                  onclick="openAuditDetailModal('${esc(r.auditId)}', ${JSON.stringify(rawParams).replace(/'/g, "\\'")})">
+            <i class="fa-solid fa-file-lines text-base"></i>
+          </button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  /* ─── 3. 사용자 접속 이력 ────────────────────────────────────────── */
+  async function searchMemberAccess(page = 1) {
+    const params = new URLSearchParams({ page, screenSize: SCREEN_SIZE });
+    const userId         = document.getElementById('inp-ma-userId').value.trim();
+    const loginSuccessYn = document.getElementById('inp-ma-success').value;
+    const fromDt         = document.getElementById('inp-ma-fromDt').value;
+    if (userId)         params.set('userId',         userId);
+    if (loginSuccessYn) params.set('loginSuccessYn', loginSuccessYn);
+    if (fromDt)         params.set('fromDt',         fromDt);
+
+    try {
+      const data = await fetch('/admin/system/monitoring/member-access?' + params).then(r => r.json());
+      renderMemberAccessTable(data.items);
+      renderPagination('pg-member-access', 'pg-info-member-access', data.totalCount, page, 'ma');
+    } catch (e) { console.error('사용자 접속 이력 조회 실패', e); }
+  }
+
+  function renderMemberAccessTable(items) {
+    const tbody = document.getElementById('tbody-member-access');
+    if (!items || items.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-sm text-slate-400">조회된 데이터가 없습니다.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = items.map(r => {
+      const isSuccess = r.loginSuccessYn === 'Y';
+      const badge = isSuccess
+        ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700"><i class="fa-solid fa-check text-[10px]"></i> 성공</span>`
+        : `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-600"><i class="fa-solid fa-xmark text-[10px]"></i> 실패</span>`;
+      const failCell = isSuccess
+        ? '<td class="py-4 px-6 text-xs text-slate-400">—</td>'
+        : `<td class="py-4 px-6 text-xs text-rose-600 font-medium">${esc(r.failRsn) || '—'}</td>`;
+      return `<tr class="hover:bg-slate-50/50 transition-colors">
+        <td class="py-4 px-6 font-mono text-xs text-slate-400">${esc(r.logId)}</td>
+        <td class="py-4 px-6 font-mono text-xs">${esc(r.inputUserId) || '—'}</td>
+        <td class="py-4 px-6 font-semibold text-slate-800">${esc(r.userId) || '—'}</td>
+        <td class="py-4 px-6 text-center">${badge}</td>
+        ${failCell}
+        <td class="py-4 px-6 text-xs font-mono text-slate-500">${formatDt(r.loginDt)}</td>
+        <td class="py-4 px-6 font-mono text-xs">${esc(r.loginIp) || '—'}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  /* ─── 4. 사용자 활동 이력 ────────────────────────────────────────── */
+  async function searchMemberActivity(page = 1) {
+    const params = new URLSearchParams({ page, screenSize: SCREEN_SIZE });
+    const userId       = document.getElementById('inp-mact-userId').value.trim();
+    const activityType = document.getElementById('inp-mact-type').value;
+    const fromDt       = document.getElementById('inp-mact-fromDt').value;
+    if (userId)       params.set('userId',       userId);
+    if (activityType) params.set('activityType', activityType);
+    if (fromDt)       params.set('fromDt',       fromDt);
+
+    try {
+      const data = await fetch('/admin/system/monitoring/member-activity?' + params).then(r => r.json());
+      renderMemberActivityTable(data.items);
+      renderPagination('pg-member-activity', 'pg-info-member-activity', data.totalCount, page, 'mact');
+    } catch (e) { console.error('사용자 활동 이력 조회 실패', e); }
+  }
+
+  const ACTIVITY_STYLE = {
+    '강의 재생':    { cls: 'bg-violet-50 text-violet-700', icon: 'fa-play' },
+    '과제 제출':    { cls: 'bg-sky-50 text-sky-700',       icon: 'fa-file-arrow-up' },
+    '게시글 조회':  { cls: 'bg-slate-100 text-slate-600',  icon: 'fa-eye' },
+    '댓글 작성':    { cls: 'bg-teal-50 text-teal-700',     icon: 'fa-comment' },
+    '자료 다운로드': { cls: 'bg-amber-50 text-amber-700', icon: 'fa-download' }
+  };
+
+  function renderMemberActivityTable(items) {
+    const tbody = document.getElementById('tbody-member-activity');
+    if (!items || items.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-sm text-slate-400">조회된 데이터가 없습니다.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = items.map(r => {
+      const style = ACTIVITY_STYLE[r.activityType] || { cls: 'bg-slate-100 text-slate-600', icon: 'fa-circle' };
+      return `<tr class="hover:bg-slate-50/50 transition-colors">
+        <td class="py-4 px-6 font-mono text-xs text-slate-400">${esc(r.activityId)}</td>
+        <td class="py-4 px-6 font-semibold text-slate-800">${esc(r.userId)}</td>
+        <td class="py-4 px-6">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${style.cls}">
+            <i class="fa-solid ${style.icon} text-[9px]"></i> ${esc(r.activityType)}
+          </span>
+        </td>
+        <td class="py-4 px-6 font-mono text-xs text-slate-500">${esc(r.targetId) || '—'}</td>
+        <td class="py-4 px-6 font-mono text-xs">${esc(r.activityIp) || '—'}</td>
+        <td class="py-4 px-6 text-xs text-slate-500 font-mono">${esc(r.createdAt) || '—'}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  /* ─── 5. 시스템 에러 로그 ───────────────────────────────────────── */
+  async function searchSysError(page = 1) {
+    const params = new URLSearchParams({ page, screenSize: SCREEN_SIZE });
+    const keyword = document.getElementById('inp-err-keyword').value.trim();
+    const fromDt  = document.getElementById('inp-err-fromDt').value;
+    if (keyword) params.set('keyword', keyword);
+    if (fromDt)  params.set('fromDt',  fromDt);
+
+    try {
+      const data = await fetch('/admin/system/monitoring/sys-error?' + params).then(r => r.json());
+      renderSysErrorTable(data.items);
+      renderPagination('pg-error', 'pg-info-error', data.totalCount, page, 'err');
+    } catch (e) { console.error('시스템 에러 조회 실패', e); }
+  }
+
+  function errCodeBadge(code) {
+    if (!code) return 'bg-slate-200 text-slate-600';
+    if (code.includes('Null'))   return 'bg-rose-100 text-rose-700';
+    if (code.includes('SQL'))    return 'bg-amber-100 text-amber-700';
+    if (code.includes('IO'))     return 'bg-slate-200 text-slate-600';
+    if (code.includes('Access') || code.includes('Auth')) return 'bg-orange-100 text-orange-700';
+    return 'bg-slate-100 text-slate-700';
+  }
+
+  function renderSysErrorTable(items) {
+    const tbody = document.getElementById('tbody-error');
+    if (!items || items.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-sm text-slate-400">조회된 데이터가 없습니다.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = items.map(r => {
+      const rawMsg = r.errorMessage || '(없음)';
+      return `<tr class="hover:bg-slate-50/50 transition-colors">
+        <td class="py-4 px-6 font-mono text-xs text-slate-400">${esc(r.errorId)}</td>
+        <td class="py-4 px-6">
+          <span class="font-mono text-xs text-violet-600 bg-violet-50 px-2 py-0.5 rounded-md">${esc(r.traceId) || '—'}</span>
+        </td>
+        <td class="py-4 px-6">
+          <span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${errCodeBadge(r.errorCode)}">${esc(r.errorCode) || '—'}</span>
+        </td>
+        <td class="py-4 px-6 text-xs font-mono text-slate-600">${esc(r.requestUri) || '—'}</td>
+        <td class="py-4 px-6 text-xs font-mono text-slate-500">${esc(r.createdAt) || '—'}</td>
+        <td class="py-4 px-6 text-center">
+          <button class="text-slate-400 hover:text-rose-600 p-1.5 transition-colors"
+                  title="에러 메시지 상세"
+                  onclick="openErrorDetailModal('${esc(r.errorId)}', '${esc(r.errorCode)}', ${JSON.stringify(rawMsg).replace(/'/g, "\\'")})">
+            <i class="fa-solid fa-circle-exclamation text-base"></i>
+          </button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  /* ─── 모달 ──────────────────────────────────────────────────────── */
+  function openAuditDetailModal(auditId, params) {
+    document.getElementById('auditDetailTitle').textContent = `감사 로그 #${auditId} — 요청 파라미터`;
+    document.getElementById('auditDetailContent').textContent = params || '(없음)';
+    const m = document.getElementById('auditDetailModal');
+    m.classList.remove('hidden'); m.classList.add('flex');
+  }
+  function closeAuditDetailModal() {
+    const m = document.getElementById('auditDetailModal');
+    m.classList.add('hidden'); m.classList.remove('flex');
+  }
+  document.getElementById('auditDetailModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAuditDetailModal();
+  });
+
+  function openErrorDetailModal(errorId, errorCode, msg) {
+    document.getElementById('errorDetailTitle').textContent = `에러 #${errorId} — ${errorCode || ''}`;
+    document.getElementById('errorDetailContent').textContent = msg || '(없음)';
+    const m = document.getElementById('errorDetailModal');
+    m.classList.remove('hidden'); m.classList.add('flex');
+  }
+  function closeErrorDetailModal() {
+    const m = document.getElementById('errorDetailModal');
+    m.classList.add('hidden'); m.classList.remove('flex');
+  }
+  document.getElementById('errorDetailModal').addEventListener('click', function(e) {
+    if (e.target === this) closeErrorDetailModal();
+  });
+
+  /* ─── 초기 로드 ─────────────────────────────────────────────────── */
+  (function init() {
+    /* 대탭 첫 번째 활성 */
+    const firstMain = document.querySelector('.main-tab-btn[data-main-tab="main-admin"]');
+    if (firstMain) switchMainTab('main-admin', firstMain);
+
+    /* 소탭 첫 번째 활성 */
+    const firstAdminSub = document.querySelector('.admin-sub-btn[data-sub-tab="sub-admin-access"]');
+    if (firstAdminSub) switchSubTab('admin-sub-btn', 'sub-admin-access', firstAdminSub);
+
+    const firstMemberSub = document.querySelector('.member-sub-btn[data-sub-tab="sub-member-access"]');
+    if (firstMemberSub) switchSubTab('member-sub-btn', 'sub-member-access', firstMemberSub);
+
+    /* 모든 탭 초기 데이터 로드 */
+    searchAdminAccess(1);
+    searchAdminAudit(1);
+    searchMemberAccess(1);
+    searchMemberActivity(1);
+    searchSysError(1);
+  })();
+</script>
