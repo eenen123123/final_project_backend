@@ -11,7 +11,7 @@
         <result property="authrNm"      column="AUTHR_NM"/>
         <result property="isbnNo"       column="ISBN_NO"/>
         <result property="trgtGrdCn"    column="TRGT_GRD_CN"/>
-        <result property="subjCd"       column="SUBJ_CD"/>
+        <result property="subjId"       column="SUBJ_ID"/>
         <result property="salePrcAmt"   column="SALE_PRC_AMT"/>
         <result property="purchPrcAmt"  column="PURCH_PRC_AMT"/>
         <result property="dlvrAmt"      column="DLVR_AMT"/>
@@ -24,47 +24,70 @@
         <result property="tagline"      column="TAGLINE"/>
         <result property="bookSmry"     column="BOOK_SMRY"/>
         <result property="tocCn"        column="TOC_CN"/>
-        <result property="instrUserId"  column="INSTR_USER_ID"/>
+        <result property="courseSn"     column="COURSE_SN"/>
         <!-- JOIN 필드 -->
         <result property="subjNm"       column="SUBJ_NM"/>
         <result property="subjClNm"     column="SUBJ_CL_NM"/>
         <result property="subjClId"     column="SUBJ_CL_ID"/>
-        <result property="instrUserNm" column="INSTR_USER_NM"/>
+        <result property="instrUserNm"  column="INSTR_USER_NM"/>
+        <result property="courseNm"     column="COURSE_NM"/>
     </resultMap>
 
     <!-- 검색 조건 -->
     <sql id="textbookSearchWhere">
-        <trim prefix="WHERE" prefixOverrides="AND">
-            AND t.USE_YN = 'Y'
+        <where>
+            <choose>
+                <when test="detailCondition != null and detailCondition.showArchived">
+                    t.USE_YN = 'N'
+                </when>
+                <otherwise>
+                    t.USE_YN = 'Y'
+                </otherwise>
+            </choose>
             <if test="detailCondition != null">
                 <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
                     AND instr(t.TEXTBOOK_NM, #{detailCondition.keyword}) &gt; 0
                 </if>
-                <if test="detailCondition.instrUserNm != null and detailCondition.instrUserNm != ''">
-                    AND m.USER_NAME = #{detailCondition.instrUserNm}
+                <if test="detailCondition.subjClId != null">
+                    AND s.SUBJ_CL_ID = #{detailCondition.subjClId}
                 </if>
             </if>
-        </trim>
+        </where>
     </sql>
 
     <!-- 교재 목록 조회 (페이징 + 필터) -->
     <select id="selectTextbookList" resultMap="textbookResultMap">
         SELECT
             t.TEXTBOOK_SN, t.TEXTBOOK_NM, t.PUBR_NM, t.AUTHR_NM,
-            t.TAGLINE, t.BOOK_SMRY, t.TOC_CN, t.INSTR_USER_ID,
-            t.ISBN_NO, t.TRGT_GRD_CN, t.SUBJ_CD,
+            t.TAGLINE, t.BOOK_SMRY, t.TOC_CN, t.COURSE_SN,
+            t.ISBN_NO, t.TRGT_GRD_CN, t.SUBJ_ID,
             t.SALE_PRC_AMT, t.PURCH_PRC_AMT, t.DLVR_AMT,
             t.THMB_IMG, t.USE_YN, t.RGTR_ID, t.LAST_MDFR_ID,
             t.REG_DT, t.MDFCN_DT,
-            NULL           AS SUBJ_NM,
-            t.SUBJ_CL_ID   AS SUBJ_CL_ID,
+            s.SUBJ_NM      AS SUBJ_NM,
+            s.SUBJ_CL_ID   AS SUBJ_CL_ID,
             sc.SUBJ_CL_NM  AS SUBJ_CL_NM,
-            m.USER_NAME AS INSTR_USER_NM
+            m.USER_NAME    AS INSTR_USER_NM,
+            c.COURSE_NM    AS COURSE_NM
         FROM TEXTBOOK t
-        LEFT JOIN SUBJECT_CLASSIFICATION sc ON t.SUBJ_CL_ID = sc.SUBJ_CL_ID
-        LEFT JOIN MEMBER m ON t.INSTR_USER_ID = m.USER_ID
+        LEFT JOIN SUBJECT s ON t.SUBJ_ID = s.SUBJ_ID
+        LEFT JOIN SUBJECT_CLASSIFICATION sc ON s.SUBJ_CL_ID = sc.SUBJ_CL_ID
+        LEFT JOIN COURSE c ON t.COURSE_SN = c.COURSE_SN
+        LEFT JOIN MEMBER m ON c.INSTR_USER_ID = m.USER_ID
+        LEFT JOIN TEXTBOOK_INVENTORY i ON t.TEXTBOOK_SN = i.TEXTBOOK_SN
         <include refid="textbookSearchWhere"/>
-        ORDER BY t.REG_DT DESC
+        ORDER BY
+        <choose>
+            <when test="detailCondition != null and detailCondition.sort == 'price'">
+                t.SALE_PRC_AMT DESC
+            </when>
+            <when test="detailCondition != null and detailCondition.sort == 'stock'">
+                NVL(i.SALABLE_CNT, 9999) ASC
+            </when>
+            <otherwise>
+                t.REG_DT DESC
+            </otherwise>
+        </choose>
         OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
     </select>
 
@@ -72,7 +95,9 @@
     <select id="countTextbookList" resultType="int">
         SELECT COUNT(*)
         FROM TEXTBOOK t
-        LEFT JOIN SUBJECT_CLASSIFICATION sc ON t.SUBJ_CL_ID = sc.SUBJ_CL_ID
+        LEFT JOIN SUBJECT s ON t.SUBJ_ID = s.SUBJ_ID
+        LEFT JOIN COURSE c ON t.COURSE_SN = c.COURSE_SN
+        LEFT JOIN MEMBER m ON c.INSTR_USER_ID = m.USER_ID
         <include refid="textbookSearchWhere"/>
     </select>
 
@@ -80,18 +105,21 @@
     <select id="selectTextbookBySn" resultMap="textbookResultMap">
         SELECT
             t.TEXTBOOK_SN, t.TEXTBOOK_NM, t.PUBR_NM, t.AUTHR_NM,
-            t.TAGLINE, t.BOOK_SMRY, t.TOC_CN, t.INSTR_USER_ID,
-            t.ISBN_NO, t.TRGT_GRD_CN, t.SUBJ_CD,
+            t.TAGLINE, t.BOOK_SMRY, t.TOC_CN, t.COURSE_SN,
+            t.ISBN_NO, t.TRGT_GRD_CN, t.SUBJ_ID,
             t.SALE_PRC_AMT, t.PURCH_PRC_AMT, t.DLVR_AMT,
             t.THMB_IMG, t.USE_YN, t.RGTR_ID, t.LAST_MDFR_ID,
             t.REG_DT, t.MDFCN_DT,
-            NULL           AS SUBJ_NM,
-            t.SUBJ_CL_ID   AS SUBJ_CL_ID,
+            s.SUBJ_NM      AS SUBJ_NM,
+            s.SUBJ_CL_ID   AS SUBJ_CL_ID,
             sc.SUBJ_CL_NM  AS SUBJ_CL_NM,
-            m.USER_NAME AS INSTR_USER_NM
+            m.USER_NAME    AS INSTR_USER_NM,
+            c.COURSE_NM    AS COURSE_NM
         FROM TEXTBOOK t
-        LEFT JOIN SUBJECT_CLASSIFICATION sc ON t.SUBJ_CL_ID = sc.SUBJ_CL_ID
-        LEFT JOIN MEMBER m ON t.INSTR_USER_ID = m.USER_ID
+        LEFT JOIN SUBJECT s ON t.SUBJ_ID = s.SUBJ_ID
+        LEFT JOIN SUBJECT_CLASSIFICATION sc ON s.SUBJ_CL_ID = sc.SUBJ_CL_ID
+        LEFT JOIN COURSE c ON t.COURSE_SN = c.COURSE_SN
+        LEFT JOIN MEMBER m ON c.INSTR_USER_ID = m.USER_ID
         WHERE t.TEXTBOOK_SN = #{textbookSn}
         AND t.USE_YN = 'Y'
     </select>
@@ -104,17 +132,17 @@
         </selectKey>
         INSERT INTO TEXTBOOK (
             TEXTBOOK_NM, PUBR_NM, AUTHR_NM, ISBN_NO,
-            TRGT_GRD_CN, SUBJ_CD, SUBJ_CL_ID,
-            TAGLINE, BOOK_SMRY, TOC_CN, INSTR_USER_ID,
+            TRGT_GRD_CN, SUBJ_ID, COURSE_SN,
+            TAGLINE, BOOK_SMRY, TOC_CN,
             SALE_PRC_AMT, PURCH_PRC_AMT, DLVR_AMT,
             THMB_IMG, USE_YN, RGTR_ID,
             LAST_MDFR_ID, REG_DT, MDFCN_DT
         ) VALUES (
             #{textbookNm}, #{pubrNm, jdbcType=VARCHAR}, #{authrNm, jdbcType=VARCHAR},
             #{isbnNo, jdbcType=VARCHAR}, #{trgtGrdCn, jdbcType=VARCHAR},
-            #{subjCd, jdbcType=CHAR}, #{subjClId, jdbcType=NUMERIC},
+            #{subjId, jdbcType=NUMERIC}, #{courseSn, jdbcType=NUMERIC},
             #{tagline, jdbcType=VARCHAR}, #{bookSmry, jdbcType=VARCHAR},
-            #{tocCn, jdbcType=VARCHAR}, #{instrUserId, jdbcType=VARCHAR},
+            #{tocCn, jdbcType=VARCHAR},
             #{salePrcAmt}, #{purchPrcAmt, jdbcType=NUMERIC}, #{dlvrAmt, jdbcType=NUMERIC},
             #{thmbImg, jdbcType=VARCHAR}, NVL(#{useYn, jdbcType=CHAR}, 'Y'),
             #{rgtrId}, #{lastMdfrId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
@@ -130,12 +158,11 @@
             , AUTHR_NM      = #{authrNm, jdbcType=VARCHAR}
             , ISBN_NO       = #{isbnNo, jdbcType=VARCHAR}
             , TRGT_GRD_CN   = #{trgtGrdCn, jdbcType=VARCHAR}
-            , SUBJ_CD       = #{subjCd, jdbcType=CHAR}
-            , SUBJ_CL_ID    = #{subjClId, jdbcType=NUMERIC}
+            , SUBJ_ID       = #{subjId, jdbcType=NUMERIC}
+            , COURSE_SN     = #{courseSn, jdbcType=NUMERIC}
             , TAGLINE       = #{tagline, jdbcType=VARCHAR}
             , BOOK_SMRY     = #{bookSmry, jdbcType=VARCHAR}
             , TOC_CN        = #{tocCn, jdbcType=VARCHAR}
-            , INSTR_USER_ID = #{instrUserId, jdbcType=VARCHAR}
             , SALE_PRC_AMT  = #{salePrcAmt}
             , PURCH_PRC_AMT = #{purchPrcAmt, jdbcType=NUMERIC}
             , DLVR_AMT      = #{dlvrAmt, jdbcType=NUMERIC}
@@ -180,6 +207,11 @@
         JOIN TEXTBOOK_INVENTORY i ON t.TEXTBOOK_SN = i.TEXTBOOK_SN
         WHERE t.USE_YN = 'Y'
         AND i.SALABLE_CNT = 0
+    </select>
+
+    <!-- 보관함 (논리 삭제된 교재) -->
+    <select id="countArchivedTextbook" resultType="int">
+        SELECT COUNT(*) FROM TEXTBOOK WHERE USE_YN = 'N'
     </select>
 
 </mapper>

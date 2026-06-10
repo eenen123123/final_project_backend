@@ -30,4 +30,6 @@ public interface TextbookService {
     int retrieveDangerTextbookCount();
 
     int retrieveSoldOutTextbookCount();
+
+    int retrieveArchivedTextbookCount();
 }

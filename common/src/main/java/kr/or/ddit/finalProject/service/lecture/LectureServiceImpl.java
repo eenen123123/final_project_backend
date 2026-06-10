@@ -22,6 +22,11 @@ public class LectureServiceImpl implements LectureService {
     }
 
     @Override
+    public LectureDto retrieveLectureBySn(Long lectureSn) {
+        return lectureMapper.selectLectureBySn(lectureSn);
+    }
+
+    @Override
     @Transactional
     public boolean createLecture(LectureDto lectureDto) {
         return lectureMapper.insertLecture(lectureDto) > 0;
