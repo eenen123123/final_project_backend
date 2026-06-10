@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.log.SystemErrorLogMapper">
+
+    <insert id="insertSystemErrorLog" parameterType="kr.or.ddit.finalProject.dto.log.SystemErrorLogDto">
+        INSERT INTO SYSTEM_ERROR_LOG (TRACE_ID, ERROR_CODE, REQUEST_URI, ERROR_MESSAGE)
+        VALUES (#{traceId}, #{errorCode}, #{requestUri}, #{errorMessage})
+    </insert>
+
+</mapper>

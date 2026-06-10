@@ -229,20 +229,33 @@ function applyHrPaging() {
 
 function renderHrPagination(totalCount) {
   const container = document.getElementById("hr-pagination");
+  const info      = document.getElementById("hr-pagination-info");
   if (!container) return;
+
   const totalPage = Math.ceil(totalCount / HR_SCREEN_SIZE);
+  const start = totalCount === 0 ? 0 : (currentHrPage - 1) * HR_SCREEN_SIZE + 1;
+  const end   = Math.min(currentHrPage * HR_SCREEN_SIZE, totalCount);
+  if (info) {
+    info.textContent = totalCount === 0
+      ? '데이터가 없습니다.'
+      : `전체 ${totalCount}명 중 ${start} – ${end} 표시`;
+  }
+
   if (totalPage <= 1) { container.innerHTML = ""; return; }
 
   const endPage   = Math.min(Math.ceil(currentHrPage / HR_BLOCK_SIZE) * HR_BLOCK_SIZE, totalPage);
   const startPage = Math.max(endPage - HR_BLOCK_SIZE + 1, 1);
 
+  const BASE = "w-8 h-8 rounded-lg text-xs flex items-center justify-center";
   let html = "";
   if (startPage > 1)
-    html += `<button onclick="goHrPage(${startPage - 1})" class="emp-page-btn">이전</button>`;
-  for (let p = startPage; p <= endPage; p++)
-    html += `<button onclick="goHrPage(${p})" class="emp-page-btn${p === currentHrPage ? " active" : ""}">${p}</button>`;
+    html += `<button onclick="goHrPage(${startPage - 1})" class="${BASE} text-slate-400 hover:bg-slate-100">‹</button>`;
+  for (let p = startPage; p <= endPage; p++) {
+    const cls = p === currentHrPage ? "bg-blue-500 text-white font-bold" : "text-slate-400 hover:bg-slate-100";
+    html += `<button onclick="goHrPage(${p})" class="${BASE} ${cls}">${p}</button>`;
+  }
   if (endPage < totalPage)
-    html += `<button onclick="goHrPage(${endPage + 1})" class="emp-page-btn">다음</button>`;
+    html += `<button onclick="goHrPage(${endPage + 1})" class="${BASE} text-slate-400 hover:bg-slate-100">›</button>`;
   container.innerHTML = html;
 }
 
