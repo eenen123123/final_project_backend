@@ -24,4 +24,10 @@ public interface TextbookService {
 
     // 교재 삭제 (논리 삭제)
     void removeTextbook(Long textbookSn, String currentUserId);
+
+    int retrieveNewTextbookCountThisMonth();
+
+    int retrieveDangerTextbookCount();
+
+    int retrieveSoldOutTextbookCount();
 }
