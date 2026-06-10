@@ -168,11 +168,7 @@
                       th:data-dept="${g.deptCd}"
                       th:data-sort-ord="${g.sortOrd}"></option>
             </select>
-            <select id="mnt-stat-filter" class="hm-input" style="font-size:.78rem" onchange="renderUnassigned()">
-              <option value="">전체 상태</option>
-              <option value="01">재직</option>
-              <option value="02">휴직</option>
-              <option value="03">퇴사</option>
+            <select id="mnt-stat-filter" class="hm-input" style="font-size:.78rem" onchange="renderUnassigned()" data-ts-defer>
             </select>
           </div>
         </div>
