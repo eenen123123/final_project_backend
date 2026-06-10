@@ -35,4 +35,6 @@ public interface TextbookMapper {
     int countDangerTextbook();
 
     int countSoldOutTextbook();
+
+    int countArchivedTextbook();
 }
