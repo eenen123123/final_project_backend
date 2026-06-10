@@ -121,9 +121,9 @@ public class InstructorController {
         return ResponseEntity.ok(new PageResponse<>(items, total));
     }
 
-    // GET /api/instructors/{instrUuid}/board/material?page=0&size=10
-    @GetMapping("/{instrUuid}/board/material")
-    public ResponseEntity<PageResponse<InstructorPublicBoardItem>> getMaterialList(
+    // GET /api/instructors/{instrUuid}/board/dataroom?page=0&size=10
+    @GetMapping("/{instrUuid}/board/dataroom")
+    public ResponseEntity<PageResponse<InstructorPublicBoardItem>> getDataroomList(
             @PathVariable String instrUuid,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {

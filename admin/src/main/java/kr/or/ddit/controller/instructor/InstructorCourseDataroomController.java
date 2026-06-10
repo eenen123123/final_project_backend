@@ -23,19 +23,19 @@ import kr.or.ddit.finalProject.service.file.FileUploadService;
 import lombok.RequiredArgsConstructor;
 
 @Controller
-@RequestMapping("/instructor/course/materials")
+@RequestMapping("/instructor/course/dataroom")
 @RequiredArgsConstructor
-public class InstructorCourseMaterialsController {
+public class InstructorCourseDataroomController {
 
     private final CourseService courseService;
     private final FileUploadService fileUploadService;
 
     @GetMapping
-    public String materialsPage(Model model, Authentication authentication) {
+    public String dataroomPage(Model model, Authentication authentication) {
         String userId = authentication.getName();
         List<CourseDto> courseList = courseService.retrieveCoursesByInstructor(userId);
         model.addAttribute("courseList", courseList);
-        return "admin:/instructor/courseMaterials";
+        return "admin:/instructor/courseDataroom";
     }
 
     @GetMapping("/{courseSn}/files")
@@ -74,7 +74,7 @@ public class InstructorCourseMaterialsController {
             groupId = Integer.parseInt(course.getAtchFileId());
         }
 
-        // 임의로 FileCtxId를 courseSn으로 설정했습니다 
+        // 임의로 FileCtxId를 courseSn으로 설정했습니다
         FileDto result = fileUploadService.uploadFile(file, userId, groupId, FileCtxType.COURSE,
                 String.valueOf(courseSn));
         return ResponseEntity.ok(result);
