@@ -1,14 +1,25 @@
 <title th:fragment="pageTitle">강좌 관리 | HERMES</title>
 
 <div class="space-y-6">
-
   <!-- 헤더 -->
-  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div
+    class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+  >
     <div>
-      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">강좌 관리</h1>
-      <p class="text-sm text-slate-500 mt-1">등록된 강좌 목록을 조회하고 관리합니다.</p>
+      <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+        <span class="text-orange-500 font-medium">강좌 관리</span>
+      </div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
+        강좌 관리
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">
+        등록된 강좌 목록을 조회하고 관리합니다.
+      </p>
     </div>
-    <a th:href="@{/admin/course/new}" class="hm-btn-primary hm-btn-orange shrink-0">
+    <a
+      th:href="@{/admin/course/new}"
+      class="hm-btn-primary hm-btn-orange shrink-0"
+    >
       <i class="fa-solid fa-plus"></i>
       <span>강좌 등록</span>
     </a>
@@ -16,28 +27,57 @@
 
   <!-- 목록 테이블 -->
   <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
-
     <!-- 테이블 헤더 + 검색 -->
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-6 pt-5 pb-4 border-b border-slate-100">
+    <div
+      class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-6 pt-5 pb-4 border-b border-slate-100"
+    >
       <h2 class="text-sm font-bold text-slate-700 shrink-0">
         <i class="fa-solid fa-book-open text-orange-500 mr-2"></i>강좌 목록
-        <span class="ml-1 text-xs font-normal text-slate-400" th:text="'총 ' + ${totalCount} + '개'">총 0개</span>
+        <span
+          class="ml-1 text-xs font-normal text-slate-400"
+          th:text="'총 ' + ${totalCount} + '개'"
+          >총 0개</span
+        >
       </h2>
-      <form th:action="@{/admin/course/list}" method="get" class="flex items-center gap-2">
-        <input type="text" name="keyword" th:value="${param.keyword}"
-          class="hm-input" style="width: 14rem;" placeholder="강좌명 · 강사명 검색..." />
-        <div style="width: 7rem; flex-shrink: 0;">
+      <form
+        th:action="@{/admin/course/list}"
+        method="get"
+        class="flex items-center gap-2"
+      >
+        <input
+          type="text"
+          name="keyword"
+          th:value="${param.keyword}"
+          class="hm-input"
+          style="width: 14rem"
+          placeholder="강좌명 · 강사명 검색..."
+        />
+        <div style="width: 7rem; flex-shrink: 0">
           <select name="opnnYn" class="hm-input cursor-pointer">
-            <option value="" th:selected="${param.opnnYn == null or param.opnnYn == ''}">전체</option>
+            <option
+              value=""
+              th:selected="${param.opnnYn == null or param.opnnYn == ''}"
+            >
+              전체
+            </option>
             <option value="Y" th:selected="${param.opnnYn == 'Y'}">공개</option>
-            <option value="N" th:selected="${param.opnnYn == 'N'}">비공개</option>
+            <option value="N" th:selected="${param.opnnYn == 'N'}">
+              비공개
+            </option>
           </select>
         </div>
-        <button type="submit" class="hm-btn-primary hm-btn-orange" style="padding: 0.6rem 1rem; white-space: nowrap;">
+        <button
+          type="submit"
+          class="hm-btn-primary hm-btn-orange"
+          style="padding: 0.6rem 1rem; white-space: nowrap"
+        >
           <i class="fa-solid fa-magnifying-glass"></i>
         </button>
-        <a th:href="@{/admin/course/list}"
-          class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors" title="초기화">
+        <a
+          th:href="@{/admin/course/list}"
+          class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+          title="초기화"
+        >
           <i class="fa-solid fa-rotate-left text-sm"></i>
         </a>
       </form>
@@ -46,7 +86,9 @@
     <div class="overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>
-          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+          <tr
+            class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider"
+          >
             <th class="py-4 px-6">강좌명</th>
             <th class="py-4 px-6 w-24">강사</th>
             <th class="py-4 px-6 w-36">과목 / 분류</th>
@@ -58,15 +100,16 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
-
           <!-- 강좌 없을 때 -->
           <tr th:if="${courseList == null or courseList.isEmpty()}">
             <td colspan="8" class="py-16 text-center">
               <div class="flex flex-col items-center gap-3 text-slate-300">
                 <i class="fa-solid fa-book-open text-4xl"></i>
                 <p class="text-sm">등록된 강좌가 없습니다.</p>
-                <a th:href="@{/admin/course/new}"
-                  class="text-xs text-orange-500 hover:text-orange-600 font-semibold">
+                <a
+                  th:href="@{/admin/course/new}"
+                  class="text-xs text-orange-500 hover:text-orange-600 font-semibold"
+                >
                   첫 강좌 등록하기 →
                 </a>
               </div>
@@ -74,91 +117,149 @@
           </tr>
 
           <!-- 강좌 목록 -->
-          <tr th:each="course : ${courseList}"
+          <tr
+            th:each="course : ${courseList}"
             class="hover:bg-slate-50/60 transition-colors cursor-pointer"
-            th:onclick="|location.href='@{/admin/course/detail(courseSn=${course.courseSn})}'|">
-
+            th:onclick="|location.href='@{/admin/course/detail(courseSn=${course.courseSn})}'|"
+          >
             <!-- 강좌명 -->
             <td class="py-4 px-6">
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl overflow-hidden border border-slate-200 shrink-0 bg-slate-100 flex items-center justify-center">
-                  <img th:if="${course.thmbImg != null}" th:src="${course.thmbImg}" alt="강좌 썸네일"
-                    class="w-full h-full object-cover" />
-                  <i th:unless="${course.thmbImg != null}" class="fa-solid fa-book-open text-slate-300"></i>
+                <div
+                  class="w-10 h-10 rounded-xl overflow-hidden border border-slate-200 shrink-0 bg-slate-100 flex items-center justify-center"
+                >
+                  <img
+                    th:if="${course.thmbImg != null}"
+                    th:src="${course.thmbImg}"
+                    alt="강좌 썸네일"
+                    class="w-full h-full object-cover"
+                  />
+                  <i
+                    th:unless="${course.thmbImg != null}"
+                    class="fa-solid fa-book-open text-slate-300"
+                  ></i>
                 </div>
                 <div class="min-w-0">
-                  <p class="font-semibold text-slate-800 truncate max-w-xs" th:text="${course.courseNm}">강좌명</p>
+                  <p
+                    class="font-semibold text-slate-800 truncate max-w-xs"
+                    th:text="${course.courseNm}"
+                  >
+                    강좌명
+                  </p>
                 </div>
               </div>
             </td>
 
             <!-- 강사 -->
             <td class="py-4 px-6">
-              <p class="text-sm text-slate-700 truncate" th:text="${course.instrNm ?: '-'}">강사명</p>
+              <p
+                class="text-sm text-slate-700 truncate"
+                th:text="${course.instrNm ?: '-'}"
+              >
+                강사명
+              </p>
             </td>
 
             <!-- 과목 / 분류 -->
             <td class="py-4 px-6">
-              <p class="text-sm font-medium text-slate-700 truncate" th:text="${course.subjNm ?: '-'}">과목명</p>
-              <p class="text-xs text-slate-400 truncate mt-0.5" th:text="${course.subjClNm ?: '-'}">분류</p>
+              <p
+                class="text-sm font-medium text-slate-700 truncate"
+                th:text="${course.subjNm ?: '-'}"
+              >
+                과목명
+              </p>
+              <p
+                class="text-xs text-slate-400 truncate mt-0.5"
+                th:text="${course.subjClNm ?: '-'}"
+              >
+                분류
+              </p>
             </td>
 
             <!-- 커리큘럼 -->
             <td class="py-4 px-6">
-              <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-600 truncate max-w-full inline-block"
-                th:text="${course.curriculumTitle ?: '-'}">커리큘럼</span>
+              <span
+                class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-600 truncate max-w-full inline-block"
+                th:text="${course.curriculumTitle ?: '-'}"
+                >커리큘럼</span
+              >
             </td>
 
             <!-- 수강료 -->
             <td class="py-4 px-6 text-right">
-              <span class="font-bold text-slate-800"
-                th:text="${course.coursePrice != null ? #numbers.formatInteger(course.coursePrice, 1, 'COMMA') + '원' : '무료'}">0원</span>
+              <span
+                class="font-bold text-slate-800"
+                th:text="${course.coursePrice != null ? #numbers.formatInteger(course.coursePrice, 1, 'COMMA') + '원' : '무료'}"
+                >0원</span
+              >
             </td>
 
             <!-- 강의 수 -->
             <td class="py-4 px-6 text-center">
-              <span class="w-8 h-8 rounded-lg bg-orange-50 text-orange-500 text-xs font-bold inline-flex items-center justify-center"
-                th:text="${(course.lectureCnt ?: 0) + '강'}">0강</span>
+              <span
+                class="w-8 h-8 rounded-lg bg-orange-50 text-orange-500 text-xs font-bold inline-flex items-center justify-center"
+                th:text="${(course.lectureCnt ?: 0) + '강'}"
+                >0강</span
+              >
             </td>
 
             <!-- 공개 여부 -->
             <td class="py-4 px-6 text-center">
-              <span th:if="${course.opnnYn == 'Y'}"
-                class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600">공개</span>
-              <span th:unless="${course.opnnYn == 'Y'}"
-                class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-400">비공개</span>
+              <span
+                th:if="${course.opnnYn == 'Y'}"
+                class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600"
+                >공개</span
+              >
+              <span
+                th:unless="${course.opnnYn == 'Y'}"
+                class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-400"
+                >비공개</span
+              >
             </td>
 
             <!-- 등록일 -->
             <td class="py-4 px-6 text-center">
-              <span class="text-xs text-slate-500"
-                th:text="${course.regDt != null ? #temporals.format(course.regDt, 'yyyy.MM.dd') : '-'}">-</span>
+              <span
+                class="text-xs text-slate-500"
+                th:text="${course.regDt != null ? #temporals.format(course.regDt, 'yyyy.MM.dd') : '-'}"
+                >-</span
+              >
             </td>
-
           </tr>
         </tbody>
       </table>
     </div>
 
     <!-- 페이지네이션 -->
-    <div th:if="${paginationInfo.totalPage > 1}"
-      class="flex items-center justify-center gap-1 py-5 border-t border-slate-100">
-      <a th:href="@{/admin/course/list(page=${paginationInfo.startPage - 1}, keyword=${param.keyword}, opnnYn=${param.opnnYn})}"
+    <div
+      th:if="${paginationInfo.totalPage > 1}"
+      class="flex items-center justify-center gap-1 py-5 border-t border-slate-100"
+    >
+      <a
+        th:href="@{/admin/course/list(page=${paginationInfo.startPage - 1}, keyword=${param.keyword}, opnnYn=${param.opnnYn})}"
         th:classappend="${paginationInfo.startPage == 1} ? 'pointer-events-none opacity-30' : ''"
-        class="w-8 h-8 flex items-center justify-center border border-slate-200 rounded text-slate-400 hover:bg-slate-50 text-sm">‹</a>
+        class="w-8 h-8 flex items-center justify-center border border-slate-200 rounded text-slate-400 hover:bg-slate-50 text-sm"
+        >‹</a
+      >
 
-      <th:block th:each="p : ${#numbers.sequence(paginationInfo.startPage, paginationInfo.endPage)}">
-        <a th:href="@{/admin/course/list(page=${p}, keyword=${param.keyword}, opnnYn=${param.opnnYn})}"
+      <th:block
+        th:each="p : ${#numbers.sequence(paginationInfo.startPage, paginationInfo.endPage)}"
+      >
+        <a
+          th:href="@{/admin/course/list(page=${p}, keyword=${param.keyword}, opnnYn=${param.opnnYn})}"
           th:text="${p}"
           th:classappend="${p == paginationInfo.page} ? 'bg-orange-500 text-white border-orange-500' : 'text-slate-500 border-slate-200 hover:bg-slate-50'"
-          class="w-8 h-8 flex items-center justify-center border rounded text-xs font-medium transition-colors">1</a>
+          class="w-8 h-8 flex items-center justify-center border rounded text-xs font-medium transition-colors"
+          >1</a
+        >
       </th:block>
 
-      <a th:href="@{/admin/course/list(page=${paginationInfo.endPage + 1}, keyword=${param.keyword}, opnnYn=${param.opnnYn})}"
+      <a
+        th:href="@{/admin/course/list(page=${paginationInfo.endPage + 1}, keyword=${param.keyword}, opnnYn=${param.opnnYn})}"
         th:classappend="${paginationInfo.endPage >= paginationInfo.totalPage} ? 'pointer-events-none opacity-30' : ''"
-        class="w-8 h-8 flex items-center justify-center border border-slate-200 rounded text-slate-400 hover:bg-slate-50 text-sm">›</a>
+        class="w-8 h-8 flex items-center justify-center border border-slate-200 rounded text-slate-400 hover:bg-slate-50 text-sm"
+        >›</a
+      >
     </div>
-
   </div>
-
 </div>
