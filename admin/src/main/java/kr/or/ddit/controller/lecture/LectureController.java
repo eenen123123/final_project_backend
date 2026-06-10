@@ -46,6 +46,7 @@ public class LectureController {
     @PostMapping("/insert")
     public String insertLecturePost(@ModelAttribute LectureDto lectureDto,
             Authentication authentication, RedirectAttributes redirectAttributes) {
+        log.info("강의 등록 요청 - lectureDto: {}", lectureDto);
         String userId = authentication.getName();
         lectureDto.setRgtrId(userId);
         lectureDto.setLastMdfrId(userId);
@@ -82,6 +83,8 @@ public class LectureController {
         model.addAttribute("lecture", lecture);
         model.addAttribute("course", course);
         model.addAttribute("lectures", lectures);
+
+        log.info("lecture : {}", lecture);
         return "admin:/lecture/view-lecture";
     }
 

@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -36,6 +38,15 @@ public class FileUploadService {
     private String fileServerPath;
 
     private final RestClient restClient = RestClient.create();
+    private final RestClient videoRestClient = buildVideoRestClient();
+
+    private static RestClient buildVideoRestClient() {
+        org.springframework.http.client.SimpleClientHttpRequestFactory factory =
+                new org.springframework.http.client.SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(30_000);
+        factory.setReadTimeout(0); // 타임아웃 없음 (대용량 영상 업로드)
+        return RestClient.builder().requestFactory(factory).build();
+    }
     private final FileMapper fileUploadMapper;
 
     /*  
@@ -196,10 +207,10 @@ public class FileUploadService {
         try {
             validateVideoMagicBytes(file);
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-            body.add("file", multipartResource(file));
+            body.add("file", streamingResource(file));
 
             StoredFileResponse fileResponse =
-                    restClient.post().uri(fileServerPath).contentType(MediaType.MULTIPART_FORM_DATA)
+                    videoRestClient.post().uri(fileServerPath).contentType(MediaType.MULTIPART_FORM_DATA)
                             .headers(this::relayAuthorizationHeader).body(body).retrieve()
                             .body(StoredFileResponse.class);
             log.info("영상 파일 서버 업로드 성공: {}", fileResponse);
@@ -311,6 +322,15 @@ public class FileUploadService {
             public String getFilename() {
                 return file.getOriginalFilename();
             }
+        };
+    }
+
+    private Resource streamingResource(MultipartFile file) throws IOException {
+        return new InputStreamResource(file.getInputStream()) {
+            @Override
+            public String getFilename() { return file.getOriginalFilename(); }
+            @Override
+            public long contentLength() { return file.getSize(); }
         };
     }
 

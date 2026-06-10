@@ -527,6 +527,7 @@
       uploading = false;
 
       if (!fileServerId) return;
+      alert("영상 번호: " + fileServerId); // 디버그용
 
       document.getElementById("atchFileId").value = fileServerId;
       showHermesToast("영상 업로드 완료. 강의를 등록합니다.", "success");

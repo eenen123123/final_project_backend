@@ -5,33 +5,33 @@
 
 <mapper namespace="kr.or.ddit.finalProject.mapper.lecture.LectureMapper">
 
-  <resultMap id="lectureMap" type="kr.or.ddit.finalProject.dto.lecture.LectureDto">
-    <id property="lectureSn"       column="LECTURE_SN" />
-    <result property="courseSn"        column="COURSE_SN" />
-    <result property="lectureNm"       column="LECTURE_NM" />
-    <result property="lectureTypeCd"   column="LECTURE_TYPE_CD" />
-    <result property="lectureDuration" column="LECTURE_DURATION" />
-    <result property="lectureExplnCn"  column="LECTURE_EXPLN_CN" />
-    <result property="opnnYn"          column="OPNN_YN" />
-    <result property="lockYn"          column="LOCK_YN" />
-    <result property="prereqLectureSn" column="PREREQ_LECTURE_SN" />
-    <result property="atchFileId"       column="ATCH_FILE_ID" />
-    <result property="sortOrd"         column="SORT_ORD" />
-    <result property="rgtrId"          column="RGTR_ID" />
-    <result property="lastMdfrId"      column="LAST_MDFR_ID" />
-  </resultMap>
+    <resultMap id="lectureMap" type="kr.or.ddit.finalProject.dto.lecture.LectureDto">
+        <id property="lectureSn" column="LECTURE_SN" />
+        <result property="courseSn" column="COURSE_SN" />
+        <result property="lectureNm" column="LECTURE_NM" />
+        <result property="lectureTypeCd" column="LECTURE_TYPE_CD" />
+        <result property="lectureDuration" column="LECTURE_DURATION" />
+        <result property="lectureExplnCn" column="LECTURE_EXPLN_CN" />
+        <result property="opnnYn" column="OPNN_YN" />
+        <result property="lockYn" column="LOCK_YN" />
+        <result property="prereqLectureSn" column="PREREQ_LECTURE_SN" />
+        <result property="atchFileId" column="ATCH_FILE_ID" />
+        <result property="sortOrd" column="SORT_ORD" />
+        <result property="rgtrId" column="RGTR_ID" />
+        <result property="lastMdfrId" column="LAST_MDFR_ID" />
+    </resultMap>
 
-  <resultMap id="lectureProgressMap" type="kr.or.ddit.finalProject.dto.lecture.LectureProgressDto">
-    <result property="lectureSn"       column="LECTURE_SN" />
-    <result property="lectureNm"       column="LECTURE_NM" />
-    <result property="lectureDuration" column="LECTURE_DURATION" />
-    <result property="lectureTypeCd"   column="LECTURE_TYPE_CD" />
-    <result property="sortOrd"         column="SORT_ORD" />
-    <result property="cmplCnt"         column="CMPL_CNT" />
-    <result property="totMemberCnt"    column="TOT_MEMBER_CNT" />
-  </resultMap>
+    <resultMap id="lectureProgressMap" type="kr.or.ddit.finalProject.dto.lecture.LectureProgressDto">
+        <result property="lectureSn" column="LECTURE_SN" />
+        <result property="lectureNm" column="LECTURE_NM" />
+        <result property="lectureDuration" column="LECTURE_DURATION" />
+        <result property="lectureTypeCd" column="LECTURE_TYPE_CD" />
+        <result property="sortOrd" column="SORT_ORD" />
+        <result property="cmplCnt" column="CMPL_CNT" />
+        <result property="totMemberCnt" column="TOT_MEMBER_CNT" />
+    </resultMap>
 
-  <select id="selectLecturesWithProgress" resultMap="lectureProgressMap">
+    <select id="selectLecturesWithProgress" resultMap="lectureProgressMap">
     SELECT
         l.LECTURE_SN,
         l.LECTURE_NM,
@@ -51,9 +51,9 @@
     WHERE c.CLASS_SN = #{classSn}
     GROUP BY l.LECTURE_SN, l.LECTURE_NM, l.LECTURE_DURATION, l.LECTURE_TYPE_CD, l.SORT_ORD
     ORDER BY l.SORT_ORD ASC, l.LECTURE_SN ASC
-  </select>
+    </select>
 
-  <select id="selectLectureByCourseSn" resultMap="lectureMap">
+    <select id="selectLectureByCourseSn" resultMap="lectureMap">
     SELECT
       LECTURE_SN, COURSE_SN, LECTURE_NM, LECTURE_TYPE_CD,
       LECTURE_DURATION, LECTURE_EXPLN_CN, OPNN_YN, LOCK_YN,
@@ -61,18 +61,18 @@
     FROM LECTURE
     WHERE COURSE_SN = #{courseSn}
     ORDER BY SORT_ORD ASC, LECTURE_SN ASC
-  </select>
+    </select>
 
-  <select id="selectLectureBySn" resultMap="lectureMap">
+    <select id="selectLectureBySn" resultMap="lectureMap">
     SELECT
       LECTURE_SN, COURSE_SN, LECTURE_NM, LECTURE_TYPE_CD,
       LECTURE_DURATION, LECTURE_EXPLN_CN, OPNN_YN, LOCK_YN,
-      PREREQ_LECTURE_SN, SORT_ORD, RGTR_ID, LAST_MDFR_ID
+      PREREQ_LECTURE_SN, SORT_ORD, RGTR_ID, LAST_MDFR_ID, ATCH_FILE_ID
     FROM LECTURE
     WHERE LECTURE_SN = #{lectureSn}
-  </select>
+    </select>
 
-  <insert id="insertLecture" parameterType="kr.or.ddit.finalProject.dto.lecture.LectureDto">
+    <insert id="insertLecture" parameterType="kr.or.ddit.finalProject.dto.lecture.LectureDto">
     INSERT INTO LECTURE (
       COURSE_SN, LECTURE_NM, LECTURE_TYPE_CD, ATCH_FILE_ID,
       LECTURE_DURATION, LECTURE_EXPLN_CN, OPNN_YN, LOCK_YN,
@@ -91,9 +91,9 @@
       #{rgtrId},
       #{lastMdfrId}
     )
-  </insert>
+    </insert>
 
-  <update id="updateLecture" parameterType="kr.or.ddit.finalProject.dto.lecture.LectureDto">
+    <update id="updateLecture" parameterType="kr.or.ddit.finalProject.dto.lecture.LectureDto">
     UPDATE LECTURE
     SET
       LECTURE_NM       = #{lectureNm},
@@ -106,10 +106,10 @@
       SORT_ORD         = #{sortOrd, jdbcType=NUMERIC},
       LAST_MDFR_ID     = #{lastMdfrId}
     WHERE LECTURE_SN = #{lectureSn}
-  </update>
+    </update>
 
-  <delete id="deleteLecture">
+    <delete id="deleteLecture">
     DELETE FROM LECTURE WHERE LECTURE_SN = #{lectureSn}
-  </delete>
+    </delete>
 
 </mapper>

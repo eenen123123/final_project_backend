@@ -43,8 +43,7 @@ public class AdminFileController {
 
     @PostMapping("/api/admin/lecture/video/upload")
     public ResponseEntity<Long> uploadLectureVideo(@RequestParam("file") MultipartFile file,
-            @RequestParam("courseSn") String courseSn,
-            Authentication authentication) {
+            @RequestParam("courseSn") String courseSn, Authentication authentication) {
 
         if (file == null || file.isEmpty()) {
             throw new FinalProjectException(ErrorCode.FILE_EMPTY);
@@ -96,10 +95,14 @@ public class AdminFileController {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
-        HttpURLConnection conn = openFileServerConnection(fileServerId, "view");
-        response.setContentType(conn.getContentType());
-        try (InputStream in = conn.getInputStream()) {
-            in.transferTo(response.getOutputStream());
+        try {
+            HttpURLConnection conn = openFileServerConnection(fileServerId, "view");
+            response.setContentType(conn.getContentType());
+            try (InputStream in = conn.getInputStream()) {
+                in.transferTo(response.getOutputStream());
+            }
+        } catch (IOException e) {
+            // 브라우저가 스트리밍 도중 연결을 끊은 경우 (영상 재생 중 페이지 이동 등) — 정상 동작
         }
     }
 
