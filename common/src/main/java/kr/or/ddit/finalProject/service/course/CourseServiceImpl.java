@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import kr.or.ddit.finalProject.dto.course.CourseDto;
 import kr.or.ddit.finalProject.dto.course.CourseListDto;
 import kr.or.ddit.finalProject.dto.course.SubjectClassificationDto;
+import kr.or.ddit.finalProject.dto.course.SubjectDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.mapper.course.CourseMapper;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
@@ -93,6 +94,12 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public List<SubjectClassificationDto> retrieveSubjectClassificationList() {
         return courseMapper.selectSubjectClassificationList();
+    }
+
+    // 대분류별 소분류 목록 조회
+    @Override
+    public List<SubjectDto> retrieveSubjectsBySubjClId(Long subjClId) {
+        return courseMapper.selectSubjectsBySubjClId(subjClId);
     }
 
     // 과목 분류별 강사 조회

@@ -14,6 +14,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.finalProject.dto.course.CourseListDto;
+import kr.or.ddit.finalProject.dto.course.SubjectDto;
 import kr.or.ddit.finalProject.dto.textbook.TextbookDto;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
 import kr.or.ddit.finalProject.service.course.CourseService;
@@ -33,14 +39,33 @@ public class TextbookController {
     private final CourseService courseService; // 과목 분류 조회용
     private final CloudinaryUploadService cloudinaryUploadService; // 이미지 업로드 용
 
+    // 대분류별 소분류 목록 조회 (AJAX)
+    @GetMapping("/api/subjects")
+    @ResponseBody
+    public List<SubjectDto> subjectsBySubjClId(@RequestParam Long subjClId) {
+        return courseService.retrieveSubjectsBySubjClId(subjClId);
+    }
+
+    // 강좌 선택 팝업
+    @GetMapping("/popup/courses")
+    public String coursePopup(Model model) {
+        model.addAttribute("courseList", courseService.retrieveCourseList(new PaginationInfo<CourseListDto>(1000, 1)));
+        model.addAttribute("subjClList", courseService.retrieveSubjectClassificationList());
+        return "textbook/textbookPopup";
+    }
+
     // 교재 목록
     @GetMapping
     public String textbookList(@RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Long subjClId, Model model) {
+            @RequestParam(required = false) Long subjClId,
+            @RequestParam(defaultValue = "false") boolean archived,
+            @RequestParam(defaultValue = "recent") String sort,
+            Model model) {
         PaginationInfo<TextbookDto> paginationInfo = new PaginationInfo<>(size, 5, page);
-        TextbookDto condition = TextbookDto.builder().keyword(keyword).subjClId(subjClId).build();
+        TextbookDto condition = TextbookDto.builder()
+                .keyword(keyword).subjClId(subjClId).showArchived(archived).sort(sort).build();
         paginationInfo.setDetailCondition(condition);
         int totalCount = textbookService.retrieveTextbookListCount(paginationInfo);
         List<TextbookDto> textbookList = textbookService.retrieveTextbookList(paginationInfo);
@@ -50,7 +75,8 @@ public class TextbookController {
         model.addAttribute("subjClList", courseService.retrieveSubjectClassificationList());
         model.addAttribute("newCount", textbookService.retrieveNewTextbookCountThisMonth());
         model.addAttribute("dangerCount", textbookService.retrieveDangerTextbookCount());
-        model.addAttribute("soldOutCount", textbookService.retrieveSoldOutTextbookCount());
+        model.addAttribute("archivedCount", textbookService.retrieveArchivedTextbookCount());
+        model.addAttribute("archived", archived);
 
         return "admin:/textbook/textbook_list";
     }
@@ -67,7 +93,8 @@ public class TextbookController {
     @GetMapping("/new")
     public String textbookNewForm(Model model) {
         model.addAttribute("textbookDto", new TextbookDto());
-        model.addAttribute("subjClList", courseService.retrieveSubjectClassificationList()); // 추가
+        model.addAttribute("subjClList", courseService.retrieveSubjectClassificationList());
+        model.addAttribute("courseList", courseService.retrieveCourseList(new PaginationInfo<CourseListDto>(1000, 1)));
         return "admin:/textbook/textbook_form";
     }
 
@@ -99,7 +126,8 @@ public class TextbookController {
     public String textbookEditForm(@PathVariable Long textbookSn, Model model) {
         TextbookDto textbookDto = textbookService.retrieveTextbookBySn(textbookSn);
         model.addAttribute("textbookDto", textbookDto);
-        model.addAttribute("subjClList", courseService.retrieveSubjectClassificationList()); // 추가
+        model.addAttribute("subjClList", courseService.retrieveSubjectClassificationList());
+        model.addAttribute("courseList", courseService.retrieveCourseList(new PaginationInfo<CourseListDto>(1000, 1)));
         return "admin:/textbook/textbook_form";
     }
 

@@ -1,14 +1,18 @@
 package kr.or.ddit.controller.pd;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import kr.or.ddit.service.pd.PdService;
+import lombok.RequiredArgsConstructor;
 
 
 @Controller
 @RequestMapping("/admin/media")
+@RequiredArgsConstructor
 public class PdController {
+    private final PdService pdService;
 
     /**
      * 라이브 VOD 아카이빙
@@ -33,10 +37,18 @@ public class PdController {
      * @return
      */
     @GetMapping("/upload")
-    public String getUpload() {
+    public String getUpload(Model model) {
+        model.addAttribute("courseOptions", pdService.getCourseOptions());
         return "admin:/pd/media_upload";
     }
-    
+
+    @GetMapping("/media-list")
+    public String getMediaList(Model model) {
+        model.addAttribute("courseOptions", pdService.getCourseOptions());
+        return "admin:/pd/media_list";
+    }
+
+
     /**
      * 강의 파일 관리
      * @return
@@ -53,7 +65,7 @@ public class PdController {
     public String getOptimize() {
         return "admin:/pd/media_optimize";
     }
-    
+
     /**
      * 품질 및 호환성 관리
      */
@@ -61,8 +73,7 @@ public class PdController {
     public String getQuality() {
         return "admin:/pd/media_quality";
     }
-    
-    
-    
+
+
 
 }
