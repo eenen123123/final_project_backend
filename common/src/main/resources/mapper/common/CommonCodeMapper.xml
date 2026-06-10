@@ -4,13 +4,110 @@
 
 <mapper namespace="kr.or.ddit.finalProject.mapper.common.CommonCodeMapper">
 
-      <select id="selectByClCode" resultType="kr.or.ddit.finalProject.dto.common.CommonCodeDto">
-            SELECT TRIM(COM_CD)   AS COM_CD
-                 , COM_CD_NM
-            FROM COM_CD
-            WHERE TRIM(CL_CODE) = #{clCode}
-              AND USE_YN = 'Y'
-            ORDER BY COM_CD
-      </select>
+    <resultMap id="ComClRM" type="kr.or.ddit.finalProject.dto.code.ComClDto">
+        <id     property="clCode"     column="CL_CODE"/>
+        <result property="clCdNm"     column="CL_CD_NM"/>
+        <result property="clCdExpln"  column="CL_CD_EXPLN"/>
+        <result property="useYn"      column="USE_YN"/>
+        <result property="rgtrId"     column="RGTR_ID"/>
+        <result property="lastMdfrId" column="LAST_MDFR_ID"/>
+        <result property="regDt"      column="REG_DT"/>
+        <result property="mdfcnDt"    column="MDFCN_DT"/>
+        <result property="codeCount"  column="CODE_COUNT"/>
+    </resultMap>
+
+    <resultMap id="ComCdRM" type="kr.or.ddit.finalProject.dto.common.CommonCodeDto">
+        <id     property="comCd"      column="COM_CD"/>
+        <id     property="clCode"     column="CL_CODE"/>
+        <result property="comCdNm"    column="COM_CD_NM"/>
+        <result property="comCdExpln" column="COM_CD_EXPLN"/>
+        <result property="useYn"      column="USE_YN"/>
+        <result property="rgtrId"     column="RGTR_ID"/>
+        <result property="lastMdfrId" column="LAST_MDFR_ID"/>
+        <result property="regDt"      column="REG_DT"/>
+        <result property="mdfcnDt"    column="MDFCN_DT"/>
+    </resultMap>
+
+    <!-- ── 드롭다운 로딩 (USE_YN='Y' 만) ──────────────────────── -->
+    <select id="selectByClCode" resultType="kr.or.ddit.finalProject.dto.common.CommonCodeDto">
+        SELECT TRIM(COM_CD) AS COM_CD, COM_CD_NM
+        FROM COM_CD
+        WHERE TRIM(CL_CODE) = #{clCode}
+          AND USE_YN = 'Y'
+        ORDER BY COM_CD
+    </select>
+
+    <!-- ── 분류(COM_CL) 관리 ──────────────────────────────────── -->
+    <select id="selectAllGroups" resultMap="ComClRM">
+        SELECT TRIM(C.CL_CODE)     AS CL_CODE,
+               TRIM(C.CL_CD_NM)   AS CL_CD_NM,
+               C.CL_CD_EXPLN,
+               C.USE_YN,
+               C.RGTR_ID,
+               C.LAST_MDFR_ID,
+               TO_CHAR(C.REG_DT,   'YYYY-MM-DD') AS REG_DT,
+               TO_CHAR(C.MDFCN_DT, 'YYYY-MM-DD') AS MDFCN_DT,
+               (SELECT COUNT(*) FROM COM_CD D WHERE TRIM(D.CL_CODE) = TRIM(C.CL_CODE)) AS CODE_COUNT
+        FROM COM_CL C
+        ORDER BY C.CL_CODE
+    </select>
+
+    <insert id="insertGroup" parameterType="kr.or.ddit.finalProject.dto.code.ComClDto">
+        INSERT INTO COM_CL (CL_CODE, CL_CD_NM, CL_CD_EXPLN, USE_YN, RGTR_ID, REG_DT)
+        VALUES (#{clCode}, #{clCdNm}, #{clCdExpln}, NVL(#{useYn}, 'Y'), #{rgtrId}, SYSTIMESTAMP)
+    </insert>
+
+    <update id="updateGroup" parameterType="kr.or.ddit.finalProject.dto.code.ComClDto">
+        UPDATE COM_CL SET
+            CL_CD_NM     = #{clCdNm},
+            CL_CD_EXPLN  = #{clCdExpln},
+            USE_YN       = #{useYn},
+            LAST_MDFR_ID = #{lastMdfrId},
+            MDFCN_DT     = SYSTIMESTAMP
+        WHERE TRIM(CL_CODE) = #{clCode}
+    </update>
+
+    <delete id="deleteGroup">
+        DELETE FROM COM_CL WHERE TRIM(CL_CODE) = #{clCode}
+    </delete>
+
+    <!-- ── 코드(COM_CD) 관리 ──────────────────────────────────── -->
+    <select id="selectAllByClCode" resultMap="ComCdRM">
+        SELECT TRIM(COM_CD)  AS COM_CD,
+               TRIM(CL_CODE) AS CL_CODE,
+               COM_CD_NM,
+               COM_CD_EXPLN,
+               USE_YN,
+               RGTR_ID,
+               LAST_MDFR_ID,
+               TO_CHAR(REG_DT,   'YYYY-MM-DD') AS REG_DT,
+               TO_CHAR(MDFCN_DT, 'YYYY-MM-DD') AS MDFCN_DT
+        FROM COM_CD
+        WHERE TRIM(CL_CODE) = #{clCode}
+        ORDER BY COM_CD
+    </select>
+
+    <insert id="insertCode" parameterType="kr.or.ddit.finalProject.dto.common.CommonCodeDto">
+        INSERT INTO COM_CD (COM_CD, CL_CODE, COM_CD_NM, COM_CD_EXPLN, USE_YN, RGTR_ID, REG_DT)
+        VALUES (#{comCd}, #{clCode}, #{comCdNm}, #{comCdExpln}, NVL(#{useYn}, 'Y'), #{rgtrId}, SYSTIMESTAMP)
+    </insert>
+
+    <update id="updateCode" parameterType="kr.or.ddit.finalProject.dto.common.CommonCodeDto">
+        UPDATE COM_CD SET
+            COM_CD_NM    = #{comCdNm},
+            COM_CD_EXPLN = #{comCdExpln},
+            USE_YN       = #{useYn},
+            LAST_MDFR_ID = #{lastMdfrId},
+            MDFCN_DT     = SYSTIMESTAMP
+        WHERE TRIM(COM_CD) = #{comCd} AND TRIM(CL_CODE) = #{clCode}
+    </update>
+
+    <delete id="deleteCode">
+        DELETE FROM COM_CD WHERE TRIM(COM_CD) = #{comCd} AND TRIM(CL_CODE) = #{clCode}
+    </delete>
+
+    <delete id="deleteCodesByGroup">
+        DELETE FROM COM_CD WHERE TRIM(CL_CODE) = #{clCode}
+    </delete>
 
 </mapper>

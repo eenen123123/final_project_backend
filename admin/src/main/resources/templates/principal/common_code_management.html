@@ -1,0 +1,426 @@
+<title th:fragment="pageTitle">공통코드 관리 | HERMES</title>
+
+<div class="space-y-6">
+
+  <!-- 페이지 헤더 -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">공통코드 관리</h1>
+      <p class="text-sm text-slate-500 mt-1">전체 화면의 select box 옵션을 관리합니다. 분류를 선택하면 해당 코드 목록이 우측에 표시됩니다.</p>
+    </div>
+  </div>
+
+  <!-- 본문: 좌측 분류 / 우측 코드 -->
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+
+    <!-- 좌측: 분류 목록 -->
+    <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+        <h2 class="text-sm font-semibold text-slate-700">코드 분류 목록</h2>
+        <button class="hm-btn-primary text-xs px-3 py-1.5 flex items-center gap-1"
+                onclick="openGroupModal(null)">
+          <i class="fa-solid fa-plus text-xs"></i> 분류 추가
+        </button>
+      </div>
+      <ul id="groupList" class="divide-y divide-slate-50 overflow-y-auto max-h-[65vh]">
+        <li class="px-5 py-3 text-xs text-slate-400">로딩 중...</li>
+      </ul>
+    </div>
+
+    <!-- 우측: 코드 목록 -->
+    <div class="lg:col-span-3 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+        <div>
+          <h2 class="text-sm font-semibold text-slate-700">코드 목록</h2>
+          <p id="selectedGroupLabel" class="text-xs text-slate-400 mt-0.5">분류를 선택하세요</p>
+        </div>
+        <button id="addCodeBtn" class="hm-btn-primary text-xs px-3 py-1.5 flex items-center gap-1 hidden"
+                onclick="openCodeModal(null)">
+          <i class="fa-solid fa-plus text-xs"></i> 코드 추가
+        </button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead>
+            <tr class="bg-slate-50 text-xs text-slate-400 font-semibold uppercase tracking-wider">
+              <th class="px-4 py-3 w-24">코드값</th>
+              <th class="px-4 py-3">표시명</th>
+              <th class="px-4 py-3">설명</th>
+              <th class="px-4 py-3 w-16 text-center">사용</th>
+              <th class="px-4 py-3 w-20 text-center">관리</th>
+            </tr>
+          </thead>
+          <tbody id="codeTableBody">
+            <tr>
+              <td colspan="5" class="px-4 py-8 text-center text-xs text-slate-400">
+                좌측에서 분류를 선택하세요.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     분류 모달 (등록/수정)
+═══════════════════════════════════════════════════════════ -->
+<div id="groupModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+      <h3 id="groupModalTitle" class="text-base font-bold text-slate-800">분류 등록</h3>
+      <button class="text-slate-400 hover:text-slate-600" onclick="closeModal('groupModal')">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+    <div class="px-6 py-5 space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1">분류코드 <span class="text-rose-500">*</span></label>
+        <input id="gm-clCode" type="text" maxlength="10" placeholder="영문/숫자 최대 10자"
+               class="hm-input w-full uppercase" />
+        <p class="text-xs text-slate-400 mt-1">등록 후 변경 불가. 예: EMPL_STAT, RESIGN_RSN</p>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1">분류명 <span class="text-rose-500">*</span></label>
+        <input id="gm-clCdNm" type="text" maxlength="100" placeholder="표시명 (예: 재직 상태)"
+               class="hm-input w-full" />
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1">설명</label>
+        <input id="gm-clCdExpln" type="text" maxlength="200" placeholder="간단한 설명"
+               class="hm-input w-full" />
+      </div>
+      <div class="flex items-center gap-2">
+        <label class="text-xs font-semibold text-slate-500">사용 여부</label>
+        <select id="gm-useYn" class="hm-input text-sm" style="width:6rem">
+          <option value="Y">사용</option>
+          <option value="N">미사용</option>
+        </select>
+      </div>
+    </div>
+    <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-2">
+      <button class="hm-btn-secondary text-sm px-4 py-2" onclick="closeModal('groupModal')">취소</button>
+      <button class="hm-btn-primary text-sm px-4 py-2" onclick="saveGroup()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     코드 모달 (등록/수정)
+═══════════════════════════════════════════════════════════ -->
+<div id="codeModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+      <h3 id="codeModalTitle" class="text-base font-bold text-slate-800">코드 등록</h3>
+      <button class="text-slate-400 hover:text-slate-600" onclick="closeModal('codeModal')">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+    <div class="px-6 py-5 space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1">코드값 <span class="text-rose-500">*</span></label>
+        <input id="cm-comCd" type="text" maxlength="10" placeholder="최대 10자. 예: 01, MATH"
+               class="hm-input w-full uppercase" />
+        <p class="text-xs text-slate-400 mt-1">등록 후 변경 불가. DB에 저장되는 실제 값.</p>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1">표시명 <span class="text-rose-500">*</span></label>
+        <input id="cm-comCdNm" type="text" maxlength="100" placeholder="화면에 보이는 이름 (예: 정규직)"
+               class="hm-input w-full" />
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1">설명</label>
+        <input id="cm-comCdExpln" type="text" maxlength="200" placeholder="간단한 설명"
+               class="hm-input w-full" />
+      </div>
+      <div class="flex items-center gap-2">
+        <label class="text-xs font-semibold text-slate-500">사용 여부</label>
+        <select id="cm-useYn" class="hm-input text-sm" style="width:6rem">
+          <option value="Y">사용</option>
+          <option value="N">미사용</option>
+        </select>
+      </div>
+    </div>
+    <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-2">
+      <button class="hm-btn-secondary text-sm px-4 py-2" onclick="closeModal('codeModal')">취소</button>
+      <button class="hm-btn-primary text-sm px-4 py-2" onclick="saveCode()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  let selectedClCode = null;
+  let editingGroupCode = null;
+  let editingComCd = null;
+
+  // ── 초기 로딩 ─────────────────────────────────────────────────
+  loadGroups();
+
+  // ── 분류 목록 로딩 ─────────────────────────────────────────────
+  async function loadGroups() {
+    const res = await fetch('/admin/common-codes/api/groups');
+    const groups = await res.json();
+    renderGroups(groups);
+  }
+
+  function renderGroups(groups) {
+    const ul = document.getElementById('groupList');
+    if (!groups.length) {
+      ul.innerHTML = '<li class="px-5 py-4 text-xs text-slate-400">등록된 분류가 없습니다.</li>';
+      return;
+    }
+    ul.innerHTML = groups.map(g => {
+      const active = selectedClCode === g.clCode ? 'bg-violet-50 border-l-4 border-violet-500' : 'hover:bg-slate-50 border-l-4 border-transparent';
+      const useBadge = g.useYn === 'Y'
+        ? '<span class="text-xs px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600">사용</span>'
+        : '<span class="text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-400">미사용</span>';
+      return `
+        <li class="px-4 py-3 cursor-pointer transition-colors ${active}" onclick="selectGroup('${esc(g.clCode)}', '${esc(g.clCdNm)}')">
+          <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+              <p class="text-xs font-mono font-semibold text-slate-600 truncate">${esc(g.clCode)}</p>
+              <p class="text-xs text-slate-500 truncate mt-0.5">${esc(g.clCdNm || '')}</p>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <span class="text-xs text-slate-400">${g.codeCount}개</span>
+              ${useBadge}
+              <button class="p-1 text-slate-300 hover:text-indigo-500 transition-colors"
+                      title="수정" onclick="event.stopPropagation(); openGroupModal('${esc(g.clCode)}')">
+                <i class="fa-solid fa-pen text-xs"></i>
+              </button>
+              <button class="p-1 text-slate-300 hover:text-rose-500 transition-colors"
+                      title="삭제" onclick="event.stopPropagation(); confirmDeleteGroup('${esc(g.clCode)}', '${esc(g.clCdNm || '')}')">
+                <i class="fa-solid fa-trash text-xs"></i>
+              </button>
+            </div>
+          </div>
+        </li>`;
+    }).join('');
+  }
+
+  // ── 분류 선택 → 코드 로딩 ──────────────────────────────────────
+  window.selectGroup = async function (clCode, clCdNm) {
+    selectedClCode = clCode;
+    document.getElementById('selectedGroupLabel').textContent = `[${clCode}] ${clCdNm}`;
+    document.getElementById('addCodeBtn').classList.remove('hidden');
+    await loadCodes();
+    await loadGroups();
+  };
+
+  async function loadCodes() {
+    if (!selectedClCode) return;
+    const res = await fetch(`/admin/common-codes/api/${encodeURIComponent(selectedClCode)}/codes`);
+    const codes = await res.json();
+    renderCodes(codes);
+  }
+
+  function renderCodes(codes) {
+    const tbody = document.getElementById('codeTableBody');
+    if (!codes.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-xs text-slate-400">등록된 코드가 없습니다.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = codes.map(c => {
+      const useBadge = c.useYn === 'Y'
+        ? '<span class="text-xs px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600">Y</span>'
+        : '<span class="text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-400">N</span>';
+      return `
+        <tr class="border-t border-slate-50 hover:bg-slate-50 transition-colors">
+          <td class="px-4 py-3 text-xs font-mono font-semibold text-slate-700">${esc(c.comCd)}</td>
+          <td class="px-4 py-3 text-xs text-slate-700">${esc(c.comCdNm || '')}</td>
+          <td class="px-4 py-3 text-xs text-slate-400">${esc(c.comCdExpln || '')}</td>
+          <td class="px-4 py-3 text-center">${useBadge}</td>
+          <td class="px-4 py-3 text-center">
+            <div class="flex items-center justify-center gap-1">
+              <button class="p-1 text-slate-300 hover:text-indigo-500 transition-colors"
+                      title="수정" onclick="openCodeModal('${esc(c.comCd)}')">
+                <i class="fa-solid fa-pen text-xs"></i>
+              </button>
+              <button class="p-1 text-slate-300 hover:text-rose-500 transition-colors"
+                      title="삭제" onclick="confirmDeleteCode('${esc(c.comCd)}', '${esc(c.comCdNm || '')}')">
+                <i class="fa-solid fa-trash text-xs"></i>
+              </button>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  // ── 분류 모달 ──────────────────────────────────────────────────
+  window.openGroupModal = async function (clCode) {
+    editingGroupCode = clCode;
+    const isEdit = clCode !== null;
+    document.getElementById('groupModalTitle').textContent = isEdit ? '분류 수정' : '분류 등록';
+    document.getElementById('gm-clCode').disabled = isEdit;
+
+    if (isEdit) {
+      const groups = await fetch('/admin/common-codes/api/groups').then(r => r.json());
+      const g = groups.find(x => x.clCode === clCode) || {};
+      document.getElementById('gm-clCode').value  = g.clCode    || '';
+      document.getElementById('gm-clCdNm').value  = g.clCdNm   || '';
+      document.getElementById('gm-clCdExpln').value = g.clCdExpln || '';
+      document.getElementById('gm-useYn').value   = g.useYn    || 'Y';
+    } else {
+      document.getElementById('gm-clCode').value  = '';
+      document.getElementById('gm-clCdNm').value  = '';
+      document.getElementById('gm-clCdExpln').value = '';
+      document.getElementById('gm-useYn').value   = 'Y';
+    }
+    openModal('groupModal');
+  };
+
+  window.saveGroup = async function () {
+    const clCode    = document.getElementById('gm-clCode').value.trim().toUpperCase();
+    const clCdNm    = document.getElementById('gm-clCdNm').value.trim();
+    const clCdExpln = document.getElementById('gm-clCdExpln').value.trim();
+    const useYn     = document.getElementById('gm-useYn').value;
+
+    if (!clCode || !clCdNm) {
+      showHermesToast('분류코드와 분류명은 필수입니다.', 'error'); return;
+    }
+    if (clCode.length > 10) {
+      showHermesToast('분류코드는 최대 10자입니다.', 'error'); return;
+    }
+
+    const isEdit = editingGroupCode !== null;
+    const url    = isEdit ? `/admin/common-codes/api/groups/${encodeURIComponent(editingGroupCode)}`
+                          : '/admin/common-codes/api/groups';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clCode, clCdNm, clCdExpln, useYn })
+    });
+
+    if (res.ok) {
+      showHermesToast(isEdit ? '분류가 수정되었습니다.' : '분류가 등록되었습니다.', 'success');
+      closeModal('groupModal');
+      await loadGroups();
+    } else {
+      showHermesToast('저장 실패. 다시 시도해 주세요.', 'error');
+    }
+  };
+
+  window.confirmDeleteGroup = function (clCode, clCdNm) {
+    if (!confirm(`[${clCode}] ${clCdNm}\n이 분류와 하위 코드를 모두 삭제하시겠습니까?`)) return;
+    deleteGroup(clCode);
+  };
+
+  async function deleteGroup(clCode) {
+    const res = await fetch(`/admin/common-codes/api/groups/${encodeURIComponent(clCode)}`, { method: 'DELETE' });
+    if (res.ok) {
+      if (selectedClCode === clCode) {
+        selectedClCode = null;
+        document.getElementById('selectedGroupLabel').textContent = '분류를 선택하세요';
+        document.getElementById('addCodeBtn').classList.add('hidden');
+        document.getElementById('codeTableBody').innerHTML =
+          '<tr><td colspan="5" class="px-4 py-8 text-center text-xs text-slate-400">좌측에서 분류를 선택하세요.</td></tr>';
+      }
+      showHermesToast('분류가 삭제되었습니다.', 'success');
+      await loadGroups();
+    } else {
+      showHermesToast('삭제 실패.', 'error');
+    }
+  }
+
+  // ── 코드 모달 ──────────────────────────────────────────────────
+  window.openCodeModal = async function (comCd) {
+    if (!selectedClCode) return;
+    editingComCd = comCd;
+    const isEdit = comCd !== null;
+    document.getElementById('codeModalTitle').textContent = isEdit ? '코드 수정' : '코드 등록';
+    document.getElementById('cm-comCd').disabled = isEdit;
+
+    if (isEdit) {
+      const codes = await fetch(`/admin/common-codes/api/${encodeURIComponent(selectedClCode)}/codes`).then(r => r.json());
+      const c = codes.find(x => x.comCd === comCd) || {};
+      document.getElementById('cm-comCd').value     = c.comCd    || '';
+      document.getElementById('cm-comCdNm').value   = c.comCdNm  || '';
+      document.getElementById('cm-comCdExpln').value = c.comCdExpln || '';
+      document.getElementById('cm-useYn').value     = c.useYn    || 'Y';
+    } else {
+      document.getElementById('cm-comCd').value     = '';
+      document.getElementById('cm-comCdNm').value   = '';
+      document.getElementById('cm-comCdExpln').value = '';
+      document.getElementById('cm-useYn').value     = 'Y';
+    }
+    openModal('codeModal');
+  };
+
+  window.saveCode = async function () {
+    const comCd      = document.getElementById('cm-comCd').value.trim().toUpperCase();
+    const comCdNm    = document.getElementById('cm-comCdNm').value.trim();
+    const comCdExpln = document.getElementById('cm-comCdExpln').value.trim();
+    const useYn      = document.getElementById('cm-useYn').value;
+
+    if (!comCd || !comCdNm) {
+      showHermesToast('코드값과 표시명은 필수입니다.', 'error'); return;
+    }
+    if (comCd.length > 10) {
+      showHermesToast('코드값은 최대 10자입니다.', 'error'); return;
+    }
+
+    const isEdit = editingComCd !== null;
+    const url    = isEdit
+      ? `/admin/common-codes/api/${encodeURIComponent(selectedClCode)}/codes/${encodeURIComponent(editingComCd)}`
+      : `/admin/common-codes/api/${encodeURIComponent(selectedClCode)}/codes`;
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ comCd, comCdNm, comCdExpln, useYn })
+    });
+
+    if (res.ok) {
+      showHermesToast(isEdit ? '코드가 수정되었습니다.' : '코드가 등록되었습니다.', 'success');
+      closeModal('codeModal');
+      await loadCodes();
+      await loadGroups();
+    } else {
+      showHermesToast('저장 실패. 다시 시도해 주세요.', 'error');
+    }
+  };
+
+  window.confirmDeleteCode = function (comCd, comCdNm) {
+    if (!confirm(`[${comCd}] ${comCdNm}\n이 코드를 삭제하시겠습니까?`)) return;
+    deleteCode(comCd);
+  };
+
+  async function deleteCode(comCd) {
+    const res = await fetch(
+      `/admin/common-codes/api/${encodeURIComponent(selectedClCode)}/codes/${encodeURIComponent(comCd)}`,
+      { method: 'DELETE' }
+    );
+    if (res.ok) {
+      showHermesToast('코드가 삭제되었습니다.', 'success');
+      await loadCodes();
+      await loadGroups();
+    } else {
+      showHermesToast('삭제 실패.', 'error');
+    }
+  }
+
+  // ── 유틸 ──────────────────────────────────────────────────────
+  function openModal(id) {
+    const m = document.getElementById(id);
+    m.classList.remove('hidden');
+    m.classList.add('flex');
+  }
+
+  window.closeModal = function (id) {
+    const m = document.getElementById(id);
+    m.classList.add('hidden');
+    m.classList.remove('flex');
+  };
+
+  function esc(s) {
+    if (s == null) return '';
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+})();
+</script>

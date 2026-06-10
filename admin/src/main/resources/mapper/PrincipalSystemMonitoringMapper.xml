@@ -167,7 +167,7 @@
                TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
         FROM HERMES_ADMIN_AUDIT_LOG
         <include refid="adminAuditLogWhere"/>
-        ORDER BY CREATED_AT DESC
+        ORDER BY CREATED_AT DESC, AUDIT_ID DESC
         OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
     </select>
 
