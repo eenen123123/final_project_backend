@@ -28,12 +28,12 @@
   </resultMap>
 
   <resultMap id="courseAdminDetailMap" type="kr.or.ddit.finalProject.dto.course.CourseDto" extends="courseMap">
-    <result property="instrNm"         column="INSTR_NM" />
+    <result property="instrNm" column="INSTR_NM" />
     <result property="curriculumTitle" column="CURRICULUM_TITLE" />
-    <result property="subjNm"          column="SUBJ_NM" />
-    <result property="subjClId"        column="SUBJ_CL_ID" />
-    <result property="subjClNm"        column="SUBJ_CL_NM" />
-    <result property="lectureCnt"      column="LECTURE_CNT" />
+    <result property="subjNm" column="SUBJ_NM" />
+    <result property="subjClId" column="SUBJ_CL_ID" />
+    <result property="subjClNm" column="SUBJ_CL_NM" />
+    <result property="lectureCnt" column="LECTURE_CNT" />
   </resultMap>
 
   <select id="selectCourseAdminDetail" resultMap="courseAdminDetailMap">
@@ -99,8 +99,7 @@
       RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
     ) VALUES (
       #{curriculumId, jdbcType=NUMERIC},
-      #{subjId, jdbcType=NUMERIC},
-                                                      <!-- #{subjClId, jdbcType=NUMERIC}, -->
+      #{subjId, jdbcType=NUMERIC},                                                                                                                                                                                                                                                                                                <!-- #{subjClId, jdbcType=NUMERIC}, -->
       #{instrUserId},
       #{courseNm},
       #{courseExplnCn, jdbcType=VARCHAR},
@@ -293,6 +292,74 @@
   FROM SUBJECT_CLASSIFICATION
   WHERE USE_YN = 'Y'
   ORDER BY SUBJ_CL_ID ASC
+  </select>
+
+
+
+
+  <sql id="courseListSearch">
+    <trim prefix="WHERE" prefixOverrides="AND ">
+                AND c.OPNN_YN = 'Y'
+      <if test="paginationInfo.detailCondition != null">
+        <if test="paginationInfo.detailCondition.instructorName != null and paginationInfo.detailCondition.instructorName != ''">
+                      and  instr(m.user_name, #{paginationInfo.detailCondition.instructorName}) &gt; 0
+        </if>
+        <if test="paginationInfo.detailCondition.subjectName != null and paginationInfo.detailCondition.subjectName != ''">
+                        and  instr(s.SUBJ_NM, #{paginationInfo.detailCondition.subjectName}) &gt; 0
+        </if>
+        <if test="paginationInfo.detailCondition.courseName != null and paginationInfo.detailCondition.courseName != ''">
+                        and  instr(c.COURSE_NM, #{paginationInfo.detailCondition.courseName}) &gt; 0
+        </if>
+      </if>
+    </trim>
+  </sql>
+
+  <resultMap id="courseResponseMap" type="kr.or.ddit.finalProject.dto.course.CourseResponseDto">
+    <id property="courseSn" column="COURSE_SN" />
+    <result property="courseName" column="COURSE_NM" />
+    <result property="subjectName" column="SUBJ_NM" />
+    <result property="instructorName" column="INSTR_USER_NM"/>
+    <result property="instructorProfileImg" column="INSTR_PROFILE_IMG"/>
+    <result property="subjectId" column="SUBJ_ID"/>
+    <result property="coursePrice" column="COURSE_PRICE"/>
+    <result property="explain" column="COURSE_EXPLN_CN"/>
+    <result property="isNew" column="IS_NEW"/>
+    <result property="isBest" column="IS_BEST"/>
+  </resultMap>
+
+
+  <!-- selectCourseListForMain -->
+
+  <select id="selectCourseListForMain" resultMap="courseResponseMap">
+        select c.COURSE_SN, c.COURSE_NM
+        , s.SUBJ_NM, m.USER_NAME AS INSTR_USER_NM, c.SUBJ_ID, c.COURSE_PRICE, c.COURSE_EXPLN_CN
+                , CASE WHEN c.REG_DT >= ADD_MONTHS(SYSDATE, -1) THEN 1 ELSE 0 END AS IS_NEW
+                , 1 AS IS_BEST
+        from course c
+        inner join subject s on c.SUBJ_ID = s.SUBJ_ID
+        inner join member m on c.INSTR_USER_ID = m.USER_ID
+    <include refid="courseListSearch"/>
+  </select>
+
+  <select id="selectCourseListCountForMain" resultType="int">
+        select count(*)
+        from course c
+        inner join subject s on c.SUBJ_ID = s.SUBJ_ID
+        inner join member m on c.INSTR_USER_ID = m.USER_ID
+    <include refid="courseListSearch"/>
+  </select>
+
+  <select id="selectCourseById" resultMap="courseResponseMap">
+        select c.COURSE_SN, c.COURSE_NM
+        , s.SUBJ_NM, m.USER_NAME AS INSTR_USER_NM, c.SUBJ_ID, c.COURSE_PRICE, c.COURSE_EXPLN_CN
+                , CASE WHEN c.REG_DT >= ADD_MONTHS(SYSDATE, -1) THEN 1 ELSE 0 END AS IS_NEW
+                , 1 AS IS_BEST
+                , i.INSTR_PROFILE_IMG
+        from course c
+        inner join subject s on c.SUBJ_ID = s.SUBJ_ID
+        inner join member m on c.INSTR_USER_ID = m.USER_ID
+        inner join instructor i on c.INSTR_USER_ID = i.INSTR_USER_ID
+        where c.COURSE_SN = #{courseId}
   </select>
 
 </mapper>

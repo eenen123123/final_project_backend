@@ -32,4 +32,6 @@ public interface TextbookService {
     int retrieveSoldOutTextbookCount();
 
     int retrieveArchivedTextbookCount();
+
+    List<TextbookDto> retrieveTextbookListByCourseSn(Long courseSn);
 }

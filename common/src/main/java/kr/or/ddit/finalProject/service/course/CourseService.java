@@ -2,8 +2,10 @@ package kr.or.ddit.finalProject.service.course;
 
 import java.util.List;
 
+import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.dto.course.AdminCourseSearchCondition;
 import kr.or.ddit.finalProject.dto.course.CourseDto;
-import kr.or.ddit.finalProject.dto.course.CourseSearchCondition;
+import kr.or.ddit.finalProject.dto.course.CourseResponseDto;
 import kr.or.ddit.finalProject.dto.course.SubjectClassificationDto;
 import kr.or.ddit.finalProject.dto.course.SubjectDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
@@ -27,9 +29,9 @@ public interface CourseService {
 
     void removeCourse(Long courseSn, String currentUserId);
 
-    List<CourseDto> retrieveCourseList(PaginationInfo<CourseSearchCondition> paginationInfo);
+    List<CourseDto> retrieveCourseList(PaginationInfo<AdminCourseSearchCondition> paginationInfo);
 
-    int retrieveCourseListCount(PaginationInfo<CourseSearchCondition> paginationInfo);
+    int retrieveCourseListCount(PaginationInfo<AdminCourseSearchCondition> paginationInfo);
 
     List<SubjectClassificationDto> retrieveSubjectClassificationList();
 
@@ -37,4 +39,8 @@ public interface CourseService {
 
     List<MemberDto> retrieveInstructorsBySubjClId(Long subjClId);
 
+    PageResponse<CourseResponseDto> retrieveCourseListForMain(String category, String keyword,
+            int page);
+
+    CourseResponseDto retrieveCourse(Long courseId);
 }

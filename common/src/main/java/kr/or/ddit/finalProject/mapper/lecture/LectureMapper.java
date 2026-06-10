@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Param;
 
 import kr.or.ddit.finalProject.dto.lecture.LectureDto;
 import kr.or.ddit.finalProject.dto.lecture.LectureProgressDto;
+import kr.or.ddit.finalProject.dto.lecture.LectureResponseDto;
 
 @Mapper
 public interface LectureMapper {
@@ -24,4 +25,5 @@ public interface LectureMapper {
 
     int deleteLecture(@Param("lectureSn") Long lectureSn);
 
+    List<LectureResponseDto> selectLectureListByCourseSn(@Param("courseSn") Long courseSn);
 }

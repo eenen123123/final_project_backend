@@ -112,4 +112,26 @@
     DELETE FROM LECTURE WHERE LECTURE_SN = #{lectureSn}
     </delete>
 
+
+
+
+    <resultMap id="lectureResponseMap" type="kr.or.ddit.finalProject.dto.lecture.LectureResponseDto">
+        <result property="lectureSn" column="LECTURE_SN" />
+        <result property="courseSn" column="COURSE_SN" />
+        <result property="lectureName" column="LECTURE_NM" />
+        <result property="lectureVideoFileId" column="ATCH_FILE_ID" />
+        <result property="lectureDuration" column="LECTURE_DURATION" />
+        <result property="lectureExplanation" column="LECTURE_EXPLN_CN" />
+    </resultMap>
+
+    <!-- selectLectureListByCourseSn -->
+
+    <select id="selectLectureListByCourseSn" resultMap="lectureResponseMap">
+    SELECT
+      LECTURE_SN, COURSE_SN, LECTURE_NM, ATCH_FILE_ID,
+      LECTURE_DURATION, LECTURE_EXPLN_CN
+    FROM LECTURE
+    WHERE COURSE_SN = #{courseSn}
+    ORDER BY SORT_ORD ASC, LECTURE_SN ASC
+    </select>
 </mapper>

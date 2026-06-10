@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import kr.or.ddit.finalProject.dto.lecture.LectureDto;
+import kr.or.ddit.finalProject.dto.lecture.LectureResponseDto;
 import kr.or.ddit.finalProject.mapper.lecture.LectureMapper;
 import lombok.RequiredArgsConstructor;
 
@@ -58,5 +59,12 @@ public class LectureServiceImpl implements LectureService {
         }
         lectureMapper.deleteLecture(lectureSn);
     }
+
+    @Override
+    public List<LectureResponseDto> retrieveLectureListByCourseSn(Long courseSn) {
+        return lectureMapper.selectLectureListByCourseSn(courseSn);
+    }
+
+
 
 }

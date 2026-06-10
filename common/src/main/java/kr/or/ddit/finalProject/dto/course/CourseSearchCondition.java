@@ -1,19 +1,17 @@
 package kr.or.ddit.finalProject.dto.course;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class CourseSearchCondition {
-    private String keyword;
-    private String instrNm;
-    private String opnnYn;
-    private Long curriculumId;
-    private Long subjClId;
-    private Long subjId;
+
+    private String instructorName;
+    private String subjectName;
+    private String courseName;
 }
