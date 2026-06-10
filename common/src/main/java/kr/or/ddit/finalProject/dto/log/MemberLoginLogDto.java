@@ -1,11 +1,15 @@
 package kr.or.ddit.finalProject.dto.log;
 
 import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class MemberLoginLogDto {
     private Long logId;
     private String inputUserId;   // 로그인 화면에서 입력한 ID
