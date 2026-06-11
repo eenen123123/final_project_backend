@@ -525,7 +525,7 @@
     updatePermRoleFilter('');
     ['perm-dept-filter', 'perm-role-filter', 'perm-search-status'].forEach(id => {
       const el = document.getElementById(id);
-      if (el.tomselect) el.tomselect.setValue('');
+      if (el.customSelect) el.customSelect.setValue('');
       else el.value = '';
     });
     permSortKey = null;
@@ -539,24 +539,13 @@
   /* 부서 선택 시 해당 부서 직급만 노출 */
   function updatePermRoleFilter(deptCd) {
     const el = document.getElementById('perm-role-filter');
-    const ts = el.tomselect;
     const filtered = deptCd ? allRoleOptions.filter(o => o.dept === deptCd) : allRoleOptions;
-    if (ts) {
-      ts.clear(true);
-      ts.clearOptions();
-      filtered.forEach(o => ts.addOption({ value: o.value, text: o.text }));
-      ts.refreshOptions(false);
-    } else {
-      el.innerHTML = '<option value="">전체 직급</option>'
-        + filtered.map(o => `<option value="${o.value}">${o.text}</option>`).join('');
-    }
+    el.innerHTML = '<option value="">전체 직급</option>'
+      + filtered.map(o => `<option value="${o.value}">${o.text}</option>`).join('');
+    if (el.customSelect) el.customSelect.refresh();
   }
 
   /* ===== 서버 AJAX 검색 + 페이징 ===== */
-  function escPerm(s) {
-    return String(s == null ? '' : s)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
 
   async function doPermSearch(page) {
     page = page || 1;
@@ -610,8 +599,8 @@
       const loginDt   = loginInfo ? loginInfo.loginDt : null;
 
       const avatar = (pro && pro.startsWith('http'))
-        ? `<img src="${escPerm(pro)}" class="w-7 h-7 rounded-lg object-cover" alt="프로필">`
-        : `<div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-xs font-bold text-[#3b82f6]">${escPerm(nm.charAt(0))}</div>`;
+        ? `<img src="${escHtml(pro)}" class="w-7 h-7 rounded-lg object-cover" alt="프로필">`
+        : `<div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-xs font-bold text-[#3b82f6]">${escHtml(nm.charAt(0))}</div>`;
 
       const onlineBadge = isOnline
         ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 접속 중</span>`
@@ -622,18 +611,18 @@
           <div class="flex items-center gap-3">
             ${avatar}
             <div>
-              <p class="font-bold text-slate-800">${escPerm(nm)}</p>
-              <p class="text-xs text-slate-400">${escPerm(uid)}</p>
+              <p class="font-bold text-slate-800">${escHtml(nm)}</p>
+              <p class="text-xs text-slate-400">${escHtml(uid)}</p>
             </div>
           </div>
         </td>
-        <td class="py-4 px-6 text-sm text-slate-700">${escPerm(deptNm)}</td>
-        <td class="py-4 px-6 text-sm text-slate-700">${escPerm(jbgrNm)}</td>
-        <td class="py-4 px-6 text-xs text-slate-500 font-mono">${loginDt ? escPerm(loginDt) : '-'}</td>
+        <td class="py-4 px-6 text-sm text-slate-700">${escHtml(deptNm)}</td>
+        <td class="py-4 px-6 text-sm text-slate-700">${escHtml(jbgrNm)}</td>
+        <td class="py-4 px-6 text-xs text-slate-500 font-mono">${loginDt ? escHtml(loginDt) : '-'}</td>
         <td class="py-4 px-6 text-center">${onlineBadge}</td>
         <td class="py-4 px-6 text-center">
           <button class="text-slate-400 hover:text-violet-600 p-1.5 transition-colors"
-                  data-user-id="${escPerm(uid)}" data-user-name="${escPerm(nm)}"
+                  data-user-id="${escHtml(uid)}" data-user-name="${escHtml(nm)}"
                   onclick="openActivityModal(this)" title="접속 이력 보기">
             <i class="fa-solid fa-timeline text-base"></i>
           </button>

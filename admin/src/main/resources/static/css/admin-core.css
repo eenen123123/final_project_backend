@@ -1,46 +1,42 @@
 @charset "UTF-8";
 
 /* ==========================================================================
-   1. 전역 디자인 변수 (Theme Variables)
+   1. 전역 디자인 변수
    ========================================================================== */
 :root {
-  --color-brand-primary: #7c3aed; /* HERMES 시그니처 바이올렛 */
+  --color-brand-primary:       #7c3aed; /* HERMES 시그니처 바이올렛 */
   --color-brand-primary-hover: #6d28d9; /* 호버 시 짙어지는 바이올렛 */
-  --color-brand-dark: #121212; /* 헤더, 사이드바 다크 배경 */
-  --color-canvas-bg: #f8fafc; /* 메인 워크스페이스 배경 (slate-50) */
+  --color-brand-dark:          #121212; /* 헤더, 사이드바 다크 배경 */
+  --color-canvas-bg:           #f8fafc; /* 메인 워크스페이스 배경 (slate-50) */
   --border-subtle: rgba(255, 255, 255, 0.05); /* 다크 모드용 미세 보더 */
 }
 
 /* ==========================================================================
-   2. 베이스 및 유틸리티 초기화
+   2. 베이스 & 유틸리티
    ========================================================================== */
 body {
   font-family: "Noto Sans KR", sans-serif;
   background-color: var(--color-canvas-bg);
 }
 
-/* 전역 스크롤바 UI 숨기기 유틸리티 */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 /* ==========================================================================
-   3. 공통 UI 컴포넌트 디자인 시스템 (어느 페이지든 즉시 통일)
+   3. 공통 컴포넌트
    ========================================================================== */
-button {
-  cursor: pointer;
-}
+button { cursor: pointer; }
 
+/* --- 입력 필드 --- */
 .hm-input {
   width: 100%;
+  min-height: 2.75rem;
+  box-sizing: border-box;
   border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
   padding: 0.65rem 1rem;
   font-size: 0.875rem;
+  line-height: 1rem;
   color: #1e293b;
   background-color: #ffffff;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -56,7 +52,9 @@ button {
   cursor: not-allowed;
   border-color: #e2e8f0;
 }
+textarea.hm-input { min-height: unset; height: auto; }
 
+/* --- 버튼 --- */
 .hm-btn-primary {
   background-color: var(--color-brand-primary);
   color: #ffffff;
@@ -72,12 +70,8 @@ button {
   cursor: pointer;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
-.hm-btn-primary:hover {
-  background-color: var(--color-brand-primary-hover);
-}
-.hm-btn-primary:active {
-  transform: scale(0.98);
-}
+.hm-btn-primary:hover  { background-color: var(--color-brand-primary-hover); }
+.hm-btn-primary:active { transform: scale(0.98); }
 
 .hm-btn-secondary {
   background-color: #e2e8f0;
@@ -94,12 +88,8 @@ button {
   cursor: pointer;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
-.hm-btn-secondary:hover {
-  background-color: #cbd5e1;
-}
-.hm-btn-secondary:active {
-  transform: scale(0.98);
-}
+.hm-btn-secondary:hover  { background-color: #cbd5e1; }
+.hm-btn-secondary:active { transform: scale(0.98); }
 
 .hm-btn-danger {
   background-color: #ef4444;
@@ -115,13 +105,10 @@ button {
   gap: 0.5rem;
   cursor: pointer;
 }
-.hm-btn-danger:hover {
-  background-color: #dc2626;
-}
-.hm-btn-danger:active {
-  transform: scale(0.98);
-}
+.hm-btn-danger:hover  { background-color: #dc2626; }
+.hm-btn-danger:active { transform: scale(0.98); }
 
+/* --- 토글 스위치 --- */
 .hm-switch {
   width: 2.5rem;
   height: 1.25rem;
@@ -143,198 +130,131 @@ button {
   left: 0.125rem;
   transition: transform 0.2s;
 }
-.hm-switch:checked {
-  background-color: var(--color-brand-primary);
-}
-.hm-switch:checked::before {
-  transform: translateX(1.25rem);
-}
+.hm-switch:checked         { background-color: var(--color-brand-primary); }
+.hm-switch:checked::before { transform: translateX(1.25rem); }
 
 /* ==========================================================================
-   4. 색상 변형 (역할별 브랜드 컬러)
+   4. 색상 변형
+   --------------------------------------------------------------------------
+   각 역할 컬러의 input / btn / switch 와 CustomSelect(.cs-wrapper) 오버라이드를
+   한 블록에 묶음. 새 색상 추가 시 한 곳만 수정하면 됨.
    ========================================================================== */
 
-/* 강사 — sky */
-.hm-input-sky {
-  border-color: #0ea5e9;
-}
-.hm-input-sky:focus {
-  border-color: #0ea5e9;
-  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08);
-}
-.hm-input-sky:disabled {
-  border-color: #bae6fd;
-}
-.hm-btn-sky {
-  background-color: #0ea5e9;
-}
-.hm-btn-sky:hover {
-  background-color: #0284c7;
-}
-.hm-switch-sky:checked {
-  background-color: #0ea5e9;
-}
+/* --- sky — 강사 --- */
+.hm-input-sky { border-color: #0ea5e9; }
+.hm-input-sky:focus    { border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08); }
+.hm-input-sky:disabled { border-color: #bae6fd; }
+.hm-btn-sky            { background-color: #0ea5e9; }
+.hm-btn-sky:hover      { background-color: #0284c7; }
+.hm-switch-sky:checked { background-color: #0ea5e9; }
+/* cs-wrapper 는 select 의 class 를 그대로 복사하므로 .hm-input-sky 규칙이 함께 적용됨.
+   여기서는 포커스/오픈 시 box-shadow 와 화살표 색상만 추가로 지정. */
+.cs-wrapper.hm-input-sky.cs-open,
+.cs-wrapper.hm-input-sky:focus-within           { border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08); }
+.cs-wrapper.hm-input-sky.cs-open .cs-control::after,
+.cs-wrapper.hm-input-sky:focus-within .cs-control::after { border-color: #0ea5e9 transparent transparent transparent; }
+.cs-wrapper.hm-input-sky .cs-dropdown li:hover,
+.cs-wrapper.hm-input-sky .cs-dropdown li:focus  { background-color: #f0f9ff; color: #0284c7; }
+.cs-wrapper.hm-input-sky .cs-dropdown li.cs-selected { background-color: #e0f2fe; color: #0284c7; }
 
-/* 행정팀장(실장) — emerald */
-.hm-input-emerald {
-  border-color: #10b981;
-}
-.hm-input-emerald:focus {
-  border-color: #10b981;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08);
-}
-.hm-input-emerald:disabled {
-  border-color: #6ee7b7;
-}
-.hm-btn-emerald {
-  background-color: #10b981;
-}
-.hm-btn-emerald:hover {
-  background-color: #059669;
-}
-.hm-switch-emerald:checked {
-  background-color: #10b981;
-}
+/* --- emerald — 행정팀장(실장) --- */
+.hm-input-emerald { border-color: #10b981; }
+.hm-input-emerald:focus    { border-color: #10b981; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08); }
+.hm-input-emerald:disabled { border-color: #6ee7b7; }
+.hm-btn-emerald            { background-color: #10b981; }
+.hm-btn-emerald:hover      { background-color: #059669; }
+.hm-switch-emerald:checked { background-color: #10b981; }
+.cs-wrapper.hm-input-emerald.cs-open,
+.cs-wrapper.hm-input-emerald:focus-within           { border-color: #10b981; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08); }
+.cs-wrapper.hm-input-emerald.cs-open .cs-control::after,
+.cs-wrapper.hm-input-emerald:focus-within .cs-control::after { border-color: #10b981 transparent transparent transparent; }
+.cs-wrapper.hm-input-emerald .cs-dropdown li:hover,
+.cs-wrapper.hm-input-emerald .cs-dropdown li:focus  { background-color: #f0fdf4; color: #059669; }
+.cs-wrapper.hm-input-emerald .cs-dropdown li.cs-selected { background-color: #dcfce7; color: #059669; }
 
-/* pd — orange */
-.hm-input-orange {
-  border-color: #f97316;
-}
-.hm-input-orange:focus {
-  border-color: #f97316;
-  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.08);
-}
-.hm-input-orange:disabled {
-  border-color: #fdba74;
-}
-.hm-btn-orange {
-  background-color: #f97316;
-}
-.hm-btn-orange:hover {
-  background-color: #ea580c;
-}
-.hm-switch-orange:checked {
-  background-color: #f97316;
-}
+/* --- orange — PD --- */
+.hm-input-orange { border-color: #f97316; }
+.hm-input-orange:focus    { border-color: #f97316; box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.08); }
+.hm-input-orange:disabled { border-color: #fdba74; }
+.hm-btn-orange            { background-color: #f97316; }
+.hm-btn-orange:hover      { background-color: #ea580c; }
+.hm-switch-orange:checked { background-color: #f97316; }
+.cs-wrapper.hm-input-orange.cs-open,
+.cs-wrapper.hm-input-orange:focus-within           { border-color: #f97316; box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.08); }
+.cs-wrapper.hm-input-orange.cs-open .cs-control::after,
+.cs-wrapper.hm-input-orange:focus-within .cs-control::after { border-color: #f97316 transparent transparent transparent; }
+.cs-wrapper.hm-input-orange .cs-dropdown li:hover,
+.cs-wrapper.hm-input-orange .cs-dropdown li:focus  { background-color: #fff7ed; color: #ea580c; }
+.cs-wrapper.hm-input-orange .cs-dropdown li.cs-selected { background-color: #ffedd5; color: #ea580c; }
 
-/* 행정 — blue */
-.hm-input-blue {
-  border-color: #3b82f6;
-}
-.hm-input-blue:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
-}
-.hm-input-blue:disabled {
-  border-color: #93c5fd;
-}
-.hm-btn-blue {
-  background-color: #3b82f6;
-}
-.hm-btn-blue:hover {
-  background-color: #2563eb;
-}
-.hm-switch-blue:checked {
-  background-color: #3b82f6;
-}
+/* --- blue — 행정 --- */
+.hm-input-blue { border-color: #3b82f6; }
+.hm-input-blue:focus    { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08); }
+.hm-input-blue:disabled { border-color: #93c5fd; }
+.hm-btn-blue            { background-color: #3b82f6; }
+.hm-btn-blue:hover      { background-color: #2563eb; }
+.hm-switch-blue:checked { background-color: #3b82f6; }
+.cs-wrapper.hm-input-blue.cs-open,
+.cs-wrapper.hm-input-blue:focus-within           { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08); }
+.cs-wrapper.hm-input-blue.cs-open .cs-control::after,
+.cs-wrapper.hm-input-blue:focus-within .cs-control::after { border-color: #3b82f6 transparent transparent transparent; }
+.cs-wrapper.hm-input-blue .cs-dropdown li:hover,
+.cs-wrapper.hm-input-blue .cs-dropdown li:focus  { background-color: #eff6ff; color: #2563eb; }
+.cs-wrapper.hm-input-blue .cs-dropdown li.cs-selected { background-color: #dbeafe; color: #2563eb; }
+
+/* --- danger — 퇴사·경고 (btn 없음, 항상 빨간 테두리·화살표) --- */
+.hm-input-danger { border-color: #ef4444; }
+.hm-input-danger:focus    { border-color: #ef4444; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08); }
+.hm-input-danger:disabled { border-color: #fca5a5; }
+/* danger 는 포커스 여부와 무관하게 항상 빨간 화살표 */
+.cs-wrapper.hm-input-danger .cs-control::after { border-color: #ef4444 transparent transparent transparent; }
+.cs-wrapper.hm-input-danger.cs-open,
+.cs-wrapper.hm-input-danger:focus-within { border-color: #ef4444; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08); }
 
 /* ==========================================================================
-   5. Tom Select 오버라이드 (select.hm-input 에 자동 적용)
+   5. CustomSelect (select.hm-input 에 자동 적용)
    --------------------------------------------------------------------------
-   Tom Select는 네이티브 <select> 의 드롭다운 목록을 커스텀 UI로 대체하는
-   경량 JS 라이브러리(~25KB, 의존성 없음)입니다.
-   네이티브 <select> 의 드롭다운은 OS가 직접 그리기 때문에 CSS가 적용되지
-   않는데, Tom Select는 원본 <select> 를 숨기고 그 자리에 div 구조를 생성해
-   이 문제를 해결합니다.
-
-   [DOM 구조]
-     .ts-wrapper   — 전체 컨테이너 (hm-input 클래스 상속)
-       .ts-control — 선택된 값 표시 영역
-       .ts-dropdown — 옵션 목록 (클릭 시 표시)
-
-   [사용법]
-     select 태그에 hm-input 클래스만 추가하면 admin-layout.html 의
-     전역 초기화 스크립트가 자동으로 Tom Select 를 적용합니다.
-       <select class="hm-input">...</select>
-       <select class="hm-input hm-input-sky">...</select>
-     options 를 fetch 등으로 비동기 로드하는 경우 data-ts-defer 속성 추가 후
-     fetch 완료 시점에 window.initTomSelect(el) 을 직접 호출합니다.
-
-   [폼 전송]
-     초기화 후에도 원본 <select> 는 숨겨진 채로 유지되어 폼 submit 시
-     값이 그대로 전송되므로 백엔드 코드 변경은 불필요합니다.
-
-   [CSS 로딩 순서]
-     admin-layout.html 에서 tom-select.css 를 이 파일보다 먼저 로드합니다.
-     덕분에 아래 규칙들이 !important 없이 Tom Select 기본 스타일을 덮어씁니다.
+   admin-core.js 의 CustomSelect 클래스가 select.hm-input 을 감싸는
+   .cs-wrapper 를 생성하고 원본 <select> 를 숨김.
+   원본 <select> 는 숨겨진 채로 유지되어 폼 submit 시 값이 그대로 전송됨.
+   색상별 오버라이드는 섹션 4 참조.
    ========================================================================== */
 
 /* --- 컨테이너 --- */
-.ts-wrapper.hm-input {
+/* .hm-input 의 기본 padding(0.65rem 1rem)을 0으로 덮어씀.
+   실제 패딩은 내부 .cs-control 버튼이 담당. */
+.cs-wrapper {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
   padding: 0;
-  border-radius: 0.75rem !important; /* Tom Select JS/CSS 가 상태에 따라 변경해도 항상 유지 */
-}
-.ts-wrapper.hm-input.focus {
-  outline: none;
-  border-color: var(--color-brand-primary);
-  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.08);
-}
-/* Tom Select 가 focus/input-active/dropdown-active 상태에서 .ts-control 에 적용하는
-   outline, box-shadow, border 를 모두 제거 */
-.ts-wrapper.focus .ts-control,
-.ts-wrapper.input-active .ts-control,
-.ts-wrapper.dropdown-active .ts-control {
-  outline: none !important;
-  box-shadow: none !important;
-  border: none !important;
-  border-radius: 0.75rem !important; /* outline 이 남아있어도 둥글게 따라가도록 유지 */
 }
 
-/* --- 컨트롤 (선택된 값 표시 영역) --- */
-/* 특이성 (0,2,0) 으로 Tom Select 의 기본 .ts-control 규칙보다 우선 적용 */
-.ts-wrapper .ts-control {
-  border: none;
-  box-shadow: none;
-  padding: 0.65rem 1.75rem 0.65rem 1rem; /* 오른쪽: 화살표(right:14px + width:8px + 여유) */
+/* --- 컨트롤 버튼 (선택된 값 표시) --- */
+.cs-control {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.65rem 2rem 0.65rem 1rem;
   font-size: 0.875rem;
+  line-height: 1rem;
   font-family: "Noto Sans KR", sans-serif;
   color: #1e293b;
   background: transparent;
-  min-height: unset;
-  position: relative;
-  display: flex !important; /* Tom Select 의 더 높은 특이성 선택자에 덮어쓰이지 않도록 */
-  align-items: center !important;
-  flex-wrap: nowrap !important;
-}
-/* 내부 검색 input — readonly 로 타이핑 차단
-   ※ 단일 선택 전용. select[multiple] 에는 이 CSS 가 적합하지 않음 */
-.ts-wrapper .ts-control input {
   border: none;
   outline: none;
-  background: transparent;
-  caret-color: transparent;
-  cursor: default;
-  flex: 1; /* 기본: 선택 전 placeholder 표시를 위해 공간 확보 */
-}
-/* 항목이 선택된 상태(has-items)에서만 input 을 숨기고 .item 이 공간을 차지하도록 함 */
-.ts-wrapper.single.has-items .ts-control input {
-  width: 0 !important;
-  min-width: 0 !important;
-  flex: 0 0 0 !important;
-}
-/* 선택된 항목: 긴 텍스트는 말줄임 처리 */
-.ts-wrapper.single .ts-control .item {
-  flex: 1;
-  min-width: 0;
+  text-align: left;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  cursor: pointer;
 }
+.cs-control.cs-placeholder { color: #94a3b8; }
 
-/* --- 드롭다운 화살표 --- */
-.ts-wrapper.single .ts-control::after {
+/* --- 화살표 (기본: 회색, 포커스/오픈: 브랜드 바이올렛) --- */
+.cs-control::after {
   content: "";
-  display: block;
   position: absolute;
   right: 14px;
   top: 50%;
@@ -346,85 +266,160 @@ button {
   border-color: #94a3b8 transparent transparent transparent;
   pointer-events: none;
 }
-.ts-wrapper.single.focus .ts-control::after {
+.cs-wrapper.cs-open .cs-control::after,
+.cs-wrapper:focus-within .cs-control::after {
   border-color: var(--color-brand-primary) transparent transparent transparent;
 }
 
+/* --- 포커스 테두리 (기본: 브랜드 바이올렛) --- */
+/* :focus-within 은 드롭다운 li 에 포커스가 있을 때도 발동 → 키보드 탐색 중 테두리 유지 */
+.cs-wrapper.cs-open,
+.cs-wrapper:focus-within {
+  outline: none;
+  border-color: var(--color-brand-primary);
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.08);
+}
+
 /* --- 드롭다운 목록 --- */
-.ts-dropdown {
+.cs-dropdown {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  min-width: 100%;
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  background: #fff;
   border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
   box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.08);
   font-size: 0.875rem;
   font-family: "Noto Sans KR", sans-serif;
-  margin-top: 6px;
-  padding: 4px;
-  overflow: hidden;
-  z-index: 100; /* 모달 등 z-index > 100 인 요소 위에서 열릴 경우 이 값을 높여야 함 */
+  z-index: 100;
+  max-height: 240px;
+  overflow-y: auto;
 }
-.ts-dropdown .option {
+.cs-wrapper.cs-open .cs-dropdown { display: block; }
+
+/* cs-dropup: data-cs-dropup 속성이 있으면 initDeferredSelects 가 추가하는 클래스. 직접 붙여도 됨. */
+.cs-wrapper.cs-dropup .cs-dropdown {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+
+/* --- 드롭다운 항목 --- */
+.cs-dropdown li {
   padding: 0.55rem 0.875rem;
   color: #475569;
   border-radius: 0.5rem;
-  transition:
-    background-color 0.15s,
-    color 0.15s;
+  transition: background-color 0.15s, color 0.15s;
+  cursor: pointer;
+  outline: none;
 }
-.ts-dropdown .option:hover {
-  background-color: #f1f5f9;
-  color: #1e293b;
+.cs-dropdown li:hover,
+.cs-dropdown li:focus       { background-color: #f1f5f9; color: #1e293b; }
+.cs-dropdown li.cs-selected { background-color: #f0f9ff; color: #0284c7; font-weight: 500; }
+
+/* ==========================================================================
+   6. 공통 폼 & 모달 컴포넌트
+   ========================================================================== */
+
+/* --- 직원/학생 목록 카드 --- */
+.emp-card {
+  background: #fff;
+  border-radius: 1rem;
+  border: 1.5px solid #e2e8f0;
+  transition: box-shadow 0.18s, border-color 0.18s;
 }
-.ts-dropdown .option.selected {
-  background-color: #f0f9ff;
-  color: #0284c7;
-  font-weight: 500;
+.emp-card:hover    { box-shadow: 0 4px 16px rgba(59, 130, 246, 0.09); border-color: #93c5fd; }
+.emp-card.selected { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12); }
+
+/* --- 탭 버튼 / 패널 --- */
+.emp-tab-btn { transition: all 0.18s; }
+.emp-tab-btn.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; font-weight: 700; }
+.emp-tab-panel        { display: none; }
+.emp-tab-panel.active { display: block; }
+
+/* --- 상태 배지 --- */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.18rem 0.6rem;
+  border-radius: 9999px;
+  letter-spacing: 0.02em;
 }
-.ts-dropdown .option.active {
-  background-color: #e0f2fe;
-  color: #0284c7;
+.status-active   { background: #d1fae5; color: #065f46; }
+.status-resigned { background: #fee2e2; color: #991b1b; }
+.status-leave    { background: #fef9c3; color: #854d0e; }
+
+/* --- 정보 표시 행 --- */
+.info-row { display: flex; padding: 0.55rem 0; border-bottom: 1px solid #f1f5f9; }
+.info-row:last-child { border-bottom: none; }
+.info-label { width: 7rem; font-size: 0.78rem; color: #64748b; flex-shrink: 0; }
+.info-value  { font-size: 0.82rem; color: #1e293b; font-weight: 500; }
+
+/* --- 위험 구역 컨테이너 --- */
+.danger-zone { border: 1.5px solid #ef4444; border-radius: 0.75rem; background: #fef2f2; }
+
+/* --- 페이지네이션 버튼 --- */
+.emp-page-btn {
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.emp-page-btn:hover  { border-color: #3b82f6; color: #3b82f6; }
+.emp-page-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+
+/* --- 모달 컴포넌트 --- */
+.hm-modal-inner {
+  background: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+}
+.hm-modal-scroll { overflow-y: auto; max-height: 90vh; }
+.hm-modal-scroll::-webkit-scrollbar       { width: 6px; }
+.hm-modal-scroll::-webkit-scrollbar-track { background: transparent; }
+.hm-modal-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+.hm-modal-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+.hm-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+.hm-modal-header h2 { font-weight: 700; color: #1e293b; }
+.hm-modal-footer {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid #f1f5f9;
 }
 
-/* --- 색상 변형별 포커스 & 화살표 & 드롭다운 옵션 --- */
-.ts-wrapper.hm-input-sky.focus {
-  border-color: #0ea5e9;
-  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08);
-}
-.ts-wrapper.hm-input-emerald.focus {
-  border-color: #10b981;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08);
-}
-.ts-wrapper.hm-input-orange.focus {
-  border-color: #f97316;
-  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.08);
-}
-.ts-wrapper.hm-input-blue.focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
-}
-
-.ts-wrapper.single.hm-input-sky.focus     .ts-control::after { border-color: #0ea5e9 transparent transparent transparent; }
-.ts-wrapper.single.hm-input-emerald.focus .ts-control::after { border-color: #10b981 transparent transparent transparent; }
-.ts-wrapper.single.hm-input-orange.focus  .ts-control::after { border-color: #f97316 transparent transparent transparent; }
-.ts-wrapper.single.hm-input-blue.focus    .ts-control::after { border-color: #3b82f6 transparent transparent transparent; }
-.ts-wrapper.single.hm-input-danger.focus  .ts-control::after { border-color: #ef4444 transparent transparent transparent; }
-
-.ts-wrapper.hm-input-sky .ts-dropdown .option:hover,
-.ts-wrapper.hm-input-sky .ts-dropdown .option.active {
-  background-color: #f0f9ff;
-  color: #0284c7;
-}
-.ts-wrapper.hm-input-emerald .ts-dropdown .option:hover,
-.ts-wrapper.hm-input-emerald .ts-dropdown .option.active {
-  background-color: #f0fdf4;
-  color: #059669;
-}
-.ts-wrapper.hm-input-orange .ts-dropdown .option:hover,
-.ts-wrapper.hm-input-orange .ts-dropdown .option.active {
-  background-color: #fff7ed;
-  color: #ea580c;
-}
-.ts-wrapper.hm-input-blue .ts-dropdown .option:hover,
-.ts-wrapper.hm-input-blue .ts-dropdown .option.active {
-  background-color: #eff6ff;
-  color: #2563eb;
+/* --- 폼 레이블 & 섹션 제목 --- */
+.form-label { font-size: 0.75rem; color: #64748b; margin-bottom: 0.25rem; display: block; }
+.form-label .required { color: #f87171; margin-left: 0.15rem; }
+.form-section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #3b82f6;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
 }
