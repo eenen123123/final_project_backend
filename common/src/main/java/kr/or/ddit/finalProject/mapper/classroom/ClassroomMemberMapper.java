@@ -18,4 +18,6 @@ public interface ClassroomMemberMapper {
 
     List<ClassroomListResponse> selectClassroomsByUserId(@Param("userId") String userId);
 
+    // 파일 ID로 강의 조회 -> 강의로 강좌 조회 -> 강좌로 클래스룸 조회 -> 클래스룸에 학생이 포함되어있는지?
+    int existsByFileIdAndUserId(@Param("fileId") Long fileId, @Param("userId") String userId);
 }
