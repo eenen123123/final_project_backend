@@ -34,7 +34,7 @@
           <h2 class="text-sm font-semibold text-slate-700">코드 목록</h2>
           <p id="selectedGroupLabel" class="text-xs text-slate-400 mt-0.5">분류를 선택하세요</p>
         </div>
-        <button id="addCodeBtn" class="hm-btn-primary text-xs px-3 py-1.5 flex items-center gap-1 hidden"
+        <button id="addCodeBtn" class="hm-btn-primary text-xs px-3 py-1.5 flex items-center gap-1"
                 onclick="openCodeModal(null)">
           <i class="fa-solid fa-plus text-xs"></i> 코드 추가
         </button>
@@ -362,7 +362,10 @@
 
   // ── 코드 모달 ──────────────────────────────────────────────────
   window.openCodeModal = async function (comCd) {
-    if (!selectedClCode) return;
+    if (!selectedClCode) {
+      showHermesToast('좌측에서 코드 분류를 먼저 선택해주세요.', 'error');
+      return;
+    }
     editingComCd = comCd;
     const isEdit = comCd !== null;
     document.getElementById('codeModalTitle').textContent = isEdit ? '코드 수정' : '코드 등록';
