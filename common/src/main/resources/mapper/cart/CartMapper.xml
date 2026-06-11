@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.cart.CartMapper">
+
+    <resultMap id="cartResultMap" type="kr.or.ddit.finalProject.dto.cart.CartDto">
+        <id property="cartSn" column="CART_SN"/>
+        <result property="userId" column="USER_ID"/>
+        <result property="prodDivCd" column="PROD_DIV_CD"/>
+        <result property="prodSn" column="PROD_SN"/>
+        <result property="prodNm" column="PROD_NM"/>
+        <result property="prodPrice" column="PROD_PRICE"/>
+        <result property="itemQty" column="ITEM_QTY"/>
+        <result property="regDt" column="REG_DT"/>
+    </resultMap>
+
+    <select id="selectCartByUserId" resultMap="cartResultMap">
+        SELECT CART_SN, USER_ID, PROD_DIV_CD, PROD_SN, PROD_NM, PROD_PRICE, ITEM_QTY, REG_DT
+        FROM CART
+        WHERE USER_ID = #{userId}
+        ORDER BY REG_DT DESC
+    </select>
+
+    <select id="selectCartByUserAndProd" resultMap="cartResultMap">
+        SELECT CART_SN, USER_ID, PROD_DIV_CD, PROD_SN, PROD_NM, PROD_PRICE, ITEM_QTY, REG_DT
+        FROM CART
+        WHERE USER_ID = #{userId}
+          AND PROD_DIV_CD = #{prodDivCd}
+          AND PROD_SN = #{prodSn}
+    </select>
+
+    <insert id="insertCart" parameterType="kr.or.ddit.finalProject.dto.cart.CartDto">
+        <selectKey keyProperty="cartSn" resultType="Long" order="AFTER">
+            SELECT "TEAM1_202512AF"."ISEQ$$_442698".CURRVAL FROM DUAL
+        </selectKey>
+        INSERT INTO CART (CART_SN, USER_ID, PROD_DIV_CD, PROD_SN, PROD_NM, PROD_PRICE, ITEM_QTY, REG_DT)
+        VALUES (
+            "TEAM1_202512AF"."ISEQ$$_442698".NEXTVAL,
+            #{userId},
+            #{prodDivCd},
+            #{prodSn},
+            #{prodNm},
+            #{prodPrice},
+            NVL(#{itemQty}, 1),
+            CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <delete id="deleteCartBySn">
+        DELETE FROM CART
+        WHERE CART_SN = #{cartSn}
+          AND USER_ID = #{userId}
+    </delete>
+
+    <delete id="deleteCartByUserId">
+        DELETE FROM CART
+        WHERE USER_ID = #{userId}
+    </delete>
+
+</mapper>
