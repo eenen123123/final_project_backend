@@ -307,8 +307,10 @@ public class AdminActivityExecutionService {
         commonCodeService.createGroup(dto, actorUserId);
     }
 
+    @SuppressWarnings("unchecked")
     private void executeCommonCodeGroupUpdate(Map<String, Object> data, String actorUserId) {
-        ComClDto dto = objectMapper.convertValue(data.get("dto"), ComClDto.class);
+        Map<String, Object> after = (Map<String, Object>) data.get("after");
+        ComClDto dto = objectMapper.convertValue(after.get("dto"), ComClDto.class);
         commonCodeService.updateGroup(dto, actorUserId);
     }
 
@@ -322,8 +324,10 @@ public class AdminActivityExecutionService {
         commonCodeService.createCode(dto, actorUserId);
     }
 
+    @SuppressWarnings("unchecked")
     private void executeCommonCodeUpdate(Map<String, Object> data, String actorUserId) {
-        CommonCodeDto dto = objectMapper.convertValue(data.get("dto"), CommonCodeDto.class);
+        Map<String, Object> after = (Map<String, Object>) data.get("after");
+        CommonCodeDto dto = objectMapper.convertValue(after.get("dto"), CommonCodeDto.class);
         commonCodeService.updateCode(dto, actorUserId);
     }
 

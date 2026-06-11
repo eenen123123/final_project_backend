@@ -243,21 +243,33 @@
           결재자를 추가하거나 삭제할 수 있습니다. 순서는 위에서 아래 순으로
           결재됩니다.
         </p>
+        <!-- 자동결재자 등록 버튼 -->
+        <button
+          type="button"
+          onclick="loadAutoApprovalLine()"
+          class="w-full cursor-pointer px-4 py-2 text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-xl hover:bg-indigo-100 transition-colors"
+        >
+          <i class="fa-solid fa-wand-magic-sparkles mr-1"></i>자동결재선 불러오기 (사수 체인)
+        </button>
         <div id="lineEditList" class="space-y-2"></div>
-        <div class="flex gap-2 pt-1">
-          <select
-            id="approverSelect"
-            class="flex-1 text-sm border border-slate-200 rounded-xl px-3 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-300"
-          >
-            <option value="">결재자 선택</option>
-          </select>
-          <button
-            type="button"
-            onclick="addApprover()"
-            class="cursor-pointer px-4 py-2 text-xs font-semibold text-violet-500 border border-dashed border-violet-300 rounded-xl hover:bg-violet-50 transition-colors whitespace-nowrap"
-          >
-            <i class="fa-solid fa-plus mr-1"></i>추가
-          </button>
+        <!-- 수동 결재자 추가 -->
+        <div class="space-y-1.5">
+          <p class="text-xs font-semibold text-slate-500">수동 결재자 추가</p>
+          <div class="flex gap-2">
+            <select
+              id="approverSelect"
+              class="flex-1 text-sm border border-slate-200 rounded-xl px-3 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-300"
+            >
+              <option value="">결재자 선택</option>
+            </select>
+            <button
+              type="button"
+              onclick="addApprover()"
+              class="cursor-pointer px-4 py-2 text-xs font-semibold text-violet-500 border border-dashed border-violet-300 rounded-xl hover:bg-violet-50 transition-colors whitespace-nowrap"
+            >
+              <i class="fa-solid fa-plus mr-1"></i>추가
+            </button>
+          </div>
         </div>
       </div>
 
@@ -290,6 +302,7 @@
   <script th:inline="javascript">
     let approvalLine = [];
     const APPROVER_CANDIDATES = /*[[${approverCandidates}]]*/ [];
+    const AUTO_APPROVAL_LINE   = /*[[${autoApprovalLine}]]*/ [];
     const EXISTING_DOC_SN = /*[[${doc?.aprvlDocSn}]]*/ null;
     const EXISTING_LINES = /*[[${existingLines}]]*/ [];
 
@@ -451,27 +464,69 @@
 
     function buildApproverSelect() {
       const select = document.getElementById("approverSelect");
-      const byDept = {};
-      APPROVER_CANDIDATES.forEach((c) => {
-        if (!byDept[c.deptNm]) byDept[c.deptNm] = [];
-        byDept[c.deptNm].push(c);
-      });
-      Object.entries(byDept).forEach(([deptNm, members]) => {
+      select.innerHTML = '<option value="">결재자 선택</option>';
+
+      // 1. "내 사수들" optgroup
+      const supervisorIds = new Set((AUTO_APPROVAL_LINE || []).map(s => s.aprvrUserId));
+      if (AUTO_APPROVAL_LINE && AUTO_APPROVAL_LINE.length > 0) {
         const og = document.createElement("optgroup");
-        og.label = deptNm;
-        members.forEach((m) => {
+        og.label = "▶ 내 사수들";
+        AUTO_APPROVAL_LINE.forEach(s => {
+          const opt = document.createElement("option");
+          opt.value = s.aprvrUserId;
+          opt.dataset.name = s.approverName || s.aprvrUserId;
+          opt.dataset.jbgr = s.jbgrNm || "";
+          opt.dataset.sortOrd = s.sortOrd || 0;
+          opt.textContent = `${s.approverName || s.aprvrUserId} (${s.jbgrNm || ""})`;
+          og.appendChild(opt);
+        });
+        select.appendChild(og);
+      }
+
+      // 2. 다른 팀/부서별 optgroup (내 사수 제외)
+      const otherCandidates = APPROVER_CANDIDATES.filter(c => !supervisorIds.has(c.userId));
+      const byDept = {};
+      otherCandidates.forEach(c => {
+        const key = c.deptCd || c.deptNm;
+        if (!byDept[key]) byDept[key] = { deptNm: c.deptNm, members: [] };
+        byDept[key].members.push(c);
+      });
+      Object.values(byDept).forEach(({ deptNm, members }) => {
+        // 최상위(mntUserId == userId) 수가 여럿이면 독립형(강사팀), 하나면 계층형(행정/PD팀)
+        const topCount = members.filter(m => m.mntUserId === m.userId).length;
+        const isIndependent = topCount > 1;
+        const og = document.createElement("optgroup");
+        og.label = isIndependent ? `${deptNm} (독립형)` : deptNm;
+        members.forEach(m => {
           const opt = document.createElement("option");
           opt.value = m.userId;
           opt.dataset.name = m.userName;
           opt.dataset.jbgr = m.jbgrNm;
-          opt.dataset.sortOrd = m.sortOrd;
-          opt.textContent = `${m.userName} (${m.jbgrNm})`;
+          opt.dataset.sortOrd = m.sortOrd || 0;
+          const isTop = m.mntUserId === m.userId;
+          const prefix = isTop && !isIndependent ? "[최상위] " : "";
+          opt.textContent = `${prefix}${m.userName} (${m.jbgrNm})`;
           og.appendChild(opt);
         });
         select.appendChild(og);
       });
     }
     buildApproverSelect();
+
+    function loadAutoApprovalLine() {
+      if (!AUTO_APPROVAL_LINE || AUTO_APPROVAL_LINE.length === 0) {
+        alert("자동 결재선이 없습니다. 사수가 지정되지 않았을 수 있습니다.");
+        return;
+      }
+      approvalLine = AUTO_APPROVAL_LINE.map(l => ({
+        aprvrUserId: l.aprvrUserId,
+        approverName: l.approverName || l.aprvrUserId,
+        jbgrNm: l.jbgrNm || "",
+        sortOrd: l.sortOrd || 0,
+      }));
+      renderLinePreview();
+      renderLineEdit();
+    }
 
     function addApprover() {
       if (approvalLine.some((a) => a.jbgrNm === "원장")) {

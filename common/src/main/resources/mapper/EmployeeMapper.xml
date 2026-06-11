@@ -18,9 +18,16 @@
     <!-- selectEmployeeInfoByUserId -->
 
     <select id="selectEmployeeInfoByUserId" parameterType="string" resultType="kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto">
-        select * from EMPLOYEE_INFO 
-        where USER_ID = #{userId}
-        
+        SELECT ei.*,
+               m.USER_NAME  AS user_name,
+               d.DEPT_NM    AS dept_nm,
+               jg.JBGR_NM  AS jbgr_nm,
+               jg.SORT_ORD  AS sort_ord
+        FROM   EMPLOYEE_INFO ei
+        JOIN   MEMBER      m  ON ei.USER_ID = m.USER_ID
+        JOIN   DEPARTMENT  d  ON ei.DEPT_CD = d.DEPT_CD
+        JOIN   JOB_GRADE   jg ON ei.JBGR_CD = jg.JBGR_CD
+        WHERE  ei.USER_ID = #{userId}
     </select>
 
     <!-- selectEmployeeListByDeptCd -->
@@ -30,7 +37,7 @@
         where DEPT_CD = #{deptCd}
     </select>
 
-    <!-- selectApproverCandidates: 현재 유저보다 sort_ord 낮은(상위 직급) 재직 직원 -->
+    <!-- selectApproverCandidates: 재직 중인 전체 관리자 (수동결재자 선택용) -->
     <select id="selectApproverCandidates" parameterType="string" resultType="kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto">
         SELECT ei.user_id,
                m.user_name,
@@ -38,19 +45,15 @@
                d.dept_nm,
                ei.jbgr_cd,
                jg.jbgr_nm,
-               jg.sort_ord
+               jg.sort_ord,
+               ei.MNT_USER_ID AS mnt_user_id
         FROM   EMPLOYEE_INFO ei
         JOIN   MEMBER     m  ON ei.user_id  = m.user_id
         JOIN   JOB_GRADE  jg ON ei.jbgr_cd  = jg.jbgr_cd
         JOIN   DEPARTMENT d  ON ei.dept_cd   = d.dept_cd
         WHERE  ei.empl_stat_cd = '01'
           AND  ei.user_id     != #{userId}
-          AND  jg.sort_ord     &lt; (
-               SELECT jg2.sort_ord
-               FROM   EMPLOYEE_INFO ei2
-               JOIN   JOB_GRADE     jg2 ON ei2.jbgr_cd = jg2.jbgr_cd
-               WHERE  ei2.user_id = #{userId}
-          )
+          AND  m.user_role     = 'ROLE_ADMIN'
         ORDER BY d.dept_nm, jg.sort_ord
     </select>
 
