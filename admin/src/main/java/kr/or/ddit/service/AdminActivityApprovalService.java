@@ -42,11 +42,7 @@ public class AdminActivityApprovalService {
     public void submitForApproval(String actorUserId, AdminActivityType activityType,
                                   String displaySummary, Map<String, Object> payloadData) {
 
-        List<ApprovalTemplateDto> templates = approvalService.getApprovalTemplateList();
-        if (templates.isEmpty()) {
-            throw new IllegalStateException("사용 가능한 결재 양식이 없어 결재 요청을 생성할 수 없습니다.");
-        }
-        String tmplCd = templates.get(0).getTmplCd();
+        String tmplCd = activityType.getTmplCd();
 
         AdminMemberDto actor = memberService.getAdminUserById(actorUserId);
         String actorName = actor != null ? actor.getUserName() : actorUserId;
