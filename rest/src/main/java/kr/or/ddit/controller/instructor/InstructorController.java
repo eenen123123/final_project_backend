@@ -13,12 +13,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.dto.instructor.CourseDetailResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorDetailResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorFeaturedCourseResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorListResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardDetail;
 import kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardItem;
-import kr.or.ddit.finalProject.dto.instructor.CourseDetailResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorPublicCourseResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorRecentPostResponse;
 import kr.or.ddit.finalProject.mapper.course.CourseMapper;
@@ -37,12 +37,19 @@ public class InstructorController {
     private final InstructorBoardMapper instructorBoardMapper;
     private final CourseMapper courseMapper;
 
+    // GET /api/instructors?subjClId={number}
+    @GetMapping
+    public ResponseEntity<List<InstructorListResponse>> getInstructors(
+            @RequestParam(required = false) Long subjClId) {
+        return ResponseEntity.ok(instructorMapper.selectInstructors(subjClId));
+    }
+
     // GET /api/instructors/by-subject
-    // 과목 분류별 강사 목록 반환
+    // 전체 강사 목록 반환
     // 응답 예: { "프로그래밍": [{instrUserId, userName, instrProfileImg}, ...], ... }
     @GetMapping("/by-subject")
     public ResponseEntity<Map<String, List<InstructorListResponse>>> getInstructorsBySubject() {
-        List<InstructorListResponse> flat = instructorMapper.selectInstructorsBySubject();
+        List<InstructorListResponse> flat = instructorMapper.selectInstructors(null);
 
         Map<String, List<InstructorListResponse>> grouped = flat.stream()
                 .collect(Collectors.groupingBy(
@@ -103,8 +110,8 @@ public class InstructorController {
             @RequestParam(defaultValue = "10") int size) {
         int offset = page * size;
         int total = instructorBoardMapper.selectPublicBoardCount(instrUuid, "02");
-        List<InstructorPublicBoardItem> items =
-                instructorBoardMapper.selectPublicBoardList(instrUuid, "02", offset, size);
+        List<InstructorPublicBoardItem> items
+                = instructorBoardMapper.selectPublicBoardList(instrUuid, "02", offset, size);
         return ResponseEntity.ok(new PageResponse<>(items, total));
     }
 
@@ -116,8 +123,8 @@ public class InstructorController {
             @RequestParam(defaultValue = "10") int size) {
         int offset = page * size;
         int total = instructorBoardMapper.selectPublicBoardCount(instrUuid, "03");
-        List<InstructorPublicBoardItem> items =
-                instructorBoardMapper.selectPublicBoardList(instrUuid, "03", offset, size);
+        List<InstructorPublicBoardItem> items
+                = instructorBoardMapper.selectPublicBoardList(instrUuid, "03", offset, size);
         return ResponseEntity.ok(new PageResponse<>(items, total));
     }
 
@@ -129,8 +136,8 @@ public class InstructorController {
             @RequestParam(defaultValue = "10") int size) {
         int offset = page * size;
         int total = instructorBoardMapper.selectPublicBoardCount(instrUuid, "04");
-        List<InstructorPublicBoardItem> items =
-                instructorBoardMapper.selectPublicBoardList(instrUuid, "04", offset, size);
+        List<InstructorPublicBoardItem> items
+                = instructorBoardMapper.selectPublicBoardList(instrUuid, "04", offset, size);
         return ResponseEntity.ok(new PageResponse<>(items, total));
     }
 
@@ -139,8 +146,8 @@ public class InstructorController {
     public ResponseEntity<InstructorPublicBoardDetail> getBoardDetail(
             @PathVariable String instrUuid,
             @PathVariable Long postSn) {
-        InstructorPublicBoardDetail detail =
-                instructorBoardMapper.selectPublicBoardDetail(instrUuid, postSn);
+        InstructorPublicBoardDetail detail
+                = instructorBoardMapper.selectPublicBoardDetail(instrUuid, postSn);
         if (detail == null) {
             return ResponseEntity.notFound().build();
         }
