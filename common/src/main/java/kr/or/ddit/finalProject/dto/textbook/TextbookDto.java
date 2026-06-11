@@ -41,7 +41,10 @@ public class TextbookDto implements Serializable {
     private String subjClNm; // 과목 대분류명 (SUBJECT_CLASSIFICATION.SUBJ_CL_NM)
     private Long subjClId; // 과목 대분류 ID (SUBJECT 통해 JOIN)
     private String instrUserNm; // 강사명 (COURSE → MEMBER)
+    private String instrUuid; // 강사 UUID (INSTRUCTOR.INSTR_UUID)
+    private String instrProfileImg; // 강사 프로필 이미지 URL (INSTRUCTOR.INSTR_PROFILE_IMG)
     private String courseNm; // 강좌명 (COURSE.COURSE_NM)
+    private Integer salableCnt; // 판매 가능 재고 수량 (TEXTBOOK_INVENTORY JOIN)
 
     // 검색 조건 (DB 컬럼 없음)
     private String keyword;
