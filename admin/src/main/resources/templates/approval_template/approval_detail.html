@@ -413,14 +413,21 @@
     EMPLOYEE_RETIRE:   { label: '직원 퇴사 처리', color: 'bg-red-100 text-red-700',         border: 'border-red-200',     icon: 'fa-user-minus',    dot: 'bg-red-500'     },
     STUDENT_REGISTER:  { label: '학생 신규 등록', color: 'bg-violet-100 text-violet-700',   border: 'border-violet-200',  icon: 'fa-user-plus',     dot: 'bg-violet-500'  },
     STUDENT_UPDATE:    { label: '학생 정보 수정', color: 'bg-amber-100 text-amber-700',     border: 'border-amber-200',   icon: 'fa-pen-to-square', dot: 'bg-amber-500'   },
-    STUDENT_RETIRE:    { label: '학생 탈퇴 처리', color: 'bg-slate-100 text-slate-600',     border: 'border-slate-200',   icon: 'fa-user-minus',    dot: 'bg-slate-400'   },
+    STUDENT_RETIRE:         { label: '학생 탈퇴 처리',    color: 'bg-slate-100 text-slate-600',   border: 'border-slate-200',   icon: 'fa-user-minus',    dot: 'bg-slate-400'   },
+    COMMON_CODE_GROUP_CREATE: { label: '공통코드 분류 등록', color: 'bg-indigo-100 text-indigo-700', border: 'border-indigo-200',  icon: 'fa-folder-plus',   dot: 'bg-indigo-500'  },
+    COMMON_CODE_GROUP_UPDATE: { label: '공통코드 분류 수정', color: 'bg-indigo-100 text-indigo-700', border: 'border-indigo-200',  icon: 'fa-folder-open',   dot: 'bg-indigo-500'  },
+    COMMON_CODE_GROUP_DELETE: { label: '공통코드 분류 삭제', color: 'bg-red-100 text-red-700',       border: 'border-red-200',     icon: 'fa-folder-minus',  dot: 'bg-red-500'     },
+    COMMON_CODE_CREATE:       { label: '공통코드 등록',      color: 'bg-teal-100 text-teal-700',     border: 'border-teal-200',    icon: 'fa-plus-circle',   dot: 'bg-teal-500'    },
+    COMMON_CODE_UPDATE:       { label: '공통코드 수정',      color: 'bg-teal-100 text-teal-700',     border: 'border-teal-200',    icon: 'fa-pen-to-square', dot: 'bg-teal-500'    },
+    COMMON_CODE_DELETE:       { label: '공통코드 삭제',      color: 'bg-red-100 text-red-700',       border: 'border-red-200',     icon: 'fa-trash',         dot: 'bg-red-500'     },
   };
 
   const SECTION_CONFIG = {
     memberDto:         { label: '기본 회원 정보', icon: 'fa-user',         color: 'text-violet-500' },
     employeeInfoDto:   { label: '직원 근무 정보', icon: 'fa-id-badge',     color: 'text-sky-500'    },
     employeeSalaryDto: { label: '급여 정보',      icon: 'fa-won-sign',     color: 'text-emerald-500'},
-    studentDto:        { label: '학생 정보',      icon: 'fa-user-graduate',color: 'text-violet-500' },
+    studentDto:        { label: '학생 정보',      icon: 'fa-user-graduate', color: 'text-violet-500' },
+    dto:               { label: '공통코드 정보',  icon: 'fa-list',          color: 'text-indigo-500' },
   };
 
   const FIELD_LABELS = {
@@ -432,7 +439,10 @@
     joinYmd: '입사일', retmtYmd: '퇴사일', retmtRsn: '퇴사 사유',
     emplStatCd: '재직 상태', emplTypeCd: '고용 유형', chrgDutyCn: '담당 업무',
     baseSalary: '기본급 (만원)', applyYmd: '급여 적용일',
-    studentId: '학번', grade: '학년', classNm: '반', ctrctEndYmd:'계약 종료일'
+    studentId: '학번', grade: '학년', classNm: '반', ctrctEndYmd: '계약 종료일',
+    clCode: '분류코드', clCdNm: '분류명', clCdExpln: '분류 설명',
+    comCd: '코드값', comCdNm: '표시명', comCdExpln: '코드 설명',
+    useYn: '사용 여부'
   };
 
   const FIELD_TRANSFORMS = {
@@ -442,6 +452,7 @@
     userRole:    v => ({ 'ROLE_ADMIN':'관리자', 'ROLE_USER':'학생', 'ROLE_STUDENT':'학생' }[v] || v),
     enable:      v => (v === '1' || String(v).toLowerCase() === 'true') ? '활성' : '비활성',
     userProfile: v => v === '__PENDING__' ? '새 이미지 (결재 후 반영)' : (v && String(v).startsWith('http')) ? '등록됨' : '-',
+    useYn:       v => v === 'Y' ? '사용' : v === 'N' ? '미사용' : v,
     userTelno:   v => {
       const d = String(v).replace(/-/g, '');
       if (d.length === 11) return d.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');

@@ -18,7 +18,13 @@ public enum AdminActivityType {
     GRADE_CREATE("직급 등록"),
     GRADE_UPDATE("직급 수정"),
     GRADE_TOGGLE("직급 활성화 변경"),
-    MNT_MAPPING("사수 배정");
+    MNT_MAPPING("사수 배정"),
+    COMMON_CODE_GROUP_CREATE("공통코드 분류 등록"),
+    COMMON_CODE_GROUP_UPDATE("공통코드 분류 수정"),
+    COMMON_CODE_GROUP_DELETE("공통코드 분류 삭제"),
+    COMMON_CODE_CREATE("공통코드 등록"),
+    COMMON_CODE_UPDATE("공통코드 수정"),
+    COMMON_CODE_DELETE("공통코드 삭제");
 
     private final String label;
 }
