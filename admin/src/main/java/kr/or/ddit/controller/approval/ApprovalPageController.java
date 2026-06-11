@@ -51,11 +51,14 @@ public class ApprovalPageController {
         List<ApprovalTemplateDto> templates = approvalService.getApprovalTemplateList();
         List<EmployeeInfoDto> approverCandidates =
                 adminEmployeeService.getApproverCandidates(userId);
+        List<ApprovalLineDto> autoApprovalLine =
+                approvalService.getDefaultApprovalLinesByUserId(userId);
 
         model.addAttribute("currentUserName", adminMember.getUserName());
         model.addAttribute("currentDeptNm", adminMember.getEmployeeInfo().getDeptNm());
         model.addAttribute("templates", templates);
         model.addAttribute("approverCandidates", approverCandidates);
+        model.addAttribute("autoApprovalLine", autoApprovalLine);
 
         return "admin:/approval_template/approval_form";
     }
@@ -121,11 +124,14 @@ public class ApprovalPageController {
         List<ApprovalTemplateDto> templates = approvalService.getApprovalTemplateList();
         List<EmployeeInfoDto> approverCandidates =
                 adminEmployeeService.getApproverCandidates(userId);
+        List<ApprovalLineDto> autoApprovalLine =
+                approvalService.getDefaultApprovalLinesByUserId(userId);
 
         model.addAttribute("doc", doc);
         model.addAttribute("existingLines", existingLines);
         model.addAttribute("templates", templates);
         model.addAttribute("approverCandidates", approverCandidates);
+        model.addAttribute("autoApprovalLine", autoApprovalLine);
         model.addAttribute("currentUserName", adminMember.getUserName());
         model.addAttribute("currentDeptNm", adminMember.getEmployeeInfo().getDeptNm());
 
