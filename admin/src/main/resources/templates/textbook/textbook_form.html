@@ -346,10 +346,10 @@
   function loadSubjects(subjClId) {
     const subjIdEl = document.querySelector('select[name="subjId"]');
     if (!subjIdEl) return;
-    if (subjIdEl.tomselect) subjIdEl.tomselect.destroy();
+    if (subjIdEl.customSelect) subjIdEl.customSelect.destroy();
     subjIdEl.innerHTML = '<option value="">소분류 선택</option>';
     if (!subjClId) {
-      addSubjGuard(window.initTomSelect(subjIdEl));
+      addSubjGuard(window.initCustomSelect(subjIdEl));
       return;
     }
     fetch('/admin/textbook/api/subjects?subjClId=' + subjClId)
@@ -363,7 +363,7 @@
         });
         const currentSubjId = /*[[${textbookDto.subjId}]]*/ null;
         if (currentSubjId) subjIdEl.value = String(currentSubjId);
-        window.initTomSelect(subjIdEl);
+        window.initCustomSelect(subjIdEl);
       });
   }
 
@@ -373,8 +373,8 @@
     const subjIdEl = document.querySelector('select[name="subjId"]');
     if (subjClIdSelect && subjClIdSelect.value) {
       loadSubjects(subjClIdSelect.value);
-    } else if (subjIdEl && !subjIdEl.tomselect) {
-      addSubjGuard(window.initTomSelect(subjIdEl));
+    } else if (subjIdEl && !subjIdEl.customSelect) {
+      addSubjGuard(window.initCustomSelect(subjIdEl));
     }
   });
 

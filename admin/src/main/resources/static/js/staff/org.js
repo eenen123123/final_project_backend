@@ -534,8 +534,7 @@ function openAddTeamModal() {
 function closeAddTeamModal() { document.getElementById('modal-add-team').classList.add('hidden'); }
 function confirmAddTeam() {
   const sel = document.getElementById('add-team-select');
-  const ts = sel.tomselect;
-  const sid = ts ? ts.getValue() : sel.value;
+  const sid = sel.customSelect ? sel.customSelect.getValue() : sel.value;
   if (!sid) return;
   closeAddTeamModal();
   if (!extraSups.includes(sid)) extraSups.push(sid);

@@ -51,7 +51,7 @@ async function navigateToStudents(btn) {
     }
 
     currMain.querySelectorAll('select.hm-input:not([data-ts-defer])').forEach(el => {
-      if (!el.tomselect && window.initTomSelect) window.initTomSelect(el);
+      if (!el.customSelect && window.initCustomSelect) window.initCustomSelect(el);
     });
     await initDeferredSelects(currMain);
 
@@ -206,7 +206,7 @@ function resetHrFilter() {
     "hr-type-filter",
   ].forEach((id) => {
     const el = document.getElementById(id);
-    if (el.tomselect) el.tomselect.setValue("");
+    if (el.customSelect) el.customSelect.setValue("");
     else el.value = "";
   });
   hrSortCol = null;
@@ -482,23 +482,23 @@ function toggleDetailEdit() {
       document.getElementById("edit-addr-detail").value =
         row.dataset.addrDetail || "";
       const genderEl = document.getElementById("edit-gender");
-      if (genderEl.tomselect)
-        genderEl.tomselect.setValue(row.dataset.gender || "U");
+      if (genderEl.customSelect)
+        genderEl.customSelect.setValue(row.dataset.gender || "U");
       else genderEl.value = row.dataset.gender || "U";
 
       // 인사 기록
       const deptEl = document.getElementById("edit-dept");
-      if (deptEl.tomselect) deptEl.tomselect.setValue(row.dataset.dept || "");
+      if (deptEl.customSelect) deptEl.customSelect.setValue(row.dataset.dept || "");
       else deptEl.value = row.dataset.dept || "";
       filterEditRoleByDept(row.dataset.gradeCd || "");
       document.getElementById("edit-entry-date").value = row.dataset.join || "";
       const statusEl = document.getElementById("edit-status");
       const workTypeEl = document.getElementById("edit-work-type");
-      if (statusEl.tomselect)
-        statusEl.tomselect.setValue(row.dataset.status || "01");
+      if (statusEl.customSelect)
+        statusEl.customSelect.setValue(row.dataset.status || "01");
       else statusEl.value = row.dataset.status || "01";
-      if (workTypeEl.tomselect)
-        workTypeEl.tomselect.setValue(row.dataset.type || "01");
+      if (workTypeEl.customSelect)
+        workTypeEl.customSelect.setValue(row.dataset.type || "01");
       else workTypeEl.value = row.dataset.type || "01";
       toggleEditContractPeriod(row.dataset.type || "01");
       document.getElementById("edit-contract-end").value = (
@@ -714,8 +714,8 @@ function toggleEditContractPeriod(val) {
 function openResignConfirm() {
   const reason = document.getElementById("resign-reason");
   const reasonVal =
-    reason && reason.tomselect
-      ? reason.tomselect.getValue()
+    reason && reason.customSelect
+      ? reason.customSelect.getValue()
       : reason
         ? reason.value
         : "";
@@ -765,8 +765,8 @@ function onResignReasonChange(elOrVal) {
 function executeResign() {
   const reasonSelectEl = document.getElementById("resign-reason");
   const reasonDetail = document.getElementById("resign-reason-detail");
-  const selectedVal = reasonSelectEl.tomselect
-    ? reasonSelectEl.tomselect.getValue()
+  const selectedVal = reasonSelectEl.customSelect
+    ? reasonSelectEl.customSelect.getValue()
     : reasonSelectEl.value;
   let retmtRsn =
     selectedVal === "04" ? (reasonDetail.value || "").trim() : selectedVal;
@@ -807,7 +807,7 @@ function executeResign() {
         closeModal("modal-resign-confirm");
         closeModal("modal-emp-detail");
         const rsEl = document.getElementById("resign-reason");
-        if (rsEl.tomselect) rsEl.tomselect.setValue("");
+        if (rsEl.customSelect) rsEl.customSelect.setValue("");
         else rsEl.value = "";
         document.getElementById("resign-reason-detail").value = "";
         document.getElementById("resign-reason-detail").classList.add("hidden");
@@ -1289,8 +1289,8 @@ document
 
 /* ─── 신규 등록 폼 입력 시 파란 배경 토글 ─── */
 function syncFilled(el) {
-  const wrapper = el.tomselect ? el.tomselect.wrapper : el;
-  const val = el.tomselect ? el.tomselect.getValue() : el.value;
+  const wrapper = el.customSelect ? el.customSelect.wrapper : el;
+  const val = el.customSelect ? el.customSelect.getValue() : el.value;
   wrapper.classList.toggle("filled", val !== "" && val != null);
 }
 

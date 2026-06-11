@@ -116,7 +116,7 @@ async function loadCommonCodes(selectId, clCode, allLabel = null) {
   } catch (e) {
     console.warn('[loadCommonCodes] 로딩 실패:', clCode, e);
   }
-  if (window.initTomSelect) window.initTomSelect(el);
+  if (window.initCustomSelect) window.initCustomSelect(el);
 }
 
 /**
@@ -134,15 +134,14 @@ async function initDeferredSelects(root) {
     const clCode   = el.getAttribute('data-cl-code');
     const allLabel = el.hasAttribute('data-all-label') ? el.getAttribute('data-all-label') : null;
     await loadCommonCodes(el.id, clCode, allLabel);
-    if (el.hasAttribute('data-ts-dropup') && el.tomselect)
-      el.tomselect.wrapper.classList.add('ts-dropup');
+    if (el.hasAttribute('data-ts-dropup') && el.customSelect)
+      el.customSelect.wrapper.classList.add('ts-dropup');
   }));
 }
 
 /* ==========================================================================
    3. CustomSelect — Tom Select 대체 커스텀 드롭다운
    --------------------------------------------------------------------------
-   el.tomselect / window.initTomSelect 호환 alias 포함.
    ========================================================================== */
 class CustomSelect {
   constructor(el) {
@@ -151,7 +150,6 @@ class CustomSelect {
     this._build();
     this._bind();
     el.customSelect = this;
-    el.tomselect    = this;
   }
 
   _build() {
@@ -288,7 +286,6 @@ class CustomSelect {
     this.wrapper.remove();
     this._el.style.display = '';
     delete this._el.customSelect;
-    delete this._el.tomselect;
   }
 }
 
@@ -298,7 +295,6 @@ function initCustomSelect(el) {
 }
 
 window.initCustomSelect = initCustomSelect;
-window.initTomSelect    = initCustomSelect; /* 기존 코드 호환 alias */
 
 /* ==========================================================================
    4. 폼 공통 유틸리티

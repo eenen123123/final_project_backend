@@ -561,10 +561,9 @@
   </div>
 
   <script>
-    // Tom Select 초기화
     try {
       document.querySelectorAll("select[data-ts-defer]").forEach(function (el) {
-        window.initTomSelect(el);
+        window.initCustomSelect(el);
       });
     } catch (e) {}
 

@@ -46,7 +46,7 @@ async function navigateToEmployees(btn) {
     }
 
     currMain.querySelectorAll('select.hm-input:not([data-ts-defer])').forEach(el => {
-      if (!el.tomselect && window.initTomSelect) window.initTomSelect(el);
+      if (!el.customSelect && window.initCustomSelect) window.initCustomSelect(el);
     });
     await initDeferredSelects(currMain);
 
@@ -164,7 +164,7 @@ function resetHrFilter() {
   ["hr-year", "hr-type-filter", "hr-status-filter"].forEach((id) => {
     const el = document.getElementById(id);
     if (!el) return;
-    if (el.tomselect) el.tomselect.setValue("");
+    if (el.customSelect) el.customSelect.setValue("");
     else el.value = "";
   });
   hrSortCol = null;
@@ -470,7 +470,7 @@ function saveDetailEdit() {
 /* ─── 탈퇴 처리 ─── */
 function openResignConfirm() {
   const reason = document.getElementById("resign-reason");
-  const reasonVal = reason && reason.tomselect ? reason.tomselect.getValue() : reason ? reason.value : "";
+  const reasonVal = reason && reason.customSelect ? reason.customSelect.getValue() : reason ? reason.value : "";
   const detail = document.getElementById("resign-reason-detail");
 
   if (!reasonVal) {
@@ -502,7 +502,7 @@ function onResignReasonChange(elOrVal) {
 function executeResign() {
   const reasonSelectEl = document.getElementById("resign-reason");
   const reasonDetail   = document.getElementById("resign-reason-detail");
-  const selectedVal    = reasonSelectEl.tomselect ? reasonSelectEl.tomselect.getValue() : reasonSelectEl.value;
+  const selectedVal    = reasonSelectEl.customSelect ? reasonSelectEl.customSelect.getValue() : reasonSelectEl.value;
   let withdrawRsn      = selectedVal === "04" ? (reasonDetail.value || "").trim() : selectedVal;
 
   if (!withdrawRsn) {
@@ -527,7 +527,7 @@ function executeResign() {
         closeModal("modal-resign-confirm");
         closeModal("modal-emp-detail");
         const rsEl = document.getElementById("resign-reason");
-        if (rsEl.tomselect) rsEl.tomselect.setValue("");
+        if (rsEl.customSelect) rsEl.customSelect.setValue("");
         else rsEl.value = "";
         document.getElementById("resign-reason-detail").value = "";
         document.getElementById("resign-reason-detail").classList.add("hidden");

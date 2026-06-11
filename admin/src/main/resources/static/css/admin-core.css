@@ -300,7 +300,7 @@ input.hm-lg       { line-height: 23.55px; }
 }
 .cs-wrapper.cs-open .cs-dropdown { display: block; }
 
-/* ts-dropup: initDeferredSelects 가 el.tomselect.wrapper 에 추가하는 클래스 (기존 코드 호환).
+/* ts-dropup: initDeferredSelects 가 el.customSelect.wrapper 에 추가하는 클래스.
    cs-dropup: 직접 wrapper 에 클래스를 붙일 때 사용. */
 .cs-wrapper.ts-dropup .cs-dropdown,
 .cs-wrapper.cs-dropup  .cs-dropdown {
