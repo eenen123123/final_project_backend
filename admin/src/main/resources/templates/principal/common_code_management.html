@@ -34,7 +34,7 @@
           <h2 class="text-sm font-semibold text-slate-700">코드 목록</h2>
           <p id="selectedGroupLabel" class="text-xs text-slate-400 mt-0.5">분류를 선택하세요</p>
         </div>
-        <button id="addCodeBtn" class="hm-btn-primary text-xs px-3 py-1.5 flex items-center gap-1 hidden"
+        <button id="addCodeBtn" class="hm-btn-primary text-xs px-3 py-1.5 flex items-center gap-1"
                 onclick="openCodeModal(null)">
           <i class="fa-solid fa-plus text-xs"></i> 코드 추가
         </button>
@@ -154,6 +154,8 @@
   let selectedClCode = null;
   let editingGroupCode = null;
   let editingComCd = null;
+  let _groupOrigData = null;
+  let _codeOrigData  = null;
 
   // ── 초기 로딩 ─────────────────────────────────────────────────
   loadGroups();
@@ -258,11 +260,13 @@
     if (isEdit) {
       const groups = await fetch('/admin/common-codes/api/groups').then(r => r.json());
       const g = groups.find(x => x.clCode === clCode) || {};
-      document.getElementById('gm-clCode').value  = g.clCode    || '';
-      document.getElementById('gm-clCdNm').value  = g.clCdNm   || '';
+      document.getElementById('gm-clCode').value    = g.clCode    || '';
+      document.getElementById('gm-clCdNm').value    = g.clCdNm   || '';
       document.getElementById('gm-clCdExpln').value = g.clCdExpln || '';
-      document.getElementById('gm-useYn').value   = g.useYn    || 'Y';
+      document.getElementById('gm-useYn').value     = g.useYn    || 'Y';
+      _groupOrigData = { nm: g.clCdNm || '', expln: g.clCdExpln || '', useYn: g.useYn || 'Y' };
     } else {
+      _groupOrigData = null;
       document.getElementById('gm-clCode').value  = '';
       document.getElementById('gm-clCdNm').value  = '';
       document.getElementById('gm-clCdExpln').value = '';
@@ -289,25 +293,55 @@
                           : '/admin/common-codes/api/groups';
     const method = isEdit ? 'PUT' : 'POST';
 
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ clCode, clCdNm, clCdExpln, useYn })
-    });
+    const doFetch = async () => {
+      closeHermesApprovalConfirm();
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clCode, clCdNm, clCdExpln, useYn })
+      });
+      if (res.ok) {
+        showHermesToast('결재에 등록되었습니다. 승인 후 반영됩니다.', 'success');
+        closeModal('groupModal');
+      } else if (res.status === 409) {
+        showHermesToast('이미 존재하는 분류코드입니다.', 'error');
+      } else {
+        showHermesToast('저장 실패. 다시 시도해 주세요.', 'error');
+      }
+    };
 
-    if (res.ok) {
-      showHermesToast('결재에 등록되었습니다. 승인 후 반영됩니다.', 'success');
-      closeModal('groupModal');
-    } else if (res.status === 409) {
-      showHermesToast('이미 존재하는 분류코드입니다.', 'error');
+    if (isEdit) {
+      showHermesApprovalConfirm({
+        title: '분류 수정 결재 등록',
+        type: 'update',
+        fields: [
+          { label: '분류명', before: _groupOrigData?.nm    || '-', after: clCdNm    },
+          { label: '설명',   before: _groupOrigData?.expln || '-', after: clCdExpln || '-' },
+          { label: '사용여부', before: _groupOrigData?.useYn || '-', after: useYn    },
+        ],
+        onConfirm: doFetch,
+      });
     } else {
-      showHermesToast('저장 실패. 다시 시도해 주세요.', 'error');
+      showHermesApprovalConfirm({
+        title: '분류 등록 결재 등록',
+        type: 'create',
+        fields: [
+          { label: '분류 코드', value: clCode    },
+          { label: '분류명',   value: clCdNm    },
+          { label: '설명',     value: clCdExpln || '-' },
+        ],
+        onConfirm: doFetch,
+      });
     }
   };
 
   window.confirmDeleteGroup = function (clCode, clCdNm) {
-    if (!confirm(`[${clCode}] ${clCdNm}\n이 분류와 하위 코드를 모두 삭제하시겠습니까?`)) return;
-    deleteGroup(clCode);
+    showHermesApprovalConfirm({
+      title: '분류 삭제 결재 등록',
+      type: 'delete',
+      target: `[${clCode}] ${clCdNm} (하위 코드 전체 포함)`,
+      onConfirm: () => { closeHermesApprovalConfirm(); deleteGroup(clCode); },
+    });
   };
 
   async function deleteGroup(clCode) {
@@ -328,7 +362,10 @@
 
   // ── 코드 모달 ──────────────────────────────────────────────────
   window.openCodeModal = async function (comCd) {
-    if (!selectedClCode) return;
+    if (!selectedClCode) {
+      showHermesToast('좌측에서 코드 분류를 먼저 선택해주세요.', 'error');
+      return;
+    }
     editingComCd = comCd;
     const isEdit = comCd !== null;
     document.getElementById('codeModalTitle').textContent = isEdit ? '코드 수정' : '코드 등록';
@@ -337,11 +374,13 @@
     if (isEdit) {
       const codes = await fetch(`/admin/common-codes/api/${encodeURIComponent(selectedClCode)}/codes`).then(r => r.json());
       const c = codes.find(x => x.comCd === comCd) || {};
-      document.getElementById('cm-comCd').value     = c.comCd    || '';
-      document.getElementById('cm-comCdNm').value   = c.comCdNm  || '';
+      document.getElementById('cm-comCd').value      = c.comCd      || '';
+      document.getElementById('cm-comCdNm').value    = c.comCdNm    || '';
       document.getElementById('cm-comCdExpln').value = c.comCdExpln || '';
-      document.getElementById('cm-useYn').value     = c.useYn    || 'Y';
+      document.getElementById('cm-useYn').value      = c.useYn      || 'Y';
+      _codeOrigData = { nm: c.comCdNm || '', expln: c.comCdExpln || '', useYn: c.useYn || 'Y' };
     } else {
+      _codeOrigData = null;
       document.getElementById('cm-comCd').value     = '';
       document.getElementById('cm-comCdNm').value   = '';
       document.getElementById('cm-comCdExpln').value = '';
@@ -369,23 +408,53 @@
       : `/admin/common-codes/api/${encodeURIComponent(selectedClCode)}/codes`;
     const method = isEdit ? 'PUT' : 'POST';
 
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ comCd, comCdNm, comCdExpln, useYn })
-    });
+    const doFetch = async () => {
+      closeHermesApprovalConfirm();
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ comCd, comCdNm, comCdExpln, useYn })
+      });
+      if (res.ok) {
+        showHermesToast('결재에 등록되었습니다. 승인 후 반영됩니다.', 'success');
+        closeModal('codeModal');
+      } else {
+        showHermesToast('저장 실패. 다시 시도해 주세요.', 'error');
+      }
+    };
 
-    if (res.ok) {
-      showHermesToast('결재에 등록되었습니다. 승인 후 반영됩니다.', 'success');
-      closeModal('codeModal');
+    if (isEdit) {
+      showHermesApprovalConfirm({
+        title: '코드 수정 결재 등록',
+        type: 'update',
+        fields: [
+          { label: '표시명', before: _codeOrigData?.nm    || '-', after: comCdNm    },
+          { label: '설명',   before: _codeOrigData?.expln || '-', after: comCdExpln || '-' },
+          { label: '사용여부', before: _codeOrigData?.useYn || '-', after: useYn    },
+        ],
+        onConfirm: doFetch,
+      });
     } else {
-      showHermesToast('저장 실패. 다시 시도해 주세요.', 'error');
+      showHermesApprovalConfirm({
+        title: '코드 등록 결재 등록',
+        type: 'create',
+        fields: [
+          { label: '코드값', value: comCd      },
+          { label: '표시명', value: comCdNm    },
+          { label: '설명',   value: comCdExpln || '-' },
+        ],
+        onConfirm: doFetch,
+      });
     }
   };
 
   window.confirmDeleteCode = function (comCd, comCdNm) {
-    if (!confirm(`[${comCd}] ${comCdNm}\n이 코드를 삭제하시겠습니까?`)) return;
-    deleteCode(comCd);
+    showHermesApprovalConfirm({
+      title: '코드 삭제 결재 등록',
+      type: 'delete',
+      target: `[${comCd}] ${comCdNm}`,
+      onConfirm: () => { closeHermesApprovalConfirm(); deleteCode(comCd); },
+    });
   };
 
   async function deleteCode(comCd) {

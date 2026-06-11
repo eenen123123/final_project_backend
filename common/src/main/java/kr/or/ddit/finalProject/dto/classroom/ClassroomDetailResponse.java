@@ -29,4 +29,6 @@ public class ClassroomDetailResponse {
     private String instrNm;
     private int memberCount;
 
+    private String instrUuid;
+
 }

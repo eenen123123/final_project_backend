@@ -16,6 +16,8 @@ function switchTab(id, btn) {
 const deptMap = {};
 let allMntGradeOpts = [];
 let gradeOrdMap    = {}; /* jbgrNm → sortOrd (직급 rank 조회용) */
+let _deptOrigData  = null; /* openDeptModal 에서 저장 */
+let _gradeOrigData = null; /* openGradeModal 에서 저장 */
 
 /* 스크립트가 body 하단에 위치하므로 DOM 파싱 완료 — 즉시 실행 가능 */
 function initMntGradeOpts() {
@@ -121,6 +123,7 @@ function openDeptModal(row) {
   document.getElementById('dept-nm').value       = isEdit ? row.dataset.nm : '';
   document.getElementById('dept-prnt').value     = isEdit ? (row.dataset.prnt || '') : '';
   document.getElementById('dept-tel').value      = isEdit ? (row.dataset.tel || '') : '';
+  _deptOrigData = isEdit ? { nm: row.dataset.nm, prnt: row.dataset.prnt || '', tel: row.dataset.tel || '' } : null;
   document.getElementById('modal-dept').classList.remove('hidden');
 }
 function closeDeptModal() { document.getElementById('modal-dept').classList.add('hidden'); }
@@ -139,21 +142,72 @@ function saveDept() {
 
   const url    = isEdit ? `/admin/org/dept/${editCd}` : '/admin/org/dept';
   const method = isEdit ? 'PUT' : 'POST';
-  fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
-    .then(r => r.json()).then(d => {
-      if (d.result === 'success') { closeDeptModal(); location.reload(); }
-      else alert('오류: ' + (d.message || '처리 실패'));
+  const doFetch = () => {
+    closeHermesApprovalConfirm();
+    fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
+      .then(r => r.json()).then(d => {
+        if (d.result === 'success') {
+          closeDeptModal();
+          showHermesToast(d.message || '결재 요청이 완료되었습니다. 승인 후 처리됩니다.', 'success');
+          setTimeout(() => location.reload(), 1500);
+        } else {
+          showHermesToast('오류: ' + (d.message || '처리 실패'), 'error');
+        }
+      })
+      .catch(() => showHermesToast('요청 중 오류가 발생했습니다.', 'error'));
+  };
+
+  if (isEdit) {
+    showHermesApprovalConfirm({
+      title: '부서 수정 결재 등록',
+      type: 'update',
+      fields: [
+        { label: '부서명',   before: _deptOrigData?.nm   || '-', after: body.deptNm },
+        { label: '상위부서', before: _deptOrigData?.prnt  || '-', after: body.prntDeptCd || '-' },
+        { label: '내선번호', before: _deptOrigData?.tel   || '-', after: body.intlTelNo  || '-' },
+      ],
+      onConfirm: doFetch,
     });
+  } else {
+    showHermesApprovalConfirm({
+      title: '부서 등록 결재 등록',
+      type: 'create',
+      fields: [
+        { label: '부서 코드', value: body.deptCd },
+        { label: '부서명',   value: body.deptNm },
+        { label: '상위부서', value: body.prntDeptCd || '-' },
+        { label: '내선번호', value: body.intlTelNo  || '-' },
+      ],
+      onConfirm: doFetch,
+    });
+  }
 }
 
 function toggleDept(deptCd, newUseYn) {
-  if (!confirm(`해당 부서를 ${newUseYn === 'Y' ? '활성화' : '비활성화'}하시겠습니까?`)) return;
-  fetch(`/admin/org/dept/${deptCd}/toggle`, {
-    method: 'PUT', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ useYn: newUseYn })
-  }).then(r => r.json()).then(d => {
-    if (d.result === 'success') location.reload();
-    else alert('오류: ' + d.message);
+  const nm    = document.querySelector(`#dept-tbody tr[data-cd="${deptCd}"]`)?.dataset.nm || deptCd;
+  const label = newUseYn === 'Y' ? '활성화' : '비활성화';
+  showHermesApprovalConfirm({
+    title: `부서 ${label} 결재 등록`,
+    type: newUseYn === 'N' ? 'delete' : 'create',
+    target: newUseYn === 'N' ? `${nm} ${label}` : undefined,
+    fields: newUseYn === 'Y' ? [
+      { label: '대상 부서', value: nm },
+      { label: '상태 변경', value: '미사용 → 사용중' },
+    ] : undefined,
+    onConfirm: () => {
+      closeHermesApprovalConfirm();
+      fetch(`/admin/org/dept/${deptCd}/toggle`, {
+        method: 'PUT', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ useYn: newUseYn })
+      }).then(r => r.json()).then(d => {
+        if (d.result === 'success') {
+          showHermesToast(d.message || '처리가 완료되었습니다.', 'success');
+          setTimeout(() => location.reload(), 1500);
+        } else {
+          showHermesToast('오류: ' + d.message, 'error');
+        }
+      }).catch(() => showHermesToast('요청 중 오류가 발생했습니다.', 'error'));
+    },
   });
 }
 
@@ -169,6 +223,12 @@ function openGradeModal(row) {
   document.getElementById('grade-dept').value     = isEdit ? (row.dataset.dept || '') : '';
   document.getElementById('grade-ord').value      = isEdit ? (row.dataset.ord || '') : '';
   document.getElementById('grade-days').value     = isEdit ? (row.dataset.days || '') : '';
+  _gradeOrigData = isEdit ? {
+    nm:   row.dataset.nm,
+    dept: row.dataset.dept || '',
+    ord:  row.dataset.ord  || '',
+    days: row.dataset.days || '',
+  } : null;
   document.getElementById('modal-grade').classList.remove('hidden');
 }
 function closeGradeModal() { document.getElementById('modal-grade').classList.add('hidden'); }
@@ -188,23 +248,74 @@ function saveGrade() {
 
   const url    = isEdit ? `/admin/org/grade/${editCd}` : '/admin/org/grade';
   const method = isEdit ? 'PUT' : 'POST';
-  fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
-    .then(r => r.json()).then(d => {
-      if (d.result === 'success') {
-        closeGradeModal();
-        loadGrades(isEdit ? gradeCurPage : 1);
-      } else alert('오류: ' + (d.message || '처리 실패'));
+  const doFetch = () => {
+    closeHermesApprovalConfirm();
+    fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
+      .then(r => r.json()).then(d => {
+        if (d.result === 'success') {
+          closeGradeModal();
+          showHermesToast(d.message || '결재 요청이 완료되었습니다. 승인 후 처리됩니다.', 'success');
+          setTimeout(() => loadGrades(isEdit ? gradeCurPage : 1), 1500);
+        } else {
+          showHermesToast('오류: ' + (d.message || '처리 실패'), 'error');
+        }
+      })
+      .catch(() => showHermesToast('요청 중 오류가 발생했습니다.', 'error'));
+  };
+
+  if (isEdit) {
+    showHermesApprovalConfirm({
+      title: '직급 수정 결재 등록',
+      type: 'update',
+      fields: [
+        { label: '직급명',   before: _gradeOrigData?.nm   || '-', after: body.jbgrNm },
+        { label: '소속 부서', before: _gradeOrigData?.dept  || '-', after: body.deptCd   || '-' },
+        { label: '정렬 순서', before: _gradeOrigData?.ord   || '-', after: body.sortOrd  ?? '-' },
+        { label: '연차 기본일', before: _gradeOrigData?.days || '-', after: body.baseAnnLvDays },
+      ],
+      onConfirm: doFetch,
     });
+  } else {
+    showHermesApprovalConfirm({
+      title: '직급 등록 결재 등록',
+      type: 'create',
+      fields: [
+        { label: '직급 코드',  value: body.jbgrCd },
+        { label: '직급명',    value: body.jbgrNm },
+        { label: '소속 부서', value: body.deptCd        || '-' },
+        { label: '정렬 순서', value: body.sortOrd       ?? '-' },
+        { label: '연차 기본일', value: body.baseAnnLvDays },
+      ],
+      onConfirm: doFetch,
+    });
+  }
 }
 
 function toggleGrade(jbgrCd, newUseYn) {
-  if (!confirm(`해당 직급을 ${newUseYn === 'Y' ? '활성화' : '비활성화'}하시겠습니까?`)) return;
-  fetch(`/admin/org/grade/${jbgrCd}/toggle`, {
-    method: 'PUT', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ useYn: newUseYn })
-  }).then(r => r.json()).then(d => {
-    if (d.result === 'success') loadGrades(gradeCurPage);
-    else alert('오류: ' + d.message);
+  const nm    = document.querySelector(`#grade-tbody tr[data-cd="${jbgrCd}"]`)?.dataset.nm || jbgrCd;
+  const label = newUseYn === 'Y' ? '활성화' : '비활성화';
+  showHermesApprovalConfirm({
+    title: `직급 ${label} 결재 등록`,
+    type: newUseYn === 'N' ? 'delete' : 'create',
+    target: newUseYn === 'N' ? `${nm} ${label}` : undefined,
+    fields: newUseYn === 'Y' ? [
+      { label: '대상 직급', value: nm },
+      { label: '상태 변경', value: '미사용 → 사용중' },
+    ] : undefined,
+    onConfirm: () => {
+      closeHermesApprovalConfirm();
+      fetch(`/admin/org/grade/${jbgrCd}/toggle`, {
+        method: 'PUT', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ useYn: newUseYn })
+      }).then(r => r.json()).then(d => {
+        if (d.result === 'success') {
+          showHermesToast(d.message || '처리가 완료되었습니다.', 'success');
+          setTimeout(() => loadGrades(gradeCurPage), 1500);
+        } else {
+          showHermesToast('오류: ' + d.message, 'error');
+        }
+      }).catch(() => showHermesToast('요청 중 오류가 발생했습니다.', 'error'));
+    },
   });
 }
 
@@ -662,29 +773,47 @@ function updatePendingBar() {
 
 async function flushPendingChanges() {
   if (!pendingChanges.size) return;
-  const btn = document.getElementById('mnt-flush-btn');
-  if (btn) btn.disabled = true;
-  const payload = [...pendingChanges.entries()].map(([userId, mntUserId]) => ({ userId, mntUserId: mntUserId ?? '' }));
-  try {
-    const r = await fetch('/admin/org/mapping/batch', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (!r.ok) throw new Error(`서버 오류 ${r.status}`);
-    const d = await r.json();
-    if (d.result === 'success') {
-      pendingChanges.clear();
-      updatePendingBar();
-      showHermesToast('결재에 등록되었습니다.');
-    } else {
-      showHermesToast('등록 실패: ' + (d.message || '알 수 없는 오류'), 'error');
-    }
-  } catch (err) {
-    showHermesToast('저장 중 오류가 발생했습니다: ' + err.message, 'error');
-  } finally {
-    if (btn) btn.disabled = false;
-  }
+
+  const fields = [...pendingChanges.entries()].map(([userId, mntUserId]) => {
+    const emp = allEmps.find(e => e.userId === userId);
+    const sup = allEmps.find(e => e.userId === mntUserId);
+    return {
+      label: emp?.userName || userId,
+      value: mntUserId === userId ? '[팀장]' : (sup?.userName || mntUserId || '미배정'),
+    };
+  });
+
+  showHermesApprovalConfirm({
+    title: `사수 배정 결재 등록 (${pendingChanges.size}건)`,
+    type: 'create',
+    fields,
+    onConfirm: async () => {
+      closeHermesApprovalConfirm();
+      const btn = document.getElementById('mnt-flush-btn');
+      if (btn) btn.disabled = true;
+      const payload = [...pendingChanges.entries()].map(([userId, mntUserId]) => ({ userId, mntUserId: mntUserId ?? '' }));
+      try {
+        const r = await fetch('/admin/org/mapping/batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!r.ok) throw new Error(`서버 오류 ${r.status}`);
+        const d = await r.json();
+        if (d.result === 'success') {
+          pendingChanges.clear();
+          updatePendingBar();
+          showHermesToast('결재에 등록되었습니다.');
+        } else {
+          showHermesToast('등록 실패: ' + (d.message || '알 수 없는 오류'), 'error');
+        }
+      } catch (err) {
+        showHermesToast('저장 중 오류가 발생했습니다: ' + err.message, 'error');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    },
+  });
 }
 
 function cancelPendingChanges() {

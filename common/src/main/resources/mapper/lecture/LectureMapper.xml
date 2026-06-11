@@ -122,16 +122,34 @@
         <result property="lectureVideoFileId" column="ATCH_FILE_ID" />
         <result property="lectureDuration" column="LECTURE_DURATION" />
         <result property="lectureExplanation" column="LECTURE_EXPLN_CN" />
+        <result property="secondsWatched" column="SECONDS_WATCHED" />
+        <result property="lastUpdate" column="LAST_UPDATE" />
     </resultMap>
 
     <!-- selectLectureListByCourseSn -->
 
     <select id="selectLectureListByCourseSn" resultMap="lectureResponseMap">
     SELECT
-      LECTURE_SN, COURSE_SN, LECTURE_NM, ATCH_FILE_ID,
-      LECTURE_DURATION, LECTURE_EXPLN_CN
-    FROM LECTURE
-    WHERE COURSE_SN = #{courseSn}
-    ORDER BY SORT_ORD ASC, LECTURE_SN ASC
+      l.LECTURE_SN, l.COURSE_SN, l.LECTURE_NM, l.ATCH_FILE_ID,
+      l.LECTURE_DURATION, l.LECTURE_EXPLN_CN, p.SECONDS_WATCHED, p.LAST_UPDATE
+    FROM LECTURE l
+    LEFT OUTER JOIN LECTURE_PROGRESS p ON l.LECTURE_SN = p.LECTURE_SN
+    WHERE l.COURSE_SN = #{courseSn}
+    ORDER BY l.SORT_ORD ASC, l.LECTURE_SN ASC
     </select>
-</mapper>
+
+  <!-- updateLectureProgress --> 
+
+  <update id="updateLectureProgress">
+    MERGE INTO LECTURE_PROGRESS p
+    USING (SELECT #{lectureId} AS lectureSn, #{courseId} AS courseSn FROM dual) src
+    ON (p.LECTURE_SN = src.lectureSn AND p.COURSE_SN = src.courseSn AND p.USER_ID = #{userId})
+    WHEN MATCHED THEN
+      UPDATE SET 
+      p.SECONDS_WATCHED =  #{progress},
+      p.LAST_UPDATE = SYSDATE
+    WHEN NOT MATCHED THEN
+      INSERT (LECTURE_SN, COURSE_SN, USER_ID, SECONDS_WATCHED, LAST_UPDATE)
+      VALUES (src.lectureSn, src.courseSn, #{userId}, #{progress}, SYSDATE)
+
+  </update></mapper>

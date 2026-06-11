@@ -14,7 +14,6 @@ public interface LectureMapper {
 
     List<LectureProgressDto> selectLecturesWithProgress(@Param("classSn") Long classSn);
 
-
     List<LectureDto> selectLectureByCourseSn(@Param("courseSn") Long courseSn);
 
     LectureDto selectLectureBySn(@Param("lectureSn") Long lectureSn);
@@ -26,4 +25,7 @@ public interface LectureMapper {
     int deleteLecture(@Param("lectureSn") Long lectureSn);
 
     List<LectureResponseDto> selectLectureListByCourseSn(@Param("courseSn") Long courseSn);
+
+    void updateLectureProgress(@Param("lectureId") Long lectureId, @Param("courseId") Long courseId,
+            @Param("progress") Integer progress, @Param("userId") String userId);
 }
