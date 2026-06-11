@@ -108,6 +108,89 @@ async function loadCommonCodes(selectId, clCode, allLabel = null) {
 }
 
 /**
+ * 결재 등록 전 확인 모달
+ * @param {{ title: string, type: 'create'|'update'|'delete', fields?: Array, target?: string, onConfirm: Function }} config
+ *   - create  : fields = [{ label, value }]
+ *   - update  : fields = [{ label, before, after }]  변경된 항목만 전달
+ *   - delete  : target = '삭제 대상 설명'
+ */
+function showHermesApprovalConfirm({ title, type, fields, target, onConfirm }) {
+  const existing = document.getElementById('hm-approval-confirm-overlay');
+  if (existing) existing.remove();
+
+  let bodyHtml = '';
+  if (type === 'create') {
+    bodyHtml = `<table class="w-full text-xs border-collapse">
+      <tbody>${(fields || []).map(f => `
+        <tr>
+          <th class="text-left py-1.5 px-3 bg-slate-50 text-slate-500 font-semibold w-1/3 border border-slate-200 whitespace-nowrap">${f.label}</th>
+          <td class="py-1.5 px-3 border border-slate-200 text-slate-700">${f.value ?? '-'}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+  } else if (type === 'update') {
+    const changed = (fields || []).filter(f => String(f.before) !== String(f.after));
+    if (changed.length === 0) {
+      showHermesToast('변경된 내용이 없습니다.', 'error');
+      return;
+    }
+    const rows = changed;
+    bodyHtml = `<table class="w-full text-xs border-collapse">
+      <thead><tr>
+        <th class="py-1.5 px-3 bg-slate-50 border border-slate-200 text-slate-400 font-semibold w-1/4"></th>
+        <th class="py-1.5 px-3 bg-slate-100 border border-slate-200 text-slate-500 font-semibold text-center">변경 전</th>
+        <th class="py-1.5 px-3 bg-violet-50 border border-slate-200 text-violet-600 font-semibold text-center">변경 후</th>
+      </tr></thead>
+      <tbody>${rows.map(f => `
+        <tr>
+          <th class="text-left py-1.5 px-3 bg-slate-50 border border-slate-200 text-slate-500 font-semibold whitespace-nowrap">${f.label}</th>
+          <td class="py-1.5 px-3 border border-slate-200 text-slate-400 line-through">${f.before ?? '-'}</td>
+          <td class="py-1.5 px-3 border border-slate-200 text-violet-700 font-semibold">${f.after ?? '-'}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+  } else if (type === 'delete') {
+    bodyHtml = `<div class="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
+      <i class="fa-solid fa-triangle-exclamation text-red-500 text-2xl mb-2 block"></i>
+      <p class="text-sm font-semibold text-red-700">"${target}"을(를) 삭제합니다.</p>
+      <p class="text-xs text-red-500 mt-1">결재 승인 후 영구 삭제됩니다.</p>
+    </div>`;
+  }
+
+  const overlay = document.createElement('div');
+  overlay.id = 'hm-approval-confirm-overlay';
+  overlay.className = 'fixed inset-0 z-[9998] flex items-center justify-center bg-black/40 backdrop-blur-sm';
+  overlay.innerHTML = `
+    <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4">
+      <h3 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-shield-check text-violet-500"></i>${title}
+      </h3>
+      ${bodyHtml}
+      <p class="text-xs text-slate-400 mt-3">
+        <i class="fa-solid fa-circle-info mr-1 text-violet-300"></i>
+        결재 등록 후 승인자의 승인 시 반영됩니다.
+      </p>
+      <div class="flex justify-end gap-3 mt-5">
+        <button onclick="closeHermesApprovalConfirm()"
+          class="cursor-pointer px-4 py-2 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
+          취소
+        </button>
+        <button id="hm-approval-confirm-btn"
+          class="cursor-pointer px-4 py-2 text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 rounded-xl transition-colors">
+          <i class="fa-solid fa-paper-plane mr-1"></i>결재 등록
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('hm-approval-confirm-btn').onclick = onConfirm;
+}
+
+function closeHermesApprovalConfirm() {
+  const el = document.getElementById('hm-approval-confirm-overlay');
+  if (el) el.remove();
+}
+
+/**
  * root 내 [data-ts-defer][data-cl-code] select를 모두 찾아 loadCommonCodes를 병렬 실행합니다.
  * - data-cl-code  : 공통코드 분류번호 (예: "200")
  * - data-all-label: 첫 번째 빈 옵션 텍스트. 없으면 빈 옵션 없음

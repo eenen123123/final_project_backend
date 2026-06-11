@@ -15,52 +15,9 @@ function switchEmpTab(tabId, btn) {
 }
 
 /* ─── 페이지 깜빡임 없는 탭 이동 ─── */
-async function navigateToStudents(btn) {
+function navigateToStudents(btn) {
   btn.disabled = true;
-  try {
-    const res = await fetch('/admin/employees/students');
-    if (!res.ok) { location.href = '/admin/employees/students'; return; }
-
-    const html = await res.text();
-    const doc  = new DOMParser().parseFromString(html, 'text/html');
-    const newMain  = doc.querySelector('main');
-    const currMain = document.querySelector('main');
-    if (!newMain || !currMain) { location.href = '/admin/employees/students'; return; }
-
-    // 신규 CSS 로드
-    doc.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
-      const href = link.getAttribute('href');
-      if (href && !document.querySelector(`link[href="${href}"]`)) {
-        const el = document.createElement('link');
-        el.rel = 'stylesheet'; el.href = href;
-        document.head.appendChild(el);
-      }
-    });
-
-    currMain.innerHTML = newMain.innerHTML;
-
-    // 기존 직원 스크립트 제거 후 학생 스크립트 로드
-    document.querySelectorAll('script[src*="/js/staff/"]').forEach(s => s.remove());
-    for (const s of doc.querySelectorAll('script[src*="/js/staff/"]')) {
-      await new Promise(resolve => {
-        const el = document.createElement('script');
-        el.src = s.getAttribute('src');
-        el.onload = el.onerror = resolve;
-        document.head.appendChild(el);
-      });
-    }
-
-    currMain.querySelectorAll('select.hm-input:not([data-ts-defer])').forEach(el => {
-      if (!el.tomselect && window.initTomSelect) window.initTomSelect(el);
-    });
-    await initDeferredSelects(currMain);
-
-    history.pushState({ url: '/admin/employees/students' }, doc.title || '', '/admin/employees/students');
-    if (doc.title) document.title = doc.title;
-
-  } catch {
-    location.href = '/admin/employees/students';
-  }
+  location.href = '/admin/employees/students';
 }
 
 /* ─── 직원 현황 카드 렌더링 ─── */
@@ -424,16 +381,22 @@ function openDetail(id) {
   const avatarImg = document.getElementById("detail-avatar-img");
   const avatarDiv = document.getElementById("detail-avatar");
   if (profileUrl.startsWith("http")) {
-    avatarImg.src = profileUrl;
-    avatarImg.classList.remove("hidden");
-    avatarImg.style.cursor = "zoom-in";
-    avatarImg.onclick = () => openProfileLightbox(profileUrl);
-    avatarDiv.classList.add("hidden");
+    if (avatarImg) {
+      avatarImg.src = profileUrl;
+      avatarImg.classList.remove("hidden");
+      avatarImg.style.cursor = "zoom-in";
+      avatarImg.onclick = () => openProfileLightbox(profileUrl);
+    }
+    if (avatarDiv) avatarDiv.classList.add("hidden");
   } else {
-    avatarImg.classList.add("hidden");
-    avatarImg.onclick = null;
-    avatarDiv.classList.remove("hidden");
-    avatarDiv.textContent = e.name && e.name !== "-" ? e.name[0] : "?";
+    if (avatarImg) {
+      avatarImg.classList.add("hidden");
+      avatarImg.onclick = null;
+    }
+    if (avatarDiv) {
+      avatarDiv.classList.remove("hidden");
+      avatarDiv.textContent = e.name && e.name !== "-" ? e.name[0] : "?";
+    }
   }
   document.getElementById("detail-name").textContent = e.name;
   document.getElementById("detail-status-badge").className =
@@ -624,6 +587,19 @@ function saveDetailEdit() {
     document.getElementById("edit-addr-detail").value || ""
   ).trim();
 
+  const _before = {
+    name:        row.dataset.name                           || '-',
+    deptNm:      row.dataset.deptNm                        || '-',
+    grade:       row.dataset.grade                         || '-',
+    phone:       formatPhoneDisplay(row.dataset.phone)     || '-',
+    join:        row.dataset.join                          || '-',
+    status:      document.querySelector(`#edit-status option[value="${row.dataset.status}"]`)?.textContent?.trim() || row.dataset.status || '-',
+    type:        document.querySelector(`#edit-work-type option[value="${row.dataset.type}"]`)?.textContent?.trim() || row.dataset.type   || '-',
+    salary:      row.dataset.salary                        || '-',
+    duty:        row.dataset.duty                          || '-',
+    contractEnd: row.dataset.contractEnd                   || '-',
+  };
+
   row.dataset.name = document.getElementById("edit-name").value.trim();
   row.dataset.dept = deptVal;
   row.dataset.deptNm = deptOpt ? deptOpt.text : row.dataset.deptNm;
@@ -675,45 +651,63 @@ function saveDetailEdit() {
   const profileFile = document.getElementById("edit-profile").files[0];
   if (profileFile) formData.append("editProfileImage", profileFile);
 
-  fetch("/admin/employees/update", {
-    method: "PUT",
-    body: formData,
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      if (data.result === "success") {
-        const newProfileUrl = data.profileUrl || "";
-        row.dataset.profile = newProfileUrl;
+  showHermesApprovalConfirm({
+    title: '직원 정보 수정 결재 등록',
+    type: 'update',
+    fields: [
+      { label: '이름',    before: _before.name,        after: document.getElementById("edit-name").value.trim() },
+      { label: '부서',    before: _before.deptNm,       after: deptOpt ? deptOpt.text : deptVal },
+      { label: '직급',    before: _before.grade,        after: gradeOpt ? gradeOpt.text : gradeVal },
+      { label: '연락처',  before: _before.phone,        after: document.getElementById("edit-phone").value },
+      { label: '입사일',  before: _before.join,         after: document.getElementById("edit-entry-date").value },
+      { label: '재직상태', before: _before.status,       after: document.querySelector('#edit-status option:checked')?.textContent?.trim() || document.getElementById("edit-status").value },
+      { label: '근무유형', before: _before.type,         after: document.querySelector('#edit-work-type option:checked')?.textContent?.trim() || document.getElementById("edit-work-type").value },
+      { label: '기본급',  before: _before.salary,       after: document.getElementById("edit-salary").value },
+      { label: '담당업무', before: _before.duty,         after: document.getElementById("edit-duty").value.trim() },
+      { label: '계약종료', before: _before.contractEnd,  after: document.getElementById("edit-contract-end").value || '-' },
+    ],
+    onConfirm: () => {
+      closeHermesApprovalConfirm();
+      fetch("/admin/employees/update", {
+        method: "PUT",
+        body: formData,
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.result === "success") {
+            const newProfileUrl = data.profileUrl || "";
+            row.dataset.profile = newProfileUrl;
 
-        // 테이블 행 아바타 즉시 동기화 (새로고침 없이 반영)
-        const avatarWrap = row.querySelector("td:first-child .flex");
-        if (avatarWrap) {
-          let img = avatarWrap.querySelector("img");
-          const textDiv = avatarWrap.querySelector(".bg-blue-100");
-          if (newProfileUrl.startsWith("http")) {
-            if (!img) {
-              img = document.createElement("img");
-              img.className = "w-7 h-7 rounded-lg object-cover";
-              img.alt = "프로필";
-              avatarWrap.prepend(img);
+            const avatarWrap = row.querySelector("td:first-child .flex");
+            if (avatarWrap) {
+              let img = avatarWrap.querySelector("img");
+              const textDiv = avatarWrap.querySelector(".bg-blue-100");
+              if (newProfileUrl.startsWith("http")) {
+                if (!img) {
+                  img = document.createElement("img");
+                  img.className = "w-7 h-7 rounded-lg object-cover";
+                  img.alt = "프로필";
+                  avatarWrap.prepend(img);
+                }
+                img.src = newProfileUrl;
+                if (textDiv) textDiv.style.display = "none";
+              } else {
+                if (img) img.remove();
+                if (textDiv) textDiv.style.display = "";
+              }
             }
-            img.src = newProfileUrl;
-            if (textDiv) textDiv.style.display = "none";
-          } else {
-            if (img) img.remove();
-            if (textDiv) textDiv.style.display = "";
-          }
-        }
 
-        syncRowCells(row);
-        toggleDetailEdit();
-        openDetail(selectedEmpId);
-        showHermesToast("결재 요청이 완료되었습니다. 승인 후 처리됩니다.", "success");
-      } else {
-        showHermesToast("수정 실패: " + (data.message || "서버 오류"), "error");
-      }
-    })
-    .catch(() => showHermesToast("수정 요청 중 오류가 발생했습니다.", "error"));
+            syncRowCells(row);
+            toggleDetailEdit();
+            openDetail(selectedEmpId);
+            showHermesToast("결재 요청이 완료되었습니다. 승인 후 처리됩니다.", "success");
+          } else {
+            showHermesToast("수정 실패: " + (data.message || "서버 오류"), "error");
+          }
+        })
+        .catch(() => showHermesToast("수정 요청 중 오류가 발생했습니다.", "error"));
+    },
+  });
 }
 
 // edit-role 전체 옵션 원본 저장
@@ -823,43 +817,44 @@ function executeResign() {
     return;
   }
 
-  fetch("/admin/employees/" + selectedEmpId + "/retirement", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ retmtRsn }),
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      if (data.result === "success") {
-        const row = document.querySelector(
-          '.hr-data-row[data-id="' + selectedEmpId + '"]',
-        );
-        if (row) {
-          row.dataset.status = "03";
-          const card = document.querySelector(
-            '.emp-card[data-id="' + selectedEmpId + '"]',
-          );
-          if (card) card.dataset.emplStatCd = "03";
-        }
-        closeModal("modal-resign-confirm");
-        closeModal("modal-emp-detail");
-        const rsEl = document.getElementById("resign-reason");
-        if (rsEl.tomselect) rsEl.tomselect.setValue("");
-        else rsEl.value = "";
-        document.getElementById("resign-reason-detail").value = "";
-        document.getElementById("resign-reason-detail").classList.add("hidden");
-        filterHrList();
-        showHermesToast("퇴사 처리 및 계정이 비활성화되었습니다.", "success");
-      } else {
-        showHermesToast(
-          "퇴사 처리 실패: " + (data.message || "서버 오류"),
-          "error",
-        );
-      }
-    })
-    .catch(() =>
-      showHermesToast("퇴사 처리 요청 중 오류가 발생했습니다.", "error"),
-    );
+  const _empName = document.querySelector('.hr-data-row[data-id="' + selectedEmpId + '"]')?.dataset.name || selectedEmpId;
+  closeModal("modal-resign-confirm");
+
+  showHermesApprovalConfirm({
+    title: '직원 퇴사 처리 결재 등록',
+    type: 'delete',
+    target: `${_empName} — ${retmtRsn}`,
+    onConfirm: () => {
+      closeHermesApprovalConfirm();
+      fetch("/admin/employees/" + selectedEmpId + "/retirement", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ retmtRsn }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.result === "success") {
+            const row = document.querySelector('.hr-data-row[data-id="' + selectedEmpId + '"]');
+            if (row) {
+              row.dataset.status = "03";
+              const card = document.querySelector('.emp-card[data-id="' + selectedEmpId + '"]');
+              if (card) card.dataset.emplStatCd = "03";
+            }
+            closeModal("modal-emp-detail");
+            const rsEl = document.getElementById("resign-reason");
+            if (rsEl.tomselect) rsEl.tomselect.setValue("");
+            else rsEl.value = "";
+            document.getElementById("resign-reason-detail").value = "";
+            document.getElementById("resign-reason-detail").classList.add("hidden");
+            filterHrList();
+            showHermesToast("퇴사 처리 및 계정이 비활성화되었습니다.", "success");
+          } else {
+            showHermesToast("퇴사 처리 실패: " + (data.message || "서버 오류"), "error");
+          }
+        })
+        .catch(() => showHermesToast("퇴사 처리 요청 중 오류가 발생했습니다.", "error"));
+    },
+  });
 }
 
 /* ─── 개인정보 파기 ─── */
@@ -1299,7 +1294,25 @@ function validateNewEmp() {
     return false;
   }
 
-  return true;
+  // 유효성 통과 → 결재 확인 모달
+  const _deptNm  = document.querySelector('#new-dept option:checked')?.textContent?.trim() || deptEl.value;
+  const _gradeNm = document.querySelector('#new-role option:checked')?.textContent?.trim() || roleEl.value;
+  showHermesApprovalConfirm({
+    title: '직원 신규 등록 결재 등록',
+    type: 'create',
+    fields: [
+      { label: '이름',    value: nameEl.value.trim() },
+      { label: '소속 부서', value: _deptNm },
+      { label: '직급',    value: _gradeNm },
+      { label: '입사일',  value: entryEl.value },
+      { label: '근무 유형', value: document.querySelector('#new-work-type option:checked')?.textContent?.trim() || typeEl.value },
+    ],
+    onConfirm: () => {
+      closeHermesApprovalConfirm();
+      document.getElementById('form-new-emp').submit();
+    },
+  });
+  return false; // 폼 기본 제출 차단, onConfirm에서 submit()
 }
 
 /* ─── 비밀번호 재설정 ─── */

@@ -10,52 +10,9 @@ function switchEmpTab(tabId, btn) {
 }
 
 /* ─── 페이지 깜빡임 없는 탭 이동 ─── */
-async function navigateToEmployees(btn) {
+function navigateToEmployees(btn) {
   btn.disabled = true;
-  try {
-    const res = await fetch('/admin/employees');
-    if (!res.ok) { location.href = '/admin/employees'; return; }
-
-    const html = await res.text();
-    const doc  = new DOMParser().parseFromString(html, 'text/html');
-    const newMain  = doc.querySelector('main');
-    const currMain = document.querySelector('main');
-    if (!newMain || !currMain) { location.href = '/admin/employees'; return; }
-
-    // 신규 CSS 로드
-    doc.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
-      const href = link.getAttribute('href');
-      if (href && !document.querySelector(`link[href="${href}"]`)) {
-        const el = document.createElement('link');
-        el.rel = 'stylesheet'; el.href = href;
-        document.head.appendChild(el);
-      }
-    });
-
-    currMain.innerHTML = newMain.innerHTML;
-
-    // 기존 학생 스크립트 제거 후 직원 스크립트 로드
-    document.querySelectorAll('script[src*="/js/staff/"]').forEach(s => s.remove());
-    for (const s of doc.querySelectorAll('script[src*="/js/staff/"]')) {
-      await new Promise(resolve => {
-        const el = document.createElement('script');
-        el.src = s.getAttribute('src');
-        el.onload = el.onerror = resolve;
-        document.head.appendChild(el);
-      });
-    }
-
-    currMain.querySelectorAll('select.hm-input:not([data-ts-defer])').forEach(el => {
-      if (!el.tomselect && window.initTomSelect) window.initTomSelect(el);
-    });
-    await initDeferredSelects(currMain);
-
-    history.pushState({ url: '/admin/employees' }, doc.title || '', '/admin/employees');
-    if (doc.title) document.title = doc.title;
-
-  } catch {
-    location.href = '/admin/employees';
-  }
+  location.href = '/admin/employees';
 }
 
 /* ─── 페이징 + 필터 + 정렬 ─── */
@@ -297,16 +254,22 @@ function openDetail(id) {
   const avatarImg  = document.getElementById("detail-avatar-img");
   const avatarDiv  = document.getElementById("detail-avatar");
   if (profileUrl.startsWith("http")) {
-    avatarImg.src = profileUrl;
-    avatarImg.classList.remove("hidden");
-    avatarImg.style.cursor = "zoom-in";
-    avatarImg.onclick = () => openProfileLightbox(profileUrl);
-    avatarDiv.classList.add("hidden");
+    if (avatarImg) {
+      avatarImg.src = profileUrl;
+      avatarImg.classList.remove("hidden");
+      avatarImg.style.cursor = "zoom-in";
+      avatarImg.onclick = () => openProfileLightbox(profileUrl);
+    }
+    if (avatarDiv) avatarDiv.classList.add("hidden");
   } else {
-    avatarImg.classList.add("hidden");
-    avatarImg.onclick = null;
-    avatarDiv.classList.remove("hidden");
-    avatarDiv.textContent = row.dataset.name ? row.dataset.name[0] : "?";
+    if (avatarImg) {
+      avatarImg.classList.add("hidden");
+      avatarImg.onclick = null;
+    }
+    if (avatarDiv) {
+      avatarDiv.classList.remove("hidden");
+      avatarDiv.textContent = row.dataset.name ? row.dataset.name[0] : "?";
+    }
   }
 
   document.getElementById("detail-title").textContent = (row.dataset.name || "-") + " · 학생 상세";
@@ -421,6 +384,13 @@ function saveDetailEdit() {
   const addrDetail = (document.getElementById("edit-addr-detail").value || "").trim();
   const addrBase   = document.getElementById("edit-addr").value.trim();
 
+  const _before = {
+    name:  row.dataset.name                       || '-',
+    phone: formatPhoneDisplay(row.dataset.phone)  || '-',
+    email: row.dataset.email                      || '-',
+    type:  row.dataset.type                       || '-',
+  };
+
   row.dataset.name       = document.getElementById("edit-name").value.trim();
   row.dataset.phone      = document.getElementById("edit-phone").value.replace(/-/g, "");
   row.dataset.email      = document.getElementById("edit-email").value.trim();
@@ -443,42 +413,54 @@ function saveDetailEdit() {
   const profileFile = document.getElementById("edit-profile").files[0];
   if (profileFile) formData.append("editProfileImage", profileFile);
 
-  fetch("/admin/students/update", { method: "PUT", body: formData })
-    .then((res) => res.json())
-    .then((data) => {
-      if (data.result === "success") {
-        const newProfileUrl = data.profileUrl || "";
-        row.dataset.profile = newProfileUrl;
+  showHermesApprovalConfirm({
+    title: '학생 정보 수정 결재 등록',
+    type: 'update',
+    fields: [
+      { label: '이름',   before: _before.name,  after: document.getElementById("edit-name").value.trim() },
+      { label: '연락처', before: _before.phone, after: document.getElementById("edit-phone").value },
+      { label: '이메일', before: _before.email, after: document.getElementById("edit-email").value.trim() },
+      { label: '유형',   before: _before.type,  after: document.getElementById("edit-stu-type").value },
+    ],
+    onConfirm: () => {
+      closeHermesApprovalConfirm();
+      fetch("/admin/students/update", { method: "PUT", body: formData })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.result === "success") {
+            const newProfileUrl = data.profileUrl || "";
+            row.dataset.profile = newProfileUrl;
 
-        // 아바타 즉시 동기화
-        const avatarWrap = row.querySelector("td:first-child .flex");
-        if (avatarWrap) {
-          let img = avatarWrap.querySelector("img");
-          const textDiv = avatarWrap.querySelector(".bg-blue-100");
-          if (newProfileUrl.startsWith("http")) {
-            if (!img) {
-              img = document.createElement("img");
-              img.className = "w-7 h-7 rounded-lg object-cover";
-              img.alt = "프로필";
-              avatarWrap.prepend(img);
+            const avatarWrap = row.querySelector("td:first-child .flex");
+            if (avatarWrap) {
+              let img = avatarWrap.querySelector("img");
+              const textDiv = avatarWrap.querySelector(".bg-blue-100");
+              if (newProfileUrl.startsWith("http")) {
+                if (!img) {
+                  img = document.createElement("img");
+                  img.className = "w-7 h-7 rounded-lg object-cover";
+                  img.alt = "프로필";
+                  avatarWrap.prepend(img);
+                }
+                img.src = newProfileUrl;
+                if (textDiv) textDiv.style.display = "none";
+              } else {
+                if (img) img.remove();
+                if (textDiv) textDiv.style.display = "";
+              }
             }
-            img.src = newProfileUrl;
-            if (textDiv) textDiv.style.display = "none";
-          } else {
-            if (img) img.remove();
-            if (textDiv) textDiv.style.display = "";
-          }
-        }
 
-        syncRowCells(row);
-        toggleDetailEdit();
-        openDetail(selectedEmpId);
-        showHermesToast("결재 요청이 완료되었습니다. 승인 후 처리됩니다.", "success");
-      } else {
-        showHermesToast("수정 실패: " + (data.message || "서버 오류"), "error");
-      }
-    })
-    .catch(() => showHermesToast("수정 요청 중 오류가 발생했습니다.", "error"));
+            syncRowCells(row);
+            toggleDetailEdit();
+            openDetail(selectedEmpId);
+            showHermesToast("결재 요청이 완료되었습니다. 승인 후 처리됩니다.", "success");
+          } else {
+            showHermesToast("수정 실패: " + (data.message || "서버 오류"), "error");
+          }
+        })
+        .catch(() => showHermesToast("수정 요청 중 오류가 발생했습니다.", "error"));
+    },
+  });
 }
 
 /* ─── 탈퇴 처리 ─── */
@@ -525,33 +507,43 @@ function executeResign() {
   }
   if (selectedVal === "04") withdrawRsn = "기타: " + withdrawRsn;
 
-  fetch("/admin/students/" + selectedEmpId + "/retirement", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ withdrawRsn }),
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      if (data.result === "success") {
-        const row = document.querySelector('.hr-data-row[data-id="' + selectedEmpId + '"]');
-        if (row) {
-          row.dataset.enable = "N";
-          syncRowCells(row);
-        }
-        closeModal("modal-resign-confirm");
-        closeModal("modal-emp-detail");
-        const rsEl = document.getElementById("resign-reason");
-        if (rsEl.tomselect) rsEl.tomselect.setValue("");
-        else rsEl.value = "";
-        document.getElementById("resign-reason-detail").value = "";
-        document.getElementById("resign-reason-detail").classList.add("hidden");
-        filterHrList();
-        showHermesToast("탈퇴 처리 및 계정이 비활성화되었습니다.", "success");
-      } else {
-        showHermesToast("탈퇴 처리 실패: " + (data.message || "서버 오류"), "error");
-      }
-    })
-    .catch(() => showHermesToast("탈퇴 처리 요청 중 오류가 발생했습니다.", "error"));
+  const _stuName = document.querySelector('.hr-data-row[data-id="' + selectedEmpId + '"]')?.dataset.name || selectedEmpId;
+  closeModal("modal-resign-confirm");
+
+  showHermesApprovalConfirm({
+    title: '학생 탈퇴 처리 결재 등록',
+    type: 'delete',
+    target: `${_stuName} — ${withdrawRsn}`,
+    onConfirm: () => {
+      closeHermesApprovalConfirm();
+      fetch("/admin/students/" + selectedEmpId + "/retirement", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ withdrawRsn }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.result === "success") {
+            const row = document.querySelector('.hr-data-row[data-id="' + selectedEmpId + '"]');
+            if (row) {
+              row.dataset.enable = "N";
+              syncRowCells(row);
+            }
+            closeModal("modal-emp-detail");
+            const rsEl = document.getElementById("resign-reason");
+            if (rsEl.tomselect) rsEl.tomselect.setValue("");
+            else rsEl.value = "";
+            document.getElementById("resign-reason-detail").value = "";
+            document.getElementById("resign-reason-detail").classList.add("hidden");
+            filterHrList();
+            showHermesToast("탈퇴 처리 및 계정이 비활성화되었습니다.", "success");
+          } else {
+            showHermesToast("탈퇴 처리 실패: " + (data.message || "서버 오류"), "error");
+          }
+        })
+        .catch(() => showHermesToast("탈퇴 처리 요청 중 오류가 발생했습니다.", "error"));
+    },
+  });
 }
 
 /* ─── 학생 ID 자동 생성 (YYS00001 형식) ─── */
@@ -719,7 +711,21 @@ function validateNewStu() {
   if (!idEl.value.trim()) { showHermesToast("로그인 ID를 입력해주세요.", "error"); idEl.focus(); return false; }
   if (!pwEl.value.trim()) { showHermesToast("초기 비밀번호를 입력해주세요.", "error"); pwEl.focus(); return false; }
 
-  return true;
+  // 유효성 통과 → 결재 확인 모달
+  showHermesApprovalConfirm({
+    title: '학생 신규 등록 결재 등록',
+    type: 'create',
+    fields: [
+      { label: '이름',    value: nameEl.value.trim() },
+      { label: '연락처', value: phoneEl.value.trim() },
+      { label: '로그인 ID', value: idEl.value.trim() },
+    ],
+    onConfirm: () => {
+      closeHermesApprovalConfirm();
+      document.getElementById('form-new-student').submit();
+    },
+  });
+  return false;
 }
 
 /* ─── 신규 등록 우편번호 검색 ─── */
