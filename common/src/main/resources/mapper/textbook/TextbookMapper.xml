@@ -30,7 +30,10 @@
         <result property="subjClNm" column="SUBJ_CL_NM"/>
         <result property="subjClId" column="SUBJ_CL_ID"/>
         <result property="instrUserNm" column="INSTR_USER_NM"/>
+        <result property="instrUuid" column="INSTR_UUID"/>
+        <result property="instrProfileImg" column="INSTR_PROFILE_IMG"/>
         <result property="courseNm" column="COURSE_NM"/>
+        <result property="salableCnt" column="SALABLE_CNT"/>
     </resultMap>
 
     <!-- 검색 조건 -->
@@ -51,6 +54,9 @@
                 <if test="detailCondition.subjClId != null">
                     AND s.SUBJ_CL_ID = #{detailCondition.subjClId}
                 </if>
+                <if test="detailCondition.subjId != null">
+                    AND t.SUBJ_ID = #{detailCondition.subjId}
+                </if>
             </if>
         </where>
     </sql>
@@ -64,16 +70,20 @@
             t.SALE_PRC_AMT, t.PURCH_PRC_AMT, t.DLVR_AMT,
             t.THMB_IMG, t.USE_YN, t.RGTR_ID, t.LAST_MDFR_ID,
             t.REG_DT, t.MDFCN_DT,
-            s.SUBJ_NM      AS SUBJ_NM,
-            s.SUBJ_CL_ID   AS SUBJ_CL_ID,
-            sc.SUBJ_CL_NM  AS SUBJ_CL_NM,
-            m.USER_NAME    AS INSTR_USER_NM,
-            c.COURSE_NM    AS COURSE_NM
+            s.SUBJ_NM          AS SUBJ_NM,
+            s.SUBJ_CL_ID       AS SUBJ_CL_ID,
+            sc.SUBJ_CL_NM      AS SUBJ_CL_NM,
+            m.USER_NAME        AS INSTR_USER_NM,
+            instr.INSTR_UUID       AS INSTR_UUID,
+            instr.INSTR_PROFILE_IMG AS INSTR_PROFILE_IMG,
+            c.COURSE_NM        AS COURSE_NM,
+            i.SALABLE_CNT      AS SALABLE_CNT
         FROM TEXTBOOK t
         LEFT JOIN SUBJECT s ON t.SUBJ_ID = s.SUBJ_ID
         LEFT JOIN SUBJECT_CLASSIFICATION sc ON s.SUBJ_CL_ID = sc.SUBJ_CL_ID
         LEFT JOIN COURSE c ON t.COURSE_SN = c.COURSE_SN
         LEFT JOIN MEMBER m ON c.INSTR_USER_ID = m.USER_ID
+        LEFT JOIN INSTRUCTOR instr ON c.INSTR_USER_ID = instr.INSTR_USER_ID
         LEFT JOIN TEXTBOOK_INVENTORY i ON t.TEXTBOOK_SN = i.TEXTBOOK_SN
         <include refid="textbookSearchWhere"/>
         ORDER BY
@@ -110,16 +120,21 @@
             t.SALE_PRC_AMT, t.PURCH_PRC_AMT, t.DLVR_AMT,
             t.THMB_IMG, t.USE_YN, t.RGTR_ID, t.LAST_MDFR_ID,
             t.REG_DT, t.MDFCN_DT,
-            s.SUBJ_NM      AS SUBJ_NM,
-            s.SUBJ_CL_ID   AS SUBJ_CL_ID,
-            sc.SUBJ_CL_NM  AS SUBJ_CL_NM,
-            m.USER_NAME    AS INSTR_USER_NM,
-            c.COURSE_NM    AS COURSE_NM
+            s.SUBJ_NM          AS SUBJ_NM,
+            s.SUBJ_CL_ID       AS SUBJ_CL_ID,
+            sc.SUBJ_CL_NM      AS SUBJ_CL_NM,
+            m.USER_NAME        AS INSTR_USER_NM,
+            instr.INSTR_UUID       AS INSTR_UUID,
+            instr.INSTR_PROFILE_IMG AS INSTR_PROFILE_IMG,
+            c.COURSE_NM        AS COURSE_NM,
+            i.SALABLE_CNT      AS SALABLE_CNT
         FROM TEXTBOOK t
         LEFT JOIN SUBJECT s ON t.SUBJ_ID = s.SUBJ_ID
         LEFT JOIN SUBJECT_CLASSIFICATION sc ON s.SUBJ_CL_ID = sc.SUBJ_CL_ID
         LEFT JOIN COURSE c ON t.COURSE_SN = c.COURSE_SN
         LEFT JOIN MEMBER m ON c.INSTR_USER_ID = m.USER_ID
+        LEFT JOIN INSTRUCTOR instr ON c.INSTR_USER_ID = instr.INSTR_USER_ID
+        LEFT JOIN TEXTBOOK_INVENTORY i ON t.TEXTBOOK_SN = i.TEXTBOOK_SN
         WHERE t.TEXTBOOK_SN = #{textbookSn}
         AND t.USE_YN = 'Y'
     </select>
