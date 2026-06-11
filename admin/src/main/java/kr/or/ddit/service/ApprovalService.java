@@ -1,9 +1,11 @@
 package kr.or.ddit.service;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,8 +18,6 @@ import kr.or.ddit.finalProject.dto.approval.ApprovalMasterDto;
 import kr.or.ddit.finalProject.dto.approval.ApprovalTemplateDto;
 import kr.or.ddit.finalProject.dto.approval.ApprovalDocProgressEnum;
 import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
-import kr.or.ddit.finalProject.dto.member.AdminMemberDto;
-import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.dto.notification.NotificationType;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
@@ -85,31 +85,36 @@ public class ApprovalService {
     }
 
     public List<ApprovalLineDto> getDefaultApprovalLinesByUserId(String userId) {
-        // 기본 결재선은 일단은 팀장 - 원장
-        // 팀의 코드로 팀장을 구함
-        AdminMemberDto memberDto = memberService.getAdminUserById(userId);
-        String deptCd = memberDto.getEmployeeInfo().getDeptCd();
-        EmployeeInfoDto teamLeader = adminEmployeeService.getTeamLeaderByDeptCd(deptCd);
         List<ApprovalLineDto> approvalLines = new LinkedList<>();
-        if (teamLeader != null) {
-            ApprovalLineDto teamLeaderLine = new ApprovalLineDto();
-            teamLeaderLine.setAprvrUserId(teamLeader.getUserId());
-            teamLeaderLine.setApproverName(teamLeader.getUserId()); // 실제로는 이름을 가져와야 하지만, 일단은 userId로 설정
-            teamLeaderLine.setAprvlOrdr(1l); // 팀장이 첫 번째 결재자
-            teamLeaderLine.setAprvlPrgrsCd(ApprovalLineProgressEnum.WAITING);
-            teamLeaderLine.setJbgrNm(teamLeader.getJbgrNm()); // 직급명 설정
-            approvalLines.add(teamLeaderLine);
-        }
-        // 원장
-        ApprovalLineDto directorLine = new ApprovalLineDto();
-        MemberDto director = memberService.getMemberByUserId("testuser01"); // 원장 계정은 일단 하드코딩
-        directorLine.setAprvrUserId(director.getUserId());
-        directorLine.setApproverName(director.getUserName()); // 실제로는 이름
-        directorLine.setAprvlOrdr(2l); // 원장이 두 번째 결재자
-        directorLine.setAprvlPrgrsCd(ApprovalLineProgressEnum.WAITING);
-        directorLine.setJbgrNm("원장"); // 직급명도 하드코딩
-        approvalLines.add(directorLine);
+        Set<String> visited = new HashSet<>();
+        int maxDepth = 10;
+        int order = 1;
 
+        visited.add(userId);
+        EmployeeInfoDto current = adminEmployeeService.getEmployeeInfoByUserId(userId);
+        if (current == null) return approvalLines;
+
+        String nextId = current.getMntUserId();
+
+        while (nextId != null && !visited.contains(nextId) && order <= maxDepth) {
+            visited.add(nextId);
+            EmployeeInfoDto supervisor = adminEmployeeService.getEmployeeInfoByUserId(nextId);
+            if (supervisor == null) break;
+
+            ApprovalLineDto line = new ApprovalLineDto();
+            line.setAprvrUserId(nextId);
+            line.setApproverName(supervisor.getUserName() != null ? supervisor.getUserName() : nextId);
+            line.setAprvlOrdr((long) order++);
+            line.setAprvlPrgrsCd(ApprovalLineProgressEnum.WAITING);
+            line.setJbgrNm(supervisor.getJbgrNm());
+            line.setSortOrd(supervisor.getSortOrd());
+            approvalLines.add(line);
+
+            // 자기 자신이 MNT_USER_ID인 경우 = 최상위 → 여기서 멈춤
+            if (nextId.equals(supervisor.getMntUserId())) break;
+
+            nextId = supervisor.getMntUserId();
+        }
 
         return approvalLines;
     }

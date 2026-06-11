@@ -7,6 +7,7 @@ import kr.or.ddit.finalProject.dto.common.CommonCodeDto;
 
 public interface CommonCodeService {
     List<ComClDto> getGroups();
+    boolean existsGroup(String clCode);
     void createGroup(ComClDto dto, String adminId);
     void updateGroup(ComClDto dto, String adminId);
     void deleteGroup(String clCode);

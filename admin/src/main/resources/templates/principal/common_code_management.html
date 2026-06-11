@@ -39,10 +39,10 @@
           <i class="fa-solid fa-plus text-xs"></i> 코드 추가
         </button>
       </div>
-      <div class="overflow-x-auto">
+      <div class="overflow-x-auto overflow-y-auto max-h-[calc(65vh-56px)]">
         <table class="w-full text-left text-sm">
           <thead>
-            <tr class="bg-slate-50 text-xs text-slate-400 font-semibold uppercase tracking-wider">
+            <tr class="bg-slate-50 text-xs text-slate-400 font-semibold uppercase tracking-wider sticky top-0 z-10">
               <th class="px-4 py-3 w-24">코드값</th>
               <th class="px-4 py-3">표시명</th>
               <th class="px-4 py-3">설명</th>
@@ -296,9 +296,10 @@
     });
 
     if (res.ok) {
-      showHermesToast(isEdit ? '분류가 수정되었습니다.' : '분류가 등록되었습니다.', 'success');
+      showHermesToast('결재에 등록되었습니다. 승인 후 반영됩니다.', 'success');
       closeModal('groupModal');
-      await loadGroups();
+    } else if (res.status === 409) {
+      showHermesToast('이미 존재하는 분류코드입니다.', 'error');
     } else {
       showHermesToast('저장 실패. 다시 시도해 주세요.', 'error');
     }
@@ -319,8 +320,7 @@
         document.getElementById('codeTableBody').innerHTML =
           '<tr><td colspan="5" class="px-4 py-8 text-center text-xs text-slate-400">좌측에서 분류를 선택하세요.</td></tr>';
       }
-      showHermesToast('분류가 삭제되었습니다.', 'success');
-      await loadGroups();
+      showHermesToast('삭제 결재에 등록되었습니다. 승인 후 반영됩니다.', 'success');
     } else {
       showHermesToast('삭제 실패.', 'error');
     }
@@ -376,10 +376,8 @@
     });
 
     if (res.ok) {
-      showHermesToast(isEdit ? '코드가 수정되었습니다.' : '코드가 등록되었습니다.', 'success');
+      showHermesToast('결재에 등록되었습니다. 승인 후 반영됩니다.', 'success');
       closeModal('codeModal');
-      await loadCodes();
-      await loadGroups();
     } else {
       showHermesToast('저장 실패. 다시 시도해 주세요.', 'error');
     }
@@ -396,9 +394,7 @@
       { method: 'DELETE' }
     );
     if (res.ok) {
-      showHermesToast('코드가 삭제되었습니다.', 'success');
-      await loadCodes();
-      await loadGroups();
+      showHermesToast('삭제 결재에 등록되었습니다. 승인 후 반영됩니다.', 'success');
     } else {
       showHermesToast('삭제 실패.', 'error');
     }

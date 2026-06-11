@@ -30,7 +30,7 @@
                 select="selectBooksByUserId" />
   </resultMap>
 
-  <select id="selectInstructorsBySubject" resultMap="instructorListResponseMap">
+  <select id="selectInstructors" parameterType="java.lang.Long" resultMap="instructorListResponseMap">
     SELECT DISTINCT
         sc.SUBJ_CL_ID,
         sc.SUBJ_CL_NM,
@@ -43,6 +43,10 @@
     JOIN INSTRUCTOR i ON i.INSTR_USER_ID = c.INSTR_USER_ID
     JOIN MEMBER m     ON m.USER_ID       = i.INSTR_USER_ID
     WHERE sc.USE_YN = 'Y'
+      AND m.ENABLE = 'Y'
+    <if test="subjClId != null">
+      AND sc.SUBJ_CL_ID = #{subjClId}
+    </if>
     ORDER BY sc.SUBJ_CL_ID, m.USER_NAME
   </select>
 
@@ -63,6 +67,7 @@
     FROM INSTRUCTOR i
     JOIN MEMBER m ON m.USER_ID = i.INSTR_USER_ID
     WHERE i.INSTR_UUID = #{instrUuid}
+      AND m.ENABLE = 'Y'
   </select>
 
   <select id="selectCareersByUserId"
