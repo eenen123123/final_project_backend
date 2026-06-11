@@ -50,7 +50,7 @@ async function navigateToStudents(btn) {
       });
     }
 
-    currMain.querySelectorAll('select.hm-input:not([data-ts-defer])').forEach(el => {
+    currMain.querySelectorAll('select.hm-input:not([data-cs-defer])').forEach(el => {
       if (!el.customSelect && window.initCustomSelect) window.initCustomSelect(el);
     });
     await initDeferredSelects(currMain);
@@ -1321,7 +1321,7 @@ if (brdtEl) {
 }
 
 
-/* ─── 공통코드 옵션 동적 로딩 (data-ts-defer select들) ─── */
+/* ─── 공통코드 옵션 동적 로딩 (data-cs-defer select들) ─── */
 document.addEventListener("DOMContentLoaded", function () {
   initDeferredSelects();
 });

@@ -30,10 +30,13 @@ button { cursor: pointer; }
 /* --- 입력 필드 --- */
 .hm-input {
   width: 100%;
+  min-height: 2.75rem;
+  box-sizing: border-box;
   border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
   padding: 0.65rem 1rem;
   font-size: 0.875rem;
+  line-height: 1rem;
   color: #1e293b;
   background-color: #ffffff;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -49,10 +52,7 @@ button { cursor: pointer; }
   cursor: not-allowed;
   border-color: #e2e8f0;
 }
-
-/* 크기 변형 (cs-wrapper 는 CustomSelect 가 생성하는 래퍼 div) */
-.cs-wrapper.hm-lg { min-height: 46.1px; }
-input.hm-lg       { line-height: 23.55px; }
+textarea.hm-input { min-height: unset; height: auto; }
 
 /* --- 버튼 --- */
 .hm-btn-primary {
@@ -235,8 +235,10 @@ input.hm-lg       { line-height: 23.55px; }
   position: relative;
   display: block;
   width: 100%;
+  min-height: 2.75rem;
   padding: 0.65rem 2rem 0.65rem 1rem;
   font-size: 0.875rem;
+  line-height: 1rem;
   font-family: "Noto Sans KR", sans-serif;
   color: #1e293b;
   background: transparent;
@@ -300,10 +302,8 @@ input.hm-lg       { line-height: 23.55px; }
 }
 .cs-wrapper.cs-open .cs-dropdown { display: block; }
 
-/* ts-dropup: initDeferredSelects 가 el.customSelect.wrapper 에 추가하는 클래스.
-   cs-dropup: 직접 wrapper 에 클래스를 붙일 때 사용. */
-.cs-wrapper.ts-dropup .cs-dropdown,
-.cs-wrapper.cs-dropup  .cs-dropdown {
+/* cs-dropup: data-cs-dropup 속성이 있으면 initDeferredSelects 가 추가하는 클래스. 직접 붙여도 됨. */
+.cs-wrapper.cs-dropup .cs-dropdown {
   top: auto;
   bottom: calc(100% + 6px);
 }

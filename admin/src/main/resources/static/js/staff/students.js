@@ -45,7 +45,7 @@ async function navigateToEmployees(btn) {
       });
     }
 
-    currMain.querySelectorAll('select.hm-input:not([data-ts-defer])').forEach(el => {
+    currMain.querySelectorAll('select.hm-input:not([data-cs-defer])').forEach(el => {
       if (!el.customSelect && window.initCustomSelect) window.initCustomSelect(el);
     });
     await initDeferredSelects(currMain);
