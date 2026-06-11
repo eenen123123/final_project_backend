@@ -154,6 +154,7 @@
 
     if (!subjClId) {
       subjSelect.innerHTML = '<option value="">— 분류를 먼저 선택 —</option>';
+      subjSelect.customSelect?.refresh();
       return;
     }
 
@@ -168,9 +169,11 @@
           subjSelect.appendChild(opt);
         });
         subjSelect.disabled = false;
+        subjSelect.customSelect?.refresh();
       })
       .catch(() => {
         subjSelect.innerHTML = '<option value="">불러오기 실패</option>';
+        subjSelect.customSelect?.refresh();
       });
   }
 </script>
