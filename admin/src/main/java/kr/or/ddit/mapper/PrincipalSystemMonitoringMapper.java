@@ -19,7 +19,7 @@ public interface PrincipalSystemMonitoringMapper {
     List<LoginLogDto> searchAdminLoginLog(PaginationInfo<Map<String, Object>> paging);
     int countAdminLoginLog(PaginationInfo<Map<String, Object>> paging);
 
-    // ── 관리자 활동 감사 로그 (HERMES_ADMIN_AUDIT_LOG) ─────────────────
+    // ── 관리자 활동 이력 (HERMES_ADMIN_AUDIT_LOG) ─────────────────
     List<AdminAuditLogDto> searchAdminAuditLog(PaginationInfo<Map<String, Object>> paging);
     int countAdminAuditLog(PaginationInfo<Map<String, Object>> paging);
 
