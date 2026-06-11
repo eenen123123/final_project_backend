@@ -10,8 +10,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.dto.course.SubjectDto;
 import kr.or.ddit.finalProject.dto.textbook.TextbookDto;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
+import kr.or.ddit.finalProject.service.course.CourseService;
 import kr.or.ddit.finalProject.service.textbook.TextbookService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,18 +25,27 @@ import lombok.extern.slf4j.Slf4j;
 public class TextbookListController {
 
     private final TextbookService textbookService;
+    private final CourseService courseService;
 
-    // GET /api/textbook?page=1&size=8&keyword=수학&subjClId=2
+    // GET /api/textbook/subjects?subjClId=1 — 소분류 목록
+    @GetMapping("/subjects")
+    public ResponseEntity<List<SubjectDto>> getSubjects(@RequestParam Long subjClId) {
+        return ResponseEntity.ok(courseService.retrieveSubjectsBySubjClId(subjClId));
+    }
+
+    // GET /api/textbook?page=1&size=8&keyword=수학&subjClId=2&subjId=5&sort=recent
     @GetMapping
     public ResponseEntity<PageResponse<TextbookDto>> getTextbookList(
-            @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "8") int size,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "8") int size,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long subjClId,
-            @RequestParam(required = false) String instrUserNm) {
+            @RequestParam(required = false) Long subjId,
+            @RequestParam(defaultValue = "recent") String sort) {
 
         PaginationInfo<TextbookDto> paginationInfo = new PaginationInfo<>(size, 5, page);
-        TextbookDto condition = TextbookDto.builder().keyword(keyword).subjClId(subjClId)
-                .instrUserNm(instrUserNm).build();
+        TextbookDto condition = TextbookDto.builder()
+                .keyword(keyword).subjClId(subjClId).subjId(subjId).sort(sort).build();
         paginationInfo.setDetailCondition(condition);
 
         int totalCount = textbookService.retrieveTextbookListCount(paginationInfo);
@@ -47,6 +58,9 @@ public class TextbookListController {
     @GetMapping("/{textbookSn}")
     public ResponseEntity<TextbookDto> getTextbook(@PathVariable Long textbookSn) {
         TextbookDto textbookDto = textbookService.retrieveTextbookBySn(textbookSn);
+        if (textbookDto == null) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(textbookDto);
     }
 

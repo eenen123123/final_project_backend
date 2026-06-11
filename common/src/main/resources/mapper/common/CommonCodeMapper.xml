@@ -52,6 +52,10 @@
         ORDER BY C.CL_CODE
     </select>
 
+    <select id="countGroup" resultType="int">
+        SELECT COUNT(*) FROM COM_CL WHERE TRIM(CL_CODE) = TRIM(#{clCode})
+    </select>
+
     <insert id="insertGroup" parameterType="kr.or.ddit.finalProject.dto.code.ComClDto">
         INSERT INTO COM_CL (CL_CODE, CL_CD_NM, CL_CD_EXPLN, USE_YN, RGTR_ID, REG_DT)
         VALUES (#{clCode}, #{clCdNm}, #{clCdExpln}, NVL(#{useYn}, 'Y'), #{rgtrId}, SYSTIMESTAMP)
