@@ -90,7 +90,7 @@
         <div class="flex items-center gap-2 mb-2">
           <span
             class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-violet-50 text-violet-700"
-            th:text="${doc.tmplCd}"
+            th:text="${doc.tmplNm ?: doc.tmplCd}"
             >유형</span
           >
           <span
