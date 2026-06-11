@@ -1,0 +1,174 @@
+<title th:fragment="pageTitle">강좌 등록 | HERMES</title>
+
+<div class="space-y-6">
+  <!-- 페이지 헤더 -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+        <a th:href="@{/admin/course/list}" class="hover:text-orange-500 transition-colors">강좌 관리</a>
+        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        <span class="text-orange-500 font-medium">강좌 등록</span>
+      </div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">강좌 등록</h1>
+      <p class="text-sm text-slate-500 mt-1">새 강좌 정보를 입력하여 등록합니다.</p>
+    </div>
+    <a th:href="@{/admin/course/list}"
+       class="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors shrink-0">
+      <i class="fa-solid fa-arrow-left text-xs"></i>
+      <span>목록으로</span>
+    </a>
+  </div>
+
+  <!-- 에러 메시지 -->
+  <div th:if="${errorMsg}"
+       class="flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl px-5 py-3">
+    <i class="fa-solid fa-circle-exclamation"></i>
+    <span th:text="${errorMsg}"></span>
+  </div>
+
+  <!-- 폼 -->
+  <form th:action="@{/admin/course/insert}" method="post" class="space-y-5">
+
+    <!-- 강좌명 -->
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-5">
+      <h2 class="text-sm font-bold text-slate-700">
+        <i class="fa-solid fa-circle-info text-orange-500 mr-2"></i>기본 정보
+      </h2>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">
+          강좌명 <span class="text-red-400">*</span>
+        </label>
+        <input type="text" name="courseNm" required
+               class="hm-input hm-input-orange"
+               placeholder="예) 수능 수학 완성 — 미적분"/>
+      </div>
+
+      <!-- 강좌 설명 -->
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">강좌 설명</label>
+        <textarea name="courseExplnCn" rows="4"
+                  class="hm-input hm-input-orange resize-none"
+                  placeholder="강좌의 목표와 내용을 간략히 설명해 주세요."></textarea>
+      </div>
+
+      <!-- 공개 여부 / 수강료 -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-2">공개 여부</label>
+          <div class="flex items-center gap-5 h-10">
+            <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+              <input type="radio" name="opnnYn" value="Y" checked class="accent-orange-500"/>
+              <span>공개</span>
+            </label>
+            <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+              <input type="radio" name="opnnYn" value="N" class="accent-orange-500"/>
+              <span>비공개</span>
+            </label>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">수강료 (원)</label>
+          <input type="number" name="coursePrice" value="0" min="0"
+                 class="hm-input hm-input-orange"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- 분류 / 커리큘럼 -->
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-5">
+      <h2 class="text-sm font-bold text-slate-700">
+        <i class="fa-solid fa-sitemap text-orange-500 mr-2"></i>분류 &amp; 커리큘럼
+      </h2>
+
+      <!-- 과목 분류 → 과목 -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">과목 분류</label>
+          <select id="subjClId" class="hm-input hm-input-orange" onchange="loadSubjects(this.value)">
+            <option value="">— 선택 안 함 —</option>
+            <option th:each="cl : ${subjClList}"
+                    th:value="${cl.subjClId}"
+                    th:text="${cl.subjClNm}">분류명</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">과목</label>
+          <select id="subjId" name="subjId" class="hm-input hm-input-orange" disabled>
+            <option value="">— 분류를 먼저 선택 —</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 커리큘럼 → 정렬 순서 -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">커리큘럼</label>
+          <select id="curriculumId" name="curriculumId" class="hm-input hm-input-orange"
+                  onchange="toggleSortOrd(this.value)">
+            <option value="">— 선택 안 함 (독립 강좌) —</option>
+            <option th:each="cur : ${curriculumList}"
+                    th:value="${cur.curriculumId}"
+                    th:text="${cur.title}">커리큘럼명</option>
+          </select>
+        </div>
+        <div id="sortOrdWrap" class="hidden">
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">커리큘럼 내 순서</label>
+          <input type="number" name="sortOrd" id="sortOrd" value="1" min="1"
+                 class="hm-input hm-input-orange"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- 등록 버튼 -->
+    <div class="flex justify-end gap-3">
+      <a th:href="@{/admin/course/list}"
+         class="hm-btn-primary bg-slate-100 text-slate-600 hover:bg-slate-200">
+        취소
+      </a>
+      <button type="submit" class="hm-btn-primary hm-btn-orange px-8">
+        <i class="fa-solid fa-circle-plus"></i>
+        <span>강좌 등록</span>
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+  function toggleSortOrd(val) {
+    const wrap = document.getElementById('sortOrdWrap');
+    if (val) {
+      wrap.classList.remove('hidden');
+    } else {
+      wrap.classList.add('hidden');
+      document.getElementById('sortOrd').value = '';
+    }
+  }
+
+  function loadSubjects(subjClId) {
+    const subjSelect = document.getElementById('subjId');
+    subjSelect.innerHTML = '<option value="">— 불러오는 중 —</option>';
+    subjSelect.disabled = true;
+
+    if (!subjClId) {
+      subjSelect.innerHTML = '<option value="">— 분류를 먼저 선택 —</option>';
+      return;
+    }
+
+    fetch('/admin/course/subjects?subjClId=' + subjClId)
+      .then(res => res.json())
+      .then(data => {
+        subjSelect.innerHTML = '<option value="">— 선택 안 함 —</option>';
+        data.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.subjId;
+          opt.textContent = s.subjNm;
+          subjSelect.appendChild(opt);
+        });
+        subjSelect.disabled = false;
+      })
+      .catch(() => {
+        subjSelect.innerHTML = '<option value="">불러오기 실패</option>';
+      });
+  }
+</script>
