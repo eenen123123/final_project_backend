@@ -18,6 +18,7 @@
     <result property="classSn"      column="CLASS_SN" />
     <result property="classNm"      column="CLASS_NM" />
     <result property="courseNm"     column="COURSE_NM" />
+    <result property="courseSn"     column="COURSE_SN" />
     <result property="classStatCd"  column="CLASS_STAT_CD" />
     <result property="enrlStrtYmd"  column="ENRL_STRT_YMD" />
     <result property="enrlEndYmd"   column="ENRL_END_YMD" />
@@ -49,6 +50,7 @@
         cl.CLASS_SN,
         cl.CLASS_NM,
         c.COURSE_NM,
+        c.COURSE_SN,
         cl.CLASS_STAT_CD,
         cl.ENRL_STRT_YMD,
         cl.ENRL_END_YMD,
