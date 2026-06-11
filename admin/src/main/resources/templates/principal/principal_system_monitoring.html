@@ -766,7 +766,10 @@
         <td class="py-4 px-6 text-center">
           <button class="text-slate-400 hover:text-rose-600 p-1.5 transition-colors"
                   title="에러 메시지 상세"
-                  onclick="openErrorDetailModal('${esc(r.errorId)}', '${esc(r.errorCode)}', ${JSON.stringify(rawMsg).replace(/'/g, "\\'")})">
+                  data-error-id="${esc(r.errorId)}"
+                  data-error-code="${esc(r.errorCode)}"
+                  data-error-msg="${esc(rawMsg)}"
+                  onclick="openErrorDetailModal(this.dataset.errorId, this.dataset.errorCode, this.dataset.errorMsg)">
             <i class="fa-solid fa-circle-exclamation text-base"></i>
           </button>
         </td>
