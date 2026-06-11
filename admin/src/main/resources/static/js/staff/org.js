@@ -16,6 +16,8 @@ function switchTab(id, btn) {
 const deptMap = {};
 let allMntGradeOpts = [];
 let gradeOrdMap    = {}; /* jbgrNm → sortOrd (직급 rank 조회용) */
+let _deptOrigData  = null; /* openDeptModal 에서 저장 */
+let _gradeOrigData = null; /* openGradeModal 에서 저장 */
 
 /* 스크립트가 body 하단에 위치하므로 DOM 파싱 완료 — 즉시 실행 가능 */
 function initMntGradeOpts() {
@@ -77,19 +79,19 @@ function renderGrades(list) {
     const toggleTxt = g.useYn === 'Y' ? '비활성화' : '활성화';
     const toggleVal = g.useYn === 'Y' ? 'N' : 'Y';
     return `<tr class="hover:bg-slate-50 transition-colors"
-                data-cd="${esc(g.jbgrCd)}" data-nm="${esc(g.jbgrNm)}"
-                data-dept="${esc(g.deptCd || '')}" data-ord="${g.sortOrd ?? ''}"
+                data-cd="${escHtml(g.jbgrCd)}" data-nm="${escHtml(g.jbgrNm)}"
+                data-dept="${escHtml(g.deptCd || '')}" data-ord="${g.sortOrd ?? ''}"
                 data-days="${g.baseAnnLvDays ?? ''}" data-use="${g.useYn}">
-      <td class="py-3 px-4 font-mono text-slate-600">${esc(g.jbgrCd)}</td>
-      <td class="py-3 px-4 font-semibold text-slate-800">${esc(g.jbgrNm)}</td>
-      <td class="py-3 px-4 text-slate-500">${esc(deptNm)}</td>
+      <td class="py-3 px-4 font-mono text-slate-600">${escHtml(g.jbgrCd)}</td>
+      <td class="py-3 px-4 font-semibold text-slate-800">${escHtml(g.jbgrNm)}</td>
+      <td class="py-3 px-4 text-slate-500">${escHtml(deptNm)}</td>
       <td class="py-3 px-4 text-slate-500">${g.sortOrd ?? '-'}</td>
       <td class="py-3 px-4 text-slate-500">${days}</td>
       <td class="py-3 px-4">${badge}</td>
       <td class="py-3 px-4">
         <div class="flex items-center gap-2">
           <button onclick="openGradeModal(this.closest('tr'))" class="text-xs text-[#3b82f6] hover:underline font-semibold">수정</button>
-          <button data-cd="${esc(g.jbgrCd)}" data-toggle="${toggleVal}"
+          <button data-cd="${escHtml(g.jbgrCd)}" data-toggle="${toggleVal}"
                   onclick="toggleGrade(this.dataset.cd, this.dataset.toggle)"
                   class="text-xs text-slate-400 hover:underline">${toggleTxt}</button>
         </div>
@@ -109,9 +111,6 @@ function renderGradePagination(cur, total) {
   el.innerHTML = html;
 }
 
-function esc(s) {
-  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
 
 /* ─────────────── 부서 CRUD ─────────────── */
 function openDeptModal(row) {
@@ -124,6 +123,7 @@ function openDeptModal(row) {
   document.getElementById('dept-nm').value       = isEdit ? row.dataset.nm : '';
   document.getElementById('dept-prnt').value     = isEdit ? (row.dataset.prnt || '') : '';
   document.getElementById('dept-tel').value      = isEdit ? (row.dataset.tel || '') : '';
+  _deptOrigData = isEdit ? { nm: row.dataset.nm, prnt: row.dataset.prnt || '', tel: row.dataset.tel || '' } : null;
   document.getElementById('modal-dept').classList.remove('hidden');
 }
 function closeDeptModal() { document.getElementById('modal-dept').classList.add('hidden'); }
@@ -142,21 +142,72 @@ function saveDept() {
 
   const url    = isEdit ? `/admin/org/dept/${editCd}` : '/admin/org/dept';
   const method = isEdit ? 'PUT' : 'POST';
-  fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
-    .then(r => r.json()).then(d => {
-      if (d.result === 'success') { closeDeptModal(); location.reload(); }
-      else alert('오류: ' + (d.message || '처리 실패'));
+  const doFetch = () => {
+    closeHermesApprovalConfirm();
+    fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
+      .then(r => r.json()).then(d => {
+        if (d.result === 'success') {
+          closeDeptModal();
+          showHermesToast(d.message || '결재 요청이 완료되었습니다. 승인 후 처리됩니다.', 'success');
+          setTimeout(() => location.reload(), 1500);
+        } else {
+          showHermesToast('오류: ' + (d.message || '처리 실패'), 'error');
+        }
+      })
+      .catch(() => showHermesToast('요청 중 오류가 발생했습니다.', 'error'));
+  };
+
+  if (isEdit) {
+    showHermesApprovalConfirm({
+      title: '부서 수정 결재 등록',
+      type: 'update',
+      fields: [
+        { label: '부서명',   before: _deptOrigData?.nm   || '-', after: body.deptNm },
+        { label: '상위부서', before: _deptOrigData?.prnt  || '-', after: body.prntDeptCd || '-' },
+        { label: '내선번호', before: _deptOrigData?.tel   || '-', after: body.intlTelNo  || '-' },
+      ],
+      onConfirm: doFetch,
     });
+  } else {
+    showHermesApprovalConfirm({
+      title: '부서 등록 결재 등록',
+      type: 'create',
+      fields: [
+        { label: '부서 코드', value: body.deptCd },
+        { label: '부서명',   value: body.deptNm },
+        { label: '상위부서', value: body.prntDeptCd || '-' },
+        { label: '내선번호', value: body.intlTelNo  || '-' },
+      ],
+      onConfirm: doFetch,
+    });
+  }
 }
 
 function toggleDept(deptCd, newUseYn) {
-  if (!confirm(`해당 부서를 ${newUseYn === 'Y' ? '활성화' : '비활성화'}하시겠습니까?`)) return;
-  fetch(`/admin/org/dept/${deptCd}/toggle`, {
-    method: 'PUT', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ useYn: newUseYn })
-  }).then(r => r.json()).then(d => {
-    if (d.result === 'success') location.reload();
-    else alert('오류: ' + d.message);
+  const nm    = document.querySelector(`#dept-tbody tr[data-cd="${deptCd}"]`)?.dataset.nm || deptCd;
+  const label = newUseYn === 'Y' ? '활성화' : '비활성화';
+  showHermesApprovalConfirm({
+    title: `부서 ${label} 결재 등록`,
+    type: newUseYn === 'N' ? 'delete' : 'create',
+    target: newUseYn === 'N' ? `${nm} ${label}` : undefined,
+    fields: newUseYn === 'Y' ? [
+      { label: '대상 부서', value: nm },
+      { label: '상태 변경', value: '미사용 → 사용중' },
+    ] : undefined,
+    onConfirm: () => {
+      closeHermesApprovalConfirm();
+      fetch(`/admin/org/dept/${deptCd}/toggle`, {
+        method: 'PUT', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ useYn: newUseYn })
+      }).then(r => r.json()).then(d => {
+        if (d.result === 'success') {
+          showHermesToast(d.message || '처리가 완료되었습니다.', 'success');
+          setTimeout(() => location.reload(), 1500);
+        } else {
+          showHermesToast('오류: ' + d.message, 'error');
+        }
+      }).catch(() => showHermesToast('요청 중 오류가 발생했습니다.', 'error'));
+    },
   });
 }
 
@@ -172,6 +223,12 @@ function openGradeModal(row) {
   document.getElementById('grade-dept').value     = isEdit ? (row.dataset.dept || '') : '';
   document.getElementById('grade-ord').value      = isEdit ? (row.dataset.ord || '') : '';
   document.getElementById('grade-days').value     = isEdit ? (row.dataset.days || '') : '';
+  _gradeOrigData = isEdit ? {
+    nm:   row.dataset.nm,
+    dept: row.dataset.dept || '',
+    ord:  row.dataset.ord  || '',
+    days: row.dataset.days || '',
+  } : null;
   document.getElementById('modal-grade').classList.remove('hidden');
 }
 function closeGradeModal() { document.getElementById('modal-grade').classList.add('hidden'); }
@@ -191,23 +248,74 @@ function saveGrade() {
 
   const url    = isEdit ? `/admin/org/grade/${editCd}` : '/admin/org/grade';
   const method = isEdit ? 'PUT' : 'POST';
-  fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
-    .then(r => r.json()).then(d => {
-      if (d.result === 'success') {
-        closeGradeModal();
-        loadGrades(isEdit ? gradeCurPage : 1);
-      } else alert('오류: ' + (d.message || '처리 실패'));
+  const doFetch = () => {
+    closeHermesApprovalConfirm();
+    fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
+      .then(r => r.json()).then(d => {
+        if (d.result === 'success') {
+          closeGradeModal();
+          showHermesToast(d.message || '결재 요청이 완료되었습니다. 승인 후 처리됩니다.', 'success');
+          setTimeout(() => loadGrades(isEdit ? gradeCurPage : 1), 1500);
+        } else {
+          showHermesToast('오류: ' + (d.message || '처리 실패'), 'error');
+        }
+      })
+      .catch(() => showHermesToast('요청 중 오류가 발생했습니다.', 'error'));
+  };
+
+  if (isEdit) {
+    showHermesApprovalConfirm({
+      title: '직급 수정 결재 등록',
+      type: 'update',
+      fields: [
+        { label: '직급명',   before: _gradeOrigData?.nm   || '-', after: body.jbgrNm },
+        { label: '소속 부서', before: _gradeOrigData?.dept  || '-', after: body.deptCd   || '-' },
+        { label: '정렬 순서', before: _gradeOrigData?.ord   || '-', after: body.sortOrd  ?? '-' },
+        { label: '연차 기본일', before: _gradeOrigData?.days || '-', after: body.baseAnnLvDays },
+      ],
+      onConfirm: doFetch,
     });
+  } else {
+    showHermesApprovalConfirm({
+      title: '직급 등록 결재 등록',
+      type: 'create',
+      fields: [
+        { label: '직급 코드',  value: body.jbgrCd },
+        { label: '직급명',    value: body.jbgrNm },
+        { label: '소속 부서', value: body.deptCd        || '-' },
+        { label: '정렬 순서', value: body.sortOrd       ?? '-' },
+        { label: '연차 기본일', value: body.baseAnnLvDays },
+      ],
+      onConfirm: doFetch,
+    });
+  }
 }
 
 function toggleGrade(jbgrCd, newUseYn) {
-  if (!confirm(`해당 직급을 ${newUseYn === 'Y' ? '활성화' : '비활성화'}하시겠습니까?`)) return;
-  fetch(`/admin/org/grade/${jbgrCd}/toggle`, {
-    method: 'PUT', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ useYn: newUseYn })
-  }).then(r => r.json()).then(d => {
-    if (d.result === 'success') loadGrades(gradeCurPage);
-    else alert('오류: ' + d.message);
+  const nm    = document.querySelector(`#grade-tbody tr[data-cd="${jbgrCd}"]`)?.dataset.nm || jbgrCd;
+  const label = newUseYn === 'Y' ? '활성화' : '비활성화';
+  showHermesApprovalConfirm({
+    title: `직급 ${label} 결재 등록`,
+    type: newUseYn === 'N' ? 'delete' : 'create',
+    target: newUseYn === 'N' ? `${nm} ${label}` : undefined,
+    fields: newUseYn === 'Y' ? [
+      { label: '대상 직급', value: nm },
+      { label: '상태 변경', value: '미사용 → 사용중' },
+    ] : undefined,
+    onConfirm: () => {
+      closeHermesApprovalConfirm();
+      fetch(`/admin/org/grade/${jbgrCd}/toggle`, {
+        method: 'PUT', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ useYn: newUseYn })
+      }).then(r => r.json()).then(d => {
+        if (d.result === 'success') {
+          showHermesToast(d.message || '처리가 완료되었습니다.', 'success');
+          setTimeout(() => loadGrades(gradeCurPage), 1500);
+        } else {
+          showHermesToast('오류: ' + d.message, 'error');
+        }
+      }).catch(() => showHermesToast('요청 중 오류가 발생했습니다.', 'error'));
+    },
   });
 }
 
@@ -236,27 +344,17 @@ function selectMntDept(btn) {
   loadMntKanban();
 }
 
-/* 부서 선택 시 직급 옵션 재구성 — employees.js updateHrRoleFilter()와 완전히 동일한 패턴 */
+/* 부서 선택 시 직급 옵션 재구성 */
 function filterMntGradeByDept(deptCd) {
   if (allMntGradeOpts.length === 0) initMntGradeOpts();
   const trimmed = (deptCd || '').trim();
-  const filtered = trimmed
-    ? allMntGradeOpts.filter(o => o.dept === trimmed)
-    : allMntGradeOpts;
-  const ts = document.getElementById('mnt-grade-filter').tomselect;
-  if (ts) {
-    /* TomSelect가 적용된 경우 — innerHTML 교체는 반영 안 됨, API로 갱신 */
-    ts.clear(true);
-    ts.clearOptions();
-    filtered.forEach(o => ts.addOption({ value: o.value, text: o.text }));
-    ts.refreshOptions(false);
-  } else {
-    /* TomSelect 미적용 fallback */
-    const sel = document.getElementById('mnt-grade-filter');
-    sel.innerHTML = '<option value="">전체 직급</option>' +
-      filtered.map(o => `<option value="${esc(o.value)}">${esc(o.text)}</option>`).join('');
-    sel.value = '';
-  }
+  const sel = document.getElementById('mnt-grade-filter');
+  Array.from(sel.options).forEach(opt => {
+    if (!opt.value) return;
+    opt.hidden = trimmed ? (opt.dataset.dept || '').trim() !== trimmed : false;
+  });
+  sel.value = '';
+  if (sel.customSelect) sel.customSelect.refresh();
   renderUnassigned();
 }
 
@@ -376,21 +474,21 @@ function renderKanban(supIds, empMap) {
     const sup     = empMap[sid] || { userId: sid, userName: sid };
     const members = getTeamDescendants(sid);
     const avatar  = sup.userProfile && sup.userProfile.startsWith('http')
-      ? `<img src="${esc(sup.userProfile)}" class="w-9 h-9 rounded-lg object-cover flex-shrink-0">`
-      : `<div class="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600 flex-shrink-0">${esc((sup.userName||'?').charAt(0))}</div>`;
+      ? `<img src="${escHtml(sup.userProfile)}" class="w-9 h-9 rounded-lg object-cover flex-shrink-0">`
+      : `<div class="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600 flex-shrink-0">${escHtml((sup.userName||'?').charAt(0))}</div>`;
     return `
       <div class="mnt-col flex-shrink-0 rounded-xl border border-slate-200 bg-white overflow-hidden"
-           style="width:210px" data-sup-id="${esc(sid)}"
+           style="width:210px" data-sup-id="${escHtml(sid)}"
            ondragover="event.preventDefault()"
            ondrop="onDropToTeam(event,this)">
         <div class="bg-blue-50 border-b border-blue-100 px-3 py-3 flex items-center gap-2.5">
           ${avatar}
           <div class="min-w-0 flex-1">
-            <p class="font-bold text-sm text-slate-800 truncate">${esc(sup.userName||sid)}</p>
-            <p class="text-xs text-slate-400 truncate">${esc(sup.jbgrNm||'')}${sup.deptNm?' · '+esc(sup.deptNm):''}</p>
+            <p class="font-bold text-sm text-slate-800 truncate">${escHtml(sup.userName||sid)}</p>
+            <p class="text-xs text-slate-400 truncate">${escHtml(sup.jbgrNm||'')}${sup.deptNm?' · '+escHtml(sup.deptNm):''}</p>
           </div>
           <span class="text-xs bg-blue-100 text-blue-600 font-bold px-1.5 py-0.5 rounded-md flex-shrink-0">${members.length}명</span>
-          <button onclick="event.stopPropagation(); dissolveTeam('${esc(sid)}')"
+          <button onclick="event.stopPropagation(); dissolveTeam('${escHtml(sid)}')"
                   title="팀 전체 해제"
                   class="flex-shrink-0 w-5 h-5 rounded-full bg-slate-200 hover:bg-red-100 hover:text-red-500
                          text-slate-400 text-xs flex items-center justify-center transition-colors ml-1">✕</button>
@@ -462,11 +560,11 @@ function buildTreeHtml(userId, empMap) {
   const children = allEmps.filter(e => e.mntUserId === userId && e.userId !== userId);
 
   const avatar = emp.userProfile && emp.userProfile.startsWith('http')
-    ? `<img src="${esc(emp.userProfile)}" class="w-8 h-8 rounded-full object-cover mx-auto mb-1">`
-    : `<div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600 mx-auto mb-1">${esc((emp.userName||'?').charAt(0))}</div>`;
+    ? `<img src="${escHtml(emp.userProfile)}" class="w-8 h-8 rounded-full object-cover mx-auto mb-1">`
+    : `<div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600 mx-auto mb-1">${escHtml((emp.userName||'?').charAt(0))}</div>`;
 
   const dissolveBtn = isRoot
-    ? `<button onclick="event.stopPropagation(); dissolveTeam('${esc(userId)}')"
+    ? `<button onclick="event.stopPropagation(); dissolveTeam('${escHtml(userId)}')"
                title="팀 전체 해제"
                class="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-slate-200 hover:bg-red-100
                       hover:text-red-500 text-slate-400 text-xs flex items-center justify-center
@@ -475,16 +573,16 @@ function buildTreeHtml(userId, empMap) {
 
   const nodeHtml = `
     <div class="tree-node ${isRoot ? 'tree-node-root' : ''} relative"
-         data-uid="${esc(userId)}"
-         data-mnt="${esc(emp.mntUserId || '')}"
+         data-uid="${escHtml(userId)}"
+         data-mnt="${escHtml(emp.mntUserId || '')}"
          ${!isRoot ? 'draggable="true"' : ''}
          style="${!isRoot ? 'cursor:grab;' : ''}"
          ondragover="event.preventDefault()"
          ondrop="onDropToTreeNode(event, this)">
       ${dissolveBtn}
       ${avatar}
-      <p class="text-xs font-bold text-slate-800 truncate" style="max-width:84px">${esc(emp.userName||userId)}</p>
-      <p class="text-xs text-slate-400 truncate" style="max-width:84px">${esc(emp.jbgrNm||'')}</p>
+      <p class="text-xs font-bold text-slate-800 truncate" style="max-width:84px">${escHtml(emp.userName||userId)}</p>
+      <p class="text-xs text-slate-400 truncate" style="max-width:84px">${escHtml(emp.jbgrNm||'')}</p>
     </div>`;
 
   if (!children.length) return `<li>${nodeHtml}</li>`;
@@ -512,18 +610,18 @@ function onDropToTreeNode(event, nodeEl) {
 /* ── 공통 직원 카드 ── */
 function renderEmpCard(emp) {
   const avatar = emp.userProfile && emp.userProfile.startsWith('http')
-    ? `<img src="${esc(emp.userProfile)}" class="w-7 h-7 rounded-md object-cover flex-shrink-0">`
-    : `<div class="w-7 h-7 rounded-md bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-600 flex-shrink-0">${esc((emp.userName||'?').charAt(0))}</div>`;
+    ? `<img src="${escHtml(emp.userProfile)}" class="w-7 h-7 rounded-md object-cover flex-shrink-0">`
+    : `<div class="w-7 h-7 rounded-md bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-600 flex-shrink-0">${escHtml((emp.userName||'?').charAt(0))}</div>`;
   const statCls = emp.emplStatCd==='01' ? 'text-emerald-600' : emp.emplStatCd==='02' ? 'text-amber-500' : 'text-red-400';
   const statTxt = emp.emplStatCd==='01' ? '재직' : emp.emplStatCd==='02' ? '휴직' : '퇴사';
   return `
     <div class="emp-card bg-white border border-slate-100 hover:border-blue-200 hover:bg-blue-50
                 rounded-lg p-2 flex items-center gap-2 cursor-grab select-none transition-colors shadow-sm"
-         draggable="true" data-uid="${esc(emp.userId)}" data-mnt="${esc(emp.mntUserId||'')}">
+         draggable="true" data-uid="${escHtml(emp.userId)}" data-mnt="${escHtml(emp.mntUserId||'')}">
       ${avatar}
       <div class="min-w-0 flex-1">
-        <p class="text-xs font-semibold text-slate-800 truncate">${esc(emp.userName||'-')}</p>
-        <p class="text-xs text-slate-400 truncate">${esc(emp.jbgrNm||'-')}</p>
+        <p class="text-xs font-semibold text-slate-800 truncate">${escHtml(emp.userName||'-')}</p>
+        <p class="text-xs text-slate-400 truncate">${escHtml(emp.jbgrNm||'-')}</p>
       </div>
       <span class="text-xs ${statCls} flex-shrink-0">${statTxt}</span>
     </div>`;
@@ -537,23 +635,17 @@ function openAddTeamModal() {
   ]);
   const candidates = allEmps.filter(e => !existingSups.has(e.userId));
   if (!candidates.length) { alert('추가 가능한 사수 후보가 없습니다.'); return; }
-  const ts = document.getElementById('add-team-select').tomselect;
-  if (ts) {
-    ts.clear(true);
-    ts.clearOptions();
-    candidates.forEach(e => ts.addOption({ value: e.userId, text: `${e.userName} (${e.jbgrNm || e.userId})` }));
-    ts.refreshOptions(false);
-  } else {
-    document.getElementById('add-team-select').innerHTML =
-      candidates.map(e => `<option value="${esc(e.userId)}">${esc(e.userName)} (${esc(e.jbgrNm||e.userId)})</option>`).join('');
-  }
+  const sel = document.getElementById('add-team-select');
+  sel.innerHTML = candidates
+    .map(e => `<option value="${escHtml(e.userId)}">${escHtml(e.userName)} (${escHtml(e.jbgrNm || e.userId)})</option>`)
+    .join('');
+  if (sel.customSelect) sel.customSelect.refresh();
   document.getElementById('modal-add-team').classList.remove('hidden');
 }
 function closeAddTeamModal() { document.getElementById('modal-add-team').classList.add('hidden'); }
 function confirmAddTeam() {
   const sel = document.getElementById('add-team-select');
-  const ts = sel.tomselect;
-  const sid = ts ? ts.getValue() : sel.value;
+  const sid = sel.customSelect ? sel.customSelect.getValue() : sel.value;
   if (!sid) return;
   closeAddTeamModal();
   if (!extraSups.includes(sid)) extraSups.push(sid);
@@ -681,29 +773,47 @@ function updatePendingBar() {
 
 async function flushPendingChanges() {
   if (!pendingChanges.size) return;
-  const btn = document.getElementById('mnt-flush-btn');
-  if (btn) btn.disabled = true;
-  const payload = [...pendingChanges.entries()].map(([userId, mntUserId]) => ({ userId, mntUserId: mntUserId ?? '' }));
-  try {
-    const r = await fetch('/admin/org/mapping/batch', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (!r.ok) throw new Error(`서버 오류 ${r.status}`);
-    const d = await r.json();
-    if (d.result === 'success') {
-      pendingChanges.clear();
-      updatePendingBar();
-      showHermesToast('결재에 등록되었습니다.');
-    } else {
-      showHermesToast('등록 실패: ' + (d.message || '알 수 없는 오류'), 'error');
-    }
-  } catch (err) {
-    showHermesToast('저장 중 오류가 발생했습니다: ' + err.message, 'error');
-  } finally {
-    if (btn) btn.disabled = false;
-  }
+
+  const fields = [...pendingChanges.entries()].map(([userId, mntUserId]) => {
+    const emp = allEmps.find(e => e.userId === userId);
+    const sup = allEmps.find(e => e.userId === mntUserId);
+    return {
+      label: emp?.userName || userId,
+      value: mntUserId === userId ? '[팀장]' : (sup?.userName || mntUserId || '미배정'),
+    };
+  });
+
+  showHermesApprovalConfirm({
+    title: `사수 배정 결재 등록 (${pendingChanges.size}건)`,
+    type: 'create',
+    fields,
+    onConfirm: async () => {
+      closeHermesApprovalConfirm();
+      const btn = document.getElementById('mnt-flush-btn');
+      if (btn) btn.disabled = true;
+      const payload = [...pendingChanges.entries()].map(([userId, mntUserId]) => ({ userId, mntUserId: mntUserId ?? '' }));
+      try {
+        const r = await fetch('/admin/org/mapping/batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!r.ok) throw new Error(`서버 오류 ${r.status}`);
+        const d = await r.json();
+        if (d.result === 'success') {
+          pendingChanges.clear();
+          updatePendingBar();
+          showHermesToast('결재에 등록되었습니다.');
+        } else {
+          showHermesToast('등록 실패: ' + (d.message || '알 수 없는 오류'), 'error');
+        }
+      } catch (err) {
+        showHermesToast('저장 중 오류가 발생했습니다: ' + err.message, 'error');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    },
+  });
 }
 
 function cancelPendingChanges() {

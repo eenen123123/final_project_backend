@@ -50,8 +50,8 @@ async function navigateToStudents(btn) {
       });
     }
 
-    currMain.querySelectorAll('select.hm-input:not([data-ts-defer])').forEach(el => {
-      if (!el.tomselect && window.initTomSelect) window.initTomSelect(el);
+    currMain.querySelectorAll('select.hm-input:not([data-cs-defer])').forEach(el => {
+      if (!el.customSelect && window.initCustomSelect) window.initCustomSelect(el);
     });
     await initDeferredSelects(currMain);
 
@@ -115,12 +115,6 @@ async function doFilterHrList(page) {
 
 // defer 스크립트와 AJAX 탭 이동 모두에서 DOM 준비 완료 후 실행되므로 직접 호출
 doFilterHrList(1);
-
-function escHtml(s) {
-  return String(s == null ? "" : s)
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
 
 function renderEmployeeTable(employees, totalCount) {
   const tbody = document.getElementById("hr-table-body");
@@ -186,25 +180,14 @@ function renderEmployeeTable(employees, totalCount) {
   renderHrPagination(totalCount);
 }
 
-// 직급 필터 전체 옵션 원본 저장 (Tom Select 초기화 전에 native select에서 읽음)
-var allRoleOptions = Array.from(
-  document.querySelectorAll('#hr-role-filter option[value]:not([value=""])'),
-).map((opt) => ({
-  value: opt.value,
-  text: opt.textContent.trim(),
-  dept: opt.dataset.dept || "",
-}));
-
 function updateHrRoleFilter(deptCd) {
-  const ts = document.getElementById("hr-role-filter").tomselect;
-  if (!ts) return;
-  ts.clear(true);
-  ts.clearOptions();
-  const filtered = deptCd
-    ? allRoleOptions.filter((o) => o.dept === deptCd)
-    : allRoleOptions;
-  filtered.forEach((o) => ts.addOption({ value: o.value, text: o.text }));
-  ts.refreshOptions(false);
+  const sel = document.getElementById("hr-role-filter");
+  Array.from(sel.options).forEach((opt) => {
+    if (!opt.value) return;
+    opt.hidden = deptCd ? opt.dataset.dept !== deptCd : false;
+  });
+  sel.value = "";
+  if (sel.customSelect) sel.customSelect.refresh();
 }
 
 function onHrDeptChange(deptCd) {
@@ -223,7 +206,7 @@ function resetHrFilter() {
     "hr-type-filter",
   ].forEach((id) => {
     const el = document.getElementById(id);
-    if (el.tomselect) el.tomselect.setValue("");
+    if (el.customSelect) el.customSelect.setValue("");
     else el.value = "";
   });
   hrSortCol = null;
@@ -338,16 +321,6 @@ function goHrPage(p) {
 }
 
 /* ─── 인사 기록 테이블 렌더링 ─── */
-/* ─── 전화번호 하이픈 포맷 (표시용) ─── */
-function formatPhoneDisplay(tel) {
-  if (!tel) return "-";
-  const v = tel.replace(/\D/g, "");
-  if (v.length === 11)
-    return v.slice(0, 3) + "-" + v.slice(3, 7) + "-" + v.slice(7);
-  if (v.length === 10)
-    return v.slice(0, 3) + "-" + v.slice(3, 6) + "-" + v.slice(6);
-  return tel;
-}
 
 /* ─── 직원 상세 모달 열기 ─── */
 function openDetail(id) {
@@ -424,16 +397,22 @@ function openDetail(id) {
   const avatarImg = document.getElementById("detail-avatar-img");
   const avatarDiv = document.getElementById("detail-avatar");
   if (profileUrl.startsWith("http")) {
-    avatarImg.src = profileUrl;
-    avatarImg.classList.remove("hidden");
-    avatarImg.style.cursor = "zoom-in";
-    avatarImg.onclick = () => openProfileLightbox(profileUrl);
-    avatarDiv.classList.add("hidden");
+    if (avatarImg) {
+      avatarImg.src = profileUrl;
+      avatarImg.classList.remove("hidden");
+      avatarImg.style.cursor = "zoom-in";
+      avatarImg.onclick = () => openProfileLightbox(profileUrl);
+    }
+    if (avatarDiv) avatarDiv.classList.add("hidden");
   } else {
-    avatarImg.classList.add("hidden");
-    avatarImg.onclick = null;
-    avatarDiv.classList.remove("hidden");
-    avatarDiv.textContent = e.name && e.name !== "-" ? e.name[0] : "?";
+    if (avatarImg) {
+      avatarImg.classList.add("hidden");
+      avatarImg.onclick = null;
+    }
+    if (avatarDiv) {
+      avatarDiv.classList.remove("hidden");
+      avatarDiv.textContent = e.name && e.name !== "-" ? e.name[0] : "?";
+    }
   }
   document.getElementById("detail-name").textContent = e.name;
   document.getElementById("detail-status-badge").className =
@@ -509,23 +488,23 @@ function toggleDetailEdit() {
       document.getElementById("edit-addr-detail").value =
         row.dataset.addrDetail || "";
       const genderEl = document.getElementById("edit-gender");
-      if (genderEl.tomselect)
-        genderEl.tomselect.setValue(row.dataset.gender || "U");
+      if (genderEl.customSelect)
+        genderEl.customSelect.setValue(row.dataset.gender || "U");
       else genderEl.value = row.dataset.gender || "U";
 
       // 인사 기록
       const deptEl = document.getElementById("edit-dept");
-      if (deptEl.tomselect) deptEl.tomselect.setValue(row.dataset.dept || "");
+      if (deptEl.customSelect) deptEl.customSelect.setValue(row.dataset.dept || "");
       else deptEl.value = row.dataset.dept || "";
       filterEditRoleByDept(row.dataset.gradeCd || "");
       document.getElementById("edit-entry-date").value = row.dataset.join || "";
       const statusEl = document.getElementById("edit-status");
       const workTypeEl = document.getElementById("edit-work-type");
-      if (statusEl.tomselect)
-        statusEl.tomselect.setValue(row.dataset.status || "01");
+      if (statusEl.customSelect)
+        statusEl.customSelect.setValue(row.dataset.status || "01");
       else statusEl.value = row.dataset.status || "01";
-      if (workTypeEl.tomselect)
-        workTypeEl.tomselect.setValue(row.dataset.type || "01");
+      if (workTypeEl.customSelect)
+        workTypeEl.customSelect.setValue(row.dataset.type || "01");
       else workTypeEl.value = row.dataset.type || "01";
       toggleEditContractPeriod(row.dataset.type || "01");
       document.getElementById("edit-contract-end").value = (
@@ -624,6 +603,19 @@ function saveDetailEdit() {
     document.getElementById("edit-addr-detail").value || ""
   ).trim();
 
+  const _before = {
+    name:        row.dataset.name                           || '-',
+    deptNm:      row.dataset.deptNm                        || '-',
+    grade:       row.dataset.grade                         || '-',
+    phone:       formatPhoneDisplay(row.dataset.phone)     || '-',
+    join:        row.dataset.join                          || '-',
+    status:      document.querySelector(`#edit-status option[value="${row.dataset.status}"]`)?.textContent?.trim() || row.dataset.status || '-',
+    type:        document.querySelector(`#edit-work-type option[value="${row.dataset.type}"]`)?.textContent?.trim() || row.dataset.type   || '-',
+    salary:      row.dataset.salary                        || '-',
+    duty:        row.dataset.duty                          || '-',
+    contractEnd: row.dataset.contractEnd                   || '-',
+  };
+
   row.dataset.name = document.getElementById("edit-name").value.trim();
   row.dataset.dept = deptVal;
   row.dataset.deptNm = deptOpt ? deptOpt.text : row.dataset.deptNm;
@@ -675,68 +667,76 @@ function saveDetailEdit() {
   const profileFile = document.getElementById("edit-profile").files[0];
   if (profileFile) formData.append("editProfileImage", profileFile);
 
-  fetch("/admin/employees/update", {
-    method: "PUT",
-    body: formData,
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      if (data.result === "success") {
-        const newProfileUrl = data.profileUrl || "";
-        row.dataset.profile = newProfileUrl;
+  showHermesApprovalConfirm({
+    title: '직원 정보 수정 결재 등록',
+    type: 'update',
+    fields: [
+      { label: '이름',    before: _before.name,        after: document.getElementById("edit-name").value.trim() },
+      { label: '부서',    before: _before.deptNm,       after: deptOpt ? deptOpt.text : deptVal },
+      { label: '직급',    before: _before.grade,        after: gradeOpt ? gradeOpt.text : gradeVal },
+      { label: '연락처',  before: _before.phone,        after: document.getElementById("edit-phone").value },
+      { label: '입사일',  before: _before.join,         after: document.getElementById("edit-entry-date").value },
+      { label: '재직상태', before: _before.status,       after: document.querySelector('#edit-status option:checked')?.textContent?.trim() || document.getElementById("edit-status").value },
+      { label: '근무유형', before: _before.type,         after: document.querySelector('#edit-work-type option:checked')?.textContent?.trim() || document.getElementById("edit-work-type").value },
+      { label: '기본급',  before: _before.salary,       after: document.getElementById("edit-salary").value },
+      { label: '담당업무', before: _before.duty,         after: document.getElementById("edit-duty").value.trim() },
+      { label: '계약종료', before: _before.contractEnd,  after: document.getElementById("edit-contract-end").value || '-' },
+    ],
+    onConfirm: () => {
+      closeHermesApprovalConfirm();
+      fetch("/admin/employees/update", {
+        method: "PUT",
+        body: formData,
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.result === "success") {
+            const newProfileUrl = data.profileUrl || "";
+            row.dataset.profile = newProfileUrl;
 
-        // 테이블 행 아바타 즉시 동기화 (새로고침 없이 반영)
-        const avatarWrap = row.querySelector("td:first-child .flex");
-        if (avatarWrap) {
-          let img = avatarWrap.querySelector("img");
-          const textDiv = avatarWrap.querySelector(".bg-blue-100");
-          if (newProfileUrl.startsWith("http")) {
-            if (!img) {
-              img = document.createElement("img");
-              img.className = "w-7 h-7 rounded-lg object-cover";
-              img.alt = "프로필";
-              avatarWrap.prepend(img);
+            const avatarWrap = row.querySelector("td:first-child .flex");
+            if (avatarWrap) {
+              let img = avatarWrap.querySelector("img");
+              const textDiv = avatarWrap.querySelector(".bg-blue-100");
+              if (newProfileUrl.startsWith("http")) {
+                if (!img) {
+                  img = document.createElement("img");
+                  img.className = "w-7 h-7 rounded-lg object-cover";
+                  img.alt = "프로필";
+                  avatarWrap.prepend(img);
+                }
+                img.src = newProfileUrl;
+                if (textDiv) textDiv.style.display = "none";
+              } else {
+                if (img) img.remove();
+                if (textDiv) textDiv.style.display = "";
+              }
             }
-            img.src = newProfileUrl;
-            if (textDiv) textDiv.style.display = "none";
-          } else {
-            if (img) img.remove();
-            if (textDiv) textDiv.style.display = "";
-          }
-        }
 
-        syncRowCells(row);
-        toggleDetailEdit();
-        openDetail(selectedEmpId);
-        showHermesToast("결재 요청이 완료되었습니다. 승인 후 처리됩니다.", "success");
-      } else {
-        showHermesToast("수정 실패: " + (data.message || "서버 오류"), "error");
-      }
-    })
-    .catch(() => showHermesToast("수정 요청 중 오류가 발생했습니다.", "error"));
+            syncRowCells(row);
+            toggleDetailEdit();
+            openDetail(selectedEmpId);
+            showHermesToast("결재 요청이 완료되었습니다. 승인 후 처리됩니다.", "success");
+          } else {
+            showHermesToast("수정 실패: " + (data.message || "서버 오류"), "error");
+          }
+        })
+        .catch(() => showHermesToast("수정 요청 중 오류가 발생했습니다.", "error"));
+    },
+  });
 }
 
 // edit-role 전체 옵션 원본 저장
-var allEditRoleOptions = Array.from(
-  document.querySelectorAll('#edit-role option[value]:not([value=""])'),
-).map((opt) => ({
-  value: opt.value,
-  text: opt.textContent.trim(),
-  dept: opt.dataset.dept || "",
-}));
-
 function filterEditRoleByDept(selectValue) {
   const deptCd = document.getElementById("edit-dept").value;
-  const ts = document.getElementById("edit-role").tomselect;
-  if (!ts) return;
-  ts.clear(true);
-  ts.clearOptions();
-  const filtered = deptCd
-    ? allEditRoleOptions.filter((o) => o.dept === deptCd)
-    : allEditRoleOptions;
-  filtered.forEach((o) => ts.addOption({ value: o.value, text: o.text }));
-  ts.refreshOptions(false);
-  if (selectValue) ts.setValue(selectValue);
+  const sel = document.getElementById("edit-role");
+  Array.from(sel.options).forEach((opt) => {
+    if (!opt.value) return;
+    opt.hidden = deptCd ? opt.dataset.dept !== deptCd : false;
+  });
+  sel.value = "";
+  if (sel.customSelect) sel.customSelect.refresh();
+  if (selectValue && sel.customSelect) sel.customSelect.setValue(selectValue);
 }
 
 function toggleEditContractPeriod(val) {
@@ -751,8 +751,8 @@ function toggleEditContractPeriod(val) {
 function openResignConfirm() {
   const reason = document.getElementById("resign-reason");
   const reasonVal =
-    reason && reason.tomselect
-      ? reason.tomselect.getValue()
+    reason && reason.customSelect
+      ? reason.customSelect.getValue()
       : reason
         ? reason.value
         : "";
@@ -802,8 +802,8 @@ function onResignReasonChange(elOrVal) {
 function executeResign() {
   const reasonSelectEl = document.getElementById("resign-reason");
   const reasonDetail = document.getElementById("resign-reason-detail");
-  const selectedVal = reasonSelectEl.tomselect
-    ? reasonSelectEl.tomselect.getValue()
+  const selectedVal = reasonSelectEl.customSelect
+    ? reasonSelectEl.customSelect.getValue()
     : reasonSelectEl.value;
   let retmtRsn =
     selectedVal === "04" ? (reasonDetail.value || "").trim() : selectedVal;
@@ -823,43 +823,44 @@ function executeResign() {
     return;
   }
 
-  fetch("/admin/employees/" + selectedEmpId + "/retirement", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ retmtRsn }),
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      if (data.result === "success") {
-        const row = document.querySelector(
-          '.hr-data-row[data-id="' + selectedEmpId + '"]',
-        );
-        if (row) {
-          row.dataset.status = "03";
-          const card = document.querySelector(
-            '.emp-card[data-id="' + selectedEmpId + '"]',
-          );
-          if (card) card.dataset.emplStatCd = "03";
-        }
-        closeModal("modal-resign-confirm");
-        closeModal("modal-emp-detail");
-        const rsEl = document.getElementById("resign-reason");
-        if (rsEl.tomselect) rsEl.tomselect.setValue("");
-        else rsEl.value = "";
-        document.getElementById("resign-reason-detail").value = "";
-        document.getElementById("resign-reason-detail").classList.add("hidden");
-        filterHrList();
-        showHermesToast("퇴사 처리 및 계정이 비활성화되었습니다.", "success");
-      } else {
-        showHermesToast(
-          "퇴사 처리 실패: " + (data.message || "서버 오류"),
-          "error",
-        );
-      }
-    })
-    .catch(() =>
-      showHermesToast("퇴사 처리 요청 중 오류가 발생했습니다.", "error"),
-    );
+  const _empName = document.querySelector('.hr-data-row[data-id="' + selectedEmpId + '"]')?.dataset.name || selectedEmpId;
+  closeModal("modal-resign-confirm");
+
+  showHermesApprovalConfirm({
+    title: '직원 퇴사 처리 결재 등록',
+    type: 'delete',
+    target: `${_empName} — ${retmtRsn}`,
+    onConfirm: () => {
+      closeHermesApprovalConfirm();
+      fetch("/admin/employees/" + selectedEmpId + "/retirement", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ retmtRsn }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.result === "success") {
+            const row = document.querySelector('.hr-data-row[data-id="' + selectedEmpId + '"]');
+            if (row) {
+              row.dataset.status = "03";
+              const card = document.querySelector('.emp-card[data-id="' + selectedEmpId + '"]');
+              if (card) card.dataset.emplStatCd = "03";
+            }
+            closeModal("modal-emp-detail");
+            const rsEl = document.getElementById("resign-reason");
+            if (rsEl.customSelect) rsEl.customSelect.setValue("");
+            else rsEl.value = "";
+            document.getElementById("resign-reason-detail").value = "";
+            document.getElementById("resign-reason-detail").classList.add("hidden");
+            filterHrList();
+            showHermesToast("퇴사 처리 및 계정이 비활성화되었습니다.", "success");
+          } else {
+            showHermesToast("퇴사 처리 실패: " + (data.message || "서버 오류"), "error");
+          }
+        })
+        .catch(() => showHermesToast("퇴사 처리 요청 중 오류가 발생했습니다.", "error"));
+    },
+  });
 }
 
 /* ─── 개인정보 파기 ─── */
@@ -974,14 +975,6 @@ function toggleContractPeriod(val) {
   if (!show) end.value = "";
 }
 
-/* ─── 주민등록번호 체크섬(루한 알고리즘) 검증 ─── */
-function validateRrnChecksum(digits) {
-  // digits: 하이픈 없는 13자리 숫자 문자열
-  const weights = [2, 3, 4, 5, 6, 7, 8, 9, 2, 3, 4, 5];
-  const sum = weights.reduce((acc, w, i) => acc + parseInt(digits[i], 10) * w, 0);
-  const expected = (11 - (sum % 11)) % 10;
-  return parseInt(digits[12], 10) === expected;
-}
 
 /* ─── 주민번호에서 생년월일·성별·임시비밀번호 자동 파생 및 날짜 유효성 체크 ─── */
 /* ─── 주민번호 입력 시 실시간 날짜 유효성 검증 및 생년월일·성별 자동 파생 ─── */
@@ -1080,44 +1073,6 @@ function clearRrnOutputs() {
   document.getElementById("new-rrn-display").focus();
 }
 
-/* ─── 우편번호 검색 (Daum 우편번호 서비스 연동 준비) ─── */
-function searchZipCode() {
-  new daum.Postcode({
-    oncomplete: function (data) {
-      // 3. 사용자가 주소를 선택했을 때 실행되는 콜백 영역
-
-      // 사용자가 도로명 주소를 선택했을 때와 지번 주소를 선택했을 때를 고려하여 변수를 설정한다.
-      let addr = "";
-
-      if (data.userSelectedType === "R") {
-        // 사용자가 도로명 주소를 선택했을 경우
-        addr = data.roadAddress;
-      } else {
-        // 사용자가 지번 주소를 선택했을 경우
-        addr = data.jibunAddress;
-      }
-
-      // 4. 각각의 input 상자에 값을 매핑하여 넣어준다.
-      document.getElementById("postcode").value = data.zonecode; // 5자리 우편번호
-      document.getElementById("address").value = addr; // 주소 정보
-
-      // 주소 입력이 완료되면 상세주소 입력창으로 포커스를 이동시킨다.
-      document.getElementById("detailAddress").focus();
-    },
-  }).open(); // 팝업창을 연다.
-}
-
-function searchDetailZipCode() {
-  new daum.Postcode({
-    oncomplete: function (data) {
-      const addr =
-        data.userSelectedType === "R" ? data.roadAddress : data.jibunAddress;
-      document.getElementById("edit-zipcode").value = data.zonecode;
-      document.getElementById("edit-addr").value = addr;
-      document.getElementById("edit-addr-detail").focus();
-    },
-  }).open();
-}
 
 /* ─── 신규 직원 등록 submit 전 유효성 검사 (SignupRequestRecord 기준 통일) ─── */
 function validateNewEmp() {
@@ -1299,7 +1254,25 @@ function validateNewEmp() {
     return false;
   }
 
-  return true;
+  // 유효성 통과 → 결재 확인 모달
+  const _deptNm  = document.querySelector('#new-dept option:checked')?.textContent?.trim() || deptEl.value;
+  const _gradeNm = document.querySelector('#new-role option:checked')?.textContent?.trim() || roleEl.value;
+  showHermesApprovalConfirm({
+    title: '직원 신규 등록 결재 등록',
+    type: 'create',
+    fields: [
+      { label: '이름',    value: nameEl.value.trim() },
+      { label: '소속 부서', value: _deptNm },
+      { label: '직급',    value: _gradeNm },
+      { label: '입사일',  value: entryEl.value },
+      { label: '근무 유형', value: document.querySelector('#new-work-type option:checked')?.textContent?.trim() || typeEl.value },
+    ],
+    onConfirm: () => {
+      closeHermesApprovalConfirm();
+      document.getElementById('form-new-emp').submit();
+    },
+  });
+  return false; // 폼 기본 제출 차단, onConfirm에서 submit()
 }
 
 /* ─── 비밀번호 재설정 ─── */
@@ -1307,30 +1280,6 @@ function resetPw(id, name) {
   showHermesToast(name + "에게 임시 비밀번호가 발급되었습니다.", "success");
 }
 
-/* ─── 입력 포맷 ─── */
-function formatPhone(el) {
-  let v = el.value.replace(/\D/g, ""); // 숫자만 남기기
-  if (v.length > 11) v = v.slice(0, 11);
-
-  // [보완] 최소 3자리가 입력되었을 때 휴대폰 앞자리 형식이 맞는지 체크
-  // 010 외에 012, 015까지 허용하려면 /^(010|012|015)/ 형태로 확장 가능합니다.
-  if (v.length >= 3) {
-    if (!/^010/.test(v)) {
-      showHermesToast("휴대폰 번호는 010으로 시작해야 합니다.", "error");
-      // 앞자리가 010이 아니면 입력값을 강제로 010으로 초기화하거나 비워줍니다.
-      el.value = "010-";
-      return;
-    }
-  }
-
-  // 하이픈 포맷팅 로직
-  if (v.length >= 8) {
-    v = v.slice(0, 3) + "-" + v.slice(3, 7) + "-" + v.slice(7);
-  } else if (v.length >= 4) {
-    v = v.slice(0, 3) + "-" + v.slice(3);
-  }
-  el.value = v;
-}
 
 function formatRrn(el) {
   let v = el.value.replace(/\D/g, "");
@@ -1339,37 +1288,6 @@ function formatRrn(el) {
   el.value = v;
 }
 
-/* ─── 모달 공통 ─── */
-function openModal(id) {
-  document.getElementById(id).classList.remove("hidden");
-}
-function closeModal(id) {
-  document.getElementById(id).classList.add("hidden");
-}
-
-function showWarningToast(message) {
-  let container = document.getElementById("hm-toast-container");
-  if (!container) {
-    container = document.createElement("div");
-    container.id = "hm-toast-container";
-    container.className =
-      "fixed bottom-6 right-6 z-50 space-y-3 pointer-events-none";
-    document.body.appendChild(container);
-  }
-  const toast = document.createElement("div");
-  toast.className =
-    "px-5 py-3.5 rounded-xl shadow-xl text-xs font-bold text-white bg-amber-500 transition-all duration-300 transform translate-y-4 opacity-0 flex items-center gap-3 pointer-events-auto";
-  toast.innerHTML =
-    '<i class="fa-solid fa-triangle-exclamation text-sm"></i> <span>' +
-    message +
-    "</span>";
-  container.appendChild(toast);
-  setTimeout(() => toast.classList.remove("translate-y-4", "opacity-0"), 10);
-  setTimeout(() => {
-    toast.classList.add("opacity-0", "translate-y-4");
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
-}
 document.querySelectorAll('[id^="modal-"]').forEach((m) => {
   let mousedownOnBackdrop = false;
   m.addEventListener("mousedown", (e) => {
@@ -1410,33 +1328,15 @@ document.querySelectorAll('[id^="modal-"]').forEach((m) => {
 })();
 
 /* ─── 신규 등록 폼: 부서 → 직급 필터 ─── */
-var allNewRoleOptions = Array.from(
-  document.querySelectorAll('#new-role option[value]:not([value=""])'),
-).map((opt) => ({
-  value: opt.value,
-  text: opt.textContent.trim(),
-  dept: opt.dataset.dept || "",
-}));
-
 function filterNewRoleByDept() {
   const deptCd = document.getElementById("new-dept").value;
-  const ts = document.getElementById("new-role").tomselect;
-  if (ts) {
-    ts.clear(true);
-    ts.clearOptions();
-    const filtered = deptCd
-      ? allNewRoleOptions.filter((o) => o.dept === deptCd)
-      : allNewRoleOptions;
-    filtered.forEach((o) => ts.addOption({ value: o.value, text: o.text }));
-    ts.refreshOptions(false);
-  } else {
-    const roleSelect = document.getElementById("new-role");
-    roleSelect.value = "";
-    Array.from(roleSelect.options).forEach((opt) => {
-      if (!opt.value) return;
-      opt.hidden = deptCd ? opt.dataset.dept !== deptCd : false;
-    });
-  }
+  const sel = document.getElementById("new-role");
+  sel.value = "";
+  Array.from(sel.options).forEach((opt) => {
+    if (!opt.value) return;
+    opt.hidden = deptCd ? opt.dataset.dept !== deptCd : false;
+  });
+  if (sel.customSelect) sel.customSelect.refresh();
 }
 
 document
@@ -1445,8 +1345,8 @@ document
 
 /* ─── 신규 등록 폼 입력 시 파란 배경 토글 ─── */
 function syncFilled(el) {
-  const wrapper = el.tomselect ? el.tomselect.wrapper : el;
-  const val = el.tomselect ? el.tomselect.getValue() : el.value;
+  const wrapper = el.customSelect ? el.customSelect.wrapper : el;
+  const val = el.customSelect ? el.customSelect.getValue() : el.value;
   wrapper.classList.toggle("filled", val !== "" && val != null);
 }
 
@@ -1476,93 +1376,8 @@ if (brdtEl) {
   };
 }
 
-/* ─── 주민등록번호 마스킹 ─── */
-var rrnRealValue = ""; // 실제 값 (하이픈 포함, 예: 900101-1234567)
-var rrnEyeOpen = false; // 눈 아이콘 상태
 
-function maskRrn(formatted) {
-  const digits = formatted.replace(/\D/g, "");
-  if (digits.length <= 6) return formatted;
-  return (
-    digits.slice(0, 6) +
-    "-" +
-    digits[6] +
-    "*".repeat(Math.max(0, digits.length - 7))
-  );
-}
-
-function onRrnInput(el) {
-  let digits = el.value.replace(/\D/g, "").replace(/\*/g, "");
-  if (digits.length > 13) digits = digits.slice(0, 13);
-  const formatted =
-    digits.length > 6 ? digits.slice(0, 6) + "-" + digits.slice(6) : digits;
-  rrnRealValue = formatted;
-  document.getElementById("new-rrn").value = formatted;
-  el.value = formatted; // 타이핑 중엔 항상 실제값 표시
-  autoFillTempPw();
-}
-
-function onRrnFocus() {
-  document.getElementById("new-rrn-display").value = rrnRealValue;
-}
-
-function onRrnBlur() {
-  if (!rrnEyeOpen) {
-    document.getElementById("new-rrn-display").value = maskRrn(rrnRealValue);
-  }
-}
-
-function toggleRrnVisibility() {
-  rrnEyeOpen = !rrnEyeOpen;
-  const icon = document.getElementById("rrn-eye-icon");
-  const displayEl = document.getElementById("new-rrn-display");
-  icon.className = rrnEyeOpen
-    ? "fa-regular fa-eye text-sm"
-    : "fa-regular fa-eye-slash text-sm";
-  displayEl.value = rrnEyeOpen ? rrnRealValue : maskRrn(rrnRealValue);
-}
-
-/* ─── 이름 실시간 포맷 (한글 외 즉시 제거) ─── */
-function formatName(el) {
-  const before = el.value;
-  // ㄱ-ㅎ, ㅏ-ㅣ: IME 조합 중 임시 자모 허용
-  el.value = before.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z]/g, "");
-  if (el.value !== before)
-    showHermesToast("이름은 한글 또는 영문만 입력 가능합니다.", "error");
-}
-
-/* ─── 실시간 blur 검증 ─── */
-function blurValidateName(el) {
-  const v = el.value.trim();
-  if (!v) return;
-  if (v.length < 2 || v.length > 50) {
-    showHermesToast("이름은 2자 이상 50자 이하로 입력해주세요.", "error");
-    return;
-  }
-  if (!/^[가-힣a-zA-Z]+$/.test(v))
-    showHermesToast("이름은 한글 또는 영문만 입력 가능합니다.", "error");
-}
-
-function blurValidatePhone(el) {
-  const v = el.value.trim();
-  if (!v) return;
-  if (!/^010-\d{3,4}-\d{4}$/.test(v))
-    showHermesToast(
-      "올바른 휴대폰 번호 형식이 아닙니다. (예: 010-1234-5678)",
-      "error",
-    );
-}
-
-function blurValidateEmail(el) {
-  const v = el.value.trim();
-  if (!v) return;
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))
-    showHermesToast("유효한 이메일 형식이 아닙니다.", "error");
-  else if (v.length > 100)
-    showHermesToast("이메일은 100자 이하로 입력해주세요.", "error");
-}
-
-/* ─── 공통코드 옵션 동적 로딩 (data-ts-defer select들) ─── */
+/* ─── 공통코드 옵션 동적 로딩 (data-cs-defer select들) ─── */
 document.addEventListener("DOMContentLoaded", function () {
   initDeferredSelects();
 });

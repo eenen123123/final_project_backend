@@ -18,12 +18,6 @@
     return `${Math.floor(h / 24)}일 전`;
   }
 
-  function escapeHtml(str) {
-    return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-  }
 
   function buildItem(n) {
     const ic = ICONS[n.notiType] || {
@@ -39,7 +33,7 @@
                 <i class="fa-solid ${ic.icon} text-xs ${ic.color}"></i>
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-xs leading-relaxed ${unread ? "font-semibold text-slate-200" : "font-normal text-slate-400"}" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escapeHtml(n.notiCn)}</p>
+                <p class="text-xs leading-relaxed ${unread ? "font-semibold text-slate-200" : "font-normal text-slate-400"}" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escHtml(n.notiCn)}</p>
                 <p class="text-[10px] text-slate-600 mt-0.5">${timeAgo(n.rcptDt)}</p>
             </div>
             ${unread ? '<span class="w-1.5 h-1.5 bg-rose-500 rounded-full mt-2 shrink-0"></span>' : ""}

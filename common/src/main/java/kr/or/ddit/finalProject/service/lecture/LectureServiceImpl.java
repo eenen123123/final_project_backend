@@ -48,6 +48,14 @@ public class LectureServiceImpl implements LectureService {
     }
 
     @Override
+    public void updateLectureProgress(Long lectureId, Long courseId, Integer progress, String userId) {
+        // TODO: 강의를 수강하는 사용자가 해당 강의에 접근 권한이 있는지 확인하는 로직 추가 필요
+
+        lectureMapper.updateLectureProgress(lectureId, courseId, progress, userId);
+
+    }
+
+    @Override
     @Transactional
     public void removeLecture(Long lectureSn, String currentUserId) {
         LectureDto original = lectureMapper.selectLectureBySn(lectureSn);
@@ -64,7 +72,5 @@ public class LectureServiceImpl implements LectureService {
     public List<LectureResponseDto> retrieveLectureListByCourseSn(Long courseSn) {
         return lectureMapper.selectLectureListByCourseSn(courseSn);
     }
-
-
 
 }

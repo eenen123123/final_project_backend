@@ -7,7 +7,6 @@
   <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
-  <script src="/js/admin-core.js" defer></script>
   <script src="/js/staff/students.js" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="/css/admin-core.css" />
@@ -83,13 +82,13 @@
               style="width:10rem; line-height:1rem; padding:0.65rem 1.75rem 0.65rem 1rem" oninput="filterHrList()">
           </div>
           <select class="hm-input hm-input-blue" id="hr-year" style="width:10rem" onchange="filterHrList()"
-                  data-ts-defer data-cl-code="218" data-all-label="전체 연도">
+                  data-cs-defer data-cl-code="218" data-all-label="전체 연도">
           </select>
           <select class="hm-input hm-input-blue" id="hr-type-filter" style="width:10rem" onchange="filterHrList()"
-                  data-ts-defer data-cl-code="220" data-all-label="전체 유형">
+                  data-cs-defer data-cl-code="220" data-all-label="전체 유형">
           </select>
           <select class="hm-input hm-input-blue" id="hr-status-filter" style="width:10rem" onchange="filterHrList()"
-                  data-ts-defer data-cl-code="219" data-all-label="전체 상태">
+                  data-cs-defer data-cl-code="219" data-all-label="전체 상태">
           </select>
           <button type="button" onclick="resetHrFilter()" class="hm-btn-secondary text-sm px-3 py-2 whitespace-nowrap">
             <i class="fa-solid fa-rotate-left mr-1"></i>초기화
@@ -215,7 +214,7 @@
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label class="form-label">이름 <span class="required">*</span></label>
-                  <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="홍길동" id="new-name" name="userName" oninput="formatName(this)" onblur="blurValidateName(this)" />
+                  <input type="text" class="hm-input hm-input-blue" placeholder="홍길동" id="new-name" name="userName" oninput="formatName(this)" onblur="blurValidateName(this)" />
                 </div>
                 <div>
                   <label class="form-label">주민등록번호 <span class="required">*</span></label>
@@ -233,22 +232,22 @@
                 </div>
                 <div>
                   <label class="form-label">성별</label>
-                  <input type="text" class="hm-input hm-input-blue hm-lg bg-slate-50" id="new-gndr-display" placeholder="주민등록번호 입력 시 자동 설정됩니다" readonly />
+                  <input type="text" class="hm-input hm-input-blue bg-slate-50" id="new-gndr-display" placeholder="주민등록번호 입력 시 자동 설정됩니다" readonly />
                   <input type="hidden" id="new-gndr" name="userGndrCd" />
                 </div>
                 <div>
                   <label class="form-label">연락처 <span class="required">*</span></label>
-                  <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="010-0000-0000" id="new-phone" name="userTelno" oninput="formatPhone(this)" maxlength="13" onblur="blurValidatePhone(this)" />
+                  <input type="text" class="hm-input hm-input-blue" placeholder="010-0000-0000" id="new-phone" name="userTelno" oninput="formatPhone(this)" maxlength="13" onblur="blurValidatePhone(this)" />
                 </div>
                 <div>
                   <label class="form-label">이메일</label>
-                  <input type="email" class="hm-input hm-input-blue hm-lg" placeholder="user@hermes.com" id="new-email"
+                  <input type="email" class="hm-input hm-input-blue" placeholder="user@hermes.com" id="new-email"
                     name="userEmailAddr" onblur="blurValidateEmail(this)" />
                 </div>
                 <div class="col-span-2 flex gap-2">
                   <div class="w-36">
                     <label class="form-label"> 우편번호
-                      <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="00000" id="postcode" name="userZip" maxlength="5" readonly />
+                      <input type="text" class="hm-input hm-input-blue" placeholder="00000" id="postcode" name="userZip" maxlength="5" readonly />
                     </label>
                   </div>
                   <div class="flex items-end">
@@ -257,20 +256,20 @@
                 </div>
                 <div class="col-span-2">
                   <label class="form-label">기본 주소 <span class="required">*</span></label>
-                  <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="도로명 주소" id="address" name="userAddr" readonly />
+                  <input type="text" class="hm-input hm-input-blue" placeholder="도로명 주소" id="address" name="userAddr" readonly />
                 </div>
                 <div class="col-span-2">
                   <label class="form-label">상세 주소</label>
-                  <input type="text" class="hm-input hm-input-blue hm-lg" placeholder="상세 주소 (동/호수 등)" id="detailAddress" name="userDaddr" />
+                  <input type="text" class="hm-input hm-input-blue" placeholder="상세 주소 (동/호수 등)" id="detailAddress" name="userDaddr" />
                 </div>
                 <div class="col-span-2">
                   <label class="form-label">프로필 사진</label>
-                  <input type="file" class="hm-input hm-input-blue hm-lg" id="new-atch-file" name="profileImage" accept="image/*"
+                  <input type="file" class="hm-input hm-input-blue" id="new-atch-file" name="profileImage" accept="image/*"
                     onchange="this.classList.toggle('filled', this.files.length > 0)" />
                 </div>
                 <div>
                   <label class="form-label">학생 유형 <span class="required">*</span></label>
-                  <select class="hm-input hm-input-blue hm-lg filled" id="new-stu-type" name="userRole"
+                  <select class="hm-input hm-input-blue filled" id="new-stu-type" name="userRole"
                     onchange="this.classList.add('filled')">
                     <option value="ROLE_USER">일반</option>
                     <option value="ROLE_STUDENT">오프라인</option>
@@ -295,7 +294,7 @@
                 </div>
                 <div class="col-span-2">
                   <label class="form-label">초기 비밀번호 <span class="required">*</span></label>
-                  <input type="text" class="hm-input hm-input-blue hm-lg font-mono"
+                  <input type="text" class="hm-input hm-input-blue font-mono"
                     id="new-stu-pw" name="userEnpswd" placeholder="초기 비밀번호 입력" />
                 </div>
               </div>
@@ -375,24 +374,24 @@
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="form-label">이름 <span class="required">*</span>
-                  <input type="text" class="hm-input hm-input-blue hm-lg" id="edit-name" placeholder="이름" />
+                  <input type="text" class="hm-input hm-input-blue" id="edit-name" placeholder="이름" />
                 </label>
               </div>
               <div>
                 <label class="form-label">연락처 <span class="required">*</span>
-                  <input type="text" class="hm-input hm-input-blue hm-lg" id="edit-phone" placeholder="010-0000-0000"
+                  <input type="text" class="hm-input hm-input-blue" id="edit-phone" placeholder="010-0000-0000"
                     oninput="formatPhone(this)" maxlength="13" />
                 </label>
               </div>
               <div class="col-span-2">
                 <label class="form-label">이메일
-                  <input type="text" class="hm-input hm-input-blue hm-lg" id="edit-email" placeholder="example@email.com" />
+                  <input type="text" class="hm-input hm-input-blue" id="edit-email" placeholder="example@email.com" />
                 </label>
               </div>
               <div class="col-span-2">
                 <label class="form-label">우편번호
                   <div class="flex gap-2 mb-1">
-                    <input type="text" class="hm-input hm-input-blue hm-lg" id="edit-zipcode" placeholder="우편번호"
+                    <input type="text" class="hm-input hm-input-blue" id="edit-zipcode" placeholder="우편번호"
                       readonly style="width:8rem" />
                     <button type="button" onclick="searchDetailZipCode()"
                       class="hm-btn-primary hm-btn-blue text-xs px-3 py-2 whitespace-nowrap">우편번호 검색</button>
@@ -401,22 +400,22 @@
               </div>
               <div class="col-span-2">
                 <label class="form-label">기본 주소 <span class="required">*</span>
-                  <input type="text" class="hm-input hm-input-blue hm-lg mb-1" id="edit-addr" placeholder="도로명 주소" readonly />
+                  <input type="text" class="hm-input hm-input-blue mb-1" id="edit-addr" placeholder="도로명 주소" readonly />
                 </label>
               </div>
               <div class="col-span-2">
                 <label class="form-label">상세 주소
-                  <input type="text" class="hm-input hm-input-blue hm-lg" id="edit-addr-detail" placeholder="상세 주소 (동/호수 등)" />
+                  <input type="text" class="hm-input hm-input-blue" id="edit-addr-detail" placeholder="상세 주소 (동/호수 등)" />
                 </label>
               </div>
               <div class="col-span-2">
                 <label class="form-label">현재 프로필 경로
-                  <input type="text" class="hm-input hm-input-blue hm-lg" id="edit-profile-path" placeholder="(없음)" readonly />
+                  <input type="text" class="hm-input hm-input-blue" id="edit-profile-path" placeholder="(없음)" readonly />
                 </label>
               </div>
               <div class="col-span-2">
                 <label class="form-label">새 프로필 파일로 교체
-                  <input type="file" class="hm-input hm-input-blue hm-lg py-1.5 text-xs" id="edit-profile" name="editProfileImage" accept="image/*" />
+                  <input type="file" class="hm-input hm-input-blue py-1.5 text-xs" id="edit-profile" name="editProfileImage" accept="image/*" />
                 </label>
               </div>
             </div>
@@ -426,7 +425,7 @@
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="form-label">학생 유형
-                  <select class="hm-input hm-input-blue hm-lg" id="edit-stu-type">
+                  <select class="hm-input hm-input-blue" id="edit-stu-type">
                     <option value="ROLE_USER">일반</option>
                     <option value="ROLE_STUDENT">오프라인</option>
                   </select>
@@ -448,7 +447,7 @@
               <div class="grid grid-cols-2 gap-2 mb-3">
                 <div class="col-span-2">
                   <label class="form-label">탈퇴 사유
-                    <select class="hm-input hm-input-danger hm-lg" id="resign-reason" onchange="onResignReasonChange(this)" data-ts-defer data-cl-code="203" data-all-label="선택" data-ts-dropup>
+                    <select class="hm-input hm-input-danger" id="resign-reason" onchange="onResignReasonChange(this)" data-cs-defer data-cl-code="203" data-all-label="선택" data-cs-dropup>
                     </select>
                     <textarea id="resign-reason-detail" class="hm-input hm-input-danger mt-1 text-sm resize-none hidden"
                       rows="2" maxlength="1000" placeholder="기타 사유를 직접 입력해주세요."></textarea>

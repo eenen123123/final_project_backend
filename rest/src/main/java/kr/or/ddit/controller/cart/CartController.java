@@ -3,6 +3,7 @@ package kr.or.ddit.controller.cart;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,8 +30,10 @@ public class CartController {
     // GET /api/cart
     @GetMapping
     public ResponseEntity<List<CartDto>> getCart(
-            @RequestHeader("Authorization") String authHeader) {
-        String userId = getuserId(authHeader);
+            @RequestHeader("Authorization") String authHeader,
+            Authentication authentication) {
+        String userId = authentication.getName(); // Spring Security에서 인증된 사용자 ID 가져오기
+
         return ResponseEntity.ok(cartService.retrieveCart(userId));
     }
 

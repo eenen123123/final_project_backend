@@ -319,6 +319,7 @@
     <result property="courseName" column="COURSE_NM" />
     <result property="subjectName" column="SUBJ_NM" />
     <result property="instructorName" column="INSTR_USER_NM"/>
+    <result property="instrUuid" column="INSTR_UUID"/>
     <result property="instructorProfileImg" column="INSTR_PROFILE_IMG"/>
     <result property="subjectId" column="SUBJ_ID"/>
     <result property="coursePrice" column="COURSE_PRICE"/>
@@ -334,10 +335,11 @@
         select c.COURSE_SN, c.COURSE_NM
         , s.SUBJ_NM, m.USER_NAME AS INSTR_USER_NM, c.SUBJ_ID, c.COURSE_PRICE, c.COURSE_EXPLN_CN
                 , CASE WHEN c.REG_DT >= ADD_MONTHS(SYSDATE, -1) THEN 1 ELSE 0 END AS IS_NEW
-                , 1 AS IS_BEST
+                , 1 AS IS_BEST, i.instr_uuid
         from course c
         inner join subject s on c.SUBJ_ID = s.SUBJ_ID
         inner join member m on c.INSTR_USER_ID = m.USER_ID
+        inner join instructor i on c.INSTR_USER_ID = i.INSTR_USER_ID
     <include refid="courseListSearch"/>
   </select>
 
@@ -346,6 +348,7 @@
         from course c
         inner join subject s on c.SUBJ_ID = s.SUBJ_ID
         inner join member m on c.INSTR_USER_ID = m.USER_ID
+        inner join instructor i on c.INSTR_USER_ID = i.INSTR_USER_ID
     <include refid="courseListSearch"/>
   </select>
 

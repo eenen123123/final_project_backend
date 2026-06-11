@@ -45,8 +45,8 @@ async function navigateToEmployees(btn) {
       });
     }
 
-    currMain.querySelectorAll('select.hm-input:not([data-ts-defer])').forEach(el => {
-      if (!el.tomselect && window.initTomSelect) window.initTomSelect(el);
+    currMain.querySelectorAll('select.hm-input:not([data-cs-defer])').forEach(el => {
+      if (!el.customSelect && window.initCustomSelect) window.initCustomSelect(el);
     });
     await initDeferredSelects(currMain);
 
@@ -101,12 +101,6 @@ async function doFilterHrList(page) {
   } catch (e) {
     console.error("학생 검색 실패:", e);
   }
-}
-
-function escHtml(s) {
-  return String(s == null ? "" : s)
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 function renderStudentTable(students, totalCount) {
@@ -170,7 +164,7 @@ function resetHrFilter() {
   ["hr-year", "hr-type-filter", "hr-status-filter"].forEach((id) => {
     const el = document.getElementById(id);
     if (!el) return;
-    if (el.tomselect) el.tomselect.setValue("");
+    if (el.customSelect) el.customSelect.setValue("");
     else el.value = "";
   });
   hrSortCol = null;
@@ -266,14 +260,6 @@ function goHrPage(p) {
   doFilterHrList(p).then(() => window.scrollTo({ top: scrollY, behavior: "instant" }));
 }
 
-/* ─── 전화번호 표시 포맷 ─── */
-function formatPhoneDisplay(tel) {
-  if (!tel) return "-";
-  const v = tel.replace(/\D/g, "");
-  if (v.length === 11) return v.slice(0, 3) + "-" + v.slice(3, 7) + "-" + v.slice(7);
-  if (v.length === 10) return v.slice(0, 3) + "-" + v.slice(3, 6) + "-" + v.slice(6);
-  return tel;
-}
 
 /* ─── 학생 상세 모달 열기 ─── */
 function openDetail(id) {
@@ -297,16 +283,22 @@ function openDetail(id) {
   const avatarImg  = document.getElementById("detail-avatar-img");
   const avatarDiv  = document.getElementById("detail-avatar");
   if (profileUrl.startsWith("http")) {
-    avatarImg.src = profileUrl;
-    avatarImg.classList.remove("hidden");
-    avatarImg.style.cursor = "zoom-in";
-    avatarImg.onclick = () => openProfileLightbox(profileUrl);
-    avatarDiv.classList.add("hidden");
+    if (avatarImg) {
+      avatarImg.src = profileUrl;
+      avatarImg.classList.remove("hidden");
+      avatarImg.style.cursor = "zoom-in";
+      avatarImg.onclick = () => openProfileLightbox(profileUrl);
+    }
+    if (avatarDiv) avatarDiv.classList.add("hidden");
   } else {
-    avatarImg.classList.add("hidden");
-    avatarImg.onclick = null;
-    avatarDiv.classList.remove("hidden");
-    avatarDiv.textContent = row.dataset.name ? row.dataset.name[0] : "?";
+    if (avatarImg) {
+      avatarImg.classList.add("hidden");
+      avatarImg.onclick = null;
+    }
+    if (avatarDiv) {
+      avatarDiv.classList.remove("hidden");
+      avatarDiv.textContent = row.dataset.name ? row.dataset.name[0] : "?";
+    }
   }
 
   document.getElementById("detail-title").textContent = (row.dataset.name || "-") + " · 학생 상세";
@@ -421,6 +413,13 @@ function saveDetailEdit() {
   const addrDetail = (document.getElementById("edit-addr-detail").value || "").trim();
   const addrBase   = document.getElementById("edit-addr").value.trim();
 
+  const _before = {
+    name:  row.dataset.name                       || '-',
+    phone: formatPhoneDisplay(row.dataset.phone)  || '-',
+    email: row.dataset.email                      || '-',
+    type:  row.dataset.type                       || '-',
+  };
+
   row.dataset.name       = document.getElementById("edit-name").value.trim();
   row.dataset.phone      = document.getElementById("edit-phone").value.replace(/-/g, "");
   row.dataset.email      = document.getElementById("edit-email").value.trim();
@@ -443,48 +442,60 @@ function saveDetailEdit() {
   const profileFile = document.getElementById("edit-profile").files[0];
   if (profileFile) formData.append("editProfileImage", profileFile);
 
-  fetch("/admin/students/update", { method: "PUT", body: formData })
-    .then((res) => res.json())
-    .then((data) => {
-      if (data.result === "success") {
-        const newProfileUrl = data.profileUrl || "";
-        row.dataset.profile = newProfileUrl;
+  showHermesApprovalConfirm({
+    title: '학생 정보 수정 결재 등록',
+    type: 'update',
+    fields: [
+      { label: '이름',   before: _before.name,  after: document.getElementById("edit-name").value.trim() },
+      { label: '연락처', before: _before.phone, after: document.getElementById("edit-phone").value },
+      { label: '이메일', before: _before.email, after: document.getElementById("edit-email").value.trim() },
+      { label: '유형',   before: _before.type,  after: document.getElementById("edit-stu-type").value },
+    ],
+    onConfirm: () => {
+      closeHermesApprovalConfirm();
+      fetch("/admin/students/update", { method: "PUT", body: formData })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.result === "success") {
+            const newProfileUrl = data.profileUrl || "";
+            row.dataset.profile = newProfileUrl;
 
-        // 아바타 즉시 동기화
-        const avatarWrap = row.querySelector("td:first-child .flex");
-        if (avatarWrap) {
-          let img = avatarWrap.querySelector("img");
-          const textDiv = avatarWrap.querySelector(".bg-blue-100");
-          if (newProfileUrl.startsWith("http")) {
-            if (!img) {
-              img = document.createElement("img");
-              img.className = "w-7 h-7 rounded-lg object-cover";
-              img.alt = "프로필";
-              avatarWrap.prepend(img);
+            const avatarWrap = row.querySelector("td:first-child .flex");
+            if (avatarWrap) {
+              let img = avatarWrap.querySelector("img");
+              const textDiv = avatarWrap.querySelector(".bg-blue-100");
+              if (newProfileUrl.startsWith("http")) {
+                if (!img) {
+                  img = document.createElement("img");
+                  img.className = "w-7 h-7 rounded-lg object-cover";
+                  img.alt = "프로필";
+                  avatarWrap.prepend(img);
+                }
+                img.src = newProfileUrl;
+                if (textDiv) textDiv.style.display = "none";
+              } else {
+                if (img) img.remove();
+                if (textDiv) textDiv.style.display = "";
+              }
             }
-            img.src = newProfileUrl;
-            if (textDiv) textDiv.style.display = "none";
-          } else {
-            if (img) img.remove();
-            if (textDiv) textDiv.style.display = "";
-          }
-        }
 
-        syncRowCells(row);
-        toggleDetailEdit();
-        openDetail(selectedEmpId);
-        showHermesToast("결재 요청이 완료되었습니다. 승인 후 처리됩니다.", "success");
-      } else {
-        showHermesToast("수정 실패: " + (data.message || "서버 오류"), "error");
-      }
-    })
-    .catch(() => showHermesToast("수정 요청 중 오류가 발생했습니다.", "error"));
+            syncRowCells(row);
+            toggleDetailEdit();
+            openDetail(selectedEmpId);
+            showHermesToast("결재 요청이 완료되었습니다. 승인 후 처리됩니다.", "success");
+          } else {
+            showHermesToast("수정 실패: " + (data.message || "서버 오류"), "error");
+          }
+        })
+        .catch(() => showHermesToast("수정 요청 중 오류가 발생했습니다.", "error"));
+    },
+  });
 }
 
 /* ─── 탈퇴 처리 ─── */
 function openResignConfirm() {
   const reason = document.getElementById("resign-reason");
-  const reasonVal = reason && reason.tomselect ? reason.tomselect.getValue() : reason ? reason.value : "";
+  const reasonVal = reason && reason.customSelect ? reason.customSelect.getValue() : reason ? reason.value : "";
   const detail = document.getElementById("resign-reason-detail");
 
   if (!reasonVal) {
@@ -516,7 +527,7 @@ function onResignReasonChange(elOrVal) {
 function executeResign() {
   const reasonSelectEl = document.getElementById("resign-reason");
   const reasonDetail   = document.getElementById("resign-reason-detail");
-  const selectedVal    = reasonSelectEl.tomselect ? reasonSelectEl.tomselect.getValue() : reasonSelectEl.value;
+  const selectedVal    = reasonSelectEl.customSelect ? reasonSelectEl.customSelect.getValue() : reasonSelectEl.value;
   let withdrawRsn      = selectedVal === "04" ? (reasonDetail.value || "").trim() : selectedVal;
 
   if (!withdrawRsn) {
@@ -525,33 +536,43 @@ function executeResign() {
   }
   if (selectedVal === "04") withdrawRsn = "기타: " + withdrawRsn;
 
-  fetch("/admin/students/" + selectedEmpId + "/retirement", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ withdrawRsn }),
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      if (data.result === "success") {
-        const row = document.querySelector('.hr-data-row[data-id="' + selectedEmpId + '"]');
-        if (row) {
-          row.dataset.enable = "N";
-          syncRowCells(row);
-        }
-        closeModal("modal-resign-confirm");
-        closeModal("modal-emp-detail");
-        const rsEl = document.getElementById("resign-reason");
-        if (rsEl.tomselect) rsEl.tomselect.setValue("");
-        else rsEl.value = "";
-        document.getElementById("resign-reason-detail").value = "";
-        document.getElementById("resign-reason-detail").classList.add("hidden");
-        filterHrList();
-        showHermesToast("탈퇴 처리 및 계정이 비활성화되었습니다.", "success");
-      } else {
-        showHermesToast("탈퇴 처리 실패: " + (data.message || "서버 오류"), "error");
-      }
-    })
-    .catch(() => showHermesToast("탈퇴 처리 요청 중 오류가 발생했습니다.", "error"));
+  const _stuName = document.querySelector('.hr-data-row[data-id="' + selectedEmpId + '"]')?.dataset.name || selectedEmpId;
+  closeModal("modal-resign-confirm");
+
+  showHermesApprovalConfirm({
+    title: '학생 탈퇴 처리 결재 등록',
+    type: 'delete',
+    target: `${_stuName} — ${withdrawRsn}`,
+    onConfirm: () => {
+      closeHermesApprovalConfirm();
+      fetch("/admin/students/" + selectedEmpId + "/retirement", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ withdrawRsn }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.result === "success") {
+            const row = document.querySelector('.hr-data-row[data-id="' + selectedEmpId + '"]');
+            if (row) {
+              row.dataset.enable = "N";
+              syncRowCells(row);
+            }
+            closeModal("modal-emp-detail");
+            const rsEl = document.getElementById("resign-reason");
+            if (rsEl.customSelect) rsEl.customSelect.setValue("");
+            else rsEl.value = "";
+            document.getElementById("resign-reason-detail").value = "";
+            document.getElementById("resign-reason-detail").classList.add("hidden");
+            filterHrList();
+            showHermesToast("탈퇴 처리 및 계정이 비활성화되었습니다.", "success");
+          } else {
+            showHermesToast("탈퇴 처리 실패: " + (data.message || "서버 오류"), "error");
+          }
+        })
+        .catch(() => showHermesToast("탈퇴 처리 요청 중 오류가 발생했습니다.", "error"));
+    },
+  });
 }
 
 /* ─── 학생 ID 자동 생성 (YYS00001 형식) ─── */
@@ -573,40 +594,6 @@ function autoGenStudentId() {
     });
 }
 
-/* ─── 이름 포맷 (한글/영문만) ─── */
-function formatName(el) {
-  const before = el.value;
-  el.value = before.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z]/g, "");
-  if (el.value !== before)
-    showHermesToast("이름은 한글 또는 영문만 입력 가능합니다.", "error");
-}
-
-function blurValidateName(el) {
-  const v = el.value.trim();
-  if (!v) return;
-  if (v.length < 2 || v.length > 50) {
-    showHermesToast("이름은 2자 이상 50자 이하로 입력해주세요.", "error");
-    return;
-  }
-  if (!/^[가-힣a-zA-Z]+$/.test(v))
-    showHermesToast("이름은 한글 또는 영문만 입력 가능합니다.", "error");
-}
-
-/* ─── 주민등록번호 관련 ─── */
-var rrnRealValue = "";
-var rrnEyeOpen  = false;
-
-function validateRrnChecksum(digits) {
-  const weights = [2, 3, 4, 5, 6, 7, 8, 9, 2, 3, 4, 5];
-  const sum = weights.reduce((acc, w, i) => acc + parseInt(digits[i], 10) * w, 0);
-  return parseInt(digits[12], 10) === (11 - (sum % 11)) % 10;
-}
-
-function maskRrn(formatted) {
-  const digits = formatted.replace(/\D/g, "");
-  if (digits.length <= 6) return formatted;
-  return digits.slice(0, 6) + "-" + digits[6] + "*".repeat(Math.max(0, digits.length - 7));
-}
 
 function autoFillTempPw() {
   const rrn = document.getElementById("new-rrn").value.replace(/\D/g, "");
@@ -661,32 +648,6 @@ function clearRrnOutputs() {
   document.getElementById("new-rrn-display").focus();
 }
 
-function onRrnInput(el) {
-  let digits = el.value.replace(/\D/g, "").replace(/\*/g, "");
-  if (digits.length > 13) digits = digits.slice(0, 13);
-  const formatted = digits.length > 6 ? digits.slice(0, 6) + "-" + digits.slice(6) : digits;
-  rrnRealValue = formatted;
-  document.getElementById("new-rrn").value = formatted;
-  el.value = formatted;
-  autoFillTempPw();
-}
-
-function onRrnFocus() {
-  document.getElementById("new-rrn-display").value = rrnRealValue;
-}
-
-function onRrnBlur() {
-  if (!rrnEyeOpen)
-    document.getElementById("new-rrn-display").value = maskRrn(rrnRealValue);
-}
-
-function toggleRrnVisibility() {
-  rrnEyeOpen = !rrnEyeOpen;
-  const icon    = document.getElementById("rrn-eye-icon");
-  const display = document.getElementById("new-rrn-display");
-  icon.className = rrnEyeOpen ? "fa-regular fa-eye text-sm" : "fa-regular fa-eye-slash text-sm";
-  display.value  = rrnEyeOpen ? rrnRealValue : maskRrn(rrnRealValue);
-}
 
 /* ─── 신규 학생 등록 폼 유효성 검사 ─── */
 function validateNewStu() {
@@ -719,20 +680,23 @@ function validateNewStu() {
   if (!idEl.value.trim()) { showHermesToast("로그인 ID를 입력해주세요.", "error"); idEl.focus(); return false; }
   if (!pwEl.value.trim()) { showHermesToast("초기 비밀번호를 입력해주세요.", "error"); pwEl.focus(); return false; }
 
-  return true;
+  // 유효성 통과 → 결재 확인 모달
+  showHermesApprovalConfirm({
+    title: '학생 신규 등록 결재 등록',
+    type: 'create',
+    fields: [
+      { label: '이름',    value: nameEl.value.trim() },
+      { label: '연락처', value: phoneEl.value.trim() },
+      { label: '로그인 ID', value: idEl.value.trim() },
+    ],
+    onConfirm: () => {
+      closeHermesApprovalConfirm();
+      document.getElementById('form-new-student').submit();
+    },
+  });
+  return false;
 }
 
-/* ─── 신규 등록 우편번호 검색 ─── */
-function searchZipCode() {
-  new daum.Postcode({
-    oncomplete: function (data) {
-      const addr = data.userSelectedType === "R" ? data.roadAddress : data.jibunAddress;
-      document.getElementById("postcode").value    = data.zonecode;
-      document.getElementById("address").value     = addr;
-      document.getElementById("detailAddress").focus();
-    },
-  }).open();
-}
 
 /* ─── 우편번호 검색 ─── */
 function searchStuZipCode() {
@@ -744,70 +708,6 @@ function searchStuZipCode() {
       document.getElementById("stu-detail-address").focus();
     },
   }).open();
-}
-
-function searchDetailZipCode() {
-  new daum.Postcode({
-    oncomplete: function (data) {
-      const addr = data.userSelectedType === "R" ? data.roadAddress : data.jibunAddress;
-      document.getElementById("edit-zipcode").value    = data.zonecode;
-      document.getElementById("edit-addr").value       = addr;
-      document.getElementById("edit-addr-detail").focus();
-    },
-  }).open();
-}
-
-/* ─── 입력 포맷 ─── */
-function formatPhone(el) {
-  let v = el.value.replace(/\D/g, "");
-  if (v.length > 11) v = v.slice(0, 11);
-  if (v.length >= 3 && !/^010/.test(v)) {
-    showHermesToast("휴대폰 번호는 010으로 시작해야 합니다.", "error");
-    el.value = "010-";
-    return;
-  }
-  if (v.length >= 8)      v = v.slice(0, 3) + "-" + v.slice(3, 7) + "-" + v.slice(7);
-  else if (v.length >= 4) v = v.slice(0, 3) + "-" + v.slice(3);
-  el.value = v;
-}
-
-function blurValidatePhone(el) {
-  const v = el.value.trim();
-  if (!v) return;
-  if (!/^010-\d{3,4}-\d{4}$/.test(v))
-    showHermesToast("올바른 휴대폰 번호 형식이 아닙니다. (예: 010-1234-5678)", "error");
-}
-
-function blurValidateEmail(el) {
-  const v = el.value.trim();
-  if (!v) return;
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))
-    showHermesToast("유효한 이메일 형식이 아닙니다.", "error");
-  else if (v.length > 100)
-    showHermesToast("이메일은 100자 이하로 입력해주세요.", "error");
-}
-
-/* ─── 모달 공통 ─── */
-function openModal(id)  { document.getElementById(id).classList.remove("hidden"); }
-function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
-
-function showWarningToast(message) {
-  let container = document.getElementById("hm-toast-container");
-  if (!container) {
-    container = document.createElement("div");
-    container.id = "hm-toast-container";
-    container.className = "fixed bottom-6 right-6 z-50 space-y-3 pointer-events-none";
-    document.body.appendChild(container);
-  }
-  const toast = document.createElement("div");
-  toast.className = "px-5 py-3.5 rounded-xl shadow-xl text-xs font-bold text-white bg-amber-500 transition-all duration-300 transform translate-y-4 opacity-0 flex items-center gap-3 pointer-events-auto";
-  toast.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-sm"></i> <span>' + message + "</span>";
-  container.appendChild(toast);
-  setTimeout(() => toast.classList.remove("translate-y-4", "opacity-0"), 10);
-  setTimeout(() => {
-    toast.classList.add("opacity-0", "translate-y-4");
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
 }
 
 document.querySelectorAll('[id^="modal-"]').forEach((m) => {
