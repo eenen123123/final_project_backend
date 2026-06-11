@@ -15,7 +15,7 @@ function switchEmpTab(tabId, btn) {
 }
 
 /* ─── 페이지 깜빡임 없는 탭 이동 ─── */
-function navigateToStudents(btn) {
+async function navigateToStudents(btn) {
   btn.disabled = true;
   try {
     const res = await fetch('/admin/employees/students');
