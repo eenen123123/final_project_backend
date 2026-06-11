@@ -14,6 +14,7 @@ public class CourseResponseDto implements Serializable {
     private Long courseSn; // 기본키(PK) · 시퀀스
     private String courseName;
     private String instructorName;
+    private String instrUuid;
     private String instructorProfileImg;
     private Long subjectId;
     private String subjectName;
