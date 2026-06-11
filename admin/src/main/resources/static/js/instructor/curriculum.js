@@ -110,8 +110,8 @@ function renderCourseList(courses) {
     list.innerHTML = courses.map(c => `
         <li id="course-item-${c.courseSn}" class="course-item panel-item" onclick="selectCourse(${c.courseSn})">
             <div class="min-w-0 flex-1">
-                <div class="item-title">${esc(c.courseNm)}</div>
-                ${c.courseExplnCn ? `<div class="item-meta">${esc(c.courseExplnCn)}</div>` : ''}
+                <div class="item-title">${escHtml(c.courseNm)}</div>
+                ${c.courseExplnCn ? `<div class="item-meta">${escHtml(c.courseExplnCn)}</div>` : ''}
             </div>
             <div class="item-actions">
                 <span class="badge-opnn ${c.opnnYn === 'Y' ? 'badge-opnn-open' : 'badge-opnn-closed'}">${c.opnnYn === 'Y' ? '공개' : '비공개'}</span>
@@ -233,7 +233,7 @@ function renderLectureList(lectures) {
         <li id="lecture-item-${l.lectureSn}" class="panel-item">
             <div class="min-w-0 flex-1">
                 <div class="item-title">
-                    ${esc(l.lectureNm)}
+                    ${escHtml(l.lectureNm)}
                     ${l.lockYn === 'Y' ? '<i class="fa-solid fa-lock text-[9px] text-slate-400 ml-1"></i>' : ''}
                 </div>
                 <div class="item-meta flex items-center gap-1.5">
@@ -331,10 +331,3 @@ function resetLecturePanel() {
     hideLectureForm();
 }
 
-function esc(str) {
-    if (str == null) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-}

@@ -77,19 +77,19 @@ function renderGrades(list) {
     const toggleTxt = g.useYn === 'Y' ? '비활성화' : '활성화';
     const toggleVal = g.useYn === 'Y' ? 'N' : 'Y';
     return `<tr class="hover:bg-slate-50 transition-colors"
-                data-cd="${esc(g.jbgrCd)}" data-nm="${esc(g.jbgrNm)}"
-                data-dept="${esc(g.deptCd || '')}" data-ord="${g.sortOrd ?? ''}"
+                data-cd="${escHtml(g.jbgrCd)}" data-nm="${escHtml(g.jbgrNm)}"
+                data-dept="${escHtml(g.deptCd || '')}" data-ord="${g.sortOrd ?? ''}"
                 data-days="${g.baseAnnLvDays ?? ''}" data-use="${g.useYn}">
-      <td class="py-3 px-4 font-mono text-slate-600">${esc(g.jbgrCd)}</td>
-      <td class="py-3 px-4 font-semibold text-slate-800">${esc(g.jbgrNm)}</td>
-      <td class="py-3 px-4 text-slate-500">${esc(deptNm)}</td>
+      <td class="py-3 px-4 font-mono text-slate-600">${escHtml(g.jbgrCd)}</td>
+      <td class="py-3 px-4 font-semibold text-slate-800">${escHtml(g.jbgrNm)}</td>
+      <td class="py-3 px-4 text-slate-500">${escHtml(deptNm)}</td>
       <td class="py-3 px-4 text-slate-500">${g.sortOrd ?? '-'}</td>
       <td class="py-3 px-4 text-slate-500">${days}</td>
       <td class="py-3 px-4">${badge}</td>
       <td class="py-3 px-4">
         <div class="flex items-center gap-2">
           <button onclick="openGradeModal(this.closest('tr'))" class="text-xs text-[#3b82f6] hover:underline font-semibold">수정</button>
-          <button data-cd="${esc(g.jbgrCd)}" data-toggle="${toggleVal}"
+          <button data-cd="${escHtml(g.jbgrCd)}" data-toggle="${toggleVal}"
                   onclick="toggleGrade(this.dataset.cd, this.dataset.toggle)"
                   class="text-xs text-slate-400 hover:underline">${toggleTxt}</button>
         </div>
@@ -109,9 +109,6 @@ function renderGradePagination(cur, total) {
   el.innerHTML = html;
 }
 
-function esc(s) {
-  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
 
 /* ─────────────── 부서 CRUD ─────────────── */
 function openDeptModal(row) {
@@ -236,27 +233,17 @@ function selectMntDept(btn) {
   loadMntKanban();
 }
 
-/* 부서 선택 시 직급 옵션 재구성 — employees.js updateHrRoleFilter()와 완전히 동일한 패턴 */
+/* 부서 선택 시 직급 옵션 재구성 */
 function filterMntGradeByDept(deptCd) {
   if (allMntGradeOpts.length === 0) initMntGradeOpts();
   const trimmed = (deptCd || '').trim();
-  const filtered = trimmed
-    ? allMntGradeOpts.filter(o => o.dept === trimmed)
-    : allMntGradeOpts;
-  const ts = document.getElementById('mnt-grade-filter').tomselect;
-  if (ts) {
-    /* TomSelect가 적용된 경우 — innerHTML 교체는 반영 안 됨, API로 갱신 */
-    ts.clear(true);
-    ts.clearOptions();
-    filtered.forEach(o => ts.addOption({ value: o.value, text: o.text }));
-    ts.refreshOptions(false);
-  } else {
-    /* TomSelect 미적용 fallback */
-    const sel = document.getElementById('mnt-grade-filter');
-    sel.innerHTML = '<option value="">전체 직급</option>' +
-      filtered.map(o => `<option value="${esc(o.value)}">${esc(o.text)}</option>`).join('');
-    sel.value = '';
-  }
+  const sel = document.getElementById('mnt-grade-filter');
+  Array.from(sel.options).forEach(opt => {
+    if (!opt.value) return;
+    opt.hidden = trimmed ? (opt.dataset.dept || '').trim() !== trimmed : false;
+  });
+  sel.value = '';
+  if (sel.customSelect) sel.customSelect.refresh();
   renderUnassigned();
 }
 
@@ -376,21 +363,21 @@ function renderKanban(supIds, empMap) {
     const sup     = empMap[sid] || { userId: sid, userName: sid };
     const members = getTeamDescendants(sid);
     const avatar  = sup.userProfile && sup.userProfile.startsWith('http')
-      ? `<img src="${esc(sup.userProfile)}" class="w-9 h-9 rounded-lg object-cover flex-shrink-0">`
-      : `<div class="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600 flex-shrink-0">${esc((sup.userName||'?').charAt(0))}</div>`;
+      ? `<img src="${escHtml(sup.userProfile)}" class="w-9 h-9 rounded-lg object-cover flex-shrink-0">`
+      : `<div class="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600 flex-shrink-0">${escHtml((sup.userName||'?').charAt(0))}</div>`;
     return `
       <div class="mnt-col flex-shrink-0 rounded-xl border border-slate-200 bg-white overflow-hidden"
-           style="width:210px" data-sup-id="${esc(sid)}"
+           style="width:210px" data-sup-id="${escHtml(sid)}"
            ondragover="event.preventDefault()"
            ondrop="onDropToTeam(event,this)">
         <div class="bg-blue-50 border-b border-blue-100 px-3 py-3 flex items-center gap-2.5">
           ${avatar}
           <div class="min-w-0 flex-1">
-            <p class="font-bold text-sm text-slate-800 truncate">${esc(sup.userName||sid)}</p>
-            <p class="text-xs text-slate-400 truncate">${esc(sup.jbgrNm||'')}${sup.deptNm?' · '+esc(sup.deptNm):''}</p>
+            <p class="font-bold text-sm text-slate-800 truncate">${escHtml(sup.userName||sid)}</p>
+            <p class="text-xs text-slate-400 truncate">${escHtml(sup.jbgrNm||'')}${sup.deptNm?' · '+escHtml(sup.deptNm):''}</p>
           </div>
           <span class="text-xs bg-blue-100 text-blue-600 font-bold px-1.5 py-0.5 rounded-md flex-shrink-0">${members.length}명</span>
-          <button onclick="event.stopPropagation(); dissolveTeam('${esc(sid)}')"
+          <button onclick="event.stopPropagation(); dissolveTeam('${escHtml(sid)}')"
                   title="팀 전체 해제"
                   class="flex-shrink-0 w-5 h-5 rounded-full bg-slate-200 hover:bg-red-100 hover:text-red-500
                          text-slate-400 text-xs flex items-center justify-center transition-colors ml-1">✕</button>
@@ -462,11 +449,11 @@ function buildTreeHtml(userId, empMap) {
   const children = allEmps.filter(e => e.mntUserId === userId && e.userId !== userId);
 
   const avatar = emp.userProfile && emp.userProfile.startsWith('http')
-    ? `<img src="${esc(emp.userProfile)}" class="w-8 h-8 rounded-full object-cover mx-auto mb-1">`
-    : `<div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600 mx-auto mb-1">${esc((emp.userName||'?').charAt(0))}</div>`;
+    ? `<img src="${escHtml(emp.userProfile)}" class="w-8 h-8 rounded-full object-cover mx-auto mb-1">`
+    : `<div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600 mx-auto mb-1">${escHtml((emp.userName||'?').charAt(0))}</div>`;
 
   const dissolveBtn = isRoot
-    ? `<button onclick="event.stopPropagation(); dissolveTeam('${esc(userId)}')"
+    ? `<button onclick="event.stopPropagation(); dissolveTeam('${escHtml(userId)}')"
                title="팀 전체 해제"
                class="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-slate-200 hover:bg-red-100
                       hover:text-red-500 text-slate-400 text-xs flex items-center justify-center
@@ -475,16 +462,16 @@ function buildTreeHtml(userId, empMap) {
 
   const nodeHtml = `
     <div class="tree-node ${isRoot ? 'tree-node-root' : ''} relative"
-         data-uid="${esc(userId)}"
-         data-mnt="${esc(emp.mntUserId || '')}"
+         data-uid="${escHtml(userId)}"
+         data-mnt="${escHtml(emp.mntUserId || '')}"
          ${!isRoot ? 'draggable="true"' : ''}
          style="${!isRoot ? 'cursor:grab;' : ''}"
          ondragover="event.preventDefault()"
          ondrop="onDropToTreeNode(event, this)">
       ${dissolveBtn}
       ${avatar}
-      <p class="text-xs font-bold text-slate-800 truncate" style="max-width:84px">${esc(emp.userName||userId)}</p>
-      <p class="text-xs text-slate-400 truncate" style="max-width:84px">${esc(emp.jbgrNm||'')}</p>
+      <p class="text-xs font-bold text-slate-800 truncate" style="max-width:84px">${escHtml(emp.userName||userId)}</p>
+      <p class="text-xs text-slate-400 truncate" style="max-width:84px">${escHtml(emp.jbgrNm||'')}</p>
     </div>`;
 
   if (!children.length) return `<li>${nodeHtml}</li>`;
@@ -512,18 +499,18 @@ function onDropToTreeNode(event, nodeEl) {
 /* ── 공통 직원 카드 ── */
 function renderEmpCard(emp) {
   const avatar = emp.userProfile && emp.userProfile.startsWith('http')
-    ? `<img src="${esc(emp.userProfile)}" class="w-7 h-7 rounded-md object-cover flex-shrink-0">`
-    : `<div class="w-7 h-7 rounded-md bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-600 flex-shrink-0">${esc((emp.userName||'?').charAt(0))}</div>`;
+    ? `<img src="${escHtml(emp.userProfile)}" class="w-7 h-7 rounded-md object-cover flex-shrink-0">`
+    : `<div class="w-7 h-7 rounded-md bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-600 flex-shrink-0">${escHtml((emp.userName||'?').charAt(0))}</div>`;
   const statCls = emp.emplStatCd==='01' ? 'text-emerald-600' : emp.emplStatCd==='02' ? 'text-amber-500' : 'text-red-400';
   const statTxt = emp.emplStatCd==='01' ? '재직' : emp.emplStatCd==='02' ? '휴직' : '퇴사';
   return `
     <div class="emp-card bg-white border border-slate-100 hover:border-blue-200 hover:bg-blue-50
                 rounded-lg p-2 flex items-center gap-2 cursor-grab select-none transition-colors shadow-sm"
-         draggable="true" data-uid="${esc(emp.userId)}" data-mnt="${esc(emp.mntUserId||'')}">
+         draggable="true" data-uid="${escHtml(emp.userId)}" data-mnt="${escHtml(emp.mntUserId||'')}">
       ${avatar}
       <div class="min-w-0 flex-1">
-        <p class="text-xs font-semibold text-slate-800 truncate">${esc(emp.userName||'-')}</p>
-        <p class="text-xs text-slate-400 truncate">${esc(emp.jbgrNm||'-')}</p>
+        <p class="text-xs font-semibold text-slate-800 truncate">${escHtml(emp.userName||'-')}</p>
+        <p class="text-xs text-slate-400 truncate">${escHtml(emp.jbgrNm||'-')}</p>
       </div>
       <span class="text-xs ${statCls} flex-shrink-0">${statTxt}</span>
     </div>`;
@@ -537,16 +524,11 @@ function openAddTeamModal() {
   ]);
   const candidates = allEmps.filter(e => !existingSups.has(e.userId));
   if (!candidates.length) { alert('추가 가능한 사수 후보가 없습니다.'); return; }
-  const ts = document.getElementById('add-team-select').tomselect;
-  if (ts) {
-    ts.clear(true);
-    ts.clearOptions();
-    candidates.forEach(e => ts.addOption({ value: e.userId, text: `${e.userName} (${e.jbgrNm || e.userId})` }));
-    ts.refreshOptions(false);
-  } else {
-    document.getElementById('add-team-select').innerHTML =
-      candidates.map(e => `<option value="${esc(e.userId)}">${esc(e.userName)} (${esc(e.jbgrNm||e.userId)})</option>`).join('');
-  }
+  const sel = document.getElementById('add-team-select');
+  sel.innerHTML = candidates
+    .map(e => `<option value="${escHtml(e.userId)}">${escHtml(e.userName)} (${escHtml(e.jbgrNm || e.userId)})</option>`)
+    .join('');
+  if (sel.customSelect) sel.customSelect.refresh();
   document.getElementById('modal-add-team').classList.remove('hidden');
 }
 function closeAddTeamModal() { document.getElementById('modal-add-team').classList.add('hidden'); }
