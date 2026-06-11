@@ -75,4 +75,25 @@
     ORDER BY cm.REG_DT DESC
   </select>
 
+  <!-- existsByFileIdAndUserId --> 
+
+  <select id="existsByFileIdAndUserId">
+    select count(*)
+    from classroom_member cm
+    where cm.class_sn in (
+
+        select cr.class_sn 
+        from classroom cr
+        where cr.course_sn in (
+ 
+            select l.course_sn
+            from lecture l
+            where l.ATCH_FILE_ID = #{fileId}
+     
+    )
+    )
+    and cm.user_id = #{userId}
+      
+
+  </select>
 </mapper>
