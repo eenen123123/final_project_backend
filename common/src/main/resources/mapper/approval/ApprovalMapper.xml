@@ -144,9 +144,16 @@
 
 
     <select id="selectApprovalMasterByDocSn" resultType="kr.or.ddit.finalProject.dto.approval.ApprovalMasterDto" parameterType="Long">
-        SELECT *
-        FROM approval_master
-        WHERE aprvl_doc_sn = #{aprvlDocSn}
+        SELECT am.*,
+               m.user_name  AS drft_user_nm,
+               d.dept_nm    AS drft_dept_nm,
+               jg.jbgr_nm   AS drft_jbgr_nm
+        FROM   approval_master am
+        JOIN   member        m  ON am.drft_user_id = m.user_id
+        JOIN   employee_info ei ON am.drft_user_id = ei.user_id
+        JOIN   department    d  ON ei.dept_cd       = d.dept_cd
+        JOIN   job_grade     jg ON ei.jbgr_cd       = jg.jbgr_cd
+        WHERE  am.aprvl_doc_sn = #{aprvlDocSn}
     </select>
 
     <select id="selectApprovalLinesByDocSn" parameterType="long" resultType="kr.or.ddit.finalProject.dto.approval.ApprovalLineDto">
@@ -154,11 +161,13 @@
                al.aprvl_dt, al.aprvl_prgrs_cd, al.aprvl_rsn_cn,
                m.user_name  AS approver_name,
                jg.jbgr_nm,
-               jg.sort_ord
+               jg.sort_ord,
+               d.dept_nm
         FROM   APPROVAL_LINE   al
         JOIN   MEMBER          m  ON al.aprvr_user_id = m.user_id
         JOIN   EMPLOYEE_INFO   ei ON al.aprvr_user_id = ei.user_id
         JOIN   JOB_GRADE       jg ON ei.jbgr_cd       = jg.jbgr_cd
+        JOIN   DEPARTMENT      d  ON ei.dept_cd        = d.dept_cd
         WHERE  al.aprvl_doc_sn = #{aprvlDocSn}
           AND  al.aprvl_prgrs_cd != 'CANCELED'
         ORDER BY al.aprvl_ordr

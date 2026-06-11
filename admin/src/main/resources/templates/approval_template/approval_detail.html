@@ -133,7 +133,7 @@
         <div class="flex items-center gap-4 text-xs text-slate-400">
           <span
             ><i class="fa-solid fa-user mr-1"></i>기안자:
-            <span class="text-slate-600 font-medium" th:text="${doc.drftUserId}"
+            <span class="text-slate-600 font-medium" th:text="${doc.drftUserNm ?: doc.drftUserId}"
               >기안자</span
             ></span
           >
@@ -202,7 +202,8 @@
           <i class="fa-solid fa-check"></i>
         </div>
         <p class="text-xs font-semibold text-slate-700">기안</p>
-        <p class="text-xs text-slate-400" th:text="${doc.drftUserId}">기안자</p>
+        <p class="text-xs text-slate-400" th:text="${'[' + doc.drftDeptNm + ']' + '  ' + doc.drftJbgrNm}"></p>
+        <p class="text-xs text-slate-500" th:text="${doc.drftUserNm ?: doc.drftUserId}">기안자</p>
         <p
           class="text-xs text-slate-300"
           th:text="${#temporals.format(doc.drftRegDt, 'MM/dd')}"
@@ -235,7 +236,8 @@
           >
             1차 결재
           </p>
-          <p class="text-xs text-slate-500" th:text="${line.aprvrUserId}">
+          <p class="text-xs text-slate-400" th:text="${'[' + line.jbgrNm + ']'  + ' ' + line.deptNm}"></p>
+          <p class="text-xs text-slate-500" th:text="${line.approverName ?: line.aprvrUserId}">
             결재자
           </p>
           <p
