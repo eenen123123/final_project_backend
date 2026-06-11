@@ -1,6 +1,8 @@
 package kr.or.ddit.controller.principal;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -16,7 +18,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import kr.or.ddit.finalProject.dto.code.ComClDto;
 import kr.or.ddit.finalProject.dto.common.CommonCodeDto;
+import kr.or.ddit.finalProject.dto.staff.AdminActivityType;
 import kr.or.ddit.finalProject.mapper.common.CommonCodeMapper;
+import kr.or.ddit.service.AdminActivityApprovalService;
 import kr.or.ddit.service.CommonCodeService;
 import lombok.RequiredArgsConstructor;
 
@@ -27,7 +31,7 @@ public class CommonCodeController {
 
     private final CommonCodeService commonCodeService;
     private final CommonCodeMapper commonCodeMapper;
-
+    private final AdminActivityApprovalService approvalService;
     @GetMapping
     public String page() {
         return "admin:/principal/common_code_management";
@@ -49,25 +53,42 @@ public class CommonCodeController {
 
     @PostMapping("/api/groups")
     @ResponseBody
-    public ResponseEntity<Void> createGroup(@RequestBody ComClDto dto, Authentication auth) {
-        commonCodeService.createGroup(dto, auth.getName());
+    public ResponseEntity<Void> createGroup(
+        @RequestBody ComClDto dto,
+        Authentication auth
+    ) {
+        if (commonCodeService.existsGroup(dto.getClCode())) {
+            return ResponseEntity.status(409).build();
+        }
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("dto", dto);
+        approvalService.submitForApproval(auth.getName(), AdminActivityType.COMMON_CODE_GROUP_CREATE, dto.getClCode() + " " + dto.getClCdNm(), data);
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/api/groups/{clCode}")
     @ResponseBody
-    public ResponseEntity<Void> updateGroup(@PathVariable String clCode,
-                                            @RequestBody ComClDto dto,
-                                            Authentication auth) {
+    public ResponseEntity<Void> updateGroup(
+        @PathVariable String clCode,
+        @RequestBody ComClDto dto,
+        Authentication auth
+    ) {
         dto.setClCode(clCode);
-        commonCodeService.updateGroup(dto, auth.getName());
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("dto", dto);
+        approvalService.submitForApproval(auth.getName(), AdminActivityType.COMMON_CODE_GROUP_UPDATE, clCode, data);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/api/groups/{clCode}")
     @ResponseBody
-    public ResponseEntity<Void> deleteGroup(@PathVariable String clCode) {
-        commonCodeService.deleteGroup(clCode);
+    public ResponseEntity<Void> deleteGroup(
+        @PathVariable String clCode,
+        Authentication auth
+    ) {
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("clCode", clCode);
+        approvalService.submitForApproval(auth.getName(), AdminActivityType.COMMON_CODE_GROUP_DELETE, clCode, data);
         return ResponseEntity.ok().build();
     }
 
@@ -80,31 +101,46 @@ public class CommonCodeController {
 
     @PostMapping("/api/{clCode}/codes")
     @ResponseBody
-    public ResponseEntity<Void> createCode(@PathVariable String clCode,
-                                           @RequestBody CommonCodeDto dto,
-                                           Authentication auth) {
+    public ResponseEntity<Void> createCode(
+        @PathVariable String clCode,
+        @RequestBody CommonCodeDto dto,
+        Authentication auth
+    ) {
         dto.setClCode(clCode);
-        commonCodeService.createCode(dto, auth.getName());
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("dto", dto);
+        approvalService.submitForApproval(auth.getName(), AdminActivityType.COMMON_CODE_CREATE, "[" + clCode + "] " + dto.getComCd() + " " + dto.getComCdNm(), data);
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/api/{clCode}/codes/{comCd}")
     @ResponseBody
-    public ResponseEntity<Void> updateCode(@PathVariable String clCode,
-                                           @PathVariable String comCd,
-                                           @RequestBody CommonCodeDto dto,
-                                           Authentication auth) {
+    public ResponseEntity<Void> updateCode(
+        @PathVariable String clCode,
+        @PathVariable String comCd,
+        @RequestBody CommonCodeDto dto,
+        Authentication auth
+    ) {
         dto.setClCode(clCode);
         dto.setComCd(comCd);
-        commonCodeService.updateCode(dto, auth.getName());
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("dto", dto);
+        approvalService.submitForApproval(auth.getName(), AdminActivityType.COMMON_CODE_UPDATE, "[" + clCode + "] " + comCd, data);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/api/{clCode}/codes/{comCd}")
     @ResponseBody
-    public ResponseEntity<Void> deleteCode(@PathVariable String clCode,
-                                           @PathVariable String comCd) {
-        commonCodeService.deleteCode(clCode, comCd);
+    public ResponseEntity<Void> deleteCode(
+        @PathVariable String clCode,
+        @PathVariable String comCd,
+        Authentication auth
+    ) {
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("clCode", clCode);
+        data.put("comCd", comCd);
+        approvalService.submitForApproval(auth.getName(), AdminActivityType.COMMON_CODE_DELETE, "[" + clCode + "] " + comCd, data);
+        
         return ResponseEntity.ok().build();
     }
 }

@@ -16,6 +16,7 @@ public interface CommonCodeMapper {
 
     // ── 분류(COM_CL) 관리 ─────────────────────────────────────────
     List<ComClDto> selectAllGroups();
+    int countGroup(@Param("clCode") String clCode);
     int insertGroup(ComClDto dto);
     int updateGroup(ComClDto dto);
     int deleteGroup(@Param("clCode") String clCode);

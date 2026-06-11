@@ -22,6 +22,11 @@ public class CommonCodeServiceImpl implements CommonCodeService {
     public List<ComClDto> getGroups() {
         return mapper.selectAllGroups();
     }
+    
+    @Override
+    public boolean existsGroup(String clCode) {
+        return mapper.countGroup(clCode) > 0;
+    }
 
     @Override
     @Transactional

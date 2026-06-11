@@ -3,6 +3,8 @@ package kr.or.ddit.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.or.ddit.finalProject.dto.approval.ApprovalMasterDto;
+import kr.or.ddit.finalProject.dto.code.ComClDto;
+import kr.or.ddit.finalProject.dto.common.CommonCodeDto;
 import kr.or.ddit.finalProject.dto.employee.DepartmentDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto;
@@ -58,6 +60,7 @@ public class AdminActivityExecutionService {
 
     private final ApprovalService approvalService;
     private final StaffService staffService;
+    private final CommonCodeService commonCodeService;
     private final CloudinaryUploadService cloudinaryUploadService;
     private final ObjectMapper objectMapper;
 
@@ -110,6 +113,12 @@ public class AdminActivityExecutionService {
                 case "GRADE_UPDATE"      -> executeGradeUpdate(data, actorUserId);
                 case "GRADE_TOGGLE"      -> executeGradeToggle(data, actorUserId);
                 case "MNT_MAPPING"       -> executeMntMapping(data, actorUserId);
+                case "COMMON_CODE_GROUP_CREATE" -> executeCommonCodeGroupCreate(data, actorUserId);
+                case "COMMON_CODE_GROUP_UPDATE" -> executeCommonCodeGroupUpdate(data, actorUserId);
+                case "COMMON_CODE_GROUP_DELETE" -> executeCommonCodeGroupDelete(data);
+                case "COMMON_CODE_CREATE"       -> executeCommonCodeCreate(data, actorUserId);
+                case "COMMON_CODE_UPDATE"       -> executeCommonCodeUpdate(data, actorUserId);
+                case "COMMON_CODE_DELETE"       -> executeCommonCodeDelete(data);
                 default -> log.warn("[AdminExecution] 알 수 없는 actionType: {}", actionType);
             }
             log.info("[AdminExecution] 결재 승인 후 실행 완료: docSn={}, type={}", aprvlDocSn, actionType);
@@ -289,6 +298,39 @@ public class AdminActivityExecutionService {
         
         // 1. 사수 아이디의 Null 유무 및 공백 상태를 정제한 후 매핑 테이블에 할당한다.
         staffService.assignMntUserId(userId, mntUserId != null && !mntUserId.isBlank() ? mntUserId : null, actorUserId);
+    }
+
+    /* ── 공통코드 집행 함수군 ── */
+
+    private void executeCommonCodeGroupCreate(Map<String, Object> data, String actorUserId) {
+        ComClDto dto = objectMapper.convertValue(data.get("dto"), ComClDto.class);
+        commonCodeService.createGroup(dto, actorUserId);
+    }
+
+    private void executeCommonCodeGroupUpdate(Map<String, Object> data, String actorUserId) {
+        ComClDto dto = objectMapper.convertValue(data.get("dto"), ComClDto.class);
+        commonCodeService.updateGroup(dto, actorUserId);
+    }
+
+    private void executeCommonCodeGroupDelete(Map<String, Object> data) {
+        String clCode = (String) data.get("clCode");
+        commonCodeService.deleteGroup(clCode);
+    }
+
+    private void executeCommonCodeCreate(Map<String, Object> data, String actorUserId) {
+        CommonCodeDto dto = objectMapper.convertValue(data.get("dto"), CommonCodeDto.class);
+        commonCodeService.createCode(dto, actorUserId);
+    }
+
+    private void executeCommonCodeUpdate(Map<String, Object> data, String actorUserId) {
+        CommonCodeDto dto = objectMapper.convertValue(data.get("dto"), CommonCodeDto.class);
+        commonCodeService.updateCode(dto, actorUserId);
+    }
+
+    private void executeCommonCodeDelete(Map<String, Object> data) {
+        String clCode = (String) data.get("clCode");
+        String comCd  = (String) data.get("comCd");
+        commonCodeService.deleteCode(clCode, comCd);
     }
 
     /**
