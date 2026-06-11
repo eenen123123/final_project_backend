@@ -31,7 +31,8 @@ public class ApprovalLineDto implements Serializable {
     private String aprvlRsnCn; // 승인·반려 사유 메모
 
     private String approverName; // 결재자 이름 (화면 표시용)
-    private String jbgrNm; // 결재자 직급명 (화면 표시용)
-    private Integer sortOrd; // 직급 정렬순서 (화면 표시용)
+    private String jbgrNm;       // 결재자 직급명 (화면 표시용)
+    private String deptNm;       // 결재자 부서명 (화면 표시용)
+    private Integer sortOrd;     // 직급 정렬순서 (화면 표시용)
     private ApprovalMasterDto doc; // 결재 대기 목록에서 JOIN된 문서 정보
 }

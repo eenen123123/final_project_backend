@@ -32,5 +32,8 @@ public class ApprovalMasterDto implements Serializable {
     private LocalDateTime mdfcnDt; // 데이터 수정 시점 (자동갱신)
     private String tmplCd; // COM_CD 공통코드 참조
 
-    private String tmplNm; // 결재 양식명
+    private String tmplNm;     // 결재 양식명
+    private String drftUserNm; // 기안자 이름 (화면 표시용)
+    private String drftDeptNm; // 기안자 부서명 (화면 표시용)
+    private String drftJbgrNm; // 기안자 직급명 (화면 표시용)
 }
