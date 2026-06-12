@@ -41,6 +41,9 @@ public class OrderServiceImpl implements OrderService {
             ordNm += " 외 " + (orderItems.size() - 1) + "건";
         }
 
+        // 결제 없이 방치된 이전 PENDING 주문을 만료시켜 회원당 PENDING을 1건으로 유지
+        orderMapper.expirePendingOrders(userId);
+
         OrderDto order = OrderDto.builder()
                 .ordId(UUID.randomUUID().toString())
                 .userId(userId)
