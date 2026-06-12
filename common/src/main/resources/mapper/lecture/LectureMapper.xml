@@ -129,12 +129,22 @@
     <!-- selectLectureListByCourseSn -->
 
     <select id="selectLectureListByCourseSn" resultMap="lectureResponseMap">
-    SELECT
+    SELECT 
       l.LECTURE_SN, l.COURSE_SN, l.LECTURE_NM, l.ATCH_FILE_ID,
-      l.LECTURE_DURATION, l.LECTURE_EXPLN_CN, p.SECONDS_WATCHED, p.LAST_UPDATE
+      l.LECTURE_DURATION, l.LECTURE_EXPLN_CN, (select seconds_watched
+                                                from lecture_progress
+                                                where user_id = #{userId}
+                                                and lecture_sn = l.lecture_sn
+                                                and course_sn = l.course_sn) as seconds_watched,
+                                                (select last_update
+                                                from lecture_progress
+                                                where user_id = #{userId}
+                                                and lecture_sn = l.lecture_sn
+                                                and course_sn = l.course_sn) as last_update
+
+
     FROM LECTURE l
-    LEFT OUTER JOIN LECTURE_PROGRESS p ON l.LECTURE_SN = p.LECTURE_SN
-    WHERE l.COURSE_SN = #{courseSn}
+    WHERE l.COURSE_SN = #{courseSn} 
     ORDER BY l.SORT_ORD ASC, l.LECTURE_SN ASC
     </select>
 
