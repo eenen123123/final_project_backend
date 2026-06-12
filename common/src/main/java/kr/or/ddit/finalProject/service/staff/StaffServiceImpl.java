@@ -5,6 +5,8 @@ import java.util.Map;
 
 import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
+import kr.or.ddit.finalProject.dto.leave.AnnualLeaveHistoryDto;
+import kr.or.ddit.finalProject.dto.leave.LeaveBalanceDto;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -504,5 +506,31 @@ public class StaffServiceImpl implements StaffService{
             log.error("[retireStudent] DB 처리 실패. userId={}, cause={}", userId, e.getMessage());
             throw new FinalProjectException(ErrorCode.MEMBER_RETIRE_FAILED, e);
         }
+    }
+
+    // ── 휴가 현황 / 잔여 연차 (조회 전용) ──
+
+    @Override
+    public PageResponse<AnnualLeaveHistoryDto> searchLeaveHistory(PaginationInfo<Map<String, Object>> paging) {
+        List<AnnualLeaveHistoryDto> items = staffMapper.searchLeaveHistory(paging);
+        int totalCount = staffMapper.countLeaveHistory(paging);
+        return new PageResponse<>(items, totalCount);
+    }
+
+    @Override
+    public PageResponse<LeaveBalanceDto> searchLeaveBalance(PaginationInfo<Map<String, Object>> paging) {
+        List<LeaveBalanceDto> items = staffMapper.searchLeaveBalance(paging);
+        int totalCount = staffMapper.countLeaveBalance(paging);
+        return new PageResponse<>(items, totalCount);
+    }
+
+    @Override
+    public Map<String, Object> getLeaveSummary() {
+        return staffMapper.selectLeaveSummary();
+    }
+
+    @Override
+    public void insertLeaveHistory(AnnualLeaveHistoryDto dto) {
+        staffMapper.insertLeaveHistory(dto);
     }
 }

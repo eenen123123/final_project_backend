@@ -9,6 +9,7 @@ import kr.or.ddit.finalProject.dto.employee.DepartmentDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
 import kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto;
 import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
+import kr.or.ddit.finalProject.dto.leave.AnnualLeaveHistoryDto;
 import kr.or.ddit.finalProject.dto.member.MemberCreateLogDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.service.file.CloudinaryUploadService;
@@ -119,6 +120,7 @@ public class AdminActivityExecutionService {
                 case "COMMON_CODE_CREATE"       -> executeCommonCodeCreate(data, actorUserId);
                 case "COMMON_CODE_UPDATE"       -> executeCommonCodeUpdate(data, actorUserId);
                 case "COMMON_CODE_DELETE"       -> executeCommonCodeDelete(data);
+                case "LEAVE_REQUEST"            -> executeLeaveRequest(data, master.getDrftUserId(), aprvlDocSn);
                 default -> log.warn("[AdminExecution] 알 수 없는 actionType: {}", actionType);
             }
             log.info("[AdminExecution] 결재 승인 후 실행 완료: docSn={}, type={}", aprvlDocSn, actionType);
@@ -145,6 +147,29 @@ public class AdminActivityExecutionService {
 
         // 3. 인사 관리 서비스의 등록 메서드를 호출하여 복합 테이블 저장을 실행한다.
         staffService.registerEmployee(memberDto, employeeInfoDto, employeeSalaryDto, profileUrl, actorUserId);
+    }
+
+    /**
+     * 휴가 신청 결재 승인 집행 — 승인된 휴가를 ANNUAL_LEAVE_HISTORY 에 적재한다.
+     * 신청자(ANN_USER_ID)는 위변조 방지를 위해 결재 문서의 기안자(DRFT_USER_ID)를 사용한다.
+     * @param data       결재 본문에서 추출한 휴가 신청 원시 데이터
+     * @param drftUserId 결재 문서 기안자 = 휴가 신청자
+     * @param aprvlDocSn 승인된 결재 문서 일련번호 (추적용 FK)
+     */
+    private void executeLeaveRequest(Map<String, Object> data, String drftUserId, Long aprvlDocSn) {
+        AnnualLeaveHistoryDto dto = AnnualLeaveHistoryDto.builder()
+            .annUserId(drftUserId)
+            .annTypeCd((String) data.get("annTypeCd"))
+            .annStrtYmd((String) data.get("annStrtYmd"))
+            .annEndYmd((String) data.get("annEndYmd"))
+            .annReqDays(data.get("annReqDays") != null
+                ? new java.math.BigDecimal(String.valueOf(data.get("annReqDays"))) : null)
+            .annRsnCn((String) data.get("annRsnCn"))
+            .aprvlDocSn(aprvlDocSn)
+            .build();
+
+        staffService.insertLeaveHistory(dto);
+        log.info("[AdminExecution] 휴가 이력 적재 완료: userId={}, docSn={}", dto.getAnnUserId(), aprvlDocSn);
     }
 
     /**
