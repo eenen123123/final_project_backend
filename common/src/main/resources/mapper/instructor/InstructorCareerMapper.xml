@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
@@ -33,7 +33,7 @@
     <!--   프로필 이미지 URL(INSTR_PROFILE_IMG)       -->
     <!-- ──────────────────────────────────────────── -->
     <select id="selectInstructor"
-            resultType="kr.or.ddit.finalProject.dto.instructor.InstructorDto">
+            resultType="kr.or.ddit.finalProject.dto.instructor.profile.InstructorDto">
         SELECT
             INSTR_USER_ID     AS instrUserId,
             INSTR_INTRO       AS instrIntro,
@@ -48,7 +48,7 @@
     <!--   정렬: 유형 → 순서 → 시작연도              -->
     <!-- ──────────────────────────────────────────── -->
     <select id="selectCareersByInstructor"
-            resultType="kr.or.ddit.finalProject.dto.instructor.InstructorCareerDto">
+            resultType="kr.or.ddit.finalProject.dto.instructor.profile.InstructorCareerDto">
         SELECT <include refid="careerColumns"/>
         FROM INSTRUCTOR_CAREER
         WHERE INSTR_USER_ID = #{instrUserId}
@@ -63,7 +63,7 @@
     <!--   (서비스에서 DEL_YN 판단 후 처리)          -->
     <!-- ──────────────────────────────────────────── -->
     <select id="selectCareerBySn"
-            resultType="kr.or.ddit.finalProject.dto.instructor.InstructorCareerDto">
+            resultType="kr.or.ddit.finalProject.dto.instructor.profile.InstructorCareerDto">
         SELECT <include refid="careerColumns"/>
         FROM INSTRUCTOR_CAREER
         WHERE CAREER_SN = #{careerSn}
@@ -76,7 +76,7 @@
     <!--   RGTR_ID / REG_DT 이력 함께 저장            -->
     <!-- ──────────────────────────────────────────── -->
     <insert id="insertCareer"
-            parameterType="kr.or.ddit.finalProject.dto.instructor.InstructorCareerDto"
+            parameterType="kr.or.ddit.finalProject.dto.instructor.profile.InstructorCareerDto"
             useGeneratedKeys="true"
             keyProperty="careerSn"
             keyColumn="CAREER_SN">
@@ -110,7 +110,7 @@
     <!--   LAST_MDFR_ID / MDFCN_DT 이력 갱신         -->
     <!-- ──────────────────────────────────────────── -->
     <update id="updateCareer"
-            parameterType="kr.or.ddit.finalProject.dto.instructor.InstructorCareerDto">
+            parameterType="kr.or.ddit.finalProject.dto.instructor.profile.InstructorCareerDto">
         UPDATE INSTRUCTOR_CAREER
         SET
             CAREER_TYPE_CD = #{careerTypeCd},

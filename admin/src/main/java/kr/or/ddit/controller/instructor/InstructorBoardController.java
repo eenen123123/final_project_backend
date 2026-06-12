@@ -1,4 +1,4 @@
-package kr.or.ddit.controller.instructor;
+﻿package kr.or.ddit.controller.instructor;
 
 import java.util.List;
 
@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.or.ddit.finalProject.dto.common.CommonCodeDto;
-import kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto;
-import kr.or.ddit.finalProject.dto.instructor.InstructorBoardResponse;
+import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
+import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardResponse;
 import kr.or.ddit.finalProject.mapper.common.CommonCodeMapper;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
 import lombok.RequiredArgsConstructor;

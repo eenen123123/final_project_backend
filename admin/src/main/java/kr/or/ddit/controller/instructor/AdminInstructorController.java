@@ -1,4 +1,4 @@
-package kr.or.ddit.controller.instructor;
+﻿package kr.or.ddit.controller.instructor;
 
 import java.util.List;
 
@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import kr.or.ddit.finalProject.dto.instructor.InstructorCareerDto;
-import kr.or.ddit.finalProject.dto.instructor.InstructorCareerSaveRequest;
-import kr.or.ddit.finalProject.dto.instructor.InstructorDto;
-import kr.or.ddit.finalProject.dto.instructor.InstructorIntroUpdateRequest;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorCareerDto;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorCareerSaveRequest;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorDto;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorIntroUpdateRequest;
 import kr.or.ddit.finalProject.service.instructor.InstructorService;
 import lombok.RequiredArgsConstructor;
 

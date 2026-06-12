@@ -1,4 +1,4 @@
-package kr.or.ddit.finalProject.service.course;
+﻿package kr.or.ddit.finalProject.service.course;
 
 import java.util.List;
 
@@ -7,7 +7,7 @@ import kr.or.ddit.finalProject.dto.course.AdminCourseSearchCondition;
 import kr.or.ddit.finalProject.dto.course.CourseDetailResponse;
 import kr.or.ddit.finalProject.dto.course.CourseDto;
 import kr.or.ddit.finalProject.dto.course.CourseResponseDto;
-import kr.or.ddit.finalProject.dto.instructor.InstructorPublicCourseResponse;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorPublicCourseResponse;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.dto.subject.SubjectClassificationDto;
 import kr.or.ddit.finalProject.dto.subject.SubjectDto;

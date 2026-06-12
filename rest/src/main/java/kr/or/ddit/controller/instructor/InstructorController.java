@@ -1,4 +1,4 @@
-package kr.or.ddit.controller.instructor;
+﻿package kr.or.ddit.controller.instructor;
 
 import java.util.List;
 import java.util.Map;
@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.course.CourseDetailResponse;
-import kr.or.ddit.finalProject.dto.instructor.InstructorDetailResponse;
-import kr.or.ddit.finalProject.dto.instructor.InstructorFeaturedCourseResponse;
-import kr.or.ddit.finalProject.dto.instructor.InstructorListResponse;
-import kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardDetail;
-import kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardItem;
-import kr.or.ddit.finalProject.dto.instructor.InstructorPublicCourseResponse;
-import kr.or.ddit.finalProject.dto.instructor.InstructorRecentPostResponse;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorDetailResponse;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorFeaturedCourseResponse;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorListResponse;
+import kr.or.ddit.finalProject.dto.instructor.board.InstructorPublicBoardDetail;
+import kr.or.ddit.finalProject.dto.instructor.board.InstructorPublicBoardItem;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorPublicCourseResponse;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorRecentPostResponse;
 import kr.or.ddit.finalProject.service.course.CourseService;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
 import kr.or.ddit.finalProject.service.instructor.InstructorService;

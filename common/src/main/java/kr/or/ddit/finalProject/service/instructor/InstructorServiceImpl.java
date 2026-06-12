@@ -1,4 +1,4 @@
-package kr.or.ddit.finalProject.service.instructor;
+﻿package kr.or.ddit.finalProject.service.instructor;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -12,13 +12,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import kr.or.ddit.finalProject.dto.instructor.InstructorCareerDto;
-import kr.or.ddit.finalProject.dto.instructor.InstructorCareerSaveRequest;
-import kr.or.ddit.finalProject.dto.instructor.InstructorDetailResponse;
-import kr.or.ddit.finalProject.dto.instructor.InstructorDto;
-import kr.or.ddit.finalProject.dto.instructor.InstructorFeaturedCourseResponse;
-import kr.or.ddit.finalProject.dto.instructor.InstructorListResponse;
-import kr.or.ddit.finalProject.dto.instructor.InstructorRecentPostResponse;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorCareerDto;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorCareerSaveRequest;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorDetailResponse;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorDto;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorFeaturedCourseResponse;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorListResponse;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorRecentPostResponse;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.mapper.instructor.InstructorBoardMapper;

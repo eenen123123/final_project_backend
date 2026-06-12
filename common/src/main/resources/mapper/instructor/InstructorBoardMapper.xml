@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
       "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 
 <mapper namespace="kr.or.ddit.finalProject.mapper.instructor.InstructorBoardMapper">
-      <resultMap id="instructorBoardMap" type="kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto">
+      <resultMap id="instructorBoardMap" type="kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto">
             <id property="postSn" column="POST_SN" />
             <result property="instrUserId" column="INSTR_USER_ID"/>
             <result property="wrtrUserId" column="WRTR_USER_ID"/>
@@ -250,7 +250,7 @@
       </update>
 
       <select id="selectRecentPosts"
-              resultType="kr.or.ddit.finalProject.dto.instructor.InstructorRecentPostResponse">
+              resultType="kr.or.ddit.finalProject.dto.instructor.profile.InstructorRecentPostResponse">
             SELECT *
             FROM (
                   SELECT
@@ -276,7 +276,7 @@
       <!-- ── 공개 강사 게시판 Q&A 답변 ─────────────────────────────── -->
 
       <select id="selectInstructorQnaAnswer"
-              resultType="kr.or.ddit.finalProject.dto.instructor.InstructorQnaAnswerDto">
+              resultType="kr.or.ddit.finalProject.dto.instructor.board.InstructorQnaAnswerDto">
             SELECT
                   IQ.ANSW_YN  AS answYn,
                   IQ.ANSW_CN  AS answCn,
@@ -312,7 +312,7 @@
       </select>
 
       <select id="selectPrevPost"
-              resultType="kr.or.ddit.finalProject.dto.instructor.PostNavItem">
+              resultType="kr.or.ddit.finalProject.dto.instructor.board.PostNavItem">
             SELECT IB.POST_SN AS postSn, IB.POST_SJ AS title
             FROM INSTRUCTOR_BOARD IB
                   INNER JOIN INSTRUCTOR I ON IB.INSTR_USER_ID = I.INSTR_USER_ID
@@ -326,7 +326,7 @@
       </select>
 
       <select id="selectNextPost"
-              resultType="kr.or.ddit.finalProject.dto.instructor.PostNavItem">
+              resultType="kr.or.ddit.finalProject.dto.instructor.board.PostNavItem">
             SELECT IB.POST_SN AS postSn, IB.POST_SJ AS title
             FROM INSTRUCTOR_BOARD IB
                   INNER JOIN INSTRUCTOR I ON IB.INSTR_USER_ID = I.INSTR_USER_ID
@@ -340,7 +340,7 @@
       </select>
 
       <select id="selectBoardFiles"
-              resultType="kr.or.ddit.finalProject.dto.instructor.InstructorBoardFileItem">
+              resultType="kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardFileItem">
             SELECT
                   CAF.ATCH_FILE_DTL_SN AS atchFileDtlSn,
                   CAF.ORGN_FILE_NM     AS fileName,
@@ -378,7 +378,7 @@
       </select>
 
       <select id="selectPublicBoardList"
-              resultType="kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardItem">
+              resultType="kr.or.ddit.finalProject.dto.instructor.board.InstructorPublicBoardItem">
             SELECT
                   IB.POST_SN                                               AS postSn,
                   IB.POST_SJ                                               AS title,
@@ -404,7 +404,7 @@
       </select>
 
       <select id="selectPublicBoardDetail"
-              resultType="kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardDetail">
+              resultType="kr.or.ddit.finalProject.dto.instructor.board.InstructorPublicBoardDetail">
             SELECT
                   IB.POST_SN                                               AS postSn,
                   IB.BOARD_TYPE_CD                                         AS boardTypeCd,

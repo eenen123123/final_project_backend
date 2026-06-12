@@ -1,4 +1,4 @@
-package kr.or.ddit.finalProject.mapper.course;
+﻿package kr.or.ddit.finalProject.mapper.course;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ import kr.or.ddit.finalProject.dto.course.CourseDto;
 import kr.or.ddit.finalProject.dto.course.CourseLectureItem;
 import kr.or.ddit.finalProject.dto.course.CourseResponseDto;
 import kr.or.ddit.finalProject.dto.course.CourseSearchCondition;
-import kr.or.ddit.finalProject.dto.instructor.InstructorPublicCourseResponse;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorPublicCourseResponse;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.dto.subject.SubjectClassificationDto;
 import kr.or.ddit.finalProject.dto.subject.SubjectDto;

@@ -1,12 +1,12 @@
-package kr.or.ddit.finalProject.service.instructor;
+﻿package kr.or.ddit.finalProject.service.instructor;
 
 import java.util.List;
 
 import kr.or.ddit.finalProject.dto.common.PageResponse;
-import kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto;
-import kr.or.ddit.finalProject.dto.instructor.InstructorBoardResponse;
-import kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardDetail;
-import kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardItem;
+import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
+import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardResponse;
+import kr.or.ddit.finalProject.dto.instructor.board.InstructorPublicBoardDetail;
+import kr.or.ddit.finalProject.dto.instructor.board.InstructorPublicBoardItem;
 
 public interface InstructorBoardService {
 

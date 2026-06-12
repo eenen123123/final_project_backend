@@ -1,11 +1,11 @@
-package kr.or.ddit.finalProject.service.instructor;
+﻿package kr.or.ddit.finalProject.service.instructor;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import kr.or.ddit.finalProject.dto.instructor.InstructorJournalDto;
+import kr.or.ddit.finalProject.dto.instructor.journal.InstructorJournalDto;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.mapper.instructor.InstructorJournalMapper;
