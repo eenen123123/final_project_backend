@@ -71,7 +71,7 @@
             NVL(#{rsrvWaitCnt, jdbcType=NUMERIC}, 0),
             NVL(#{dmgdDspslCnt, jdbcType=NUMERIC}, 0),
             NVL(#{minKeepCnt, jdbcType=NUMERIC}, 0),
-            NVL(#{invtStatCd, jdbcType=CHAR}, '10'),
+            NVL(#{invtStatCd, jdbcType=VARCHAR}, 'NORMAL'),
             #{rgtrId},
             #{lastMdfrId},
             CURRENT_TIMESTAMP,
@@ -89,7 +89,7 @@
             , RSRV_WAIT_CNT = #{rsrvWaitCnt, jdbcType=NUMERIC}
             , DMGD_DSPSL_CNT = #{dmgdDspslCnt, jdbcType=NUMERIC}
             , MIN_KEEP_CNT = #{minKeepCnt, jdbcType=NUMERIC}
-            , INVT_STAT_CD = #{invtStatCd, jdbcType=CHAR}
+            , INVT_STAT_CD = #{invtStatCd, jdbcType=VARCHAR}
             , LAST_MDFR_ID = #{lastMdfrId}
             , MDFCN_DT     = CURRENT_TIMESTAMP
         WHERE TEXTBOOK_SN = #{textbookSn}
@@ -112,7 +112,7 @@
             #{chgCnt},
             #{bfrChgCnt, jdbcType=NUMERIC},
             #{aftChgCnt, jdbcType=NUMERIC},
-            #{relDutyTypeCd, jdbcType=CHAR},
+            #{relDutyTypeCd, jdbcType=VARCHAR},
             #{relDutyId, jdbcType=NUMERIC},
             CURRENT_TIMESTAMP,
             #{procUserId}
