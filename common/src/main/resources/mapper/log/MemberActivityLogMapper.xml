@@ -6,8 +6,9 @@
 
     <insert id="insertMemberActivityLog" parameterType="kr.or.ddit.finalProject.dto.log.MemberActivityLogDto">
         INSERT INTO MEMBER_ACTIVITY_LOG (
-            USER_ID, ACTIVITY_TYPE, TARGET_ID, ACTIVITY_IP
+            TRACE_ID, USER_ID, ACTIVITY_TYPE, TARGET_ID, ACTIVITY_IP
         ) VALUES (
+            #{traceId},
             #{userId},
             #{activityType},
             #{targetId},
