@@ -1,4 +1,4 @@
-﻿package kr.or.ddit.finalProject.mapper.instructor;
+package kr.or.ddit.finalProject.mapper.instructor;
 
 import java.util.List;
 

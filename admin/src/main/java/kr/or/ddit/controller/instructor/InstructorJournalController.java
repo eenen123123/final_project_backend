@@ -1,4 +1,4 @@
-﻿package kr.or.ddit.controller.instructor;
+package kr.or.ddit.controller.instructor;
 
 import java.util.List;
 

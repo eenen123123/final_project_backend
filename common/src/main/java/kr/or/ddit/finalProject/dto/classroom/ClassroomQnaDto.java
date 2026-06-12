@@ -1,4 +1,4 @@
-﻿package kr.or.ddit.finalProject.dto.classroom;
+package kr.or.ddit.finalProject.dto.classroom;
 
 import java.time.LocalDateTime;
 
