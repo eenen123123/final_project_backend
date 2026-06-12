@@ -66,12 +66,12 @@
         <tr th:each="course : ${courseList}"
             th:data-sn="${course.courseSn}"
             th:data-nm="${course.courseNm}"
-            th:data-instr="${course.instrUserNm}"
+            th:data-instr="${course.instrNm}"
             th:data-subj-cl-id="${course.subjClId}"
             class="border-t border-slate-100 hover:bg-amber-50 cursor-pointer transition-colors"
             onclick="selectCourse(this)">
           <td class="px-5 py-3 font-medium text-slate-800" th:text="${course.courseNm}"></td>
-          <td class="px-4 py-3 text-slate-500" th:text="${course.instrUserNm ?: '-'}"></td>
+          <td class="px-4 py-3 text-slate-500" th:text="${course.instrNm ?: '-'}"></td>
           <td class="px-4 py-3 text-slate-500" th:text="${course.subjNm ?: '-'}"></td>
         </tr>
       </tbody>

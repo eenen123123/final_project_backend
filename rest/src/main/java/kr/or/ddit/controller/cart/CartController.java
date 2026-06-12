@@ -9,14 +9,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import kr.or.ddit.finalProject.dto.cart.CartDto;
-import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.service.cart.CartService;
-import kr.or.ddit.finalProject.service.member.MemberService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -25,25 +22,19 @@ import lombok.RequiredArgsConstructor;
 public class CartController {
 
     private final CartService cartService;
-    private final MemberService memberService;
 
     // GET /api/cart
     @GetMapping
-    public ResponseEntity<List<CartDto>> getCart(
-            @RequestHeader("Authorization") String authHeader,
-            Authentication authentication) {
-        String userId = authentication.getName(); // Spring Security에서 인증된 사용자 ID 가져오기
-
+    public ResponseEntity<List<CartDto>> getCart(Authentication authentication) {
+        String userId = authentication.getName();
         return ResponseEntity.ok(cartService.retrieveCart(userId));
     }
 
     // POST /api/cart
     @PostMapping
-    public ResponseEntity<String> addToCart(
-            @RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<String> addToCart(Authentication authentication,
             @RequestBody CartDto cartDto) {
-        String userId = getuserId(authHeader);
-        cartDto.setUserId(userId);
+        cartDto.setUserId(authentication.getName());
         boolean duplicate = cartService.addToCart(cartDto);
         if (duplicate) {
             return ResponseEntity.ok("이미 장바구니에 담긴 상품입니다.");
@@ -53,26 +44,16 @@ public class CartController {
 
     // DELETE /api/cart/{cartSn}
     @DeleteMapping("/{cartSn}")
-    public ResponseEntity<Void> removeCartItem(
-            @RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<Void> removeCartItem(Authentication authentication,
             @PathVariable Long cartSn) {
-        String userId = getuserId(authHeader);
-        cartService.removeCartItem(cartSn, userId);
+        cartService.removeCartItem(cartSn, authentication.getName());
         return ResponseEntity.noContent().build();
     }
 
     // DELETE /api/cart
     @DeleteMapping
-    public ResponseEntity<Void> clearCart(
-            @RequestHeader("Authorization") String authHeader) {
-        String userId = getuserId(authHeader);
-        cartService.clearCart(userId);
+    public ResponseEntity<Void> clearCart(Authentication authentication) {
+        cartService.clearCart(authentication.getName());
         return ResponseEntity.noContent().build();
-    }
-
-    private String getuserId(String authHeader) {
-        String token = authHeader.replace("Bearer ", "");
-        MemberDto member = memberService.getMemberByToken(token);
-        return member.getUserId();
     }
 }

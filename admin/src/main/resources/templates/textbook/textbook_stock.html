@@ -60,7 +60,48 @@
     </div>
   </div>
 
-  <!-- ③ 재고 수정 폼 -->
+  <!-- ③ 입/출고 등록 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+    <h2 class="text-sm font-bold text-slate-700 pb-3 border-b border-slate-100 mb-5">
+      <i class="fa-solid fa-arrow-right-arrow-left mr-2 text-violet-500"></i>입/출고 등록
+    </h2>
+    <form th:action="@{/admin/textbook/stock/{sn}/history(sn=${textbookSn})}" method="post"
+          class="flex flex-wrap items-end gap-4"
+          onsubmit="return confirm('입/출고 내역을 등록하시겠습니까?')"
+
+      <!-- 유형 -->
+      <div class="flex-1 min-w-48">
+        <label class="block text-xs font-bold text-slate-500 mb-1.5">유형 (사유)</label>
+        <select name="relDutyTypeCd" class="hm-input w-full">
+          <optgroup label="입고">
+            <option value="10">재고 입고</option>
+            <option value="20">반품 입고</option>
+          </optgroup>
+          <optgroup label="출고">
+            <option value="30">파손/폐기</option>
+            <option value="40">판매 출고</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <!-- 수량 -->
+      <div class="flex-1 min-w-36">
+        <label class="block text-xs font-bold text-slate-500 mb-1.5">수량</label>
+        <input type="number" name="chgCnt" class="hm-input w-full" min="1" placeholder="0" required />
+      </div>
+
+      <!-- 버튼 -->
+      <div>
+        <button type="submit" class="hm-btn-primary whitespace-nowrap">
+          <i class="fa-solid fa-plus"></i>
+          <span>등록</span>
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- ④ 재고 수정 폼 -->
   <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
     <h2 class="text-sm font-bold text-slate-700 pb-3 border-b border-slate-100 mb-5">
       <i class="fa-solid fa-pen mr-2 text-blue-500"></i>재고 수정
@@ -68,7 +109,8 @@
     <form th:action="@{/admin/textbook/stock/{sn}(sn=${textbookSn})}"
           th:object="${inventoryDto}"
           method="post"
-          class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          class="grid grid-cols-1 md:grid-cols-3 gap-5"
+          onsubmit="return confirm('재고를 수정하시겠습니까?')"
 
       <!-- 총 재고 -->
       <div>
@@ -78,8 +120,11 @@
 
       <!-- 판매 가능 -->
       <div>
-        <label class="block text-xs font-bold text-slate-500 mb-1.5">판매 가능 수량</label>
-        <input type="number" th:field="*{salableCnt}" class="hm-input w-full" min="0" />
+        <label class="block text-xs font-bold text-slate-500 mb-1.5">
+          판매 가능 수량
+          <span class="text-[10px] font-normal text-slate-400 ml-1">(자동 계산)</span>
+        </label>
+        <input type="number" th:field="*{salableCnt}" class="hm-input w-full bg-slate-50 text-slate-400 cursor-not-allowed" readonly />
       </div>
 
       <!-- 최소 유지 수량 -->
@@ -155,6 +200,7 @@
         <thead>
           <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
             <th class="py-4 px-6 text-center">유형</th>
+            <th class="py-4 px-6 text-left">사유</th>
             <th class="py-4 px-6 text-right">변경 수량</th>
             <th class="py-4 px-6 text-right">변경 전</th>
             <th class="py-4 px-6 text-right">변경 후</th>
@@ -162,17 +208,17 @@
             <th class="py-4 px-6 text-center">처리일시</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+        <tbody id="history-table-body" class="divide-y divide-slate-50 text-sm text-slate-700">
 
           <!-- 데이터 없을 때 -->
           <tr th:if="${#lists.isEmpty(historyList)}">
-            <td colspan="6" class="py-16 text-center text-slate-400 text-sm">
+            <td colspan="7" class="py-16 text-center text-slate-400 text-sm">
               입출고 내역이 없습니다.
             </td>
           </tr>
 
           <!-- 내역 목록 -->
-          <tr th:each="history : ${historyList}" class="hover:bg-slate-50/50 transition-colors">
+          <tr th:each="history : ${historyList}" class="history-row hover:bg-slate-50/50 transition-colors">
             <!-- 유형 -->
             <td class="py-4 px-6 text-center">
               <span th:if="${history.ioTypeCd == '10'}"
@@ -184,10 +230,18 @@
                 <i class="fa-solid fa-arrow-up mr-1"></i>출고
               </span>
             </td>
+            <!-- 사유 -->
+            <td class="py-4 px-6 text-left">
+              <span class="text-xs text-slate-600"
+                th:text="${history.relDutyTypeCd == '10' ? '재고 입고' :
+                           history.relDutyTypeCd == '20' ? '반품 입고' :
+                           history.relDutyTypeCd == '30' ? '파손/폐기' :
+                           history.relDutyTypeCd == '40' ? '판매 출고' : '-'}">-</span>
+            </td>
             <!-- 변경 수량 -->
             <td class="py-4 px-6 text-right font-bold"
                 th:classappend="${history.ioTypeCd == '10'} ? 'text-emerald-600' : 'text-rose-600'"
-                th:text="${history.ioTypeCd == '10'} ? '+' + history.chgCnt : '-' + history.chgCnt">0</td>
+                th:text="${(history.ioTypeCd == '10' ? '+' : '-') + history.chgCnt}">0</td>
             <!-- 변경 전 -->
             <td class="py-4 px-6 text-right text-slate-500" th:text="${history.bfrChgCnt}">0</td>
             <!-- 변경 후 -->
@@ -203,25 +257,69 @@
       </table>
     </div>
 
-    <!-- 페이지네이션 -->
-    <div th:if="${paginationInfo.totalPage > 1}"
-         class="flex items-center justify-center gap-1 py-5 border-t border-slate-100">
-      <a th:href="@{/admin/textbook/stock/{sn}(sn=${textbookSn}, page=${paginationInfo.startPage - 1}, ioTypeCd=${param.ioTypeCd}, startDt=${param.startDt}, endDt=${param.endDt}, keyword=${param.keyword})}"
-         th:classappend="${paginationInfo.startPage == 1} ? 'pointer-events-none opacity-30' : ''"
-         class="w-8 h-8 flex items-center justify-center border border-slate-200 rounded text-slate-400 hover:bg-slate-50 text-sm">‹</a>
-
-      <th:block th:each="p : ${#numbers.sequence(paginationInfo.startPage, paginationInfo.endPage)}">
-        <a th:href="@{/admin/textbook/stock/{sn}(sn=${textbookSn}, page=${p}, ioTypeCd=${param.ioTypeCd}, startDt=${param.startDt}, endDt=${param.endDt}, keyword=${param.keyword})}"
-           th:text="${p}"
-           th:classappend="${p == paginationInfo.page} ? 'bg-blue-950 text-white border-blue-950' : 'text-slate-500 border-slate-200 hover:bg-slate-50'"
-           class="w-8 h-8 flex items-center justify-center border rounded text-xs font-medium transition-colors">1</a>
-      </th:block>
-
-      <a th:href="@{/admin/textbook/stock/{sn}(sn=${textbookSn}, page=${paginationInfo.endPage + 1}, ioTypeCd=${param.ioTypeCd}, startDt=${param.startDt}, endDt=${param.endDt}, keyword=${param.keyword})}"
-         th:classappend="${paginationInfo.endPage >= paginationInfo.totalPage} ? 'pointer-events-none opacity-30' : ''"
-         class="w-8 h-8 flex items-center justify-center border border-slate-200 rounded text-slate-400 hover:bg-slate-50 text-sm">›</a>
+    <!-- JS 페이지네이션 -->
+    <div id="history-pagination-wrap" class="flex items-center justify-between px-6 py-4 border-t border-slate-100">
+      <p class="text-xs text-slate-400" id="history-pagination-info"></p>
+      <div id="history-pagination" class="flex items-center gap-1"></div>
     </div>
 
   </div>
+
+<script>
+  const HISTORY_PAGE_SIZE = 10;
+  const HISTORY_BLOCK_SIZE = 5;
+  let currentHistoryPage = 1;
+
+  function applyHistoryPaging() {
+    const tbody = document.getElementById('history-table-body');
+    if (!tbody) return;
+    const allRows = Array.from(tbody.querySelectorAll('.history-row'));
+    allRows.forEach(r => r.style.display = 'none');
+    const offset = (currentHistoryPage - 1) * HISTORY_PAGE_SIZE;
+    allRows.slice(offset, offset + HISTORY_PAGE_SIZE).forEach(r => r.style.display = '');
+    renderHistoryPagination(allRows.length);
+  }
+
+  function renderHistoryPagination(totalCount) {
+    const container = document.getElementById('history-pagination');
+    const info = document.getElementById('history-pagination-info');
+    const wrap = document.getElementById('history-pagination-wrap');
+    if (!container) return;
+
+    const totalPage = Math.ceil(totalCount / HISTORY_PAGE_SIZE);
+    const start = totalCount === 0 ? 0 : (currentHistoryPage - 1) * HISTORY_PAGE_SIZE + 1;
+    const end = Math.min(currentHistoryPage * HISTORY_PAGE_SIZE, totalCount);
+
+    if (info) {
+      info.textContent = totalCount === 0 ? '내역이 없습니다.' : `전체 ${totalCount}건 중 ${start}–${end} 표시`;
+    }
+    if (wrap) wrap.style.display = totalPage <= 1 ? 'none' : 'flex';
+    if (totalPage <= 1) { container.innerHTML = ''; return; }
+
+    const endPage = Math.min(Math.ceil(currentHistoryPage / HISTORY_BLOCK_SIZE) * HISTORY_BLOCK_SIZE, totalPage);
+    const startPage = Math.max(endPage - HISTORY_BLOCK_SIZE + 1, 1);
+    const BASE = 'w-8 h-8 rounded-lg text-xs flex items-center justify-center cursor-pointer transition-colors';
+
+    let html = '';
+    if (startPage > 1) {
+      html += `<button onclick="goHistoryPage(${startPage - 1})" class="${BASE} text-slate-400 hover:bg-slate-100">‹</button>`;
+    }
+    for (let p = startPage; p <= endPage; p++) {
+      const cls = p === currentHistoryPage ? 'bg-blue-500 text-white font-bold' : 'text-slate-500 hover:bg-slate-100';
+      html += `<button onclick="goHistoryPage(${p})" class="${BASE} ${cls}">${p}</button>`;
+    }
+    if (endPage < totalPage) {
+      html += `<button onclick="goHistoryPage(${endPage + 1})" class="${BASE} text-slate-400 hover:bg-slate-100">›</button>`;
+    }
+    container.innerHTML = html;
+  }
+
+  function goHistoryPage(p) {
+    currentHistoryPage = p;
+    applyHistoryPaging();
+  }
+
+  document.addEventListener('DOMContentLoaded', applyHistoryPaging);
+</script>
 
 </div>
