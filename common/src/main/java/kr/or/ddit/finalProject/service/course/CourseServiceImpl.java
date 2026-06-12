@@ -56,7 +56,10 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
-    public boolean createCourse(CourseDto courseDto) {
+    public boolean createCourse(CourseDto courseDto, String currentUserId) {
+        courseDto.setInstrUserId(currentUserId);
+        courseDto.setRgtrId(currentUserId);
+        courseDto.setLastMdfrId(currentUserId);
         assignNextSortOrd(courseDto);
         try {
             return courseMapper.insertCourse(courseDto) > 0;
@@ -75,9 +78,8 @@ public class CourseServiceImpl implements CourseService {
         if (original == null) {
             throw new IllegalArgumentException("존재하지 않는 강좌입니다.");
         }
-        if (!currentUserId.equals(original.getInstrUserId())) {
-            throw new SecurityException("본인이 작성한 강좌만 수정할 수 있습니다.");
-        }
+        // TODO: 강좌 관리를 강사 전용 페이지로 이관 시 소유권 체크 활성화
+        // if (!currentUserId.equals(original.getInstrUserId())) throw new SecurityException(...)
 
         Long oldCurriculumId = original.getCurriculumId();
         Long newCurriculumId = courseDto.getCurriculumId();
@@ -120,14 +122,18 @@ public class CourseServiceImpl implements CourseService {
         if (original == null) {
             throw new IllegalArgumentException("존재하지 않는 강좌입니다.");
         }
-        if (!currentUserId.equals(original.getInstrUserId())) {
-            throw new SecurityException("본인이 작성한 강좌만 삭제할 수 있습니다.");
-        }
+        // TODO: 강좌 관리를 강사 전용 페이지로 이관 시 소유권 체크 추가
+        // if (!currentUserId.equals(original.getInstrUserId())) throw new SecurityException(...)
         int lectureCount = courseMapper.countLectureByCourse(courseSn);
         if (lectureCount > 0) {
             throw new IllegalArgumentException("강의가 존재하는 강좌는 삭제할 수 없습니다. 강의를 먼저 삭제해 주세요.");
         }
         courseMapper.deleteCourse(courseSn);
+        Long curriculumId = original.getCurriculumId();
+        Integer sortOrd = original.getSortOrd();
+        if (curriculumId != null && sortOrd != null && sortOrd > 0) {
+            courseMapper.resequenceSortOrd(curriculumId, sortOrd);
+        }
     }
 
     @Override
@@ -162,17 +168,10 @@ public class CourseServiceImpl implements CourseService {
         PaginationInfo<CourseSearchCondition> paginationInfo = new PaginationInfo<>(10, page);
         CourseSearchCondition searchCondition = new CourseSearchCondition();
         switch (category) {
-            case "instructor":
-                searchCondition.setInstructorName(keyword);
-                break;
-            case "subject":
-                searchCondition.setSubjectName(keyword);
-                break;
-            case "courseName":
-                searchCondition.setCourseName(keyword);
-                break;
-            default:
-                break;
+            case "instructor" -> searchCondition.setInstructorName(keyword);
+            case "subject"    -> searchCondition.setSubjectName(keyword);
+            case "courseName" -> searchCondition.setCourseName(keyword);
+            default           -> {}
         }
         paginationInfo.setDetailCondition(searchCondition);
 
