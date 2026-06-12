@@ -52,6 +52,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                 // List.of(new SimpleGrantedAuthority(user.getUserRole())));
                                 List.of(new SimpleGrantedAuthority(user.getUserRole())));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                // 활동 로그용으로 request attribute에도 저장 (SecurityContext 유실 대비)
+                request.setAttribute("TOKEN_USER_ID", user.getUserId());
+            } else {
+                // 만료된 토큰이라도 userId는 활동 로그 기록을 위해 보존
+                String userId = jwtTokenProvider.getUserIdIgnoreExpiry(token);
+                if (userId != null) {
+                    request.setAttribute("TOKEN_USER_ID", userId);
+                }
             }
         }
         filterChain.doFilter(request, response);

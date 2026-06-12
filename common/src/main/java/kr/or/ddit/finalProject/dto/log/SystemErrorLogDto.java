@@ -14,6 +14,7 @@ public class SystemErrorLogDto {
     private String traceId;
     private String errorCode;
     private String requestUri;
+    private String requestIp;
     private String errorMessage;
     private String createdAt;
 }

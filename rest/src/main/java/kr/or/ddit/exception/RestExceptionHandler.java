@@ -1,7 +1,8 @@
 package kr.or.ddit.exception;
 
-import java.util.UUID;
 import java.util.stream.Collectors;
+import kr.or.ddit.finalProject.util.ClientIpResolver;
+import kr.or.ddit.finalProject.util.TraceIdHolder;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +31,7 @@ public class RestExceptionHandler {
     public ResponseEntity<ErrorResponse> handle(FinalProjectException ex, HttpServletRequest request) {
         ErrorCode code = ex.getErrorCode();
         log.error("[FinalProjectException] {}", code.getMessage(), ex);
-        saveErrorLog(code.name(), request.getRequestURI(), code.getMessage());
+        saveErrorLog(code.name(), request, code.getMessage());
         return ResponseEntity.status(code.getStatus())
                 .body(new ErrorResponse(code.getStatus().value(), code.getMessage()));
     }
@@ -42,7 +43,7 @@ public class RestExceptionHandler {
                 .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
                 .collect(Collectors.joining(", "));
         log.warn("[Validation] {}", message);
-        saveErrorLog("VALIDATION_FAILED", request.getRequestURI(), message);
+        saveErrorLog("VALIDATION_FAILED", request, message);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), message));
     }
@@ -52,7 +53,7 @@ public class RestExceptionHandler {
     public ResponseEntity<ErrorResponse> handle(HttpMessageNotReadableException ex, HttpServletRequest request) {
         log.warn("[MessageNotReadable] {}", ex.getMessage());
 
-        saveErrorLog("INVALID_REQUEST_BODY", request.getRequestURI(), ex.getMessage());
+        saveErrorLog("INVALID_REQUEST_BODY", request, ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), "요청 형식이 올바르지 않습니다."));
     }
@@ -62,18 +63,19 @@ public class RestExceptionHandler {
     public ResponseEntity<ErrorResponse> handle(Exception ex, HttpServletRequest request) {
         log.error("[Unhandled Exception]", ex);
 
-        saveErrorLog(ex.getClass().getSimpleName(), request.getRequestURI(), ex.getMessage());
+        saveErrorLog(ex.getClass().getSimpleName(), request, ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "서버 내부 오류가 발생했습니다."));
     }
 
-    private void saveErrorLog(String errorCode, String requestUri, String errorMessage) {
+    private void saveErrorLog(String errorCode, HttpServletRequest request, String errorMessage) {
         try {
             errorLogMapper.insertSystemErrorLog(
                 SystemErrorLogDto.builder()
-                    .traceId(UUID.randomUUID().toString().replace("-", "").substring(0, 16))
+                    .traceId(TraceIdHolder.get())
                     .errorCode(truncate(errorCode, 50))
-                    .requestUri(truncate(requestUri, 255))
+                    .requestUri(truncate(request.getRequestURI(), 255))
+                    .requestIp(ClientIpResolver.resolve(request))
                     .errorMessage(truncate(errorMessage, 2000))
                     .build()
             );
