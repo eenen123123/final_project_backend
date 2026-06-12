@@ -31,7 +31,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class InstructorProfileServiceImpl implements InstructorProfileService {
+public class InstructorServiceImpl implements InstructorService {
 
     private final InstructorCareerMapper careerMapper;
     private final InstructorMapper instructorMapper;

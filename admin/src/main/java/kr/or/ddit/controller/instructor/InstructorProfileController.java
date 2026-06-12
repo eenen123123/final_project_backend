@@ -16,7 +16,7 @@ import kr.or.ddit.finalProject.dto.instructor.InstructorCareerDto;
 import kr.or.ddit.finalProject.dto.instructor.InstructorCareerSaveRequest;
 import kr.or.ddit.finalProject.dto.instructor.InstructorDto;
 import kr.or.ddit.finalProject.dto.instructor.InstructorIntroUpdateRequest;
-import kr.or.ddit.finalProject.service.instructor.InstructorProfileService;
+import kr.or.ddit.finalProject.service.instructor.InstructorService;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -38,7 +38,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class InstructorProfileController {
 
-    private final InstructorProfileService profileService;
+    private final InstructorService profileService;
 
     // ──────────────────────────────────────────────
     // 프로필 페이지 조회

@@ -14,7 +14,7 @@ import kr.or.ddit.finalProject.dto.instructor.InstructorListResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorRecentPostResponse;
 
 /**
- * 강사 개인 페이지 관리 서비스
+ * 강사 서비스
  *
  * [담당 기능] - 강사 기본 프로필 조회 (소개글, 프로필 이미지 URL) - 프로필 이미지 업로드 (Cloudinary →
  * INSTRUCTOR.INSTR_PROFILE_IMG) - 프로필 이미지 제거 (INSTRUCTOR.INSTR_PROFILE_IMG =
@@ -29,7 +29,7 @@ import kr.or.ddit.finalProject.dto.instructor.InstructorRecentPostResponse;
  * /instructor/profile/instructor/careers/{sn}/update POST
  * /instructor/profile/instructor/careers/{sn}/delete
  */
-public interface InstructorProfileService {
+public interface InstructorService {
 
     // ── 공개 강사 조회 ──────────────────────────────────────────────
 
