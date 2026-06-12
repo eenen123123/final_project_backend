@@ -129,7 +129,7 @@
     SET
       COURSE_NM       = #{courseNm},
       COURSE_EXPLN_CN = #{courseExplnCn, jdbcType=VARCHAR},
-      OPNN_YN         = NVL(#{opnnYn, jdbcType=CHAR}, 'Y'),
+      OPNN_YN         = #{opnnYn, jdbcType=CHAR},
       COURSE_PRICE    = #{coursePrice, jdbcType=NUMERIC},
       SUBJ_ID         = #{subjId, jdbcType=NUMERIC},
       CURRICULUM_ID   = #{curriculumId, jdbcType=NUMERIC},

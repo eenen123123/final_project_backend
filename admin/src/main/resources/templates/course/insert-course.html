@@ -22,7 +22,7 @@
       <p class="text-sm text-slate-500 mt-1"
          th:text="${course?.courseSn != null ? '강좌 정보를 수정합니다.' : '새 강좌 정보를 입력하여 등록합니다.'}">새 강좌 정보를 입력하여 등록합니다.</p>
     </div>
-    <a th:href="${course?.courseSn != null ? '/admin/course/detail?courseSn=' + course.courseSn : '/admin/course/list'}"
+    <a th:href="@{${course?.courseSn != null ? '/admin/course/detail' : '/admin/course/list'}(courseSn=${course?.courseSn})}"
        class="hm-btn-secondary">
       <i class="fa-solid fa-arrow-left text-xs"></i>
       <span th:text="${course?.courseSn != null ? '상세로' : '목록으로'}">목록으로</span>
@@ -37,7 +37,7 @@
   </div>
 
   <!-- 폼 -->
-  <form th:action="${course?.courseSn != null ? '/admin/course/edit' : '/admin/course/insert'}"
+  <form th:action="@{${course?.courseSn != null ? '/admin/course/edit' : '/admin/course/insert'}}"
         method="post" class="space-y-5" novalidate
         th:data-init-subj-cl-id="${course?.subjClId}"
         th:data-init-subj-id="${course?.subjId}">
@@ -112,7 +112,7 @@
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-xs font-medium text-slate-500 mb-1.5">과목 분류</label>
-          <select id="subjClId" class="hm-input hm-input-orange" onchange="loadSubjects(this.value)">
+          <select id="subjClId" name="subjClId" class="hm-input hm-input-orange" onchange="loadSubjects(this.value)">
             <option value="">— 선택 안 함 —</option>
             <option th:each="cl : ${subjClList}"
                     th:value="${cl.subjClId}"
@@ -143,7 +143,7 @@
 
     <!-- 버튼 -->
     <div class="flex justify-end gap-3">
-      <a th:href="${course?.courseSn != null ? '/admin/course/detail?courseSn=' + course.courseSn : '/admin/course/list'}"
+      <a th:href="@{${course?.courseSn != null ? '/admin/course/detail' : '/admin/course/list'}(courseSn=${course?.courseSn})}"
          class="hm-btn-secondary">
         취소
       </a>

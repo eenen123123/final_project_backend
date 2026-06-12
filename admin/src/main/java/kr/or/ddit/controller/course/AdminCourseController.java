@@ -174,16 +174,11 @@ public class AdminCourseController {
      */
     @GetMapping("/detail")
     public String courseDetail(@RequestParam Long courseSn,
-            Authentication authentication,
             RedirectAttributes redirectAttributes,
             Model model) {
         CourseDto course = courseService.retrieveCourseAdminDetail(courseSn);
         if (course == null) {
             redirectAttributes.addFlashAttribute("errorMsg", "존재하지 않는 강좌입니다.");
-            return "redirect:/admin/course/list";
-        }
-        if (!authentication.getName().equals(course.getInstrUserId())) {
-            redirectAttributes.addFlashAttribute("errorMsg", "본인이 작성한 강좌만 조회할 수 있습니다.");
             return "redirect:/admin/course/list";
         }
         model.addAttribute("course", course);

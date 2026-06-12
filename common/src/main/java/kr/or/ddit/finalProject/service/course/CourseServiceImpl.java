@@ -61,6 +61,8 @@ public class CourseServiceImpl implements CourseService {
         try {
             return courseMapper.insertCourse(courseDto) > 0;
         } catch (DuplicateKeyException e) {
+            // Oracle은 constraint 위반 시 statement만 롤백하고 트랜잭션을 유지하므로 재시도 가능.
+            // 다른 DB(PostgreSQL 등)에서는 트랜잭션 자체가 aborted되어 재시도가 실패함.
             assignNextSortOrd(courseDto);
             return courseMapper.insertCourse(courseDto) > 0;
         }
@@ -92,6 +94,7 @@ public class CourseServiceImpl implements CourseService {
             try {
                 courseMapper.updateCourse(courseDto);
             } catch (DuplicateKeyException e) {
+                // Oracle statement-level rollback 특성을 이용한 재시도 (createCourse 참고).
                 courseDto.setSortOrd(courseMapper.selectMaxSortOrdByCurriculumId(newCurriculumId) + 1);
                 courseMapper.updateCourse(courseDto);
             }
