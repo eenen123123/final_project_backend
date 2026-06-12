@@ -11,7 +11,9 @@ import kr.or.ddit.finalProject.dto.pay.toss.TossPayRequest;
 import kr.or.ddit.finalProject.dto.pay.toss.TossPaymentResponse;
 import kr.or.ddit.finalProject.service.pay.TossPayConfirmService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/payments")
 @RequiredArgsConstructor
@@ -23,6 +25,7 @@ public class PayController {
     @PostMapping("/toss/confirm")
     public ResponseEntity<TossPaymentResponse> confirmTossPayment(Authentication authentication,
             @RequestBody TossPayRequest request) {
+        log.info("Received Toss payment confirmation request: {}", request);
         return ResponseEntity
                 .ok(tossPayConfirmService.confirmPayment(authentication.getName(), request));
     }
