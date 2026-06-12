@@ -117,11 +117,7 @@ public class InstructorCurriculumController {
         courseDto.setCourseExplnCn(request.getCourseExplnCn());
         courseDto.setOpnnYn(request.getOpnnYn() != null ? request.getOpnnYn() : "Y");
         courseDto.setSortOrd(request.getSortOrd());
-        courseDto.setInstrUserId(loginInstructorId);
-        courseDto.setRgtrId(loginInstructorId);
-        courseDto.setLastMdfrId(loginInstructorId);
-
-        boolean created = courseService.createCourse(courseDto);
+        boolean created = courseService.createCourse(courseDto, loginInstructorId);
         if (!created) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("FAIL");
         }

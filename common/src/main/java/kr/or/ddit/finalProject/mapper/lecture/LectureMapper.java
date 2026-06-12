@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-
+import kr.or.ddit.finalProject.dto.course.CourseDto;
 import kr.or.ddit.finalProject.dto.lecture.LectureDto;
 import kr.or.ddit.finalProject.dto.lecture.LectureProgressDto;
 import kr.or.ddit.finalProject.dto.lecture.LectureResponseDto;
@@ -24,8 +24,11 @@ public interface LectureMapper {
 
     int deleteLecture(@Param("lectureSn") Long lectureSn);
 
-    List<LectureResponseDto> selectLectureListByCourseSn(@Param("courseSn") Long courseSn, @Param("userId") String userId);
+    List<LectureResponseDto> selectLectureListByCourseSn(@Param("courseSn") Long courseSn,
+            @Param("userId") String userId);
 
     void updateLectureProgress(@Param("lectureId") Long lectureId, @Param("courseId") Long courseId,
             @Param("progress") Integer progress, @Param("userId") String userId);
+
+    CourseDto findCourseIdByFileServerId(@Param("fileServerId") long fileServerId);
 }

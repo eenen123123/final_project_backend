@@ -41,11 +41,11 @@ public interface CourseService {
     void updateCourseAtchFileId(Long courseSn, String atchFileId);
 
     /**
-     * 강좌를 등록한다.
+     * 강좌를 등록한다. currentUserId는 강사·등록자·최종수정자 ID로 기록된다.
      *
      * @return 등록 성공 여부
      */
-    boolean createCourse(CourseDto courseDto);
+    boolean createCourse(CourseDto courseDto, String currentUserId);
 
     /**
      * 강좌 정보를 수정한다. currentUserId는 최종 수정자 ID로 기록된다.

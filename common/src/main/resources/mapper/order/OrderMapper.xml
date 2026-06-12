@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.order.OrderMapper">
+
+    <resultMap id="orderResultMap" type="kr.or.ddit.finalProject.dto.order.OrderDto">
+        <id property="ordSn" column="ORD_SN"/>
+        <result property="ordId" column="ORD_ID"/>
+        <result property="userId" column="USER_ID"/>
+        <result property="ordNm" column="ORD_NM"/>
+        <result property="totAmt" column="TOT_AMT"/>
+        <result property="ordStatCd" column="ORD_STAT_CD"/>
+        <result property="regDt" column="REG_DT"/>
+        <result property="mdfcnDt" column="MDFCN_DT"/>
+    </resultMap>
+
+    <resultMap id="orderItemResultMap" type="kr.or.ddit.finalProject.dto.order.OrderItemDto">
+        <id property="ordItemSn" column="ORD_ITEM_SN"/>
+        <result property="ordSn" column="ORD_SN"/>
+        <result property="prodDivCd" column="PROD_DIV_CD"/>
+        <result property="prodSn" column="PROD_SN"/>
+        <result property="prodNm" column="PROD_NM"/>
+        <result property="prodPrice" column="PROD_PRICE"/>
+        <result property="itemQty" column="ITEM_QTY"/>
+        <result property="regDt" column="REG_DT"/>
+    </resultMap>
+
+    <insert id="insertOrder" parameterType="kr.or.ddit.finalProject.dto.order.OrderDto" useGeneratedKeys="true" keyProperty="ordSn" keyColumn="ORD_SN">
+        INSERT INTO ORDERS (ORD_ID, USER_ID, ORD_NM, TOT_AMT, ORD_STAT_CD)
+        VALUES (
+            #{ordId},
+            #{userId},
+            #{ordNm},
+            #{totAmt},
+            #{ordStatCd}
+        )
+    </insert>
+
+    <insert id="insertOrderItem" parameterType="kr.or.ddit.finalProject.dto.order.OrderItemDto" useGeneratedKeys="true" keyProperty="ordItemSn" keyColumn="ORD_ITEM_SN">
+        INSERT INTO ORDER_ITEM (ORD_SN, PROD_DIV_CD, PROD_SN, PROD_NM, PROD_PRICE, ITEM_QTY)
+        VALUES (
+            #{ordSn},
+            #{prodDivCd},
+            #{prodSn},
+            #{prodNm},
+            #{prodPrice},
+            NVL(#{itemQty}, 1)
+        )
+    </insert>
+
+    <select id="selectOrderByOrdId" resultMap="orderResultMap">
+        SELECT ORD_SN, ORD_ID, USER_ID, ORD_NM, TOT_AMT, ORD_STAT_CD, REG_DT, MDFCN_DT
+        FROM ORDERS
+        WHERE ORD_ID = #{ordId}
+    </select>
+
+    <select id="selectOrderItemsByOrdSn" resultMap="orderItemResultMap">
+        SELECT ORD_ITEM_SN, ORD_SN, PROD_DIV_CD, PROD_SN, PROD_NM, PROD_PRICE, ITEM_QTY, REG_DT
+        FROM ORDER_ITEM
+        WHERE ORD_SN = #{ordSn}
+    </select>
+
+    <update id="updateOrderStatus">
+        UPDATE ORDERS
+        SET ORD_STAT_CD = #{ordStatCd},
+            MDFCN_DT = CURRENT_TIMESTAMP
+        WHERE ORD_SN = #{ordSn}
+    </update>
+
+    <update id="expirePendingOrders">
+        UPDATE ORDERS
+        SET ORD_STAT_CD = 'EXPIRED',
+            MDFCN_DT = CURRENT_TIMESTAMP
+        WHERE USER_ID = #{userId}
+          AND ORD_STAT_CD = 'PENDING'
+    </update>
+
+    <!-- 주문 생성 시 서버 기준 가격 조회 (금액 위변조 방지) -->
+    <select id="selectCourseForOrder" resultMap="orderItemResultMap">
+        SELECT COURSE_NM AS PROD_NM, COURSE_PRICE AS PROD_PRICE
+        FROM COURSE
+        WHERE COURSE_SN = #{prodSn}
+    </select>
+
+    <select id="selectTextbookForOrder" resultMap="orderItemResultMap">
+        SELECT TEXTBOOK_NM AS PROD_NM, SALE_PRC_AMT AS PROD_PRICE
+        FROM TEXTBOOK
+        WHERE TEXTBOOK_SN = #{prodSn}
+          AND USE_YN = 'Y'
+    </select>
+
+</mapper>

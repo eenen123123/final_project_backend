@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
-
 @RestController
 @RequestMapping("/api/course")
 @RequiredArgsConstructor
@@ -34,13 +33,17 @@ public class CourseController {
     @GetMapping("/{id}")
     public ResponseEntity<Map<String, Object>> getCourse(@PathVariable Long id,
 
-        Authentication authentication
-    ) {
+            Authentication authentication) {
         CourseResponseDto course = courseService.retrieveCourse(id);
         if (course == null) {
             throw new FinalProjectException(ErrorCode.COURSE_NOT_FOUND);
         }
-        String userId = authentication.getName();
+        String userId;
+        if (authentication == null) {
+            userId = null; // 비회원인 경우 userId는 null로 설정
+        } else {
+            userId = authentication.getName();
+        }
         var lectures = lectureService.retrieveLectureListByCourseSn(id, userId);
         Map<String, Object> response = Map.of("course", course, "lectures", lectures);
         return ResponseEntity.ok(response);
