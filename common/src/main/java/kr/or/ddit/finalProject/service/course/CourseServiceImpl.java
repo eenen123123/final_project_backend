@@ -1,7 +1,9 @@
 package kr.or.ddit.finalProject.service.course;
 
 import java.util.List;
+import java.util.Objects;
 
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,7 +57,15 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional
     public boolean createCourse(CourseDto courseDto) {
-        return courseMapper.insertCourse(courseDto) > 0;
+        assignNextSortOrd(courseDto);
+        try {
+            return courseMapper.insertCourse(courseDto) > 0;
+        } catch (DuplicateKeyException e) {
+            // Oracle은 constraint 위반 시 statement만 롤백하고 트랜잭션을 유지하므로 재시도 가능.
+            // 다른 DB(PostgreSQL 등)에서는 트랜잭션 자체가 aborted되어 재시도가 실패함.
+            assignNextSortOrd(courseDto);
+            return courseMapper.insertCourse(courseDto) > 0;
+        }
     }
 
     @Override
@@ -68,8 +78,39 @@ public class CourseServiceImpl implements CourseService {
         if (!currentUserId.equals(original.getInstrUserId())) {
             throw new SecurityException("본인이 작성한 강좌만 수정할 수 있습니다.");
         }
+
+        Long oldCurriculumId = original.getCurriculumId();
+        Long newCurriculumId = courseDto.getCurriculumId();
+
         courseDto.setLastMdfrId(currentUserId);
-        courseMapper.updateCourse(courseDto);
+
+        if (!Objects.equals(oldCurriculumId, newCurriculumId)) {
+            Integer oldSortOrd = original.getSortOrd();
+            if (newCurriculumId != null) {
+                courseDto.setSortOrd(courseMapper.selectMaxSortOrdByCurriculumId(newCurriculumId) + 1);
+            } else {
+                courseDto.setSortOrd(null);
+            }
+            try {
+                courseMapper.updateCourse(courseDto);
+            } catch (DuplicateKeyException e) {
+                // Oracle statement-level rollback 특성을 이용한 재시도 (createCourse 참고).
+                courseDto.setSortOrd(courseMapper.selectMaxSortOrdByCurriculumId(newCurriculumId) + 1);
+                courseMapper.updateCourse(courseDto);
+            }
+            if (oldCurriculumId != null && oldSortOrd != null && oldSortOrd > 0) {
+                courseMapper.resequenceSortOrd(oldCurriculumId, oldSortOrd);
+            }
+        } else {
+            courseDto.setSortOrd(original.getSortOrd());
+            courseMapper.updateCourse(courseDto);
+        }
+    }
+
+    private void assignNextSortOrd(CourseDto courseDto) {
+        if (courseDto.getCurriculumId() != null) {
+            courseDto.setSortOrd(courseMapper.selectMaxSortOrdByCurriculumId(courseDto.getCurriculumId()) + 1);
+        }
     }
 
     @Override
