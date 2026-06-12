@@ -84,19 +84,19 @@ public class CourseServiceImpl implements CourseService {
 
         if (!Objects.equals(oldCurriculumId, newCurriculumId)) {
             Integer oldSortOrd = original.getSortOrd();
-            if (oldCurriculumId != null && oldSortOrd != null && oldSortOrd > 0) {
-                courseMapper.resequenceSortOrd(oldCurriculumId, oldSortOrd);
-            }
             if (newCurriculumId != null) {
                 courseDto.setSortOrd(courseMapper.selectMaxSortOrdByCurriculumId(newCurriculumId) + 1);
             } else {
-                courseDto.setSortOrd(0);
+                courseDto.setSortOrd(null);
             }
             try {
                 courseMapper.updateCourse(courseDto);
             } catch (DuplicateKeyException e) {
                 courseDto.setSortOrd(courseMapper.selectMaxSortOrdByCurriculumId(newCurriculumId) + 1);
                 courseMapper.updateCourse(courseDto);
+            }
+            if (oldCurriculumId != null && oldSortOrd != null && oldSortOrd > 0) {
+                courseMapper.resequenceSortOrd(oldCurriculumId, oldSortOrd);
             }
         } else {
             courseDto.setSortOrd(original.getSortOrd());

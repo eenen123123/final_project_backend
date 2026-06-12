@@ -61,6 +61,7 @@ public class AdminCourseController {
         String errorMsg = validateCourseForm(courseDto);
         if (errorMsg != null) {
             redirectAttributes.addFlashAttribute("errorMsg", errorMsg);
+            redirectAttributes.addFlashAttribute("course", courseDto);
             return "redirect:/admin/course/insert";
         }
         String userId = authentication.getName();
@@ -100,7 +101,9 @@ public class AdminCourseController {
             redirectAttributes.addFlashAttribute("errorMsg", "본인이 작성한 강좌만 수정할 수 있습니다.");
             return "redirect:/admin/course/list";
         }
-        model.addAttribute("course", course);
+        if (!model.containsAttribute("course")) {
+            model.addAttribute("course", course);
+        }
         model.addAttribute("curriculumList", curriculumService.retrieveList(userId));
         model.addAttribute("subjClList", courseService.retrieveSubjectClassificationList());
         return "admin:/course/insert-course";
@@ -120,6 +123,7 @@ public class AdminCourseController {
         String errorMsg = validateCourseForm(courseDto);
         if (errorMsg != null) {
             redirectAttributes.addFlashAttribute("errorMsg", errorMsg);
+            redirectAttributes.addFlashAttribute("course", courseDto);
             return "redirect:/admin/course/edit?courseSn=" + courseDto.getCourseSn();
         }
         String userId = authentication.getName();
@@ -169,8 +173,19 @@ public class AdminCourseController {
      * 강좌 상세 페이지 반환. courseSn으로 강좌 정보를 조회해 모델에 담는다.
      */
     @GetMapping("/detail")
-    public String courseDetail(@RequestParam Long courseSn, Model model) {
+    public String courseDetail(@RequestParam Long courseSn,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes,
+            Model model) {
         CourseDto course = courseService.retrieveCourseAdminDetail(courseSn);
+        if (course == null) {
+            redirectAttributes.addFlashAttribute("errorMsg", "존재하지 않는 강좌입니다.");
+            return "redirect:/admin/course/list";
+        }
+        if (!authentication.getName().equals(course.getInstrUserId())) {
+            redirectAttributes.addFlashAttribute("errorMsg", "본인이 작성한 강좌만 조회할 수 있습니다.");
+            return "redirect:/admin/course/list";
+        }
         model.addAttribute("course", course);
         return "admin:/course/detail-course";
     }
