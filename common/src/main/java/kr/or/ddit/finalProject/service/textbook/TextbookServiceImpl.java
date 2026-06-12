@@ -5,9 +5,12 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import kr.or.ddit.finalProject.dto.textbook.InventoryStatus;
 import kr.or.ddit.finalProject.dto.textbook.TextbookDto;
 import kr.or.ddit.finalProject.dto.textbook.TextbookHistoryDto;
 import kr.or.ddit.finalProject.dto.textbook.TextbookInventoryDto;
+import kr.or.ddit.finalProject.exception.ErrorCode;
+import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.mapper.textbook.TextbookMapper;
 import kr.or.ddit.finalProject.mapper.textbook.TextbookStockMapper;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
@@ -33,7 +36,11 @@ public class TextbookServiceImpl implements TextbookService {
 
     @Override
     public TextbookDto retrieveTextbookBySn(Long textbookSn) {
-        return textbookMapper.selectTextbookBySn(textbookSn);
+        TextbookDto textbookDto = textbookMapper.selectTextbookBySn(textbookSn);
+        if (textbookDto == null) {
+            throw new FinalProjectException(ErrorCode.TEXTBOOK_NOT_FOUND);
+        }
+        return textbookDto;
     }
 
     @Override
@@ -46,7 +53,7 @@ public class TextbookServiceImpl implements TextbookService {
         TextbookInventoryDto inventoryDto = TextbookInventoryDto.builder()
                 .textbookSn(textbookDto.getTextbookSn()).totInvtCnt(initInvtCnt)
                 .salableCnt(initInvtCnt).saleCmplCnt(0).rsrvWaitCnt(0).dmgdDspslCnt(0).minKeepCnt(0)
-                .invtStatCd("10") // 정상
+                .invtStatCd(InventoryStatus.NORMAL)
                 .rgtrId(textbookDto.getRgtrId()).lastMdfrId(textbookDto.getLastMdfrId()).build();
         textbookStockMapper.insertInventory(inventoryDto);
 
@@ -65,7 +72,7 @@ public class TextbookServiceImpl implements TextbookService {
     public void modifyTextbook(TextbookDto textbookDto, String currentUserId) {
         TextbookDto original = textbookMapper.selectTextbookBySn(textbookDto.getTextbookSn());
         if (original == null) {
-            throw new IllegalArgumentException("존재하지 않는 교재입니다.");
+            throw new FinalProjectException(ErrorCode.TEXTBOOK_NOT_FOUND);
         }
         textbookDto.setLastMdfrId(currentUserId);
         textbookMapper.updateTextbook(textbookDto);
@@ -76,7 +83,7 @@ public class TextbookServiceImpl implements TextbookService {
     public void removeTextbook(Long textbookSn, String currentUserId) {
         TextbookDto original = textbookMapper.selectTextbookBySn(textbookSn);
         if (original == null) {
-            throw new IllegalArgumentException("존재하지 않는 교재입니다.");
+            throw new FinalProjectException(ErrorCode.TEXTBOOK_NOT_FOUND);
         }
         textbookMapper.deleteTextbook(textbookSn, currentUserId);
     }

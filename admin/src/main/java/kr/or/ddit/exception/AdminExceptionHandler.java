@@ -1,7 +1,8 @@
 package kr.or.ddit.exception;
 
-import java.util.UUID;
 import java.util.stream.Collectors;
+import kr.or.ddit.finalProject.util.ClientIpResolver;
+import kr.or.ddit.finalProject.util.TraceIdHolder;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,7 +36,7 @@ public class AdminExceptionHandler {
         ErrorCode code = ex.getErrorCode();
         log.error("[FinalProjectException] {}", code.getMessage(), ex);
 
-        saveErrorLog(code.name(), request.getRequestURI(), code.getMessage());
+        saveErrorLog(code.name(), request, code.getMessage());
 
         if (isAjax(request)) {
             return ResponseEntity.status(code.getStatus())
@@ -55,7 +56,7 @@ public class AdminExceptionHandler {
                 .collect(Collectors.joining(", "));
         log.warn("[Validation] {}", message);
         
-        saveErrorLog("VALIDATION_FAILED", request.getRequestURI(), message);
+        saveErrorLog("VALIDATION_FAILED", request, message);
 
         if (isAjax(request)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -72,7 +73,7 @@ public class AdminExceptionHandler {
             RedirectAttributes redirectAttributes) {
         log.warn("[MessageNotReadable] {}", ex.getMessage());
 
-        saveErrorLog("INVALID_REQUEST_BODY", request.getRequestURI(), ex.getMessage());
+        saveErrorLog("INVALID_REQUEST_BODY", request, ex.getMessage());
 
         if (isAjax(request)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -88,7 +89,7 @@ public class AdminExceptionHandler {
     public ResponseEntity<Void> handle(NoResourceFoundException ex, HttpServletRequest request) {
         log.warn("[NoResource] {}", ex.getMessage());
 
-        saveErrorLog("NOT_FOUND", request.getRequestURI(), ex.getMessage());
+        saveErrorLog("NOT_FOUND", request, ex.getMessage());
 
         return ResponseEntity.notFound().build();
     }
@@ -99,7 +100,7 @@ public class AdminExceptionHandler {
             RedirectAttributes redirectAttributes) {
         log.error("[Unhandled Exception]", ex);
 
-        saveErrorLog(ex.getClass().getSimpleName(), request.getRequestURI(), ex.getMessage());
+        saveErrorLog(ex.getClass().getSimpleName(), request, ex.getMessage());
 
         if (isAjax(request)) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse(
@@ -110,13 +111,14 @@ public class AdminExceptionHandler {
         return "redirect:/admin/error";
     }
 
-    private void saveErrorLog(String errorCode, String requestUri, String errorMessage) {
+    private void saveErrorLog(String errorCode, HttpServletRequest request, String errorMessage) {
         try {
             errorLogMapper.insertSystemErrorLog(
                 SystemErrorLogDto.builder()
-                    .traceId(UUID.randomUUID().toString().replace("-", "").substring(0, 16))
+                    .traceId(TraceIdHolder.get())
                     .errorCode(truncate(errorCode, 50))
-                    .requestUri(truncate(requestUri, 255))
+                    .requestUri(truncate(request.getRequestURI(), 255))
+                    .requestIp(ClientIpResolver.resolve(request))
                     .errorMessage(truncate(errorMessage, 2000))
                     .build()
             );

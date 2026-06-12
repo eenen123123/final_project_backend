@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kr.or.ddit.dto.AuditLogDto;
+import kr.or.ddit.finalProject.util.TraceIdHolder;
 import kr.or.ddit.service.AuditLogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +24,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -31,8 +31,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AuditInterceptor implements HandlerInterceptor {
 
-    private static final String ATTR_TRACE_ID = "_audit_trace_id";
-    private static final int    PARAMS_MAX_LEN = 4000;
+    private static final int PARAMS_MAX_LEN = 4000;
     private static final Set<String> MASKED_KEYS =
             Set.of("password", "passwd", "secretkey", "secret", "token", "accesstoken", "refreshtoken");
     private static final String[] IP_HEADERS = {
@@ -47,7 +46,6 @@ public class AuditInterceptor implements HandlerInterceptor {
     public boolean preHandle(@NonNull HttpServletRequest request,
                              @NonNull HttpServletResponse response,
                              @NonNull Object handler) {
-        request.setAttribute(ATTR_TRACE_ID, UUID.randomUUID().toString().replace("-", "").substring(0, 16));
         return true;
     }
 
@@ -57,7 +55,7 @@ public class AuditInterceptor implements HandlerInterceptor {
                                 @NonNull Object handler,
                                 @org.springframework.lang.Nullable Exception ex) {
         try {
-            String traceId  = (String) request.getAttribute(ATTR_TRACE_ID);
+            String traceId  = TraceIdHolder.get();
             String adminId  = resolveAdminId();
             String ip       = resolveClientIp(request);
             String params   = extractParams(request);

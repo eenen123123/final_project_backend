@@ -5,8 +5,8 @@
 <mapper namespace="kr.or.ddit.finalProject.mapper.log.SystemErrorLogMapper">
 
     <insert id="insertSystemErrorLog" parameterType="kr.or.ddit.finalProject.dto.log.SystemErrorLogDto">
-        INSERT INTO SYSTEM_ERROR_LOG (TRACE_ID, ERROR_CODE, REQUEST_URI, ERROR_MESSAGE)
-        VALUES (#{traceId}, #{errorCode}, #{requestUri}, #{errorMessage})
+        INSERT INTO SYSTEM_ERROR_LOG (TRACE_ID, ERROR_CODE, REQUEST_URI, REQUEST_IP, ERROR_MESSAGE)
+        VALUES (#{traceId}, #{errorCode}, #{requestUri}, #{requestIp}, #{errorMessage})
     </insert>
 
 </mapper>

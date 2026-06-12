@@ -92,9 +92,9 @@
     </select>
 
     <!-- 자료실 등록 - BOARD INSERT -->
-    <insert id="insertBoard" parameterType="kr.or.ddit.finalProject.dto.board.DataRoomDto">
+    <insert id="insertBoard" parameterType="kr.or.ddit.finalProject.dto.board.DataRoomDto"
+            useGeneratedKeys="true" keyProperty="postSn" keyColumn="POST_SN">
         INSERT INTO BOARD (
-            POST_SN,
             WRTR_USER_ID,
             BOARD_TYPE_CD,
             POST_SJ,
@@ -103,7 +103,6 @@
             REG_DT,
             MDFCN_DT
         ) VALUES (
-            "TEAM1_202512AF"."ISEQ$$_433495".nextval,
             #{wrtrUserId},
             '04',
             #{postSj},
@@ -112,9 +111,6 @@
             CURRENT_TIMESTAMP,
             CURRENT_TIMESTAMP
         )
-        <selectKey keyProperty="postSn" resultType="Long" order="AFTER">
-            SELECT "TEAM1_202512AF"."ISEQ$$_433495".currval FROM DUAL
-        </selectKey>
     </insert>
 
     <!-- 자료실 등록 - DATA_ROOM INSERT -->

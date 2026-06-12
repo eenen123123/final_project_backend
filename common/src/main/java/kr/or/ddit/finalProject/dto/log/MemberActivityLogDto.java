@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class MemberActivityLogDto {
     private Long activityId;
+    private String traceId;
     private String userId;
     private String activityType;
     private String targetId;

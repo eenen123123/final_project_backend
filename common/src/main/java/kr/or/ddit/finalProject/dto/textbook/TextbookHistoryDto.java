@@ -20,7 +20,7 @@ public class TextbookHistoryDto implements Serializable {
     private Integer chgCnt; // 변경 수량 · 입고(+) / 출고(-) 구분 저장 권장
     private Integer bfrChgCnt; // 변경 전 수량
     private Integer aftChgCnt; // 변경 후 수량
-    private String relDutyTypeCd; // 관련 업무 유형 (null 허용)
+    private RelDutyType relDutyTypeCd; // 관련 업무 유형 (null 허용)
     private Long relDutyId; // 관련 업무 ID (null 허용)
     private LocalDateTime procDt; // 처리일시
     private String procUserId; // 처리자 ID
