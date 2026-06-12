@@ -15,7 +15,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.or.ddit.finalProject.dto.course.AdminCourseSearchCondition;
 import kr.or.ddit.finalProject.dto.course.CourseDto;
-import kr.or.ddit.finalProject.dto.course.SubjectDto;
+import kr.or.ddit.finalProject.dto.subject.SubjectDto;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
 import kr.or.ddit.finalProject.service.course.CourseService;
 import kr.or.ddit.finalProject.service.curriculum.CurriculumService;
@@ -30,8 +30,7 @@ public class AdminCourseController {
     private final CurriculumService curriculumService;
 
     /**
-     * 강좌 등록 폼 페이지 반환.
-     * 현재 로그인한 강사의 커리큘럼 목록과 과목 분류 목록을 모델에 담아 전달한다.
+     * 강좌 등록 폼 페이지 반환. 현재 로그인한 강사의 커리큘럼 목록과 과목 분류 목록을 모델에 담아 전달한다.
      */
     @GetMapping("/insert")
     public String insertForm(Authentication authentication, Model model) {
@@ -42,8 +41,7 @@ public class AdminCourseController {
     }
 
     /**
-     * 과목 분류 ID에 해당하는 과목 목록을 JSON으로 반환.
-     * 강좌 등록 폼에서 과목 분류 선택 시 Ajax로 호출된다.
+     * 과목 분류 ID에 해당하는 과목 목록을 JSON으로 반환. 강좌 등록 폼에서 과목 분류 선택 시 Ajax로 호출된다.
      */
     @ResponseBody
     @GetMapping("/subjects")
@@ -52,14 +50,13 @@ public class AdminCourseController {
     }
 
     /**
-     * 강좌 등록 처리.
-     * 등록자/수정자 ID를 현재 로그인 사용자로 설정한 뒤 강좌를 생성한다.
-     * 실패 시 등록 폼으로, 성공 시 목록 페이지로 리다이렉트한다.
+     * 강좌 등록 처리. 등록자/수정자 ID를 현재 로그인 사용자로 설정한 뒤 강좌를 생성한다. 실패 시 등록 폼으로, 성공 시 목록
+     * 페이지로 리다이렉트한다.
      */
     @PostMapping("/insert")
     public String insert(@ModelAttribute CourseDto courseDto,
-                         Authentication authentication,
-                         RedirectAttributes redirectAttributes) {
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
         String userId = authentication.getName();
         courseDto.setInstrUserId(userId);
         courseDto.setRgtrId(userId);
@@ -74,8 +71,7 @@ public class AdminCourseController {
     }
 
     /**
-     * 강좌 목록 페이지 반환.
-     * 키워드·공개여부 조건과 페이지 번호를 받아 페이징 처리된 강좌 목록을 모델에 담는다.
+     * 강좌 목록 페이지 반환. 키워드·공개여부 조건과 페이지 번호를 받아 페이징 처리된 강좌 목록을 모델에 담는다.
      */
     @GetMapping("/list")
     public String listCourses(
@@ -96,8 +92,7 @@ public class AdminCourseController {
     }
 
     /**
-     * 강좌 상세 페이지 반환.
-     * courseSn으로 강좌 정보를 조회해 모델에 담는다.
+     * 강좌 상세 페이지 반환. courseSn으로 강좌 정보를 조회해 모델에 담는다.
      */
     @GetMapping("/detail")
     public String courseDetail(@RequestParam Long courseSn, Model model) {

@@ -17,7 +17,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import kr.or.ddit.finalProject.dto.course.AdminCourseSearchCondition;
-import kr.or.ddit.finalProject.dto.course.SubjectDto;
+import kr.or.ddit.finalProject.dto.subject.SubjectDto;
 import kr.or.ddit.finalProject.dto.textbook.TextbookDto;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
 import kr.or.ddit.finalProject.service.course.CourseService;
