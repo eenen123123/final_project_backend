@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import kr.or.ddit.finalProject.dto.textbook.RelDutyType;
 import kr.or.ddit.finalProject.dto.textbook.TextbookHistoryDto;
 import kr.or.ddit.finalProject.dto.textbook.TextbookInventoryDto;
 import kr.or.ddit.finalProject.exception.ErrorCode;
@@ -32,7 +33,7 @@ public class TextbookStockServiceImpl implements TextbookStockService {
         TextbookInventoryDto original = textbookStockMapper
                 .selectInventoryByTextbookSn(textbookInventoryDto.getTextbookSn());
         if (original == null) {
-            throw new IllegalArgumentException("존재하지 않는 재고입니다.");
+            throw new FinalProjectException(ErrorCode.INVENTORY_NOT_FOUND);
         }
 
         // 2. 파손/폐기 증가분만큼 총 재고도 차감
@@ -72,9 +73,9 @@ public class TextbookStockServiceImpl implements TextbookStockService {
 
     @Override
     @Transactional
-    public void addStockHistory(Long textbookSn, int chgCnt, String relDutyTypeCd, String currentUserId) {
+    public void addStockHistory(Long textbookSn, int chgCnt, RelDutyType relDutyTypeCd, String currentUserId) {
         TextbookInventoryDto original = textbookStockMapper.selectInventoryByTextbookSn(textbookSn);
-        if (original == null) throw new IllegalArgumentException("존재하지 않는 재고입니다.");
+        if (original == null) throw new FinalProjectException(ErrorCode.INVENTORY_NOT_FOUND);
 
         int bfrTot     = original.getTotInvtCnt();
         int saleCmpl   = original.getSaleCmplCnt()  != null ? original.getSaleCmplCnt()  : 0;
@@ -85,21 +86,19 @@ public class TextbookStockServiceImpl implements TextbookStockService {
         String ioTypeCd;
 
         switch (relDutyTypeCd) {
-            case "10": case "20":           // 재고 입고 / 반품 입고
+            case STOCK_IN: case RETURN_IN:
                 aftTot = bfrTot + chgCnt;
                 ioTypeCd = "10";
                 break;
-            case "30":                      // 파손/폐기
-                aftTot   = Math.max(0, bfrTot - chgCnt);
-                aftDmgd  = dmgd + chgCnt;
+            case DAMAGE:
+                aftTot  = Math.max(0, bfrTot - chgCnt);
+                aftDmgd = dmgd + chgCnt;
                 ioTypeCd = "20";
                 break;
-            case "40":                      // 판매 출고
+            default: // SALE_OUT
                 aftSaleCmpl = saleCmpl + chgCnt;
                 ioTypeCd = "20";
                 break;
-            default:
-                throw new IllegalArgumentException("유효하지 않은 유형 코드: " + relDutyTypeCd);
         }
 
         int newSalable = Math.max(0, aftTot - aftSaleCmpl - rsrvWait - aftDmgd);

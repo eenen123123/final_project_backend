@@ -58,20 +58,21 @@ public class CalendarScheduleController {
     // 수정
     // PUT /api/calendar/schedule/{scheduleSn}
     @PutMapping("/{scheduleSn}")
-    public ResponseEntity<Integer> updateCalendarSchedule(@PathVariable Long scheduleSn,
+    public ResponseEntity<Void> updateCalendarSchedule(@PathVariable Long scheduleSn,
             @RequestBody CalendarScheduleDto dto, Authentication authentication) {
         dto.setScheduleSn(scheduleSn);
         dto.setUserId(authentication.getName());
-        return ResponseEntity.ok(calendarScheduleService.updateCalendarSchedule(dto));
+        calendarScheduleService.updateCalendarSchedule(dto);
+        return ResponseEntity.noContent().build();
     }
 
     // 삭제
     // DELETE /api/calendar/schedule/{scheduleSn}
     @DeleteMapping("/{scheduleSn}")
-    public ResponseEntity<Integer> deleteCalendarSchedule(@PathVariable Long scheduleSn,
+    public ResponseEntity<Void> deleteCalendarSchedule(@PathVariable Long scheduleSn,
             Authentication authentication) {
-        return ResponseEntity.ok(calendarScheduleService.deleteCalendarSchedule(scheduleSn,
-                authentication.getName()));
+        calendarScheduleService.deleteCalendarSchedule(scheduleSn, authentication.getName());
+        return ResponseEntity.noContent().build();
     }
 
 }

@@ -22,7 +22,7 @@ public class TextbookInventoryDto implements Serializable {
     private Integer rsrvWaitCnt; // 예약 대기 수량
     private Integer dmgdDspslCnt; // 파손/폐기 수량
     private Integer minKeepCnt; // 최소 유지 수량 (이하면 재입고 필요)
-    private String invtStatCd; // 재고 상태 코드 (10:정상 / 20:품절 / 30:입고대기)
+    private InventoryStatus invtStatCd; // 재고 상태
     private String rgtrId;
     private String lastMdfrId;
     private LocalDateTime regDt;

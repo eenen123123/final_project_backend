@@ -19,9 +19,9 @@ public interface CalendarEventService {
     int insertCalendarEvent(CalendarEventDto dto);
 
     // 수정
-    int updateCalendarEvent(CalendarEventDto dto);
+    void updateCalendarEvent(CalendarEventDto dto);
 
     // 삭제
-    int deleteCalendarEvent(Long eventSn);
+    void deleteCalendarEvent(Long eventSn);
 
 }

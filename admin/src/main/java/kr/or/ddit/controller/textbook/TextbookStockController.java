@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import kr.or.ddit.finalProject.dto.textbook.RelDutyType;
 import kr.or.ddit.finalProject.dto.textbook.TextbookDto;
 import kr.or.ddit.finalProject.dto.textbook.TextbookHistoryDto;
 import kr.or.ddit.finalProject.dto.textbook.TextbookInventoryDto;
@@ -83,7 +84,7 @@ public class TextbookStockController {
     @PostMapping("/{textbookSn:\\d+}/history")
     public String addHistory(@PathVariable Long textbookSn,
             @RequestParam int chgCnt,
-            @RequestParam String relDutyTypeCd,
+            @RequestParam RelDutyType relDutyTypeCd,
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
         textbookStockService.addStockHistory(textbookSn, chgCnt, relDutyTypeCd, authentication.getName());

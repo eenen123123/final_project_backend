@@ -16,9 +16,9 @@ public interface CalendarScheduleService {
     int insertCalendarSchedule(CalendarScheduleDto dto);
 
     // 수정
-    int updateCalendarSchedule(CalendarScheduleDto dto);
+    void updateCalendarSchedule(CalendarScheduleDto dto);
 
     // 삭제
-    int deleteCalendarSchedule(Long scheduleSn, String userId);
+    void deleteCalendarSchedule(Long scheduleSn, String userId);
 
 }
