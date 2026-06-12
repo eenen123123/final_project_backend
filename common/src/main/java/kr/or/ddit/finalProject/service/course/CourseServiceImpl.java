@@ -118,12 +118,12 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional
     public void removeCourse(Long courseSn, String currentUserId) {
-        // TODO: 강좌 관리를 강사 전용 페이지로 이관 시 소유권 체크 추가
-        // if (!currentUserId.equals(original.getInstrUserId())) throw new SecurityException(...)
         CourseDto original = courseMapper.selectCourseBySn(courseSn);
         if (original == null) {
             throw new IllegalArgumentException("존재하지 않는 강좌입니다.");
         }
+        // TODO: 강좌 관리를 강사 전용 페이지로 이관 시 소유권 체크 추가
+        // if (!currentUserId.equals(original.getInstrUserId())) throw new SecurityException(...)
         int lectureCount = courseMapper.countLectureByCourse(courseSn);
         if (lectureCount > 0) {
             throw new IllegalArgumentException("강의가 존재하는 강좌는 삭제할 수 없습니다. 강의를 먼저 삭제해 주세요.");

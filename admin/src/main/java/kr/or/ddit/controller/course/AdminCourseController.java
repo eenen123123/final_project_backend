@@ -143,9 +143,10 @@ public class AdminCourseController {
      */
     @PostMapping("/delete")
     public String delete(@RequestParam Long courseSn,
+            Authentication authentication,
             RedirectAttributes redirectAttributes) {
         try {
-            courseService.removeCourse(courseSn, null);
+            courseService.removeCourse(courseSn, authentication.getName());
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("errorMsg", e.getMessage());
             return "redirect:/admin/course/detail?courseSn=" + courseSn;
