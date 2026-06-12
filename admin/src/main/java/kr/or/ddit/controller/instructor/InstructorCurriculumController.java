@@ -17,15 +17,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import kr.or.ddit.finalProject.dto.course.CourseMappingRequest;
 import kr.or.ddit.finalProject.dto.course.CourseDto;
-import kr.or.ddit.finalProject.dto.curriculum.CourseSaveRequest;
 import kr.or.ddit.finalProject.dto.curriculum.CurriculumDto;
 import kr.or.ddit.finalProject.dto.curriculum.CurriculumSaveRequest;
-import kr.or.ddit.finalProject.dto.curriculum.LectureSaveRequest;
-import kr.or.ddit.finalProject.dto.lecture.LectureDto;
 import kr.or.ddit.finalProject.service.course.CourseService;
 import kr.or.ddit.finalProject.service.curriculum.CurriculumService;
-import kr.or.ddit.finalProject.service.lecture.LectureService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,19 +34,21 @@ public class InstructorCurriculumController {
 
     private final CurriculumService curriculumService;
     private final CourseService courseService;
-    private final LectureService lectureService;
+
+    // =====================================================================
+    // 페이지
+    // =====================================================================
+
+    @GetMapping
+    public String curriculumMainPage(Model model, Authentication authentication) {
+        String loginInstructorId = authentication.getName();
+        model.addAttribute("curriculumList", curriculumService.retrieveList(loginInstructorId));
+        return "admin:/instructor/curriculum";
+    }
 
     // =====================================================================
     // 커리큘럼 CRUD
     // =====================================================================
-    @GetMapping
-    public String curriculumMainPage(Model model, Authentication authentication) {
-        String loginInstructorId = authentication.getName();
-
-        List<CurriculumDto> curriculumList = curriculumService.retrieveList(loginInstructorId);
-        model.addAttribute("curriculumList", curriculumList);
-        return "admin:/instructor/curriculum";
-    }
 
     @PostMapping("/save")
     @ResponseBody
@@ -59,6 +58,9 @@ public class InstructorCurriculumController {
 
         CurriculumDto curriculumDto = new CurriculumDto();
         curriculumDto.setTitle(request.getTitle());
+        curriculumDto.setStrtDt(request.getStrtDt());
+        curriculumDto.setEndDt(request.getEndDt());
+        curriculumDto.setExplnCn(request.getExplnCn());
         curriculumDto.setInstructorId(loginInstructorId);
         curriculumDto.setRgtrId(loginInstructorId);
         curriculumDto.setLastMdfrId(loginInstructorId);
@@ -80,6 +82,9 @@ public class InstructorCurriculumController {
         CurriculumDto curriculumDto = new CurriculumDto();
         curriculumDto.setCurriculumId(curriculumId);
         curriculumDto.setTitle(request.getTitle());
+        curriculumDto.setStrtDt(request.getStrtDt());
+        curriculumDto.setEndDt(request.getEndDt());
+        curriculumDto.setExplnCn(request.getExplnCn());
         curriculumService.modifyCurriculum(curriculumDto, loginInstructorId);
         return ResponseEntity.ok("SUCCESS");
     }
@@ -88,141 +93,73 @@ public class InstructorCurriculumController {
     @ResponseBody
     public ResponseEntity<String> deleteCurriculum(@PathVariable Long curriculumId,
             Authentication authentication) {
-        String loginInstructorId = authentication.getName();
-
-        curriculumService.removeCurriculumLogically(curriculumId, loginInstructorId);
+        curriculumService.removeCurriculumLogically(curriculumId, authentication.getName());
         return ResponseEntity.ok("SUCCESS");
     }
 
     // =====================================================================
-    // 강좌(Course) CRUD
+    // 커리큘럼-강좌 매핑
     // =====================================================================
+
+    /** 커리큘럼에 속한 강좌 목록 조회 */
     @GetMapping("/{curriculumId}/courses")
     @ResponseBody
     public ResponseEntity<List<CourseDto>> getCourseList(@PathVariable Long curriculumId) {
-        List<CourseDto> courses = courseService.retrieveCourseByCurriculumId(curriculumId);
-        return ResponseEntity.ok(courses);
+        return ResponseEntity.ok(courseService.retrieveCourseByCurriculumId(curriculumId));
     }
 
+    /** 아직 커리큘럼에 등록되지 않은 강좌 목록 (추가 선택용) */
+    @GetMapping("/available-courses")
+    @ResponseBody
+    public ResponseEntity<List<CourseDto>> getAvailableCourses() {
+        return ResponseEntity.ok(curriculumService.retrieveAvailableCourses());
+    }
+
+    /** 기존 강좌를 커리큘럼에 추가 */
     @PostMapping("/{curriculumId}/courses")
     @ResponseBody
-    public ResponseEntity<String> saveCourse(@PathVariable Long curriculumId,
-            @RequestBody CourseSaveRequest request,
+    public ResponseEntity<String> addCourseMapping(@PathVariable Long curriculumId,
+            @RequestBody CourseMappingRequest request,
             Authentication authentication) {
-        String loginInstructorId = authentication.getName();
-
-        CourseDto courseDto = new CourseDto();
-        courseDto.setCurriculumId(curriculumId);
-        courseDto.setCourseNm(request.getCourseNm());
-        courseDto.setCourseExplnCn(request.getCourseExplnCn());
-        courseDto.setOpnnYn(request.getOpnnYn() != null ? request.getOpnnYn() : "Y");
-        courseDto.setSortOrd(request.getSortOrd());
-        boolean created = courseService.createCourse(courseDto, loginInstructorId);
-        if (!created) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("FAIL");
-        }
+        curriculumService.addCourseMapping(curriculumId, request.getCourseSn(),
+                authentication.getName());
         return ResponseEntity.ok("SUCCESS");
     }
 
-    @PutMapping("/courses/{courseSn}")
+    /** 커리큘럼에서 강좌 제거 (강좌 자체는 삭제되지 않음) */
+    @DeleteMapping("/{curriculumId}/courses/{courseSn}")
     @ResponseBody
-    public ResponseEntity<String> modifyCourse(@PathVariable Long courseSn,
-            @RequestBody CourseSaveRequest request,
+    public ResponseEntity<String> removeCourseMapping(@PathVariable Long curriculumId,
+            @PathVariable Long courseSn,
             Authentication authentication) {
-        String loginInstructorId = authentication.getName();
-
-        CourseDto courseDto = new CourseDto();
-        courseDto.setCourseSn(courseSn);
-        courseDto.setCourseNm(request.getCourseNm());
-        courseDto.setCourseExplnCn(request.getCourseExplnCn());
-        courseDto.setOpnnYn(request.getOpnnYn());
-        courseDto.setSortOrd(request.getSortOrd());
-        courseService.modifyCourse(courseDto, loginInstructorId);
+        curriculumService.removeCourseMapping(curriculumId, courseSn, authentication.getName());
         return ResponseEntity.ok("SUCCESS");
     }
 
-    @DeleteMapping("/courses/{courseSn}")
+    /** 강좌 순서 위로 이동 */
+    @PutMapping("/{curriculumId}/courses/{courseSn}/move-up")
     @ResponseBody
-    public ResponseEntity<String> deleteCourse(@PathVariable Long courseSn,
+    public ResponseEntity<String> moveCourseUp(@PathVariable Long curriculumId,
+            @PathVariable Long courseSn,
             Authentication authentication) {
-        String loginInstructorId = authentication.getName();
+        curriculumService.moveCourseUp(curriculumId, courseSn, authentication.getName());
+        return ResponseEntity.ok("SUCCESS");
+    }
 
-        courseService.removeCourse(courseSn, loginInstructorId);
+    /** 강좌 순서 아래로 이동 */
+    @PutMapping("/{curriculumId}/courses/{courseSn}/move-down")
+    @ResponseBody
+    public ResponseEntity<String> moveCourseDown(@PathVariable Long curriculumId,
+            @PathVariable Long courseSn,
+            Authentication authentication) {
+        curriculumService.moveCourseDown(curriculumId, courseSn, authentication.getName());
         return ResponseEntity.ok("SUCCESS");
     }
 
     // =====================================================================
-    // 강의(Lecture) CRUD
+    // 공통 예외 처리
     // =====================================================================
-    @GetMapping("/courses/{courseSn}/lectures")
-    @ResponseBody
-    public ResponseEntity<List<LectureDto>> getLectureList(@PathVariable Long courseSn) {
-        List<LectureDto> lectures = lectureService.retrieveLectureByCourseSn(courseSn);
-        return ResponseEntity.ok(lectures);
-    }
 
-    @PostMapping("/courses/{courseSn}/lectures")
-    @ResponseBody
-    public ResponseEntity<String> saveLecture(@PathVariable Long courseSn,
-            @RequestBody LectureSaveRequest request,
-            Authentication authentication) {
-        String loginInstructorId = authentication.getName();
-
-        LectureDto lectureDto = new LectureDto();
-        lectureDto.setCourseSn(courseSn);
-        lectureDto.setLectureNm(request.getLectureNm());
-        lectureDto.setLectureTypeCd(request.getLectureTypeCd());
-        lectureDto.setLectureDuration(request.getLectureDuration());
-        lectureDto.setLectureExplnCn(request.getLectureExplnCn());
-        lectureDto.setOpnnYn(request.getOpnnYn() != null ? request.getOpnnYn() : "Y");
-        lectureDto.setLockYn(request.getLockYn() != null ? request.getLockYn() : "N");
-        lectureDto.setSortOrd(request.getSortOrd());
-        lectureDto.setPrereqLectureSn(request.getPrereqLectureSn());
-        lectureDto.setRgtrId(loginInstructorId);
-        lectureDto.setLastMdfrId(loginInstructorId);
-
-        boolean created = lectureService.createLecture(lectureDto);
-        if (!created) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("FAIL");
-        }
-        return ResponseEntity.ok("SUCCESS");
-    }
-
-    @PutMapping("/courses/lectures/{lectureSn}")
-    @ResponseBody
-    public ResponseEntity<String> modifyLecture(@PathVariable Long lectureSn,
-            @RequestBody LectureSaveRequest request,
-            Authentication authentication) {
-        String loginInstructorId = authentication.getName();
-
-        LectureDto lectureDto = new LectureDto();
-        lectureDto.setLectureSn(lectureSn);
-        lectureDto.setLectureNm(request.getLectureNm());
-        lectureDto.setLectureTypeCd(request.getLectureTypeCd());
-        lectureDto.setLectureDuration(request.getLectureDuration());
-        lectureDto.setLectureExplnCn(request.getLectureExplnCn());
-        lectureDto.setOpnnYn(request.getOpnnYn());
-        lectureDto.setLockYn(request.getLockYn());
-        lectureDto.setSortOrd(request.getSortOrd());
-        lectureDto.setPrereqLectureSn(request.getPrereqLectureSn());
-
-        lectureService.modifyLecture(lectureDto, loginInstructorId);
-        return ResponseEntity.ok("SUCCESS");
-    }
-
-    @DeleteMapping("/courses/lectures/{lectureSn}")
-    @ResponseBody
-    public ResponseEntity<String> deleteLecture(@PathVariable Long lectureSn,
-            Authentication authentication) {
-        String loginInstructorId = authentication.getName();
-
-        lectureService.removeLecture(lectureSn, loginInstructorId);
-        return ResponseEntity.ok("SUCCESS");
-    }
-
-    // =====================================================================
-    // 공통
-    // =====================================================================
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseBody
     public ResponseEntity<String> handleNotFound(IllegalArgumentException e) {
@@ -234,5 +171,4 @@ public class InstructorCurriculumController {
     public ResponseEntity<String> handleForbidden(SecurityException e) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
     }
-
 }

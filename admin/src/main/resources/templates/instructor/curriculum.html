@@ -1,174 +1,137 @@
-<div class="curriculum-container">
-    <link rel="stylesheet" th:href="@{/css/instructor/curriculum.css}" />
+<title th:fragment="pageTitle">커리큘럼 관리 | HERMES</title>
 
-    <!-- 페이지 헤더 -->
-    <div class="flex justify-between items-start mb-6">
-        <div>
-            <div class="flex items-center gap-2 mb-1">
-                <div class="w-1 h-7 rounded-full bg-sky-500"></div>
-                <h1 class="text-2xl font-bold text-slate-800">나의 커리큘럼 관리</h1>
-            </div>
-            <p class="text-sm text-slate-500 ml-3">커리큘럼 &gt; 강좌 &gt; 강의 순으로 구성을 관리할 수 있습니다.</p>
+<link rel="stylesheet" th:href="@{/css/instructor/curriculum.css}" />
+
+<div class="space-y-6">
+  <!-- 헤더 -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+        <span class="text-orange-500 font-medium">커리큘럼 관리</span>
+      </div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">커리큘럼 관리</h1>
+      <p class="text-sm text-slate-500 mt-1">커리큘럼을 등록·수정하고, 커리큘럼에 강좌를 구성합니다.</p>
+    </div>
+  </div>
+
+  <!-- 2-panel layout -->
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 curriculum-panels">
+
+    <!-- ── Panel 1: 커리큘럼 ───────────────────────────── -->
+    <div class="panel-card flex flex-col overflow-hidden">
+      <div class="panel-header">
+        <div class="flex items-center gap-1.5">
+          <i class="fa-solid fa-layer-group text-sky-500 text-xs"></i>
+          <span>커리큘럼</span>
+          <span id="curriculum-badge" class="panel-badge"
+                th:text="${#lists.size(curriculumList)}">0</span>
         </div>
+        <button onclick="showCurriculumForm()" class="btn-panel-add" title="새 커리큘럼 추가">
+          <i class="fa-solid fa-plus"></i>
+        </button>
+      </div>
+
+      <ul id="curriculum-list" class="flex-1 overflow-y-auto no-scrollbar p-2 space-y-1">
+        <li th:if="${#lists.isEmpty(curriculumList)}" class="panel-empty-state">
+          <i class="fa-solid fa-inbox text-slate-300 text-2xl mb-2"></i>
+          <p>등록된 커리큘럼이 없습니다.</p>
+        </li>
+        <li th:each="curriculum : ${curriculumList}"
+            th:id="'curriculum-item-' + ${curriculum.curriculumId}"
+            th:data-id="${curriculum.curriculumId}"
+            th:data-title="${curriculum.title}"
+            th:data-strt="${curriculum.strtDt}"
+            th:data-end="${curriculum.endDt}"
+            th:data-expln="${curriculum.explnCn}"
+            class="curriculum-item panel-item"
+            th:onclick="|selectCurriculum(${curriculum.curriculumId})|">
+          <div class="min-w-0 flex-1">
+            <div class="item-title" th:text="${curriculum.title}">커리큘럼 제목</div>
+            <div class="item-meta">
+              <span th:if="${curriculum.strtDt != null}"
+                    th:text="${#temporals.format(curriculum.strtDt, 'yyyy.MM.dd')} + ' ~ ' + (${curriculum.endDt != null} ? ${#temporals.format(curriculum.endDt, 'yyyy.MM.dd')} : '미정')">
+              </span>
+              <span th:unless="${curriculum.strtDt != null}"
+                    th:text="${#temporals.format(curriculum.regDt, 'yyyy.MM.dd')} + ' 등록'">
+              </span>
+            </div>
+          </div>
+          <div class="item-actions">
+            <button class="btn-icon"
+                    th:onclick="|editCurriculum(event, ${curriculum.curriculumId})|"
+                    title="수정">
+              <i class="fa-solid fa-pen text-[10px]"></i>
+            </button>
+            <button class="btn-icon btn-icon-danger"
+                    th:onclick="|deleteCurriculum(event, ${curriculum.curriculumId})|"
+                    title="삭제">
+              <i class="fa-solid fa-trash text-[10px]"></i>
+            </button>
+          </div>
+        </li>
+      </ul>
+
+      <!-- 커리큘럼 등록/수정 폼 -->
+      <div id="curriculum-form" class="panel-form hidden">
+        <input type="text" id="curriculum-title-input"
+               class="hm-input w-full text-sm"
+               placeholder="커리큘럼 제목 *" />
+        <div class="grid grid-cols-2 gap-1.5 mt-1.5">
+          <div>
+            <label class="block text-xs text-slate-400 mb-0.5">시작일</label>
+            <input type="date" id="curriculum-strt-input" class="hm-input w-full text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-0.5">종료일</label>
+            <input type="date" id="curriculum-end-input" class="hm-input w-full text-sm" />
+          </div>
+        </div>
+        <textarea id="curriculum-expln-input"
+                  class="hm-input w-full text-sm mt-1.5"
+                  rows="2"
+                  placeholder="커리큘럼 설명 (선택)"></textarea>
+        <div class="flex gap-2 mt-2">
+          <button onclick="submitCurriculumForm()" class="btn-form-save flex-1">저장</button>
+          <button onclick="hideCurriculumForm()" class="btn-form-cancel">취소</button>
+        </div>
+      </div>
     </div>
 
-    <!-- 3-panel layout -->
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 curriculum-panels">
-
-        <!-- ── Panel 1: 커리큘럼 ───────────────────────────── -->
-        <div class="panel-card flex flex-col overflow-hidden">
-            <div class="panel-header">
-                <div class="flex items-center gap-1.5">
-                    <i class="fa-solid fa-layer-group text-sky-500 text-xs"></i>
-                    <span>커리큘럼</span>
-                    <span id="curriculum-badge" class="panel-badge"
-                          th:text="${#lists.size(curriculumList)}">0</span>
-                </div>
-                <button onclick="showCurriculumForm()" class="btn-panel-add" title="새 커리큘럼 추가">
-                    <i class="fa-solid fa-plus"></i>
-                </button>
-            </div>
-
-            <ul id="curriculum-list" class="flex-1 overflow-y-auto no-scrollbar p-2 space-y-1">
-                <li th:if="${#lists.isEmpty(curriculumList)}" class="panel-empty-state">
-                    <i class="fa-solid fa-inbox text-slate-300 text-2xl mb-2"></i>
-                    <p>등록된 커리큘럼이 없습니다.</p>
-                </li>
-                <li th:each="curriculum : ${curriculumList}"
-                    th:id="'curriculum-item-' + ${curriculum.curriculumId}"
-                    th:data-title="${curriculum.title}"
-                    class="curriculum-item panel-item"
-                    th:onclick="|selectCurriculum(${curriculum.curriculumId})|">
-                    <div class="min-w-0 flex-1">
-                        <div class="item-title" th:text="${curriculum.title}">커리큘럼 제목</div>
-                        <div class="item-meta" th:text="${#strings.substring(curriculum.regDt, 0, 10)}">날짜</div>
-                    </div>
-                    <div class="item-actions">
-                        <button class="btn-icon"
-                                th:onclick="|editCurriculum(event, ${curriculum.curriculumId})|"
-                                title="수정">
-                            <i class="fa-solid fa-pen text-[10px]"></i>
-                        </button>
-                        <button class="btn-icon btn-icon-danger"
-                                th:onclick="|deleteCurriculum(event, ${curriculum.curriculumId})|"
-                                title="삭제">
-                            <i class="fa-solid fa-trash text-[10px]"></i>
-                        </button>
-                    </div>
-                </li>
-            </ul>
-
-            <!-- Curriculum add/edit form -->
-            <div id="curriculum-form" class="panel-form hidden">
-                <input type="text" id="curriculum-title-input"
-                       class="hm-input w-full text-sm"
-                       placeholder="커리큘럼 제목을 입력하세요" />
-                <div class="flex gap-2 mt-2">
-                    <button onclick="submitCurriculumForm()" class="btn-form-save flex-1">저장</button>
-                    <button onclick="hideCurriculumForm()" class="btn-form-cancel">취소</button>
-                </div>
-            </div>
+    <!-- ── Panel 2: 강좌 ──────────────────────────────── -->
+    <div class="panel-card flex flex-col overflow-hidden">
+      <div class="panel-header">
+        <div class="flex items-center gap-1.5">
+          <i class="fa-solid fa-book-open text-emerald-500 text-xs"></i>
+          <span>강좌 구성</span>
+          <span id="course-badge" class="panel-badge hidden">0</span>
         </div>
+        <button id="btn-add-course" onclick="showAddCourseForm()" class="btn-panel-add"
+                title="강좌 추가" disabled>
+          <i class="fa-solid fa-plus"></i>
+        </button>
+      </div>
 
-        <!-- ── Panel 2: 강좌 ──────────────────────────────── -->
-        <div class="panel-card flex flex-col overflow-hidden">
-            <div class="panel-header">
-                <div class="flex items-center gap-1.5">
-                    <i class="fa-solid fa-book-open text-emerald-500 text-xs"></i>
-                    <span>강좌</span>
-                    <span id="course-badge" class="panel-badge hidden">0</span>
-                </div>
-                <button id="btn-add-course" onclick="showCourseForm()" class="btn-panel-add" title="새 강좌 추가" disabled>
-                    <i class="fa-solid fa-plus"></i>
-                </button>
-            </div>
+      <div id="course-placeholder" class="panel-placeholder">
+        <i class="fa-solid fa-arrow-left text-slate-200 text-3xl mb-3"></i>
+        <p class="font-medium">커리큘럼을 선택하세요</p>
+      </div>
 
-            <div id="course-placeholder" class="panel-placeholder">
-                <i class="fa-solid fa-arrow-left text-slate-200 text-3xl mb-3"></i>
-                <p class="font-medium">커리큘럼을 선택하세요</p>
-            </div>
+      <ul id="course-list" class="flex-1 overflow-y-auto no-scrollbar p-2 space-y-1 hidden"></ul>
 
-            <ul id="course-list" class="flex-1 overflow-y-auto no-scrollbar p-2 space-y-1 hidden"></ul>
-
-            <!-- Course add/edit form -->
-            <div id="course-form" class="panel-form hidden">
-                <input type="text" id="course-nm-input"
-                       class="hm-input w-full text-sm"
-                       placeholder="강좌명 *" />
-                <textarea id="course-expln-input"
-                          class="hm-input w-full text-sm mt-1.5"
-                          rows="2"
-                          placeholder="강좌 설명 (선택)"></textarea>
-                <select id="course-opnn-input" class="hm-input w-full text-sm mt-1.5">
-                    <option value="Y">공개</option>
-                    <option value="N">비공개</option>
-                </select>
-                <div class="flex gap-2 mt-2">
-                    <button onclick="submitCourseForm()" class="btn-form-save flex-1">저장</button>
-                    <button onclick="hideCourseForm()" class="btn-form-cancel">취소</button>
-                </div>
-            </div>
+      <!-- 강좌 추가 폼 (기존 강좌 선택) -->
+      <div id="add-course-form" class="panel-form hidden">
+        <label class="block text-xs text-slate-500 mb-1 font-semibold">추가할 강좌 선택</label>
+        <select id="available-course-select" class="hm-input w-full text-sm">
+          <option value="">강좌를 선택하세요</option>
+        </select>
+        <div class="flex gap-2 mt-2">
+          <button onclick="submitAddCourseForm()" class="btn-form-save flex-1">추가</button>
+          <button onclick="hideAddCourseForm()" class="btn-form-cancel">취소</button>
         </div>
-
-        <!-- ── Panel 3: 강의 ──────────────────────────────── -->
-        <div class="panel-card flex flex-col overflow-hidden">
-            <div class="panel-header">
-                <div class="flex items-center gap-1.5">
-                    <i class="fa-solid fa-play-circle text-violet-500 text-xs"></i>
-                    <span>강의</span>
-                    <span id="lecture-badge" class="panel-badge hidden">0</span>
-                </div>
-                <button id="btn-add-lecture" onclick="showLectureForm()" class="btn-panel-add" title="새 강의 추가" disabled>
-                    <i class="fa-solid fa-plus"></i>
-                </button>
-            </div>
-
-            <div id="lecture-placeholder" class="panel-placeholder">
-                <i class="fa-solid fa-arrow-left text-slate-200 text-3xl mb-3"></i>
-                <p class="font-medium">강좌를 선택하세요</p>
-            </div>
-
-            <ul id="lecture-list" class="flex-1 overflow-y-auto no-scrollbar p-2 space-y-1 hidden"></ul>
-
-            <!-- Lecture add/edit form -->
-            <div id="lecture-form" class="panel-form hidden">
-                <input type="text" id="lecture-nm-input"
-                       class="hm-input w-full text-sm"
-                       placeholder="강의명 *" />
-                <div class="grid grid-cols-2 gap-1.5 mt-1.5">
-                    <select id="lecture-type-input" class="hm-input text-sm">
-                        <option value="">유형 선택</option>
-                        <option value="VIDEO">영상</option>
-                        <option value="LIVE">라이브</option>
-                        <option value="DOC">자료</option>
-                        <option value="QUIZ">퀴즈</option>
-                    </select>
-                    <input type="number" id="lecture-duration-input"
-                           class="hm-input text-sm"
-                           placeholder="시간(분)" min="1" />
-                </div>
-                <textarea id="lecture-expln-input"
-                          class="hm-input w-full text-sm mt-1.5"
-                          rows="2"
-                          placeholder="강의 설명 (선택)"></textarea>
-                <div class="grid grid-cols-2 gap-1.5 mt-1.5">
-                    <select id="lecture-opnn-input" class="hm-input text-sm">
-                        <option value="Y">공개</option>
-                        <option value="N">비공개</option>
-                    </select>
-                    <select id="lecture-lock-input" class="hm-input text-sm">
-                        <option value="N">잠금 해제</option>
-                        <option value="Y">잠금</option>
-                    </select>
-                </div>
-                <div class="flex gap-2 mt-2">
-                    <button onclick="submitLectureForm()" class="btn-form-save flex-1">저장</button>
-                    <button onclick="hideLectureForm()" class="btn-form-cancel">취소</button>
-                </div>
-            </div>
-        </div>
-
+      </div>
     </div>
 
-    <script th:src="@{/js/instructor/curriculum.js}" defer></script>
+  </div>
 </div>
+
+<script th:src="@{/js/instructor/curriculum.js}" defer></script>
