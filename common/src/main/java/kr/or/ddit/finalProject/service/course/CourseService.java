@@ -4,11 +4,11 @@ import java.util.List;
 
 import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.course.AdminCourseSearchCondition;
+import kr.or.ddit.finalProject.dto.course.CourseDetailResponse;
 import kr.or.ddit.finalProject.dto.course.CourseDto;
 import kr.or.ddit.finalProject.dto.course.CourseResponseDto;
 import kr.or.ddit.finalProject.dto.course.SubjectClassificationDto;
 import kr.or.ddit.finalProject.dto.course.SubjectDto;
-import kr.or.ddit.finalProject.dto.instructor.CourseDetailResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorPublicCourseResponse;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
@@ -93,9 +93,13 @@ public interface CourseService {
      */
     CourseResponseDto retrieveCourse(Long courseId);
 
-    /** 강사 UUID로 공개 강좌 목록을 조회한다. */
+    /**
+     * 강사 UUID로 공개 강좌 목록을 조회한다.
+     */
     List<InstructorPublicCourseResponse> retrievePublicCoursesByInstructor(String instrUuid);
 
-    /** 강사 UUID와 강좌 일련번호로 공개 강좌 상세 정보(강의 목록 포함)를 조회한다. */
+    /**
+     * 강사 UUID와 강좌 일련번호로 공개 강좌 상세 정보(강의 목록 포함)를 조회한다.
+     */
     CourseDetailResponse retrievePublicCourseDetail(String instrUuid, Long courseSn);
 }
