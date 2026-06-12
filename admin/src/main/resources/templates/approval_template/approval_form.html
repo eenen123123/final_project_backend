@@ -330,7 +330,9 @@
         .then((html) => {
           const container = document.getElementById("templateContainer");
           container.innerHTML = html;
+          ensureLeaveTypeField(container);
           fillAutoFields(container);
+          wireLeaveAutoDays(container);
           document.getElementById("templateLoading").classList.add("hidden");
           container.classList.remove("hidden");
         })
@@ -342,6 +344,72 @@
           alert("양식을 불러오지 못했습니다.");
         });
     });
+
+    /* ── 휴가원: '휴가 유형' 입력란이 양식에 없으면 자동 주입 + 공통코드(cl-221)로 옵션 채움 ── */
+    function ensureLeaveTypeField(container) {
+      const from = container.querySelector('[name="leaveFrom"]');
+      const to   = container.querySelector('[name="leaveTo"]');
+      const days = container.querySelector('[name="leaveDays"]');
+      if (!from || !to || !days) return;                       // 휴가원 양식이 아니면 무시
+      if (container.querySelector('[name="annTypeCd"]')) return; // 이미 유형란이 있으면 그대로 사용
+
+      const box = document.createElement("div");
+      box.style.cssText = "margin:0 0 12px; display:flex; align-items:center; gap:8px;";
+      box.innerHTML =
+        '<label style="font-weight:bold; font-size:13px;">휴가 유형</label>' +
+        '<select name="annTypeCd" style="font-size:13px; padding:4px 8px; border:1px solid #999; border-radius:4px;">' +
+        '<option value="">선택</option></select>';
+
+      const title = container.querySelector(".doc-title");
+      if (title) title.parentNode.insertBefore(box, title.nextSibling);
+      else container.insertBefore(box, container.firstChild);
+
+      // 옵션은 공통코드 관리(cl-221)에서 동적으로 로드
+      fetch("/admin/common-codes/api/221/codes")
+        .then((r) => r.json())
+        .then((codes) => {
+          const sel = box.querySelector('[name="annTypeCd"]');
+          (codes || []).filter((c) => c.useYn === "Y").forEach((c) => {
+            const o = document.createElement("option");
+            o.value = c.comCd;
+            o.textContent = c.comCdNm;
+            sel.appendChild(o);
+          });
+        })
+        .catch(() => {});
+    }
+
+    /* ── 휴가원: 기간으로 일수 자동 계산(주말 제외) + 읽기전용 ── */
+    function wireLeaveAutoDays(container) {
+      const from = container.querySelector('[name="leaveFrom"]');
+      const to   = container.querySelector('[name="leaveTo"]');
+      const days = container.querySelector('[name="leaveDays"]');
+      const type = container.querySelector('[name="annTypeCd"]');
+      if (!from || !to || !days) return; // 휴가원 양식이 아니면 무시
+
+      // 사용자가 임의 입력하지 못하게 읽기전용 — 항상 숫자만 저장되도록 보장
+      days.readOnly = true;
+      days.style.background = "#f5f5f5";
+      days.style.cursor = "not-allowed";
+
+      const recalc = () => {
+        // 반차는 0.5일 고정
+        if (type && type.value === "02") { days.value = "0.5"; return; }
+        if (!from.value || !to.value) { days.value = ""; return; }
+        const sd = new Date(from.value), ed = new Date(to.value);
+        if (ed < sd) { days.value = ""; return; }
+        let cnt = 0;
+        for (let d = new Date(sd); d <= ed; d.setDate(d.getDate() + 1)) {
+          const w = d.getDay();
+          if (w !== 0 && w !== 6) cnt++; // 주말 제외
+        }
+        days.value = cnt;
+      };
+      from.addEventListener("change", recalc);
+      to.addEventListener("change", recalc);
+      if (type) type.addEventListener("change", recalc);
+      recalc();
+    }
 
     /* ── 고정 필드 자동 채움 ── */
     function fillAutoFields(container) {
@@ -387,6 +455,35 @@
           }
         });
         document.getElementById("aprvlDocCn").value = container.innerHTML;
+
+        // 휴가원 양식(annTypeCd 필드 보유)이면 systemPayload(LEAVE_REQUEST)로 덮어써서
+        // 최종 승인 시 AdminActivityExecutionService 가 ANNUAL_LEAVE_HISTORY 에 적재하도록 한다.
+        // (신청자 ANN_USER_ID 는 서버에서 기안자 = DRFT_USER_ID 로 채움)
+        const lvType = container.querySelector('[name="annTypeCd"]');
+        const lvFrom = container.querySelector('[name="leaveFrom"]');
+        const lvTo   = container.querySelector('[name="leaveTo"]');
+        if (lvType && lvFrom && lvTo) {
+          const lvDays = container.querySelector('[name="leaveDays"]');
+          const lvRsn  = container.querySelector('[name="reason"]');
+          const lvTypeNm = lvType.options[lvType.selectedIndex]
+            ? lvType.options[lvType.selectedIndex].text : "";
+          const toYmd = (v) => (v || "").replace(/-/g, "");
+          const envelope = {
+            systemPayload: true,
+            actionType: "LEAVE_REQUEST",
+            displayText: `휴가 신청 — ${lvFrom.value} ~ ${lvTo.value}` +
+                         (lvDays && lvDays.value ? ` (${lvDays.value}일)` : ""),
+            data: {
+              annTypeCd: lvType.value,
+              annTypeNm: lvTypeNm,
+              annStrtYmd: toYmd(lvFrom.value),
+              annEndYmd: toYmd(lvTo.value),
+              annReqDays: lvDays ? lvDays.value : null,
+              annRsnCn: lvRsn ? lvRsn.value : null,
+            },
+          };
+          document.getElementById("aprvlDocCn").value = JSON.stringify(envelope);
+        }
         return true;
       }
       return false;
@@ -642,6 +739,18 @@
       if (!captureTemplate()) {
         alert("문서 양식을 불러와 주세요.");
         return;
+      }
+      // 휴가원 양식이면 적재 필수값 검증
+      const lvContainer = document.getElementById("templateContainer");
+      const lvTypeEl = lvContainer.querySelector('[name="annTypeCd"]');
+      if (lvTypeEl) {
+        const f = (n) => lvContainer.querySelector(`[name="${n}"]`);
+        if (!lvTypeEl.value) { alert("휴가 유형을 선택해 주세요."); return; }
+        if (!f("leaveFrom")?.value || !f("leaveTo")?.value) { alert("휴가 기간을 입력해 주세요."); return; }
+        if (!f("leaveDays")?.value) { alert("휴가 일수를 입력해 주세요."); return; }
+        if (new Date(f("leaveTo").value) < new Date(f("leaveFrom").value)) {
+          alert("종료일이 시작일보다 빠를 수 없습니다."); return;
+        }
       }
       if (approvalLine.length === 0) {
         alert("결재자가 없습니다.");
