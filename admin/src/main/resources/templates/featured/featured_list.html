@@ -1,0 +1,277 @@
+<title th:fragment="pageTitle">추천 항목 관리 | HERMES</title>
+
+<div class="space-y-6">
+
+  <!-- 페이지 헤더 -->
+  <div>
+    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">추천 항목 관리</h1>
+    <p class="text-sm text-slate-500 mt-1">마이페이지에 표시할 추천 강좌·교재를 등록하고 관리합니다.</p>
+  </div>
+
+  <!-- 통계 카드 -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-star"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">총 추천 항목</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5" th:text="${totalCount + '개'}">0개</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-chalkboard-user"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">추천 강좌</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5" th:text="${courseFeaturedCount + '개'}">0개</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-book"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">추천 교재</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5" th:text="${textbookFeaturedCount + '개'}">0개</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-layer-group"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">남은 슬롯</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5"
+           th:text="${(11 - totalCount) + '개'}">0개</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 테이블 카드 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+
+    <!-- 툴바 -->
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+      <p class="text-sm text-slate-500">
+        총 <span class="font-bold text-slate-800" th:text="${totalCount}">0</span>개 항목
+      </p>
+      <div class="flex items-center gap-3">
+        <div class="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
+          <button id="sortByOrd" onclick="setSortMode('ord')"
+            class="px-3 py-1.5 bg-slate-800 text-white transition-colors">정렬순</button>
+          <button id="sortByReg" onclick="setSortMode('reg')"
+            class="px-3 py-1.5 text-slate-500 hover:bg-slate-50 transition-colors">등록순</button>
+        </div>
+        <a th:if="${totalCount < 11}" href="/admin/featured/insert" class="hm-btn-primary whitespace-nowrap">
+          <i class="fa-solid fa-plus"></i>
+          <span>추천 등록</span>
+        </a>
+        <span th:if="${totalCount >= 11}"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-slate-400 bg-slate-100 cursor-not-allowed whitespace-nowrap">
+          <i class="fa-solid fa-lock"></i>
+          <span>최대 등록 (11/11)</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- 테이블 -->
+    <div class="overflow-x-auto">
+      <table style="width:100%; table-layout:fixed; border-collapse:collapse; text-align:left;">
+        <colgroup>
+          <col style="width: 8%" />
+          <col style="width: 35%" />
+          <col style="width: 20%" />
+          <col style="width: 7%" />
+          <col style="width: 12%" />
+          <col style="width: 18%" />
+        </colgroup>
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+            <th class="py-4 px-6 text-center">유형</th>
+            <th class="py-4 px-6 text-left">상품 정보</th>
+            <th class="py-4 px-6 text-left">노출 설명</th>
+            <th class="py-4 px-6 text-center">정렬</th>
+            <th class="py-4 px-6 text-center">등록일</th>
+            <th class="py-4 px-6 text-center">관리</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+
+          <tr th:if="${#lists.isEmpty(featuredItems)}">
+            <td colspan="6" class="py-20 text-center text-slate-400 text-sm">
+              <i class="fa-solid fa-star text-3xl text-slate-200 mb-3 block"></i>
+              등록된 추천 항목이 없습니다.
+            </td>
+          </tr>
+
+          <tr th:each="item : ${featuredItems}"
+              class="featured-row hover:bg-slate-50/50 transition-colors"
+              th:data-sort-ord="${item.sortOrd}"
+              th:data-reg-dt="${item.regDt != null ? #temporals.format(item.regDt, 'yyyy-MM-dd HH:mm:ss') : ''}">
+
+            <!-- 유형 -->
+            <td class="py-4 px-6 text-center">
+              <span th:if="${item.prodType.name() == 'COURSE'}"
+                class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-600">강좌</span>
+              <span th:if="${item.prodType.name() == 'TEXTBOOK'}"
+                class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-600">교재</span>
+            </td>
+
+            <!-- 상품 정보 (클릭 → 관리자 상품 페이지) -->
+            <td class="py-4 px-6 text-left">
+              <a th:href="${item.prodType.name() == 'COURSE'
+                            ? '/admin/course/detail?courseSn=' + item.prodSn
+                            : '/admin/textbook/' + item.prodSn + '/detail'}"
+                 target="_blank"
+                 class="flex items-center gap-3 hover:opacity-80 transition-opacity group">
+                <div class="w-10 h-12 rounded-lg overflow-hidden border border-slate-200 shrink-0 bg-slate-100 flex items-center justify-center">
+                  <img th:if="${item.customImg != null}" th:src="${item.customImg}" alt=""
+                    class="w-full h-full object-contain" />
+                  <img th:if="${item.customImg == null and item.originImg != null}" th:src="${item.originImg}" alt=""
+                    class="w-full h-full object-contain" />
+                  <i th:if="${item.customImg == null and item.originImg == null}"
+                    class="fa-solid fa-image text-slate-300 text-lg"></i>
+                </div>
+                <div class="min-w-0">
+                  <p class="font-bold text-slate-800 truncate group-hover:text-blue-600 transition-colors"
+                     th:text="${item.name ?: '-'}">상품명</p>
+                  <p class="text-xs text-slate-400 mt-0.5"
+                    th:text="${item.customImg != null ? '커스텀 이미지' : '기본 이미지'}">-</p>
+                </div>
+              </a>
+            </td>
+
+            <!-- 노출 설명 (클릭 → 관리자 상품 페이지) -->
+            <td class="py-4 px-6 text-left">
+              <a th:href="${item.prodType.name() == 'COURSE'
+                            ? '/admin/course/detail?courseSn=' + item.prodSn
+                            : '/admin/textbook/' + item.prodSn + '/detail'}"
+                 target="_blank"
+                 class="group block overflow-hidden min-w-0">
+                <p class="text-sm text-slate-600 truncate group-hover:text-blue-500 transition-colors"
+                  th:text="${item.customDesc != null ? item.customDesc : (item.originDesc ?: '-')}">-</p>
+                <p th:if="${item.customDesc != null}" class="text-xs text-indigo-400 mt-0.5">커스텀</p>
+              </a>
+            </td>
+
+            <!-- 정렬 순서 -->
+            <td class="py-4 px-6 text-center">
+              <span class="text-sm font-mono font-bold text-slate-600" th:text="${item.sortOrd}">0</span>
+            </td>
+
+            <!-- 등록일 -->
+            <td class="py-4 px-6 text-center">
+              <span class="text-xs text-slate-500"
+                th:text="${item.regDt != null ? #temporals.format(item.regDt, 'yyyy.MM.dd') : '-'}">-</span>
+            </td>
+
+            <!-- 관리 -->
+            <td class="py-4 px-6 text-center">
+              <div class="flex items-center justify-center gap-2">
+                <a th:href="|/admin/featured/${item.featuredSn}/edit|"
+                  class="hm-btn-ghost text-xs px-3 py-1.5 whitespace-nowrap">
+                  <i class="fa-solid fa-pen mr-1"></i>수정
+                </a>
+                <button type="button"
+                  onclick="deleteFeaturedItem(this)"
+                  th:data-sn="${item.featuredSn}"
+                  th:data-name="${item.name}"
+                  class="inline-flex items-center text-xs px-3 py-1.5 rounded-xl font-medium text-rose-500 border border-rose-200 hover:bg-rose-50 transition-colors whitespace-nowrap">
+                  <i class="fa-solid fa-trash mr-1"></i>삭제
+                </button>
+              </div>
+            </td>
+
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 클라이언트 페이지네이션 -->
+    <div id="featuredPagination" class="flex items-center justify-center gap-1 py-5 border-t border-slate-100" style="display:none">
+      <button id="pagePrev" onclick="goToPage(currentPage - 1)"
+        class="w-8 h-8 flex items-center justify-center border border-slate-200 rounded text-slate-400 hover:bg-slate-50 text-sm disabled:opacity-30 disabled:cursor-not-allowed">‹</button>
+      <button id="pageBtn1" onclick="goToPage(1)"
+        class="w-8 h-8 flex items-center justify-center border rounded text-xs font-medium transition-colors bg-blue-950 text-white border-blue-950">1</button>
+      <button id="pageBtn2" onclick="goToPage(2)"
+        class="w-8 h-8 flex items-center justify-center border rounded text-xs font-medium transition-colors text-slate-500 border-slate-200 hover:bg-slate-50">2</button>
+      <button id="pageNext" onclick="goToPage(currentPage + 1)"
+        class="w-8 h-8 flex items-center justify-center border border-slate-200 rounded text-slate-400 hover:bg-slate-50 text-sm disabled:opacity-30 disabled:cursor-not-allowed">›</button>
+    </div>
+
+  </div>
+
+</div>
+
+<script th:inline="javascript">
+  const PAGE_SIZE = 6;
+  let currentPage = 1;
+  let sortMode = 'ord';
+
+  function setSortMode(mode) {
+    sortMode = mode;
+    const tbody = document.querySelector('tbody');
+    const rows = Array.from(document.querySelectorAll('.featured-row'));
+    rows.sort(function(a, b) {
+      if (mode === 'ord') {
+        return parseInt(a.dataset.sortOrd || 0) - parseInt(b.dataset.sortOrd || 0);
+      } else {
+        const da = a.dataset.regDt || '';
+        const db = b.dataset.regDt || '';
+        return da < db ? -1 : da > db ? 1 : 0;
+      }
+    });
+    rows.forEach(function(row) { tbody.appendChild(row); });
+    currentPage = 1;
+    renderPage();
+    document.getElementById('sortByOrd').className = 'px-3 py-1.5 text-xs font-medium transition-colors '
+      + (mode === 'ord' ? 'bg-slate-800 text-white' : 'text-slate-500 hover:bg-slate-50');
+    document.getElementById('sortByReg').className = 'px-3 py-1.5 text-xs font-medium transition-colors '
+      + (mode === 'reg' ? 'bg-slate-800 text-white' : 'text-slate-500 hover:bg-slate-50');
+  }
+
+  function renderPage() {
+    const rows = Array.from(document.querySelectorAll('.featured-row'));
+    const totalPages = Math.ceil(rows.length / PAGE_SIZE);
+
+    rows.forEach(function(row, idx) {
+      row.style.display = (Math.floor(idx / PAGE_SIZE) + 1 === currentPage) ? '' : 'none';
+    });
+
+    const paginationEl = document.getElementById('featuredPagination');
+    paginationEl.style.display = rows.length > PAGE_SIZE ? '' : 'none';
+    document.getElementById('pagePrev').disabled = currentPage <= 1;
+    document.getElementById('pageNext').disabled = currentPage >= totalPages;
+    [1, 2].forEach(function(i) {
+      const btn = document.getElementById('pageBtn' + i);
+      const active = i === currentPage;
+      btn.style.display = i <= totalPages ? '' : 'none';
+      btn.className = 'w-8 h-8 flex items-center justify-center border rounded text-xs font-medium transition-colors '
+        + (active ? 'bg-blue-950 text-white border-blue-950' : 'text-slate-500 border-slate-200 hover:bg-slate-50');
+    });
+  }
+
+  function goToPage(page) {
+    const totalPages = Math.ceil(document.querySelectorAll('.featured-row').length / PAGE_SIZE);
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderPage();
+  }
+
+  async function deleteFeaturedItem(btn) {
+    const featuredSn = parseInt(btn.dataset.sn);
+    const name = btn.dataset.name;
+    if (!confirm(`"${name}" 을(를) 추천 목록에서 삭제하시겠습니까?`)) return;
+    const res = await fetch(`/admin/featured/api/${featuredSn}`, { method: 'DELETE' });
+    res.ok ? location.reload() : alert('삭제 중 오류가 발생했습니다.');
+  }
+
+  document.addEventListener('DOMContentLoaded', renderPage);
+</script>

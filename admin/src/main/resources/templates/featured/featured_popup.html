@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>상품 선택</title>
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" th:href="@{/css/admin-core.css}" />
+  <style>body { font-family: 'Noto Sans KR', sans-serif; }</style>
+</head>
+<body class="bg-white text-slate-800 flex flex-col h-screen overflow-hidden">
+
+  <!-- 헤더 -->
+  <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 bg-white shrink-0">
+    <h1 class="text-sm font-bold text-slate-800">
+      <i class="fa-solid fa-star mr-2 text-blue-500"></i>상품 선택
+    </h1>
+    <button type="button" onclick="window.close()"
+      class="text-slate-400 hover:text-slate-600 text-lg leading-none">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+
+  <!-- 탭 -->
+  <div class="flex border-b border-slate-100 shrink-0">
+    <button type="button" id="tabCourse" onclick="switchTab('COURSE')"
+      class="flex-1 py-3 text-sm font-semibold border-b-2 border-blue-500 text-blue-600 transition-colors">
+      <i class="fa-solid fa-chalkboard-user mr-1.5"></i>강좌
+    </button>
+    <button type="button" id="tabTextbook" onclick="switchTab('TEXTBOOK')"
+      class="flex-1 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition-colors">
+      <i class="fa-solid fa-book mr-1.5"></i>교재
+    </button>
+  </div>
+
+  <!-- 검색 -->
+  <div class="px-5 py-3 border-b border-slate-100 shrink-0">
+    <div class="flex gap-2">
+      <input type="text" id="searchInput" class="hm-input flex-1 text-sm"
+        placeholder="이름으로 검색..."
+        onkeydown="if(event.key==='Enter') applyFilter()" />
+      <button type="button" onclick="applyFilter()"
+        class="hm-btn-primary text-sm px-4 py-2 whitespace-nowrap">
+        <i class="fa-solid fa-magnifying-glass mr-1.5"></i>검색
+      </button>
+    </div>
+  </div>
+
+  <!-- 강좌 목록 -->
+  <div id="panelCourse" class="flex-1 overflow-y-auto">
+    <table class="w-full text-sm">
+      <thead class="sticky top-0 bg-slate-50 border-b border-slate-100">
+        <tr class="text-left text-slate-500 text-xs">
+          <th class="px-5 py-3 font-semibold">강좌명</th>
+          <th class="px-4 py-3 font-semibold w-32 text-right">가격</th>
+        </tr>
+      </thead>
+      <tbody id="courseBody">
+        <tr th:each="c : ${courses}"
+            th:data-sn="${c.prodSn}"
+            th:data-nm="${c.name}"
+            class="border-t border-slate-100 hover:bg-blue-50 cursor-pointer transition-colors"
+            onclick="selectProduct('COURSE', this)">
+          <td class="px-5 py-3 font-medium text-slate-800" th:text="${c.name}">강좌명</td>
+          <td class="px-4 py-3 text-slate-500 text-right"
+              th:text="${c.price != null ? #numbers.formatInteger(c.price, 1, 'COMMA') + '원' : '-'}">-</td>
+        </tr>
+      </tbody>
+    </table>
+    <div id="emptyMsgCourse" class="hidden py-10 text-center text-sm text-slate-400">검색 결과가 없습니다.</div>
+    <div th:if="${#lists.isEmpty(courses)}" class="py-10 text-center text-sm text-slate-400">
+      등록된 강좌가 없습니다.
+    </div>
+  </div>
+
+  <!-- 교재 목록 -->
+  <div id="panelTextbook" class="hidden flex-1 overflow-y-auto">
+    <table class="w-full text-sm">
+      <thead class="sticky top-0 bg-slate-50 border-b border-slate-100">
+        <tr class="text-left text-slate-500 text-xs">
+          <th class="px-5 py-3 font-semibold">교재명</th>
+          <th class="px-4 py-3 font-semibold w-32 text-right">가격</th>
+        </tr>
+      </thead>
+      <tbody id="textbookBody">
+        <tr th:each="t : ${textbooks}"
+            th:data-sn="${t.prodSn}"
+            th:data-nm="${t.name}"
+            class="border-t border-slate-100 hover:bg-emerald-50 cursor-pointer transition-colors"
+            onclick="selectProduct('TEXTBOOK', this)">
+          <td class="px-5 py-3 font-medium text-slate-800" th:text="${t.name}">교재명</td>
+          <td class="px-4 py-3 text-slate-500 text-right"
+              th:text="${t.price != null ? #numbers.formatInteger(t.price, 1, 'COMMA') + '원' : '-'}">-</td>
+        </tr>
+      </tbody>
+    </table>
+    <div id="emptyMsgTextbook" class="hidden py-10 text-center text-sm text-slate-400">검색 결과가 없습니다.</div>
+    <div th:if="${#lists.isEmpty(textbooks)}" class="py-10 text-center text-sm text-slate-400">
+      등록된 교재가 없습니다.
+    </div>
+  </div>
+
+  <script>
+    let activeTab = 'COURSE';
+
+    function switchTab(tab) {
+      activeTab = tab;
+      document.getElementById('searchInput').value = '';
+
+      const isCourse = tab === 'COURSE';
+      document.getElementById('panelCourse').classList.toggle('hidden', !isCourse);
+      document.getElementById('panelTextbook').classList.toggle('hidden', isCourse);
+
+      ['Course', 'Textbook'].forEach(function(t) {
+        const btn = document.getElementById('tab' + t);
+        const active = (t === 'Course' && isCourse) || (t === 'Textbook' && !isCourse);
+        btn.classList.toggle('border-blue-500', active);
+        btn.classList.toggle('text-blue-600', active);
+        btn.classList.toggle('border-transparent', !active);
+        btn.classList.toggle('text-slate-500', !active);
+      });
+
+      const bodyId = isCourse ? 'courseBody' : 'textbookBody';
+      document.querySelectorAll('#' + bodyId + ' tr[data-sn]').forEach(function(r) {
+        r.style.display = '';
+      });
+      document.getElementById(isCourse ? 'emptyMsgCourse' : 'emptyMsgTextbook').classList.add('hidden');
+    }
+
+    function applyFilter() {
+      const kw = document.getElementById('searchInput').value.trim().toLowerCase();
+      const isCourse = activeTab === 'COURSE';
+      const bodyId   = isCourse ? 'courseBody'      : 'textbookBody';
+      const emptyId  = isCourse ? 'emptyMsgCourse'  : 'emptyMsgTextbook';
+      let visible = 0;
+      document.querySelectorAll('#' + bodyId + ' tr[data-sn]').forEach(function(row) {
+        const show = !kw || (row.dataset.nm || '').toLowerCase().includes(kw);
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+      document.getElementById(emptyId).classList.toggle('hidden', visible > 0);
+    }
+
+    function selectProduct(type, row) {
+      if (window.opener && !window.opener.closed) {
+        window.opener.onProductSelected(type, row.dataset.sn, row.dataset.nm);
+      }
+      window.close();
+    }
+  </script>
+</body>
+</html>
