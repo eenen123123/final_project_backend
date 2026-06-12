@@ -118,9 +118,7 @@
           <button class="hm-btn-secondary text-sm px-3 py-2 whitespace-nowrap" onclick="resetAndSearch('aa')">
             <i class="fa-solid fa-rotate-left mr-1"></i>초기화
           </button>
-          <button class="hm-btn-primary text-sm px-3 py-2 whitespace-nowrap" onclick="searchAdminAccess(1)">
-            <i class="fa-solid fa-magnifying-glass mr-1"></i>조회
-          </button>
+
         </div>
 
         <div class="rounded-xl border border-slate-100 overflow-hidden">
@@ -151,7 +149,7 @@
         <div class="flex flex-wrap items-center gap-2">
           <div class="relative">
             <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-            <input id="inp-aud-keyword" type="text" class="hm-input pr-9" style="width:11rem" placeholder="관리자 ID 또는 URI..." />
+            <input id="inp-aud-keyword" type="text" class="hm-input pr-9" style="width:13rem" placeholder="ID, URI, TraceId 검색..." />
           </div>
           <select id="inp-aud-method" class="hm-input" style="width:8rem">
             <option value="">HTTP 메서드</option>
@@ -170,9 +168,7 @@
           <button class="hm-btn-secondary text-sm px-3 py-2 whitespace-nowrap" onclick="resetAndSearch('aud')">
             <i class="fa-solid fa-rotate-left mr-1"></i>초기화
           </button>
-          <button class="hm-btn-primary text-sm px-3 py-2 whitespace-nowrap" onclick="searchAdminAudit(1)">
-            <i class="fa-solid fa-magnifying-glass mr-1"></i>조회
-          </button>
+
         </div>
 
         <div class="rounded-xl border border-slate-100 overflow-hidden">
@@ -180,17 +176,17 @@
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
-                  <th class="py-4 px-5">감사 번호</th>
-                  <th class="py-4 px-5">관리자 ID</th>
-                  <th class="py-4 px-5">접속 IP</th>
-                  <th class="py-4 px-5 text-center">메서드</th>
+                  <th class="py-4 px-5 w-24">활동 번호</th>
+                  <th class="py-4 px-5 w-40">관리자 ID</th>
+                  <th class="py-4 px-5 text-center w-24">메서드</th>
                   <th class="py-4 px-5">요청 URI</th>
-                  <th class="py-4 px-5 text-center">상태</th>
-                  <th class="py-4 px-5">발생 일시</th>
-                  <th class="py-4 px-5 text-center">상세</th>
+                  <th class="py-4 px-5 text-center w-24">상태</th>
+                  <th class="py-4 px-5 w-45">접속 IP</th>
+                  <th class="py-4 px-5 w-45">발생 일시</th>
+                  <th class="py-4 px-5 text-center w-20">상세</th>
                 </tr>
               </thead>
-              <tbody id="tbody-admin-audit" class="divide-y divide-slate-50 text-sm text-slate-700"></tbody>
+              <tbody id="tbody-admin-audit" class="divide-y divide-slate-50 text-sm text-slate-700 whitespace-nowrap"></tbody>
             </table>
           </div>
           <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
@@ -236,9 +232,7 @@
           <button class="hm-btn-secondary text-sm px-3 py-2 whitespace-nowrap" onclick="resetAndSearch('ma')">
             <i class="fa-solid fa-rotate-left mr-1"></i>초기화
           </button>
-          <button class="hm-btn-primary text-sm px-3 py-2 whitespace-nowrap" onclick="searchMemberAccess(1)">
-            <i class="fa-solid fa-magnifying-glass mr-1"></i>조회
-          </button>
+
         </div>
 
         <div class="rounded-xl border border-slate-100 overflow-hidden">
@@ -270,23 +264,13 @@
         <div class="flex flex-wrap items-center gap-2">
           <div class="relative">
             <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-            <input id="inp-mact-userId" type="text" class="hm-input pr-9" style="width:10rem" placeholder="사용자 ID 검색..." />
+            <input id="inp-mact-keyword" type="text" class="hm-input pr-9" style="width:13rem" placeholder="ID, URI, TraceId 검색..." />
           </div>
-          <select id="inp-mact-type" class="hm-input" style="width:10rem">
-            <option value="">활동 유형 전체</option>
-            <option>강의 재생</option>
-            <option>과제 제출</option>
-            <option>게시글 조회</option>
-            <option>댓글 작성</option>
-            <option>자료 다운로드</option>
-          </select>
           <input id="inp-mact-fromDt" type="date" class="hm-input" style="width:9rem" />
           <button class="hm-btn-secondary text-sm px-3 py-2 whitespace-nowrap" onclick="resetAndSearch('mact')">
             <i class="fa-solid fa-rotate-left mr-1"></i>초기화
           </button>
-          <button class="hm-btn-primary text-sm px-3 py-2 whitespace-nowrap" onclick="searchMemberActivity(1)">
-            <i class="fa-solid fa-magnifying-glass mr-1"></i>조회
-          </button>
+
         </div>
 
         <div class="rounded-xl border border-slate-100 overflow-hidden">
@@ -294,15 +278,18 @@
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
-                  <th class="py-4 px-6">활동 번호</th>
-                  <th class="py-4 px-6">사용자 ID</th>
-                  <th class="py-4 px-6">활동 유형</th>
-                  <th class="py-4 px-6">대상 번호</th>
-                  <th class="py-4 px-6">발생 IP</th>
-                  <th class="py-4 px-6">활동 일시</th>
+                  <th class="py-4 px-5 w-24">활동 번호</th>
+                  <th class="py-4 px-5 w-40">사용자 ID</th>
+                  <th class="py-4 px-5 text-center w-24">메서드</th>
+                  <th class="py-4 px-5">요청 URI</th>
+                  <th class="py-4 px-5 w-30">대상 번호</th>
+                  <th class="py-4 px-5 text-center w-24">상태</th>
+                  <th class="py-4 px-5 w-45">발생 IP</th>
+                  <th class="py-4 px-5 w-45">활동 일시</th>
+                  <th class="py-4 px-5 text-center">상세</th>
                 </tr>
               </thead>
-              <tbody id="tbody-member-activity" class="divide-y divide-slate-50 text-sm text-slate-700"></tbody>
+              <tbody id="tbody-member-activity" class="divide-y divide-slate-50 text-sm text-slate-700 whitespace-nowrap"></tbody>
             </table>
           </div>
           <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
@@ -326,9 +313,7 @@
         <button class="hm-btn-secondary text-sm px-3 py-2 whitespace-nowrap" onclick="resetAndSearch('err')">
           <i class="fa-solid fa-rotate-left mr-1"></i>초기화
         </button>
-        <button class="hm-btn-primary text-sm px-3 py-2 whitespace-nowrap" onclick="searchSysError(1)">
-          <i class="fa-solid fa-magnifying-glass mr-1"></i>조회
-        </button>
+
       </div>
 
       <div class="rounded-xl border border-slate-100 overflow-hidden">
@@ -336,7 +321,7 @@
           <table class="w-full text-left border-collapse table-fixed min-w-[900px]">
             <thead>
               <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
-                <th class="py-4 px-6 w-20">에러 번호</th>
+                <th class="py-4 px-6 w-20">번호</th>
                 <th class="py-4 px-6 w-43">TRACE ID</th>
                 <th class="py-4 px-2 w-40">구분</th>
                 <th class="py-4 px-2 w-50">에러 코드</th>
@@ -376,6 +361,28 @@
     </div>
     <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end">
       <button onclick="closeAuditDetailModal()" class="hm-btn-primary !bg-slate-600 hover:!bg-slate-700 !py-2 !px-5">닫기</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== 사용자 활동 상세 모달 ===== -->
+<div id="mactDetailModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+      <div>
+        <h3 class="text-base font-bold text-slate-800">사용자 활동 상세</h3>
+        <p class="text-xs text-slate-400 mt-0.5">MEMBER_ACTIVITY_LOG</p>
+      </div>
+      <button onclick="closeMemberActivityDetailModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 flex items-center justify-center transition-all">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="p-6">
+      <div id="mactDetailContent" class="overflow-auto max-h-96"></div>
+    </div>
+    <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end">
+      <button onclick="closeMemberActivityDetailModal()" class="hm-btn-primary !bg-slate-600 hover:!bg-slate-700 !py-2 !px-5">닫기</button>
     </div>
   </div>
 </div>
@@ -521,7 +528,7 @@
     aa:   ['inp-aa-userId', 'inp-aa-fromDt', 'inp-aa-toDt', 'inp-aa-session'],
     aud:  ['inp-aud-keyword', 'inp-aud-method', 'inp-aud-status'],
     ma:   ['inp-ma-userId', 'inp-ma-success', 'inp-ma-fromDt'],
-    mact: ['inp-mact-userId', 'inp-mact-type', 'inp-mact-fromDt'],
+    mact: ['inp-mact-keyword', 'inp-mact-fromDt'],
     err:  ['inp-err-keyword', 'inp-err-fromDt']
   };
 
@@ -628,18 +635,18 @@
       const mCls = METHOD_BADGE[r.httpMethod] || 'bg-slate-100 text-slate-600';
       const sCls = statusBadgeClass(r.statusCode);
       return `<tr class="hover:bg-slate-50/50 transition-colors">
-        <td class="py-3.5 px-5 font-mono text-xs text-slate-400">${esc(r.auditId)}</td>
-        <td class="py-3.5 px-5 font-semibold text-slate-800">${esc(r.adminId)}</td>
-        <td class="py-3.5 px-5 font-mono text-xs">${esc(r.memberIp) || '—'}</td>
-        <td class="py-3.5 px-5 text-center">
+        <td class="py-4 px-5 font-mono text-xs text-slate-400">${esc(r.auditId)}</td>
+        <td class="py-4 px-5 font-semibold text-slate-800">${esc(r.adminId)}</td>
+        <td class="py-4 px-5 text-center">
           <span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${mCls}">${esc(r.httpMethod)}</span>
-        </td>
-        <td class="py-3.5 px-5 text-xs font-mono text-slate-600">${esc(r.requestUri)}</td>
-        <td class="py-3.5 px-5 text-center">
-          <span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${sCls}">${esc(r.statusCode)}</span>
-        </td>
-        <td class="py-3.5 px-5 text-xs text-slate-500 font-mono">${esc(r.createdAt) || '—'}</td>
-        <td class="py-3.5 px-5 text-center">
+          </td>
+          <td class="py-4 px-5 text-xs font-mono text-slate-600 whitespace-nowrap">${esc(r.requestUri)}</td>
+          <td class="py-4 px-5 text-center">
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${sCls}">${esc(r.statusCode)}</span>
+            </td>
+        <td class="py-4 px-5 font-mono text-xs">${esc(r.memberIp) || '—'}</td>
+        <td class="py-4 px-5 text-xs text-slate-500 font-mono">${esc(r.createdAt) || '—'}</td>
+        <td class="py-4 px-5 text-center">
           <button class="text-slate-400 hover:text-violet-600 p-1.5 transition-colors"
                   title="요청 파라미터 상세"
                   data-audit-id="${esc(r.auditId)}"
@@ -698,12 +705,10 @@
   /* ─── 4. 사용자 활동 이력 ────────────────────────────────────────── */
   async function searchMemberActivity(page = 1) {
     const params = new URLSearchParams({ page, screenSize: SCREEN_SIZE });
-    const userId       = document.getElementById('inp-mact-userId').value.trim();
-    const activityType = document.getElementById('inp-mact-type').value;
-    const fromDt       = document.getElementById('inp-mact-fromDt').value;
-    if (userId)       params.set('userId',       userId);
-    if (activityType) params.set('activityType', activityType);
-    if (fromDt)       params.set('fromDt',       fromDt);
+    const keyword = document.getElementById('inp-mact-keyword').value.trim();
+    const fromDt  = document.getElementById('inp-mact-fromDt').value;
+    if (keyword) params.set('keyword', keyword);
+    if (fromDt)  params.set('fromDt',  fromDt);
 
     try {
       const data = await fetch('/admin/system/monitoring/member-activity?' + params).then(r => r.json());
@@ -723,22 +728,38 @@
   function renderMemberActivityTable(items) {
     const tbody = document.getElementById('tbody-member-activity');
     if (!items || items.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-sm text-slate-400">조회된 데이터가 없습니다.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="9" class="text-center py-10 text-sm text-slate-400">조회된 데이터가 없습니다.</td></tr>';
       return;
     }
     tbody.innerHTML = items.map(r => {
-      const style = ACTIVITY_STYLE[r.activityType] || { cls: 'bg-slate-100 text-slate-600', icon: 'fa-circle' };
+      // activityType은 "METHOD URI" 형태 → 첫 공백 기준으로 분리
+      const at = r.activityType || '';
+      const sp = at.indexOf(' ');
+      const method = sp > 0 ? at.substring(0, sp) : '';
+      const uri    = sp > 0 ? at.substring(sp + 1) : at;
+      const mCls = METHOD_BADGE[method] || 'bg-slate-100 text-slate-600';
+      const sCls = statusBadgeClass(r.statusCode);
       return `<tr class="hover:bg-slate-50/50 transition-colors">
-        <td class="py-4 px-6 font-mono text-xs text-slate-400">${esc(r.activityId)}</td>
-        <td class="py-4 px-6 font-semibold text-slate-800">${esc(r.userId)}</td>
-        <td class="py-4 px-6">
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${style.cls}">
-            <i class="fa-solid ${style.icon} text-[9px]"></i> ${esc(r.activityType)}
-          </span>
+        <td class="py-4 px-5 font-mono text-xs text-slate-400">${esc(r.activityId)}</td>
+        <td class="py-4 px-5 font-semibold text-slate-800">${esc(r.userId)}</td>
+        <td class="py-4 px-5 text-center">
+          <span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${mCls}">${esc(method) || '—'}</span>
         </td>
-        <td class="py-4 px-6 font-mono text-xs text-slate-500">${esc(r.targetId) || '—'}</td>
-        <td class="py-4 px-6 font-mono text-xs">${esc(r.activityIp) || '—'}</td>
-        <td class="py-4 px-6 text-xs text-slate-500 font-mono">${esc(r.createdAt) || '—'}</td>
+        <td class="py-4 px-5 text-xs font-mono text-slate-600 whitespace-nowrap">${esc(uri) || '—'}</td>
+        <td class="py-4 px-5 font-mono text-xs text-slate-500">${esc(r.targetId) || '—'}</td>
+        <td class="py-4 px-5 text-center">
+          <span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${sCls}">${esc(r.statusCode) || '—'}</span>
+        </td>
+        <td class="py-4 px-5 font-mono text-xs">${esc(r.activityIp) || '—'}</td>
+        <td class="py-4 px-5 text-xs text-slate-500 font-mono">${esc(r.createdAt) || '—'}</td>
+        <td class="py-4 px-5 text-center">
+          <button class="text-slate-400 hover:text-violet-600 p-1.5 transition-colors"
+                  title="활동 상세"
+                  data-row="${esc(JSON.stringify(r))}"
+                  onclick="openMemberActivityDetailModal(this.dataset.row)">
+            <i class="fa-solid fa-file-lines text-base"></i>
+          </button>
+        </td>
       </tr>`;
     }).join('');
   }
@@ -846,6 +867,40 @@
     if (e.target === this) closeAuditDetailModal();
   });
 
+  function openMemberActivityDetailModal(rowJson) {
+    let r;
+    try { r = JSON.parse(rowJson); } catch (e) { r = {}; }
+    const at = r.activityType || '';
+    const sp = at.indexOf(' ');
+    const method = sp > 0 ? at.substring(0, sp) : '';
+    const uri    = sp > 0 ? at.substring(sp + 1) : at;
+    const fields = [
+      ['활동 번호', r.activityId],
+      ['Trace ID', r.traceId],
+      ['사용자 ID', r.userId],
+      ['메서드', method],
+      ['요청 URI', uri],
+      ['대상 번호', r.targetId],
+      ['상태 코드', r.statusCode],
+      ['발생 IP', r.activityIp],
+      ['활동 일시', r.createdAt],
+    ];
+    document.getElementById('mactDetailContent').innerHTML = fields.map(([k, v]) =>
+      `<div class="flex gap-3 py-2 border-b border-slate-50">
+         <span class="w-24 shrink-0 text-xs font-bold text-slate-400">${k}</span>
+         <span class="font-mono text-xs text-slate-700 break-all">${esc(v) || '—'}</span>
+       </div>`).join('');
+    const m = document.getElementById('mactDetailModal');
+    m.classList.remove('hidden'); m.classList.add('flex');
+  }
+  function closeMemberActivityDetailModal() {
+    const m = document.getElementById('mactDetailModal');
+    m.classList.add('hidden'); m.classList.remove('flex');
+  }
+  document.getElementById('mactDetailModal').addEventListener('click', function(e) {
+    if (e.target === this) closeMemberActivityDetailModal();
+  });
+
   function openErrorDetailModal(errorId, errorCode, msg) {
     document.getElementById('errorDetailTitle').textContent = `에러 #${errorId} — ${errorCode || ''}`;
     document.getElementById('errorDetailContent').textContent = msg || '(없음)';
@@ -899,7 +954,7 @@
         bodyEl.innerHTML = banner + '<p class="text-center py-10 text-sm text-slate-400">활동 이력이 없습니다.</p>';
         return;
       }
-      const headers = isMember ? ['활동 유형', '대상', 'IP', '일시'] : ['메서드', 'URI', '상태', 'IP', '일시'];
+      const headers = isMember ? ['메서드', 'URI', '대상', '상태', 'IP', '일시'] : ['메서드', 'URI', '상태', 'IP', '일시'];
       const rows = list.map(a => isMember ? memberRow(a, ctx.traceId) : adminRow(a, ctx.traceId)).join('');
       bodyEl.innerHTML = banner + traceTable(headers, rows)
         + '<p class="text-[11px] text-slate-400 mt-2">붉게 표시된 행이 이 에러가 발생한 요청입니다.</p>';
@@ -932,9 +987,16 @@
   function memberRow(a, traceId) {
     const hit = a.traceId && a.traceId === traceId;
     const mark = hit ? ' <span class="ml-1 text-[10px] font-bold text-rose-600"></span>' : '';
+    // activityType은 "METHOD URI" 형태이므로 첫 공백 기준으로 분리해 관리자 표와 통일
+    const at = a.activityType || '';
+    const sp = at.indexOf(' ');
+    const method = sp > 0 ? at.substring(0, sp) : '';
+    const uri = sp > 0 ? at.substring(sp + 1) : at;
     return `<tr class="border-b border-slate-50 ${hit ? 'bg-rose-50' : ''}">
-      <td class="py-2.5 px-4 font-mono text-xs">${esc(a.activityType) || '—'}${mark}</td>
+      <td class="py-2.5 px-4 font-mono text-xs">${esc(method) || '—'}</td>
+      <td class="py-2.5 px-4 font-mono text-xs text-slate-600 break-all">${esc(uri) || '—'}${mark}</td>
       <td class="py-2.5 px-4 font-mono text-xs text-slate-600">${esc(a.targetId) || '—'}</td>
+      <td class="py-2.5 px-4 font-mono text-xs">${esc(a.statusCode) || '—'}</td>
       <td class="py-2.5 px-4 font-mono text-xs text-slate-500">${esc(a.activityIp) || '—'}</td>
       <td class="py-2.5 px-4 font-mono text-xs text-slate-500">${esc(a.createdAt) || '—'}</td>
     </tr>`;

@@ -16,5 +16,6 @@ public class MemberActivityLogDto {
     private String activityType;
     private String targetId;
     private String activityIp;
+    private Integer statusCode;
     private String createdAt;
 }
