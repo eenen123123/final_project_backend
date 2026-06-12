@@ -148,9 +148,9 @@
     ORDER BY l.SORT_ORD ASC, l.LECTURE_SN ASC
     </select>
 
-  <!-- updateLectureProgress --> 
+    <!-- updateLectureProgress -->
 
-  <update id="updateLectureProgress">
+    <update id="updateLectureProgress">
     MERGE INTO LECTURE_PROGRESS p
     USING (SELECT #{lectureId} AS lectureSn, #{courseId} AS courseSn FROM dual) src
     ON (p.LECTURE_SN = src.lectureSn AND p.COURSE_SN = src.courseSn AND p.USER_ID = #{userId})
@@ -162,4 +162,12 @@
       INSERT (LECTURE_SN, COURSE_SN, USER_ID, SECONDS_WATCHED, LAST_UPDATE)
       VALUES (src.lectureSn, src.courseSn, #{userId}, #{progress}, SYSDATE)
 
-  </update></mapper>
+    </update>
+    <!-- findCourseIdByFileServerId -->
+    <select id="findCourseIdByFileServerId">
+        select COURSE_SN, COURSE_NM, CRSE_EXPLN_CN, RGTR_ID, LAST_MDFR_ID
+        from COURSE
+        where COURSE_SN = (select COURSE_SN from LECTURE where ATCH_FILE_ID = #{fileServerId})
+    </select>
+
+</mapper>
