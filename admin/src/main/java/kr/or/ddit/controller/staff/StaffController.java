@@ -1,30 +1,12 @@
 package kr.or.ddit.controller.staff;
 
-import java.security.Principal;
-import java.time.LocalDateTime;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.validation.Valid;
-import kr.or.ddit.finalProject.dto.employee.DepartmentDto;
-import kr.or.ddit.finalProject.dto.employee.EmployeeDetailDto;
-import kr.or.ddit.finalProject.dto.employee.EmployeeInfoDto;
-import kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto;
-import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
-import kr.or.ddit.finalProject.dto.member.MemberDto;
-import kr.or.ddit.finalProject.mapper.StaffMapper;
 import kr.or.ddit.finalProject.service.staff.StaffService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -78,15 +60,7 @@ public class StaffController {
         log.info("getLogistics()");
         return "admin:/staff/logistics";
     }
-    
-    /**
-     * 근태 및 휴가 관리
-     */
-    @GetMapping("/hr/leave")
-    public String getHrLeave() {
-        log.info("getHrLeave()");
-        return "admin:/staff/hr_leave";
-    }
+
 
     /** 증명서 발급 관리 */
     @GetMapping("/certificates")
