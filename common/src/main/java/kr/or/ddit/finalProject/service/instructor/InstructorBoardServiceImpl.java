@@ -7,14 +7,11 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto;
 import kr.or.ddit.finalProject.dto.instructor.InstructorBoardResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardDetail;
 import kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardItem;
-import kr.or.ddit.finalProject.dto.instructor.InstructorQnaAnswerDto;
 import kr.or.ddit.finalProject.mapper.instructor.InstructorBoardMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -74,13 +71,7 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
                 .build();
 
         if ("03".equals(original.getBoardTypeCd())) {
-            InstructorQnaAnswerDto answer = instructorBoardMapper.selectInstructorQnaAnswer(original.getPostSn());
-            if (answer != null) {
-                response.setAnswYn(answer.getAnswYn());
-                response.setAnswCn(answer.getAnswCn());
-                response.setAnswrUserNm(answer.getAnswrUserNm());
-                response.setAnswDt(answer.getAnswDt());
-            }
+            response.setAnswer(instructorBoardMapper.selectInstructorQnaAnswer(original.getPostSn()));
         }
 
         return response;
