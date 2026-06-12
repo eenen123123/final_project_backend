@@ -75,9 +75,8 @@ public class CourseServiceImpl implements CourseService {
         if (original == null) {
             throw new IllegalArgumentException("존재하지 않는 강좌입니다.");
         }
-        if (!currentUserId.equals(original.getInstrUserId())) {
-            throw new SecurityException("본인이 작성한 강좌만 수정할 수 있습니다.");
-        }
+        // TODO: 강좌 관리를 강사 전용 페이지로 이관 시 소유권 체크 활성화
+        // if (!currentUserId.equals(original.getInstrUserId())) throw new SecurityException(...)
 
         Long oldCurriculumId = original.getCurriculumId();
         Long newCurriculumId = courseDto.getCurriculumId();
@@ -116,6 +115,8 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional
     public void removeCourse(Long courseSn, String currentUserId) {
+        // TODO: 강좌 관리를 강사 전용 페이지로 이관 시 소유권 체크 추가
+        // if (!currentUserId.equals(original.getInstrUserId())) throw new SecurityException(...)
         CourseDto original = courseMapper.selectCourseBySn(courseSn);
         if (original == null) {
             throw new IllegalArgumentException("존재하지 않는 강좌입니다.");

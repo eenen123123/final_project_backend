@@ -97,10 +97,11 @@ public class AdminCourseController {
             redirectAttributes.addFlashAttribute("errorMsg", "존재하지 않는 강좌입니다.");
             return "redirect:/admin/course/list";
         }
-        if (!userId.equals(course.getInstrUserId())) {
-            redirectAttributes.addFlashAttribute("errorMsg", "본인이 작성한 강좌만 수정할 수 있습니다.");
-            return "redirect:/admin/course/list";
-        }
+        // TODO: 강좌 관리를 강사 전용 페이지로 이관 시 소유권 체크 활성화
+        // if (!userId.equals(course.getInstrUserId())) {
+        //     redirectAttributes.addFlashAttribute("errorMsg", "본인이 작성한 강좌만 수정할 수 있습니다.");
+        //     return "redirect:/admin/course/list";
+        // }
         if (!model.containsAttribute("course")) {
             model.addAttribute("course", course);
         }
