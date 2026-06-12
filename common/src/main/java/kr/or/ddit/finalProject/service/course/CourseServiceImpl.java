@@ -12,6 +12,8 @@ import kr.or.ddit.finalProject.dto.course.CourseResponseDto;
 import kr.or.ddit.finalProject.dto.course.CourseSearchCondition;
 import kr.or.ddit.finalProject.dto.course.SubjectClassificationDto;
 import kr.or.ddit.finalProject.dto.course.SubjectDto;
+import kr.or.ddit.finalProject.dto.instructor.CourseDetailResponse;
+import kr.or.ddit.finalProject.dto.instructor.InstructorPublicCourseResponse;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.mapper.course.CourseMapper;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
@@ -142,6 +144,20 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public CourseResponseDto retrieveCourse(Long courseId) {
         return courseMapper.selectCourseById(courseId);
+    }
+
+    @Override
+    public List<InstructorPublicCourseResponse> retrievePublicCoursesByInstructor(String instrUuid) {
+        return courseMapper.selectCoursesByInstrUuid(instrUuid);
+    }
+
+    @Override
+    public CourseDetailResponse retrievePublicCourseDetail(String instrUuid, Long courseSn) {
+        CourseDetailResponse detail = courseMapper.selectCourseDetailByUuidAndSn(instrUuid, courseSn);
+        if (detail != null) {
+            detail.setLectures(courseMapper.selectPublicCourseLectures(courseSn));
+        }
+        return detail;
     }
 
 }

@@ -1,9 +1,12 @@
 package kr.or.ddit.finalProject.service.instructor;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,10 +14,17 @@ import org.springframework.web.multipart.MultipartFile;
 
 import kr.or.ddit.finalProject.dto.instructor.InstructorCareerDto;
 import kr.or.ddit.finalProject.dto.instructor.InstructorCareerSaveRequest;
+import kr.or.ddit.finalProject.dto.instructor.InstructorDetailResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorDto;
+import kr.or.ddit.finalProject.dto.instructor.InstructorFeaturedCourseResponse;
+import kr.or.ddit.finalProject.dto.instructor.InstructorListResponse;
+import kr.or.ddit.finalProject.dto.instructor.InstructorRecentPostResponse;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
+import kr.or.ddit.finalProject.mapper.instructor.InstructorBoardMapper;
 import kr.or.ddit.finalProject.mapper.instructor.InstructorCareerMapper;
+import kr.or.ddit.finalProject.mapper.instructor.InstructorFeaturedCourseMapper;
+import kr.or.ddit.finalProject.mapper.instructor.InstructorMapper;
 import kr.or.ddit.finalProject.service.file.CloudinaryUploadService;
 import lombok.RequiredArgsConstructor;
 
@@ -24,6 +34,9 @@ import lombok.RequiredArgsConstructor;
 public class InstructorProfileServiceImpl implements InstructorProfileService {
 
     private final InstructorCareerMapper careerMapper;
+    private final InstructorMapper instructorMapper;
+    private final InstructorFeaturedCourseMapper featuredCourseMapper;
+    private final InstructorBoardMapper instructorBoardMapper;
     private final CloudinaryUploadService cloudinaryUploadService;
 
     // CAREER_TYPE_CD 허용 값 (01: 약력 / 02: 저서 / 03: 수상 / 04: 방송출연)
@@ -32,7 +45,41 @@ public class InstructorProfileServiceImpl implements InstructorProfileService {
     private static final Pattern YEAR_PATTERN = Pattern.compile("\\d{4}");
 
     // ──────────────────────────────────────────────
-    // 조회
+    // 공개 강사 조회
+    // ──────────────────────────────────────────────
+
+    @Override
+    public List<InstructorListResponse> retrieveInstructors(Long subjClId) {
+        return instructorMapper.selectInstructors(subjClId);
+    }
+
+    @Override
+    public Map<String, List<InstructorListResponse>> retrieveInstructorsBySubject() {
+        return instructorMapper.selectInstructors(null).stream()
+                .collect(Collectors.groupingBy(
+                        InstructorListResponse::getSubjectClNm,
+                        LinkedHashMap::new,
+                        Collectors.toList()
+                ));
+    }
+
+    @Override
+    public InstructorDetailResponse retrieveInstructorDetail(String instrUuid) {
+        return instructorMapper.selectInstructorByUuid(instrUuid);
+    }
+
+    @Override
+    public List<InstructorFeaturedCourseResponse> retrieveFeaturedCourses(String instrUuid) {
+        return featuredCourseMapper.selectFeaturedCourses(instrUuid);
+    }
+
+    @Override
+    public List<InstructorRecentPostResponse> retrieveRecentPosts(String instrUuid, int size) {
+        return instructorBoardMapper.selectRecentPosts(instrUuid, size);
+    }
+
+    // ──────────────────────────────────────────────
+    // 강사 프로필 관리
     // ──────────────────────────────────────────────
 
     @Override

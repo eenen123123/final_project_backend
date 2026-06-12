@@ -7,8 +7,13 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
+import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto;
 import kr.or.ddit.finalProject.dto.instructor.InstructorBoardResponse;
+import kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardDetail;
+import kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardItem;
 import kr.or.ddit.finalProject.dto.instructor.InstructorQnaAnswerDto;
 import kr.or.ddit.finalProject.mapper.instructor.InstructorBoardMapper;
 import lombok.RequiredArgsConstructor;
@@ -175,6 +180,35 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     @Transactional
     public int answerInstructorQna(Long postSn, String answrUserId, String answCn) {
         return instructorBoardMapper.updateInstructorQnaAnswer(postSn, answrUserId, answCn);
+    }
+
+    // ── 공개 강사 게시판 (React 프론트용) ──────────────────────────
+
+    @Override
+    public PageResponse<InstructorPublicBoardItem> getPublicBoardList(
+            String instrUuid, String boardTypeCd, int page, int size) {
+        int offset = page * size;
+        int total = instructorBoardMapper.selectPublicBoardCount(instrUuid, boardTypeCd);
+        List<InstructorPublicBoardItem> items =
+                instructorBoardMapper.selectPublicBoardList(instrUuid, boardTypeCd, offset, size);
+        return new PageResponse<>(items, total);
+    }
+
+    @Override
+    @Transactional
+    public InstructorPublicBoardDetail getPublicBoardDetail(String instrUuid, Long postSn) {
+        InstructorPublicBoardDetail detail =
+                instructorBoardMapper.selectPublicBoardDetail(instrUuid, postSn);
+        if (detail == null) {
+            return null;
+        }
+        instructorBoardMapper.incrementViewCount(postSn);
+        detail.setPrevPost(instructorBoardMapper.selectPrevPost(instrUuid, detail.getBoardTypeCd(), postSn));
+        detail.setNextPost(instructorBoardMapper.selectNextPost(instrUuid, detail.getBoardTypeCd(), postSn));
+        if ("Y".equals(detail.getHasFile())) {
+            detail.setFiles(instructorBoardMapper.selectBoardFiles(postSn));
+        }
+        return detail;
     }
 
 }

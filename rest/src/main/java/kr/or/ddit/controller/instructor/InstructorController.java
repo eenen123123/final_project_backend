@@ -1,9 +1,7 @@
 package kr.or.ddit.controller.instructor;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,10 +19,9 @@ import kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardDetail;
 import kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardItem;
 import kr.or.ddit.finalProject.dto.instructor.InstructorPublicCourseResponse;
 import kr.or.ddit.finalProject.dto.instructor.InstructorRecentPostResponse;
-import kr.or.ddit.finalProject.mapper.course.CourseMapper;
-import kr.or.ddit.finalProject.mapper.instructor.InstructorBoardMapper;
-import kr.or.ddit.finalProject.mapper.instructor.InstructorFeaturedCourseMapper;
-import kr.or.ddit.finalProject.mapper.instructor.InstructorMapper;
+import kr.or.ddit.finalProject.service.course.CourseService;
+import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
+import kr.or.ddit.finalProject.service.instructor.InstructorProfileService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -32,38 +29,26 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class InstructorController {
 
-    private final InstructorMapper instructorMapper;
-    private final InstructorFeaturedCourseMapper featuredCourseMapper;
-    private final InstructorBoardMapper instructorBoardMapper;
-    private final CourseMapper courseMapper;
+    private final InstructorProfileService instructorProfileService;
+    private final CourseService courseService;
+    private final InstructorBoardService instructorBoardService;
 
     // GET /api/instructors?subjClId={number}
     @GetMapping
     public ResponseEntity<List<InstructorListResponse>> getInstructors(
             @RequestParam(required = false) Long subjClId) {
-        return ResponseEntity.ok(instructorMapper.selectInstructors(subjClId));
+        return ResponseEntity.ok(instructorProfileService.retrieveInstructors(subjClId));
     }
 
     // GET /api/instructors/by-subject
-    // 전체 강사 목록 반환
-    // 응답 예: { "프로그래밍": [{instrUserId, userName, instrProfileImg}, ...], ... }
     @GetMapping("/by-subject")
     public ResponseEntity<Map<String, List<InstructorListResponse>>> getInstructorsBySubject() {
-        List<InstructorListResponse> flat = instructorMapper.selectInstructors(null);
-
-        Map<String, List<InstructorListResponse>> grouped = flat.stream()
-                .collect(Collectors.groupingBy(
-                        InstructorListResponse::getSubjectClNm,
-                        LinkedHashMap::new,
-                        Collectors.toList()
-                ));
-
-        return ResponseEntity.ok(grouped);
+        return ResponseEntity.ok(instructorProfileService.retrieveInstructorsBySubject());
     }
 
     @GetMapping("/{instrUuid}")
     public ResponseEntity<InstructorDetailResponse> getInstructorDetail(@PathVariable String instrUuid) {
-        InstructorDetailResponse detail = instructorMapper.selectInstructorByUuid(instrUuid);
+        InstructorDetailResponse detail = instructorProfileService.retrieveInstructorDetail(instrUuid);
         if (detail == null) {
             return ResponseEntity.notFound().build();
         }
@@ -71,22 +56,23 @@ public class InstructorController {
     }
 
     @GetMapping("/{instrUuid}/featured-courses")
-    public ResponseEntity<List<InstructorFeaturedCourseResponse>> getFeaturedCourses(@PathVariable String instrUuid) {
-        return ResponseEntity.ok(featuredCourseMapper.selectFeaturedCourses(instrUuid));
+    public ResponseEntity<List<InstructorFeaturedCourseResponse>> getFeaturedCourses(
+            @PathVariable String instrUuid) {
+        return ResponseEntity.ok(instructorProfileService.retrieveFeaturedCourses(instrUuid));
     }
 
     @GetMapping("/{instrUuid}/posts")
     public ResponseEntity<List<InstructorRecentPostResponse>> getRecentPosts(
             @PathVariable String instrUuid,
             @RequestParam(defaultValue = "5") int size) {
-        return ResponseEntity.ok(instructorBoardMapper.selectRecentPosts(instrUuid, size));
+        return ResponseEntity.ok(instructorProfileService.retrieveRecentPosts(instrUuid, size));
     }
 
     // GET /api/instructors/{instrUuid}/courses
     @GetMapping("/{instrUuid}/courses")
     public ResponseEntity<List<InstructorPublicCourseResponse>> getCourses(
             @PathVariable String instrUuid) {
-        return ResponseEntity.ok(courseMapper.selectCoursesByInstrUuid(instrUuid));
+        return ResponseEntity.ok(courseService.retrievePublicCoursesByInstructor(instrUuid));
     }
 
     // GET /api/instructors/{instrUuid}/courses/{courseSn}
@@ -94,11 +80,10 @@ public class InstructorController {
     public ResponseEntity<CourseDetailResponse> getCourseDetail(
             @PathVariable String instrUuid,
             @PathVariable Long courseSn) {
-        CourseDetailResponse detail = courseMapper.selectCourseDetailByUuidAndSn(instrUuid, courseSn);
+        CourseDetailResponse detail = courseService.retrievePublicCourseDetail(instrUuid, courseSn);
         if (detail == null) {
             return ResponseEntity.notFound().build();
         }
-        detail.setLectures(courseMapper.selectPublicCourseLectures(courseSn));
         return ResponseEntity.ok(detail);
     }
 
@@ -108,11 +93,7 @@ public class InstructorController {
             @PathVariable String instrUuid,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        int offset = page * size;
-        int total = instructorBoardMapper.selectPublicBoardCount(instrUuid, "02");
-        List<InstructorPublicBoardItem> items
-                = instructorBoardMapper.selectPublicBoardList(instrUuid, "02", offset, size);
-        return ResponseEntity.ok(new PageResponse<>(items, total));
+        return ResponseEntity.ok(instructorBoardService.getPublicBoardList(instrUuid, "02", page, size));
     }
 
     // GET /api/instructors/{instrUuid}/board/qna?page=0&size=10
@@ -121,11 +102,7 @@ public class InstructorController {
             @PathVariable String instrUuid,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        int offset = page * size;
-        int total = instructorBoardMapper.selectPublicBoardCount(instrUuid, "03");
-        List<InstructorPublicBoardItem> items
-                = instructorBoardMapper.selectPublicBoardList(instrUuid, "03", offset, size);
-        return ResponseEntity.ok(new PageResponse<>(items, total));
+        return ResponseEntity.ok(instructorBoardService.getPublicBoardList(instrUuid, "03", page, size));
     }
 
     // GET /api/instructors/{instrUuid}/board/dataroom?page=0&size=10
@@ -134,11 +111,7 @@ public class InstructorController {
             @PathVariable String instrUuid,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        int offset = page * size;
-        int total = instructorBoardMapper.selectPublicBoardCount(instrUuid, "04");
-        List<InstructorPublicBoardItem> items
-                = instructorBoardMapper.selectPublicBoardList(instrUuid, "04", offset, size);
-        return ResponseEntity.ok(new PageResponse<>(items, total));
+        return ResponseEntity.ok(instructorBoardService.getPublicBoardList(instrUuid, "04", page, size));
     }
 
     // GET /api/instructors/{instrUuid}/board/{postSn}
@@ -146,18 +119,10 @@ public class InstructorController {
     public ResponseEntity<InstructorPublicBoardDetail> getBoardDetail(
             @PathVariable String instrUuid,
             @PathVariable Long postSn) {
-        InstructorPublicBoardDetail detail
-                = instructorBoardMapper.selectPublicBoardDetail(instrUuid, postSn);
+        InstructorPublicBoardDetail detail = instructorBoardService.getPublicBoardDetail(instrUuid, postSn);
         if (detail == null) {
             return ResponseEntity.notFound().build();
         }
-        instructorBoardMapper.incrementViewCount(postSn);
-        detail.setPrevPost(instructorBoardMapper.selectPrevPost(instrUuid, detail.getBoardTypeCd(), postSn));
-        detail.setNextPost(instructorBoardMapper.selectNextPost(instrUuid, detail.getBoardTypeCd(), postSn));
-        if ("Y".equals(detail.getHasFile())) {
-            detail.setFiles(instructorBoardMapper.selectBoardFiles(postSn));
-        }
         return ResponseEntity.ok(detail);
     }
-
 }
