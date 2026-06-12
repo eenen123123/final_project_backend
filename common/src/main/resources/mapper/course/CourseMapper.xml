@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
@@ -228,7 +228,7 @@
 
 
   <!-- 대분류별 소분류 목록 조회 -->
-  <select id="selectSubjectsBySubjClId" resultType="kr.or.ddit.finalProject.dto.course.SubjectDto">
+  <select id="selectSubjectsBySubjClId" resultType="kr.or.ddit.finalProject.dto.subject.SubjectDto">
   SELECT SUBJ_ID, SUBJ_NM
   FROM SUBJECT
   WHERE SUBJ_CL_ID = #{subjClId}
@@ -236,7 +236,7 @@
   </select>
 
   <!-- 강사 UUID + 강좌 번호로 강좌 상세 조회 (공개 강사 페이지용) -->
-  <select id="selectCourseDetailByUuidAndSn" resultType="kr.or.ddit.finalProject.dto.instructor.CourseDetailResponse">
+  <select id="selectCourseDetailByUuidAndSn" resultType="kr.or.ddit.finalProject.dto.course.CourseDetailResponse">
   SELECT
     C.COURSE_SN        AS courseSn,
     C.COURSE_NM        AS title,
@@ -258,7 +258,7 @@
   </select>
 
   <!-- 강좌의 강의 목록 조회 (공개 강사 페이지용) -->
-  <select id="selectPublicCourseLectures" resultType="kr.or.ddit.finalProject.dto.instructor.CourseLectureItem">
+  <select id="selectPublicCourseLectures" resultType="kr.or.ddit.finalProject.dto.course.CourseLectureItem">
   SELECT
     LECTURE_SN       AS lectureSn,
     LECTURE_NM       AS title,
@@ -287,7 +287,7 @@
   </select>
 
   <!-- 과목 분류 목록 조회 (사용중인 것만) -->
-  <select id="selectSubjectClassificationList" resultType="kr.or.ddit.finalProject.dto.course.SubjectClassificationDto">
+  <select id="selectSubjectClassificationList" resultType="kr.or.ddit.finalProject.dto.subject.SubjectClassificationDto">
   SELECT SUBJ_CL_ID, SUBJ_CL_NM
   FROM SUBJECT_CLASSIFICATION
   WHERE USE_YN = 'Y'
