@@ -18,7 +18,7 @@ public interface LectureService {
 
     void removeLecture(Long lectureSn, String currentUserId);
 
-    List<LectureResponseDto> retrieveLectureListByCourseSn(Long courseSn);
+    List<LectureResponseDto> retrieveLectureListByCourseSn(Long courseSn, String userId);
 
     void updateLectureProgress(Long lectureId, Long courseId, Integer progress, String userId);
 }
