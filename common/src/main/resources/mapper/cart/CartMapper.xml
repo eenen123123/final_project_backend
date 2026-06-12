@@ -56,4 +56,11 @@
         WHERE USER_ID = #{userId}
     </delete>
 
+    <delete id="deleteCartByUserAndProd">
+        DELETE FROM CART
+        WHERE USER_ID = #{userId}
+          AND PROD_DIV_CD = #{prodDivCd}
+          AND PROD_SN = #{prodSn}
+    </delete>
+
 </mapper>
