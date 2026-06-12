@@ -106,6 +106,10 @@ public class AdminCourseController {
     public String edit(@ModelAttribute CourseDto courseDto,
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
+        if (courseDto.getCourseSn() == null) {
+            redirectAttributes.addFlashAttribute("errorMsg", "잘못된 요청입니다.");
+            return "redirect:/admin/course/list";
+        }
         String errorMsg = validateCourseForm(courseDto);
         if (errorMsg != null) {
             redirectAttributes.addFlashAttribute("errorMsg", errorMsg);

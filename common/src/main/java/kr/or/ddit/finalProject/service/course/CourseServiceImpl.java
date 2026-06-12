@@ -3,6 +3,7 @@ package kr.or.ddit.finalProject.service.course;
 import java.util.List;
 import java.util.Objects;
 
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,11 +57,13 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional
     public boolean createCourse(CourseDto courseDto) {
-        if (courseDto.getCurriculumId() != null) {
-            int maxOrd = courseMapper.selectMaxSortOrdByCurriculumId(courseDto.getCurriculumId());
-            courseDto.setSortOrd(maxOrd + 1);
+        assignNextSortOrd(courseDto);
+        try {
+            return courseMapper.insertCourse(courseDto) > 0;
+        } catch (DuplicateKeyException e) {
+            assignNextSortOrd(courseDto);
+            return courseMapper.insertCourse(courseDto) > 0;
         }
-        return courseMapper.insertCourse(courseDto) > 0;
     }
 
     @Override
@@ -78,12 +81,12 @@ public class CourseServiceImpl implements CourseService {
         Long newCurriculumId = courseDto.getCurriculumId();
 
         if (!Objects.equals(oldCurriculumId, newCurriculumId)) {
-            if (oldCurriculumId != null) {
-                courseMapper.resequenceSortOrd(oldCurriculumId, original.getSortOrd());
+            Integer oldSortOrd = original.getSortOrd();
+            if (oldCurriculumId != null && oldSortOrd != null && oldSortOrd > 0) {
+                courseMapper.resequenceSortOrd(oldCurriculumId, oldSortOrd);
             }
             if (newCurriculumId != null) {
-                int maxOrd = courseMapper.selectMaxSortOrdByCurriculumId(newCurriculumId);
-                courseDto.setSortOrd(maxOrd + 1);
+                courseDto.setSortOrd(courseMapper.selectMaxSortOrdByCurriculumId(newCurriculumId) + 1);
             } else {
                 courseDto.setSortOrd(0);
             }
@@ -92,7 +95,20 @@ public class CourseServiceImpl implements CourseService {
         }
 
         courseDto.setLastMdfrId(currentUserId);
-        courseMapper.updateCourse(courseDto);
+        try {
+            courseMapper.updateCourse(courseDto);
+        } catch (DuplicateKeyException e) {
+            if (newCurriculumId != null) {
+                courseDto.setSortOrd(courseMapper.selectMaxSortOrdByCurriculumId(newCurriculumId) + 1);
+            }
+            courseMapper.updateCourse(courseDto);
+        }
+    }
+
+    private void assignNextSortOrd(CourseDto courseDto) {
+        if (courseDto.getCurriculumId() != null) {
+            courseDto.setSortOrd(courseMapper.selectMaxSortOrdByCurriculumId(courseDto.getCurriculumId()) + 1);
+        }
     }
 
     @Override

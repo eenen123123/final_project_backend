@@ -116,7 +116,7 @@
             <option value="">— 선택 안 함 —</option>
             <option th:each="cl : ${subjClList}"
                     th:value="${cl.subjClId}"
-                    th:selected="${course != null and course.subjClId != null and course.subjClId == cl.subjClId}"
+                    th:selected="${course?.subjClId == cl.subjClId}"
                     th:text="${cl.subjClNm}">분류명</option>
           </select>
         </div>
@@ -135,7 +135,7 @@
           <option value="">— 선택 안 함 (독립 강좌) —</option>
           <option th:each="cur : ${curriculumList}"
                   th:value="${cur.curriculumId}"
-                  th:selected="${course != null and course.curriculumId != null and course.curriculumId == cur.curriculumId}"
+                  th:selected="${course?.curriculumId == cur.curriculumId}"
                   th:text="${cur.title}">커리큘럼명</option>
         </select>
       </div>
