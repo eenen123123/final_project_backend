@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.enrollment.CourseEnrollmentMapper">
+
+    <resultMap id="enrollmentResultMap" type="kr.or.ddit.finalProject.dto.enrollment.CourseEnrollmentDto">
+        <id property="enrlSn" column="ENRL_SN"/>
+        <result property="userId" column="USER_ID"/>
+        <result property="courseSn" column="COURSE_SN"/>
+        <result property="ordSn" column="ORD_SN"/>
+        <result property="accsStrtDt" column="ACCS_STRT_DT"/>
+        <result property="accsEndDt" column="ACCS_END_DT"/>
+        <result property="enrlStatCd" column="ENRL_STAT_CD"/>
+        <result property="regDt" column="REG_DT"/>
+        <result property="mdfcnDt" column="MDFCN_DT"/>
+    </resultMap>
+
+    <select id="selectByUserAndCourse" resultMap="enrollmentResultMap">
+        SELECT ENRL_SN, USER_ID, COURSE_SN, ORD_SN, ACCS_STRT_DT, ACCS_END_DT,
+               ENRL_STAT_CD, REG_DT, MDFCN_DT
+        FROM COURSE_ENROLLMENT
+        WHERE USER_ID = #{userId}
+          AND COURSE_SN = #{courseSn}
+    </select>
+
+    <insert id="insertEnrollment">
+        INSERT INTO COURSE_ENROLLMENT (
+            USER_ID, COURSE_SN, ORD_SN, ACCS_STRT_DT, ACCS_END_DT, ENRL_STAT_CD
+        ) VALUES (
+            #{userId},
+            #{courseSn},
+            #{ordSn},
+            CURRENT_TIMESTAMP,
+            ADD_MONTHS(CURRENT_TIMESTAMP, 12),
+            'ACTIVE'
+        )
+    </insert>
+
+    <!-- 남은 기간이 있으면 그 만기에서 +1년, 이미 만료됐으면 오늘 기준 +1년 -->
+    <update id="extendEnrollment">
+        UPDATE COURSE_ENROLLMENT
+        SET ACCS_END_DT = ADD_MONTHS(GREATEST(ACCS_END_DT, CURRENT_TIMESTAMP), 12),
+            ENRL_STAT_CD = 'ACTIVE',
+            ORD_SN = #{ordSn},
+            MDFCN_DT = CURRENT_TIMESTAMP
+        WHERE USER_ID = #{userId}
+          AND COURSE_SN = #{courseSn}
+    </update>
+
+    <select id="countActiveAccess" resultType="int">
+        SELECT COUNT(*)
+        FROM COURSE_ENROLLMENT
+        WHERE USER_ID = #{userId}
+          AND COURSE_SN = #{courseSn}
+          AND ENRL_STAT_CD = 'ACTIVE'
+          AND ACCS_END_DT >= CURRENT_TIMESTAMP
+    </select>
+
+</mapper>

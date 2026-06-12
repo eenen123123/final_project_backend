@@ -22,6 +22,9 @@ public interface OrderMapper {
 
     int updateOrderStatus(@Param("ordSn") Long ordSn, @Param("ordStatCd") OrderStatus ordStatCd);
 
+    // 새 주문 생성 시, 같은 회원의 결제 안 된 PENDING 주문을 EXPIRED로 정리
+    int expirePendingOrders(@Param("userId") String userId);
+
     // 주문 생성 시 서버 기준 상품명/가격 조회 (프론트가 보낸 금액은 신뢰하지 않음)
     OrderItemDto selectCourseForOrder(@Param("prodSn") Long prodSn);
 
