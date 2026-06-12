@@ -56,7 +56,10 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
-    public boolean createCourse(CourseDto courseDto) {
+    public boolean createCourse(CourseDto courseDto, String currentUserId) {
+        courseDto.setInstrUserId(currentUserId);
+        courseDto.setRgtrId(currentUserId);
+        courseDto.setLastMdfrId(currentUserId);
         assignNextSortOrd(courseDto);
         try {
             return courseMapper.insertCourse(courseDto) > 0;
@@ -165,17 +168,10 @@ public class CourseServiceImpl implements CourseService {
         PaginationInfo<CourseSearchCondition> paginationInfo = new PaginationInfo<>(10, page);
         CourseSearchCondition searchCondition = new CourseSearchCondition();
         switch (category) {
-            case "instructor":
-                searchCondition.setInstructorName(keyword);
-                break;
-            case "subject":
-                searchCondition.setSubjectName(keyword);
-                break;
-            case "courseName":
-                searchCondition.setCourseName(keyword);
-                break;
-            default:
-                break;
+            case "instructor" -> searchCondition.setInstructorName(keyword);
+            case "subject"    -> searchCondition.setSubjectName(keyword);
+            case "courseName" -> searchCondition.setCourseName(keyword);
+            default           -> {}
         }
         paginationInfo.setDetailCondition(searchCondition);
 

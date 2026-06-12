@@ -65,12 +65,9 @@ public class AdminCourseController {
             return "redirect:/admin/course/insert";
         }
         String userId = authentication.getName();
-        courseDto.setInstrUserId(userId);
-        courseDto.setRgtrId(userId);
-        courseDto.setLastMdfrId(userId);
         boolean created;
         try {
-            created = courseService.createCourse(courseDto);
+            created = courseService.createCourse(courseDto, userId);
         } catch (DuplicateKeyException e) {
             redirectAttributes.addFlashAttribute("errorMsg", "동시 등록으로 인한 충돌이 발생했습니다. 다시 시도해 주세요.");
             return "redirect:/admin/course/insert";
