@@ -54,8 +54,11 @@
         <result property="traceId"      column="TRACE_ID"/>
         <result property="errorCode"    column="ERROR_CODE"/>
         <result property="requestUri"   column="REQUEST_URI"/>
+        <result property="requestIp"    column="REQUEST_IP"/>
         <result property="errorMessage" column="ERROR_MESSAGE"/>
         <result property="createdAt"    column="CREATED_AT"/>
+        <result property="traceType"    column="TRACE_TYPE"/>
+        <result property="traceUserId"  column="TRACE_USER_ID"/>
     </resultMap>
 
     <!-- ================================================================
@@ -218,9 +221,22 @@
          5. 시스템 에러 로그 (SYSTEM_ERROR_LOG)
     ================================================================ -->
     <select id="searchSystemErrorLog" resultMap="SystemErrorLogRM">
-        SELECT ERROR_ID, TRACE_ID, ERROR_CODE, REQUEST_URI,
+        SELECT ERROR_ID, TRACE_ID, ERROR_CODE, REQUEST_URI, REQUEST_IP,
                ERROR_MESSAGE,
-               TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
+               TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT,
+               CASE
+                   WHEN (SELECT MAX(m.USER_ID) FROM MEMBER_ACTIVITY_LOG m
+                         WHERE m.TRACE_ID = SYSTEM_ERROR_LOG.TRACE_ID) IS NOT NULL THEN 'MEMBER'
+                   WHEN (SELECT MAX(a.ADMIN_ID) FROM HERMES_ADMIN_AUDIT_LOG a
+                         WHERE a.TRACE_ID = SYSTEM_ERROR_LOG.TRACE_ID AND a.ADMIN_ID != 'anonymous') IS NOT NULL THEN 'ADMIN'
+                   ELSE 'ANON'
+               END AS TRACE_TYPE,
+               COALESCE(
+                   (SELECT MAX(m.USER_ID) FROM MEMBER_ACTIVITY_LOG m
+                    WHERE m.TRACE_ID = SYSTEM_ERROR_LOG.TRACE_ID),
+                   (SELECT MAX(a.ADMIN_ID) FROM HERMES_ADMIN_AUDIT_LOG a
+                    WHERE a.TRACE_ID = SYSTEM_ERROR_LOG.TRACE_ID AND a.ADMIN_ID != 'anonymous')
+               ) AS TRACE_USER_ID
         FROM SYSTEM_ERROR_LOG
         <include refid="systemErrorLogWhere"/>
         ORDER BY CREATED_AT DESC
@@ -248,6 +264,51 @@
             (SELECT COUNT(*) FROM SYSTEM_ERROR_LOG
              WHERE TRUNC(CREATED_AT) = TRUNC(SYSDATE))         AS "sysErrorToday"
         FROM DUAL
+    </select>
+
+    <!-- ================================================================
+         6. 에러 추적 (traceId로 회원/관리자/익명 판별 및 활동 이력 조회)
+    ================================================================ -->
+    <select id="findMemberIdByTraceId" resultType="string">
+        SELECT MAX(USER_ID) FROM MEMBER_ACTIVITY_LOG WHERE TRACE_ID = #{traceId}
+    </select>
+
+    <select id="findAdminIdByTraceId" resultType="string">
+        SELECT MAX(ADMIN_ID) FROM HERMES_ADMIN_AUDIT_LOG
+        WHERE TRACE_ID = #{traceId} AND ADMIN_ID != 'anonymous'
+    </select>
+
+    <select id="findRecentMemberActivities" resultMap="MemberActivityLogRM">
+        SELECT ACTIVITY_ID, USER_ID, ACTIVITY_TYPE, TARGET_ID, ACTIVITY_IP,
+               TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
+        FROM MEMBER_ACTIVITY_LOG
+        WHERE USER_ID = #{userId}
+        ORDER BY CREATED_AT DESC
+        FETCH FIRST 20 ROWS ONLY
+    </select>
+
+    <select id="findRecentAdminAudits" resultMap="AuditLogRM">
+        SELECT AUDIT_ID, TRACE_ID, ADMIN_ID, MEMBER_IP, HTTP_METHOD,
+               REQUEST_URI, REQUEST_PARAMS, STATUS_CODE,
+               TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
+        FROM HERMES_ADMIN_AUDIT_LOG
+        WHERE ADMIN_ID = #{adminId}
+        ORDER BY CREATED_AT DESC
+        FETCH FIRST 20 ROWS ONLY
+    </select>
+
+    <select id="findRequestIpByTraceId" resultType="string">
+        SELECT MAX(REQUEST_IP) FROM SYSTEM_ERROR_LOG WHERE TRACE_ID = #{traceId}
+    </select>
+
+    <select id="findErrorsByIp" resultMap="SystemErrorLogRM">
+        SELECT ERROR_ID, TRACE_ID, ERROR_CODE, REQUEST_URI, REQUEST_IP,
+               ERROR_MESSAGE,
+               TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
+        FROM SYSTEM_ERROR_LOG
+        WHERE REQUEST_IP = #{ip}
+        ORDER BY CREATED_AT DESC
+        FETCH FIRST 20 ROWS ONLY
     </select>
 
 </mapper>
