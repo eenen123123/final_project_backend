@@ -80,6 +80,8 @@ public class CourseServiceImpl implements CourseService {
         Long oldCurriculumId = original.getCurriculumId();
         Long newCurriculumId = courseDto.getCurriculumId();
 
+        courseDto.setLastMdfrId(currentUserId);
+
         if (!Objects.equals(oldCurriculumId, newCurriculumId)) {
             Integer oldSortOrd = original.getSortOrd();
             if (oldCurriculumId != null && oldSortOrd != null && oldSortOrd > 0) {
@@ -90,17 +92,14 @@ public class CourseServiceImpl implements CourseService {
             } else {
                 courseDto.setSortOrd(0);
             }
+            try {
+                courseMapper.updateCourse(courseDto);
+            } catch (DuplicateKeyException e) {
+                courseDto.setSortOrd(courseMapper.selectMaxSortOrdByCurriculumId(newCurriculumId) + 1);
+                courseMapper.updateCourse(courseDto);
+            }
         } else {
             courseDto.setSortOrd(original.getSortOrd());
-        }
-
-        courseDto.setLastMdfrId(currentUserId);
-        try {
-            courseMapper.updateCourse(courseDto);
-        } catch (DuplicateKeyException e) {
-            if (newCurriculumId != null) {
-                courseDto.setSortOrd(courseMapper.selectMaxSortOrdByCurriculumId(newCurriculumId) + 1);
-            }
             courseMapper.updateCourse(courseDto);
         }
     }

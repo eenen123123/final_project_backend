@@ -108,7 +108,7 @@
       RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
     ) VALUES (
       #{curriculumId, jdbcType=NUMERIC},
-      #{subjId, jdbcType=NUMERIC},                                                                                                                                                                                                                                                                                                <!-- #{subjClId, jdbcType=NUMERIC}, -->
+      #{subjId, jdbcType=NUMERIC}, <!-- #{subjClId, jdbcType=NUMERIC}, -->
       #{instrUserId},
       #{courseNm},
       #{courseExplnCn, jdbcType=VARCHAR},
@@ -207,7 +207,7 @@
   LEFT JOIN SUBJECT s ON c.SUBJ_ID = s.SUBJ_ID
   LEFT JOIN SUBJECT_CLASSIFICATION sc ON s.SUBJ_CL_ID = sc.SUBJ_CL_ID
     <include refid="courseListSearchWhere"/>
-  ORDER BY c.SORT_ORD ASC, c.REG_DT DESC
+  ORDER BY cur.TITLE NULLS LAST, c.SORT_ORD ASC, c.REG_DT DESC
   OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
   </select>
 

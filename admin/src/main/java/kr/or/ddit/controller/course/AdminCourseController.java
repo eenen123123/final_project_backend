@@ -2,6 +2,7 @@ package kr.or.ddit.controller.course;
 
 import java.util.List;
 
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -66,7 +67,13 @@ public class AdminCourseController {
         courseDto.setInstrUserId(userId);
         courseDto.setRgtrId(userId);
         courseDto.setLastMdfrId(userId);
-        boolean created = courseService.createCourse(courseDto);
+        boolean created;
+        try {
+            created = courseService.createCourse(courseDto);
+        } catch (DuplicateKeyException e) {
+            redirectAttributes.addFlashAttribute("errorMsg", "동시 등록으로 인한 충돌이 발생했습니다. 다시 시도해 주세요.");
+            return "redirect:/admin/course/insert";
+        }
         if (!created) {
             redirectAttributes.addFlashAttribute("errorMsg", "강좌 등록에 실패했습니다.");
             return "redirect:/admin/course/insert";
@@ -120,6 +127,9 @@ public class AdminCourseController {
             courseService.modifyCourse(courseDto, userId);
         } catch (IllegalArgumentException | SecurityException e) {
             redirectAttributes.addFlashAttribute("errorMsg", e.getMessage());
+            return "redirect:/admin/course/edit?courseSn=" + courseDto.getCourseSn();
+        } catch (DuplicateKeyException e) {
+            redirectAttributes.addFlashAttribute("errorMsg", "동시 수정으로 인한 충돌이 발생했습니다. 다시 시도해 주세요.");
             return "redirect:/admin/course/edit?courseSn=" + courseDto.getCourseSn();
         }
         redirectAttributes.addFlashAttribute("successMsg", "강좌가 수정되었습니다.");
