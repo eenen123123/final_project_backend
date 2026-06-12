@@ -179,7 +179,8 @@
     <div class="flex gap-2 mt-5">
       <button type="button" onclick="closeDeleteModal()"
         class="flex-1 hm-btn-secondary justify-center">취소</button>
-      <form th:action="@{/admin/course/delete}" method="post" class="flex-1">
+      <form th:action="@{/admin/course/delete}" method="post" class="flex-1"
+            onsubmit="this.querySelector('[type=submit]').disabled = true">
         <input type="hidden" name="courseSn" th:value="${course.courseSn}"/>
         <button type="submit"
           class="w-full hm-btn-primary bg-red-500 hover:bg-red-600 text-white justify-center">삭제</button>
