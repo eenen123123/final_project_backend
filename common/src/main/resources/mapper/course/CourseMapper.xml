@@ -170,7 +170,7 @@
     </trim>
   </sql>
 
-  <!-- 공개 강좌 목록용 resultMap -->
+  <!-- 관리자 강좌 목록용 resultMap -->
   <resultMap id="courseListMap" type="kr.or.ddit.finalProject.dto.course.CourseDto">
     <id property="courseSn" column="COURSE_SN" />
     <result property="courseNm" column="COURSE_NM" />
@@ -181,6 +181,7 @@
     <result property="instrUserId" column="INSTR_USER_ID" />
     <result property="instrNm" column="INSTR_NM" />
     <result property="curriculumId" column="CURRICULUM_ID" />
+    <result property="curriculumTitle" column="CURRICULUM_TITLE" />
     <result property="subjId" column="SUBJ_ID" />
     <result property="subjNm" column="SUBJ_NM" />
     <result property="subjClId" column="SUBJ_CL_ID" />
@@ -188,19 +189,21 @@
     <result property="lectureCnt" column="LECTURE_CNT" />
   </resultMap>
 
-  <!-- 공개 강좌 목록 조회 -->
+  <!-- 관리자 강좌 목록 조회 -->
   <select id="selectCourseList" resultMap="courseListMap">
   SELECT
     c.COURSE_SN, c.CURRICULUM_ID, c.SUBJ_ID, c.INSTR_USER_ID,
     c.COURSE_NM, c.COURSE_PRICE, c.OPNN_YN,
     c.TOT_LRN_TIME_CNT, c.REG_DT,
-    m.USER_NAME   AS INSTR_NM,
-    s.SUBJ_NM     AS SUBJ_NM,
-    sc.SUBJ_CL_ID AS SUBJ_CL_ID,
-    sc.SUBJ_CL_NM AS SUBJ_CL_NM,
+    m.USER_NAME    AS INSTR_NM,
+    cur.TITLE      AS CURRICULUM_TITLE,
+    s.SUBJ_NM      AS SUBJ_NM,
+    sc.SUBJ_CL_ID  AS SUBJ_CL_ID,
+    sc.SUBJ_CL_NM  AS SUBJ_CL_NM,
     (SELECT COUNT(*) FROM LECTURE l WHERE l.COURSE_SN = c.COURSE_SN) AS LECTURE_CNT
   FROM COURSE c
   JOIN MEMBER m ON c.INSTR_USER_ID = m.USER_ID
+  LEFT JOIN CURRICULUM cur ON c.CURRICULUM_ID = cur.CURRICULUM_ID
   LEFT JOIN SUBJECT s ON c.SUBJ_ID = s.SUBJ_ID
   LEFT JOIN SUBJECT_CLASSIFICATION sc ON s.SUBJ_CL_ID = sc.SUBJ_CL_ID
     <include refid="courseListSearchWhere"/>
