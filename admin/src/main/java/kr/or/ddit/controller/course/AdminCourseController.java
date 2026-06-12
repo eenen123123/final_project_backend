@@ -140,6 +140,19 @@ public class AdminCourseController {
         return "redirect:/admin/course/detail?courseSn=" + courseDto.getCourseSn();
     }
 
+    @PostMapping("/delete")
+    public String delete(@RequestParam Long courseSn,
+            RedirectAttributes redirectAttributes) {
+        try {
+            courseService.removeCourse(courseSn, null);
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMsg", e.getMessage());
+            return "redirect:/admin/course/detail?courseSn=" + courseSn;
+        }
+        redirectAttributes.addFlashAttribute("successMsg", "강좌가 삭제되었습니다.");
+        return "redirect:/admin/course/list";
+    }
+
     private String validateCourseForm(CourseDto courseDto) {
         String courseNm = courseDto.getCourseNm();
         if (courseNm == null || courseNm.isBlank()) return "강좌명은 필수 입력 항목입니다.";
