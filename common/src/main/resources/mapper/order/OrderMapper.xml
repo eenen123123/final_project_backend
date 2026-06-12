@@ -68,6 +68,14 @@
         WHERE ORD_SN = #{ordSn}
     </update>
 
+    <update id="expirePendingOrders">
+        UPDATE ORDERS
+        SET ORD_STAT_CD = 'EXPIRED',
+            MDFCN_DT = CURRENT_TIMESTAMP
+        WHERE USER_ID = #{userId}
+          AND ORD_STAT_CD = 'PENDING'
+    </update>
+
     <!-- 주문 생성 시 서버 기준 가격 조회 (금액 위변조 방지) -->
     <select id="selectCourseForOrder" resultMap="orderItemResultMap">
         SELECT COURSE_NM AS PROD_NM, COURSE_PRICE AS PROD_PRICE

@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import kr.or.ddit.finalProject.dto.cart.ProductType;
 import kr.or.ddit.finalProject.dto.order.OrderDto;
 import kr.or.ddit.finalProject.dto.order.OrderItemDto;
 import kr.or.ddit.finalProject.dto.order.OrderStatus;
@@ -18,6 +19,7 @@ import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.mapper.cart.CartMapper;
 import kr.or.ddit.finalProject.mapper.order.OrderMapper;
 import kr.or.ddit.finalProject.mapper.pay.PayHistMapper;
+import kr.or.ddit.finalProject.service.enrollment.CourseEnrollmentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,6 +35,7 @@ public class TossPayConfirmService {
     private final OrderMapper orderMapper;
     private final PayHistMapper payHistMapper;
     private final CartMapper cartMapper;
+    private final CourseEnrollmentService enrollmentService;
 
     /**
      * 토스 결제 승인 + 결제/주문 확정 처리.
@@ -64,6 +67,10 @@ public class TossPayConfirmService {
 
         for (OrderItemDto item : items) {
             cartMapper.deleteCartByUserAndProd(userId, item.getProdDivCd(), item.getProdSn());
+            if (item.getProdDivCd() == ProductType.COURSE) {
+                // 강좌만 수강권한 부여/연장 (결제일 + 1년)
+                enrollmentService.grantOrExtend(userId, item.getProdSn(), order.getOrdSn());
+            }
         }
         return response;
     }
