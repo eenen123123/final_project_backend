@@ -1,5 +1,6 @@
 package kr.or.ddit.service.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,18 +74,33 @@ public class PrincipalSystemMonitoringServiceImpl implements PrincipalSystemMoni
         // 1. 회원 활동 로그에 같은 traceId가 있으면 -> 회원 에러
         String memberId = mapper.findMemberIdByTraceId(traceId);
         if (memberId != null) {
+            List<MemberActivityLogDto> activities =
+                    new ArrayList<>(mapper.findRecentMemberActivities(memberId));
+            // 최근 20건 밖이어도 클릭한 에러의 매칭 활동을 항상 포함 (붉은 행이 항상 뜨도록)
+            MemberActivityLogDto matched = mapper.findMemberActivityByTraceId(traceId);
+            if (matched != null
+                    && activities.stream().noneMatch(a -> matched.getActivityId().equals(a.getActivityId()))) {
+                activities.add(0, matched);
+            }
             result.put("type", "MEMBER");
             result.put("userId", memberId);
-            result.put("activities", mapper.findRecentMemberActivities(memberId));
+            result.put("activities", activities);
             return result;
         }
 
         // 2. 관리자 감사 로그에 같은 traceId가 있으면 -> 관리자 에러
         String adminId = mapper.findAdminIdByTraceId(traceId);
         if (adminId != null) {
+            List<AdminAuditLogDto> audits =
+                    new ArrayList<>(mapper.findRecentAdminAudits(adminId));
+            AdminAuditLogDto matched = mapper.findAdminAuditByTraceId(traceId);
+            if (matched != null
+                    && audits.stream().noneMatch(a -> matched.getAuditId().equals(a.getAuditId()))) {
+                audits.add(0, matched);
+            }
             result.put("type", "ADMIN");
             result.put("userId", adminId);
-            result.put("activities", mapper.findRecentAdminAudits(adminId));
+            result.put("activities", audits);
             return result;
         }
 
