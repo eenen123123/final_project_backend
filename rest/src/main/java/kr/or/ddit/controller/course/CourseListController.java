@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.course.CourseResponseDto;
-import kr.or.ddit.finalProject.dto.course.SubjectClassificationDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
+import kr.or.ddit.finalProject.dto.subject.SubjectClassificationDto;
 import kr.or.ddit.finalProject.service.course.CourseService;
 import lombok.RequiredArgsConstructor;
 

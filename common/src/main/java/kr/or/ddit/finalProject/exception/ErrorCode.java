@@ -19,6 +19,10 @@ public enum ErrorCode {
     // 강좌 관련
     COURSE_NOT_FOUND(HttpStatus.NOT_FOUND, "강좌를 찾을 수 없습니다."),
 
+    // 캘린더 관련
+    CALENDAR_EVENT_NOT_FOUND(HttpStatus.NOT_FOUND, "캘린더 이벤트를 찾을 수 없습니다."),
+    CALENDAR_SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "캘린더 일정을 찾을 수 없습니다."),
+
     // 교재 관련
     TEXTBOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 교재입니다."),
 LECTURE_NOT_FOUND(HttpStatus.NOT_FOUND, "강의를 찾을 수 없습니다."),

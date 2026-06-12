@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
@@ -207,7 +207,7 @@
   </select>
 
   <!-- 강사 UUID로 강좌 목록 조회 (공개 강사 페이지용) -->
-  <select id="selectCoursesByInstrUuid" resultType="kr.or.ddit.finalProject.dto.instructor.InstructorPublicCourseResponse">
+  <select id="selectCoursesByInstrUuid" resultType="kr.or.ddit.finalProject.dto.instructor.profile.InstructorPublicCourseResponse">
   SELECT
     C.COURSE_SN   AS courseSn,
     C.COURSE_NM   AS title,

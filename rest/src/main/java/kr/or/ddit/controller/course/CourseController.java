@@ -1,7 +1,13 @@
 package kr.or.ddit.controller.course;
 
+import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import kr.or.ddit.finalProject.dto.course.CourseResponseDto;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
@@ -21,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/api/course")
 @RequiredArgsConstructor
 public class CourseController {
+
     private final CourseService courseService;
     private final LectureService lectureService;
 

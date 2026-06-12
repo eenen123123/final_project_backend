@@ -3,6 +3,8 @@ package kr.or.ddit.finalProject.service.calendar;
 import java.util.List;
 import java.util.Map;
 import kr.or.ddit.finalProject.dto.calendar.CalendarScheduleDto;
+import kr.or.ddit.finalProject.exception.ErrorCode;
+import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.mapper.calendar.CalendarScheduleMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +25,11 @@ public class CalendarScheduleServiceImpl implements CalendarScheduleService {
 
     @Override
     public CalendarScheduleDto getCalendarSchedule(Long scheduleSn) {
-        return calendarScheduleMapper.selectCalendarSchedule(scheduleSn);
+        CalendarScheduleDto dto = calendarScheduleMapper.selectCalendarSchedule(scheduleSn);
+        if (dto == null) {
+            throw new FinalProjectException(ErrorCode.CALENDAR_SCHEDULE_NOT_FOUND);
+        }
+        return dto;
     }
 
     @Override
@@ -34,14 +40,20 @@ public class CalendarScheduleServiceImpl implements CalendarScheduleService {
 
     @Override
     @Transactional
-    public int updateCalendarSchedule(CalendarScheduleDto dto) {
-        return calendarScheduleMapper.updateCalendarSchedule(dto);
+    public void updateCalendarSchedule(CalendarScheduleDto dto) {
+        int updated = calendarScheduleMapper.updateCalendarSchedule(dto);
+        if (updated == 0) {
+            throw new FinalProjectException(ErrorCode.CALENDAR_SCHEDULE_NOT_FOUND);
+        }
     }
 
     @Override
     @Transactional
-    public int deleteCalendarSchedule(Long scheduleSn, String userId) {
-        return calendarScheduleMapper.deleteCalendarSchedule(scheduleSn, userId);
+    public void deleteCalendarSchedule(Long scheduleSn, String userId) {
+        int deleted = calendarScheduleMapper.deleteCalendarSchedule(scheduleSn, userId);
+        if (deleted == 0) {
+            throw new FinalProjectException(ErrorCode.CALENDAR_SCHEDULE_NOT_FOUND);
+        }
     }
 
 }

@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import kr.or.ddit.finalProject.dto.textbook.InventoryStatus;
 import kr.or.ddit.finalProject.dto.textbook.TextbookDto;
 import kr.or.ddit.finalProject.dto.textbook.TextbookHistoryDto;
 import kr.or.ddit.finalProject.dto.textbook.TextbookInventoryDto;
@@ -52,7 +53,7 @@ public class TextbookServiceImpl implements TextbookService {
         TextbookInventoryDto inventoryDto = TextbookInventoryDto.builder()
                 .textbookSn(textbookDto.getTextbookSn()).totInvtCnt(initInvtCnt)
                 .salableCnt(initInvtCnt).saleCmplCnt(0).rsrvWaitCnt(0).dmgdDspslCnt(0).minKeepCnt(0)
-                .invtStatCd("10") // 정상
+                .invtStatCd(InventoryStatus.NORMAL)
                 .rgtrId(textbookDto.getRgtrId()).lastMdfrId(textbookDto.getLastMdfrId()).build();
         textbookStockMapper.insertInventory(inventoryDto);
 

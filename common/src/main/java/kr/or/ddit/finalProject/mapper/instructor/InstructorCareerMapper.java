@@ -5,8 +5,8 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import kr.or.ddit.finalProject.dto.instructor.InstructorCareerDto;
-import kr.or.ddit.finalProject.dto.instructor.InstructorDto;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorCareerDto;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorDto;
 
 /**
  * 강사 약력 항목 Mapper

@@ -5,8 +5,8 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import kr.or.ddit.finalProject.dto.instructor.InstructorDetailResponse;
-import kr.or.ddit.finalProject.dto.instructor.InstructorListResponse;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorDetailResponse;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorListResponse;
 
 @Mapper
 public interface InstructorMapper {
