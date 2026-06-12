@@ -164,8 +164,8 @@
 
     </update>
     <!-- findCourseIdByFileServerId -->
-    <select id="findCourseIdByFileServerId">
-        select COURSE_SN, COURSE_NM, CRSE_EXPLN_CN, RGTR_ID, LAST_MDFR_ID
+    <select id="findCourseIdByFileServerId" resultType="kr.or.ddit.finalProject.dto.course.CourseDto">
+        select COURSE_SN, COURSE_NM,  RGTR_ID, LAST_MDFR_ID
         from COURSE
         where COURSE_SN = (select COURSE_SN from LECTURE where ATCH_FILE_ID = #{fileServerId})
     </select>
