@@ -1,4 +1,4 @@
-﻿package kr.or.ddit.finalProject.service.instructor;
+package kr.or.ddit.finalProject.service.instructor;
 
 import java.util.List;
 import java.util.Map;
@@ -32,24 +32,32 @@ import kr.or.ddit.finalProject.dto.instructor.profile.InstructorRecentPostRespon
 public interface InstructorService {
 
     // ── 공개 강사 조회 ──────────────────────────────────────────────
-
-    /** 과목 분류 ID로 강사 목록 조회 (null이면 전체) */
+    /**
+     * 과목 분류 ID로 강사 목록 조회 (null이면 전체)
+     */
     List<InstructorListResponse> retrieveInstructors(Long subjClId);
 
-    /** 과목 분류별로 그룹핑된 강사 목록 조회 */
+    /**
+     * 과목 분류별로 그룹핑된 강사 목록 조회
+     */
     Map<String, List<InstructorListResponse>> retrieveInstructorsBySubject();
 
-    /** UUID로 강사 공개 상세 정보 조회 */
+    /**
+     * UUID로 강사 공개 상세 정보 조회
+     */
     InstructorDetailResponse retrieveInstructorDetail(String instrUuid);
 
-    /** 강사의 추천 강좌 목록 조회 */
+    /**
+     * 강사의 추천 강좌 목록 조회
+     */
     List<InstructorFeaturedCourseResponse> retrieveFeaturedCourses(String instrUuid);
 
-    /** 강사의 최근 게시글 목록 조회 */
+    /**
+     * 강사의 최근 게시글 목록 조회
+     */
     List<InstructorRecentPostResponse> retrieveRecentPosts(String instrUuid, int size);
 
     // ── 강사 프로필 관리 ────────────────────────────────────────────
-
     /**
      * 강사 기본 프로필 조회 소개글(instrIntro)과 프로필 이미지 URL(instrProfileImg)을 반환합니다.
      *
