@@ -57,20 +57,12 @@ public class AdminCourseController {
     public String insert(@ModelAttribute CourseDto courseDto,
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
+        String errorMsg = validateCourseForm(courseDto);
+        if (errorMsg != null) {
+            redirectAttributes.addFlashAttribute("errorMsg", errorMsg);
+            return "redirect:/admin/course/insert";
+        }
         String userId = authentication.getName();
-        String courseNm = courseDto.getCourseNm();
-        if (courseNm == null || courseNm.isBlank()) {
-            redirectAttributes.addFlashAttribute("errorMsg", "강좌명은 필수 입력 항목입니다.");
-            return "redirect:/admin/course/insert";
-        }
-        if (courseNm.length() > 200) {
-            redirectAttributes.addFlashAttribute("errorMsg", "강좌명은 200자 이내로 입력해 주세요.");
-            return "redirect:/admin/course/insert";
-        }
-        if (courseDto.getCoursePrice() != null && courseDto.getCoursePrice() < 0) {
-            redirectAttributes.addFlashAttribute("errorMsg", "수강료는 0원 이상이어야 합니다.");
-            return "redirect:/admin/course/insert";
-        }
         courseDto.setInstrUserId(userId);
         courseDto.setRgtrId(userId);
         courseDto.setLastMdfrId(userId);
@@ -81,6 +73,61 @@ public class AdminCourseController {
         }
         redirectAttributes.addFlashAttribute("successMsg", "강좌가 등록되었습니다.");
         return "redirect:/admin/course/list";
+    }
+
+    /**
+     * 강좌 수정 폼 페이지 반환. courseSn으로 강좌를 조회해 모델에 담는다.
+     */
+    @GetMapping("/edit")
+    public String editForm(@RequestParam Long courseSn,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes,
+            Model model) {
+        String userId = authentication.getName();
+        CourseDto course = courseService.retrieveCourseAdminDetail(courseSn);
+        if (course == null) {
+            redirectAttributes.addFlashAttribute("errorMsg", "존재하지 않는 강좌입니다.");
+            return "redirect:/admin/course/list";
+        }
+        if (!userId.equals(course.getInstrUserId())) {
+            redirectAttributes.addFlashAttribute("errorMsg", "본인이 작성한 강좌만 수정할 수 있습니다.");
+            return "redirect:/admin/course/list";
+        }
+        model.addAttribute("course", course);
+        model.addAttribute("curriculumList", curriculumService.retrieveList(userId));
+        model.addAttribute("subjClList", courseService.retrieveSubjectClassificationList());
+        return "admin:/course/insert-course";
+    }
+
+    /**
+     * 강좌 수정 처리. 수정 후 강좌 상세 페이지로 리다이렉트한다.
+     */
+    @PostMapping("/edit")
+    public String edit(@ModelAttribute CourseDto courseDto,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
+        String errorMsg = validateCourseForm(courseDto);
+        if (errorMsg != null) {
+            redirectAttributes.addFlashAttribute("errorMsg", errorMsg);
+            return "redirect:/admin/course/edit?courseSn=" + courseDto.getCourseSn();
+        }
+        String userId = authentication.getName();
+        try {
+            courseService.modifyCourse(courseDto, userId);
+        } catch (IllegalArgumentException | SecurityException e) {
+            redirectAttributes.addFlashAttribute("errorMsg", e.getMessage());
+            return "redirect:/admin/course/edit?courseSn=" + courseDto.getCourseSn();
+        }
+        redirectAttributes.addFlashAttribute("successMsg", "강좌가 수정되었습니다.");
+        return "redirect:/admin/course/detail?courseSn=" + courseDto.getCourseSn();
+    }
+
+    private String validateCourseForm(CourseDto courseDto) {
+        String courseNm = courseDto.getCourseNm();
+        if (courseNm == null || courseNm.isBlank()) return "강좌명은 필수 입력 항목입니다.";
+        if (courseNm.length() > 200) return "강좌명은 200자 이내로 입력해 주세요.";
+        if (courseDto.getCoursePrice() != null && courseDto.getCoursePrice() < 0) return "수강료는 0원 이상이어야 합니다.";
+        return null;
     }
 
     /**

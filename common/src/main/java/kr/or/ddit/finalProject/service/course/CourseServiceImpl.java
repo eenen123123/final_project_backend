@@ -1,6 +1,7 @@
 package kr.or.ddit.finalProject.service.course;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,6 +73,24 @@ public class CourseServiceImpl implements CourseService {
         if (!currentUserId.equals(original.getInstrUserId())) {
             throw new SecurityException("본인이 작성한 강좌만 수정할 수 있습니다.");
         }
+
+        Long oldCurriculumId = original.getCurriculumId();
+        Long newCurriculumId = courseDto.getCurriculumId();
+
+        if (!Objects.equals(oldCurriculumId, newCurriculumId)) {
+            if (oldCurriculumId != null) {
+                courseMapper.resequenceSortOrd(oldCurriculumId, original.getSortOrd());
+            }
+            if (newCurriculumId != null) {
+                int maxOrd = courseMapper.selectMaxSortOrdByCurriculumId(newCurriculumId);
+                courseDto.setSortOrd(maxOrd + 1);
+            } else {
+                courseDto.setSortOrd(0);
+            }
+        } else {
+            courseDto.setSortOrd(original.getSortOrd());
+        }
+
         courseDto.setLastMdfrId(currentUserId);
         courseMapper.updateCourse(courseDto);
     }

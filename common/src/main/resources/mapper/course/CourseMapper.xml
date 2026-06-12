@@ -94,6 +94,11 @@
     SELECT NVL(MAX(SORT_ORD), 0) FROM COURSE WHERE CURRICULUM_ID = #{curriculumId}
   </select>
 
+  <update id="resequenceSortOrd">
+    UPDATE COURSE SET SORT_ORD = SORT_ORD - 1
+    WHERE CURRICULUM_ID = #{curriculumId} AND SORT_ORD > #{sortOrd}
+  </update>
+
   <insert id="insertCourse" parameterType="kr.or.ddit.finalProject.dto.course.CourseDto">
     INSERT INTO COURSE (
       CURRICULUM_ID, SUBJ_ID, INSTR_USER_ID,
@@ -125,6 +130,9 @@
       COURSE_NM       = #{courseNm},
       COURSE_EXPLN_CN = #{courseExplnCn, jdbcType=VARCHAR},
       OPNN_YN         = #{opnnYn, jdbcType=CHAR},
+      COURSE_PRICE    = #{coursePrice, jdbcType=NUMERIC},
+      SUBJ_ID         = #{subjId, jdbcType=NUMERIC},
+      CURRICULUM_ID   = #{curriculumId, jdbcType=NUMERIC},
       SORT_ORD        = #{sortOrd, jdbcType=NUMERIC},
       LAST_MDFR_ID    = #{lastMdfrId},
       MDFCN_DT        = CURRENT_TIMESTAMP

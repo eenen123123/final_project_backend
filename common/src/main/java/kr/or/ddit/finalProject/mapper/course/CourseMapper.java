@@ -46,6 +46,11 @@ public interface CourseMapper {
     int selectMaxSortOrdByCurriculumId(@Param("curriculumId") Long curriculumId);
 
     /**
+     * 커리큘럼 내 특정 순서보다 큰 강좌들의 SORT_ORD를 1씩 감소시킨다 (이탈한 강좌의 빈 자리 메우기).
+     */
+    int resequenceSortOrd(@Param("curriculumId") Long curriculumId, @Param("sortOrd") int sortOrd);
+
+    /**
      * 강좌를 등록한다.
      */
     int insertCourse(CourseDto courseDto);
