@@ -23,4 +23,9 @@ public interface PrincipalSystemMonitoringService {
     PageResponse<SystemErrorLogDto> searchSystemErrorLog(PaginationInfo<Map<String, Object>> paging);
 
     Map<String, Object> getSummaryStats();
+
+    /**
+     * traceId로 회원/관리자/익명을 판단하고 해당 사용자의 활동 이력을 조회한다.
+     */
+    Map<String, Object> resolveTrace(String traceId);
 }

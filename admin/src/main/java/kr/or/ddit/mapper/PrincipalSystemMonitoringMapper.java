@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import kr.or.ddit.finalProject.dto.log.AdminAuditLogDto;
 import kr.or.ddit.finalProject.dto.log.LoginLogDto;
@@ -37,4 +38,12 @@ public interface PrincipalSystemMonitoringMapper {
 
     // ── 상단 요약 카드 통계 ────────────────────────────────────────────
     Map<String, Object> selectSummaryStats();
+
+    // ── 에러 추적 (traceId → 회원/관리자/익명 판별 및 활동 이력) ──────────
+    String findMemberIdByTraceId(@Param("traceId") String traceId);
+    String findAdminIdByTraceId(@Param("traceId") String traceId);
+    List<MemberActivityLogDto> findRecentMemberActivities(@Param("userId") String userId);
+    List<AdminAuditLogDto> findRecentAdminAudits(@Param("adminId") String adminId);
+    String findRequestIpByTraceId(@Param("traceId") String traceId);
+    List<SystemErrorLogDto> findErrorsByIp(@Param("ip") String ip);
 }
