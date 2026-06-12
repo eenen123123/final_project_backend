@@ -41,6 +41,11 @@ public interface CourseMapper {
     CourseDto selectCourseAdminDetail(@Param("courseSn") Long courseSn);
 
     /**
+     * 커리큘럼 내 최대 정렬 순서를 조회한다.
+     */
+    int selectMaxSortOrdByCurriculumId(@Param("curriculumId") Long curriculumId);
+
+    /**
      * 강좌를 등록한다.
      */
     int insertCourse(CourseDto courseDto);

@@ -102,23 +102,15 @@
         </div>
       </div>
 
-      <!-- 커리큘럼 → 정렬 순서 -->
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-xs font-medium text-slate-500 mb-1.5">커리큘럼</label>
-          <select id="curriculumId" name="curriculumId" class="hm-input hm-input-orange"
-                  onchange="toggleSortOrd(this.value)">
-            <option value="">— 선택 안 함 (독립 강좌) —</option>
-            <option th:each="cur : ${curriculumList}"
-                    th:value="${cur.curriculumId}"
-                    th:text="${cur.title}">커리큘럼명</option>
-          </select>
-        </div>
-        <div id="sortOrdWrap" class="hidden">
-          <label class="block text-xs font-medium text-slate-500 mb-1.5">커리큘럼 내 순서</label>
-          <input type="number" name="sortOrd" id="sortOrd" value="1" min="1"
-                 class="hm-input hm-input-orange"/>
-        </div>
+      <!-- 커리큘럼 -->
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">커리큘럼</label>
+        <select id="curriculumId" name="curriculumId" class="hm-input hm-input-orange">
+          <option value="">— 선택 안 함 (독립 강좌) —</option>
+          <option th:each="cur : ${curriculumList}"
+                  th:value="${cur.curriculumId}"
+                  th:text="${cur.title}">커리큘럼명</option>
+        </select>
       </div>
     </div>
 
@@ -137,16 +129,6 @@
 </div>
 
 <script>
-  function toggleSortOrd(val) {
-    const wrap = document.getElementById('sortOrdWrap');
-    if (val) {
-      wrap.classList.remove('hidden');
-    } else {
-      wrap.classList.add('hidden');
-      document.getElementById('sortOrd').value = '';
-    }
-  }
-
   function loadSubjects(subjClId) {
     const subjSelect = document.getElementById('subjId');
     subjSelect.innerHTML = '<option value="">— 불러오는 중 —</option>';

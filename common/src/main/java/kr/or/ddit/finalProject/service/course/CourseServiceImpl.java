@@ -55,6 +55,10 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional
     public boolean createCourse(CourseDto courseDto) {
+        if (courseDto.getCurriculumId() != null) {
+            int maxOrd = courseMapper.selectMaxSortOrdByCurriculumId(courseDto.getCurriculumId());
+            courseDto.setSortOrd(maxOrd + 1);
+        }
         return courseMapper.insertCourse(courseDto) > 0;
     }
 

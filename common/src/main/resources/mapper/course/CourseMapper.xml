@@ -90,6 +90,10 @@
     WHERE COURSE_SN = #{courseSn}
   </select>
 
+  <select id="selectMaxSortOrdByCurriculumId" resultType="int">
+    SELECT NVL(MAX(SORT_ORD), 0) FROM COURSE WHERE CURRICULUM_ID = #{curriculumId}
+  </select>
+
   <insert id="insertCourse" parameterType="kr.or.ddit.finalProject.dto.course.CourseDto">
     INSERT INTO COURSE (
       CURRICULUM_ID, SUBJ_ID, INSTR_USER_ID,
