@@ -1,8 +1,8 @@
-package kr.or.ddit.finalProject.dto.classroom;
+﻿package kr.or.ddit.finalProject.dto.classroom;
 
 import java.time.LocalDateTime;
 
-import kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto;
+import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

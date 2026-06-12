@@ -1,4 +1,4 @@
-package kr.or.ddit.finalProject.dto.course;
+package kr.or.ddit.finalProject.dto.subject;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;

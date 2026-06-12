@@ -1,4 +1,4 @@
-package kr.or.ddit.finalProject.service.course;
+﻿package kr.or.ddit.finalProject.service.course;
 
 import java.util.List;
 
@@ -7,12 +7,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.course.AdminCourseSearchCondition;
+import kr.or.ddit.finalProject.dto.course.CourseDetailResponse;
 import kr.or.ddit.finalProject.dto.course.CourseDto;
 import kr.or.ddit.finalProject.dto.course.CourseResponseDto;
 import kr.or.ddit.finalProject.dto.course.CourseSearchCondition;
-import kr.or.ddit.finalProject.dto.course.SubjectClassificationDto;
-import kr.or.ddit.finalProject.dto.course.SubjectDto;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorPublicCourseResponse;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
+import kr.or.ddit.finalProject.dto.subject.SubjectClassificationDto;
+import kr.or.ddit.finalProject.dto.subject.SubjectDto;
 import kr.or.ddit.finalProject.mapper.course.CourseMapper;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
 import lombok.RequiredArgsConstructor;
@@ -142,6 +144,20 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public CourseResponseDto retrieveCourse(Long courseId) {
         return courseMapper.selectCourseById(courseId);
+    }
+
+    @Override
+    public List<InstructorPublicCourseResponse> retrievePublicCoursesByInstructor(String instrUuid) {
+        return courseMapper.selectCoursesByInstrUuid(instrUuid);
+    }
+
+    @Override
+    public CourseDetailResponse retrievePublicCourseDetail(String instrUuid, Long courseSn) {
+        CourseDetailResponse detail = courseMapper.selectCourseDetailByUuidAndSn(instrUuid, courseSn);
+        if (detail != null) {
+            detail.setLectures(courseMapper.selectPublicCourseLectures(courseSn));
+        }
+        return detail;
     }
 
 }

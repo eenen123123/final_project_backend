@@ -1,4 +1,4 @@
-package kr.or.ddit.controller.instructor;
+﻿package kr.or.ddit.controller.instructor;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 
 import kr.or.ddit.finalProject.dto.assignment.AssignmentBoardDto;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomListResponse;
-import kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto;
+import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
 import kr.or.ddit.finalProject.service.assignment.AssignmentBoardService;
 import kr.or.ddit.finalProject.service.classroom.ClassroomHomeService;
 import kr.or.ddit.finalProject.service.classroom.ClassroomService;
