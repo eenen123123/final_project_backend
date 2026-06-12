@@ -79,7 +79,7 @@ public class TextbookController {
     }
 
     // 교재 상세페이지
-    @GetMapping("/{textbookSn}/detail")
+    @GetMapping("/{textbookSn:\\d+}/detail")
     public String textbookDetail(@PathVariable Long textbookSn, Model model) {
         TextbookDto textbookDto = textbookService.retrieveTextbookBySn(textbookSn);
         model.addAttribute("textbookDto", textbookDto);
@@ -119,7 +119,7 @@ public class TextbookController {
     }
 
     // 교재 상세/수정 폼
-    @GetMapping("/{textbookSn}")
+    @GetMapping("/{textbookSn:\\d+}")
     public String textbookEditForm(@PathVariable Long textbookSn, Model model) {
         TextbookDto textbookDto = textbookService.retrieveTextbookBySn(textbookSn);
         model.addAttribute("textbookDto", textbookDto);
@@ -129,7 +129,7 @@ public class TextbookController {
     }
 
     // 교재 수정 처리
-    @PostMapping("/{textbookSn}")
+    @PostMapping("/{textbookSn:\\d+}")
     public String textbookUpdate(@PathVariable Long textbookSn, TextbookDto textbookDto,
             @RequestParam(value = "thmbImgFile", required = false) MultipartFile thmbImgFile,
             @RequestParam(value = "isImgDeleted", defaultValue = "N") String isImgDeleted,
@@ -157,7 +157,7 @@ public class TextbookController {
     }
 
     // 교재 삭제
-    @PostMapping("/{textbookSn}/delete")
+    @PostMapping("/{textbookSn:\\d+}/delete")
     public String textbookDelete(@PathVariable Long textbookSn, Authentication authentication,
             RedirectAttributes redirectAttributes) {
         textbookService.removeTextbook(textbookSn, authentication.getName());

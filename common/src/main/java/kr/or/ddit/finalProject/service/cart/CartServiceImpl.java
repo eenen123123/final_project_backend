@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import kr.or.ddit.finalProject.dto.cart.CartDto;
+import kr.or.ddit.finalProject.exception.ErrorCode;
+import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.mapper.cart.CartMapper;
 import lombok.RequiredArgsConstructor;
 
@@ -24,8 +26,8 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional
     public boolean addToCart(CartDto cartDto) {
-        CartDto existing = cartMapper.selectCartByUserAndProd(
-                cartDto.getUserId(), cartDto.getProdDivCd(), cartDto.getProdSn());
+        CartDto existing = cartMapper.selectCartByUserAndProd(cartDto.getUserId(),
+                cartDto.getProdDivCd(), cartDto.getProdSn());
         if (existing != null) {
             return true; // 이미 담긴 상품
         }
@@ -36,7 +38,10 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional
     public void removeCartItem(Long cartSn, String userId) {
-        cartMapper.deleteCartBySn(cartSn, userId);
+        int deleted = cartMapper.deleteCartBySn(cartSn, userId);
+        if (deleted == 0) {
+            throw new FinalProjectException(ErrorCode.CART_ITEM_NOT_FOUND);
+        }
     }
 
     @Override

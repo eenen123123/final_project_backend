@@ -30,13 +30,11 @@
           AND PROD_SN = #{prodSn}
     </select>
 
-    <insert id="insertCart" parameterType="kr.or.ddit.finalProject.dto.cart.CartDto">
-        <selectKey keyProperty="cartSn" resultType="Long" order="AFTER">
-            SELECT "TEAM1_202512AF"."ISEQ$$_442698".CURRVAL FROM DUAL
-        </selectKey>
-        INSERT INTO CART (CART_SN, USER_ID, PROD_DIV_CD, PROD_SN, PROD_NM, PROD_PRICE, ITEM_QTY, REG_DT)
+    <insert id="insertCart" parameterType="kr.or.ddit.finalProject.dto.cart.CartDto" useGeneratedKeys="true" keyProperty="cartSn" keyColumn="CART_SN">
+   
+        INSERT INTO CART ( USER_ID, PROD_DIV_CD, PROD_SN, PROD_NM, PROD_PRICE, ITEM_QTY, REG_DT)
         VALUES (
-            "TEAM1_202512AF"."ISEQ$$_442698".NEXTVAL,
+            
             #{userId},
             #{prodDivCd},
             #{prodSn},

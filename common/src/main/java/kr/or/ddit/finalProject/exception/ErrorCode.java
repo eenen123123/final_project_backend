@@ -18,6 +18,9 @@ public enum ErrorCode {
 
     // 강좌 관련
     COURSE_NOT_FOUND(HttpStatus.NOT_FOUND, "강좌를 찾을 수 없습니다."),
+
+    // 교재 관련
+    TEXTBOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 교재입니다."),
 LECTURE_NOT_FOUND(HttpStatus.NOT_FOUND, "강의를 찾을 수 없습니다."),
 
     // 사용자 관련
@@ -122,8 +125,16 @@ LECTURE_NOT_FOUND(HttpStatus.NOT_FOUND, "강의를 찾을 수 없습니다."),
     PARENT_REGISTER_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "부모 회원 등록에 실패했습니다."),
 
     // 쪽지 관련
+    POST_MESSAGE_CREATE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "쪽지 발송에 실패했습니다."),
 
-    POST_MESSAGE_CREATE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "쪽지 발송에 실패했습니다.");
+    // 교재 재고 관련
+    INVENTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "재고 정보를 찾을 수 없습니다."),
+    INVALID_STOCK_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 입출고 유형 코드입니다."),
+    INSUFFICIENT_STOCK(HttpStatus.BAD_REQUEST, "재고가 부족합니다."),
+
+    // 장바구니 관련
+    CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "장바구니 항목을 찾을 수 없습니다."),
+    CART_ITEM_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 장바구니에 담긴 상품입니다.");
 
     // =============================
     private final HttpStatus status;

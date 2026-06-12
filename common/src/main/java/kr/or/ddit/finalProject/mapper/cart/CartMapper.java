@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import kr.or.ddit.finalProject.dto.cart.CartDto;
+import kr.or.ddit.finalProject.dto.cart.ProductType;
 
 @Mapper
 public interface CartMapper {
@@ -20,6 +21,6 @@ public interface CartMapper {
 
     // 동일 상품 중복 체크
     CartDto selectCartByUserAndProd(@Param("userId") String userId,
-                                    @Param("prodDivCd") String prodDivCd,
-                                    @Param("prodSn") Long prodSn);
+            @Param("prodDivCd") ProductType prodDivCd,
+            @Param("prodSn") Long prodSn);
 }
