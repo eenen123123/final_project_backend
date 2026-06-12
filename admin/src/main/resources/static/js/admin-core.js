@@ -139,9 +139,24 @@ async function loadCommonCodes(selectId, clCode, allLabel = null) {
  *   - update  : fields = [{ label, before, after }]  변경된 항목만 전달
  *   - delete  : target = '삭제 대상 설명'
  */
+/**
+ * 현재 페이지(부서)의 대표 색상 토큰을 DOM 의 hm-*-{color} 클래스로 판별.
+ * sky=강사, emerald=실장, orange=PD, blue=행정. 테마 클래스가 없으면 기본 브랜드 violet.
+ */
+function hmDetectDeptColor() {
+  const tokens = ["sky", "emerald", "orange", "blue"];
+  for (const t of tokens) {
+    if (document.querySelector(`.hm-input-${t}, .hm-btn-${t}, .hm-switch-${t}`)) return t;
+  }
+  return "violet";
+}
+
 function showHermesApprovalConfirm({ title, type, fields, target, onConfirm }) {
   const existing = document.getElementById("hm-approval-confirm-overlay");
   if (existing) existing.remove();
+
+  // 현재 부서 대표 색상으로 모달 내부 강조색을 통일 (없으면 기본 violet)
+  const c = hmDetectDeptColor();
 
   let bodyHtml = "";
   if (type === "create") {
@@ -170,7 +185,7 @@ function showHermesApprovalConfirm({ title, type, fields, target, onConfirm }) {
       <thead><tr>
         <th class="py-1.5 px-3 bg-slate-50 border border-slate-200 text-slate-400 font-semibold w-1/4"></th>
         <th class="py-1.5 px-3 bg-slate-100 border border-slate-200 text-slate-500 font-semibold text-center">변경 전</th>
-        <th class="py-1.5 px-3 bg-violet-50 border border-slate-200 text-violet-600 font-semibold text-center">변경 후</th>
+        <th class="py-1.5 px-3 bg-${c}-50 border border-slate-200 text-${c}-600 font-semibold text-center">변경 후</th>
       </tr></thead>
       <tbody>${rows
         .map(
@@ -178,7 +193,7 @@ function showHermesApprovalConfirm({ title, type, fields, target, onConfirm }) {
         <tr>
           <th class="text-left py-1.5 px-3 bg-slate-50 border border-slate-200 text-slate-500 font-semibold whitespace-nowrap">${f.label}</th>
           <td class="py-1.5 px-3 border border-slate-200 text-slate-400 line-through">${f.before ?? "-"}</td>
-          <td class="py-1.5 px-3 border border-slate-200 text-violet-700 font-semibold">${f.after ?? "-"}</td>
+          <td class="py-1.5 px-3 border border-slate-200 text-${c}-700 font-semibold">${f.after ?? "-"}</td>
         </tr>`,
         )
         .join("")}
@@ -199,11 +214,11 @@ function showHermesApprovalConfirm({ title, type, fields, target, onConfirm }) {
   overlay.innerHTML = `
     <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4">
       <h3 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
-        <i class="fa-solid fa-shield-check text-violet-500"></i>${title}
+        <i class="fa-solid fa-shield-check text-${c}-500"></i>${title}
       </h3>
       ${bodyHtml}
       <p class="text-xs text-slate-400 mt-3">
-        <i class="fa-solid fa-circle-info mr-1 text-violet-300"></i>
+        <i class="fa-solid fa-circle-info mr-1 text-${c}-300"></i>
         결재 등록 후 승인자의 승인 시 반영됩니다.
       </p>
       <div class="flex justify-end gap-3 mt-5">
@@ -212,7 +227,7 @@ function showHermesApprovalConfirm({ title, type, fields, target, onConfirm }) {
           취소
         </button>
         <button id="hm-approval-confirm-btn"
-          class="cursor-pointer px-4 py-2 text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 rounded-xl transition-colors">
+          class="cursor-pointer px-4 py-2 text-sm font-semibold text-white bg-${c}-600 hover:bg-${c}-700 rounded-xl transition-colors">
           <i class="fa-solid fa-paper-plane mr-1"></i>결재 등록
         </button>
       </div>
