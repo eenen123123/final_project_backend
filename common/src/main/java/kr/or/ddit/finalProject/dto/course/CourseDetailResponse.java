@@ -1,4 +1,4 @@
-package kr.or.ddit.finalProject.dto.instructor;
+package kr.or.ddit.finalProject.dto.course;
 
 import java.util.List;
 
@@ -6,6 +6,7 @@ import lombok.Data;
 
 @Data
 public class CourseDetailResponse {
+
     private Long courseSn;
     private String title;
     private String description;

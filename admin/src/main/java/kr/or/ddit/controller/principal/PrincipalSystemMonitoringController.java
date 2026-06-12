@@ -240,6 +240,19 @@ public class PrincipalSystemMonitoringController {
         return ResponseEntity.ok(toResponse(resp));
     }
 
+    /**
+     * 6. 에러 추적 (REST API)
+     * ✔ 사용 시나리오: 시스템 에러 로그의 특정 traceId가 어느 회원/관리자에 의해 발생했는지 판별하고,
+     * 해당 사용자의 최근 활동 이력을 조회한다. 익명(미식별) 에러는 동일 IP의 다른 에러들을 묶어서 반환한다.
+     * @param traceId 추적 대상 에러 로그의 traceId
+     * @return type(MEMBER/ADMIN/ANON)과 식별자·활동이력(또는 동일 IP 에러)이 담긴 JSON
+     */
+    @GetMapping("/trace")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> trace(@RequestParam String traceId) {
+        return ResponseEntity.ok(monitoringService.resolveTrace(traceId));
+    }
+
     // ─────────────────────────────────────────────────────────────────
     // [Helpers] 공통 내부 도우미 함수군
     // ─────────────────────────────────────────────────────────────────

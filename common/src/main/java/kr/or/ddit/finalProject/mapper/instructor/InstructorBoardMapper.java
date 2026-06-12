@@ -5,13 +5,13 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto;
-import kr.or.ddit.finalProject.dto.instructor.InstructorBoardFileItem;
-import kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardDetail;
-import kr.or.ddit.finalProject.dto.instructor.InstructorPublicBoardItem;
-import kr.or.ddit.finalProject.dto.instructor.InstructorQnaAnswerDto;
-import kr.or.ddit.finalProject.dto.instructor.InstructorRecentPostResponse;
-import kr.or.ddit.finalProject.dto.instructor.PostNavItem;
+import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
+import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardFileItem;
+import kr.or.ddit.finalProject.dto.instructor.board.InstructorPublicBoardDetail;
+import kr.or.ddit.finalProject.dto.instructor.board.InstructorPublicBoardItem;
+import kr.or.ddit.finalProject.dto.instructor.board.InstructorQnaAnswerDto;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorRecentPostResponse;
+import kr.or.ddit.finalProject.dto.instructor.board.PostNavItem;
 
 @Mapper
 public interface InstructorBoardMapper {

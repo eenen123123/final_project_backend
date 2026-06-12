@@ -1,4 +1,4 @@
-package kr.or.ddit.finalProject.dto.instructor;
+package kr.or.ddit.finalProject.dto.instructor.board;
 
 import java.util.List;
 

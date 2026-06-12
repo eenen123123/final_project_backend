@@ -7,9 +7,11 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
 
-import kr.or.ddit.finalProject.dto.instructor.InstructorBoardDto;
-import kr.or.ddit.finalProject.dto.instructor.InstructorBoardResponse;
-import kr.or.ddit.finalProject.dto.instructor.InstructorQnaAnswerDto;
+import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
+import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardResponse;
+import kr.or.ddit.finalProject.dto.instructor.board.InstructorPublicBoardDetail;
+import kr.or.ddit.finalProject.dto.instructor.board.InstructorPublicBoardItem;
 import kr.or.ddit.finalProject.mapper.instructor.InstructorBoardMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -69,13 +71,7 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
                 .build();
 
         if ("03".equals(original.getBoardTypeCd())) {
-            InstructorQnaAnswerDto answer = instructorBoardMapper.selectInstructorQnaAnswer(original.getPostSn());
-            if (answer != null) {
-                response.setAnswYn(answer.getAnswYn());
-                response.setAnswCn(answer.getAnswCn());
-                response.setAnswrUserNm(answer.getAnswrUserNm());
-                response.setAnswDt(answer.getAnswDt());
-            }
+            response.setAnswer(instructorBoardMapper.selectInstructorQnaAnswer(original.getPostSn()));
         }
 
         return response;
@@ -118,7 +114,6 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     }
 
     // ── 클래스룸 공지사항 ──────────────────────────────────────────
-
     @Override
     public List<InstructorBoardDto> getClassroomNoticeList(Long classSn) {
         return instructorBoardMapper.selectClassroomNoticeList(classSn);
@@ -141,7 +136,6 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     }
 
     // ── 클래스룸 Q&A ──────────────────────────────────────────────
-
     @Override
     public List<kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto> getClassroomQnaList(Long classSn) {
         return instructorBoardMapper.selectClassroomQnaList(classSn);
@@ -170,11 +164,38 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     }
 
     // ── 공개 강사 게시판 Q&A 답변 ──────────────────────────────────
-
     @Override
     @Transactional
     public int answerInstructorQna(Long postSn, String answrUserId, String answCn) {
         return instructorBoardMapper.updateInstructorQnaAnswer(postSn, answrUserId, answCn);
+    }
+
+    // ── 공개 강사 게시판 (React 프론트용) ──────────────────────────
+    @Override
+    public PageResponse<InstructorPublicBoardItem> getPublicBoardList(
+            String instrUuid, String boardTypeCd, int page, int size) {
+        int offset = page * size;
+        int total = instructorBoardMapper.selectPublicBoardCount(instrUuid, boardTypeCd);
+        List<InstructorPublicBoardItem> items
+                = instructorBoardMapper.selectPublicBoardList(instrUuid, boardTypeCd, offset, size);
+        return new PageResponse<>(items, total);
+    }
+
+    @Override
+    @Transactional
+    public InstructorPublicBoardDetail getPublicBoardDetail(String instrUuid, Long postSn) {
+        InstructorPublicBoardDetail detail
+                = instructorBoardMapper.selectPublicBoardDetail(instrUuid, postSn);
+        if (detail == null) {
+            return null;
+        }
+        instructorBoardMapper.incrementViewCount(postSn);
+        detail.setPrevPost(instructorBoardMapper.selectPrevPost(instrUuid, detail.getBoardTypeCd(), postSn));
+        detail.setNextPost(instructorBoardMapper.selectNextPost(instrUuid, detail.getBoardTypeCd(), postSn));
+        if ("Y".equals(detail.getHasFile())) {
+            detail.setFiles(instructorBoardMapper.selectBoardFiles(postSn));
+        }
+        return detail;
     }
 
 }

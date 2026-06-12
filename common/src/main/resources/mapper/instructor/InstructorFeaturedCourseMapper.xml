@@ -6,7 +6,7 @@
 <mapper namespace="kr.or.ddit.finalProject.mapper.instructor.InstructorFeaturedCourseMapper">
 
   <select id="selectFeaturedCourses"
-          resultType="kr.or.ddit.finalProject.dto.instructor.InstructorFeaturedCourseResponse">
+          resultType="kr.or.ddit.finalProject.dto.instructor.profile.InstructorFeaturedCourseResponse">
     SELECT
         fc.COURSE_SN      AS courseSn,
         c.COURSE_NM       AS courseNm,

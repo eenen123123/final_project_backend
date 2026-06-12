@@ -17,4 +17,8 @@ public class SystemErrorLogDto {
     private String requestIp;
     private String errorMessage;
     private String createdAt;
+
+    // 모니터링 화면 표시용 (조회 시 traceId로 판별) — INSERT 시에는 사용 안 함
+    private String traceType;   // MEMBER / ADMIN / ANON
+    private String traceUserId; // 식별된 회원ID 또는 관리자ID (익명이면 null)
 }
