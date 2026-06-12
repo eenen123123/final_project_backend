@@ -189,16 +189,14 @@ public class PrincipalSystemMonitoringController {
     @GetMapping("/member-activity")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> searchMemberActivityLog(
-            @RequestParam(required = false) String userId,
-            @RequestParam(required = false) String activityType,
+            @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String fromDt,
             @RequestParam(defaultValue = "1")  int page,
             @RequestParam(defaultValue = "10") int screenSize) {
 
         Map<String, Object> params = new HashMap<>();
-        if (hasText(userId))       params.put("userId",       userId.trim());
-        if (hasText(activityType)) params.put("activityType", activityType.trim());
-        if (hasText(fromDt))       params.put("fromDt",       fromDt.trim());
+        if (hasText(keyword)) params.put("keyword", keyword.trim());
+        if (hasText(fromDt))  params.put("fromDt",  fromDt.trim());
 
         PaginationInfo<Map<String, Object>> paging =
                 new PaginationInfo<>(screenSize, BLOCK_SIZE, page);

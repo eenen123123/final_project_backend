@@ -44,7 +44,7 @@ public class MemberActivityInterceptor implements HandlerInterceptor {
             }
             if (userId == null) return;
 
-            String activityType = truncate(request.getMethod() + " " + request.getRequestURI(), 50);
+            String activityType = truncate(request.getMethod() + " " + request.getRequestURI(), 255);
 
             MemberActivityLogDto dto = MemberActivityLogDto.builder()
                     .traceId(TraceIdHolder.get())
@@ -52,6 +52,7 @@ public class MemberActivityInterceptor implements HandlerInterceptor {
                     .activityType(activityType)
                     .targetId(ActivityTargetIdHolder.get())
                     .activityIp(resolveClientIp(request))
+                    .statusCode(response.getStatus())
                     .build();
 
             activityLogMapper.insertMemberActivityLog(dto);
