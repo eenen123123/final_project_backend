@@ -93,10 +93,10 @@
             <th class="py-4 px-6 w-24">강사</th>
             <th class="py-4 px-6 w-36">과목 / 분류</th>
             <th class="py-4 px-6 w-36">커리큘럼</th>
-            <th class="py-4 px-6 w-28 text-right">수강료</th>
-            <th class="py-4 px-6 w-20 text-center">강의 수</th>
-            <th class="py-4 px-6 w-20 text-center">공개</th>
-            <th class="py-4 px-6 w-28 text-center">등록일</th>
+            <th class="py-4 px-4 w-28 text-right">수강료</th>
+            <th class="py-4 px-3 w-20 text-center">강의 수</th>
+            <th class="py-4 px-3 w-24 text-center">공개</th>
+            <th class="py-4 px-4 w-28 text-center">등록일</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
@@ -186,16 +186,16 @@
             </td>
 
             <!-- 수강료 -->
-            <td class="py-4 px-6 text-right">
+            <td class="py-4 px-4 text-right">
               <span
-                class="font-bold text-slate-800"
+                class="font-bold text-slate-800 whitespace-nowrap"
                 th:text="${course.coursePrice != null ? #numbers.formatInteger(course.coursePrice, 1, 'COMMA') + '원' : '무료'}"
                 >0원</span
               >
             </td>
 
             <!-- 강의 수 -->
-            <td class="py-4 px-6 text-center">
+            <td class="py-4 px-3 text-center">
               <span
                 class="w-8 h-8 rounded-lg bg-orange-50 text-orange-500 text-xs font-bold inline-flex items-center justify-center"
                 th:text="${(course.lectureCnt ?: 0) + '강'}"
@@ -204,21 +204,21 @@
             </td>
 
             <!-- 공개 여부 -->
-            <td class="py-4 px-6 text-center">
+            <td class="py-4 px-3 text-center">
               <span
                 th:if="${course.opnnYn == 'Y'}"
-                class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600"
+                class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 whitespace-nowrap"
                 >공개</span
               >
               <span
                 th:unless="${course.opnnYn == 'Y'}"
-                class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-400"
+                class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-400 whitespace-nowrap"
                 >비공개</span
               >
             </td>
 
             <!-- 등록일 -->
-            <td class="py-4 px-6 text-center">
+            <td class="py-4 px-4 text-center">
               <span
                 class="text-xs text-slate-500"
                 th:text="${course.regDt != null ? #temporals.format(course.regDt, 'yyyy.MM.dd') : '-'}"
