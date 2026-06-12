@@ -30,23 +30,20 @@
       </p>
     </div>
     <div class="flex items-center gap-2 shrink-0">
+      <a th:href="@{/admin/course/list}" class="hm-btn-secondary">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>목록</span>
+      </a>
       <button type="button" onclick="openDeleteModal()" class="hm-btn-danger">
         <i class="fa-solid fa-trash"></i>
         <span>강좌 삭제</span>
       </button>
       <a
         th:href="@{/admin/course/edit(courseSn=${course.courseSn})}"
-        class="hm-btn-secondary"
+        class="hm-btn-primary hm-btn-orange"
       >
         <i class="fa-solid fa-pen"></i>
         <span>강좌 수정</span>
-      </a>
-      <a
-        th:href="@{/admin/lectures/list(courseId=${course.courseSn})}"
-        class="hm-btn-primary hm-btn-orange"
-      >
-        <i class="fa-solid fa-film"></i>
-        <span>강의 목록</span>
       </a>
     </div>
   </div>
