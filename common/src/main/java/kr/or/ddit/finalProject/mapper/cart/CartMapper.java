@@ -23,4 +23,9 @@ public interface CartMapper {
     CartDto selectCartByUserAndProd(@Param("userId") String userId,
             @Param("prodDivCd") ProductType prodDivCd,
             @Param("prodSn") Long prodSn);
+
+    // 결제 완료 시 구매한 상품을 장바구니에서 제거
+    int deleteCartByUserAndProd(@Param("userId") String userId,
+            @Param("prodDivCd") ProductType prodDivCd,
+            @Param("prodSn") Long prodSn);
 }

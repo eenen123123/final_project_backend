@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.pay.PayHistMapper">
+
+    <insert id="insertPayHist" parameterType="kr.or.ddit.finalProject.dto.pay.PayHistDto" useGeneratedKeys="true" keyProperty="payHistSn" keyColumn="PAY_HIST_SN">
+        INSERT INTO PAY_HIST (
+            USER_ID, PAY_DIV_CD, TOSS_PAYMENT_KEY, ORD_SN, PTNR_ORD_ID,
+            ITEM_NM, ITEM_QTY, PAY_STAT_CD, TOT_AMT, TAX_FREE_AMT, VAT_AMT,
+            PAY_READY_DT, PAY_APRVL_DT, RGTR_ID
+        ) VALUES (
+            #{userId},
+            #{payDivCd},
+            #{tossPaymentKey},
+            #{ordSn},
+            #{ptnrOrdId},
+            #{itemNm},
+            #{itemQty},
+            #{payStatCd},
+            #{totAmt},
+            #{taxFreeAmt},
+            #{vatAmt},
+            #{payReadyDt},
+            #{payAprvlDt},
+            #{rgtrId}
+        )
+    </insert>
+
+</mapper>
