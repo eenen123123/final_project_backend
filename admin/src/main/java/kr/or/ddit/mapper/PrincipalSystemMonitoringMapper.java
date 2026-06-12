@@ -44,6 +44,8 @@ public interface PrincipalSystemMonitoringMapper {
     String findAdminIdByTraceId(@Param("traceId") String traceId);
     List<MemberActivityLogDto> findRecentMemberActivities(@Param("userId") String userId);
     List<AdminAuditLogDto> findRecentAdminAudits(@Param("adminId") String adminId);
+    MemberActivityLogDto findMemberActivityByTraceId(@Param("traceId") String traceId);
+    AdminAuditLogDto findAdminAuditByTraceId(@Param("traceId") String traceId);
     String findRequestIpByTraceId(@Param("traceId") String traceId);
     List<SystemErrorLogDto> findErrorsByIp(@Param("ip") String ip);
 }
