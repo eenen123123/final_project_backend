@@ -333,16 +333,16 @@
 
       <div class="rounded-xl border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
+          <table class="w-full text-left border-collapse table-fixed min-w-[900px]">
             <thead>
               <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
-                <th class="py-4 px-6">에러 번호</th>
-                <th class="py-4 px-6">TRACE ID</th>
-                <th class="py-4 px-6">구분</th>
-                <th class="py-4 px-6">에러 코드</th>
+                <th class="py-4 px-6 w-20">에러 번호</th>
+                <th class="py-4 px-6 w-43">TRACE ID</th>
+                <th class="py-4 px-2 w-40">구분</th>
+                <th class="py-4 px-2 w-50">에러 코드</th>
                 <th class="py-4 px-6">발생 URI</th>
-                <th class="py-4 px-6">발생 일시</th>
-                <th class="py-4 px-6 text-center">작업</th>
+                <th class="py-4 px-6 w-44">발생 일시</th>
+                <th class="py-4 px-6 w-24 text-center">작업</th>
               </tr>
             </thead>
             <tbody id="tbody-error" class="divide-y divide-slate-50 text-sm text-slate-700"></tbody>
@@ -788,21 +788,31 @@
     }
     tbody.innerHTML = items.map(r => {
       const rawMsg = r.errorMessage || '(없음)';
+      // traceType은 DB 조회 시 회원활동/관리자감사 테이블과 조인하여 내려온 값.
+      // 추적 가능(회원/관리자)한 행에만 추적 버튼을 노출하고, 익명 행은 버튼 없음.
+      const traceable = r.traceType === 'MEMBER' || r.traceType === 'ADMIN';
+      const traceBtn = traceable
+        ? `<button class="text-violet-600 hover:text-violet-800 hover:bg-violet-50 p-1.5 rounded-md transition-colors" title="사용자 활동 추적"
+                   data-trace-id="${esc(r.traceId)}"
+                   data-uri="${esc(r.requestUri)}"
+                   data-code="${esc(r.errorCode)}"
+                   onclick="openTraceModal(this.dataset.traceId, this.dataset.uri, this.dataset.code)">
+             <i class="fa-solid fa-magnifying-glass-chart text-base"></i>
+           </button>`
+        : '';
       return `<tr class="hover:bg-slate-50/50 transition-colors">
-        <td class="py-4 px-6 font-mono text-xs text-slate-400">${esc(r.errorId)}</td>
-        <td class="py-4 px-6">
+        <td class="py-4 px-6 font-mono text-xs text-slate-400 truncate">${esc(r.errorId)}</td>
+        <td class="py-4 px-6 truncate" title="${esc(r.traceId)}">
           <span class="font-mono text-xs text-violet-600 bg-violet-50 px-2 py-0.5 rounded-md">${esc(r.traceId) || '—'}</span>
         </td>
-        <td class="py-4 px-6 whitespace-nowrap">${traceBadge(r)}</td>
-        <td class="py-4 px-6">
+        <td class="py-4 px-2 truncate" title="${esc(r.traceUserId) || esc(r.requestIp) || ''}">${traceBadge(r)}</td>
+        <td class="py-4 px-2 truncate" title="${esc(r.errorCode)}">
           <span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${errCodeBadge(r.errorCode)}">${esc(r.errorCode) || '—'}</span>
         </td>
-        <td class="py-4 px-6 text-xs font-mono text-slate-600">${esc(r.requestUri) || '—'}</td>
-        <td class="py-4 px-6 text-xs font-mono text-slate-500">${esc(r.createdAt) || '—'}</td>
+        <td class="py-4 px-6 text-xs font-mono text-slate-600 truncate" title="${esc(r.requestUri)}">${esc(r.requestUri) || '—'}</td>
+        <td class="py-4 px-6 text-xs font-mono text-slate-500 truncate">${esc(r.createdAt) || '—'}</td>
         <td class="py-4 px-6 text-center whitespace-nowrap">
-          <button class="text-slate-400 hover:text-violet-600 p-1.5 transition-colors" title="추적" data-trace-id="${esc(r.traceId)}" onclick="openTraceModal(this.dataset.traceId)">
-            <i class="fa-solid fa-magnifying-glass-chart text-base"></i>
-          </button>
+          ${traceBtn}
           <button class="text-slate-400 hover:text-rose-600 p-1.5 transition-colors"
                   title="에러 메시지 상세"
                   data-error-id="${esc(r.errorId)}"
@@ -851,10 +861,11 @@
   });
 
   /* ─── 에러 추적 모달 ────────────────────────────────────────────── */
-  async function openTraceModal(traceId) {
+  async function openTraceModal(traceId, requestUri, errorCode) {
     const titleEl = document.getElementById('traceTitle');
     const subEl   = document.getElementById('traceSubtitle');
     const bodyEl  = document.getElementById('traceContent');
+    const ctx = { traceId, requestUri, errorCode };
     titleEl.textContent = '에러 추적';
     subEl.textContent = `traceId: ${traceId}`;
     bodyEl.innerHTML = '<p class="text-center py-10 text-sm text-slate-400">조회 중...</p>';
@@ -864,38 +875,50 @@
 
     try {
       const data = await fetch('/admin/system/monitoring/trace?traceId=' + encodeURIComponent(traceId)).then(r => r.json());
-      renderTrace(titleEl, bodyEl, data);
+      renderTrace(titleEl, bodyEl, data, ctx);
     } catch (e) {
       bodyEl.innerHTML = '<p class="text-center py-10 text-sm text-rose-500">추적 조회 실패</p>';
     }
   }
 
-  function renderTrace(titleEl, bodyEl, data) {
+  /* 이 에러가 발생한 요청을 모달 상단에 고정 표시 */
+  function errorContextBanner(ctx) {
+    return `<div class="mb-4 rounded-lg bg-rose-50 border border-rose-100 px-4 py-3">
+      <p class="text-xs text-rose-400 mb-0.5">이 에러가 발생한 요청</p>
+      <p class="font-mono text-sm text-rose-700 break-all">${esc(ctx.errorCode) || ''} · ${esc(ctx.requestUri) || '—'}</p>
+    </div>`;
+  }
+
+  function renderTrace(titleEl, bodyEl, data, ctx) {
+    const banner = errorContextBanner(ctx);
     if (data.type === 'MEMBER' || data.type === 'ADMIN') {
       const isMember = data.type === 'MEMBER';
       titleEl.innerHTML = `${isMember ? '회원' : '관리자'} <span class="font-mono text-violet-600">${esc(data.userId)}</span> 최근 활동`;
       const list = data.activities || [];
       if (list.length === 0) {
-        bodyEl.innerHTML = '<p class="text-center py-10 text-sm text-slate-400">활동 이력이 없습니다.</p>';
+        bodyEl.innerHTML = banner + '<p class="text-center py-10 text-sm text-slate-400">활동 이력이 없습니다.</p>';
         return;
       }
       const headers = isMember ? ['활동 유형', '대상', 'IP', '일시'] : ['메서드', 'URI', '상태', 'IP', '일시'];
-      const rows = list.map(a => isMember ? memberRow(a) : adminRow(a)).join('');
-      bodyEl.innerHTML = traceTable(headers, rows);
+      const rows = list.map(a => isMember ? memberRow(a, ctx.traceId) : adminRow(a, ctx.traceId)).join('');
+      bodyEl.innerHTML = banner + traceTable(headers, rows)
+        + '<p class="text-[11px] text-slate-400 mt-2">붉게 표시된 행이 이 에러가 발생한 요청입니다.</p>';
     } else {
       titleEl.innerHTML = `익명 · IP <span class="font-mono text-slate-600">${esc(data.requestIp) || '—'}</span>`;
       const list = data.sameIpErrors || [];
       if (list.length === 0) {
-        bodyEl.innerHTML = '<p class="text-center py-10 text-sm text-slate-400">같은 IP의 에러가 없습니다.</p>';
+        bodyEl.innerHTML = banner + '<p class="text-center py-10 text-sm text-slate-400">같은 IP의 에러가 없습니다.</p>';
         return;
       }
-      const rows = list.map(e => `
-        <tr class="border-b border-slate-50">
+      const rows = list.map(e => {
+        const hit = e.traceId && e.traceId === ctx.traceId;
+        return `<tr class="border-b border-slate-50 ${hit ? 'bg-rose-50' : ''}">
           <td class="py-2.5 px-4 font-mono text-xs">${esc(e.errorCode) || '—'}</td>
-          <td class="py-2.5 px-4 font-mono text-xs text-slate-600">${esc(e.requestUri) || '—'}</td>
+          <td class="py-2.5 px-4 font-mono text-xs text-slate-600 break-all">${esc(e.requestUri) || '—'}</td>
           <td class="py-2.5 px-4 font-mono text-xs text-slate-500">${esc(e.createdAt) || '—'}</td>
-        </tr>`).join('');
-      bodyEl.innerHTML = traceTable(['에러 코드', 'URI', '일시'], rows);
+        </tr>`;
+      }).join('');
+      bodyEl.innerHTML = banner + traceTable(['에러 코드', 'URI', '일시'], rows);
     }
   }
 
@@ -906,19 +929,23 @@
       <tbody>${rows}</tbody></table>`;
   }
 
-  function memberRow(a) {
-    return `<tr class="border-b border-slate-50">
-      <td class="py-2.5 px-4 font-mono text-xs">${esc(a.activityType) || '—'}</td>
+  function memberRow(a, traceId) {
+    const hit = a.traceId && a.traceId === traceId;
+    const mark = hit ? ' <span class="ml-1 text-[10px] font-bold text-rose-600"></span>' : '';
+    return `<tr class="border-b border-slate-50 ${hit ? 'bg-rose-50' : ''}">
+      <td class="py-2.5 px-4 font-mono text-xs">${esc(a.activityType) || '—'}${mark}</td>
       <td class="py-2.5 px-4 font-mono text-xs text-slate-600">${esc(a.targetId) || '—'}</td>
       <td class="py-2.5 px-4 font-mono text-xs text-slate-500">${esc(a.activityIp) || '—'}</td>
       <td class="py-2.5 px-4 font-mono text-xs text-slate-500">${esc(a.createdAt) || '—'}</td>
     </tr>`;
   }
 
-  function adminRow(a) {
-    return `<tr class="border-b border-slate-50">
+  function adminRow(a, traceId) {
+    const hit = a.traceId && a.traceId === traceId;
+    const mark = hit ? ' <span class="ml-1 text-[10px] font-bold text-rose-600"></span>' : '';
+    return `<tr class="border-b border-slate-50 ${hit ? 'bg-rose-50' : ''}">
       <td class="py-2.5 px-4 font-mono text-xs">${esc(a.httpMethod) || '—'}</td>
-      <td class="py-2.5 px-4 font-mono text-xs text-slate-600">${esc(a.requestUri) || '—'}</td>
+      <td class="py-2.5 px-4 font-mono text-xs text-slate-600 break-all">${esc(a.requestUri) || '—'}${mark}</td>
       <td class="py-2.5 px-4 font-mono text-xs">${esc(a.statusCode) || '—'}</td>
       <td class="py-2.5 px-4 font-mono text-xs text-slate-500">${esc(a.memberIp) || '—'}</td>
       <td class="py-2.5 px-4 font-mono text-xs text-slate-500">${esc(a.createdAt) || '—'}</td>
