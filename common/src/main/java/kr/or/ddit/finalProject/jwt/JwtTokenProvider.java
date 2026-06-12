@@ -79,6 +79,17 @@ public class JwtTokenProvider {
         return parseClaims(token).getSubject();
     }
 
+    // 만료된 토큰에서도 userId를 추출 (서명 검증은 하되 만료 무시)
+    public String getUserIdIgnoreExpiry(String token) {
+        try {
+            return parseClaims(token).getSubject();
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            return e.getClaims().getSubject();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     // JWT 토큰에서 사용자 역할을 추출하는 메소드
     // public String getRole(String token) {
     //     String role = parseClaims(token).get("role", String.class);
