@@ -10,6 +10,8 @@ import kr.or.ddit.finalProject.dto.curriculum.CurriculumDto;
 @Mapper
 public interface CurriculumMapper {
 
+    List<CurriculumDto> selectAllList();
+
     List<CurriculumDto> selectList(@Param("instructorId") String instructorId);
 
     CurriculumDto selectById(@Param("curriculumId") Long curriculumId);

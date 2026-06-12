@@ -6,6 +6,8 @@ import kr.or.ddit.finalProject.dto.curriculum.CurriculumDto;
 
 public interface CurriculumService {
 
+    List<CurriculumDto> retrieveAllList();
+
     List<CurriculumDto> retrieveList(String instructorId);
 
     boolean createCurriculum(CurriculumDto curriculumDto);

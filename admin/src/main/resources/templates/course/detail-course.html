@@ -1,31 +1,50 @@
-<title th:fragment="pageTitle" th:text="${course.courseNm} + ' | HERMES'">강좌 상세 | HERMES</title>
+<title th:fragment="pageTitle" th:text="${course.courseNm} + ' | HERMES'">
+  강좌 상세 | HERMES
+</title>
 
 <div class="space-y-6">
-
   <!-- 헤더 -->
-  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div
+    class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+  >
     <div>
       <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
-        <a th:href="@{/admin/course/list}" class="hover:text-orange-500 transition-colors">강좌 관리</a>
+        <a
+          th:href="@{/admin/course/list}"
+          class="hover:text-orange-500 transition-colors"
+          >강좌 관리</a
+        >
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        <span class="text-orange-500 font-medium" th:text="${course.courseNm}">강좌명</span>
+        <span class="text-orange-500 font-medium" th:text="${course.courseNm}"
+          >강좌명</span
+        >
       </div>
-      <h1 class="text-2xl font-bold text-slate-900 tracking-tight" th:text="${course.courseNm}">강좌명</h1>
-      <p class="text-sm text-slate-500 mt-1">강좌 상세 정보를 확인하고 관리합니다.</p>
+      <h1
+        class="text-2xl font-bold text-slate-900 tracking-tight"
+        th:text="${course.courseNm}"
+      >
+        강좌명
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">
+        강좌 상세 정보를 확인하고 관리합니다.
+      </p>
     </div>
     <div class="flex items-center gap-2 shrink-0">
-      <button type="button" onclick="openDeleteModal()"
-        class="hm-btn-secondary text-red-500 border-red-200 hover:bg-red-50">
+      <button type="button" onclick="openDeleteModal()" class="hm-btn-danger">
         <i class="fa-solid fa-trash"></i>
         <span>강좌 삭제</span>
       </button>
-      <a th:href="@{/admin/course/edit(courseSn=${course.courseSn})}"
-        class="hm-btn-secondary">
+      <a
+        th:href="@{/admin/course/edit(courseSn=${course.courseSn})}"
+        class="hm-btn-secondary"
+      >
         <i class="fa-solid fa-pen"></i>
         <span>강좌 수정</span>
       </a>
-      <a th:href="@{/admin/lectures/list(courseId=${course.courseSn})}"
-        class="hm-btn-primary hm-btn-orange">
+      <a
+        th:href="@{/admin/lectures/list(courseId=${course.courseSn})}"
+        class="hm-btn-primary hm-btn-orange"
+      >
         <i class="fa-solid fa-film"></i>
         <span>강의 목록</span>
       </a>
@@ -33,22 +52,33 @@
   </div>
 
   <!-- 강좌 정보 카드 -->
-  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-
-    <div class="flex items-center gap-3 px-6 pt-5 pb-4 border-b border-slate-100">
+  <div
+    class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
+  >
+    <div
+      class="flex items-center gap-3 px-6 pt-5 pb-4 border-b border-slate-100"
+    >
       <i class="fa-solid fa-book-open text-orange-500"></i>
       <h2 class="text-sm font-bold text-slate-700">강좌 정보</h2>
     </div>
 
     <div class="p-6">
       <div class="flex flex-col lg:flex-row gap-6">
-
         <!-- 썸네일 -->
         <div class="shrink-0">
-          <div class="w-48 h-32 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center">
-            <img th:if="${course.thmbImg != null}" th:src="${course.thmbImg}" alt="강좌 썸네일"
-              class="w-full h-full object-cover" />
-            <div th:unless="${course.thmbImg != null}" class="flex flex-col items-center gap-2 text-slate-300">
+          <div
+            class="w-48 h-32 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center"
+          >
+            <img
+              th:if="${course.thmbImg != null}"
+              th:src="${course.thmbImg}"
+              alt="강좌 썸네일"
+              class="w-full h-full object-cover"
+            />
+            <div
+              th:unless="${course.thmbImg != null}"
+              class="flex flex-col items-center gap-2 text-slate-300"
+            >
               <i class="fa-solid fa-book-open text-3xl"></i>
               <span class="text-xs">썸네일 없음</span>
             </div>
@@ -57,133 +87,267 @@
 
         <!-- 주요 정보 그리드 -->
         <div class="flex-1 grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4">
-
           <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">강사</p>
-            <p class="text-sm font-medium text-slate-800" th:text="${course.instrNm ?: '-'}">-</p>
+            <p
+              class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1"
+            >
+              강사
+            </p>
+            <p
+              class="text-sm font-medium text-slate-800"
+              th:text="${course.instrNm ?: '-'}"
+            >
+              -
+            </p>
           </div>
 
           <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">커리큘럼</p>
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-600"
-              th:text="${course.curriculumTitle ?: '-'}">-</span>
+            <p
+              class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1"
+            >
+              커리큘럼
+            </p>
+            <span
+              class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-600"
+              th:text="${course.curriculumTitle ?: '-'}"
+              >-</span
+            >
           </div>
 
           <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">과목</p>
-            <p class="text-sm font-medium text-slate-800" th:text="${course.subjNm ?: '-'}">-</p>
-            <p class="text-xs text-slate-400 mt-0.5" th:text="${course.subjClNm ?: '-'}">-</p>
+            <p
+              class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1"
+            >
+              과목
+            </p>
+            <p
+              class="text-sm font-medium text-slate-800"
+              th:text="${course.subjNm ?: '-'}"
+            >
+              -
+            </p>
+            <p
+              class="text-xs text-slate-400 mt-0.5"
+              th:text="${course.subjClNm ?: '-'}"
+            >
+              -
+            </p>
           </div>
 
           <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">수강료</p>
-            <p class="text-sm font-bold text-slate-800"
-              th:text="${course.coursePrice != null ? #numbers.formatInteger(course.coursePrice, 1, 'COMMA') + '원' : '무료'}">-</p>
+            <p
+              class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1"
+            >
+              수강료
+            </p>
+            <p
+              class="text-sm font-bold text-slate-800"
+              th:text="${course.coursePrice != null ? #numbers.formatInteger(course.coursePrice, 1, 'COMMA') + '원' : '무료'}"
+            >
+              -
+            </p>
           </div>
 
           <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">공개 여부</p>
-            <span th:if="${course.opnnYn == 'Y'}"
-              class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600">공개</span>
-            <span th:unless="${course.opnnYn == 'Y'}"
-              class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-400">비공개</span>
+            <p
+              class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1"
+            >
+              공개 여부
+            </p>
+            <span
+              th:if="${course.opnnYn == 'Y'}"
+              class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600"
+              >공개</span
+            >
+            <span
+              th:unless="${course.opnnYn == 'Y'}"
+              class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-400"
+              >비공개</span
+            >
           </div>
 
           <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">강의 수</p>
-            <span class="w-8 h-8 rounded-lg bg-orange-50 text-orange-500 text-xs font-bold inline-flex items-center justify-center"
-              th:text="${(course.lectureCnt ?: 0) + '강'}">0강</span>
+            <p
+              class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1"
+            >
+              강의 수
+            </p>
+            <span
+              class="w-8 h-8 rounded-lg bg-orange-50 text-orange-500 text-xs font-bold inline-flex items-center justify-center"
+              th:text="${(course.lectureCnt ?: 0) + '강'}"
+              >0강</span
+            >
           </div>
 
           <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">총 학습 시간</p>
-            <p class="text-sm text-slate-700" th:text="${course.totLrnTimeCnt ?: '-'}">-</p>
+            <p
+              class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1"
+            >
+              총 학습 시간
+            </p>
+            <p
+              class="text-sm text-slate-700"
+              th:text="${course.totLrnTimeCnt ?: '-'}"
+            >
+              -
+            </p>
           </div>
 
           <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">등록일</p>
-            <p class="text-sm text-slate-700"
-              th:text="${course.regDt != null ? #temporals.format(course.regDt, 'yyyy.MM.dd') : '-'}">-</p>
+            <p
+              class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1"
+            >
+              등록일
+            </p>
+            <p
+              class="text-sm text-slate-700"
+              th:text="${course.regDt != null ? #temporals.format(course.regDt, 'yyyy.MM.dd') : '-'}"
+            >
+              -
+            </p>
           </div>
 
           <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">최종 수정일</p>
-            <p class="text-sm text-slate-700"
-              th:text="${course.mdfcnDt != null ? #temporals.format(course.mdfcnDt, 'yyyy.MM.dd') : '-'}">-</p>
+            <p
+              class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1"
+            >
+              최종 수정일
+            </p>
+            <p
+              class="text-sm text-slate-700"
+              th:text="${course.mdfcnDt != null ? #temporals.format(course.mdfcnDt, 'yyyy.MM.dd') : '-'}"
+            >
+              -
+            </p>
           </div>
-
         </div>
       </div>
 
       <!-- 강좌 설명 -->
-      <div th:if="${course.courseExplnCn != null}" class="mt-6 pt-6 border-t border-slate-100">
-        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">강좌 설명</p>
-        <p class="text-sm text-slate-700 leading-relaxed whitespace-pre-line" th:text="${course.courseExplnCn}">-</p>
+      <div
+        th:if="${course.courseExplnCn != null}"
+        class="mt-6 pt-6 border-t border-slate-100"
+      >
+        <p
+          class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2"
+        >
+          강좌 설명
+        </p>
+        <p
+          class="text-sm text-slate-700 leading-relaxed whitespace-pre-line"
+          th:text="${course.courseExplnCn}"
+        >
+          -
+        </p>
       </div>
     </div>
   </div>
 
   <!-- 강의 목록 바로가기 카드 -->
   <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
-    <div class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-100">
+    <div
+      class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-100"
+    >
       <h2 class="text-sm font-bold text-slate-700">
         <i class="fa-solid fa-film text-orange-500 mr-2"></i>강의
-        <span class="ml-1 text-xs font-normal text-slate-400"
-          th:text="'총 ' + ${course.lectureCnt ?: 0} + '강'">총 0강</span>
+        <span
+          class="ml-1 text-xs font-normal text-slate-400"
+          th:text="'총 ' + ${course.lectureCnt ?: 0} + '강'"
+          >총 0강</span
+        >
       </h2>
-      <a th:href="@{/admin/lectures/list(courseId=${course.courseSn})}"
-        class="text-xs text-orange-500 hover:text-orange-600 font-semibold">
+      <a
+        th:href="@{/admin/lectures/list(courseId=${course.courseSn})}"
+        class="text-xs text-orange-500 hover:text-orange-600 font-semibold"
+      >
         전체 보기 →
       </a>
     </div>
-    <div class="px-6 py-10 text-center" th:if="${course.lectureCnt == 0 or course.lectureCnt == null}">
+    <div
+      class="px-6 py-10 text-center"
+      th:if="${course.lectureCnt == 0 or course.lectureCnt == null}"
+    >
       <div class="flex flex-col items-center gap-3 text-slate-300">
         <i class="fa-solid fa-film text-4xl"></i>
         <p class="text-sm">등록된 강의가 없습니다.</p>
-        <a th:href="@{/admin/lectures/insert(courseId=${course.courseSn})}"
-          class="text-xs text-orange-500 hover:text-orange-600 font-semibold">
+        <a
+          th:href="@{/admin/lectures/insert(courseId=${course.courseSn})}"
+          class="text-xs text-orange-500 hover:text-orange-600 font-semibold"
+        >
           첫 강의 등록하기 →
         </a>
       </div>
     </div>
-    <div class="px-6 py-4" th:unless="${course.lectureCnt == 0 or course.lectureCnt == null}">
+    <div
+      class="px-6 py-4"
+      th:unless="${course.lectureCnt == 0 or course.lectureCnt == null}"
+    >
       <p class="text-sm text-slate-500">
-        <span class="font-semibold text-slate-800" th:text="${course.lectureCnt}">0</span>개의 강의가 등록되어 있습니다.
-        강의 목록에서 상세 내용을 확인하거나 수정할 수 있습니다.
+        <span
+          class="font-semibold text-slate-800"
+          th:text="${course.lectureCnt}"
+          >0</span
+        >개의 강의가 등록되어 있습니다. 강의 목록에서 상세 내용을 확인하거나
+        수정할 수 있습니다.
       </p>
-      <a th:href="@{/admin/lectures/list(courseId=${course.courseSn})}"
-        class="mt-3 hm-btn-primary hm-btn-orange inline-flex">
+      <a
+        th:href="@{/admin/lectures/list(courseId=${course.courseSn})}"
+        class="mt-3 hm-btn-primary hm-btn-orange inline-flex"
+      >
         <i class="fa-solid fa-list"></i>
         <span>강의 목록 관리</span>
       </a>
     </div>
   </div>
-
 </div>
 
 <!-- 삭제 확인 모달 -->
-<div id="delete-modal" class="fixed inset-0 z-50 hidden items-center justify-center">
+<div
+  id="delete-modal"
+  class="fixed inset-0 z-50 hidden items-center justify-center"
+>
   <div class="absolute inset-0 bg-black/40" onclick="closeDeleteModal()"></div>
   <div class="relative bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4">
     <div class="flex flex-col items-center gap-3 text-center">
-      <div class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+      <div
+        class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center"
+      >
         <i class="fa-solid fa-triangle-exclamation text-red-500 text-xl"></i>
       </div>
-      <h3 class="text-base font-bold text-slate-800">강좌를 삭제하시겠습니까?</h3>
+      <h3 class="text-base font-bold text-slate-800">
+        강좌를 삭제하시겠습니까?
+      </h3>
       <p class="text-sm text-slate-500">
-        <span class="font-semibold text-slate-700" th:text="${course.courseNm}">강좌명</span>
+        <span class="font-semibold text-slate-700" th:text="${course.courseNm}"
+          >강좌명</span
+        >
         이(가) 영구적으로 삭제됩니다.
       </p>
-      <p class="text-xs text-red-400">강의가 등록된 강좌는 삭제할 수 없습니다.</p>
+      <p class="text-xs text-red-400">
+        강의가 등록된 강좌는 삭제할 수 없습니다.
+      </p>
     </div>
     <div class="flex gap-2 mt-5">
-      <button type="button" onclick="closeDeleteModal()"
-        class="flex-1 hm-btn-secondary justify-center">취소</button>
-      <form th:action="@{/admin/course/delete}" method="post" class="flex-1"
-            onsubmit="this.querySelector('[type=submit]').disabled = true">
-        <input type="hidden" name="courseSn" th:value="${course.courseSn}"/>
-        <button type="submit"
-          class="w-full hm-btn-primary bg-red-500 hover:bg-red-600 text-white justify-center">삭제</button>
+      <button
+        type="button"
+        onclick="closeDeleteModal()"
+        class="flex-1 hm-btn-secondary justify-center"
+      >
+        취소
+      </button>
+      <form
+        th:action="@{/admin/course/delete}"
+        method="post"
+        class="flex-1"
+        onsubmit="this.querySelector('[type=submit]').disabled = true"
+      >
+        <input type="hidden" name="courseSn" th:value="${course.courseSn}" />
+        <button
+          type="submit"
+          class="w-full hm-btn-primary bg-red-500 hover:bg-red-600 text-white justify-center"
+        >
+          삭제
+        </button>
       </form>
     </div>
   </div>
@@ -191,13 +355,13 @@
 
 <script>
   function openDeleteModal() {
-    const modal = document.getElementById('delete-modal');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
+    const modal = document.getElementById("delete-modal");
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
   }
   function closeDeleteModal() {
-    const modal = document.getElementById('delete-modal');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
+    const modal = document.getElementById("delete-modal");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
   }
 </script>

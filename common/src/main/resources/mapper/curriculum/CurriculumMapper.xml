@@ -16,6 +16,15 @@
     <result property="mdfcnDt" column="MDFCN_DT" />
   </resultMap>
 
+  <select id="selectAllList" resultMap="curriculumMap">
+    SELECT
+      CURRICULUM_ID, TITLE, INSTRUCTOR_ID, USE_YN,
+      RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
+    FROM CURRICULUM
+    WHERE USE_YN = 'Y'
+    ORDER BY REG_DT DESC
+  </select>
+
   <select id="selectList" resultMap="curriculumMap">
     SELECT
       CURRICULUM_ID, TITLE, INSTRUCTOR_ID, USE_YN,

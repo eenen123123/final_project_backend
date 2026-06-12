@@ -19,6 +19,11 @@ public class CurriculumServiceImpl implements CurriculumService {
     private final CurriculumMapper curriculumMapper;
 
     @Override
+    public List<CurriculumDto> retrieveAllList() {
+        return curriculumMapper.selectAllList();
+    }
+
+    @Override
     public List<CurriculumDto> retrieveList(String instructorId) {
         return curriculumMapper.selectList(instructorId);
     }
