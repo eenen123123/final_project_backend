@@ -1,0 +1,180 @@
+<title th:fragment="pageTitle">교재 재고 관리 | HERMES</title>
+
+<div class="space-y-6">
+
+  <!-- 페이지 헤더 -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">교재 재고 관리</h1>
+      <p class="text-sm text-slate-500 mt-1">전체 교재의 재고 현황을 확인하고 관리합니다.</p>
+    </div>
+    <a th:href="@{/admin/textbook}" class="hm-btn-ghost">
+      <i class="fa-solid fa-arrow-left"></i>
+      <span>교재 목록</span>
+    </a>
+  </div>
+
+  <!-- 요약 카드 -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-boxes-stacked"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">전체 교재</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5" th:text="${totalCount + '권'}">0권</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">재고 위험</p>
+        <p class="text-2xl font-bold text-amber-500 mt-0.5" th:text="${dangerCount + '권'}">0권</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-circle-xmark"></i>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">품절</p>
+        <p class="text-2xl font-bold text-red-500 mt-0.5" th:text="${soldOutCount + '권'}">0권</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 검색 + 테이블 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+
+    <!-- 검색 바 -->
+    <div class="flex items-center gap-3 px-5 py-4 border-b border-slate-100">
+      <form th:action="@{/admin/textbook/stock}" method="get" class="flex items-center gap-2">
+        <input type="text" name="keyword" th:value="${param.keyword}"
+          class="hm-input" style="width: 18rem;" placeholder="교재명 검색..." />
+        <button type="submit" class="hm-btn-primary" style="padding: 0.65rem 1.25rem; white-space: nowrap;">검색</button>
+        <a th:href="@{/admin/textbook/stock}"
+          style="display:inline-flex; align-items:center; gap:0.375rem; padding: 0.65rem 0.75rem; border-radius:0.75rem; font-size:0.875rem; font-weight:500; color:#94a3b8; white-space:nowrap; cursor:pointer; transition:all 0.15s ease;"
+          onmouseover="this.style.color='#475569'; this.style.backgroundColor='#f1f5f9';"
+          onmouseout="this.style.color='#94a3b8'; this.style.backgroundColor='transparent';">
+          <i class="fa-solid fa-rotate-left" style="font-size:0.75rem;"></i>초기화
+        </a>
+      </form>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table style="width:100%; table-layout:fixed; border-collapse:collapse; text-align:left;">
+        <colgroup>
+          <col style="width: 35%" />
+          <col style="width: 10%" />
+          <col style="width: 14%" />
+          <col style="width: 12%" />
+          <col style="width: 14%" />
+          <col style="width: 15%" />
+        </colgroup>
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+            <th style="padding: 1rem 1.25rem; text-align:left;">교재 정보</th>
+            <th style="padding: 1rem 1.25rem; text-align:left;">과목</th>
+            <th style="padding: 1rem 1.25rem; text-align:left;">담당 강사</th>
+            <th style="padding: 1rem 1.25rem; text-align:right;">판매가</th>
+            <th style="padding: 1rem 1.25rem; text-align:center;">판매 가능 재고</th>
+            <th style="padding: 1rem 1.25rem; text-align:center;">재고 관리</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+
+          <tr th:if="${#lists.isEmpty(textbookList)}">
+            <td colspan="6" class="py-20 text-center text-slate-400 text-sm">
+              <i class="fa-solid fa-boxes-stacked text-2xl text-slate-200 mb-3 block"></i>
+              등록된 교재가 없습니다.
+            </td>
+          </tr>
+
+          <tr th:each="textbook : ${textbookList}" class="hover:bg-slate-50/50 transition-colors">
+
+            <!-- 교재 정보 -->
+            <td style="padding: 1rem 1.25rem;">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-12 rounded-lg overflow-hidden border border-slate-200 shrink-0 bg-slate-100 flex items-center justify-center">
+                  <img th:if="${textbook.thmbImg != null}" th:src="${textbook.thmbImg}" alt="교재 표지"
+                    class="w-full h-full object-contain" />
+                  <i th:if="${textbook.thmbImg == null}" class="fa-solid fa-book text-slate-300"></i>
+                </div>
+                <div class="min-w-0">
+                  <a th:href="@{/admin/textbook/{sn}/detail(sn=${textbook.textbookSn})}"
+                    class="font-bold text-slate-800 hover:text-blue-600 transition-colors block truncate"
+                    th:text="${textbook.textbookNm}">교재명</a>
+                  <p class="text-xs text-slate-400 truncate" th:text="${textbook.pubrNm ?: '-'}">출판사</p>
+                </div>
+              </div>
+            </td>
+
+            <!-- 과목 -->
+            <td style="padding: 1rem 1.25rem;">
+              <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-600"
+                th:text="${textbook.subjClNm ?: '-'}">과목</span>
+            </td>
+
+            <!-- 담당 강사 -->
+            <td style="padding: 1rem 1.25rem;">
+              <p class="text-sm text-slate-700 truncate" th:text="${textbook.instrUserNm ?: '-'}">강사명</p>
+            </td>
+
+            <!-- 판매가 -->
+            <td style="padding: 1rem 1.25rem; text-align:right;">
+              <span class="font-bold text-slate-800"
+                th:text="${#numbers.formatInteger(textbook.salePrcAmt, 1, 'COMMA') + '원'}">0원</span>
+            </td>
+
+            <!-- 재고 수량 + 상태 배지 -->
+            <td style="padding: 1rem 1.25rem; text-align:center;">
+              <div class="flex flex-col items-center gap-1">
+                <span class="text-lg font-bold"
+                  th:classappend="${textbook.salableCnt == null or textbook.salableCnt == 0} ? 'text-red-500' : (${textbook.salableCnt <= 5} ? 'text-amber-500' : 'text-slate-800')"
+                  th:text="${textbook.salableCnt != null ? textbook.salableCnt + '권' : '0권'}">0권</span>
+                <span th:if="${textbook.salableCnt == null or textbook.salableCnt == 0}"
+                  class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-500">품절</span>
+                <span th:if="${textbook.salableCnt != null and textbook.salableCnt > 0 and textbook.salableCnt <= 5}"
+                  class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-600">재고 위험</span>
+                <span th:if="${textbook.salableCnt != null and textbook.salableCnt > 5}"
+                  class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-600">정상</span>
+              </div>
+            </td>
+
+            <!-- 재고 관리 버튼 -->
+            <td style="padding: 1rem 1.25rem; text-align:center;">
+              <a th:href="@{/admin/textbook/stock/{sn}(sn=${textbook.textbookSn})}"
+                class="hm-btn-ghost text-xs px-3 py-1.5 whitespace-nowrap">
+                <i class="fa-solid fa-pen-to-square mr-1"></i>재고 관리
+              </a>
+            </td>
+
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 페이지네이션 -->
+    <div th:if="${paginationInfo.totalPage > 1}"
+      class="flex items-center justify-center gap-1 py-5 border-t border-slate-100">
+      <a th:href="@{/admin/textbook/stock(page=${paginationInfo.startPage - 1}, keyword=${param.keyword})}"
+        th:classappend="${paginationInfo.startPage == 1} ? 'pointer-events-none opacity-30' : ''"
+        class="w-8 h-8 flex items-center justify-center border border-slate-200 rounded text-slate-400 hover:bg-slate-50 text-sm">‹</a>
+
+      <th:block th:each="p : ${#numbers.sequence(paginationInfo.startPage, paginationInfo.endPage)}">
+        <a th:href="@{/admin/textbook/stock(page=${p}, keyword=${param.keyword})}"
+          th:classappend="${p == paginationInfo.currentPage} ? 'bg-blue-600 text-white border-blue-600' : 'text-slate-500 border-slate-200 hover:bg-slate-50'"
+          class="w-8 h-8 flex items-center justify-center border rounded text-xs font-semibold"
+          th:text="${p}">1</a>
+      </th:block>
+
+      <a th:href="@{/admin/textbook/stock(page=${paginationInfo.endPage + 1}, keyword=${param.keyword})}"
+        th:classappend="${paginationInfo.endPage == paginationInfo.totalPage} ? 'pointer-events-none opacity-30' : ''"
+        class="w-8 h-8 flex items-center justify-center border border-slate-200 rounded text-slate-400 hover:bg-slate-50 text-sm">›</a>
+    </div>
+
+  </div>
+
+</div>
