@@ -1,5 +1,6 @@
 package kr.or.ddit.service.impl;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -62,5 +63,36 @@ public class PrincipalSystemMonitoringServiceImpl implements PrincipalSystemMoni
     @Override
     public Map<String, Object> getSummaryStats() {
         return mapper.selectSummaryStats();
+    }
+
+    @Override
+    public Map<String, Object> resolveTrace(String traceId) {
+
+        Map<String, Object> result = new HashMap<>();
+
+        // 1. 회원 활동 로그에 같은 traceId가 있으면 -> 회원 에러
+        String memberId = mapper.findMemberIdByTraceId(traceId);
+        if (memberId != null) {
+            result.put("type", "MEMBER");
+            result.put("userId", memberId);
+            result.put("activities", mapper.findRecentMemberActivities(memberId));
+            return result;
+        }
+
+        // 2. 관리자 감사 로그에 같은 traceId가 있으면 -> 관리자 에러
+        String adminId = mapper.findAdminIdByTraceId(traceId);
+        if (adminId != null) {
+            result.put("type", "ADMIN");
+            result.put("userId", adminId);
+            result.put("activities", mapper.findRecentAdminAudits(adminId));
+            return result;
+        }
+
+        // 3. 둘 다 없으면 -> 익명. IP로 같은 IP의 다른 에러들을 묶어서 반환
+        String ip = mapper.findRequestIpByTraceId(traceId);
+        result.put("type", "ANON");
+        result.put("requestIp", ip);
+        result.put("sameIpErrors", ip != null ? mapper.findErrorsByIp(ip) : List.of());
+        return result;
     }
 }
