@@ -27,7 +27,7 @@
   </div>
 
   <!-- 폼 -->
-  <form th:action="@{/admin/course/insert}" method="post" class="space-y-5">
+  <form th:action="@{/admin/course/insert}" method="post" class="space-y-5" novalidate>
 
     <!-- 강좌명 -->
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-5">
@@ -39,9 +39,10 @@
         <label class="block text-xs font-medium text-slate-500 mb-1.5">
           강좌명 <span class="text-red-400">*</span>
         </label>
-        <input type="text" name="courseNm" required
+        <input type="text" id="courseNm" name="courseNm"
                class="hm-input hm-input-orange"
                placeholder="예) 수능 수학 완성 — 미적분"/>
+        <p id="courseNm-err" class="hidden text-xs text-red-500 mt-1"></p>
       </div>
 
       <!-- 강좌 설명 -->
@@ -69,10 +70,11 @@
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-500 mb-1.5">수강료 (원)</label>
-          <input type="number" name="coursePrice" value="0" min="0"
+          <input type="number" id="coursePrice" name="coursePrice" value="0" min="0"
                  class="hm-input hm-input-orange"
                  onfocus="this.select()"
                  oninput="if(this.value.length>1&&this.value[0]==='0')this.value=String(Number(this.value))"/>
+          <p id="coursePrice-err" class="hidden text-xs text-red-500 mt-1"></p>
         </div>
       </div>
     </div>
@@ -129,6 +131,37 @@
 </div>
 
 <script>
+  document.querySelector('form').addEventListener('submit', function (e) {
+    let valid = true;
+
+    const nm = document.getElementById('courseNm');
+    const nmErr = document.getElementById('courseNm-err');
+    const nmVal = nm.value.trim();
+    if (!nmVal) {
+      nmErr.textContent = '강좌명은 필수 입력 항목입니다.';
+      nmErr.classList.remove('hidden');
+      valid = false;
+    } else if (nmVal.length > 200) {
+      nmErr.textContent = '강좌명은 200자 이내로 입력해 주세요.';
+      nmErr.classList.remove('hidden');
+      valid = false;
+    } else {
+      nmErr.classList.add('hidden');
+    }
+
+    const price = document.getElementById('coursePrice');
+    const priceErr = document.getElementById('coursePrice-err');
+    if (price.value !== '' && Number(price.value) < 0) {
+      priceErr.textContent = '수강료는 0원 이상이어야 합니다.';
+      priceErr.classList.remove('hidden');
+      valid = false;
+    } else {
+      priceErr.classList.add('hidden');
+    }
+
+    if (!valid) e.preventDefault();
+  });
+
   function loadSubjects(subjClId) {
     const subjSelect = document.getElementById('subjId');
     subjSelect.innerHTML = '<option value="">— 불러오는 중 —</option>';

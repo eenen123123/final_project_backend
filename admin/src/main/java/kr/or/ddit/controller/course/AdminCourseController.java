@@ -58,6 +58,19 @@ public class AdminCourseController {
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
         String userId = authentication.getName();
+        String courseNm = courseDto.getCourseNm();
+        if (courseNm == null || courseNm.isBlank()) {
+            redirectAttributes.addFlashAttribute("errorMsg", "강좌명은 필수 입력 항목입니다.");
+            return "redirect:/admin/course/insert";
+        }
+        if (courseNm.length() > 200) {
+            redirectAttributes.addFlashAttribute("errorMsg", "강좌명은 200자 이내로 입력해 주세요.");
+            return "redirect:/admin/course/insert";
+        }
+        if (courseDto.getCoursePrice() != null && courseDto.getCoursePrice() < 0) {
+            redirectAttributes.addFlashAttribute("errorMsg", "수강료는 0원 이상이어야 합니다.");
+            return "redirect:/admin/course/insert";
+        }
         courseDto.setInstrUserId(userId);
         courseDto.setRgtrId(userId);
         courseDto.setLastMdfrId(userId);
