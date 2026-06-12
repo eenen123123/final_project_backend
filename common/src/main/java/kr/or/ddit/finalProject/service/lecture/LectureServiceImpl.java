@@ -9,7 +9,9 @@ import kr.or.ddit.finalProject.dto.lecture.LectureDto;
 import kr.or.ddit.finalProject.dto.lecture.LectureResponseDto;
 import kr.or.ddit.finalProject.mapper.lecture.LectureMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -69,8 +71,10 @@ public class LectureServiceImpl implements LectureService {
     }
 
     @Override
-    public List<LectureResponseDto> retrieveLectureListByCourseSn(Long courseSn) {
-        return lectureMapper.selectLectureListByCourseSn(courseSn);
+    public List<LectureResponseDto> retrieveLectureListByCourseSn(Long courseSn, String userId) {
+        var result = lectureMapper.selectLectureListByCourseSn(courseSn,userId);
+            log.info("result : {}", result.size());
+        return  result;
     }
 
 }
