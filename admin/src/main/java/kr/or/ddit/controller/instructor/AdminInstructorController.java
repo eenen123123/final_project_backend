@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 @Controller
 @RequestMapping("/instructor/profile/instructor")
 @RequiredArgsConstructor
-public class InstructorProfileController {
+public class AdminInstructorController {
 
     private final InstructorService profileService;
 
@@ -69,7 +69,7 @@ public class InstructorProfileController {
     // ──────────────────────────────────────────────
     @PostMapping("/image")
     public String uploadProfileImage(
-            @RequestParam("imageFile") MultipartFile imageFile,
+            @RequestParam MultipartFile imageFile,
             Authentication auth) {
 
         profileService.updateProfileImage(auth.getName(), imageFile);
