@@ -3,8 +3,8 @@ package kr.or.ddit.finalProject.exception;
 import org.springframework.http.HttpStatus;
 
 /**
- * 프로젝트 전반에서 발생할 수 있는 다양한 예외 상황을 정의하는 열거형 클래스 각 예외 상황에 대한 고유한 코드와 메시지를 포함하여, 예외
- * 처리 시 일관된 방식으로 사용할 수 있음
+ * 프로젝트 전반에서 발생할 수 있는 다양한 예외 상황을 정의하는 열거형 클래스 각 예외 상황에 대한 고유한 코드와 메시지를 포함하여, 예외 처리 시 일관된 방식으로 사용할 수
+ * 있음
  */
 //@formatter:off
 public enum ErrorCode {
@@ -142,7 +142,11 @@ LECTURE_NOT_FOUND(HttpStatus.NOT_FOUND, "강의를 찾을 수 없습니다."),
 
     // 추천 아이템 관련
     FEATURED_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "추천 항목을 찾을 수 없습니다."),
-    FEATURED_ITEM_LIMIT_EXCEEDED(HttpStatus.CONFLICT, "추천 항목은 최대 11개까지 등록할 수 있습니다.");
+    FEATURED_ITEM_LIMIT_EXCEEDED(HttpStatus.CONFLICT, "추천 항목은 최대 11개까지 등록할 수 있습니다."),
+    // 주문/결제 관련
+    ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다."),
+    ORDER_ALREADY_PAID(HttpStatus.CONFLICT, "이미 처리된 주문입니다."),
+    ORDER_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "주문 금액이 일치하지 않습니다.");
 
     // =============================
     private final HttpStatus status;

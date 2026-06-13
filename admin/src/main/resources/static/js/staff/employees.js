@@ -215,6 +215,85 @@ function resetHrFilter() {
   filterHrList();
 }
 
+// 현재 검색/필터 조건에 맞는 전체 직원 목록을 .xlsx 로 내보낸다.
+async function exportEmployeesExcel(btn) {
+  if (typeof XLSX === "undefined") {
+    showHermesToast("엑셀 라이브러리를 불러오지 못했습니다.", "error");
+    return;
+  }
+
+  // 화면 필터와 무관하게 항상 전체 직원을 내보낸다.
+  const params = new URLSearchParams();
+  params.set("page",       1);
+  params.set("screenSize", 100000);
+
+  const original = btn ? btn.innerHTML : null;
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>내보내는 중...'; }
+
+  try {
+    const res  = await fetch("/admin/employees/search?" + params);
+    const data = await res.json();
+    const items = data.items || [];
+
+    if (items.length === 0) {
+      showHermesToast("내보낼 직원 데이터가 없습니다.", "info");
+      return;
+    }
+
+    const typeNm = { "01": "정규직", "02": "계약직", "03": "파트타임" };
+    const statNm = { "01": "재직", "02": "휴직", "03": "퇴사" };
+    const gndrNm = { M: "남성", F: "여성", U: "미확인" };
+
+    const rows = items.map((emp) => {
+      const m  = emp.member || {};
+      const ei = emp.employeeInfo || {};
+      const et = (ei.emplTypeCd || "").trim();
+      const join = ei.joinYmd ? String(ei.joinYmd).substring(0, 10) : "";
+      const zip  = m.userZip || "";
+      const addr = (m.userAddr || "") + (m.userDaddr ? " " + m.userDaddr : "");
+      return {
+        "직원ID":     emp.userId || "",
+        "직원명":     m.userName || "",
+        "성별":       gndrNm[m.userGndrCd] || "",
+        "생년월일":   m.userBrdt ? String(m.userBrdt).substring(0, 10) : "",
+        "부서":       emp.deptNm || "",
+        "직급":       emp.jbgrNm || "",
+        "근무유형":   typeNm[et] || "",
+        "상태":       statNm[ei.emplStatCd] || "미등록",
+        "입사일":     join,
+        "근속기간":   join ? calcTenure(join) : "",
+        "계약종료일": ei.ctrctEndYmd ? String(ei.ctrctEndYmd).substring(0, 10) : "",
+        "담당업무":   ei.chrgDutyCn || "",
+        "전화번호":   m.userTelno || "",
+        "이메일":     m.userEmailAddr || "",
+        "우편번호":   zip,
+        "주소":       addr.trim(),
+        "기본급":     emp.baseSalary != null ? emp.baseSalary : "",
+      };
+    });
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws["!cols"] = [
+      { wch: 14 }, { wch: 10 }, { wch: 6 },  { wch: 12 }, { wch: 12 },
+      { wch: 12 }, { wch: 10 }, { wch: 8 },  { wch: 12 }, { wch: 10 },
+      { wch: 12 }, { wch: 20 }, { wch: 15 }, { wch: 24 }, { wch: 8 },
+      { wch: 36 }, { wch: 12 },
+    ];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "직원목록");
+
+    const today = new Date().toISOString().substring(0, 10);
+    XLSX.writeFile(wb, `직원목록_${today}.xlsx`);
+
+    showHermesToast(`직원 ${rows.length}건을 내보냈습니다.`, "success");
+  } catch (e) {
+    console.error("직원 엑셀 내보내기 실패:", e);
+    showHermesToast("엑셀 내보내기에 실패했습니다.", "error");
+  } finally {
+    if (btn && original !== null) { btn.disabled = false; btn.innerHTML = original; }
+  }
+}
+
 function sortHrBy(col) {
   if (hrSortCol === col) {
     hrSortAsc = !hrSortAsc;

@@ -42,10 +42,12 @@
 
     <resultMap id="MemberActivityLogRM" type="kr.or.ddit.finalProject.dto.log.MemberActivityLogDto">
         <id     property="activityId"   column="ACTIVITY_ID"/>
+        <result property="traceId"      column="TRACE_ID"/>
         <result property="userId"       column="USER_ID"/>
         <result property="activityType" column="ACTIVITY_TYPE"/>
         <result property="targetId"     column="TARGET_ID"/>
         <result property="activityIp"   column="ACTIVITY_IP"/>
+        <result property="statusCode"   column="STATUS_CODE"/>
         <result property="createdAt"    column="CREATED_AT"/>
     </resultMap>
 
@@ -92,7 +94,8 @@
         <where>
             <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
                 AND (UPPER(ADMIN_ID) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%'
-                  OR UPPER(REQUEST_URI) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%')
+                  OR UPPER(REQUEST_URI) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%'
+                  OR UPPER(TRACE_ID) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%')
             </if>
             <if test="detailCondition != null and detailCondition.httpMethod != null and detailCondition.httpMethod != ''">
                 AND HTTP_METHOD = #{detailCondition.httpMethod}
@@ -120,11 +123,10 @@
 
     <sql id="memberActivityLogWhere">
         <where>
-            <if test="detailCondition != null and detailCondition.userId != null and detailCondition.userId != ''">
-                AND UPPER(USER_ID) LIKE '%' || UPPER(#{detailCondition.userId}) || '%'
-            </if>
-            <if test="detailCondition != null and detailCondition.activityType != null and detailCondition.activityType != ''">
-                AND ACTIVITY_TYPE = #{detailCondition.activityType}
+            <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
+                AND (UPPER(USER_ID) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%'
+                  OR UPPER(ACTIVITY_TYPE) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%'
+                  OR UPPER(TRACE_ID) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%')
             </if>
             <if test="detailCondition != null and detailCondition.fromDt != null and detailCondition.fromDt != ''">
                 AND CREATED_AT >= TO_DATE(#{detailCondition.fromDt}, 'YYYY-MM-DD')
@@ -203,7 +205,7 @@
     ================================================================ -->
     <select id="searchMemberActivityLog" resultMap="MemberActivityLogRM">
         SELECT ACTIVITY_ID, USER_ID, ACTIVITY_TYPE, TARGET_ID,
-               ACTIVITY_IP,
+               ACTIVITY_IP, STATUS_CODE,
                TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
         FROM MEMBER_ACTIVITY_LOG
         <include refid="memberActivityLogWhere"/>
@@ -279,12 +281,21 @@
     </select>
 
     <select id="findRecentMemberActivities" resultMap="MemberActivityLogRM">
-        SELECT ACTIVITY_ID, USER_ID, ACTIVITY_TYPE, TARGET_ID, ACTIVITY_IP,
+        SELECT ACTIVITY_ID, TRACE_ID, USER_ID, ACTIVITY_TYPE, TARGET_ID, ACTIVITY_IP, STATUS_CODE,
                TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
         FROM MEMBER_ACTIVITY_LOG
         WHERE USER_ID = #{userId}
         ORDER BY CREATED_AT DESC
         FETCH FIRST 20 ROWS ONLY
+    </select>
+
+    <!-- 클릭한 에러와 같은 traceId의 활동 1건 (최근 20건 밖이어도 항상 표시되도록) -->
+    <select id="findMemberActivityByTraceId" resultMap="MemberActivityLogRM">
+        SELECT ACTIVITY_ID, TRACE_ID, USER_ID, ACTIVITY_TYPE, TARGET_ID, ACTIVITY_IP, STATUS_CODE,
+               TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
+        FROM MEMBER_ACTIVITY_LOG
+        WHERE TRACE_ID = #{traceId}
+        FETCH FIRST 1 ROWS ONLY
     </select>
 
     <select id="findRecentAdminAudits" resultMap="AuditLogRM">
@@ -295,6 +306,16 @@
         WHERE ADMIN_ID = #{adminId}
         ORDER BY CREATED_AT DESC
         FETCH FIRST 20 ROWS ONLY
+    </select>
+
+    <!-- 클릭한 에러와 같은 traceId의 감사 1건 (최근 20건 밖이어도 항상 표시되도록) -->
+    <select id="findAdminAuditByTraceId" resultMap="AuditLogRM">
+        SELECT AUDIT_ID, TRACE_ID, ADMIN_ID, MEMBER_IP, HTTP_METHOD,
+               REQUEST_URI, REQUEST_PARAMS, STATUS_CODE,
+               TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
+        FROM HERMES_ADMIN_AUDIT_LOG
+        WHERE TRACE_ID = #{traceId}
+        FETCH FIRST 1 ROWS ONLY
     </select>
 
     <select id="findRequestIpByTraceId" resultType="string">
