@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.featured.FeaturedItemMapper">
+
+    <resultMap id="featuredItemResultMap" type="kr.or.ddit.finalProject.dto.featured.FeaturedItemDto">
+        <id   property="featuredSn"  column="FEATURED_SN"/>
+        <result property="prodType"  column="PROD_TYPE"/>
+        <result property="prodSn"    column="PROD_SN"/>
+        <result property="customImg" column="CUSTOM_IMG"/>
+        <result property="customDesc" column="CUSTOM_DESC"/>
+        <result property="sortOrd"   column="SORT_ORD"/>
+        <result property="rgtrId"    column="RGTR_ID"/>
+        <result property="regDt"     column="REG_DT"/>
+        <result property="name"      column="NAME"/>
+        <result property="price"     column="PRICE"/>
+        <result property="originImg" column="ORIGIN_IMG"/>
+        <result property="originDesc" column="ORIGIN_DESC"/>
+        <result property="instrUuid"  column="INSTR_UUID"/>
+    </resultMap>
+
+    <select id="selectFeaturedItems" resultMap="featuredItemResultMap">
+        SELECT fi.FEATURED_SN,
+               fi.PROD_TYPE,
+               fi.PROD_SN,
+               fi.CUSTOM_IMG,
+               fi.CUSTOM_DESC,
+               fi.SORT_ORD,
+               fi.RGTR_ID,
+               fi.REG_DT,
+               COALESCE(c.COURSE_NM,       t.TEXTBOOK_NM)  AS NAME,
+               COALESCE(c.COURSE_PRICE,    t.SALE_PRC_AMT) AS PRICE,
+               COALESCE(c.THMB_IMG,        t.THMB_IMG)     AS ORIGIN_IMG,
+               COALESCE(c.COURSE_EXPLN_CN, t.TAGLINE)      AS ORIGIN_DESC,
+               instr.INSTR_UUID                             AS INSTR_UUID
+        FROM FEATURED_ITEM fi
+        LEFT JOIN COURSE   c     ON fi.PROD_TYPE = 'COURSE'   AND fi.PROD_SN = c.COURSE_SN
+        LEFT JOIN TEXTBOOK t     ON fi.PROD_TYPE = 'TEXTBOOK' AND fi.PROD_SN = t.TEXTBOOK_SN
+        LEFT JOIN INSTRUCTOR instr ON c.INSTR_USER_ID = instr.INSTR_USER_ID
+        ORDER BY fi.SORT_ORD
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <select id="selectAllFeaturedItems" resultMap="featuredItemResultMap">
+        SELECT fi.FEATURED_SN,
+               fi.PROD_TYPE,
+               fi.PROD_SN,
+               fi.CUSTOM_IMG,
+               fi.CUSTOM_DESC,
+               fi.SORT_ORD,
+               fi.RGTR_ID,
+               fi.REG_DT,
+               COALESCE(c.COURSE_NM,       t.TEXTBOOK_NM)  AS NAME,
+               COALESCE(c.COURSE_PRICE,    t.SALE_PRC_AMT) AS PRICE,
+               COALESCE(c.THMB_IMG,        t.THMB_IMG)     AS ORIGIN_IMG,
+               COALESCE(c.COURSE_EXPLN_CN, t.TAGLINE)      AS ORIGIN_DESC,
+               instr.INSTR_UUID                             AS INSTR_UUID
+        FROM FEATURED_ITEM fi
+        LEFT JOIN COURSE   c     ON fi.PROD_TYPE = 'COURSE'   AND fi.PROD_SN = c.COURSE_SN
+        LEFT JOIN TEXTBOOK t     ON fi.PROD_TYPE = 'TEXTBOOK' AND fi.PROD_SN = t.TEXTBOOK_SN
+        LEFT JOIN INSTRUCTOR instr ON c.INSTR_USER_ID = instr.INSTR_USER_ID
+        ORDER BY fi.SORT_ORD
+    </select>
+
+    <select id="selectFeaturedItemBySn" resultMap="featuredItemResultMap">
+        SELECT fi.FEATURED_SN,
+               fi.PROD_TYPE,
+               fi.PROD_SN,
+               fi.CUSTOM_IMG,
+               fi.CUSTOM_DESC,
+               fi.SORT_ORD,
+               fi.RGTR_ID,
+               fi.REG_DT,
+               COALESCE(c.COURSE_NM,       t.TEXTBOOK_NM)  AS NAME,
+               COALESCE(c.COURSE_PRICE,    t.SALE_PRC_AMT) AS PRICE,
+               COALESCE(c.THMB_IMG,        t.THMB_IMG)     AS ORIGIN_IMG,
+               COALESCE(c.COURSE_EXPLN_CN, t.TAGLINE)      AS ORIGIN_DESC,
+               instr.INSTR_UUID                             AS INSTR_UUID
+        FROM FEATURED_ITEM fi
+        LEFT JOIN COURSE   c     ON fi.PROD_TYPE = 'COURSE'   AND fi.PROD_SN = c.COURSE_SN
+        LEFT JOIN TEXTBOOK t     ON fi.PROD_TYPE = 'TEXTBOOK' AND fi.PROD_SN = t.TEXTBOOK_SN
+        LEFT JOIN INSTRUCTOR instr ON c.INSTR_USER_ID = instr.INSTR_USER_ID
+        WHERE fi.FEATURED_SN = #{featuredSn}
+    </select>
+
+    <select id="selectFeaturedItemsCount" resultType="int">
+        SELECT COUNT(*) FROM FEATURED_ITEM
+    </select>
+
+    <select id="selectFeaturedItemsCountByType" resultType="int">
+        SELECT COUNT(*) FROM FEATURED_ITEM WHERE PROD_TYPE = #{prodType}
+    </select>
+
+    <select id="selectAllCourses" resultMap="featuredItemResultMap">
+        SELECT 'COURSE' AS PROD_TYPE, COURSE_SN AS PROD_SN, COURSE_NM AS NAME, COURSE_PRICE AS PRICE,
+               NULL AS FEATURED_SN, NULL AS CUSTOM_IMG, NULL AS CUSTOM_DESC, 0 AS SORT_ORD,
+               NULL AS RGTR_ID, NULL AS REG_DT, NULL AS ORIGIN_IMG, NULL AS ORIGIN_DESC
+        FROM COURSE
+        WHERE OPNN_YN = 'Y'
+        ORDER BY COURSE_NM
+    </select>
+
+    <select id="selectAllTextbooks" resultMap="featuredItemResultMap">
+        SELECT 'TEXTBOOK' AS PROD_TYPE, TEXTBOOK_SN AS PROD_SN, TEXTBOOK_NM AS NAME, SALE_PRC_AMT AS PRICE,
+               NULL AS FEATURED_SN, NULL AS CUSTOM_IMG, NULL AS CUSTOM_DESC, 0 AS SORT_ORD,
+               NULL AS RGTR_ID, NULL AS REG_DT, NULL AS ORIGIN_IMG, NULL AS ORIGIN_DESC
+        FROM TEXTBOOK
+        WHERE USE_YN = 'Y'
+        ORDER BY TEXTBOOK_NM
+    </select>
+
+    <insert id="insertFeaturedItem" parameterType="kr.or.ddit.finalProject.dto.featured.FeaturedItemDto"
+            useGeneratedKeys="true" keyProperty="featuredSn" keyColumn="FEATURED_SN">
+        INSERT INTO FEATURED_ITEM (PROD_TYPE, PROD_SN, CUSTOM_IMG, CUSTOM_DESC, SORT_ORD, RGTR_ID, REG_DT)
+        VALUES (
+            #{prodType},
+            #{prodSn},
+            #{customImg},
+            #{customDesc},
+            NVL(#{sortOrd}, 0),
+            #{rgtrId},
+            CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <update id="updateFeaturedItem" parameterType="kr.or.ddit.finalProject.dto.featured.FeaturedItemDto">
+        UPDATE FEATURED_ITEM
+        SET CUSTOM_IMG  = #{customImg},
+            CUSTOM_DESC = #{customDesc},
+            SORT_ORD    = #{sortOrd}
+        WHERE FEATURED_SN = #{featuredSn}
+    </update>
+
+    <delete id="deleteFeaturedItem">
+        DELETE FROM FEATURED_ITEM
+        WHERE FEATURED_SN = #{featuredSn}
+    </delete>
+
+</mapper>

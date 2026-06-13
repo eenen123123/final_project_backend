@@ -2,7 +2,9 @@ package kr.or.ddit.controller.cart;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,11 +37,8 @@ public class CartController {
     public ResponseEntity<String> addToCart(Authentication authentication,
             @RequestBody CartDto cartDto) {
         cartDto.setUserId(authentication.getName());
-        boolean duplicate = cartService.addToCart(cartDto);
-        if (duplicate) {
-            return ResponseEntity.ok("이미 장바구니에 담긴 상품입니다.");
-        }
-        return ResponseEntity.ok("장바구니에 담겼습니다.");
+        cartService.addToCart(cartDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body("장바구니에 담겼습니다.");
     }
 
     // DELETE /api/cart/{cartSn}

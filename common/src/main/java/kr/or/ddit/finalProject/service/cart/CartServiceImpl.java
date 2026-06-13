@@ -25,14 +25,13 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional
-    public boolean addToCart(CartDto cartDto) {
+    public void addToCart(CartDto cartDto) {
         CartDto existing = cartMapper.selectCartByUserAndProd(cartDto.getUserId(),
                 cartDto.getProdDivCd(), cartDto.getProdSn());
         if (existing != null) {
-            return true; // 이미 담긴 상품
+            throw new FinalProjectException(ErrorCode.CART_ITEM_ALREADY_EXISTS);
         }
         cartMapper.insertCart(cartDto);
-        return false;
     }
 
     @Override

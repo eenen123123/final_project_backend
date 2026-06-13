@@ -1,0 +1,161 @@
+<title th:fragment="pageTitle">추천 항목 수정 | HERMES</title>
+
+<div class="space-y-6 max-w-2xl mx-auto">
+
+  <!-- 헤더 -->
+  <div class="flex items-center gap-3">
+    <a href="/admin/featured"
+      class="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 transition-colors mr-3">
+      <i class="fa-solid fa-arrow-left text-sm"></i>
+    </a>
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">추천 항목 수정</h1>
+      <p class="text-sm text-slate-500 mt-0.5">이미지, 노출 설명, 정렬 순서를 변경할 수 있습니다.</p>
+    </div>
+  </div>
+
+  <!-- 수정 폼 카드 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm divide-y divide-slate-100">
+
+    <!-- 상품 정보 (읽기 전용) -->
+    <div class="px-6 py-5">
+      <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">상품 정보</label>
+      <a th:href="${item.prodType.name() == 'COURSE'
+                    ? '/admin/course/detail?courseSn=' + item.prodSn
+                    : '/admin/textbook/' + item.prodSn + '/detail'}"
+         target="_blank"
+         class="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50/30 transition-colors group">
+        <div class="w-12 h-14 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center shrink-0">
+          <img th:if="${item.customImg != null}" th:src="${item.customImg}" alt=""
+            class="w-full h-full object-contain" />
+          <img th:if="${item.customImg == null and item.originImg != null}" th:src="${item.originImg}" alt=""
+            class="w-full h-full object-contain" />
+          <i th:if="${item.customImg == null and item.originImg == null}"
+            class="fa-solid fa-image text-slate-300 text-xl"></i>
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2 mb-1">
+            <span th:if="${item.prodType.name() == 'COURSE'}"
+              class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-600">강좌</span>
+            <span th:if="${item.prodType.name() == 'TEXTBOOK'}"
+              class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-600">교재</span>
+            <p class="font-semibold text-slate-800 truncate group-hover:text-blue-600 transition-colors"
+               th:text="${item.name ?: '-'}">상품명</p>
+          </div>
+          <p class="text-xs text-slate-400">클릭하면 상품 관리 페이지로 이동합니다.</p>
+        </div>
+        <i class="fa-solid fa-arrow-up-right-from-square text-slate-300 group-hover:text-blue-400 transition-colors text-xs shrink-0"></i>
+      </a>
+    </div>
+
+    <!-- 커스텀 이미지 -->
+    <div class="px-6 py-5">
+      <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+        커스텀 이미지 <span class="text-slate-300 font-normal normal-case ml-1">선택</span>
+      </label>
+
+      <div id="imgPreviewWrap" th:classappend="${item.customImg != null} ? '' : 'hidden'"
+           class="mb-3 relative w-fit">
+        <img id="imgPreview" th:src="${item.customImg}" src="" alt="미리보기"
+          class="w-28 h-32 object-contain rounded-xl border border-slate-200 bg-slate-50" />
+        <button type="button" onclick="clearImage()"
+          class="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center text-xs hover:bg-rose-600 transition-colors">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <label id="imgDropZone" for="customImgFile"
+             th:classappend="${item.customImg != null} ? 'hidden' : ''"
+        class="flex flex-col items-center justify-center gap-1.5 w-full h-24 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-blue-300 hover:bg-blue-50/40 transition-colors">
+        <i class="fa-solid fa-cloud-arrow-up text-slate-300 text-2xl"></i>
+        <span class="text-xs text-slate-400">클릭하여 이미지 선택</span>
+        <span id="imgUploadStatus" class="text-xs text-blue-500 hidden">업로드 중...</span>
+      </label>
+      <input type="file" id="customImgFile" accept="image/*" class="hidden" onchange="handleImageUpload(this)" />
+      <input type="hidden" id="customImg" th:value="${item.customImg}" />
+    </div>
+
+    <!-- 노출 설명 -->
+    <div class="px-6 py-5">
+      <label for="customDesc" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+        노출 설명 <span class="text-slate-300 font-normal normal-case ml-1">선택</span>
+      </label>
+      <textarea id="customDesc" rows="3"
+        class="hm-input w-full resize-none"
+        placeholder="마이페이지 카드에 표시할 설명을 입력하세요."
+        th:text="${item.customDesc}"></textarea>
+    </div>
+
+    <!-- 정렬 순서 -->
+    <div class="px-6 py-5">
+      <label for="sortOrd" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+        정렬 순서 <span class="text-slate-300 font-normal normal-case ml-1">낮을수록 앞에 표시</span>
+      </label>
+      <input type="number" id="sortOrd" class="hm-input" min="0"
+             th:value="${item.sortOrd}" style="width: 8rem;" />
+    </div>
+
+    <!-- 푸터 버튼 -->
+    <div class="px-6 py-4 bg-slate-50/60 flex items-center justify-end gap-3 rounded-b-2xl">
+      <a href="/admin/featured" class="hm-btn-ghost">취소</a>
+      <button type="button" onclick="submitEdit()" class="hm-btn-primary">저장</button>
+    </div>
+
+  </div>
+</div>
+
+<script th:inline="javascript">
+  const featuredSn = /*[[${item.featuredSn}]]*/ null;
+
+  function clearImage() {
+    document.getElementById('customImg').value = '';
+    document.getElementById('customImgFile').value = '';
+    document.getElementById('imgPreview').src = '';
+    document.getElementById('imgPreviewWrap').classList.add('hidden');
+    const dz = document.getElementById('imgDropZone');
+    dz.classList.remove('hidden');
+    dz.querySelector('i').classList.remove('hidden');
+    dz.querySelector('span').classList.remove('hidden');
+    document.getElementById('imgUploadStatus').classList.add('hidden');
+  }
+
+  async function handleImageUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const statusEl = document.getElementById('imgUploadStatus');
+    const dz = document.getElementById('imgDropZone');
+    statusEl.classList.remove('hidden');
+    dz.querySelector('i').classList.add('hidden');
+    dz.querySelector('span').classList.add('hidden');
+    const formData = new FormData();
+    formData.append('image', file);
+    try {
+      const res = await fetch('/admin/featured/api/upload-image', { method: 'POST', body: formData });
+      if (!res.ok) throw new Error();
+      const { url } = await res.json();
+      document.getElementById('customImg').value = url;
+      document.getElementById('imgPreview').src = url;
+      document.getElementById('imgPreviewWrap').classList.remove('hidden');
+      document.getElementById('imgDropZone').classList.add('hidden');
+    } catch {
+      alert('이미지 업로드에 실패했습니다.');
+      clearImage();
+    }
+  }
+
+  async function submitEdit() {
+    const customImg  = document.getElementById('customImg').value.trim()  || null;
+    const customDesc = document.getElementById('customDesc').value.trim() || null;
+    const sortOrd    = parseInt(document.getElementById('sortOrd').value)  || 0;
+    const res = await fetch(`/admin/featured/api/${featuredSn}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ customImg, customDesc, sortOrd })
+    });
+    if (res.ok) {
+      location.href = '/admin/featured';
+    } else {
+      alert('수정 중 오류가 발생했습니다.');
+    }
+  }
+</script>
