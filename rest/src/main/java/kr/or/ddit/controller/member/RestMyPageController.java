@@ -1,8 +1,10 @@
 package kr.or.ddit.controller.member;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -13,9 +15,11 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import kr.or.ddit.finalProject.dto.enrollment.CourseEnrollmentDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
+import kr.or.ddit.finalProject.service.enrollment.CourseEnrollmentService;
 import kr.or.ddit.finalProject.service.member.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 public class RestMyPageController {
 
     private final MemberService memberService;
+    private final CourseEnrollmentService enrollmentService;
 
     /**
      * 비밀번호 확인 메서드 개인정보 수정 페이지 진입 전 본인 확인을 위해 현재 비밀번호를 검증한다.
@@ -35,6 +40,12 @@ public class RestMyPageController {
      * @param body { "password": "현재 비밀번호" }
      * @return 비밀번호 일치 여부 (true)
      */
+    @GetMapping("/courses")
+    public ResponseEntity<List<CourseEnrollmentDto>> getMyCourses(Authentication authentication) {
+        String userId = authentication.getName();
+        return ResponseEntity.ok(enrollmentService.getMyEnrolledCourses(userId));
+    }
+
     @PostMapping("/verify-password")
     public ResponseEntity<Boolean> verifyPassword(@RequestHeader("Authorization") String authHeader,
             @RequestBody Map<String, String> body) {

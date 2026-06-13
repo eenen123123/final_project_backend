@@ -1,5 +1,9 @@
 package kr.or.ddit.finalProject.service.enrollment;
 
+import java.util.List;
+
+import kr.or.ddit.finalProject.dto.enrollment.CourseEnrollmentDto;
+
 public interface CourseEnrollmentService {
 
     /**
@@ -12,4 +16,9 @@ public interface CourseEnrollmentService {
      * 현재 강좌를 볼 수 있는지 여부 (ACTIVE && 만기 이내).
      */
     boolean hasActiveAccess(String userId, Long courseSn);
+
+    /**
+     * 내 수강 중 강좌 목록 조회 (ACTIVE 상태만).
+     */
+    List<CourseEnrollmentDto> getMyEnrolledCourses(String userId);
 }
