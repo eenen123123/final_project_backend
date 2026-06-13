@@ -11,16 +11,22 @@ import kr.or.ddit.finalProject.dto.curriculum.CurriculumDto;
 @Mapper
 public interface CurriculumMapper {
 
+    /** USE_YN = 'Y'인 전체 커리큘럼 목록을 등록일 내림차순으로 반환한다. */
     List<CurriculumDto> selectAllList();
 
+    /** 특정 강사의 커리큘럼 목록을 등록일 내림차순으로 반환한다. */
     List<CurriculumDto> selectList(@Param("instructorId") String instructorId);
 
+    /** curriculumId로 커리큘럼 단건을 조회한다. USE_YN = 'Y'인 경우에만 반환한다. */
     CurriculumDto selectById(@Param("curriculumId") Long curriculumId);
 
+    /** 커리큘럼을 INSERT한다. SEQ_CURRICULUM.NEXTVAL로 PK를 채운다. */
     int insert(CurriculumDto curriculumDto);
 
+    /** 커리큘럼 제목·기간·설명·최종수정자를 UPDATE한다. */
     int update(CurriculumDto curriculumDto);
 
+    /** 커리큘럼을 논리 삭제한다 (USE_YN = 'N', 최종수정자 갱신). */
     int deleteLogically(@Param("curriculumId") Long curriculumId,
             @Param("lastMdfrId") String lastMdfrId);
 
@@ -53,6 +59,16 @@ public interface CurriculumMapper {
             @Param("curriculumId") Long curriculumId,
             @Param("sortOrd") int sortOrd);
 
-    /** 아직 커리큘럼에 등록되지 않은 강좌 목록을 반환한다 (매핑 추가 시 선택 목록용). */
-    List<CourseDto> selectAvailableCourses();
+    /** 커리큘럼에 속한 강좌 목록을 SORT_ORD 오름차순으로 반환한다. */
+    List<CourseDto> selectMappedCourses(@Param("curriculumId") Long curriculumId);
+
+    /** 특정 강사의 강좌 중 아직 커리큘럼에 배정되지 않은 강좌 목록을 반환한다. */
+    List<CourseDto> selectAvailableCourses(@Param("instrUserId") String instrUserId);
+
+    /** 해당 강좌가 특정 강사 소유인지 확인한다. 소유이면 1, 아니면 0을 반환한다. */
+    int countCourseBySnAndInstr(@Param("courseSn") Long courseSn,
+            @Param("instrUserId") String instrUserId);
+
+    /** 커리큘럼 내 모든 강좌의 SORT_ORD에 +10000 오프셋을 적용한다. 재정렬 전 유니크 제약 충돌 방지용. */
+    int clearCourseSortOrds(@Param("curriculumId") Long curriculumId);
 }

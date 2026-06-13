@@ -25,5 +25,7 @@ public class CurriculumDto {
     private LocalDateTime regDt;
     private String lastMdfrId;
     private LocalDateTime mdfcnDt;
+    /** 커리큘럼에 배정된 강좌 수 (selectList 조회 시 서브쿼리로 채워짐) */
+    private int courseCount;
 
 }

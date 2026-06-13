@@ -17,6 +17,7 @@
     <result property="regDt" column="REG_DT" />
     <result property="lastMdfrId" column="LAST_MDFR_ID" />
     <result property="mdfcnDt" column="MDFCN_DT" />
+    <result property="courseCount" column="COURSE_COUNT" />
   </resultMap>
 
   <select id="selectAllList" resultMap="curriculumMap">
@@ -31,13 +32,14 @@
 
   <select id="selectList" resultMap="curriculumMap">
     SELECT
-      CURRICULUM_ID, TITLE, INSTRUCTOR_ID, USE_YN,
-      STRT_DT, END_DT, EXPLN_CN,
-      RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
-    FROM CURRICULUM
-    WHERE INSTRUCTOR_ID = #{instructorId}
-      AND USE_YN = 'Y'
-    ORDER BY REG_DT DESC
+      C.CURRICULUM_ID, C.TITLE, C.INSTRUCTOR_ID, C.USE_YN,
+      C.STRT_DT, C.END_DT, C.EXPLN_CN,
+      C.RGTR_ID, C.REG_DT, C.LAST_MDFR_ID, C.MDFCN_DT,
+      (SELECT COUNT(*) FROM COURSE WHERE CURRICULUM_ID = C.CURRICULUM_ID) AS COURSE_COUNT
+    FROM CURRICULUM C
+    WHERE C.INSTRUCTOR_ID = #{instructorId}
+      AND C.USE_YN = 'Y'
+    ORDER BY C.REG_DT DESC
   </select>
 
   <select id="selectById" resultMap="curriculumMap">
@@ -47,6 +49,7 @@
       RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
     FROM CURRICULUM
     WHERE CURRICULUM_ID = #{curriculumId}
+      AND USE_YN = 'Y'
   </select>
 
   <insert id="insert" parameterType="kr.or.ddit.finalProject.dto.curriculum.CurriculumDto">
@@ -114,10 +117,28 @@
     WHERE COURSE_SN = #{courseSn} AND CURRICULUM_ID = #{curriculumId}
   </update>
 
+  <!-- 재정렬 전 SORT_ORD를 큰 임시 값으로 이동 (유니크 제약 충돌 방지) -->
+  <update id="clearCourseSortOrds">
+    UPDATE COURSE SET SORT_ORD = SORT_ORD + 10000 WHERE CURRICULUM_ID = #{curriculumId}
+  </update>
+
+  <select id="selectMappedCourses" resultType="kr.or.ddit.finalProject.dto.course.CourseDto">
+    SELECT COURSE_SN, COURSE_NM, OPNN_YN, SORT_ORD, TOT_LRN_TIME_CNT
+    FROM COURSE
+    WHERE CURRICULUM_ID = #{curriculumId}
+    ORDER BY SORT_ORD ASC
+  </select>
+
+  <select id="countCourseBySnAndInstr" resultType="int">
+    SELECT COUNT(*) FROM COURSE
+    WHERE COURSE_SN = #{courseSn} AND INSTR_USER_ID = #{instrUserId}
+  </select>
+
   <select id="selectAvailableCourses" resultType="kr.or.ddit.finalProject.dto.course.CourseDto">
     SELECT COURSE_SN, COURSE_NM, OPNN_YN
     FROM COURSE
     WHERE CURRICULUM_ID IS NULL
+      AND INSTR_USER_ID = #{instrUserId}
     ORDER BY COURSE_NM ASC
   </select>
 
