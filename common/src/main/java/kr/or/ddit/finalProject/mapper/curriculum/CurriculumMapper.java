@@ -41,8 +41,16 @@ public interface CurriculumMapper {
     int resequenceCoursesSortOrd(@Param("curriculumId") Long curriculumId,
             @Param("sortOrd") int sortOrd);
 
-    /** 강좌의 SORT_ORD를 갱신한다 (순서 변경 시 사용). */
+    /** 커리큘럼에 속한 강좌의 SORT_ORD를 반환한다. 해당 커리큘럼 소속이 아니면 null. */
+    Integer selectCourseSortOrd(@Param("courseSn") Long courseSn,
+            @Param("curriculumId") Long curriculumId);
+
+    /**
+     * 강좌의 SORT_ORD를 갱신한다. CURRICULUM_ID 조건을 함께 검사하므로,
+     * 해당 커리큘럼 소속이 아니면 0을 반환한다.
+     */
     int updateCourseSortOrd(@Param("courseSn") Long courseSn,
+            @Param("curriculumId") Long curriculumId,
             @Param("sortOrd") int sortOrd);
 
     /** 아직 커리큘럼에 등록되지 않은 강좌 목록을 반환한다 (매핑 추가 시 선택 목록용). */

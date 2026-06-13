@@ -104,8 +104,14 @@
     WHERE CURRICULUM_ID = #{curriculumId} AND SORT_ORD > #{sortOrd}
   </update>
 
+  <select id="selectCourseSortOrd" resultType="java.lang.Integer">
+    SELECT SORT_ORD FROM COURSE
+    WHERE COURSE_SN = #{courseSn} AND CURRICULUM_ID = #{curriculumId}
+  </select>
+
   <update id="updateCourseSortOrd">
-    UPDATE COURSE SET SORT_ORD = #{sortOrd} WHERE COURSE_SN = #{courseSn}
+    UPDATE COURSE SET SORT_ORD = #{sortOrd}
+    WHERE COURSE_SN = #{courseSn} AND CURRICULUM_ID = #{curriculumId}
   </update>
 
   <select id="selectAvailableCourses" resultType="kr.or.ddit.finalProject.dto.course.CourseDto">

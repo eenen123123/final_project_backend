@@ -25,7 +25,9 @@ public interface CurriculumService {
 
     void removeCourseMapping(Long curriculumId, Long courseSn, String currentUserId);
 
-    void moveCourseUp(Long curriculumId, Long courseSn, String currentUserId);
-
-    void moveCourseDown(Long curriculumId, Long courseSn, String currentUserId);
+    /**
+     * 커리큘럼 내 강좌 순서를 courseSnList 순서대로 저장한다.
+     * SORT_ORD를 1-based 인덱스로 재부여한다.
+     */
+    void reorderCourses(Long curriculumId, List<Long> courseSnList, String currentUserId);
 }

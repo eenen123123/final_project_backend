@@ -3,6 +3,8 @@ package kr.or.ddit.finalProject.dto.curriculum;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -14,7 +16,9 @@ public class CurriculumDto {
     private String title;
     private String instructorId;
     private String useYn;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate strtDt;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate endDt;
     private String explnCn;
     private String rgtrId;
