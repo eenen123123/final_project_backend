@@ -3,8 +3,8 @@ package kr.or.ddit.finalProject.exception;
 import org.springframework.http.HttpStatus;
 
 /**
- * 프로젝트 전반에서 발생할 수 있는 다양한 예외 상황을 정의하는 열거형 클래스 각 예외 상황에 대한 고유한 코드와 메시지를 포함하여, 예외
- * 처리 시 일관된 방식으로 사용할 수 있음
+ * 프로젝트 전반에서 발생할 수 있는 다양한 예외 상황을 정의하는 열거형 클래스 각 예외 상황에 대한 고유한 코드와 메시지를 포함하여, 예외 처리 시 일관된 방식으로 사용할 수
+ * 있음
  */
 //@formatter:off
 public enum ErrorCode {
