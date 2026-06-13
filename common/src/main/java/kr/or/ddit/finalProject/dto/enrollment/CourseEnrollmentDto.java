@@ -23,4 +23,10 @@ public class CourseEnrollmentDto {
     private LocalDateTime regDt;
     private LocalDateTime mdfcnDt;
 
+    // ── COURSE JOIN 필드 (수강 목록 조회 시 사용) ─────────────────────────────
+    private String courseNm; // COURSE.COURSE_NM
+    private String thmbImg; // COURSE.THMB_IMG
+    private String instrNm; // MEMBER.USER_NAME (강사명)
+    private int progressPct; // 진척도
+
 }

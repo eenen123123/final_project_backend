@@ -14,6 +14,10 @@
         <result property="enrlStatCd" column="ENRL_STAT_CD"/>
         <result property="regDt" column="REG_DT"/>
         <result property="mdfcnDt" column="MDFCN_DT"/>
+        <result property="courseNm" column="COURSE_NM"/>
+        <result property="thmbImg" column="THMB_IMG"/>
+        <result property="instrNm" column="INSTR_NM"/>
+        <result property="progressPct" column="PROGRESS_PCT"/>
     </resultMap>
 
     <select id="selectByUserAndCourse" resultMap="enrollmentResultMap">
@@ -47,6 +51,29 @@
         WHERE USER_ID = #{userId}
           AND COURSE_SN = #{courseSn}
     </update>
+
+    <select id="selectListByUserId" resultMap="enrollmentResultMap">
+        SELECT e.ENRL_SN, e.USER_ID, e.COURSE_SN, e.ORD_SN,
+               e.ACCS_STRT_DT, e.ACCS_END_DT, e.ENRL_STAT_CD, e.REG_DT, e.MDFCN_DT,
+               c.COURSE_NM, c.THMB_IMG,
+               m.USER_NAME AS INSTR_NM,
+               ROUND(
+                   CASE WHEN SUM(NVL(l.LECTURE_DURATION, 0)) = 0 THEN 0
+                        ELSE LEAST(100, SUM(NVL(p.SECONDS_WATCHED, 0)) / SUM(NVL(l.LECTURE_DURATION, 0)) * 100)
+                   END
+               ) AS PROGRESS_PCT
+        FROM COURSE_ENROLLMENT e
+        JOIN COURSE c ON c.COURSE_SN = e.COURSE_SN
+        LEFT JOIN MEMBER m ON m.USER_ID = c.INSTR_USER_ID
+        LEFT JOIN LECTURE l ON l.COURSE_SN = e.COURSE_SN
+        LEFT JOIN LECTURE_PROGRESS p ON p.LECTURE_SN = l.LECTURE_SN AND p.USER_ID = e.USER_ID
+        WHERE e.USER_ID = #{userId}
+          AND e.ENRL_STAT_CD = 'ACTIVE'
+        GROUP BY e.ENRL_SN, e.USER_ID, e.COURSE_SN, e.ORD_SN,
+                 e.ACCS_STRT_DT, e.ACCS_END_DT, e.ENRL_STAT_CD, e.REG_DT, e.MDFCN_DT,
+                 c.COURSE_NM, c.THMB_IMG, m.USER_NAME
+        ORDER BY e.ACCS_STRT_DT DESC
+    </select>
 
     <select id="countActiveAccess" resultType="int">
         SELECT COUNT(*)

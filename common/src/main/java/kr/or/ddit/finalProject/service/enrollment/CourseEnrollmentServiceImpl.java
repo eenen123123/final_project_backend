@@ -1,5 +1,7 @@
 package kr.or.ddit.finalProject.service.enrollment;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,5 +30,10 @@ public class CourseEnrollmentServiceImpl implements CourseEnrollmentService {
     @Override
     public boolean hasActiveAccess(String userId, Long courseSn) {
         return enrollmentMapper.countActiveAccess(userId, courseSn) > 0;
+    }
+
+    @Override
+    public List<CourseEnrollmentDto> getMyEnrolledCourses(String userId) {
+        return enrollmentMapper.selectListByUserId(userId);
     }
 }
