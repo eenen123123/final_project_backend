@@ -39,16 +39,16 @@
   <select id="selectClassificationById" resultMap="classificationMap">
     SELECT SUBJ_CL_ID, SUBJ_CL_NM, USE_YN, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
     FROM SUBJECT_CLASSIFICATION
-    WHERE SUBJ_CL_ID = #{subjClId}
+    WHERE SUBJ_CL_ID = #{subjClId} AND USE_YN = 'Y'
   </select>
 
   <insert id="insertClassification"
-          parameterType="kr.or.ddit.finalProject.dto.subject.SubjectClassificationDto"
-          useGeneratedKeys="true"
-          keyProperty="subjClId"
-          keyColumn="SUBJ_CL_ID">
-    INSERT INTO SUBJECT_CLASSIFICATION (SUBJ_CL_NM, USE_YN, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT)
-    VALUES (#{subjClNm}, 'Y', #{rgtrId}, #{lastMdfrId}, SYSDATE, SYSDATE)
+          parameterType="kr.or.ddit.finalProject.dto.subject.SubjectClassificationDto">
+    <selectKey keyProperty="subjClId" resultType="long" order="BEFORE">
+      SELECT SEQ_SUBJECT_CLASSIFICATION.NEXTVAL FROM DUAL
+    </selectKey>
+    INSERT INTO SUBJECT_CLASSIFICATION (SUBJ_CL_ID, SUBJ_CL_NM, USE_YN, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT)
+    VALUES (#{subjClId}, #{subjClNm}, 'Y', #{rgtrId}, #{lastMdfrId}, SYSDATE, SYSDATE)
   </insert>
 
   <update id="updateClassification"
@@ -85,16 +85,16 @@
     SELECT SUBJ_ID, SUBJ_CL_ID, SUBJ_NM, USE_YN, SUBJ_EXPLN_CN,
            RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
     FROM SUBJECT
-    WHERE SUBJ_ID = #{subjId} AND SUBJ_CL_ID = #{subjClId}
+    WHERE SUBJ_ID = #{subjId} AND SUBJ_CL_ID = #{subjClId} AND USE_YN = 'Y'
   </select>
 
   <insert id="insertSubject"
-          parameterType="kr.or.ddit.finalProject.dto.subject.SubjectDto"
-          useGeneratedKeys="true"
-          keyProperty="subjId"
-          keyColumn="SUBJ_ID">
-    INSERT INTO SUBJECT (SUBJ_CL_ID, SUBJ_NM, SUBJ_EXPLN_CN, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT)
-    VALUES (#{subjClId}, #{subjNm}, #{subjExplnCn, jdbcType=VARCHAR}, #{rgtrId}, #{lastMdfrId}, SYSDATE, SYSDATE)
+          parameterType="kr.or.ddit.finalProject.dto.subject.SubjectDto">
+    <selectKey keyProperty="subjId" resultType="long" order="BEFORE">
+      SELECT SEQ_SUBJECT.NEXTVAL FROM DUAL
+    </selectKey>
+    INSERT INTO SUBJECT (SUBJ_ID, SUBJ_CL_ID, SUBJ_NM, SUBJ_EXPLN_CN, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT)
+    VALUES (#{subjId}, #{subjClId}, #{subjNm}, #{subjExplnCn, jdbcType=VARCHAR}, #{rgtrId}, #{lastMdfrId}, SYSDATE, SYSDATE)
   </insert>
 
   <update id="updateSubject"
@@ -114,7 +114,7 @@
   </update>
 
   <select id="countCoursesBySubject" resultType="int">
-    SELECT COUNT(*) FROM COURSE WHERE SUBJ_ID = #{subjId}
+    SELECT COUNT(*) FROM COURSE WHERE SUBJ_ID = #{subjId} AND USE_YN = 'Y'
   </select>
 
 </mapper>
