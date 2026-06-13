@@ -209,6 +209,9 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public boolean verifyPassword(String userId, String password) {
+        if (password == null || password.isBlank()) {
+            throw new FinalProjectException(ErrorCode.INVALID_PASSWORD);
+        }
         MemberDto memberDto = memberMapper.findByUserId(userId)
                 .orElseThrow(() -> new FinalProjectException(ErrorCode.USER_NOT_FOUND));
         return passwordEncoder.matches(password, memberDto.getUserEnpswd());
