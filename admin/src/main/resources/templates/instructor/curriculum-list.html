@@ -1,0 +1,1002 @@
+<title th:fragment="pageTitle">커리큘럼 관리 | HERMES</title>
+
+<div class="flex flex-col h-full gap-6">
+  <!-- 헤더 -->
+  <div
+    class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0"
+  >
+    <div>
+      <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+        <span class="text-sky-500 font-medium">커리큘럼 관리</span>
+      </div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
+        커리큘럼 관리
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">
+        커리큘럼을 설계하고 강좌를 배정합니다.
+      </p>
+    </div>
+    <button
+      type="button"
+      onclick="openCreateForm()"
+      id="header-create-btn"
+      class="hm-btn-primary hm-btn-sky shrink-0"
+    >
+      <i class="fa-solid fa-plus"></i>
+      <span>커리큘럼 등록</span>
+    </button>
+  </div>
+
+  <!-- 2단 패널 -->
+  <div class="flex gap-6 flex-1 min-h-0">
+    <!-- ── 좌측: 커리큘럼 목록 (w-96 = 384px) ──────────────── -->
+    <div class="w-96 shrink-0 flex flex-col gap-3 overflow-y-auto pr-1">
+      <!-- 등록 폼 (기본 숨김) -->
+      <div
+        id="create-form-card"
+        class="hidden bg-white rounded-2xl border border-sky-200 shadow-sm p-5 space-y-4"
+      >
+        <p class="text-xs font-bold text-sky-600">
+          <i class="fa-solid fa-plus mr-1.5"></i>새 커리큘럼 등록
+        </p>
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5"
+            >커리큘럼명 <span class="text-red-400">*</span></label
+          >
+          <input
+            type="text"
+            id="create-title"
+            class="hm-input w-full"
+            placeholder="커리큘럼명을 입력하세요"
+            maxlength="200"
+          />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1.5"
+              >시작일</label
+            >
+            <input type="date" id="create-strtDt" class="hm-input w-full" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1.5"
+              >종료일</label
+            >
+            <input type="date" id="create-endDt" class="hm-input w-full" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5"
+            >설명</label
+          >
+          <textarea
+            id="create-explnCn"
+            class="hm-input w-full resize-none"
+            rows="2"
+            maxlength="4000"
+            placeholder="커리큘럼 설명 (선택)"
+          ></textarea>
+        </div>
+        <div
+          id="create-error"
+          class="hidden text-xs text-red-500 bg-red-50 rounded-lg px-3 py-2"
+        ></div>
+        <div class="flex gap-2 pt-1">
+          <button
+            type="button"
+            onclick="closeCreateForm()"
+            class="flex-1 hm-btn-secondary justify-center"
+          >
+            취소
+          </button>
+          <button
+            type="button"
+            onclick="submitCreate()"
+            id="create-submit-btn"
+            class="flex-1 hm-btn-primary hm-btn-sky justify-center"
+          >
+            <i class="fa-solid fa-check mr-1"></i>등록
+          </button>
+        </div>
+      </div>
+
+      <!-- 목록 없을 때 -->
+      <div
+        th:if="${curriculumList == null or curriculumList.isEmpty()}"
+        class="flex flex-col items-center gap-3 text-slate-300 py-16 text-center"
+      >
+        <i class="fa-solid fa-layer-group text-4xl"></i>
+        <p class="text-sm">등록된 커리큘럼이 없습니다.</p>
+      </div>
+
+      <!-- 커리큘럼 카드 목록 -->
+      <div
+        th:each="c : ${curriculumList}"
+        th:id="'card-' + ${c.curriculumId}"
+        class="curriculum-card bg-white rounded-2xl border-2 border-slate-100 shadow-sm transition-colors duration-200"
+      >
+        <!-- 카드 기본 뷰: data-strt / data-end 를 직접 보관해 JS에서 기간 읽기 -->
+        <div
+          class="card-view p-4 cursor-pointer hover:bg-slate-50/60 transition-colors rounded-2xl"
+          th:data-id="${c.curriculumId}"
+          th:data-strt="${c.strtDt != null ? #temporals.format(c.strtDt, 'yyyy.MM.dd') : ''}"
+          th:data-end="${c.endDt   != null ? #temporals.format(c.endDt,   'yyyy.MM.dd') : ''}"
+          onclick="
+            selectCurriculum(
+              Number(this.dataset.id),
+              this.dataset.strt,
+              this.dataset.end,
+            )
+          "
+        >
+          <div class="flex items-center gap-2.5 mb-2.5">
+            <div
+              class="w-8 h-8 rounded-xl bg-sky-50 flex items-center justify-center shrink-0"
+            >
+              <i class="fa-solid fa-layer-group text-sky-400 text-xs"></i>
+            </div>
+            <p
+              class="font-semibold text-slate-800 text-sm truncate card-title"
+              th:text="${c.title}"
+            >
+              커리큘럼명
+            </p>
+          </div>
+          <div
+            class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 ml-10"
+          >
+            <span>
+              <i class="fa-solid fa-book-open mr-1"></i>
+              <span class="card-course-count" th:text="${c.courseCount}">0</span
+              >개 강좌
+            </span>
+            <span
+              th:if="${c.strtDt != null}"
+              th:text="${#temporals.format(c.strtDt, 'yy.MM.dd')} + ' ~ ' + ${#temporals.format(c.endDt, 'yy.MM.dd')}"
+              >기간</span
+            >
+            <span th:if="${c.strtDt == null}" class="text-slate-300"
+              >기간 미설정</span
+            >
+          </div>
+          <!-- 수정/삭제 버튼 -->
+          <div
+            class="flex gap-1.5 mt-3 ml-10"
+            onclick="event.stopPropagation()"
+          >
+            <button
+              type="button"
+              th:data-id="${c.curriculumId}"
+              th:data-title="${c.title}"
+              th:data-strt="${c.strtDt != null ? #temporals.format(c.strtDt, 'yyyy-MM-dd') : ''}"
+              th:data-end="${c.endDt   != null ? #temporals.format(c.endDt,   'yyyy-MM-dd') : ''}"
+              th:data-expln="${c.explnCn}"
+              onclick="openEditForm(this)"
+              class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium text-sky-600 hover:bg-sky-50 transition-colors border border-sky-100"
+            >
+              <i class="fa-solid fa-pen mr-1"></i>수정
+            </button>
+            <button
+              type="button"
+              th:data-id="${c.curriculumId}"
+              th:data-title="${c.title}"
+              onclick="openDeleteModal(this)"
+              class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium text-red-500 hover:bg-red-50 transition-colors border border-red-100"
+            >
+              <i class="fa-solid fa-trash mr-1"></i>삭제
+            </button>
+          </div>
+        </div>
+
+        <!-- 카드 수정 폼 (기본 숨김) -->
+        <div
+          class="edit-form hidden p-5 space-y-4 bg-sky-50/30 border-t border-sky-100 rounded-b-2xl"
+        >
+          <p class="text-xs font-bold text-sky-600">
+            <i class="fa-solid fa-pen mr-1.5"></i>커리큘럼 수정
+          </p>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1.5"
+              >커리큘럼명 <span class="text-red-400">*</span></label
+            >
+            <input
+              type="text"
+              class="edit-title hm-input w-full"
+              maxlength="200"
+            />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1.5"
+                >시작일</label
+              >
+              <input type="date" class="edit-strtDt hm-input w-full" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1.5"
+                >종료일</label
+              >
+              <input type="date" class="edit-endDt hm-input w-full" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1.5"
+              >설명</label
+            >
+            <textarea
+              class="edit-explnCn hm-input w-full resize-none"
+              rows="2"
+              maxlength="4000"
+            ></textarea>
+          </div>
+          <div
+            class="edit-error hidden text-xs text-red-500 bg-red-50 rounded-lg px-3 py-2"
+          ></div>
+          <div class="flex gap-2 pt-1">
+            <button
+              type="button"
+              onclick="closeEditForm(this)"
+              class="flex-1 hm-btn-secondary justify-center"
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              onclick="submitEdit(this)"
+              class="edit-submit-btn flex-1 hm-btn-primary hm-btn-sky justify-center"
+            >
+              <i class="fa-solid fa-check mr-1"></i>저장
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 우측: 강좌 매핑 패널 ──────────────────────────────── -->
+    <div class="flex-1 min-w-0 flex flex-col gap-4 overflow-y-auto">
+      <!-- 미선택 안내 -->
+      <div
+        id="panel-empty"
+        class="flex flex-col items-center justify-center gap-4 text-slate-300 h-full min-h-[300px] bg-white rounded-2xl border border-slate-100 shadow-sm"
+      >
+        <i class="fa-solid fa-layer-group text-5xl"></i>
+        <p class="text-sm">좌측에서 커리큘럼을 선택하세요.</p>
+      </div>
+
+      <!-- 선택 후 패널 -->
+      <div id="panel-content" class="hidden flex-col gap-4">
+        <!-- 패널 헤더: 커리큘럼 이름 + 기간 -->
+        <div
+          class="bg-white rounded-2xl border border-slate-100 shadow-sm px-6 py-5"
+        >
+          <p class="text-xs text-slate-400 mb-1">선택된 커리큘럼</p>
+          <h2 id="panel-title" class="text-xl font-bold text-slate-800 mb-0.5">
+            -
+          </h2>
+          <p id="panel-period" class="text-xs text-slate-400">-</p>
+        </div>
+
+        <!-- 배정된 강좌 카드 -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+          <div
+            class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-100"
+          >
+            <div class="flex items-center gap-2.5">
+              <i class="fa-solid fa-book-open text-sky-500"></i>
+              <h3 class="text-sm font-bold text-slate-700">
+                배정된 강좌
+                <span
+                  id="mapped-count"
+                  class="ml-1.5 text-xs font-normal text-slate-400"
+                  >불러오는 중...</span
+                >
+              </h3>
+            </div>
+            <button
+              type="button"
+              id="add-course-toggle-btn"
+              onclick="toggleAddCoursePanel()"
+              class="hm-btn-primary hm-btn-sky"
+              style="padding: 0.35rem 0.9rem; font-size: 0.75rem"
+            >
+              <i class="fa-solid fa-plus mr-1"></i>강좌 추가
+            </button>
+          </div>
+
+          <p class="px-6 pt-4 pb-1 text-xs text-slate-400">
+            <i class="fa-solid fa-grip-vertical mr-1"></i>드래그하여 강좌 순서를
+            변경할 수 있습니다.
+          </p>
+
+          <div id="mapped-course-list" class="p-4 space-y-2 min-h-[60px]"></div>
+
+          <div
+            id="mapped-course-empty"
+            class="hidden px-6 pb-10 pt-4 text-center"
+          >
+            <div class="flex flex-col items-center gap-2 text-slate-300">
+              <i class="fa-solid fa-book-open text-3xl"></i>
+              <p class="text-xs">배정된 강좌가 없습니다.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 강좌 추가 패널 (기본 숨김) -->
+        <div
+          id="add-course-panel"
+          class="hidden bg-white rounded-2xl border border-sky-200 shadow-sm"
+        >
+          <div
+            class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-sky-100"
+          >
+            <div class="flex items-center gap-2.5">
+              <i class="fa-solid fa-magnifying-glass text-sky-500"></i>
+              <h3 class="text-sm font-bold text-slate-700">강좌 추가</h3>
+            </div>
+            <button
+              type="button"
+              onclick="toggleAddCoursePanel()"
+              class="text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+          </div>
+          <div class="p-5">
+            <input
+              type="text"
+              id="course-search"
+              oninput="filterAvailableCourses(this.value)"
+              placeholder="강좌명 검색..."
+              class="hm-input w-full mb-4"
+            />
+            <div
+              id="available-course-list"
+              class="space-y-2 max-h-72 overflow-y-auto"
+            >
+              <p class="text-sm text-slate-400 text-center py-4">
+                불러오는 중...
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 삭제 확인 모달 ───────────────────────────────────── -->
+<div
+  id="delete-modal"
+  class="fixed inset-0 z-50 hidden items-center justify-center"
+>
+  <div class="absolute inset-0 bg-black/40" onclick="closeDeleteModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4">
+    <div class="flex flex-col items-center gap-3 text-center">
+      <div
+        class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center"
+      >
+        <i class="fa-solid fa-triangle-exclamation text-red-500 text-xl"></i>
+      </div>
+      <h3 class="text-base font-bold text-slate-800">
+        커리큘럼을 삭제하시겠습니까?
+      </h3>
+      <p class="text-sm text-slate-500">
+        <span id="delete-title" class="font-semibold text-slate-700"></span>
+        이(가) 삭제됩니다.
+      </p>
+      <p class="text-xs text-red-400">삭제된 커리큘럼은 복구할 수 없습니다.</p>
+    </div>
+    <div class="flex gap-2 mt-5">
+      <button
+        type="button"
+        onclick="closeDeleteModal()"
+        class="flex-1 hm-btn-secondary justify-center"
+      >
+        취소
+      </button>
+      <button
+        type="button"
+        onclick="submitDelete()"
+        id="delete-confirm-btn"
+        class="flex-1 hm-btn-primary bg-red-500 hover:bg-red-600 text-white justify-center"
+      >
+        삭제
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 강좌 제거 확인 모달 ──────────────────────────────── -->
+<div
+  id="remove-course-modal"
+  class="fixed inset-0 z-50 hidden items-center justify-center"
+>
+  <div
+    class="absolute inset-0 bg-black/40"
+    onclick="closeRemoveCourseModal()"
+  ></div>
+  <div class="relative bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4">
+    <div class="flex flex-col items-center gap-3 text-center">
+      <div
+        class="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center"
+      >
+        <i class="fa-solid fa-link-slash text-amber-500 text-xl"></i>
+      </div>
+      <h3 class="text-base font-bold text-slate-800">
+        강좌 배정을 해제하시겠습니까?
+      </h3>
+      <p class="text-sm text-slate-500">
+        <span
+          id="remove-course-name"
+          class="font-semibold text-slate-700"
+        ></span>
+        을(를) 이 커리큘럼에서 제거합니다.
+      </p>
+    </div>
+    <div class="flex gap-2 mt-5">
+      <button
+        type="button"
+        onclick="closeRemoveCourseModal()"
+        class="flex-1 hm-btn-secondary justify-center"
+      >
+        취소
+      </button>
+      <button
+        type="button"
+        onclick="submitRemoveCourse()"
+        id="remove-course-btn"
+        class="flex-1 hm-btn-primary bg-amber-500 hover:bg-amber-600 text-white justify-center"
+      >
+        제거
+      </button>
+    </div>
+  </div>
+</div>
+
+<th:block th:fragment="pageJs">
+  <script
+    src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"
+  ></script>
+  <script>
+    /* ── 상태 ── */
+    let selectedCurriculumId = null;
+    let deletingId = null;
+    let removingCourseSn = null;
+    let sortable = null;
+    let allAvailableCourses = [];
+
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    /**
+     * "HH:MM:SS" 또는 "H:MM:SS" 형태의 시간 문자열을 "H시간 M분" 으로 변환.
+     * 분이 0이면 시간만, 시간이 0이면 분만 표시.
+     */
+    function formatDuration(val) {
+      if (!val) return "";
+      const parts = String(val).split(":");
+      if (parts.length < 2) return val;
+      const h = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10);
+      if (h > 0 && m > 0) return `${h}시간 ${m}분`;
+      if (h > 0) return `${h}시간`;
+      if (m > 0) return `${m}분`;
+      return "";
+    }
+
+    /* ══════════════════════════════════════════════
+     커리큘럼 선택
+  ══════════════════════════════════════════════ */
+    function selectCurriculum(curriculumId, strt, end) {
+      selectedCurriculumId = curriculumId;
+
+      /* 카드 선택 강조 */
+      document.querySelectorAll(".curriculum-card").forEach((el) => {
+        el.classList.remove("border-sky-400", "bg-sky-50/40");
+        el.classList.add("border-slate-100");
+      });
+      const card = document.getElementById("card-" + curriculumId);
+      if (card) {
+        card.classList.remove("border-slate-100");
+        card.classList.add("border-sky-400", "bg-sky-50/40");
+      }
+
+      /* 패널 헤더 채우기 */
+      document.getElementById("panel-title").textContent =
+        card.querySelector(".card-title").textContent;
+      document.getElementById("panel-period").textContent = strt
+        ? `${strt} ~ ${end}`
+        : "기간 미설정";
+
+      /* 패널 표시 */
+      document.getElementById("panel-empty").classList.add("hidden");
+      const panelContent = document.getElementById("panel-content");
+      panelContent.classList.remove("hidden");
+      panelContent.classList.add("flex");
+
+      /* 추가 패널 닫기 */
+      document.getElementById("add-course-panel").classList.add("hidden");
+
+      loadMappedCourses();
+    }
+
+    /* ══════════════════════════════════════════════
+     배정된 강좌 목록 로드
+  ══════════════════════════════════════════════ */
+    async function loadMappedCourses() {
+      const listEl = document.getElementById("mapped-course-list");
+      const emptyEl = document.getElementById("mapped-course-empty");
+      const countEl = document.getElementById("mapped-count");
+      const addBtn = document.getElementById("add-course-toggle-btn");
+
+      if (addBtn) addBtn.disabled = true;
+      try {
+        const res = await fetch(
+          `/instructor/curriculum/${selectedCurriculumId}/courses`,
+        );
+        if (!res.ok) {
+          listEl.innerHTML = `<p class="text-sm text-red-400 text-center py-4">강좌 목록을 불러오지 못했습니다. (${res.status})</p>`;
+          return;
+        }
+        const courses = await res.json();
+
+        countEl.textContent = `총 ${courses.length}개`;
+
+        /* 카드 강좌 수 뱃지 갱신 */
+        const card = document.getElementById("card-" + selectedCurriculumId);
+        if (card)
+          card.querySelector(".card-course-count").textContent = courses.length;
+
+        if (courses.length === 0) {
+          listEl.innerHTML = "";
+          emptyEl.classList.remove("hidden");
+        } else {
+          emptyEl.classList.add("hidden");
+          listEl.innerHTML = courses.map(buildMappedCourseRow).join("");
+        }
+
+        if (sortable) sortable.destroy();
+        sortable = Sortable.create(listEl, {
+          animation: 150,
+          handle: ".drag-handle",
+          onEnd: saveOrder,
+        });
+      } catch (e) {
+        listEl.innerHTML =
+          '<p class="text-sm text-red-400 text-center py-4">강좌 목록을 불러오지 못했습니다.</p>';
+      } finally {
+        if (addBtn) addBtn.disabled = false;
+      }
+    }
+
+    function buildMappedCourseRow(c) {
+      const opnnBadge =
+        c.opnnYn === "Y"
+          ? '<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600">공개</span>'
+          : '<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-400">비공개</span>';
+      const dur = formatDuration(c.totLrnTimeCnt);
+      const duration = dur
+        ? `<span class="text-xs text-slate-400">${escapeHtml(dur)}</span>`
+        : "";
+      const nm = escapeHtml(c.courseNm) || "-";
+
+      return `
+      <div class="flex items-center gap-3 px-4 py-3 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-sm transition-all"
+           data-sn="${c.courseSn}">
+        <span class="drag-handle cursor-grab text-slate-300 hover:text-slate-500 active:cursor-grabbing shrink-0">
+          <i class="fa-solid fa-grip-vertical"></i>
+        </span>
+        <span class="w-6 h-6 rounded-md bg-sky-100 text-sky-500 text-xs font-bold flex items-center justify-center shrink-0 sort-ord">
+          ${c.sortOrd ?? "-"}
+        </span>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-slate-800 truncate">${nm}</p>
+          ${duration}
+        </div>
+        ${opnnBadge}
+        <button type="button"
+                data-sn="${c.courseSn}" data-nm="${escapeHtml(c.courseNm)}"
+                onclick="openRemoveCourseModal(Number(this.dataset.sn), this.dataset.nm)"
+                class="shrink-0 p-1.5 rounded-lg text-slate-300 hover:text-red-400 hover:bg-red-50 transition-colors">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>`;
+    }
+
+    /* ══════════════════════════════════════════════
+     순서 저장
+  ══════════════════════════════════════════════ */
+    async function saveOrder() {
+      const items = document.querySelectorAll("#mapped-course-list > [data-sn]");
+      const courseSnList = Array.from(items).map((el) => Number(el.dataset.sn));
+
+      items.forEach((el, i) => {
+        const badge = el.querySelector(".sort-ord");
+        if (badge) badge.textContent = i + 1;
+      });
+
+      try {
+        const res = await fetch(
+          `/instructor/curriculum/${selectedCurriculumId}/courses/reorder`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ courseSnList }),
+          },
+        );
+        const data = await res.json();
+        if (!data.success) {
+          alert(
+            data.message || "순서 저장에 실패했습니다. 원래 순서로 복원합니다.",
+          );
+          loadMappedCourses();
+        }
+      } catch (e) {
+        alert("서버 오류로 순서 저장에 실패했습니다.");
+        loadMappedCourses();
+      }
+    }
+
+    /* ══════════════════════════════════════════════
+     강좌 추가 패널 토글
+  ══════════════════════════════════════════════ */
+    async function toggleAddCoursePanel() {
+      const panel = document.getElementById("add-course-panel");
+      if (!panel.classList.contains("hidden")) {
+        panel.classList.add("hidden");
+        return;
+      }
+      panel.classList.remove("hidden");
+      document.getElementById("course-search").value = "";
+
+      const listEl = document.getElementById("available-course-list");
+      listEl.innerHTML =
+        '<p class="text-sm text-slate-400 text-center py-4">불러오는 중...</p>';
+
+      try {
+        const res = await fetch("/instructor/curriculum/available-courses");
+        allAvailableCourses = await res.json();
+        renderAvailableCourses(allAvailableCourses);
+      } catch (e) {
+        listEl.innerHTML =
+          '<p class="text-sm text-red-400 text-center py-4">목록을 불러오지 못했습니다.</p>';
+      }
+    }
+
+    function filterAvailableCourses(query) {
+      const filtered = allAvailableCourses.filter(
+        (c) =>
+          c.courseNm && c.courseNm.toLowerCase().includes(query.toLowerCase()),
+      );
+      renderAvailableCourses(filtered);
+    }
+
+    function renderAvailableCourses(courses) {
+      const listEl = document.getElementById("available-course-list");
+      if (courses.length === 0) {
+        listEl.innerHTML =
+          '<p class="text-sm text-slate-400 text-center py-4">추가 가능한 강좌가 없습니다.</p>';
+        return;
+      }
+      listEl.innerHTML = courses
+        .map((c) => {
+          const opnnBadge =
+            c.opnnYn === "Y"
+              ? '<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600">공개</span>'
+              : '<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-400">비공개</span>';
+          const dur = formatDuration(c.totLrnTimeCnt);
+          const duration = dur
+            ? `<span class="text-xs text-slate-400">${escapeHtml(dur)}</span>`
+            : "";
+          const nm = escapeHtml(c.courseNm) || "-";
+          return `
+        <div class="flex items-center gap-3 px-4 py-3 rounded-xl border border-slate-100 hover:border-sky-200 hover:bg-sky-50/40 transition-all">
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-slate-800 truncate">${nm}</p>
+            ${duration}
+          </div>
+          ${opnnBadge}
+          <button type="button"
+                  data-sn="${c.courseSn}"
+                  onclick="submitAddCourse(Number(this.dataset.sn), this)"
+                  class="shrink-0 hm-btn-primary hm-btn-sky" style="padding:0.3rem 0.85rem;font-size:0.75rem;">
+            <i class="fa-solid fa-plus mr-1"></i>추가
+          </button>
+        </div>`;
+        })
+        .join("");
+    }
+
+    async function submitAddCourse(courseSn, btn) {
+      btn.disabled = true;
+      try {
+        const res = await fetch(
+          `/instructor/curriculum/${selectedCurriculumId}/courses/add`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ courseSn }),
+          },
+        );
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById("add-course-panel").classList.add("hidden");
+          loadMappedCourses();
+        } else {
+          alert(data.message || "추가에 실패했습니다.");
+          btn.disabled = false;
+        }
+      } catch (e) {
+        alert("서버 오류가 발생했습니다.");
+        btn.disabled = false;
+      }
+    }
+
+    /* ══════════════════════════════════════════════
+     강좌 제거 모달
+  ══════════════════════════════════════════════ */
+    function openRemoveCourseModal(courseSn, courseNm) {
+      removingCourseSn = courseSn;
+      document.getElementById("remove-course-name").textContent = courseNm;
+      document
+        .getElementById("remove-course-modal")
+        .classList.replace("hidden", "flex");
+    }
+    function closeRemoveCourseModal() {
+      removingCourseSn = null;
+      document
+        .getElementById("remove-course-modal")
+        .classList.replace("flex", "hidden");
+    }
+    async function submitRemoveCourse() {
+      if (!removingCourseSn) return;
+      const btn = document.getElementById("remove-course-btn");
+      btn.disabled = true;
+      try {
+        const res = await fetch(
+          `/instructor/curriculum/${selectedCurriculumId}/courses/remove`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ courseSn: removingCourseSn }),
+          },
+        );
+        const data = await res.json();
+        if (data.success) {
+          btn.disabled = false;
+          closeRemoveCourseModal();
+          loadMappedCourses();
+        } else {
+          alert(data.message || "제거에 실패했습니다.");
+          btn.disabled = false;
+        }
+      } catch (e) {
+        alert("서버 오류가 발생했습니다.");
+        btn.disabled = false;
+      }
+    }
+
+    /* ══════════════════════════════════════════════
+     커리큘럼 등록 폼
+  ══════════════════════════════════════════════ */
+    function openCreateForm() {
+      document.getElementById("create-form-card").classList.remove("hidden");
+      document.getElementById("header-create-btn").classList.add("hidden");
+      document.getElementById("create-title").focus();
+    }
+    function closeCreateForm() {
+      document.getElementById("create-form-card").classList.add("hidden");
+      document.getElementById("header-create-btn").classList.remove("hidden");
+      [
+        "create-title",
+        "create-strtDt",
+        "create-endDt",
+        "create-explnCn",
+      ].forEach((id) => {
+        document.getElementById(id).value = "";
+      });
+      document.getElementById("create-error").classList.add("hidden");
+    }
+    async function submitCreate() {
+      const title = document.getElementById("create-title").value.trim();
+      const errorEl = document.getElementById("create-error");
+      if (!title) {
+        errorEl.textContent = "커리큘럼명은 필수 입력 항목입니다.";
+        errorEl.classList.remove("hidden");
+        return;
+      }
+      const btn = document.getElementById("create-submit-btn");
+      btn.disabled = true;
+
+      const params = new URLSearchParams();
+      params.append("title", title);
+      params.append("strtDt", document.getElementById("create-strtDt").value);
+      params.append("endDt", document.getElementById("create-endDt").value);
+      params.append("explnCn", document.getElementById("create-explnCn").value);
+
+      try {
+        const res = await fetch("/instructor/curriculum/create", {
+          method: "POST",
+          body: params,
+        });
+        const data = await res.json();
+        if (data.success) {
+          location.reload();
+        } else {
+          errorEl.textContent = data.message || "등록에 실패했습니다.";
+          errorEl.classList.remove("hidden");
+          btn.disabled = false;
+        }
+      } catch (e) {
+        errorEl.textContent = "서버 오류가 발생했습니다.";
+        errorEl.classList.remove("hidden");
+        btn.disabled = false;
+      }
+    }
+
+    /* ══════════════════════════════════════════════
+     커리큘럼 수정 폼
+  ══════════════════════════════════════════════ */
+    function openEditForm(btn) {
+      const card = btn.closest(".curriculum-card");
+      const editDiv = card.querySelector(".edit-form");
+
+      /* 다른 카드의 수정 폼 먼저 닫기 */
+      document.querySelectorAll(".edit-form").forEach((f) => {
+        if (f !== editDiv) f.classList.add("hidden");
+      });
+
+      editDiv.querySelector(".edit-title").value = btn.dataset.title ?? "";
+      editDiv.querySelector(".edit-strtDt").value = btn.dataset.strt ?? "";
+      editDiv.querySelector(".edit-endDt").value = btn.dataset.end ?? "";
+      editDiv.querySelector(".edit-explnCn").value = btn.dataset.expln ?? "";
+      editDiv.querySelector(".edit-error").classList.add("hidden");
+
+      editDiv.classList.remove("hidden");
+      editDiv.querySelector(".edit-title").focus();
+    }
+    function closeEditForm(btn) {
+      btn.closest(".edit-form").classList.add("hidden");
+    }
+    async function submitEdit(btn) {
+      const editDiv = btn.closest(".edit-form");
+      const card = editDiv.closest(".curriculum-card");
+      const cardId = card.id.replace("card-", "");
+      const title = editDiv.querySelector(".edit-title").value.trim();
+      const errorEl = editDiv.querySelector(".edit-error");
+
+      if (!title) {
+        errorEl.textContent = "커리큘럼명은 필수 입력 항목입니다.";
+        errorEl.classList.remove("hidden");
+        return;
+      }
+      btn.disabled = true;
+
+      const strtVal = editDiv.querySelector(".edit-strtDt").value;
+      const endVal = editDiv.querySelector(".edit-endDt").value;
+      const explnVal = editDiv.querySelector(".edit-explnCn").value;
+
+      const params = new URLSearchParams();
+      params.append("title", title);
+      params.append("strtDt", strtVal);
+      params.append("endDt", endVal);
+      params.append("explnCn", explnVal);
+
+      try {
+        const res = await fetch(`/instructor/curriculum/${cardId}/update`, {
+          method: "POST",
+          body: params,
+        });
+        const data = await res.json();
+        if (data.success) {
+          /* 카드 타이틀 즉시 갱신 */
+          card.querySelector(".card-title").textContent = title;
+
+          /* 수정 버튼 data 속성 갱신 */
+          const editBtn = card.querySelector('[onclick="openEditForm(this)"]');
+          editBtn.dataset.title = title;
+          editBtn.dataset.strt = strtVal;
+          editBtn.dataset.end = endVal;
+          editBtn.dataset.expln = explnVal;
+
+          /* card-view의 기간 data 속성 갱신 (선택 클릭 시 패널에 반영되도록) */
+          const cardView = card.querySelector(".card-view");
+          const strtFormatted = strtVal ? strtVal.replace(/-/g, ".") : "";
+          const endFormatted = endVal ? endVal.replace(/-/g, ".") : "";
+          cardView.dataset.strt = strtFormatted;
+          cardView.dataset.end = endFormatted;
+
+          /* 카드 기간 텍스트 + 클래스 갱신 */
+          const periodSpans = card.querySelectorAll(
+            ".card-view .flex.flex-wrap span",
+          );
+          if (periodSpans.length > 1) {
+            const periodSpan = periodSpans[1];
+            if (strtFormatted) {
+              periodSpan.textContent = `${strtFormatted.slice(2)} ~ ${endFormatted.slice(2)}`;
+              periodSpan.classList.remove("text-slate-300");
+            } else {
+              periodSpan.textContent = "기간 미설정";
+              periodSpan.classList.add("text-slate-300");
+            }
+          }
+
+          /* 현재 선택된 커리큘럼이면 패널 헤더도 갱신 */
+          if (selectedCurriculumId === Number(cardId)) {
+            document.getElementById("panel-title").textContent = title;
+            document.getElementById("panel-period").textContent = strtFormatted
+              ? `${strtFormatted} ~ ${endFormatted}`
+              : "기간 미설정";
+          }
+
+          btn.disabled = false;
+          editDiv.classList.add("hidden");
+        } else {
+          errorEl.textContent = data.message || "수정에 실패했습니다.";
+          errorEl.classList.remove("hidden");
+          btn.disabled = false;
+        }
+      } catch (e) {
+        errorEl.textContent = "서버 오류가 발생했습니다.";
+        errorEl.classList.remove("hidden");
+        btn.disabled = false;
+      }
+    }
+
+    /* ══════════════════════════════════════════════
+     커리큘럼 삭제 모달
+  ══════════════════════════════════════════════ */
+    function openDeleteModal(btn) {
+      deletingId = btn.dataset.id;
+      document.getElementById("delete-title").textContent = btn.dataset.title;
+      document
+        .getElementById("delete-modal")
+        .classList.replace("hidden", "flex");
+    }
+    function closeDeleteModal() {
+      deletingId = null;
+      document
+        .getElementById("delete-modal")
+        .classList.replace("flex", "hidden");
+    }
+    async function submitDelete() {
+      if (!deletingId) return;
+      const btn = document.getElementById("delete-confirm-btn");
+      btn.disabled = true;
+      try {
+        const res = await fetch(`/instructor/curriculum/${deletingId}/delete`, {
+          method: "POST",
+        });
+        const data = await res.json();
+        if (data.success) {
+          const card = document.getElementById("card-" + deletingId);
+          if (card) card.remove();
+          /* 선택된 커리큘럼이었으면 패널 초기화 */
+          if (selectedCurriculumId === Number(deletingId)) {
+            selectedCurriculumId = null;
+            document.getElementById("panel-empty").classList.remove("hidden");
+            const panelContent = document.getElementById("panel-content");
+            panelContent.classList.add("hidden");
+            panelContent.classList.remove("flex");
+          }
+          btn.disabled = false;
+          closeDeleteModal();
+        } else {
+          alert(data.message || "삭제에 실패했습니다.");
+          btn.disabled = false;
+          closeDeleteModal();
+        }
+      } catch (e) {
+        alert("서버 오류가 발생했습니다.");
+        btn.disabled = false;
+        closeDeleteModal();
+      }
+    }
+  </script>
+</th:block>

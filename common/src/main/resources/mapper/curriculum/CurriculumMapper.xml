@@ -10,28 +10,46 @@
     <result property="title" column="TITLE" />
     <result property="instructorId" column="INSTRUCTOR_ID" />
     <result property="useYn" column="USE_YN" />
+    <result property="strtDt" column="STRT_DT" />
+    <result property="endDt" column="END_DT" />
+    <result property="explnCn" column="EXPLN_CN" />
     <result property="rgtrId" column="RGTR_ID" />
     <result property="regDt" column="REG_DT" />
     <result property="lastMdfrId" column="LAST_MDFR_ID" />
     <result property="mdfcnDt" column="MDFCN_DT" />
+    <result property="courseCount" column="COURSE_COUNT" />
   </resultMap>
+
+  <select id="selectAllList" resultMap="curriculumMap">
+    SELECT
+      CURRICULUM_ID, TITLE, INSTRUCTOR_ID, USE_YN,
+      STRT_DT, END_DT, EXPLN_CN,
+      RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
+    FROM CURRICULUM
+    WHERE USE_YN = 'Y'
+    ORDER BY REG_DT DESC
+  </select>
 
   <select id="selectList" resultMap="curriculumMap">
     SELECT
-      CURRICULUM_ID, TITLE, INSTRUCTOR_ID, USE_YN,
-      RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
-    FROM CURRICULUM
-    WHERE INSTRUCTOR_ID = #{instructorId}
-      AND USE_YN = 'Y'
-    ORDER BY REG_DT DESC
+      C.CURRICULUM_ID, C.TITLE, C.INSTRUCTOR_ID, C.USE_YN,
+      C.STRT_DT, C.END_DT, C.EXPLN_CN,
+      C.RGTR_ID, C.REG_DT, C.LAST_MDFR_ID, C.MDFCN_DT,
+      (SELECT COUNT(*) FROM COURSE WHERE CURRICULUM_ID = C.CURRICULUM_ID) AS COURSE_COUNT
+    FROM CURRICULUM C
+    WHERE C.INSTRUCTOR_ID = #{instructorId}
+      AND C.USE_YN = 'Y'
+    ORDER BY C.REG_DT DESC
   </select>
 
   <select id="selectById" resultMap="curriculumMap">
     SELECT
       CURRICULUM_ID, TITLE, INSTRUCTOR_ID, USE_YN,
+      STRT_DT, END_DT, EXPLN_CN,
       RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
     FROM CURRICULUM
     WHERE CURRICULUM_ID = #{curriculumId}
+      AND USE_YN = 'Y'
   </select>
 
   <insert id="insert" parameterType="kr.or.ddit.finalProject.dto.curriculum.CurriculumDto">
@@ -40,16 +58,23 @@
     </selectKey>
     INSERT INTO CURRICULUM (
       CURRICULUM_ID, TITLE, INSTRUCTOR_ID, USE_YN,
+      STRT_DT, END_DT, EXPLN_CN,
       RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
     ) VALUES (
       #{curriculumId}, #{title}, #{instructorId}, 'Y',
+      #{strtDt, jdbcType=DATE}, #{endDt, jdbcType=DATE}, #{explnCn, jdbcType=VARCHAR},
       #{rgtrId}, SYSDATE, #{lastMdfrId}, SYSDATE
     )
   </insert>
 
   <update id="update" parameterType="kr.or.ddit.finalProject.dto.curriculum.CurriculumDto">
     UPDATE CURRICULUM
-    SET TITLE = #{title}, LAST_MDFR_ID = #{lastMdfrId}, MDFCN_DT = SYSDATE
+    SET TITLE        = #{title},
+        STRT_DT      = #{strtDt, jdbcType=DATE},
+        END_DT       = #{endDt, jdbcType=DATE},
+        EXPLN_CN     = #{explnCn, jdbcType=VARCHAR},
+        LAST_MDFR_ID = #{lastMdfrId},
+        MDFCN_DT     = SYSDATE
     WHERE CURRICULUM_ID = #{curriculumId}
   </update>
 
@@ -58,5 +83,63 @@
     SET USE_YN = 'N', LAST_MDFR_ID = #{lastMdfrId}, MDFCN_DT = SYSDATE
     WHERE CURRICULUM_ID = #{curriculumId}
   </update>
+
+  <!-- ── 커리큘럼-강좌 매핑 ──────────────────────────────────── -->
+
+  <select id="selectMaxCourseSortOrd" resultType="int">
+    SELECT NVL(MAX(SORT_ORD), 0) FROM COURSE WHERE CURRICULUM_ID = #{curriculumId}
+  </select>
+
+  <update id="mapCourseToCurriculum">
+    UPDATE COURSE
+    SET CURRICULUM_ID = #{curriculumId}, SORT_ORD = #{sortOrd}
+    WHERE COURSE_SN = #{courseSn}
+  </update>
+
+  <update id="unmapCourseFromCurriculum">
+    UPDATE COURSE
+    SET CURRICULUM_ID = NULL, SORT_ORD = NULL
+    WHERE COURSE_SN = #{courseSn}
+  </update>
+
+  <update id="resequenceCoursesSortOrd">
+    UPDATE COURSE SET SORT_ORD = SORT_ORD - 1
+    WHERE CURRICULUM_ID = #{curriculumId} AND SORT_ORD > #{sortOrd}
+  </update>
+
+  <select id="selectCourseSortOrd" resultType="java.lang.Integer">
+    SELECT SORT_ORD FROM COURSE
+    WHERE COURSE_SN = #{courseSn} AND CURRICULUM_ID = #{curriculumId}
+  </select>
+
+  <update id="updateCourseSortOrd">
+    UPDATE COURSE SET SORT_ORD = #{sortOrd}
+    WHERE COURSE_SN = #{courseSn} AND CURRICULUM_ID = #{curriculumId}
+  </update>
+
+  <!-- 재정렬 전 SORT_ORD를 큰 임시 값으로 이동 (유니크 제약 충돌 방지) -->
+  <update id="clearCourseSortOrds">
+    UPDATE COURSE SET SORT_ORD = SORT_ORD + 10000 WHERE CURRICULUM_ID = #{curriculumId}
+  </update>
+
+  <select id="selectMappedCourses" resultType="kr.or.ddit.finalProject.dto.course.CourseDto">
+    SELECT COURSE_SN, COURSE_NM, OPNN_YN, SORT_ORD, TOT_LRN_TIME_CNT
+    FROM COURSE
+    WHERE CURRICULUM_ID = #{curriculumId}
+    ORDER BY SORT_ORD ASC
+  </select>
+
+  <select id="countCourseBySnAndInstr" resultType="int">
+    SELECT COUNT(*) FROM COURSE
+    WHERE COURSE_SN = #{courseSn} AND INSTR_USER_ID = #{instrUserId}
+  </select>
+
+  <select id="selectAvailableCourses" resultType="kr.or.ddit.finalProject.dto.course.CourseDto">
+    SELECT COURSE_SN, COURSE_NM, OPNN_YN
+    FROM COURSE
+    WHERE CURRICULUM_ID IS NULL
+      AND INSTR_USER_ID = #{instrUserId}
+    ORDER BY COURSE_NM ASC
+  </select>
 
 </mapper>
