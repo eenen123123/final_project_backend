@@ -16,9 +16,19 @@ import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
 import kr.or.ddit.finalProject.dto.member.MemberCreateLogDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.dto.member.MemberWithdrawLogDto;
+import kr.or.ddit.finalProject.dto.leave.AnnualLeaveHistoryDto;
+import kr.or.ddit.finalProject.dto.leave.LeaveBalanceDto;
 
 @Mapper
 public interface StaffMapper {
+    // ── 휴가 현황 / 잔여 연차 ──
+    List<AnnualLeaveHistoryDto> searchLeaveHistory(PaginationInfo<Map<String, Object>> paging);
+    int countLeaveHistory(PaginationInfo<Map<String, Object>> paging);
+    List<LeaveBalanceDto> searchLeaveBalance(PaginationInfo<Map<String, Object>> paging);
+    int countLeaveBalance(PaginationInfo<Map<String, Object>> paging);
+    Map<String, Object> selectLeaveSummary();
+    /** 결재 승인 시 휴가 이력 적재 */
+    int insertLeaveHistory(AnnualLeaveHistoryDto dto);
     // 부서 리스트 조회
     List<DepartmentDto> selectDepartmentList();
 

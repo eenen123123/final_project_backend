@@ -34,7 +34,24 @@
   <colgroup><col width="13%"><col></colgroup>
   <tr>
     <td colspan="2" style="text-align:center; font-size:13px; padding:8px;">
-      아래와 같은 사유로 (경조) 휴가를 하고자 하오니 재가하여 주시기 바랍니다.
+      아래와 같은 사유로 휴가를 하고자 하오니 재가하여 주시기 바랍니다.
+    </td>
+  </tr>
+  <tr>
+    <td class="th">휴가 유형</td>
+    <td>
+      <!-- ANN_TYPE_CD (공통코드 cl-221). 승인 시 ANNUAL_LEAVE_HISTORY 적재에 사용 -->
+      <select class="doc-input" name="annTypeCd" style="width:auto; display:inline-block;">
+        <option value="">선택</option>
+        <option value="01">연차</option>
+        <option value="02">반차</option>
+        <option value="03">병가</option>
+        <option value="04">공가</option>
+        <option value="05">경조사</option>
+        <option value="06">출산휴가</option>
+        <option value="07">육아휴직</option>
+        <option value="08">특별휴가</option>
+      </select>
     </td>
   </tr>
   <tr>
@@ -44,7 +61,7 @@
       &nbsp;~&nbsp;
       <input class="doc-input" type="date" name="leaveTo" style="width:auto; display:inline-block;">
       &nbsp;
-      <input class="doc-input" type="text" name="leaveDays" style="width:60px; display:inline-block;" placeholder="일수">일간
+      <input class="doc-input" type="text" name="leaveDays" style="width:60px; display:inline-block; background:#f5f5f5;" placeholder="자동" readonly>일간
     </td>
   </tr>
   <tr>

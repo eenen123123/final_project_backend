@@ -15,6 +15,8 @@ import kr.or.ddit.finalProject.dto.employee.EmployeeSalaryDto;
 import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
 import kr.or.ddit.finalProject.dto.member.MemberCreateLogDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
+import kr.or.ddit.finalProject.dto.leave.AnnualLeaveHistoryDto;
+import kr.or.ddit.finalProject.dto.leave.LeaveBalanceDto;
 
 
 /**
@@ -213,4 +215,18 @@ public interface StaffService {
      * 학생 탈퇴 처리 (계정 및 인사 정보 비활성화)
      */
     void retireStudent(String userId, String withdrawRsn, String loginUserId);
+
+    // ── 휴가 현황 / 잔여 연차 (조회 전용, 서버 페이징/필터) ──
+
+    /** 승인 적재된 휴가 사용 현황 (서버 페이징/필터) */
+    PageResponse<AnnualLeaveHistoryDto> searchLeaveHistory(PaginationInfo<Map<String, Object>> paging);
+
+    /** 직급 연차 - 연도별 사용 연차 = 잔여 연차 현황 (서버 페이징/필터) */
+    PageResponse<LeaveBalanceDto> searchLeaveBalance(PaginationInfo<Map<String, Object>> paging);
+
+    /** 휴가 현황 상단 요약 카드 데이터 (오늘/이번달/올해/예정 건수) */
+    Map<String, Object> getLeaveSummary();
+
+    /** 휴가 결재 승인 시 휴가 이력 적재 */
+    void insertLeaveHistory(AnnualLeaveHistoryDto dto);
 }

@@ -469,6 +469,27 @@
   }
 
   function renderSystemPayload(payload) {
+    // ── 휴가 신청: 전용 문서 렌더 (data 가 평면 구조라 일반 렌더와 분리) ──
+    if (payload.actionType === 'LEAVE_REQUEST') {
+      const d = payload.data || {};
+      const esc = (s) => String(s == null ? '' : s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const ymd = (v) => (v && v.length === 8)
+        ? `${v.slice(0,4)}-${v.slice(4,6)}-${v.slice(6,8)}` : (v || '-');
+      return `<div class="doc-wrap">
+        <div class="doc-title">휴 가 신 청 서</div>
+        <table class="doc-table">
+          <colgroup><col width="20%"><col></colgroup>
+          <tbody>
+            <tr><td class="doc-th">휴가 유형</td><td>${esc(d.annTypeNm || d.annTypeCd || '-')}</td></tr>
+            <tr><td class="doc-th">기간</td><td>${ymd(d.annStrtYmd)} ~ ${ymd(d.annEndYmd)}</td></tr>
+            <tr><td class="doc-th">일수</td><td>${d.annReqDays != null && d.annReqDays !== '' ? esc(d.annReqDays) + '일' : '-'}</td></tr>
+            <tr><td class="doc-th">사유</td><td>${esc(d.annRsnCn || '-')}</td></tr>
+          </tbody>
+        </table>
+      </div>`;
+    }
+
     const cfg = ACTION_CONFIG[payload.actionType] || {
       label: payload.actionType, color: 'bg-slate-100 text-slate-600',
       border: 'border-slate-200', icon: 'fa-file-lines', dot: 'bg-slate-400'

@@ -24,7 +24,8 @@ public enum AdminActivityType {
     COMMON_CODE_GROUP_DELETE("공통코드 분류 삭제", "COM_CODE"),
     COMMON_CODE_CREATE      ("공통코드 등록",      "COM_CODE"),
     COMMON_CODE_UPDATE      ("공통코드 수정",      "COM_CODE"),
-    COMMON_CODE_DELETE      ("공통코드 삭제",      "COM_CODE");
+    COMMON_CODE_DELETE      ("공통코드 삭제",      "COM_CODE"),
+    LEAVE_REQUEST           ("휴가 신청",         "LEAVE_MGMT");
 
     private final String label;
     private final String tmplCd;
