@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.subject.SubjectMapper">
+
+  <resultMap id="classificationMap" type="kr.or.ddit.finalProject.dto.subject.SubjectClassificationDto">
+    <id     property="subjClId"    column="SUBJ_CL_ID" />
+    <result property="subjClNm"    column="SUBJ_CL_NM" />
+    <result property="useYn"       column="USE_YN" />
+    <result property="rgtrId"      column="RGTR_ID" />
+    <result property="lastMdfrId"  column="LAST_MDFR_ID" />
+    <result property="regDt"       column="REG_DT" />
+    <result property="mdfcnDt"     column="MDFCN_DT" />
+  </resultMap>
+
+  <resultMap id="subjectMap" type="kr.or.ddit.finalProject.dto.subject.SubjectDto">
+    <id     property="subjId"      column="SUBJ_ID" />
+    <result property="subjClId"    column="SUBJ_CL_ID" />
+    <result property="subjNm"      column="SUBJ_NM" />
+    <result property="useYn"       column="USE_YN" />
+    <result property="subjExplnCn" column="SUBJ_EXPLN_CN" />
+    <result property="rgtrId"      column="RGTR_ID" />
+    <result property="lastMdfrId"  column="LAST_MDFR_ID" />
+    <result property="regDt"       column="REG_DT" />
+    <result property="mdfcnDt"     column="MDFCN_DT" />
+  </resultMap>
+
+  <!-- ── 대분류 ──────────────────────────────────────────────────── -->
+
+  <select id="selectClassificationList" resultMap="classificationMap">
+    SELECT SUBJ_CL_ID, SUBJ_CL_NM, USE_YN, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
+    FROM SUBJECT_CLASSIFICATION
+    WHERE USE_YN = 'Y'
+    ORDER BY REG_DT ASC
+  </select>
+
+  <select id="selectClassificationById" resultMap="classificationMap">
+    SELECT SUBJ_CL_ID, SUBJ_CL_NM, USE_YN, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
+    FROM SUBJECT_CLASSIFICATION
+    WHERE SUBJ_CL_ID = #{subjClId}
+  </select>
+
+  <insert id="insertClassification"
+          parameterType="kr.or.ddit.finalProject.dto.subject.SubjectClassificationDto"
+          useGeneratedKeys="true"
+          keyProperty="subjClId"
+          keyColumn="SUBJ_CL_ID">
+    INSERT INTO SUBJECT_CLASSIFICATION (SUBJ_CL_NM, USE_YN, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT)
+    VALUES (#{subjClNm}, 'Y', #{rgtrId}, #{lastMdfrId}, SYSDATE, SYSDATE)
+  </insert>
+
+  <update id="updateClassification"
+          parameterType="kr.or.ddit.finalProject.dto.subject.SubjectClassificationDto">
+    UPDATE SUBJECT_CLASSIFICATION
+    SET SUBJ_CL_NM   = #{subjClNm},
+        LAST_MDFR_ID = #{lastMdfrId},
+        MDFCN_DT     = SYSDATE
+    WHERE SUBJ_CL_ID = #{subjClId}
+  </update>
+
+  <update id="deleteClassificationLogically">
+    UPDATE SUBJECT_CLASSIFICATION
+    SET USE_YN = 'N', LAST_MDFR_ID = #{lastMdfrId}, MDFCN_DT = SYSDATE
+    WHERE SUBJ_CL_ID = #{subjClId}
+  </update>
+
+  <select id="countSubjectsByClassification" resultType="int">
+    SELECT COUNT(*) FROM SUBJECT
+    WHERE SUBJ_CL_ID = #{subjClId} AND USE_YN = 'Y'
+  </select>
+
+  <!-- ── 과목 ────────────────────────────────────────────────────── -->
+
+  <select id="selectSubjectList" resultMap="subjectMap">
+    SELECT SUBJ_ID, SUBJ_CL_ID, SUBJ_NM, USE_YN, SUBJ_EXPLN_CN,
+           RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
+    FROM SUBJECT
+    WHERE SUBJ_CL_ID = #{subjClId} AND USE_YN = 'Y'
+    ORDER BY REG_DT ASC
+  </select>
+
+  <select id="selectSubjectById" resultMap="subjectMap">
+    SELECT SUBJ_ID, SUBJ_CL_ID, SUBJ_NM, USE_YN, SUBJ_EXPLN_CN,
+           RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
+    FROM SUBJECT
+    WHERE SUBJ_ID = #{subjId} AND SUBJ_CL_ID = #{subjClId}
+  </select>
+
+  <insert id="insertSubject"
+          parameterType="kr.or.ddit.finalProject.dto.subject.SubjectDto"
+          useGeneratedKeys="true"
+          keyProperty="subjId"
+          keyColumn="SUBJ_ID">
+    INSERT INTO SUBJECT (SUBJ_CL_ID, SUBJ_NM, SUBJ_EXPLN_CN, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT)
+    VALUES (#{subjClId}, #{subjNm}, #{subjExplnCn, jdbcType=VARCHAR}, #{rgtrId}, #{lastMdfrId}, SYSDATE, SYSDATE)
+  </insert>
+
+  <update id="updateSubject"
+          parameterType="kr.or.ddit.finalProject.dto.subject.SubjectDto">
+    UPDATE SUBJECT
+    SET SUBJ_NM      = #{subjNm},
+        SUBJ_EXPLN_CN = #{subjExplnCn, jdbcType=VARCHAR},
+        LAST_MDFR_ID = #{lastMdfrId},
+        MDFCN_DT     = SYSDATE
+    WHERE SUBJ_ID = #{subjId} AND SUBJ_CL_ID = #{subjClId}
+  </update>
+
+  <update id="deleteSubjectLogically">
+    UPDATE SUBJECT
+    SET USE_YN = 'N', LAST_MDFR_ID = #{lastMdfrId}, MDFCN_DT = SYSDATE
+    WHERE SUBJ_ID = #{subjId} AND SUBJ_CL_ID = #{subjClId}
+  </update>
+
+  <select id="countCoursesBySubject" resultType="int">
+    SELECT COUNT(*) FROM COURSE WHERE SUBJ_ID = #{subjId}
+  </select>
+
+</mapper>

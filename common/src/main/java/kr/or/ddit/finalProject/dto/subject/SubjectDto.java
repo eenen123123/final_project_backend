@@ -17,7 +17,7 @@ public class SubjectDto implements Serializable {
     private Long subjId; // 기본키(PK) · 시퀀스
     private Long subjClId;
     private String subjNm;
-    private String subjCd;
+    private String useYn;
     private String subjExplnCn;
     private String rgtrId;
     private String lastMdfrId;
