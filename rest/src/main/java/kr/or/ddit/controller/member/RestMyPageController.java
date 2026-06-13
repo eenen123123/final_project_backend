@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -47,14 +46,13 @@ public class RestMyPageController {
     }
 
     @PostMapping("/verify-password")
-    public ResponseEntity<Boolean> verifyPassword(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<Boolean> verifyPassword(Authentication authentication,
             @RequestBody Map<String, String> body) {
 
-        String token = authHeader.replace("Bearer ", "");
-        MemberDto memberDto = memberService.getMemberByToken(token);
+        String userId = authentication.getName();
         String password = body.get("password");
 
-        boolean isValid = memberService.verifyPassword(memberDto.getUserId(), password);
+        boolean isValid = memberService.verifyPassword(userId, password);
         if (!isValid) {
             throw new FinalProjectException(ErrorCode.USERNAME_OR_PASSWORD_INCORRECT);
         }
@@ -69,12 +67,10 @@ public class RestMyPageController {
      * @return 사용자 정보를 담은 MemberDto 객체
      */
     @GetMapping("/profile")
-    public ResponseEntity<MemberDto> getProfile(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<MemberDto> getProfile(Authentication authentication) {
 
-        String token = authHeader.replace("Bearer ", "");
-        MemberDto memberDto = memberService.getMemberByToken(token);
+        MemberDto memberDto = memberService.getMemberByUserId(authentication.getName());
 
-        // 비밀번호, 주민번호는 응답에서 제외
         memberDto.setUserEnpswd(null);
         memberDto.setUserEnrrno(null);
 
@@ -95,7 +91,7 @@ public class RestMyPageController {
      * @return 수정 성공 여부 (true)
      */
     @PutMapping("/profile")
-    public ResponseEntity<Boolean> updateProfile(@RequestHeader("Authorization") String authHeader,
+    public ResponseEntity<Boolean> updateProfile(Authentication authentication,
             @RequestPart(value = "userTelno", required = false) String userTelno,
             @RequestPart(value = "userEmailAddr", required = false) String userEmailAddr,
             @RequestPart(value = "userZip", required = false) String userZip,
@@ -104,16 +100,7 @@ public class RestMyPageController {
             @RequestPart(value = "newPassword", required = false) String newPassword,
             @RequestPart(value = "profileImage", required = false) MultipartFile profileImage) {
 
-        String token = authHeader.replace("Bearer ", "");
-        MemberDto memberDto = memberService.getMemberByToken(token);
-
-        // 비밀번호 변경 요청 시 기존 정보 유지
-        MemberDto existing = memberService.getMemberByToken(token);
-        memberDto.setUserTelno(existing.getUserTelno());
-        memberDto.setUserEmailAddr(existing.getUserEmailAddr());
-        memberDto.setUserZip(existing.getUserZip());
-        memberDto.setUserAddr(existing.getUserAddr());
-        memberDto.setUserDaddr(existing.getUserDaddr());
+        MemberDto memberDto = memberService.getMemberByUserId(authentication.getName());
 
         // 비밀번호 변경 요청 시 암호화 후 세팅
         if (newPassword != null && !newPassword.isBlank()) {
