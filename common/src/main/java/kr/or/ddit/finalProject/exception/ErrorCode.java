@@ -151,7 +151,13 @@ public enum ErrorCode {
     // 주문/결제 관련
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다."),
     ORDER_ALREADY_PAID(HttpStatus.CONFLICT, "이미 처리된 주문입니다."),
-    ORDER_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "주문 금액이 일치하지 않습니다.");
+    ORDER_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "주문 금액이 일치하지 않습니다."),
+    // 쿠폰 관련
+    COUPON_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 쿠폰입니다."),
+    COUPON_INACTIVE(HttpStatus.BAD_REQUEST, "비활성화된 쿠폰입니다."),
+    COUPON_INVALID_DISCOUNT(HttpStatus.BAD_REQUEST, "할인 방식에 맞는 할인값을 입력해주세요."),
+    COUPON_ISSUE_TARGET_REQUIRED(HttpStatus.BAD_REQUEST, "발급 대상 사용자 ID가 필요합니다."),
+    COUPON_DELETE_FAILED(HttpStatus.CONFLICT, "발급 이력이 있는 쿠폰은 삭제할 수 없습니다.");
 
     // =============================
     private final HttpStatus status;
