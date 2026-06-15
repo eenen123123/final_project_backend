@@ -9,6 +9,7 @@ public enum AdminActivityType {
     EMPLOYEE_REGISTER("직원 신규 등록",  "EMP_MGMT"),
     EMPLOYEE_UPDATE  ("직원 정보 수정",  "EMP_MGMT"),
     EMPLOYEE_RETIRE  ("직원 퇴사 처리",  "EMP_MGMT"),
+    SALARY_ACCOUNT_UPDATE("급여·계좌 변경", "EMP_MGMT"),
     STUDENT_REGISTER ("학생 신규 등록",  "STU_MGMT"),
     STUDENT_UPDATE   ("학생 정보 수정",  "STU_MGMT"),
     STUDENT_RETIRE   ("학생 탈퇴 처리",  "STU_MGMT"),
