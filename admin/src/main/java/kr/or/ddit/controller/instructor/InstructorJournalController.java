@@ -5,11 +5,15 @@ import java.util.List;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import jakarta.validation.Valid;
 
 import kr.or.ddit.finalProject.dto.instructor.journal.InstructorJournalDto;
 import kr.or.ddit.finalProject.service.instructor.InstructorJournalService;
@@ -134,8 +138,20 @@ public class InstructorJournalController {
     // ──────────────────────────────────────────────
 
     @PostMapping("/create")
-    public String createJournal(InstructorJournalDto dto, Authentication auth) {
-        dto.setInstrUserId(auth.getName()); // 작성자는 로그인 사용자로 고정
+    public String createJournal(@Valid InstructorJournalDto dto,
+                                BindingResult bindingResult,
+                                Authentication auth,
+                                RedirectAttributes ra) {
+        if (isViewer(auth)) {
+            ra.addFlashAttribute("errorMessage", "읽기 전용 권한으로는 일지를 작성할 수 없습니다.");
+            return "redirect:/instructor/journals";
+        }
+        if (bindingResult.hasErrors()) {
+            ra.addFlashAttribute("errorMessage",
+                    bindingResult.getFieldErrors().get(0).getDefaultMessage());
+            return "redirect:/instructor/journals?newForm=true";
+        }
+        dto.setInstrUserId(auth.getName());
         Long newSn = journalService.createJournal(dto);
         return "redirect:/instructor/journals?jrnlSn=" + newSn;
     }
@@ -146,8 +162,19 @@ public class InstructorJournalController {
 
     @PostMapping("/{jrnlSn}/update")
     public String updateJournal(@PathVariable Long jrnlSn,
-                                InstructorJournalDto dto,
-                                Authentication auth) {
+                                @Valid InstructorJournalDto dto,
+                                BindingResult bindingResult,
+                                Authentication auth,
+                                RedirectAttributes ra) {
+        if (isViewer(auth)) {
+            ra.addFlashAttribute("errorMessage", "읽기 전용 권한으로는 일지를 수정할 수 없습니다.");
+            return "redirect:/instructor/journals?jrnlSn=" + jrnlSn;
+        }
+        if (bindingResult.hasErrors()) {
+            ra.addFlashAttribute("errorMessage",
+                    bindingResult.getFieldErrors().get(0).getDefaultMessage());
+            return "redirect:/instructor/journals?jrnlSn=" + jrnlSn + "&edit=true";
+        }
         dto.setJrnlSn(jrnlSn);
         journalService.modifyJournal(dto, auth.getName()); // 소유권 검증은 서비스에서
         return "redirect:/instructor/journals?jrnlSn=" + jrnlSn;
@@ -158,7 +185,13 @@ public class InstructorJournalController {
     // ──────────────────────────────────────────────
 
     @PostMapping("/{jrnlSn}/delete")
-    public String deleteJournal(@PathVariable Long jrnlSn, Authentication auth) {
+    public String deleteJournal(@PathVariable Long jrnlSn,
+                                Authentication auth,
+                                RedirectAttributes ra) {
+        if (isViewer(auth)) {
+            ra.addFlashAttribute("errorMessage", "읽기 전용 권한으로는 일지를 삭제할 수 없습니다.");
+            return "redirect:/instructor/journals?jrnlSn=" + jrnlSn;
+        }
         journalService.removeJournal(jrnlSn, auth.getName()); // 소유권 검증은 서비스에서
         return "redirect:/instructor/journals";
     }
