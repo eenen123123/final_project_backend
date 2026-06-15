@@ -373,6 +373,7 @@
                 , CASE WHEN c.REG_DT >= ADD_MONTHS(SYSDATE, -1) THEN 1 ELSE 0 END AS IS_NEW
                 , 1 AS IS_BEST
                 , i.INSTR_PROFILE_IMG
+                , i.INSTR_UUID
         from course c
         inner join subject s on c.SUBJ_ID = s.SUBJ_ID
         inner join member m on c.INSTR_USER_ID = m.USER_ID
@@ -380,4 +381,63 @@
         where c.COURSE_SN = #{courseId}
   </select>
 
+    <!-- selectSubjectClassificationListWithSubjects --> 
+
+    <!-- 
+    public class SubjectClassificationDto implements Serializable {
+        private Long subjClId; // 기본키(PK) · 자동증가
+        private String subjClNm;
+        private String useYn; // Y : 여(예) N : 부(아니요)
+        private String rgtrId;
+        private String lastMdfrId;
+        private LocalDateTime regDt;
+        private LocalDateTime mdfcnDt;
+
+        private List<SubjectDto> subjects; // 해당 분류에 속한 과목 목록
+    }   
+    
+    public class SubjectDto implements Serializable {
+        private Long subjId; // 기본키(PK) · 시퀀스
+        private Long subjClId;
+        private String subjNm;
+        private String useYn;
+        private String subjExplnCn;
+        private String rgtrId;
+        private String lastMdfrId;
+        private LocalDateTime regDt;
+        private LocalDateTime mdfcnDt;
+    }
+    -->
+
+
+    <resultMap id="subjectClassificationMap" type="SubjectClassificationDto">
+        <id property="subjClId" column="SUBJ_CL_ID" />
+        <result property="subjClNm" column="SUBJ_CL_NM" />
+        <result property="useYn" column="USE_YN" />
+        <result property="rgtrId" column="RGTR_ID" />
+        <result property="lastMdfrId" column="LAST_MDFR_ID" />
+        <result property="regDt" column="REG_DT" />
+        <result property="mdfcnDt" column="MDFCN_DT" />
+        <collection property="subjects" ofType="SubjectDto">
+            <id property="subjId" column="SUBJ_ID" />
+            <result property="subjClId" column="SUBJ_CL_ID" />
+            <result property="subjNm" column="SUBJ_NM" />
+            <result property="useYn" column="USE_YN" />
+            <result property="subjExplnCn" column="SUBJ_EXPLN_CN" />
+            <result property="rgtrId" column="RGTR_ID" />
+            <result property="lastMdfrId" column="LAST_MDFR_ID" />
+            <result property="regDt" column="REG_DT" />
+            <result property="mdfcnDt" column="MDFCN_DT" />
+        </collection>
+    </resultMap>
+
+    <select id="selectSubjectClassificationListWithSubjects" resultMap="subjectClassificationMap">
+        SELECT
+            sc.SUBJ_CL_ID, sc.SUBJ_CL_NM, sc.USE_YN, sc.RGTR_ID, sc.LAST_MDFR_ID, sc.REG_DT, sc.MDFCN_DT,
+            s.SUBJ_ID, s.SUBJ_CL_ID AS SUBJ_CL_ID_2, s.SUBJ_NM, s.USE_YN AS SUBJ_USE_YN, s.SUBJ_EXPLN_CN,
+            s.RGTR_ID AS SUBJ_RGTR_ID, s.LAST_MDFR_ID AS SUBJ_LAST_MDFR_ID, s.REG_DT AS SUBJ_REG_DT, s.MDFCN_DT AS SUBJ_MDFCN_DT
+        FROM SUBJECT_CLASSIFICATION sc
+        LEFT JOIN SUBJECT s ON sc.SUBJ_CL_ID = s.SUBJ_CL_ID
+        ORDER BY sc.SUBJ_CL_ID ASC, s.SUBJ_ID ASC
+    </select>
 </mapper>
