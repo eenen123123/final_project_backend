@@ -1,5 +1,11 @@
 <div class="journal-container">
     <link rel="stylesheet" th:href="@{/css/instructor/journal.css}" />
+    <th:block th:if="${mode == 'new' or mode == 'edit'}">
+        <link rel="preload" href="https://cdn.jsdelivr.net/npm/@toast-ui/editor@3.2.2/dist/toastui-editor-all.min.js" as="script" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@toast-ui/editor@3.2.2/dist/toastui-editor.min.css" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tui-color-picker@2.2.6/dist/tui-color-picker.min.css" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@toast-ui/editor-plugin-color-syntax@3.1.0/dist/toastui-editor-plugin-color-syntax.min.css" />
+    </th:block>
 
     <!-- 페이지 헤더 -->
     <div class="flex items-center gap-2 mb-5">
@@ -135,7 +141,7 @@
                         수정: <span th:text="${selected.mdfcnDt}"></span>
                     </span>
                 </div>
-                <div class="detail-content" th:text="${selected.jrnlCont}">내용</div>
+                <div class="detail-content" th:utext="${selected.jrnlCont}">내용</div>
             </div>
 
             <!-- (3) 새 일지 작성 폼 -->
@@ -159,8 +165,8 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">내용 *</label>
-                        <textarea id="create-cont" name="jrnlCont" class="hm-input hm-input-sky"
-                                  placeholder="업무 내용을 자유롭게 작성하세요."></textarea>
+                        <div id="editor-create"><div class="editor-skeleton"></div></div>
+                        <input type="hidden" name="jrnlCont" id="create-cont" />
                         <div class="form-error" id="create-cont-error">내용을 입력해주세요.</div>
                     </div>
                     <div class="flex gap-2 justify-end">
@@ -193,8 +199,9 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">내용 *</label>
-                        <textarea id="edit-cont" name="jrnlCont" class="hm-input hm-input-sky"
-                                  th:text="${selected.jrnlCont}"></textarea>
+                        <div id="editor-edit"><div class="editor-skeleton"></div></div>
+                        <input type="hidden" name="jrnlCont" id="edit-cont" />
+                        <input type="hidden" id="edit-cont-init" th:value="${selected.jrnlCont}" />
                         <div class="form-error" id="edit-cont-error">내용을 입력해주세요.</div>
                     </div>
                     <div class="flex gap-2 justify-end">
@@ -230,5 +237,12 @@
 </div>
 
 <th:block th:fragment="pageJs">
-    <script th:src="@{/js/instructor/journal.js}"></script>
+    <!-- 에디터 스크립트는 폼이 필요한 모드에서만 로드 (jsDelivr CDN) -->
+    <th:block th:if="${mode == 'new' or mode == 'edit'}">
+        <script defer src="https://cdn.jsdelivr.net/npm/@toast-ui/editor@3.2.2/dist/toastui-editor-all.min.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/@toast-ui/editor@3.2.2/dist/i18n/ko-kr.min.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/tui-color-picker@2.2.6/dist/tui-color-picker.min.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/@toast-ui/editor-plugin-color-syntax@3.1.0/dist/toastui-editor-plugin-color-syntax.min.js"></script>
+    </th:block>
+    <script defer th:src="@{/js/instructor/journal.js}"></script>
 </th:block>

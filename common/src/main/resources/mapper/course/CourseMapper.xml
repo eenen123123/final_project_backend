@@ -116,7 +116,7 @@
       #{totLrnTimeCnt, jdbcType=VARCHAR},
       NVL(#{opnnYn, jdbcType=CHAR}, 'Y'),
       NVL(#{coursePrice, jdbcType=NUMERIC}, 0),
-      NVL(#{sortOrd, jdbcType=NUMERIC}, 0),
+      #{sortOrd, jdbcType=NUMERIC},
       #{rgtrId},
       CURRENT_TIMESTAMP,
       #{lastMdfrId},
