@@ -1,8 +1,5 @@
-(function () {
+document.addEventListener('DOMContentLoaded', function () {
     const TITLE_MAX = 200;
-
-    var editorCreate = null;
-    var editorEdit   = null;
 
     /* ── 인라인 에러 헬퍼 ── */
     function setError(inputEl, errorEl, msg) {
@@ -20,44 +17,31 @@
         hintEl.classList.toggle('over', len >= TITLE_MAX);
     }
 
-    /* ── Toast UI 에디터 초기화 ── */
+    /* ── TipTap 에디터 초기화 ── */
     function initEditors() {
-        if (typeof toastui === 'undefined') return;
+        if (typeof TipTapEditor === 'undefined') return;
 
-        const { Editor } = toastui;
-        const p = Editor.plugin || {};
-        const plugins = [p.colorSyntax].filter(Boolean);
-
-        const baseOptions = {
-            height: '300px',
-            initialEditType: 'wysiwyg',
-            previewStyle: 'tab',
-            language: 'ko-KR',
-            usageStatistics: false,
-            plugins,
-        };
-
-        const createEl = document.getElementById('editor-create');
-        if (createEl) {
-            editorCreate = new Editor({ el: createEl, ...baseOptions });
+        if (document.getElementById('editor-create')) {
+            TipTapEditor.mount('editor-create', {
+                editable: true,
+                outputInputId: 'create-cont',
+                imageUrlResolver: (fileId) => `/admin/files/${fileId}/view`,
+            });
         }
 
-        const editEl = document.getElementById('editor-edit');
-        if (editEl) {
-            editorEdit = new Editor({ el: editEl, ...baseOptions });
+        if (document.getElementById('editor-edit')) {
             const initInput = document.getElementById('edit-cont-init');
-            if (initInput && initInput.value) editorEdit.setHTML(initInput.value);
+            TipTapEditor.mount('editor-edit', {
+                editable: true,
+                outputInputId: 'edit-cont',
+                initialContent: initInput ? initInput.value : '',
+                imageUrlResolver: (fileId) => `/admin/files/${fileId}/view`,
+            });
         }
-    }
-
-    /* 에디터 HTML에서 태그를 제거한 순수 텍스트 (비어있는지 확인용) */
-    function getEditorText(editor) {
-        if (!editor) return '';
-        return editor.getHTML().replace(/<[^>]*>/g, '').trim();
     }
 
     /* ── 폼 바인딩 ── */
-    function bindForm(formId, titleId, countId, dtId, contErrId, getEditor) {
+    function bindForm(formId, titleId, countId, dtId, contHiddenId, contErrId) {
         const form = document.getElementById(formId);
         if (!form) return;
 
@@ -99,29 +83,32 @@
                 clearError(dtEl, dtErr);
             }
 
-            const editor = getEditor();
-            if (!getEditorText(editor)) {
+            const contHidden = document.getElementById(contHiddenId);
+            const contText   = contHidden ? contHidden.value.replace(/<[^>]*>/g, '').trim() : '';
+            if (!contText) {
                 if (contErr) contErr.classList.add('visible');
                 valid = false;
             } else {
                 if (contErr) contErr.classList.remove('visible');
-                /* 제출 직전 hidden input에 HTML 주입 */
-                const contHidden = form.querySelector('input[name="jrnlCont"]');
-                if (editor && contHidden) contHidden.value = editor.getHTML();
             }
 
             if (!valid) {
                 e.preventDefault();
                 const firstError = form.querySelector('.is-error');
-                if (firstError) firstError.focus();
+                if (firstError) {
+                    firstError.focus();
+                } else {
+                    const editorEl = form.querySelector('[id^="editor-"]');
+                    if (editorEl) editorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
             }
         });
     }
 
     initEditors();
 
-    bindForm('form-create', 'create-title', 'create-title-count', 'create-dt', 'create-cont-error', () => editorCreate);
-    bindForm('form-edit',   'edit-title',   'edit-title-count',   'edit-dt',   'edit-cont-error',   () => editorEdit);
+    bindForm('form-create', 'create-title', 'create-title-count', 'create-dt', 'create-cont', 'create-cont-error');
+    bindForm('form-edit',   'edit-title',   'edit-title-count',   'edit-dt',   'edit-cont',   'edit-cont-error');
 
     /* ── 삭제 확인 모달 ── */
     window.openDeleteModal = function () {
@@ -137,4 +124,4 @@
     window.confirmDelete = function () {
         document.getElementById('form-delete').submit();
     };
-})();
+});

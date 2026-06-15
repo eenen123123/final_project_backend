@@ -42,7 +42,7 @@
             AND j.JRNL_DT &gt;= TO_DATE(#{fromDt}, 'YYYY-MM-DD')
         </if>
         <if test="toDt != null and toDt != ''">
-            AND j.JRNL_DT &lt;= TO_DATE(#{toDt}, 'YYYY-MM-DD')
+            AND TRUNC(j.JRNL_DT) &lt;= TO_DATE(#{toDt}, 'YYYY-MM-DD')
         </if>
     </sql>
 

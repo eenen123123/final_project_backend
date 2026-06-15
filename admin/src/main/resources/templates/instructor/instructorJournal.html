@@ -1,11 +1,5 @@
 <div class="journal-container">
     <link rel="stylesheet" th:href="@{/css/instructor/journal.css}" />
-    <th:block th:if="${mode == 'new' or mode == 'edit'}">
-        <link rel="preload" href="https://cdn.jsdelivr.net/npm/@toast-ui/editor@3.2.2/dist/toastui-editor-all.min.js" as="script" />
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@toast-ui/editor@3.2.2/dist/toastui-editor.min.css" />
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tui-color-picker@2.2.6/dist/tui-color-picker.min.css" />
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@toast-ui/editor-plugin-color-syntax@3.1.0/dist/toastui-editor-plugin-color-syntax.min.css" />
-    </th:block>
 
     <!-- 페이지 헤더 -->
     <div class="flex items-center gap-2 mb-5">
@@ -41,8 +35,7 @@
             <div class="filter-area">
                 <form th:action="@{/instructor/journals}" method="get">
                     <!-- 뷰어 전용: 강사 선택 드롭다운 -->
-                    <select th:if="${isViewer}" name="selectedInstrId"
-                            style="width:100%; padding:0.3rem 0.5rem; border:1px solid #e2e8f0; border-radius:0.375rem; font-size:0.72rem; color:#334155; margin-bottom:0.35rem; box-sizing:border-box;">
+                    <select th:if="${isViewer}" name="selectedInstrId" class="filter-select">
                         <option value="">전체 강사</option>
                         <option th:each="instr : ${journalInstructors}"
                                 th:value="${instr.instrUserId}"
@@ -72,7 +65,7 @@
                 </div>
 
                 <a th:each="j : ${journalList}"
-                   th:href="@{/instructor/journals(jrnlSn=${j.jrnlSn}, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}"
+                   th:href="@{/instructor/journals(jrnlSn=${j.jrnlSn}, page=${currentPage}, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}"
                    th:classappend="${selected != null and selected.jrnlSn == j.jrnlSn} ? 'active' : ''"
                    class="journal-item">
                     <div class="item-date"  th:text="${j.jrnlDt}">2026-06-01</div>
@@ -116,20 +109,21 @@
 
             <!-- (2) 읽기 모드 -->
             <div th:if="${mode == 'view'}">
-                <!-- 본인 일지에만 수정·삭제 버튼 표시 (isOwner = 본인 작성 + 뷰어 아님) -->
-                <div class="action-bar" th:if="${isOwner}">
-                    <a th:href="@{/instructor/journals(jrnlSn=${selected.jrnlSn}, edit=true, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}"
-                       class="btn-edit"><i class="fa-solid fa-pen mr-1"></i>수정</a>
-                    <form id="form-delete"
-                          th:action="@{/instructor/journals/{sn}/delete(sn=${selected.jrnlSn})}"
-                          method="post">
-                        <button type="button" class="btn-delete" onclick="openDeleteModal()">
-                            <i class="fa-solid fa-trash mr-1"></i>삭제
-                        </button>
-                    </form>
+                <div class="detail-header">
+                    <div class="detail-title" th:text="${selected.jrnlTitle}">제목</div>
+                    <!-- 본인 일지에만 수정·삭제 버튼 표시 (isOwner = 본인 작성 + 뷰어 아님) -->
+                    <div class="action-bar" th:if="${isOwner}">
+                        <a th:href="@{/instructor/journals(jrnlSn=${selected.jrnlSn}, edit=true, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}"
+                           class="btn-edit"><i class="fa-solid fa-pen mr-1"></i>수정</a>
+                        <form id="form-delete"
+                              th:action="@{/instructor/journals/{sn}/delete(sn=${selected.jrnlSn})}"
+                              method="post">
+                            <button type="button" class="btn-delete" onclick="openDeleteModal()">
+                                <i class="fa-solid fa-trash mr-1"></i>삭제
+                            </button>
+                        </form>
+                    </div>
                 </div>
-
-                <div class="detail-title" th:text="${selected.jrnlTitle}">제목</div>
                 <div class="detail-meta">
                     <span><i class="fa-regular fa-calendar mr-1"></i><span th:text="${selected.jrnlDt}"></span></span>
                     <!-- 뷰어 모드: 작성자 표시 -->
@@ -160,7 +154,8 @@
                     <div class="form-group">
                         <label class="form-label">업무 날짜 *</label>
                         <input type="date" id="create-dt" name="jrnlDt" class="hm-input hm-input-sky"
-                               th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" />
+                               th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}" />
+                        <div class="form-hint"></div>
                         <div class="form-error" id="create-dt-error">날짜를 선택해주세요.</div>
                     </div>
                     <div class="form-group">
@@ -195,6 +190,7 @@
                         <label class="form-label">업무 날짜 *</label>
                         <input type="date" id="edit-dt" name="jrnlDt" class="hm-input hm-input-sky"
                                th:value="${selected.jrnlDt}" />
+                        <div class="form-hint"></div>
                         <div class="form-error" id="edit-dt-error">날짜를 선택해주세요.</div>
                     </div>
                     <div class="form-group">
@@ -237,12 +233,8 @@
 </div>
 
 <th:block th:fragment="pageJs">
-    <!-- 에디터 스크립트는 폼이 필요한 모드에서만 로드 (jsDelivr CDN) -->
     <th:block th:if="${mode == 'new' or mode == 'edit'}">
-        <script defer src="https://cdn.jsdelivr.net/npm/@toast-ui/editor@3.2.2/dist/toastui-editor-all.min.js"></script>
-        <script defer src="https://cdn.jsdelivr.net/npm/@toast-ui/editor@3.2.2/dist/i18n/ko-kr.min.js"></script>
-        <script defer src="https://cdn.jsdelivr.net/npm/tui-color-picker@2.2.6/dist/tui-color-picker.min.js"></script>
-        <script defer src="https://cdn.jsdelivr.net/npm/@toast-ui/editor-plugin-color-syntax@3.1.0/dist/toastui-editor-plugin-color-syntax.min.js"></script>
+        <script defer th:src="@{/js/tiptap/tiptap-editor.iife.js}"></script>
     </th:block>
     <script defer th:src="@{/js/instructor/journal.js}"></script>
 </th:block>
