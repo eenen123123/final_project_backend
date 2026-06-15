@@ -69,6 +69,18 @@
         <include refid="journalWhere"/>
     </select>
 
+    <!-- ──────────────────────────────────────────────────────── -->
+    <!-- 일지를 작성한 강사 목록 (뷰어 강사 필터 드롭다운용)    -->
+    <!-- instrUserId / instrUserNm 만 반환                      -->
+    <!-- ──────────────────────────────────────────────────────── -->
+    <select id="selectJournalInstructors"
+            resultType="kr.or.ddit.finalProject.dto.instructor.journal.InstructorJournalDto">
+        SELECT DISTINCT j.INSTR_USER_ID AS instrUserId, m.USER_NAME AS instrUserNm
+        FROM INSTRUCTOR_JOURNAL j
+        JOIN MEMBER m ON j.INSTR_USER_ID = m.USER_ID
+        ORDER BY instrUserNm
+    </select>
+
     <!-- ──────────────────────────────────────────── -->
     <!-- 일지 단건 상세 조회                          -->
     <!-- ──────────────────────────────────────────── -->

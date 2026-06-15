@@ -61,6 +61,7 @@ public class InstructorJournalController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String fromDt,
             @RequestParam(required = false) String toDt,
+            @RequestParam(required = false) String selectedInstrId,
             @RequestParam(required = false, defaultValue = "1") int page,
             Model model,
             Authentication auth) {
@@ -70,8 +71,8 @@ public class InstructorJournalController {
 
         // 좌측 패널: 역할 + 필터 + 페이지에 따라 목록 조회
         List<InstructorJournalDto> journalList =
-                journalService.retrieveJournalList(userId, isViewer, keyword, fromDt, toDt, page);
-        int totalCount  = journalService.retrieveJournalCount(userId, isViewer, keyword, fromDt, toDt);
+                journalService.retrieveJournalList(userId, isViewer, selectedInstrId, keyword, fromDt, toDt, page);
+        int totalCount  = journalService.retrieveJournalCount(userId, isViewer, selectedInstrId, keyword, fromDt, toDt);
         int totalPages  = (int) Math.ceil((double) totalCount / InstructorJournalService.PAGE_SIZE);
         if (totalPages < 1) totalPages = 1;
 
@@ -79,9 +80,15 @@ public class InstructorJournalController {
         model.addAttribute("isViewer", isViewer);
 
         // 필터값 보존 (폼 재입력 + 목록 링크 href 유지용)
-        model.addAttribute("keyword", keyword != null ? keyword : "");
-        model.addAttribute("fromDt",  fromDt  != null ? fromDt  : "");
-        model.addAttribute("toDt",    toDt    != null ? toDt    : "");
+        model.addAttribute("keyword",         keyword         != null ? keyword         : "");
+        model.addAttribute("fromDt",          fromDt          != null ? fromDt          : "");
+        model.addAttribute("toDt",            toDt            != null ? toDt            : "");
+        model.addAttribute("selectedInstrId", selectedInstrId != null ? selectedInstrId : "");
+
+        // 뷰어 전용: 강사 선택 드롭다운용 목록
+        if (isViewer) {
+            model.addAttribute("journalInstructors", journalService.retrieveJournalInstructors());
+        }
 
         // 페이지네이션 정보
         model.addAttribute("currentPage", page);

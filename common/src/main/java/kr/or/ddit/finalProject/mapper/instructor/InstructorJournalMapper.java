@@ -44,6 +44,12 @@ public interface InstructorJournalMapper {
             @Param("toDt")        String toDt);
 
     /**
+     * 일지를 한 건 이상 작성한 강사 목록 조회 (뷰어 강사 필터 드롭다운용)
+     * instrUserId / instrUserNm 필드만 채워서 반환합니다.
+     */
+    List<InstructorJournalDto> selectJournalInstructors();
+
+    /**
      * 일지 단건 상세 조회
      *
      * @param jrnlSn 조회할 일지 일련번호

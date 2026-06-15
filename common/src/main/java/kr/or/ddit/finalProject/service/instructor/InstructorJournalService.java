@@ -20,21 +20,29 @@ public interface InstructorJournalService {
     /**
      * 일지 목록 조회 (검색 필터 + 페이지네이션)
      *
-     * @param userId   로그인 사용자 ID
-     * @param isViewer true이면 수석 강사/원장 → 전체 목록, false이면 본인 목록
-     * @param keyword  제목 키워드 (null 또는 빈 문자열이면 전체)
-     * @param fromDt   시작일 yyyy-MM-dd (null이면 제한 없음)
-     * @param toDt     종료일 yyyy-MM-dd (null이면 제한 없음)
-     * @param page     1-based 페이지 번호
+     * @param userId         로그인 사용자 ID
+     * @param isViewer       true이면 수석 강사/원장 → 전체 목록, false이면 본인 목록
+     * @param selectedInstrId 뷰어가 선택한 강사 ID (null 또는 빈 문자열이면 전체)
+     * @param keyword        제목 키워드 (null 또는 빈 문자열이면 전체)
+     * @param fromDt         시작일 yyyy-MM-dd (null이면 제한 없음)
+     * @param toDt           종료일 yyyy-MM-dd (null이면 제한 없음)
+     * @param page           1-based 페이지 번호
      */
     List<InstructorJournalDto> retrieveJournalList(
-            String userId, boolean isViewer, String keyword, String fromDt, String toDt, int page);
+            String userId, boolean isViewer, String selectedInstrId,
+            String keyword, String fromDt, String toDt, int page);
 
     /**
      * 일지 전체 건수 조회 (필터 조건 동일하게 적용)
      */
     int retrieveJournalCount(
-            String userId, boolean isViewer, String keyword, String fromDt, String toDt);
+            String userId, boolean isViewer, String selectedInstrId,
+            String keyword, String fromDt, String toDt);
+
+    /**
+     * 일지를 한 건 이상 작성한 강사 목록 (뷰어 필터 드롭다운용)
+     */
+    List<InstructorJournalDto> retrieveJournalInstructors();
 
     /**
      * 일지 단건 상세 조회
