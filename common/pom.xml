@@ -52,7 +52,6 @@
         <dependency>
             <groupId>com.oracle.database.security</groupId>
             <artifactId>oraclepki</artifactId>
-            <version>23.26.1.0.0</version>
         </dependency>
 
         <!-- JWT -->
