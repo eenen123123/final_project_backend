@@ -1,76 +1,5 @@
 <div class="journal-container">
-    <link rel="stylesheet" th:href="@{/css/instructor/curriculum.css}" />
-    <style>
-        /* ── 레이아웃 ── */
-        .journal-layout    { display: flex; gap: 1rem; height: calc(100vh - 140px); min-height: 500px; }
-        .journal-list-pane { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; background: #fff; border: 1px solid #e2e8f0; border-radius: 0.75rem; overflow: hidden; }
-        .journal-detail-pane { flex: 1; background: #fff; border: 1px solid #e2e8f0; border-radius: 0.75rem; overflow-y: auto; padding: 1.5rem; }
-
-        /* ── 목록 패널 ── */
-        .list-header { padding: 1rem; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; }
-        .list-header h2 { font-size: 0.875rem; font-weight: 700; color: #334155; }
-        .btn-new { font-size: 0.72rem; font-weight: 600; background: #0ea5e9; color: #fff; border: none; border-radius: 0.375rem; padding: 0.3rem 0.7rem; cursor: pointer; text-decoration: none; }
-        .btn-new:hover { background: #0284c7; }
-
-        /* ── 필터 영역 ── */
-        .filter-area { padding: 0.6rem 0.75rem; border-bottom: 1px solid #f1f5f9; background: #f8fafc; }
-        .filter-area input { width: 100%; padding: 0.3rem 0.5rem; border: 1px solid #e2e8f0; border-radius: 0.375rem; font-size: 0.72rem; color: #334155; box-sizing: border-box; margin-bottom: 0.35rem; }
-        .filter-area input:focus { outline: none; border-color: #0ea5e9; }
-        .filter-date-row { display: flex; gap: 0.3rem; margin-bottom: 0.35rem; }
-        .filter-date-row input { margin-bottom: 0; flex: 1; }
-        .filter-date-row span { font-size: 0.7rem; color: #94a3b8; align-self: center; flex-shrink: 0; }
-        .btn-filter { width: 100%; font-size: 0.72rem; font-weight: 600; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 0.375rem; padding: 0.3rem 0; cursor: pointer; }
-        .btn-filter:hover { background: #e2e8f0; }
-        .btn-filter-reset { font-size: 0.65rem; color: #94a3b8; text-decoration: none; display: block; text-align: right; margin-top: 0.2rem; }
-        .btn-filter-reset:hover { color: #64748b; }
-
-        /* ── 페이지네이션 ── */
-        .pagination { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.75rem; border-top: 1px solid #f1f5f9; flex-shrink: 0; }
-        .pagination a, .pagination span { font-size: 0.7rem; color: #64748b; text-decoration: none; padding: 0.2rem 0.4rem; border-radius: 0.25rem; }
-        .pagination a:hover { background: #f0f9ff; color: #0ea5e9; }
-        .pagination .page-info { color: #94a3b8; font-size: 0.68rem; }
-        .pagination .disabled { color: #cbd5e1; pointer-events: none; }
-
-        .journal-list { overflow-y: auto; flex: 1; }
-        .journal-item { display: block; padding: 0.75rem 1rem; border-bottom: 1px solid #f8fafc; text-decoration: none; transition: background 0.1s; }
-        .journal-item:hover { background: #f0f9ff; }
-        .journal-item.active { background: #e0f2fe; border-left: 3px solid #0ea5e9; }
-        .journal-item .item-date  { font-size: 0.7rem; color: #94a3b8; }
-        .journal-item .item-title { font-size: 0.8rem; font-weight: 600; color: #334155; margin-top: 0.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .journal-item .item-author { font-size: 0.68rem; color: #0369a1; font-weight: 600; margin-top: 0.1rem; }
-
-        /* ── 상세/폼 패널 ── */
-        .empty-hint { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #cbd5e1; }
-        .empty-hint i { font-size: 2.5rem; margin-bottom: 0.5rem; }
-        .empty-hint p { font-size: 0.85rem; }
-
-        .detail-title   { font-size: 1.25rem; font-weight: 700; color: #0f172a; margin-bottom: 0.25rem; }
-        .detail-meta    { font-size: 0.75rem; color: #94a3b8; display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid #f1f5f9; }
-        .detail-content { font-size: 0.875rem; color: #334155; line-height: 1.75; white-space: pre-wrap; }
-
-        .action-bar { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; justify-content: flex-end; }
-        .btn-edit   { font-size: 0.78rem; font-weight: 600; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 0.375rem; padding: 0.35rem 0.85rem; text-decoration: none; }
-        .btn-edit:hover { background: #e2e8f0; }
-        .btn-delete { font-size: 0.78rem; font-weight: 600; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; border-radius: 0.375rem; padding: 0.35rem 0.85rem; cursor: pointer; }
-        .btn-delete:hover { background: #fecaca; }
-
-        /* ── 폼 ── */
-        .form-group    { margin-bottom: 1rem; }
-        .form-label    { display: block; font-size: 0.75rem; font-weight: 600; color: #475569; margin-bottom: 0.3rem; }
-        .form-input    { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; font-size: 0.85rem; color: #334155; box-sizing: border-box; }
-        .form-input:focus { outline: none; border-color: #0ea5e9; box-shadow: 0 0 0 2px rgba(14,165,233,0.15); }
-        .form-input.is-error { border-color: #f87171; box-shadow: 0 0 0 2px rgba(248,113,113,0.15); }
-        .form-textarea { resize: vertical; min-height: 300px; font-family: inherit; }
-        .form-error  { display: none; font-size: 0.72rem; color: #ef4444; margin-top: 0.25rem; }
-        .form-error.visible { display: block; }
-        .form-hint   { font-size: 0.68rem; color: #94a3b8; margin-top: 0.2rem; text-align: right; }
-        .form-hint.warn { color: #f59e0b; }
-        .form-hint.over { color: #ef4444; }
-        .btn-save   { font-size: 0.85rem; font-weight: 600; background: #0ea5e9; color: #fff; border: none; border-radius: 0.5rem; padding: 0.5rem 1.25rem; cursor: pointer; }
-        .btn-save:hover { background: #0284c7; }
-        .btn-cancel { font-size: 0.85rem; font-weight: 600; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.5rem 1rem; text-decoration: none; }
-        .btn-cancel:hover { background: #e2e8f0; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/instructor/journal.css}" />
 
     <!-- 페이지 헤더 -->
     <div class="flex items-center gap-2 mb-5">
@@ -210,26 +139,26 @@
                 <form id="form-create" th:action="@{/instructor/journals/create}" method="post" novalidate>
                     <div class="form-group">
                         <label class="form-label">제목 *</label>
-                        <input type="text" id="create-title" name="jrnlTitle" class="form-input"
+                        <input type="text" id="create-title" name="jrnlTitle" class="hm-input"
                                placeholder="일지 제목을 입력하세요" maxlength="200" />
                         <div class="form-hint"><span id="create-title-count">0</span> / 200</div>
                         <div class="form-error" id="create-title-error">제목을 입력해주세요.</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">업무 날짜 *</label>
-                        <input type="date" id="create-dt" name="jrnlDt" class="form-input"
+                        <input type="date" id="create-dt" name="jrnlDt" class="hm-input"
                                th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" />
                         <div class="form-error" id="create-dt-error">날짜를 선택해주세요.</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">내용 *</label>
-                        <textarea id="create-cont" name="jrnlCont" class="form-input form-textarea"
+                        <textarea id="create-cont" name="jrnlCont" class="hm-input"
                                   placeholder="업무 내용을 자유롭게 작성하세요."></textarea>
                         <div class="form-error" id="create-cont-error">내용을 입력해주세요.</div>
                     </div>
                     <div class="flex gap-2 justify-end">
-                        <a th:href="@{/instructor/journals(selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}" class="btn-cancel">취소</a>
-                        <button type="submit" class="btn-save">
+                        <a th:href="@{/instructor/journals(selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}" class="hm-btn-secondary">취소</a>
+                        <button type="submit" class="hm-btn-primary hm-btn-sky">
                             <i class="fa-solid fa-floppy-disk mr-1"></i>저장
                         </button>
                     </div>
@@ -244,26 +173,26 @@
                 <form id="form-edit" th:action="@{/instructor/journals/{sn}/update(sn=${selected.jrnlSn})}" method="post" novalidate>
                     <div class="form-group">
                         <label class="form-label">제목 *</label>
-                        <input type="text" id="edit-title" name="jrnlTitle" class="form-input"
+                        <input type="text" id="edit-title" name="jrnlTitle" class="hm-input"
                                th:value="${selected.jrnlTitle}" maxlength="200" />
                         <div class="form-hint"><span id="edit-title-count" th:text="${#strings.length(selected.jrnlTitle)}">0</span> / 200</div>
                         <div class="form-error" id="edit-title-error">제목을 입력해주세요.</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">업무 날짜 *</label>
-                        <input type="date" id="edit-dt" name="jrnlDt" class="form-input"
+                        <input type="date" id="edit-dt" name="jrnlDt" class="hm-input"
                                th:value="${selected.jrnlDt}" />
                         <div class="form-error" id="edit-dt-error">날짜를 선택해주세요.</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">내용 *</label>
-                        <textarea id="edit-cont" name="jrnlCont" class="form-input form-textarea"
+                        <textarea id="edit-cont" name="jrnlCont" class="hm-input"
                                   th:text="${selected.jrnlCont}"></textarea>
                         <div class="form-error" id="edit-cont-error">내용을 입력해주세요.</div>
                     </div>
                     <div class="flex gap-2 justify-end">
-                        <a th:href="@{/instructor/journals(jrnlSn=${selected.jrnlSn}, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}" class="btn-cancel">취소</a>
-                        <button type="submit" class="btn-save">
+                        <a th:href="@{/instructor/journals(jrnlSn=${selected.jrnlSn}, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}" class="hm-btn-secondary">취소</a>
+                        <button type="submit" class="hm-btn-primary hm-btn-sky">
                             <i class="fa-solid fa-floppy-disk mr-1"></i>저장
                         </button>
                     </div>
