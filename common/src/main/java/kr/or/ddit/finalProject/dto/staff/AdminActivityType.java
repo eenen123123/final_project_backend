@@ -33,7 +33,12 @@ public enum AdminActivityType {
     SUBJECT_CL_DELETE("대분류 삭제", "SUBJECT_MGMT"),
     SUBJECT_CREATE("과목 등록",      "SUBJECT_MGMT"),
     SUBJECT_UPDATE("과목 수정",      "SUBJECT_MGMT"),
-    SUBJECT_DELETE("과목 삭제",      "SUBJECT_MGMT");
+    SUBJECT_DELETE("과목 삭제",      "SUBJECT_MGMT"),
+
+    // 커리큘럼 관리
+    CURRICULUM_CREATE("커리큘럼 등록", "CURRICULUM_MGMT"),
+    CURRICULUM_UPDATE("커리큘럼 수정", "CURRICULUM_MGMT"),
+    CURRICULUM_DELETE("커리큘럼 삭제", "CURRICULUM_MGMT");
 
     private final String label;
     private final String tmplCd;

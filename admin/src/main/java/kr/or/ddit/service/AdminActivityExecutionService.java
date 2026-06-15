@@ -12,8 +12,10 @@ import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
 import kr.or.ddit.finalProject.dto.leave.AnnualLeaveHistoryDto;
 import kr.or.ddit.finalProject.dto.member.MemberCreateLogDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
+import kr.or.ddit.finalProject.dto.curriculum.CurriculumDto;
 import kr.or.ddit.finalProject.dto.subject.SubjectClassificationDto;
 import kr.or.ddit.finalProject.dto.subject.SubjectDto;
+import kr.or.ddit.finalProject.service.curriculum.CurriculumService;
 import kr.or.ddit.finalProject.service.file.CloudinaryUploadService;
 import kr.or.ddit.finalProject.service.staff.StaffService;
 import kr.or.ddit.finalProject.service.subject.SubjectService;
@@ -67,6 +69,7 @@ public class AdminActivityExecutionService {
     private final CommonCodeService commonCodeService;
     private final CloudinaryUploadService cloudinaryUploadService;
     private final SubjectService subjectService;
+    private final CurriculumService curriculumService;
     private final ObjectMapper objectMapper;
 
     /**
@@ -131,6 +134,9 @@ public class AdminActivityExecutionService {
                 case "SUBJECT_CREATE"    -> executeSubjectCreate(data, actorUserId);
                 case "SUBJECT_UPDATE"    -> executeSubjectUpdate(data, actorUserId);
                 case "SUBJECT_DELETE"    -> executeSubjectDelete(data, actorUserId);
+                case "CURRICULUM_CREATE" -> executeCurriculumCreate(data, actorUserId);
+                case "CURRICULUM_UPDATE" -> executeCurriculumUpdate(data, actorUserId);
+                case "CURRICULUM_DELETE" -> executeCurriculumDelete(data, actorUserId);
                 default -> log.warn("[AdminExecution] 알 수 없는 actionType: {}", actionType);
             }
             log.info("[AdminExecution] 결재 승인 후 실행 완료: docSn={}, type={}", aprvlDocSn, actionType);
@@ -403,6 +409,23 @@ public class AdminActivityExecutionService {
         Long subjId   = Long.valueOf(String.valueOf(data.get("subjId")));
         Long subjClId = Long.valueOf(String.valueOf(data.get("subjClId")));
         subjectService.removeSubject(subjId, subjClId, actorUserId);
+    }
+
+    /* ── 커리큘럼 관리 집행 함수군 ── */
+
+    private void executeCurriculumCreate(Map<String, Object> data, String actorUserId) {
+        CurriculumDto dto = objectMapper.convertValue(data.get("curriculumDto"), CurriculumDto.class);
+        curriculumService.createCurriculum(dto);
+    }
+
+    private void executeCurriculumUpdate(Map<String, Object> data, String actorUserId) {
+        CurriculumDto dto = objectMapper.convertValue(data.get("curriculumDto"), CurriculumDto.class);
+        curriculumService.modifyCurriculum(dto, actorUserId);
+    }
+
+    private void executeCurriculumDelete(Map<String, Object> data, String actorUserId) {
+        Long curriculumId = Long.valueOf(String.valueOf(data.get("curriculumId")));
+        curriculumService.removeCurriculumLogically(curriculumId, actorUserId);
     }
 
     /**

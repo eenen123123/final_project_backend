@@ -428,6 +428,9 @@
     SUBJECT_CREATE:    { label: '과목 등록',   color: 'bg-cyan-100 text-cyan-700',  border: 'border-cyan-200',  icon: 'fa-book',          dot: 'bg-cyan-500'  },
     SUBJECT_UPDATE:    { label: '과목 수정',   color: 'bg-cyan-100 text-cyan-700',  border: 'border-cyan-200',  icon: 'fa-pen-to-square', dot: 'bg-cyan-500'  },
     SUBJECT_DELETE:    { label: '과목 삭제',   color: 'bg-red-100 text-red-700',    border: 'border-red-200',   icon: 'fa-book',          dot: 'bg-red-500'   },
+    CURRICULUM_CREATE: { label: '커리큘럼 등록', color: 'bg-sky-100 text-sky-700',  border: 'border-sky-200',   icon: 'fa-layer-group',   dot: 'bg-sky-500'   },
+    CURRICULUM_UPDATE: { label: '커리큘럼 수정', color: 'bg-sky-100 text-sky-700',  border: 'border-sky-200',   icon: 'fa-pen-to-square', dot: 'bg-sky-500'   },
+    CURRICULUM_DELETE: { label: '커리큘럼 삭제', color: 'bg-red-100 text-red-700',  border: 'border-red-200',   icon: 'fa-layer-group',   dot: 'bg-red-500'   },
   };
 
   const SECTION_CONFIG = {
@@ -438,6 +441,7 @@
     dto:               { label: '공통코드 정보',  icon: 'fa-list',          color: 'text-indigo-500' },
     subjClDto:         { label: '대분류 정보',   icon: 'fa-folder',        color: 'text-blue-500'   },
     subjDto:           { label: '과목 정보',     icon: 'fa-book',          color: 'text-cyan-500'   },
+    curriculumDto:     { label: '커리큘럼 정보', icon: 'fa-layer-group',   color: 'text-sky-500'    },
   };
 
   const FIELD_LABELS = {
@@ -454,7 +458,9 @@
     comCd: '코드값', comCdNm: '표시명', comCdExpln: '코드 설명',
     useYn: '사용 여부',
     subjClId: '대분류 ID', subjClNm: '대분류명',
-    subjId: '과목 ID', subjNm: '과목명', subjExplnCn: '과목 설명'
+    subjId: '과목 ID', subjNm: '과목명', subjExplnCn: '과목 설명',
+    curriculumId: '커리큘럼 ID', title: '커리큘럼명', instructorId: '강사 ID',
+    strtDt: '시작일', endDt: '종료일', explnCn: '설명'
   };
 
   const FIELD_TRANSFORMS = {
