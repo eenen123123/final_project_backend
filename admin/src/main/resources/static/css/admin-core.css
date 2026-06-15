@@ -104,6 +104,7 @@ textarea.hm-input { min-height: unset; height: auto; }
   justify-content: center;
   gap: 0.5rem;
   cursor: pointer;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 .hm-btn-danger:hover  { background-color: #dc2626; }
 .hm-btn-danger:active { transform: scale(0.98); }
@@ -141,7 +142,6 @@ textarea.hm-input { min-height: unset; height: auto; }
    ========================================================================== */
 
 /* --- sky — 강사 --- */
-.hm-input-sky { border-color: #0ea5e9; }
 .hm-input-sky:focus    { border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08); }
 .hm-input-sky:disabled { border-color: #bae6fd; }
 .hm-btn-sky            { background-color: #0ea5e9; }
@@ -158,7 +158,6 @@ textarea.hm-input { min-height: unset; height: auto; }
 .cs-wrapper.hm-input-sky .cs-dropdown li.cs-selected { background-color: #e0f2fe; color: #0284c7; }
 
 /* --- emerald — 행정팀장(실장) --- */
-.hm-input-emerald { border-color: #10b981; }
 .hm-input-emerald:focus    { border-color: #10b981; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08); }
 .hm-input-emerald:disabled { border-color: #6ee7b7; }
 .hm-btn-emerald            { background-color: #10b981; }
@@ -173,7 +172,6 @@ textarea.hm-input { min-height: unset; height: auto; }
 .cs-wrapper.hm-input-emerald .cs-dropdown li.cs-selected { background-color: #dcfce7; color: #059669; }
 
 /* --- orange — PD --- */
-.hm-input-orange { border-color: #f97316; }
 .hm-input-orange:focus    { border-color: #f97316; box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.08); }
 .hm-input-orange:disabled { border-color: #fdba74; }
 .hm-btn-orange            { background-color: #f97316; }
@@ -188,7 +186,6 @@ textarea.hm-input { min-height: unset; height: auto; }
 .cs-wrapper.hm-input-orange .cs-dropdown li.cs-selected { background-color: #ffedd5; color: #ea580c; }
 
 /* --- blue — 행정 --- */
-.hm-input-blue { border-color: #3b82f6; }
 .hm-input-blue:focus    { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08); }
 .hm-input-blue:disabled { border-color: #93c5fd; }
 .hm-btn-blue            { background-color: #3b82f6; }
@@ -319,7 +316,7 @@ textarea.hm-input { min-height: unset; height: auto; }
 }
 .cs-dropdown li:hover,
 .cs-dropdown li:focus       { background-color: #f1f5f9; color: #1e293b; }
-.cs-dropdown li.cs-selected { background-color: #f0f9ff; color: #0284c7; font-weight: 500; }
+.cs-dropdown li.cs-selected { background-color: #f5f3ff; color: #6d28d9; font-weight: 500; }
 
 /* ==========================================================================
    6. 공통 폼 & 모달 컴포넌트
@@ -332,12 +329,12 @@ textarea.hm-input { min-height: unset; height: auto; }
   border: 1.5px solid #e2e8f0;
   transition: box-shadow 0.18s, border-color 0.18s;
 }
-.emp-card:hover    { box-shadow: 0 4px 16px rgba(59, 130, 246, 0.09); border-color: #93c5fd; }
-.emp-card.selected { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12); }
+.emp-card:hover    { box-shadow: 0 4px 16px rgba(124, 58, 237, 0.09); border-color: #c4b5fd; }
+.emp-card.selected { border-color: var(--color-brand-primary); box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12); }
 
 /* --- 탭 버튼 / 패널 --- */
 .emp-tab-btn { transition: all 0.18s; }
-.emp-tab-btn.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; font-weight: 700; }
+.emp-tab-btn.active { color: var(--color-brand-primary); border-bottom: 2px solid var(--color-brand-primary); font-weight: 700; }
 .emp-tab-panel        { display: none; }
 .emp-tab-panel.active { display: block; }
 
@@ -379,8 +376,8 @@ textarea.hm-input { min-height: unset; height: auto; }
   cursor: pointer;
   transition: all 0.15s;
 }
-.emp-page-btn:hover  { border-color: #3b82f6; color: #3b82f6; }
-.emp-page-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+.emp-page-btn:hover  { border-color: var(--color-brand-primary); color: var(--color-brand-primary); }
+.emp-page-btn.active { background: var(--color-brand-primary); border-color: var(--color-brand-primary); color: #fff; }
 
 /* --- 모달 컴포넌트 --- */
 .hm-modal-inner {
@@ -391,6 +388,11 @@ textarea.hm-input { min-height: unset; height: auto; }
   max-height: 90vh;
   overflow: hidden;
 }
+.hm-scroll::-webkit-scrollbar       { width: 6px; }
+.hm-scroll::-webkit-scrollbar-track { background: transparent; }
+.hm-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+.hm-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
 .hm-modal-scroll { overflow-y: auto; max-height: 90vh; }
 .hm-modal-scroll::-webkit-scrollbar       { width: 6px; }
 .hm-modal-scroll::-webkit-scrollbar-track { background: transparent; }
@@ -413,7 +415,7 @@ textarea.hm-input { min-height: unset; height: auto; }
 }
 
 /* --- 폼 레이블 & 섹션 제목 --- */
-.form-label { font-size: 0.75rem; color: #64748b; margin-bottom: 0.25rem; display: block; }
+.form-label { font-size: 0.75rem; font-weight: 600; color: #475569; margin-bottom: 0.25rem; display: block; }
 .form-label .required { color: #f87171; margin-left: 0.15rem; }
 .form-section-title {
   font-size: 0.75rem;
