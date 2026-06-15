@@ -43,4 +43,10 @@ public class InstructorJournalDto {
 
     /** 수정일시 (표시용, nullable) */
     private String mdfcnDt;
+
+    /** 삭제 여부 (Y:삭제 / N:정상) */
+    private String delYn;
+
+    /** 삭제 처리자 ID */
+    private String delUserId;
 }

@@ -69,8 +69,8 @@ public interface InstructorJournalMapper {
     void updateJournal(InstructorJournalDto dto);
 
     /**
-     * 업무 일지 삭제
+     * 업무 일지 소프트 딜리트 (DEL_YN='Y', DEL_DT, DEL_USER_ID 기록)
      * 소유권 확인은 서비스에서 합니다.
      */
-    void deleteJournal(@Param("jrnlSn") Long jrnlSn);
+    void deleteJournal(@Param("jrnlSn") Long jrnlSn, @Param("delUserId") String delUserId);
 }

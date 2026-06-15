@@ -87,6 +87,6 @@ public class InstructorJournalServiceImpl implements InstructorJournalService {
         if (!existing.getInstrUserId().equals(userId)) {
             throw new FinalProjectException(ErrorCode.JOURNAL_ACCESS_DENIED);
         }
-        journalMapper.deleteJournal(jrnlSn);
+        journalMapper.deleteJournal(jrnlSn, userId);
     }
 }
