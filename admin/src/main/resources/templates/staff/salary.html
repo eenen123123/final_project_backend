@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<title th:fragment="pageTitle">급여 · 계좌 관리 | HERMES</title>
+
+<div class="space-y-6">
+
+  <!-- ① 페이지 헤더 -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">급여 · 계좌 관리</h1>
+      <p class="text-sm text-slate-500 mt-1">직원 기본급과 급여 입금 계좌를 관리합니다. 변경은 결재 승인 후 반영되며, 외부 급여지급 프로그램 연동용 CSV를 내보낼 수 있습니다.</p>
+    </div>
+    <button class="hm-btn-primary hm-btn-blue" id="btnExportCsv">
+      <i class="fa-solid fa-file-csv"></i>
+      <span>CSV 내보내기</span>
+    </button>
+  </div>
+
+  <!-- ② 검색/필터 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+    <div class="flex flex-wrap items-end gap-3">
+      <div class="flex-1 min-w-[200px]">
+        <label class="form-label">검색</label>
+        <input type="text" id="fKeyword" class="hm-input hm-input-blue" placeholder="직원명 / 아이디 검색" />
+      </div>
+      <div class="w-44">
+        <label class="form-label">부서</label>
+        <select id="fDeptCd" class="hm-input hm-input-blue">
+          <option value="">전체 부서</option>
+          <option th:each="d : ${departmentlist}" th:value="${d.deptCd}" th:text="${d.deptNm}"></option>
+        </select>
+      </div>
+      <div class="w-36">
+        <label class="form-label">재직 상태</label>
+        <select id="fStatus" class="hm-input hm-input-blue">
+          <option value="">전체 상태</option>
+          <option value="01">재직</option>
+          <option value="02">휴직</option>
+        </select>
+      </div>
+      <button class="hm-btn-primary hm-btn-blue" id="btnSearch">
+        <i class="fa-solid fa-magnifying-glass"></i><span>검색</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ③ 목록 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+        <tr>
+          <th class="px-4 py-3 text-left">직원ID</th>
+          <th class="px-4 py-3 text-left">직원명</th>
+          <th class="px-4 py-3 text-left">부서</th>
+          <th class="px-4 py-3 text-left">직급</th>
+          <th class="px-4 py-3 text-center">상태</th>
+          <th class="px-4 py-3 text-right">기본급</th>
+          <th class="px-4 py-3 text-left">은행</th>
+          <th class="px-4 py-3 text-left">계좌번호</th>
+          <th class="px-4 py-3 text-left">예금주</th>
+          <th class="px-4 py-3 text-center">관리</th>
+        </tr>
+      </thead>
+      <tbody id="salaryTbody" class="divide-y divide-slate-100">
+        <tr><td colspan="10" class="px-4 py-10 text-center text-slate-400">불러오는 중...</td></tr>
+      </tbody>
+    </table>
+
+    <!-- ④ 페이지네이션 (서버 페이징: 좌측 전체 건수 / 우측 버튼) -->
+    <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+      <p class="text-xs text-slate-400" id="salaryPagingInfo"></p>
+      <div id="salaryPaging" class="flex items-center gap-1"></div>
+    </div>
+  </div>
+
+  <!-- Tailwind safelist: 동적 주입 페이징 버튼 클래스 인식용 -->
+  <div class="hidden w-8 h-8 rounded-lg text-xs items-center justify-center bg-blue-500 text-white font-bold text-slate-400 hover:bg-slate-100"></div>
+</div>
+
+<!-- ===== 수정 모달 ===== -->
+<div id="modalSalary" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
+  <div class="hm-modal-inner max-w-md mx-4">
+    <div class="hm-modal-header">
+      <h2 class="text-lg">급여 · 계좌 수정</h2>
+      <button class="text-slate-400 hover:text-slate-600" onclick="closeSalaryModal()">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+    <div class="p-6 space-y-4">
+      <input type="hidden" id="mUserId" />
+      <div>
+        <label class="form-label">직원</label>
+        <p id="mEmpLabel" class="text-sm font-semibold text-slate-800"></p>
+      </div>
+      <div>
+        <label class="form-label">기본급 (원)</label>
+        <input type="number" id="mBaseSalary" min="0" step="1000" class="hm-input hm-input-blue" />
+      </div>
+      <div>
+        <label class="form-label">은행</label>
+        <select id="mBankCd" class="hm-input hm-input-blue">
+          <option value="">은행 선택</option>
+          <option th:each="b : ${bankList}" th:value="${b.comCd}" th:text="${b.comCdNm}"></option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">계좌번호</label>
+        <input type="text" id="mAcntNo" class="hm-input hm-input-blue" placeholder="'-' 없이 또는 포함 입력" />
+      </div>
+      <div>
+        <label class="form-label">예금주</label>
+        <input type="text" id="mDepositorNm" class="hm-input hm-input-blue" />
+      </div>
+    </div>
+    <div class="hm-modal-footer">
+      <button class="hm-btn-secondary" onclick="closeSalaryModal()">취소</button>
+      <button class="hm-btn-primary hm-btn-blue" id="btnSaveSalary">
+        <i class="fa-regular fa-paper-plane"></i><span>결재 요청</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 스크립트 ===== -->
+<script th:inline="javascript">
+/*<![CDATA[*/
+(function () {
+  const SCREEN_SIZE = 10;
+  const BLOCK_SIZE = 5;
+  let currentPage = 1;
+
+  const tbody = document.getElementById('salaryTbody');
+  const pagingBox = document.getElementById('salaryPaging');
+  const pagingInfo = document.getElementById('salaryPagingInfo');
+
+  function filters() {
+    return {
+      keyword: document.getElementById('fKeyword').value.trim(),
+      deptCd: document.getElementById('fDeptCd').value,
+      status: document.getElementById('fStatus').value
+    };
+  }
+  function filterQs() {
+    const f = filters();
+    const p = new URLSearchParams();
+    if (f.keyword) p.append('keyword', f.keyword);
+    if (f.deptCd) p.append('deptCd', f.deptCd);
+    if (f.status) p.append('status', f.status);
+    return p;
+  }
+
+  function won(v) { return v == null || v === '' ? '-' : Number(v).toLocaleString('ko-KR') + '원'; }
+  function statusBadge(cd) {
+    if (cd === '02') return '<span class="status-badge status-leave">휴직</span>';
+    if (cd === '03') return '<span class="status-badge status-resigned">퇴사</span>';
+    return '<span class="status-badge status-active">재직</span>';
+  }
+
+  function loadList(page) {
+    currentPage = page || 1;
+    tbody.innerHTML = '<tr><td colspan="10" class="px-4 py-10 text-center text-slate-400">불러오는 중...</td></tr>';
+    const p = filterQs();
+    p.append('page', currentPage);
+    p.append('screenSize', SCREEN_SIZE);
+
+    fetch('/admin/salary/list?' + p.toString())
+      .then(r => r.json())
+      .then(res => {
+        const rows = res.items || [];
+        if (!rows.length) {
+          tbody.innerHTML = '<tr><td colspan="10" class="px-4 py-10 text-center text-slate-400">조회 결과가 없습니다.</td></tr>';
+          renderPaging(res.totalCount || 0);
+          return;
+        }
+        tbody.innerHTML = rows.map(r => `
+          <tr class="hover:bg-blue-50/40">
+            <td class="px-4 py-3 text-slate-500">${escHtml(r.userId)}</td>
+            <td class="px-4 py-3 font-semibold text-slate-800">${escHtml(r.userName)}</td>
+            <td class="px-4 py-3 text-slate-600">${escHtml(r.deptNm) || '-'}</td>
+            <td class="px-4 py-3 text-slate-600">${escHtml(r.jbgrNm) || '-'}</td>
+            <td class="px-4 py-3 text-center">${statusBadge(r.emplStatCd)}</td>
+            <td class="px-4 py-3 text-right font-semibold text-slate-800">${won(r.baseSalary)}</td>
+            <td class="px-4 py-3 text-slate-600">${escHtml(r.bankNm) || '<span class="text-slate-300">미등록</span>'}</td>
+            <td class="px-4 py-3 text-slate-600">${escHtml(r.acntNo) || '-'}</td>
+            <td class="px-4 py-3 text-slate-600">${escHtml(r.depositorNm) || '-'}</td>
+            <td class="px-4 py-3 text-center">
+              <button class="text-blue-500 hover:text-blue-700 btn-edit"
+                data-id="${escHtml(r.userId)}" data-name="${escHtml(r.userName)}"
+                data-salary="${r.baseSalary ?? ''}" data-bank="${escHtml(r.bankCd)}"
+                data-banknm="${escHtml(r.bankNm)}" data-acnt="${escHtml(r.acntNo)}"
+                data-depositor="${escHtml(r.depositorNm)}">
+                <i class="fa-regular fa-pen-to-square"></i>
+              </button>
+            </td>
+          </tr>`).join('');
+        renderPaging(res.totalCount || 0);
+      })
+      .catch(() => {
+        tbody.innerHTML = '<tr><td colspan="10" class="px-4 py-10 text-center text-rose-400">목록을 불러오지 못했습니다.</td></tr>';
+        pagingBox.innerHTML = '';
+        if (pagingInfo) pagingInfo.textContent = '';
+      });
+  }
+
+  // employees.html 페이징과 동일: 좌측 전체 건수 정보 / 우측 페이지 버튼
+  function renderPaging(totalCount) {
+    const totalPage = Math.ceil(totalCount / SCREEN_SIZE);
+    const start = totalCount === 0 ? 0 : (currentPage - 1) * SCREEN_SIZE + 1;
+    const end = Math.min(currentPage * SCREEN_SIZE, totalCount);
+    if (pagingInfo) {
+      pagingInfo.textContent = totalCount === 0
+        ? '데이터가 없습니다.'
+        : `전체 ${totalCount}명 중 ${start} – ${end} 표시`;
+    }
+
+    if (totalPage <= 1) { pagingBox.innerHTML = ''; return; }
+
+    const endPage = Math.min(Math.ceil(currentPage / BLOCK_SIZE) * BLOCK_SIZE, totalPage);
+    const startPage = Math.max(endPage - BLOCK_SIZE + 1, 1);
+
+    const BASE = 'w-8 h-8 rounded-lg text-xs flex items-center justify-center';
+    let html = '';
+    if (startPage > 1) {
+      html += `<button data-page="${startPage - 1}" class="${BASE} text-slate-400 hover:bg-slate-100">‹</button>`;
+    }
+    for (let p = startPage; p <= endPage; p++) {
+      const cls = p === currentPage ? 'bg-blue-500 text-white font-bold' : 'text-slate-400 hover:bg-slate-100';
+      html += `<button data-page="${p}" class="${BASE} ${cls}">${p}</button>`;
+    }
+    if (endPage < totalPage) {
+      html += `<button data-page="${endPage + 1}" class="${BASE} text-slate-400 hover:bg-slate-100">›</button>`;
+    }
+    pagingBox.innerHTML = html;
+  }
+
+  pagingBox.addEventListener('click', function (e) {
+    const btn = e.target.closest('button[data-page]');
+    if (!btn) return;
+    const scrollY = window.scrollY;
+    loadList(Number(btn.dataset.page));
+    window.scrollTo({ top: scrollY, behavior: 'instant' });
+  });
+
+  // ── 수정 모달 ──
+  window.closeSalaryModal = function () {
+    const m = document.getElementById('modalSalary');
+    m.classList.add('hidden'); m.classList.remove('flex');
+  };
+  let editingBefore = {};
+  function openSalaryModal(d) {
+    editingBefore = d;
+    document.getElementById('mUserId').value = d.id;
+    document.getElementById('mEmpLabel').textContent = d.name + ' (' + d.id + ')';
+    document.getElementById('mBaseSalary').value = d.salary || '';
+    const bankSel = document.getElementById('mBankCd');
+    if (bankSel.customSelect) bankSel.customSelect.setValue(d.bank || '');
+    else bankSel.value = d.bank || '';
+    document.getElementById('mAcntNo').value = d.acnt || '';
+    document.getElementById('mDepositorNm').value = d.depositor || '';
+    const m = document.getElementById('modalSalary');
+    m.classList.remove('hidden'); m.classList.add('flex');
+  }
+
+  tbody.addEventListener('click', function (e) {
+    const btn = e.target.closest('.btn-edit');
+    if (!btn) return;
+    openSalaryModal({
+      id: btn.dataset.id, name: btn.dataset.name, salary: btn.dataset.salary,
+      bank: btn.dataset.bank, bankNm: btn.dataset.banknm,
+      acnt: btn.dataset.acnt, depositor: btn.dataset.depositor
+    });
+  });
+
+  // ── 결재 요청 (변경 확인 모달 → 제출) ──
+  document.getElementById('btnSaveSalary').addEventListener('click', function () {
+    const bankSel = document.getElementById('mBankCd');
+    const afterSalary = document.getElementById('mBaseSalary').value;
+    const afterBankCd = bankSel.value;
+    const afterBankNm = bankSel.options[bankSel.selectedIndex] ? bankSel.options[bankSel.selectedIndex].text : '';
+    const afterAcnt = document.getElementById('mAcntNo').value.trim();
+    const afterDepositor = document.getElementById('mDepositorNm').value.trim();
+
+    showHermesApprovalConfirm({
+      title: '급여 · 계좌 변경 결재',
+      type: 'update',
+      fields: [
+        { label: '기본급', before: won(editingBefore.salary), after: won(afterSalary) },
+        { label: '은행', before: editingBefore.bankNm || '-', after: afterBankCd ? afterBankNm : '-' },
+        { label: '계좌번호', before: editingBefore.acnt || '-', after: afterAcnt || '-' },
+        { label: '예금주', before: editingBefore.depositor || '-', after: afterDepositor || '-' }
+      ],
+      onConfirm: function () {
+        const p = new URLSearchParams();
+        p.append('userId', document.getElementById('mUserId').value);
+        if (afterSalary !== '') p.append('baseSalary', afterSalary);
+        p.append('bankCd', afterBankCd);
+        p.append('acntNo', afterAcnt);
+        p.append('depositorNm', afterDepositor);
+
+        fetch('/admin/salary/update', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: p.toString()
+        })
+          .then(r => r.json())
+          .then(resp => {
+            closeHermesApprovalConfirm();
+            if (resp.result === 'success') {
+              closeSalaryModal();
+              showHermesToast(resp.message || '결재 요청이 완료되었습니다.');
+              loadList(currentPage);
+            } else {
+              showHermesToast(resp.message || '처리에 실패했습니다.', 'error');
+            }
+          })
+          .catch(() => { closeHermesApprovalConfirm(); showHermesToast('저장에 실패했습니다.', 'error'); });
+      }
+    });
+  });
+
+  // ── CSV 내보내기 (현재 검색 조건 반영) ──
+  document.getElementById('btnExportCsv').addEventListener('click', function () {
+    location.href = '/admin/salary/export/csv?' + filterQs().toString();
+  });
+
+  document.getElementById('btnSearch').addEventListener('click', () => loadList(1));
+  document.getElementById('fKeyword').addEventListener('keyup', e => { if (e.key === 'Enter') loadList(1); });
+  document.getElementById('fDeptCd').addEventListener('change', () => loadList(1));
+  document.getElementById('fStatus').addEventListener('change', () => loadList(1));
+
+  loadList(1);
+})();
+/*]]>*/
+</script>

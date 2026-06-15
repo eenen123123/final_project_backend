@@ -37,37 +37,44 @@ public class ClassroomController {
     @GetMapping("/list")
     public String classroomList(Model model, Authentication authentication) {
         String instrUserId = authentication.getName();
-        List<ClassroomListResponse> classroomList = classroomService.retrieveClassroomList(instrUserId);
+        List<ClassroomListResponse> classroomList =
+                classroomService.retrieveClassroomList(instrUserId);
         model.addAttribute("classroomList", classroomList);
         return "admin:/instructor/classroomList";
     }
 
     @ModelAttribute
-    public void addCalendarAttributes(
-            @PathVariable(required = false) Long classSn,
-            Model model) {
-        if (classSn == null) return;
+    public void addCalendarAttributes(@PathVariable(required = false) Long classSn, Model model) {
+        if (classSn == null)
+            return;
         LocalDate now = LocalDate.now();
-        int year  = now.getYear();
+        int year = now.getYear();
         int month = now.getMonthValue();
-        model.addAttribute("calendarYear",    year);
-        model.addAttribute("calendarMonth",   month);
-        model.addAttribute("calendarPadding", classroomHomeService.retrieveCalendarPadding(year, month));
-        model.addAttribute("calendarDays",    classroomHomeService.retrieveCalendarDays(classSn, year, month));
+        model.addAttribute("calendarYear", year);
+        model.addAttribute("calendarMonth", month);
+        model.addAttribute("calendarPadding",
+                classroomHomeService.retrieveCalendarPadding(year, month));
+        model.addAttribute("calendarDays",
+                classroomHomeService.retrieveCalendarDays(classSn, year, month));
     }
 
     @GetMapping("/detail/{classSn}")
     public String classroomDetail(@PathVariable Long classSn, Model model) {
-        model.addAttribute("classroom",         classroomService.retrieveClassroomDetail(classSn));
-        model.addAttribute("weeklyData",           classroomHomeService.retrieveWeeklyData(classSn));
-        model.addAttribute("weeklyCompareText",    classroomHomeService.retrieveWeeklyCompareText(classSn));
-        model.addAttribute("achievements",         classroomHomeService.retrieveAchievements(classSn));
-        model.addAttribute("assignmentCount",      classroomHomeService.retrieveUpcomingAssignmentCount(classSn));
-        model.addAttribute("todayQuestion",        classroomHomeService.retrieveTodayQuestion(classSn));
-        model.addAttribute("noticeCount",          0);
-        model.addAttribute("unansweredQnaCount",   instructorBoardService.getUnansweredQnaCount(classSn));
-        model.addAttribute("pendingGradeCount",    assignmentBoardService.getPendingGradeCount(classSn));
-        model.addAttribute("inactiveStudentCount", classroomHomeService.retrieveInactiveStudentCount(classSn));
+        model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
+        model.addAttribute("weeklyData", classroomHomeService.retrieveWeeklyData(classSn));
+        model.addAttribute("weeklyCompareText",
+                classroomHomeService.retrieveWeeklyCompareText(classSn));
+        model.addAttribute("achievements", classroomHomeService.retrieveAchievements(classSn));
+        model.addAttribute("assignmentCount",
+                classroomHomeService.retrieveUpcomingAssignmentCount(classSn));
+        model.addAttribute("todayQuestion", classroomHomeService.retrieveTodayQuestion(classSn));
+        model.addAttribute("noticeCount", 0);
+        model.addAttribute("unansweredQnaCount",
+                instructorBoardService.getUnansweredQnaCount(classSn));
+        model.addAttribute("pendingGradeCount",
+                assignmentBoardService.getPendingGradeCount(classSn));
+        model.addAttribute("inactiveStudentCount",
+                classroomHomeService.retrieveInactiveStudentCount(classSn));
         return "classroom/home";
     }
 
@@ -92,14 +99,14 @@ public class ClassroomController {
     @GetMapping("/detail/{classSn}/notice/{postSn}")
     public String noticeDetail(@PathVariable Long classSn, @PathVariable Long postSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
-        model.addAttribute("notice", instructorBoardService.getClassroomNoticeDetail(postSn, classSn));
+        model.addAttribute("notice",
+                instructorBoardService.getClassroomNoticeDetail(postSn, classSn));
         return "classroom/notice-detail";
     }
 
     @PostMapping("/detail/{classSn}/notice/write")
-    public String noticeWrite(@PathVariable Long classSn,
-                              @ModelAttribute InstructorBoardDto dto,
-                              Authentication authentication) {
+    public String noticeWrite(@PathVariable Long classSn, @ModelAttribute InstructorBoardDto dto,
+            Authentication authentication) {
         dto.setClassSn(classSn);
         dto.setInstrUserId(authentication.getName());
         dto.setWrtrUserId(authentication.getName());
@@ -124,8 +131,7 @@ public class ClassroomController {
 
     @PostMapping("/detail/{classSn}/assignments/write")
     public String assignmentWrite(@PathVariable Long classSn,
-                                  @ModelAttribute AssignmentBoardDto dto,
-                                  Authentication authentication) {
+            @ModelAttribute AssignmentBoardDto dto, Authentication authentication) {
         dto.setClassSn(classSn);
         dto.setRgtrUserId(authentication.getName());
         assignmentBoardService.insertAssignment(dto);
@@ -133,7 +139,8 @@ public class ClassroomController {
     }
 
     @GetMapping("/detail/{classSn}/assignments/{asgmtSn}")
-    public String assignmentDetail(@PathVariable Long classSn, @PathVariable Long asgmtSn, Model model) {
+    public String assignmentDetail(@PathVariable Long classSn, @PathVariable Long asgmtSn,
+            Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
         model.addAttribute("assignment", assignmentBoardService.getAssignmentDetail(asgmtSn));
         model.addAttribute("submitList", assignmentBoardService.getSubmitList(asgmtSn, classSn));
@@ -142,9 +149,8 @@ public class ClassroomController {
 
     @PostMapping("/detail/{classSn}/assignments/{asgmtSn}/grade/{sbmtSn}")
     public String assignmentGrade(@PathVariable Long classSn, @PathVariable Long asgmtSn,
-                                  @PathVariable Long sbmtSn,
-                                  @RequestParam BigDecimal score,
-                                  Authentication authentication) {
+            @PathVariable Long sbmtSn, @RequestParam BigDecimal score,
+            Authentication authentication) {
         assignmentBoardService.gradeSubmit(sbmtSn, score, authentication.getName());
         return "redirect:/classroom/detail/" + classSn + "/assignments/" + asgmtSn;
     }
@@ -183,9 +189,8 @@ public class ClassroomController {
     }
 
     @PostMapping("/detail/{classSn}/qna/write")
-    public String qnaWrite(@PathVariable Long classSn,
-                           @ModelAttribute InstructorBoardDto dto,
-                           Authentication authentication) {
+    public String qnaWrite(@PathVariable Long classSn, @ModelAttribute InstructorBoardDto dto,
+            Authentication authentication) {
         dto.setClassSn(classSn);
         dto.setInstrUserId(authentication.getName());
         dto.setWrtrUserId(authentication.getName());
@@ -195,8 +200,7 @@ public class ClassroomController {
 
     @PostMapping("/detail/{classSn}/qna/{postSn}/answer")
     public String qnaAnswer(@PathVariable Long classSn, @PathVariable Long postSn,
-                            @RequestParam String answCn,
-                            Authentication authentication) {
+            @RequestParam String answCn, Authentication authentication) {
         instructorBoardService.answerClassroomQna(postSn, authentication.getName(), answCn);
         return "redirect:/classroom/detail/" + classSn + "/qna/" + postSn;
     }

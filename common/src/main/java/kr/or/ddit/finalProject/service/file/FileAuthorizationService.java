@@ -34,6 +34,8 @@ public class FileAuthorizationService {
             return false;
         }
 
+        log.info("File Context Type: {}", fileDto.getFileCtxType());
+
         return switch (fileDto.getFileCtxType()) {
             case CHAT_ROOM -> messageMapper.isParticipant(Long.parseLong(fileDto.getFileCtxId()),
                     userId) > 0;
@@ -65,11 +67,12 @@ public class FileAuthorizationService {
     }
 
     private boolean checkCourseAccess(Authentication authentication, long fileServerId) {
-        List<MemberRoleEnum> userRoles = authentication.getAuthorities().stream()
-                .map(auth -> MemberRoleEnum.valueOf(auth.getAuthority())).toList();
+        List<String> userRoles =
+                authentication.getAuthorities().stream().map(auth -> auth.getAuthority()).toList();
 
         // 관리자는 모든 강의 자료 접근 허용
-        if (userRoles.contains(MemberRoleEnum.ROLE_ADMIN)) {
+        log.info("User Roles: {}", userRoles);
+        if (userRoles.contains(MemberRoleEnum.ROLE_ADMIN.name())) {
             return true;
         }
 
