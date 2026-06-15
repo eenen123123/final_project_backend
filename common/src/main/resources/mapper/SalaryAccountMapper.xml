@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.SalaryAccountMapper">
+
+    <!-- 공통 조회 컬럼 + 조인 (재직 직원 기준) -->
+    <sql id="baseColumns">
+        SELECT
+            m.USER_ID        AS userId,
+            m.USER_NAME      AS userName,
+            d.DEPT_NM        AS deptNm,
+            j.JBGR_NM        AS jbgrNm,
+            ei.EMPL_STAT_CD  AS emplStatCd,
+            es.BASE_SALARY   AS baseSalary,
+            ba.BANK_CD       AS bankCd,
+            bc.COM_CD_NM     AS bankNm,
+            ba.ACNT_NO       AS acntNo,
+            ba.DEPOSITOR_NM  AS depositorNm
+    </sql>
+
+    <sql id="baseFrom">
+        FROM MEMBER m
+        JOIN EMPLOYEE_INFO ei ON m.USER_ID = ei.USER_ID
+        LEFT JOIN DEPARTMENT d ON ei.DEPT_CD = d.DEPT_CD
+        LEFT JOIN JOB_GRADE  j ON ei.JBGR_CD = j.JBGR_CD
+        LEFT JOIN EMPLOYEE_SALARY es ON m.USER_ID = es.USER_ID AND es.USE_YN = 'Y'
+        LEFT JOIN EMPLOYEE_BANK_ACCOUNT ba ON m.USER_ID = ba.USER_ID AND ba.USE_YN = 'Y'
+        LEFT JOIN COM_CD bc ON TRIM(bc.CL_CODE) = '702' AND TRIM(bc.COM_CD) = TRIM(ba.BANK_CD)
+        WHERE m.USER_ROLE = 'ROLE_ADMIN'
+          AND m.ENABLE = 'Y'
+    </sql>
+
+    <!-- 페이징용 동적 조건 (detailCondition Map) -->
+    <sql id="searchFilters">
+        <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
+          AND (m.USER_NAME LIKE '%' || #{detailCondition.keyword} || '%'
+               OR m.USER_ID LIKE '%' || #{detailCondition.keyword} || '%')
+        </if>
+        <if test="detailCondition != null and detailCondition.deptCd != null and detailCondition.deptCd != ''">
+          AND ei.DEPT_CD = #{detailCondition.deptCd}
+        </if>
+        <if test="detailCondition != null and detailCondition.status != null and detailCondition.status != ''">
+          AND ei.EMPL_STAT_CD = #{detailCondition.status}
+        </if>
+    </sql>
+
+    <!-- 급여+계좌 목록 동적 검색 + 서버 페이징 -->
+    <select id="searchSalaryAccountList" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo"
+            resultType="kr.or.ddit.finalProject.dto.employee.SalaryAccountRowDto">
+        <include refid="baseColumns" />
+        <include refid="baseFrom" />
+        <include refid="searchFilters" />
+        ORDER BY d.DEPT_NM, j.SORT_ORD, m.USER_ID NULLS LAST
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <!-- 급여+계좌 전체 건수 -->
+    <select id="countSalaryAccountList" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo" resultType="int">
+        SELECT COUNT(*)
+        FROM MEMBER m
+        JOIN EMPLOYEE_INFO ei ON m.USER_ID = ei.USER_ID
+        WHERE m.USER_ROLE = 'ROLE_ADMIN'
+          AND m.ENABLE = 'Y'
+        <include refid="searchFilters" />
+    </select>
+
+    <!-- CSV 내보내기용 전체 조회 (페이징 없음, 평면 params) -->
+    <select id="selectSalaryAccountList" parameterType="map"
+            resultType="kr.or.ddit.finalProject.dto.employee.SalaryAccountRowDto">
+        <include refid="baseColumns" />
+        <include refid="baseFrom" />
+        <if test="keyword != null and keyword != ''">
+          AND (m.USER_NAME LIKE '%' || #{keyword} || '%'
+               OR m.USER_ID LIKE '%' || #{keyword} || '%')
+        </if>
+        <if test="deptCd != null and deptCd != ''">
+          AND ei.DEPT_CD = #{deptCd}
+        </if>
+        <if test="status != null and status != ''">
+          AND ei.EMPL_STAT_CD = #{status}
+        </if>
+        ORDER BY d.DEPT_NM, j.SORT_ORD, m.USER_ID NULLS LAST
+    </select>
+
+    <!-- 단일 직원 계좌 조회 -->
+    <select id="selectBankAccount" parameterType="String"
+            resultType="kr.or.ddit.finalProject.dto.employee.EmployeeBankAccountDto">
+        SELECT
+            USER_ID, BANK_CD, ACNT_NO, DEPOSITOR_NM, USE_YN,
+            RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
+        FROM EMPLOYEE_BANK_ACCOUNT
+        WHERE USER_ID = #{userId}
+    </select>
+
+    <!-- 계좌 upsert (Oracle MERGE) -->
+    <update id="mergeBankAccount" parameterType="kr.or.ddit.finalProject.dto.employee.EmployeeBankAccountDto">
+        MERGE INTO EMPLOYEE_BANK_ACCOUNT t
+        USING (SELECT #{userId} AS USER_ID FROM DUAL) s
+        ON (t.USER_ID = s.USER_ID)
+        WHEN MATCHED THEN
+            UPDATE SET
+                t.BANK_CD      = #{bankCd},
+                t.ACNT_NO      = #{acntNo},
+                t.DEPOSITOR_NM = #{depositorNm},
+                t.USE_YN       = 'Y',
+                t.LAST_MDFR_ID = #{lastMdfrId},
+                t.MDFCN_DT     = SYSTIMESTAMP
+        WHEN NOT MATCHED THEN
+            INSERT (USER_ID, BANK_CD, ACNT_NO, DEPOSITOR_NM, USE_YN, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT)
+            VALUES (#{userId}, #{bankCd}, #{acntNo}, #{depositorNm}, 'Y', #{rgtrId}, #{lastMdfrId}, SYSTIMESTAMP, SYSTIMESTAMP)
+    </update>
+
+</mapper>
