@@ -12,8 +12,11 @@ import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
 import kr.or.ddit.finalProject.dto.leave.AnnualLeaveHistoryDto;
 import kr.or.ddit.finalProject.dto.member.MemberCreateLogDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
+import kr.or.ddit.finalProject.dto.subject.SubjectClassificationDto;
+import kr.or.ddit.finalProject.dto.subject.SubjectDto;
 import kr.or.ddit.finalProject.service.file.CloudinaryUploadService;
 import kr.or.ddit.finalProject.service.staff.StaffService;
+import kr.or.ddit.finalProject.service.subject.SubjectService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -63,6 +66,7 @@ public class AdminActivityExecutionService {
     private final StaffService staffService;
     private final CommonCodeService commonCodeService;
     private final CloudinaryUploadService cloudinaryUploadService;
+    private final SubjectService subjectService;
     private final ObjectMapper objectMapper;
 
     /**
@@ -121,6 +125,12 @@ public class AdminActivityExecutionService {
                 case "COMMON_CODE_UPDATE"       -> executeCommonCodeUpdate(data, actorUserId);
                 case "COMMON_CODE_DELETE"       -> executeCommonCodeDelete(data);
                 case "LEAVE_REQUEST"            -> executeLeaveRequest(data, master.getDrftUserId(), aprvlDocSn);
+                case "SUBJECT_CL_CREATE" -> executeSubjectClCreate(data, actorUserId);
+                case "SUBJECT_CL_UPDATE" -> executeSubjectClUpdate(data, actorUserId);
+                case "SUBJECT_CL_DELETE" -> executeSubjectClDelete(data, actorUserId);
+                case "SUBJECT_CREATE"    -> executeSubjectCreate(data, actorUserId);
+                case "SUBJECT_UPDATE"    -> executeSubjectUpdate(data, actorUserId);
+                case "SUBJECT_DELETE"    -> executeSubjectDelete(data, actorUserId);
                 default -> log.warn("[AdminExecution] 알 수 없는 actionType: {}", actionType);
             }
             log.info("[AdminExecution] 결재 승인 후 실행 완료: docSn={}, type={}", aprvlDocSn, actionType);
@@ -360,6 +370,39 @@ public class AdminActivityExecutionService {
         String clCode = (String) data.get("clCode");
         String comCd  = (String) data.get("comCd");
         commonCodeService.deleteCode(clCode, comCd);
+    }
+
+    /* ── 과목 관리 집행 함수군 ── */
+
+    private void executeSubjectClCreate(Map<String, Object> data, String actorUserId) {
+        SubjectClassificationDto dto = objectMapper.convertValue(data.get("subjClDto"), SubjectClassificationDto.class);
+        subjectService.createClassification(dto, actorUserId);
+    }
+
+    private void executeSubjectClUpdate(Map<String, Object> data, String actorUserId) {
+        SubjectClassificationDto dto = objectMapper.convertValue(data.get("subjClDto"), SubjectClassificationDto.class);
+        subjectService.modifyClassification(dto, actorUserId);
+    }
+
+    private void executeSubjectClDelete(Map<String, Object> data, String actorUserId) {
+        Long subjClId = Long.valueOf(String.valueOf(data.get("subjClId")));
+        subjectService.removeClassification(subjClId, actorUserId);
+    }
+
+    private void executeSubjectCreate(Map<String, Object> data, String actorUserId) {
+        SubjectDto dto = objectMapper.convertValue(data.get("subjDto"), SubjectDto.class);
+        subjectService.createSubject(dto, actorUserId);
+    }
+
+    private void executeSubjectUpdate(Map<String, Object> data, String actorUserId) {
+        SubjectDto dto = objectMapper.convertValue(data.get("subjDto"), SubjectDto.class);
+        subjectService.modifySubject(dto, actorUserId);
+    }
+
+    private void executeSubjectDelete(Map<String, Object> data, String actorUserId) {
+        Long subjId   = Long.valueOf(String.valueOf(data.get("subjId")));
+        Long subjClId = Long.valueOf(String.valueOf(data.get("subjClId")));
+        subjectService.removeSubject(subjId, subjClId, actorUserId);
     }
 
     /**

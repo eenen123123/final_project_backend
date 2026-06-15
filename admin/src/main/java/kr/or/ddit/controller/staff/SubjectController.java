@@ -1,5 +1,6 @@
 package kr.or.ddit.controller.staff;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,9 +15,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import kr.or.ddit.finalProject.dto.staff.AdminActivityType;
 import kr.or.ddit.finalProject.dto.subject.SubjectClassificationDto;
 import kr.or.ddit.finalProject.dto.subject.SubjectDto;
 import kr.or.ddit.finalProject.service.subject.SubjectService;
+import kr.or.ddit.service.AdminActivityApprovalService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SubjectController {
 
     private final SubjectService subjectService;
+    private final AdminActivityApprovalService adminActivityApprovalService;
 
     // ── 페이지 렌더링 ────────────────────────────────────────────────
 
@@ -44,10 +48,19 @@ public class SubjectController {
             @ModelAttribute SubjectClassificationDto dto,
             Authentication authentication) {
         try {
-            subjectService.createClassification(dto, authentication.getName());
-            return ResponseEntity.ok(Map.of("success", true, "subjClId", dto.getSubjClId()));
+            // subjectService.createClassification(dto, authentication.getName());
+            // return ResponseEntity.ok(Map.of("success", true, "subjClId", dto.getSubjClId()));
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("subjClDto", dto);
+            adminActivityApprovalService.submitForApproval(
+                authentication.getName(),
+                AdminActivityType.SUBJECT_CL_CREATE,
+                dto.getSubjClNm(),
+                payload
+            );
+            return ResponseEntity.ok(Map.of("success", true));
         } catch (Exception e) {
-            log.error("대분류 생성 오류", e);
+            log.error("대분류 생성 결재 요청 오류", e);
             return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
         }
     }
@@ -60,12 +73,21 @@ public class SubjectController {
             Authentication authentication) {
         dto.setSubjClId(subjClId);
         try {
-            subjectService.modifyClassification(dto, authentication.getName());
+            // subjectService.modifyClassification(dto, authentication.getName());
+            // return ResponseEntity.ok(Map.of("success", true));
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("subjClDto", dto);
+            adminActivityApprovalService.submitForApproval(
+                authentication.getName(),
+                AdminActivityType.SUBJECT_CL_UPDATE,
+                dto.getSubjClNm(),
+                payload
+            );
             return ResponseEntity.ok(Map.of("success", true));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
-            log.error("대분류 수정 오류", e);
+            log.error("대분류 수정 결재 요청 오류", e);
             return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
         }
     }
@@ -76,12 +98,21 @@ public class SubjectController {
             @PathVariable Long subjClId,
             Authentication authentication) {
         try {
-            subjectService.removeClassification(subjClId, authentication.getName());
+            // subjectService.removeClassification(subjClId, authentication.getName());
+            // return ResponseEntity.ok(Map.of("success", true));
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("subjClId", subjClId);
+            adminActivityApprovalService.submitForApproval(
+                authentication.getName(),
+                AdminActivityType.SUBJECT_CL_DELETE,
+                "대분류 ID: " + subjClId,
+                payload
+            );
             return ResponseEntity.ok(Map.of("success", true));
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
-            log.error("대분류 삭제 오류", e);
+            log.error("대분류 삭제 결재 요청 오류", e);
             return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
         }
     }
@@ -102,12 +133,21 @@ public class SubjectController {
             Authentication authentication) {
         dto.setSubjClId(subjClId);
         try {
-            subjectService.createSubject(dto, authentication.getName());
-            return ResponseEntity.ok(Map.of("success", true, "subjId", dto.getSubjId()));
+            // subjectService.createSubject(dto, authentication.getName());
+            // return ResponseEntity.ok(Map.of("success", true, "subjId", dto.getSubjId()));
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("subjDto", dto);
+            adminActivityApprovalService.submitForApproval(
+                authentication.getName(),
+                AdminActivityType.SUBJECT_CREATE,
+                dto.getSubjNm(),
+                payload
+            );
+            return ResponseEntity.ok(Map.of("success", true));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
-            log.error("과목 생성 오류", e);
+            log.error("과목 생성 결재 요청 오류", e);
             return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
         }
     }
@@ -122,12 +162,21 @@ public class SubjectController {
         dto.setSubjClId(subjClId);
         dto.setSubjId(subjId);
         try {
-            subjectService.modifySubject(dto, authentication.getName());
+            // subjectService.modifySubject(dto, authentication.getName());
+            // return ResponseEntity.ok(Map.of("success", true));
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("subjDto", dto);
+            adminActivityApprovalService.submitForApproval(
+                authentication.getName(),
+                AdminActivityType.SUBJECT_UPDATE,
+                dto.getSubjNm(),
+                payload
+            );
             return ResponseEntity.ok(Map.of("success", true));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
-            log.error("과목 수정 오류", e);
+            log.error("과목 수정 결재 요청 오류", e);
             return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
         }
     }
@@ -139,12 +188,22 @@ public class SubjectController {
             @PathVariable Long subjId,
             Authentication authentication) {
         try {
-            subjectService.removeSubject(subjId, subjClId, authentication.getName());
+            // subjectService.removeSubject(subjId, subjClId, authentication.getName());
+            // return ResponseEntity.ok(Map.of("success", true));
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("subjId", subjId);
+            payload.put("subjClId", subjClId);
+            adminActivityApprovalService.submitForApproval(
+                authentication.getName(),
+                AdminActivityType.SUBJECT_DELETE,
+                "과목 ID: " + subjId,
+                payload
+            );
             return ResponseEntity.ok(Map.of("success", true));
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
-            log.error("과목 삭제 오류", e);
+            log.error("과목 삭제 결재 요청 오류", e);
             return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
         }
     }
