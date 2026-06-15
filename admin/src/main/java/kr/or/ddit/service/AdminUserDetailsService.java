@@ -18,20 +18,20 @@ import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.exception.user.UserException;
 import kr.or.ddit.finalProject.mapper.EmployeeMapper;
 import kr.or.ddit.finalProject.mapper.MemberMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class AdminUserDetailsService implements UserDetailsService {
 
-    @Autowired
-    private MemberMapper memberMapper;
+    private final MemberMapper memberMapper;
 
-    @Autowired
-    private EmployeeMapper employeeMapper;
+    private final EmployeeMapper employeeMapper;
 
     @Override
-    public UserDetails loadUserByUsername(String username)  {
+    public UserDetails loadUserByUsername(String username) {
         MemberDto user = memberMapper.findByUserId(username)
                 .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
         if (user.getEnable().equals("N")) {
@@ -55,7 +55,8 @@ public class AdminUserDetailsService implements UserDetailsService {
         //         User.builder().username(user.getUserId()).password(user.getUserEnpswd()).roles(role) // 관리자 권한 부여
         //                 .build();
         UserDetails userDetails = User.builder().username(user.getUserId())
-                .password(user.getUserEnpswd()).authorities(roles.stream().map(SimpleGrantedAuthority::new).toList()).build();
+                .password(user.getUserEnpswd())
+                .authorities(roles.stream().map(SimpleGrantedAuthority::new).toList()).build();
         // userDetails.getAuthorities().forEach(auth -> log.info("Granted Authority: {}", auth.getAuthority()));
         return userDetails;
     }

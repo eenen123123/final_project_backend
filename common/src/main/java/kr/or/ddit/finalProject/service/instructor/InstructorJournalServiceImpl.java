@@ -2,6 +2,8 @@ package kr.or.ddit.finalProject.service.instructor;
 
 import java.util.List;
 
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +42,14 @@ public class InstructorJournalServiceImpl implements InstructorJournalService {
         return journalMapper.selectJournalInstructors();
     }
 
+    private static final Safelist JOURNAL_SAFELIST = Safelist.relaxed().addTags("s", "u");
+
+    /** TipTap 에디터 출력 HTML을 허용 태그 목록 기준으로 새니타이징 */
+    private String sanitizeHtml(String html) {
+        if (html == null) return null;
+        return Jsoup.clean(html, JOURNAL_SAFELIST);
+    }
+
     /**
      * 역할과 뷰어 선택에 따라 mapper에 전달할 instrUserId 결정
      *   - 일반 강사: 항상 본인 ID
@@ -59,13 +69,13 @@ public class InstructorJournalServiceImpl implements InstructorJournalService {
     @Override
     @Transactional
     public Long createJournal(InstructorJournalDto dto) {
+        dto.setJrnlCont(sanitizeHtml(dto.getJrnlCont()));
         journalMapper.insertJournal(dto);
-        // useGeneratedKeys=true 설정으로 INSERT 후 dto.jrnlSn 에 PK가 자동 주입됨
         return dto.getJrnlSn();
     }
 
     @Override
-    @Transactional // select + update 두 번의 DB 작업을 하나의 트랜잭션으로 묶음
+    @Transactional
     public void modifyJournal(InstructorJournalDto dto, String userId) {
         InstructorJournalDto existing = journalMapper.selectJournalBySn(dto.getJrnlSn());
         if (existing == null) {
@@ -74,6 +84,7 @@ public class InstructorJournalServiceImpl implements InstructorJournalService {
         if (!existing.getInstrUserId().equals(userId)) {
             throw new FinalProjectException(ErrorCode.JOURNAL_ACCESS_DENIED);
         }
+        dto.setJrnlCont(sanitizeHtml(dto.getJrnlCont()));
         journalMapper.updateJournal(dto);
     }
 
