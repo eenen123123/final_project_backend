@@ -56,6 +56,12 @@ public interface BlacklistMapper {
     /** 로그인 차단 판정: 현재 적용 중(영구 또는 미만료) 정지 건수 */
     int countActiveBlock(@Param("userId") String userId);
 
+    /** 현재 적용 중인 정지의 종료일 (NULL = 영구) — 차단 안내 메시지용 */
+    java.time.LocalDateTime selectActiveBlockEndDt(@Param("userId") String userId);
+
     /** 누적 위반 횟수 (이력의 REG 이벤트 수) — 자동 에스컬레이션 기준 */
     int countOffenses(@Param("userId") String userId);
+
+    /** 학생의 수강중 클래스룸명 (콤마 결합, 없으면 NULL) — 등록 picker 표시용 */
+    String selectStudentClassNames(@Param("userId") String userId);
 }

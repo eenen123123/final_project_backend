@@ -73,6 +73,15 @@ public class StaffBlacklistController {
         return ResponseEntity.ok(blacklistService.getSummary());
     }
 
+    /** 학생 수강중 클래스룸명 (등록 picker 표시용) */
+    @GetMapping("/classroom")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> classroom(@RequestParam String userId) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("classNm", blacklistService.getStudentClassNames(userId));
+        return ResponseEntity.ok(body);
+    }
+
     /** 단일 상세 (현재 상태 + 변경 이력) */
     @GetMapping("/detail")
     @ResponseBody

@@ -11,11 +11,9 @@
             bl.BLKLST_END_DT        AS blklstEndDt,
             TRIM(bl.BLKLST_LVL_CD)  AS blklstLvlCd,
             TRIM(bl.BLKLST_CTGR_CD) AS blklstCtgrCd,
-            bl.BLKLST_MNGR_USER_ID  AS blklstMngrUserId,
             bl.BLKLST_ACTN_CN       AS blklstActnCn,
             bl.BLKLST_RSN_CN        AS blklstRsnCn,
             m.USER_NAME             AS userName,
-            mgr.USER_NAME           AS mngrUserName,
             lc.COM_CD_NM            AS blklstLvlNm,
             cc.COM_CD_NM            AS blklstCtgrNm,
             cls.CLASS_NM            AS classNm,
@@ -27,7 +25,6 @@
             NVL(h.LOG_CNT, 0)       AS logCount
         FROM STUDENT_BLACK_LIST bl
         JOIN MEMBER m            ON m.USER_ID = bl.STD_USER_ID
-        LEFT JOIN MEMBER mgr     ON mgr.USER_ID = bl.BLKLST_MNGR_USER_ID
         LEFT JOIN COM_CD lc      ON TRIM(lc.CL_CODE) = '700' AND TRIM(lc.COM_CD) = TRIM(bl.BLKLST_LVL_CD)
         LEFT JOIN COM_CD cc      ON TRIM(cc.CL_CODE) = '701' AND TRIM(cc.COM_CD) = TRIM(bl.BLKLST_CTGR_CD)
         LEFT JOIN (
@@ -148,10 +145,10 @@
     <insert id="insertBlacklist" parameterType="kr.or.ddit.finalProject.dto.student.StudentBlackListDto">
         INSERT INTO STUDENT_BLACK_LIST
             (STD_USER_ID, BLKLST_STRT_DT, BLKLST_END_DT,
-             BLKLST_LVL_CD, BLKLST_CTGR_CD, BLKLST_MNGR_USER_ID, BLKLST_ACTN_CN, BLKLST_RSN_CN)
+             BLKLST_LVL_CD, BLKLST_CTGR_CD, BLKLST_ACTN_CN, BLKLST_RSN_CN)
         VALUES
             (#{stdUserId}, SYSTIMESTAMP, <include refid="endDtExpr"/>,
-             #{blklstLvlCd}, #{blklstCtgrCd}, #{blklstMngrUserId}, #{blklstActnCn}, #{blklstRsnCn})
+             #{blklstLvlCd}, #{blklstCtgrCd}, #{blklstActnCn}, #{blklstRsnCn})
     </insert>
 
     <!-- 재등록: 시작/종료일 갱신 + 속성 갱신 (재활성) -->
@@ -161,7 +158,6 @@
             BLKLST_END_DT       = <include refid="endDtExpr"/>,
             BLKLST_LVL_CD       = #{blklstLvlCd},
             BLKLST_CTGR_CD      = #{blklstCtgrCd},
-            BLKLST_MNGR_USER_ID = #{blklstMngrUserId},
             BLKLST_ACTN_CN      = #{blklstActnCn},
             BLKLST_RSN_CN       = #{blklstRsnCn}
         WHERE STD_USER_ID = #{stdUserId}
@@ -171,7 +167,6 @@
     <update id="updateBlacklist" parameterType="kr.or.ddit.finalProject.dto.student.StudentBlackListDto">
         UPDATE STUDENT_BLACK_LIST
         SET BLKLST_CTGR_CD      = #{blklstCtgrCd},
-            BLKLST_MNGR_USER_ID = #{blklstMngrUserId},
             BLKLST_ACTN_CN      = #{blklstActnCn},
             BLKLST_RSN_CN       = #{blklstRsnCn}
         WHERE STD_USER_ID = #{stdUserId}
@@ -195,12 +190,30 @@
           AND (BLKLST_END_DT IS NULL OR BLKLST_END_DT &gt; SYSTIMESTAMP)
     </select>
 
+    <!-- 현재 적용 중인 정지의 종료일 (NULL = 영구) -->
+    <select id="selectActiveBlockEndDt" resultType="java.time.LocalDateTime">
+        SELECT BLKLST_END_DT
+        FROM STUDENT_BLACK_LIST
+        WHERE STD_USER_ID = #{userId}
+          AND TRIM(BLKLST_LVL_CD) = '01'
+          AND (BLKLST_END_DT IS NULL OR BLKLST_END_DT &gt; SYSTIMESTAMP)
+    </select>
+
     <!-- 누적 위반 횟수: 이력의 위반 이벤트(경고/정지/영구) 수 -->
     <select id="countOffenses" resultType="int">
         SELECT COUNT(*)
         FROM STUDENT_BLACK_LIST_HISTORY
         WHERE BLKLST_STD_USER_ID = #{userId}
           AND TRIM(BLKLST_EVT_CD) IN ('WARN', 'SUSP', 'PERM')
+    </select>
+
+    <!-- 학생의 수강중('01') 클래스룸명 (콤마 결합) -->
+    <select id="selectStudentClassNames" resultType="string">
+        SELECT LISTAGG(cl.CLASS_NM, ', ') WITHIN GROUP (ORDER BY cl.CLASS_NM)
+        FROM CLASSROOM_MEMBER cm
+        JOIN CLASSROOM cl ON cl.CLASS_SN = cm.CLASS_SN
+        WHERE cm.USER_ID = #{userId}
+          AND cm.ENRL_STAT_CD = '01'
     </select>
 
     <!-- 이력 적재 -->
