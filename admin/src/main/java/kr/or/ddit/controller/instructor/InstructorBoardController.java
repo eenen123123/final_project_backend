@@ -1,5 +1,6 @@
 package kr.or.ddit.controller.instructor;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.jsoup.Jsoup;
@@ -19,9 +20,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.or.ddit.finalProject.dto.common.CommonCodeDto;
+import kr.or.ddit.finalProject.dto.instructor.board.BoardType;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardResponse;
-import kr.or.ddit.finalProject.mapper.common.CommonCodeMapper;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 public class InstructorBoardController {
 
     private final InstructorBoardService instructorBoardService;
-    private final CommonCodeMapper commonCodeMapper;
 
     /**
      * 강사 게시판 목록 조회
@@ -74,8 +74,9 @@ public class InstructorBoardController {
     @GetMapping("/boardTypes")
     @ResponseBody
     public List<CommonCodeDto> getBoardTypes() {
-        return commonCodeMapper.selectByClCode("100").stream()
-                .filter(c -> !"01".equals(c.getComCd())).toList();
+        return Arrays.stream(BoardType.values())
+                .map(t -> { CommonCodeDto dto = new CommonCodeDto(); dto.setComCd(t.name()); dto.setComCdNm(t.getLabel()); return dto; })
+                .toList();
     }
 
     /**
@@ -86,7 +87,11 @@ public class InstructorBoardController {
      * @return
      */
     @GetMapping("/detail/{postSn}")
-    public String getBoardDetail(@PathVariable Long postSn, Model model) {
+    public String getBoardDetail(@PathVariable Long postSn,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "") String boardTypeCd,
+            Model model) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         InstructorBoardResponse board =
                 instructorBoardService.getInstructorBoardDetail(postSn, userId);
@@ -95,6 +100,9 @@ public class InstructorBoardController {
         }
         board.setContent(sanitize(board.getContent()));
         model.addAttribute("board", board);
+        model.addAttribute("listPage", page);
+        model.addAttribute("listKeyword", keyword);
+        model.addAttribute("listBoardTypeCd", boardTypeCd);
         return "admin:/instructor/board/detail";
     }
 
@@ -157,7 +165,11 @@ public class InstructorBoardController {
      * @return
      */
     @GetMapping("/updateForm/{postSn}")
-    public String getUpdateForm(@PathVariable Long postSn, Model model) {
+    public String getUpdateForm(@PathVariable Long postSn,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "") String boardTypeCd,
+            Model model) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         InstructorBoardResponse responseDto =
                 instructorBoardService.getInstructorBoardDetail(postSn, userId);
@@ -169,6 +181,9 @@ public class InstructorBoardController {
                 .postCn(sanitize(responseDto.getContent())).build();
         model.addAttribute("board", board);
         model.addAttribute("boardTypes", getBoardTypes());
+        model.addAttribute("listPage", page);
+        model.addAttribute("listKeyword", keyword);
+        model.addAttribute("listBoardTypeCd", boardTypeCd);
         return "admin:/instructor/board/insertForm";
     }
 

@@ -19,7 +19,6 @@
             <result property="lastMdfrId" column="LAST_MDFR_ID"/>
 
             <result property="useYn" column="USE_YN"/>
-            <result property="boardTypeNm" column="BOARD_TYPE_NM"/>
 
             <association property="memberDto" javaType="kr.or.ddit.finalProject.dto.member.MemberDto">
                   <result property="userName" column="USER_NAME"/>
@@ -43,7 +42,6 @@
                   , IB.WRTR_USER_ID
                   , IB.BOARD_TYPE_CD
                   , IB.POST_SJ
-                  , IB.POST_CN
                   , IB.INQ_CNT
                   , IB.ATCH_FILE_ID
                   , IB.REG_DT
@@ -52,10 +50,8 @@
                   , IB.LAST_MDFR_ID
                   , IB.USE_YN
                   , M.USER_NAME
-                  , C.COM_CD_NM AS BOARD_TYPE_NM
             FROM INSTRUCTOR_BOARD IB
                   INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
-                  LEFT JOIN COM_CD C ON C.CL_CODE = '100' AND C.COM_CD = IB.BOARD_TYPE_CD AND C.USE_YN = 'Y'
             <include refid="boardListWhere"/>
             ORDER BY IB.REG_DT DESC
             OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
@@ -82,10 +78,8 @@
                   , IB.LAST_MDFR_ID
                   , IB.USE_YN
                   , M.USER_NAME
-                  , C.COM_CD_NM AS BOARD_TYPE_NM
             FROM INSTRUCTOR_BOARD IB
                   INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
-                  LEFT JOIN COM_CD C ON C.CL_CODE = '100' AND C.COM_CD = IB.BOARD_TYPE_CD AND C.USE_YN = 'Y'
             WHERE IB.POST_SN = #{postSn}
                   AND IB.INSTR_USER_ID = #{instrUserId}
       </select>
@@ -157,7 +151,7 @@
             FROM INSTRUCTOR_BOARD IB
                   INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
             WHERE IB.CLASS_SN      = #{classSn}
-              AND IB.BOARD_TYPE_CD = '02'
+              AND IB.BOARD_TYPE_CD = 'NOTICE'
               AND IB.USE_YN        = 'Y'
             ORDER BY IB.REG_DT DESC
       </select>
@@ -181,7 +175,7 @@
                   CLASS_SN, POST_SJ, POST_CN,
                   INQ_CNT, USE_YN, REG_DT, MDFCN_DT, RGTR_ID, LAST_MDFR_ID
             ) VALUES (
-                  #{instrUserId}, #{wrtrUserId}, '02',
+                  #{instrUserId}, #{wrtrUserId}, 'NOTICE',
                   #{classSn}, #{postSj}, #{postCn},
                   0, 'Y', SYSDATE, SYSDATE, #{wrtrUserId}, #{wrtrUserId}
             )
@@ -217,7 +211,7 @@
                   INNER JOIN MEMBER M  ON IB.WRTR_USER_ID = M.USER_ID
                   LEFT  JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
             WHERE IB.CLASS_SN      = #{classSn}
-              AND IB.BOARD_TYPE_CD = '03'
+              AND IB.BOARD_TYPE_CD = 'QNA'
               AND IB.USE_YN        = 'Y'
             ORDER BY IB.REG_DT DESC
       </select>
@@ -246,7 +240,7 @@
                   CLASS_SN, POST_SJ, POST_CN,
                   INQ_CNT, USE_YN, REG_DT, MDFCN_DT, RGTR_ID, LAST_MDFR_ID
             ) VALUES (
-                  #{instrUserId}, #{wrtrUserId}, '03',
+                  #{instrUserId}, #{wrtrUserId}, 'QNA',
                   #{classSn}, #{postSj}, #{postCn},
                   0, 'Y', SYSDATE, SYSDATE, #{wrtrUserId}, #{wrtrUserId}
             )
@@ -274,15 +268,11 @@
                         IB.POST_SN AS postSn,
                         IB.POST_SJ AS title,
                         IB.REG_DT  AS regDt,
-                        CASE IB.BOARD_TYPE_CD
-                              WHEN '02' THEN 'notice'
-                              WHEN '03' THEN 'qna'
-                              WHEN '04' THEN 'dataroom'
-                        END        AS boardType
+                        LOWER(IB.BOARD_TYPE_CD) AS boardType
                   FROM INSTRUCTOR_BOARD IB
                   JOIN INSTRUCTOR I ON I.INSTR_USER_ID = IB.INSTR_USER_ID
                   WHERE I.INSTR_UUID      = #{instrUuid}
-                    AND IB.BOARD_TYPE_CD  IN ('02', '03', '04')
+                    AND IB.BOARD_TYPE_CD  IN ('NOTICE', 'QNA', 'DATAROOM')
                     AND IB.CLASS_SN       IS NULL
                     AND IB.USE_YN         = 'Y'
                   ORDER BY IB.REG_DT DESC
@@ -323,7 +313,7 @@
             FROM INSTRUCTOR_BOARD IB
                  INNER JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
             WHERE IB.CLASS_SN      = #{classSn}
-              AND IB.BOARD_TYPE_CD = '03'
+              AND IB.BOARD_TYPE_CD = 'QNA'
               AND IB.USE_YN        = 'Y'
               AND IQ.ANSW_YN       = 'N'
       </select>
@@ -382,14 +372,14 @@
             SELECT COUNT(*)
             FROM INSTRUCTOR_BOARD IB
                   INNER JOIN INSTRUCTOR I ON IB.INSTR_USER_ID = I.INSTR_USER_ID
-                  <if test="'03'.equals(boardTypeCd)">
+                  <if test="'QNA'.equals(boardTypeCd)">
                   LEFT JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
                   </if>
             WHERE I.INSTR_UUID     = #{instrUuid}
               AND IB.BOARD_TYPE_CD = #{boardTypeCd}
               AND IB.CLASS_SN      IS NULL
               AND IB.USE_YN        = 'Y'
-              <if test="'03'.equals(boardTypeCd)">
+              <if test="'QNA'.equals(boardTypeCd)">
               AND IQ.SECR_YN = 'N'
               </if>
       </select>
@@ -413,7 +403,7 @@
               AND IB.BOARD_TYPE_CD = #{boardTypeCd}
               AND IB.CLASS_SN      IS NULL
               AND IB.USE_YN        = 'Y'
-              <if test="'03'.equals(boardTypeCd)">
+              <if test="'QNA'.equals(boardTypeCd)">
               AND IQ.SECR_YN = 'N'
               </if>
             ORDER BY IB.REG_DT DESC

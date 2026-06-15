@@ -44,7 +44,7 @@
 
 <div class="board-list">
   <div class="board-list-header">
-    <span>번호</span><span>분류</span><span>제목</span><span>작성자</span><span>등록일</span>
+    <span>번호</span><span>분류</span><span>제목</span><span>조회</span><span>작성자</span><span>등록일</span>
   </div>
 
   <!-- 빈 목록 -->
@@ -55,18 +55,19 @@
   </div>
 
   <!-- 게시글 목록 -->
-  <a th:each="board : ${boardList}" th:href="@{/instructor/board/detail/{sn}(sn=${board.postSn})}"
+  <a th:each="board : ${boardList}" th:href="@{/instructor/board/detail/{sn}(sn=${board.postSn}, page=${currentPage}, keyword=${keyword}, boardTypeCd=${boardTypeCd})}"
     th:classappend="${board.useYn == 'N'} ? ' deleted'" class="board-item">
     <span class="board-item-no" th:text="${board.postSn}"></span>
     <span>
-      <span th:if="${board.boardTypeCd == '02'}" class="badge badge-notice" th:text="${board.boardTypeNm}"></span>
-      <span th:if="${board.boardTypeCd == '03'}" class="badge badge-qna" th:text="${board.boardTypeNm}"></span>
-      <span th:if="${board.boardTypeCd == '04'}" class="badge badge-dataroom" th:text="${board.boardTypeNm}"></span>
+      <span th:if="${board.boardTypeCd == 'NOTICE'}" class="badge badge-notice" th:text="${board.boardTypeNm}"></span>
+      <span th:if="${board.boardTypeCd == 'QNA'}" class="badge badge-qna" th:text="${board.boardTypeNm}"></span>
+      <span th:if="${board.boardTypeCd == 'DATAROOM'}" class="badge badge-dataroom" th:text="${board.boardTypeNm}"></span>
     </span>
     <span class="board-item-title">
       <span th:if="${board.useYn == 'N'}" class="deleted-tag">삭제됨</span>
       <span th:classappend="${board.useYn == 'N'} ? ' strikethrough'" th:text="${board.title}"></span>
     </span>
+    <span class="board-item-no" th:text="${board.inqCnt != null ? board.inqCnt : 0}"></span>
     <span class="board-item-author" th:text="${board.userName}"></span>
     <span class="board-item-date" th:text="${board.regDt}"></span>
   </a>

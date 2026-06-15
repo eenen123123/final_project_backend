@@ -21,8 +21,7 @@ public class InstructorBoardDto implements Serializable {
     private String instrUserId;
     private String wrtrUserId; // MEMBER.USER_ID 참조
 
-    @Size(max = 10)
-    private String boardTypeCd; // COM_CD 공통코드 참조
+    private String boardTypeCd; // BoardType enum name (NOTICE / QNA / DATAROOM)
 
     @NotBlank
     @Size(max = 100, message = "제목은 100자를 초과할 수 없습니다.")

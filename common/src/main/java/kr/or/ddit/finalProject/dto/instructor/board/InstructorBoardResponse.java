@@ -23,6 +23,7 @@ public class InstructorBoardResponse implements Serializable {
     private String userName; // 작성자 이름
     private String title; // 게시글 제목
     private String content; // 게시글 내용
+    private Long inqCnt; // 조회수
     private String regDt; // 게시글 등록일
     private String mdfcnDt; // 게시글 수정일
     private String atchFileId; // 첨부파일 ID

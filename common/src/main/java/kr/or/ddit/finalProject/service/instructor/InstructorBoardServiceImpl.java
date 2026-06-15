@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.dto.instructor.board.BoardType;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardResponse;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorPublicBoardDetail;
@@ -38,10 +39,11 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
                     responseDto.setPostSn(dto.getPostSn());
                     responseDto.setUseYn(dto.getUseYn());
                     responseDto.setBoardTypeCd(dto.getBoardTypeCd());
-                    responseDto.setBoardTypeNm(dto.getBoardTypeNm());
+                    responseDto.setBoardTypeNm(resolveBoardTypeNm(dto.getBoardTypeCd()));
                     responseDto.setUserName(userName);
                     responseDto.setTitle(dto.getPostSj());
                     responseDto.setContent(dto.getPostCn());
+                    responseDto.setInqCnt(dto.getInqCnt());
                     responseDto.setRegDt(dto.getRegDt() != null ? dto.getRegDt().format(formatter) : null);
                     responseDto.setMdfcnDt(dto.getMdfcnDt() != null ? dto.getMdfcnDt().format(formatter) : null);
                     responseDto.setAtchFileId(dto.getAtchFileId() != null ? dto.getAtchFileId().toString() : null);
@@ -63,16 +65,17 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
                 .postSn(original.getPostSn())
                 .useYn(original.getUseYn())
                 .boardTypeCd(original.getBoardTypeCd())
-                .boardTypeNm(original.getBoardTypeNm())
+                .boardTypeNm(resolveBoardTypeNm(original.getBoardTypeCd()))
                 .userName(userName)
                 .title(original.getPostSj())
                 .content(original.getPostCn())
+                .inqCnt(original.getInqCnt())
                 .regDt(original.getRegDt() != null ? original.getRegDt().format(formatter) : null)
                 .mdfcnDt(original.getMdfcnDt() != null ? original.getMdfcnDt().format(formatter) : null)
                 .atchFileId(original.getAtchFileId() != null ? original.getAtchFileId().toString() : null)
                 .build();
 
-        if ("03".equals(original.getBoardTypeCd())) {
+        if ("QNA".equals(original.getBoardTypeCd())) {
             response.setAnswer(instructorBoardMapper.selectInstructorQnaAnswer(original.getPostSn()));
         }
 
@@ -84,7 +87,7 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     public int insertInstructorBoard(InstructorBoardDto instructorBoardDto) {
         int rowcnt = instructorBoardMapper.insertInstructorBoard(instructorBoardDto);
         if (rowcnt > 0) {
-            if ("03".equals(instructorBoardDto.getBoardTypeCd())) {
+            if ("QNA".equals(instructorBoardDto.getBoardTypeCd())) {
                 instructorBoardMapper.insertInstructorQna(instructorBoardDto.getPostSn());
             }
             log.info("게시글 등록 성공 : {}", instructorBoardDto);
@@ -128,7 +131,7 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
 
     @Override
     public int insertClassroomNotice(InstructorBoardDto dto) {
-        dto.setBoardTypeCd("02");
+        dto.setBoardTypeCd("NOTICE");
         return instructorBoardMapper.insertClassroomNotice(dto);
     }
 
@@ -150,7 +153,7 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
 
     @Override
     public void insertClassroomQna(InstructorBoardDto dto) {
-        dto.setBoardTypeCd("03");
+        dto.setBoardTypeCd("QNA");
         instructorBoardMapper.insertClassroomQnaBoard(dto);
         instructorBoardMapper.insertClassroomQnaChild(dto.getPostSn());
     }
@@ -181,6 +184,11 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
         List<InstructorPublicBoardItem> items
                 = instructorBoardMapper.selectPublicBoardList(instrUuid, boardTypeCd, offset, size);
         return new PageResponse<>(items, total);
+    }
+
+    private static String resolveBoardTypeNm(String boardTypeCd) {
+        if (boardTypeCd == null) return "";
+        try { return BoardType.valueOf(boardTypeCd).getLabel(); } catch (IllegalArgumentException e) { return boardTypeCd; }
     }
 
     @Override
