@@ -373,6 +373,7 @@
                 , CASE WHEN c.REG_DT >= ADD_MONTHS(SYSDATE, -1) THEN 1 ELSE 0 END AS IS_NEW
                 , 1 AS IS_BEST
                 , i.INSTR_PROFILE_IMG
+                , i.INSTR_UUID
         from course c
         inner join subject s on c.SUBJ_ID = s.SUBJ_ID
         inner join member m on c.INSTR_USER_ID = m.USER_ID
