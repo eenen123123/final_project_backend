@@ -2,6 +2,7 @@ package kr.or.ddit.finalProject.dto.subject;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,4 +22,6 @@ public class SubjectClassificationDto implements Serializable {
     private String lastMdfrId;
     private LocalDateTime regDt;
     private LocalDateTime mdfcnDt;
+
+    private List<SubjectDto> subjects; // 해당 분류에 속한 과목 목록
 }

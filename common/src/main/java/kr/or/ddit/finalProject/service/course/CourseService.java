@@ -102,4 +102,9 @@ public interface CourseService {
      * 강사 UUID와 강좌 일련번호로 공개 강좌 상세 정보(강의 목록 포함)를 조회한다.
      */
     CourseDetailResponse retrievePublicCourseDetail(String instrUuid, Long courseSn);
+
+    /**
+     * 과목 분류 목록과 각 분류에 속한 과목 목록을 함께 조회한다.
+     */
+    List<SubjectClassificationDto> retrieveSubjectClassificationListWithSubjects();
 }
