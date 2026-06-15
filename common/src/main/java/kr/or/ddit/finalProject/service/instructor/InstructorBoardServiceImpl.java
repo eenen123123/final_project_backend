@@ -24,29 +24,31 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     private final InstructorBoardMapper instructorBoardMapper;
 
     @Override
-    public List<InstructorBoardResponse> getInstructorBoardList(String instrUserId) {
-        List<InstructorBoardDto> original = instructorBoardMapper.selectInstructorBoardList(instrUserId);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        List<InstructorBoardResponse> response
-                = original.stream()
-                        .map(dto -> {
-                            String userName = dto.getMemberDto() != null ? dto.getMemberDto().getUserName() : "";
-                            InstructorBoardResponse responseDto = new InstructorBoardResponse();
-                            responseDto.setPostSn(dto.getPostSn());
-                            responseDto.setUseYn(dto.getUseYn());
-                            responseDto.setBoardTypeCd(dto.getBoardTypeCd());
-                            responseDto.setBoardTypeNm(dto.getBoardTypeNm());
-                            responseDto.setUserName(userName);
-                            responseDto.setTitle(dto.getPostSj());
-                            responseDto.setContent(dto.getPostCn());
-                            responseDto.setRegDt(dto.getRegDt() != null ? dto.getRegDt().format(formatter) : null);
-                            responseDto.setMdfcnDt(dto.getMdfcnDt() != null ? dto.getMdfcnDt().format(formatter) : null);
-                            responseDto.setAtchFileId(dto.getAtchFileId() != null ? dto.getAtchFileId().toString() : null);
-                            return responseDto;
-                        })
-                        .toList();
-        log.info("게시글 목록 조회 : {}", response);
-        return response;
+    public PageResponse<InstructorBoardResponse> getInstructorBoardList(
+            String instrUserId, String keyword, String boardTypeCd, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        int totalCount = instructorBoardMapper.selectInstructorBoardCount(instrUserId, keyword, boardTypeCd);
+        List<InstructorBoardDto> original = instructorBoardMapper.selectInstructorBoardList(
+                instrUserId, keyword, boardTypeCd, offset, pageSize);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        List<InstructorBoardResponse> items = original.stream()
+                .map(dto -> {
+                    String userName = dto.getMemberDto() != null ? dto.getMemberDto().getUserName() : "";
+                    InstructorBoardResponse responseDto = new InstructorBoardResponse();
+                    responseDto.setPostSn(dto.getPostSn());
+                    responseDto.setUseYn(dto.getUseYn());
+                    responseDto.setBoardTypeCd(dto.getBoardTypeCd());
+                    responseDto.setBoardTypeNm(dto.getBoardTypeNm());
+                    responseDto.setUserName(userName);
+                    responseDto.setTitle(dto.getPostSj());
+                    responseDto.setContent(dto.getPostCn());
+                    responseDto.setRegDt(dto.getRegDt() != null ? dto.getRegDt().format(formatter) : null);
+                    responseDto.setMdfcnDt(dto.getMdfcnDt() != null ? dto.getMdfcnDt().format(formatter) : null);
+                    responseDto.setAtchFileId(dto.getAtchFileId() != null ? dto.getAtchFileId().toString() : null);
+                    return responseDto;
+                })
+                .toList();
+        return new PageResponse<>(items, totalCount);
     }
 
     @Override

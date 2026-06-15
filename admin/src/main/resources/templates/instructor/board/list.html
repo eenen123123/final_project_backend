@@ -1,106 +1,105 @@
-<div class="p-6">
-  <!-- 페이지 헤더 -->
-  <div class="mb-6 flex items-center justify-between">
+<link rel="stylesheet" th:href="@{/css/instructor/board.css}" />
+
+<!-- 페이지 헤더 -->
+<div class="flex items-center justify-between mb-6">
+  <div class="flex items-center gap-2">
+    <div class="w-1 h-7 rounded-full bg-sky-500"></div>
     <div>
       <h1 class="text-2xl font-bold text-slate-800">강사 게시판</h1>
-      <p class="mt-1 text-sm text-slate-500">
-        강의 관련 공지 및 문의사항을 확인합니다.
-      </p>
+      <p class="text-sm text-slate-500 mt-0.5">공지사항, 질문, 자료를 관리합니다.</p>
     </div>
-    <a
-      href="/instructor/board/insertForm"
-      class="hm-btn-primary hm-btn-sky text-base"
-    >
-      <i class="fa-solid fa-pen-to-square"></i>
-      글쓰기
+  </div>
+  <a href="/instructor/board/insertForm" class="hm-btn-primary hm-btn-sky">
+    <i class="fa-solid fa-pen-to-square"></i>글쓰기
+  </a>
+</div>
+
+<!-- 필터 + 목록 -->
+<div class="board-filter">
+  <form method="get" action="/instructor/board/list"
+        style="display:contents;">
+    <select name="boardTypeCd" class="hm-input hm-input-sky" style="width:auto; min-width:110px;">
+      <option value="" th:selected="${boardTypeCd == ''}">전체 분류</option>
+      <option th:each="type : ${boardTypes}"
+              th:value="${type.comCd}"
+              th:text="${type.comCdNm}"
+              th:selected="${type.comCd == boardTypeCd}"></option>
+    </select>
+    <input type="text" name="keyword" th:value="${keyword}"
+           placeholder="제목으로 검색"
+           class="hm-input hm-input-sky" style="width:220px;" />
+    <button type="submit" class="hm-btn-primary hm-btn-sky">
+      <i class="fa-solid fa-magnifying-glass"></i>검색
+    </button>
+    <a th:if="${keyword != '' or boardTypeCd != ''}"
+       href="/instructor/board/list"
+       class="btn-filter-reset">
+      <i class="fa-solid fa-xmark mr-0.5"></i>초기화
     </a>
+    <span class="board-filter-count">
+      전체 <strong th:text="${totalCount}">0</strong>건<th:block
+        th:if="${keyword != '' or boardTypeCd != ''}"> · 검색 결과</th:block>
+    </span>
+  </form>
+</div>
+
+<div class="board-list">
+  <div class="board-list-header">
+    <span>번호</span><span>분류</span><span>제목</span><span>작성자</span><span>등록일</span>
   </div>
 
-  <!-- 게시글 테이블 -->
-  <div
-    class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
-  >
-    <table class="w-full text-base">
-      <thead>
-        <tr class="border-b border-slate-200 bg-slate-50">
-          <th
-            class="w-24 px-6 py-4 text-left text-sm font-semibold text-slate-500"
-          >
-            번호
-          </th>
-          <th
-            class="w-28 px-6 py-4 text-left text-sm font-semibold text-slate-500"
-          >
-            분류
-          </th>
-          <th class="px-6 py-4 text-left text-sm font-semibold text-slate-500">
-            제목
-          </th>
-          <th
-            class="w-36 px-6 py-4 text-left text-sm font-semibold text-slate-500"
-          >
-            작성자
-          </th>
-          <th
-            class="w-40 px-6 py-4 text-left text-sm font-semibold text-slate-500"
-          >
-            등록일
-          </th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-slate-100">
-        <tr
-          th:each="board : ${boardList}"
-          th:with="detailUrl=@{/instructor/board/detail/{postSn}(postSn=${board.postSn})}"
-          th:classappend="${board.useYn == 'N'} ? 'opacity-50' : 'hover:bg-sky-50'"
-          class="transition-colors"
-        >
-          <td class="text-base text-slate-400">
-            <a
-              th:href="${detailUrl}"
-              class="block px-6 py-4"
-              th:text="${board.postSn}"
-            ></a>
-          </td>
-          <td class="text-base">
-            <a th:href="${detailUrl}" class="block px-6 py-4">
-              <span th:if="${board.boardTypeCd == '02'}" class="inline-block rounded-full bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-700"    th:text="${board.boardTypeNm}"></span>
-              <span th:if="${board.boardTypeCd == '03'}" class="inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700"  th:text="${board.boardTypeNm}"></span>
-              <span th:if="${board.boardTypeCd == '04'}" class="inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700" th:text="${board.boardTypeNm}"></span>
-            </a>
-          </td>
-          <td class="text-base font-medium text-slate-800">
-            <a th:href="${detailUrl}" class="block px-6 py-4">
-              <span th:if="${board.useYn == 'N'}" class="mr-1 inline-block rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-500">삭제됨</span>
-              <span th:classappend="${board.useYn == 'N'} ? 'line-through text-slate-400'" th:text="${board.title}"></span>
-            </a>
-          </td>
-          <td class="text-base text-slate-600">
-            <a
-              th:href="${detailUrl}"
-              class="block px-6 py-4"
-              th:text="${board.userName}"
-            ></a>
-          </td>
-          <td class="text-base text-slate-500">
-            <a
-              th:href="${detailUrl}"
-              class="block px-6 py-4"
-              th:text="${board.regDt}"
-            ></a>
-          </td>
-        </tr>
-        <!-- 게시글이 없을 때 -->
-        <tr th:if="${#lists.isEmpty(boardList)}">
-          <td
-            colspan="5"
-            class="px-6 py-16 text-center text-base text-slate-400"
-          >
-            <i class="fa-regular fa-folder-open mb-2 block text-3xl"></i>
-            등록된 게시글이 없습니다.
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <!-- 빈 목록 -->
+  <div th:if="${#lists.isEmpty(boardList)}" class="board-empty">
+    <i class="fa-regular fa-folder-open"></i>
+    <p th:if="${keyword != '' or boardTypeCd != ''}">검색 결과가 없습니다.</p>
+    <p th:unless="${keyword != '' or boardTypeCd != ''}">등록된 게시글이 없습니다.</p>
   </div>
+
+  <!-- 게시글 목록 -->
+  <a th:each="board : ${boardList}"
+     th:href="@{/instructor/board/detail/{sn}(sn=${board.postSn})}"
+     th:classappend="${board.useYn == 'N'} ? ' deleted'"
+     class="board-item">
+    <span class="board-item-no"     th:text="${board.postSn}"></span>
+    <span>
+      <span th:if="${board.boardTypeCd == '02'}" class="badge badge-notice"   th:text="${board.boardTypeNm}"></span>
+      <span th:if="${board.boardTypeCd == '03'}" class="badge badge-qna"      th:text="${board.boardTypeNm}"></span>
+      <span th:if="${board.boardTypeCd == '04'}" class="badge badge-dataroom" th:text="${board.boardTypeNm}"></span>
+    </span>
+    <span class="board-item-title">
+      <span th:if="${board.useYn == 'N'}" class="deleted-tag">삭제됨</span>
+      <span th:classappend="${board.useYn == 'N'} ? ' strikethrough'" th:text="${board.title}"></span>
+    </span>
+    <span class="board-item-author" th:text="${board.userName}"></span>
+    <span class="board-item-date"   th:text="${board.regDt}"></span>
+  </a>
+</div>
+
+<!-- 페이지네이션 -->
+<div th:if="${totalPages > 1}" class="board-pagination">
+  <a th:if="${currentPage > 1}"
+     th:href="@{/instructor/board/list(page=${currentPage - 1}, keyword=${keyword}, boardTypeCd=${boardTypeCd})}">
+    <i class="fa-solid fa-chevron-left text-xs"></i>
+  </a>
+  <span th:unless="${currentPage > 1}" class="disabled">
+    <i class="fa-solid fa-chevron-left text-xs"></i>
+  </span>
+
+  <th:block th:with="startPage=${T(java.lang.Math).max(1, currentPage - 2)},
+                     endPage=${T(java.lang.Math).min(totalPages, currentPage + 2)}">
+    <th:block th:each="p : ${#numbers.sequence(startPage, endPage)}">
+      <a th:if="${p != currentPage}"
+         th:href="@{/instructor/board/list(page=${p}, keyword=${keyword}, boardTypeCd=${boardTypeCd})}"
+         th:text="${p}"></a>
+      <span th:if="${p == currentPage}" class="current" th:text="${p}"></span>
+    </th:block>
+  </th:block>
+
+  <a th:if="${currentPage < totalPages}"
+     th:href="@{/instructor/board/list(page=${currentPage + 1}, keyword=${keyword}, boardTypeCd=${boardTypeCd})}">
+    <i class="fa-solid fa-chevron-right text-xs"></i>
+  </a>
+  <span th:unless="${currentPage < totalPages}" class="disabled">
+    <i class="fa-solid fa-chevron-right text-xs"></i>
+  </span>
 </div>

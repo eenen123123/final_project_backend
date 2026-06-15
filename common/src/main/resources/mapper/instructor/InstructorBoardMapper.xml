@@ -26,6 +26,16 @@
             </association>
       </resultMap>
 
+      <sql id="boardListWhere">
+            WHERE IB.INSTR_USER_ID = #{instrUserId}
+            <if test="boardTypeCd != null and boardTypeCd != ''">
+                  AND IB.BOARD_TYPE_CD = #{boardTypeCd}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                  AND UPPER(IB.POST_SJ) LIKE '%' || UPPER(#{keyword}) || '%'
+            </if>
+      </sql>
+
       <select id="selectInstructorBoardList" resultMap="instructorBoardMap">
             SELECT
                   IB.POST_SN
@@ -46,8 +56,15 @@
             FROM INSTRUCTOR_BOARD IB
                   INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
                   LEFT JOIN COM_CD C ON C.CL_CODE = '100' AND C.COM_CD = IB.BOARD_TYPE_CD AND C.USE_YN = 'Y'
-            WHERE IB.INSTR_USER_ID = #{instrUserId}
+            <include refid="boardListWhere"/>
             ORDER BY IB.REG_DT DESC
+            OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+      </select>
+
+      <select id="selectInstructorBoardCount" resultType="int">
+            SELECT COUNT(*)
+            FROM INSTRUCTOR_BOARD IB
+            <include refid="boardListWhere"/>
       </select>
 
       <select id="selectInstructorBoardDetail" resultMap="instructorBoardMap">

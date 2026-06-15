@@ -44,13 +44,25 @@ public class InstructorBoardController {
      * @param model
      * @return
      */
+    private static final int PAGE_SIZE = 10;
+
     @GetMapping("/list")
-    public String getBoardList(Model model) {
+    public String getBoardList(
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "") String boardTypeCd,
+            @RequestParam(defaultValue = "1") int page,
+            Model model) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        log.info("유저아이디 : {}", userId);
-        List<InstructorBoardResponse> boardList =
-                instructorBoardService.getInstructorBoardList(userId);
-        model.addAttribute("boardList", boardList);
+        if (page < 1) page = 1;
+        var result = instructorBoardService.getInstructorBoardList(userId, keyword, boardTypeCd, page, PAGE_SIZE);
+        int totalPages = (int) Math.ceil((double) result.getTotalCount() / PAGE_SIZE);
+        model.addAttribute("boardList", result.getItems());
+        model.addAttribute("totalCount", result.getTotalCount());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", Math.max(totalPages, 1));
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("boardTypeCd", boardTypeCd);
+        model.addAttribute("boardTypes", getBoardTypes());
         return "admin:/instructor/board/list";
     }
 
