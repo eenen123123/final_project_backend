@@ -29,16 +29,8 @@
         JOIN MEMBER m ON j.INSTR_USER_ID = m.USER_ID
     </sql>
 
-    <!-- ──────────────────────────────────────────────────────── -->
-    <!-- 일지 목록 조회 (검색 필터 통합)                         -->
-    <!--   instrUserId null → 전체 강사 (뷰어용)                 -->
-    <!--   instrUserId 있음 → 해당 강사 본인 일지만              -->
-    <!--   keyword / fromDt / toDt → 선택적 필터                 -->
-    <!-- ──────────────────────────────────────────────────────── -->
-    <select id="selectJournalList"
-            resultType="kr.or.ddit.finalProject.dto.instructor.journal.InstructorJournalDto">
-        SELECT <include refid="journalColumns"/>
-        <include refid="journalFrom"/>
+    <!-- 공통 WHERE 조건 (목록 조회 / 카운트 공유) -->
+    <sql id="journalWhere">
         WHERE 1=1
         <if test="instrUserId != null">
             AND j.INSTR_USER_ID = #{instrUserId}
@@ -52,7 +44,29 @@
         <if test="toDt != null and toDt != ''">
             AND j.JRNL_DT &lt;= TO_DATE(#{toDt}, 'YYYY-MM-DD')
         </if>
+    </sql>
+
+    <!-- ──────────────────────────────────────────────────────── -->
+    <!-- 일지 목록 조회 (검색 필터 + 페이지네이션)               -->
+    <!--   instrUserId null → 전체 강사 (뷰어용)                 -->
+    <!--   offset / pageSize → Oracle OFFSET FETCH 페이징        -->
+    <!-- ──────────────────────────────────────────────────────── -->
+    <select id="selectJournalList"
+            resultType="kr.or.ddit.finalProject.dto.instructor.journal.InstructorJournalDto">
+        SELECT <include refid="journalColumns"/>
+        <include refid="journalFrom"/>
+        <include refid="journalWhere"/>
         ORDER BY j.JRNL_DT DESC, j.JRNL_SN DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+    </select>
+
+    <!-- ──────────────────────────────────────────────────────── -->
+    <!-- 일지 전체 건수 조회 (페이지네이션 총 페이지 계산용)      -->
+    <!-- ──────────────────────────────────────────────────────── -->
+    <select id="selectJournalCount" resultType="int">
+        SELECT COUNT(*)
+        <include refid="journalFrom"/>
+        <include refid="journalWhere"/>
     </select>
 
     <!-- ──────────────────────────────────────────── -->

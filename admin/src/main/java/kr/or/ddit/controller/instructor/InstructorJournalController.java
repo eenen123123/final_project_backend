@@ -61,15 +61,20 @@ public class InstructorJournalController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String fromDt,
             @RequestParam(required = false) String toDt,
+            @RequestParam(required = false, defaultValue = "1") int page,
             Model model,
             Authentication auth) {
 
         String userId    = auth.getName();
         boolean isViewer = isViewer(auth);
 
-        // 좌측 패널: 역할 + 필터 조건에 따라 목록 조회
+        // 좌측 패널: 역할 + 필터 + 페이지에 따라 목록 조회
         List<InstructorJournalDto> journalList =
-                journalService.retrieveJournalList(userId, isViewer, keyword, fromDt, toDt);
+                journalService.retrieveJournalList(userId, isViewer, keyword, fromDt, toDt, page);
+        int totalCount  = journalService.retrieveJournalCount(userId, isViewer, keyword, fromDt, toDt);
+        int totalPages  = (int) Math.ceil((double) totalCount / InstructorJournalService.PAGE_SIZE);
+        if (totalPages < 1) totalPages = 1;
+
         model.addAttribute("journalList", journalList);
         model.addAttribute("isViewer", isViewer);
 
@@ -77,6 +82,11 @@ public class InstructorJournalController {
         model.addAttribute("keyword", keyword != null ? keyword : "");
         model.addAttribute("fromDt",  fromDt  != null ? fromDt  : "");
         model.addAttribute("toDt",    toDt    != null ? toDt    : "");
+
+        // 페이지네이션 정보
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages",  totalPages);
+        model.addAttribute("totalCount",  totalCount);
 
         // 우측 패널 상태 결정
         if (newForm && !isViewer) {

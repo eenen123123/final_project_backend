@@ -15,16 +15,25 @@ import kr.or.ddit.finalProject.dto.instructor.journal.InstructorJournalDto;
  */
 public interface InstructorJournalService {
 
+    int PAGE_SIZE = 15;
+
     /**
-     * 일지 목록 조회 (검색 필터 지원)
+     * 일지 목록 조회 (검색 필터 + 페이지네이션)
      *
      * @param userId   로그인 사용자 ID
      * @param isViewer true이면 수석 강사/원장 → 전체 목록, false이면 본인 목록
      * @param keyword  제목 키워드 (null 또는 빈 문자열이면 전체)
      * @param fromDt   시작일 yyyy-MM-dd (null이면 제한 없음)
      * @param toDt     종료일 yyyy-MM-dd (null이면 제한 없음)
+     * @param page     1-based 페이지 번호
      */
     List<InstructorJournalDto> retrieveJournalList(
+            String userId, boolean isViewer, String keyword, String fromDt, String toDt, int page);
+
+    /**
+     * 일지 전체 건수 조회 (필터 조건 동일하게 적용)
+     */
+    int retrieveJournalCount(
             String userId, boolean isViewer, String keyword, String fromDt, String toDt);
 
     /**

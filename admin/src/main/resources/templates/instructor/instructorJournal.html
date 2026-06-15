@@ -24,6 +24,13 @@
         .btn-filter-reset { font-size: 0.65rem; color: #94a3b8; text-decoration: none; display: block; text-align: right; margin-top: 0.2rem; }
         .btn-filter-reset:hover { color: #64748b; }
 
+        /* ── 페이지네이션 ── */
+        .pagination { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.75rem; border-top: 1px solid #f1f5f9; flex-shrink: 0; }
+        .pagination a, .pagination span { font-size: 0.7rem; color: #64748b; text-decoration: none; padding: 0.2rem 0.4rem; border-radius: 0.25rem; }
+        .pagination a:hover { background: #f0f9ff; color: #0ea5e9; }
+        .pagination .page-info { color: #94a3b8; font-size: 0.68rem; }
+        .pagination .disabled { color: #cbd5e1; pointer-events: none; }
+
         .journal-list { overflow-y: auto; flex: 1; }
         .journal-item { display: block; padding: 0.75rem 1rem; border-bottom: 1px solid #f8fafc; text-decoration: none; transition: background 0.1s; }
         .journal-item:hover { background: #f0f9ff; }
@@ -116,6 +123,28 @@
                     <!-- 뷰어 모드: 목록에서 작성 강사 이름 표시 -->
                     <div th:if="${isViewer}" class="item-author" th:text="${j.instrUserNm}"></div>
                 </a>
+            </div>
+
+            <!-- 페이지네이션 -->
+            <div class="pagination" th:if="${totalPages > 1}">
+                <a th:if="${currentPage > 1}"
+                   th:href="@{/instructor/journals(page=${currentPage - 1}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}">
+                    <i class="fa-solid fa-chevron-left"></i> 이전
+                </a>
+                <span th:unless="${currentPage > 1}" class="disabled">
+                    <i class="fa-solid fa-chevron-left"></i> 이전
+                </span>
+
+                <span class="page-info"
+                      th:text="${currentPage} + ' / ' + ${totalPages} + ' 페이지'"></span>
+
+                <a th:if="${currentPage < totalPages}"
+                   th:href="@{/instructor/journals(page=${currentPage + 1}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}">
+                    다음 <i class="fa-solid fa-chevron-right"></i>
+                </a>
+                <span th:unless="${currentPage < totalPages}" class="disabled">
+                    다음 <i class="fa-solid fa-chevron-right"></i>
+                </span>
             </div>
         </div>
 

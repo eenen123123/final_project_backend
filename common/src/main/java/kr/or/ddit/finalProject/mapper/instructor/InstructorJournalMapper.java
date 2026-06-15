@@ -17,14 +17,27 @@ import kr.or.ddit.finalProject.dto.instructor.journal.InstructorJournalDto;
 public interface InstructorJournalMapper {
 
     /**
-     * 일지 목록 조회 (검색 필터 지원)
+     * 일지 목록 조회 (검색 필터 + 페이지네이션)
      *
      * @param instrUserId null이면 전체 강사 조회 (뷰어용), 값이 있으면 해당 강사만 조회
      * @param keyword     제목 키워드 (null 또는 빈 문자열이면 전체)
      * @param fromDt      시작일 yyyy-MM-dd (null이면 제한 없음)
      * @param toDt        종료일 yyyy-MM-dd (null이면 제한 없음)
+     * @param offset      건너뛸 행 수 (0-based)
+     * @param pageSize    페이지당 조회 건수
      */
     List<InstructorJournalDto> selectJournalList(
+            @Param("instrUserId") String instrUserId,
+            @Param("keyword")     String keyword,
+            @Param("fromDt")      String fromDt,
+            @Param("toDt")        String toDt,
+            @Param("offset")      int offset,
+            @Param("pageSize")    int pageSize);
+
+    /**
+     * 일지 전체 건수 조회 (페이지네이션 총 페이지 계산용)
+     */
+    int selectJournalCount(
             @Param("instrUserId") String instrUserId,
             @Param("keyword")     String keyword,
             @Param("fromDt")      String fromDt,

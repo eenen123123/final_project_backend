@@ -20,11 +20,17 @@ public class InstructorJournalServiceImpl implements InstructorJournalService {
 
     @Override
     public List<InstructorJournalDto> retrieveJournalList(
-            String userId, boolean isViewer, String keyword, String fromDt, String toDt) {
-        // isViewer=true → 전체 강사 일지 (instrUserId=null)
-        // isViewer=false → 본인 일지만 (instrUserId=userId)
+            String userId, boolean isViewer, String keyword, String fromDt, String toDt, int page) {
         String instrUserId = isViewer ? null : userId;
-        return journalMapper.selectJournalList(instrUserId, keyword, fromDt, toDt);
+        int offset = (page - 1) * PAGE_SIZE;
+        return journalMapper.selectJournalList(instrUserId, keyword, fromDt, toDt, offset, PAGE_SIZE);
+    }
+
+    @Override
+    public int retrieveJournalCount(
+            String userId, boolean isViewer, String keyword, String fromDt, String toDt) {
+        String instrUserId = isViewer ? null : userId;
+        return journalMapper.selectJournalCount(instrUserId, keyword, fromDt, toDt);
     }
 
     @Override
