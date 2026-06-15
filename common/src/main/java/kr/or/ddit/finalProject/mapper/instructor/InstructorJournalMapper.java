@@ -17,16 +17,18 @@ import kr.or.ddit.finalProject.dto.instructor.journal.InstructorJournalDto;
 public interface InstructorJournalMapper {
 
     /**
-     * 특정 강사의 일지 목록 조회 (날짜 내림차순)
-     * 강사 본인 조회에 사용합니다.
+     * 일지 목록 조회 (검색 필터 지원)
+     *
+     * @param instrUserId null이면 전체 강사 조회 (뷰어용), 값이 있으면 해당 강사만 조회
+     * @param keyword     제목 키워드 (null 또는 빈 문자열이면 전체)
+     * @param fromDt      시작일 yyyy-MM-dd (null이면 제한 없음)
+     * @param toDt        종료일 yyyy-MM-dd (null이면 제한 없음)
      */
-    List<InstructorJournalDto> selectJournalListByInstructor(@Param("instrUserId") String instrUserId);
-
-    /**
-     * 전체 강사의 일지 목록 조회 (날짜 내림차순)
-     * 수석 강사(T001) / 원장(Z001) 조회에 사용합니다.
-     */
-    List<InstructorJournalDto> selectAllJournalList();
+    List<InstructorJournalDto> selectJournalList(
+            @Param("instrUserId") String instrUserId,
+            @Param("keyword")     String keyword,
+            @Param("fromDt")      String fromDt,
+            @Param("toDt")        String toDt);
 
     /**
      * 일지 단건 상세 조회

@@ -19,13 +19,12 @@ public class InstructorJournalServiceImpl implements InstructorJournalService {
     private final InstructorJournalMapper journalMapper;
 
     @Override
-    public List<InstructorJournalDto> retrieveJournalList(String userId, boolean isViewer) {
-        // isViewer=true → 수석 강사(T001) 또는 원장(Z001): 전체 일지
-        // isViewer=false → 일반 강사: 본인 일지만
-        if (isViewer) {
-            return journalMapper.selectAllJournalList();
-        }
-        return journalMapper.selectJournalListByInstructor(userId);
+    public List<InstructorJournalDto> retrieveJournalList(
+            String userId, boolean isViewer, String keyword, String fromDt, String toDt) {
+        // isViewer=true → 전체 강사 일지 (instrUserId=null)
+        // isViewer=false → 본인 일지만 (instrUserId=userId)
+        String instrUserId = isViewer ? null : userId;
+        return journalMapper.selectJournalList(instrUserId, keyword, fromDt, toDt);
     }
 
     @Override

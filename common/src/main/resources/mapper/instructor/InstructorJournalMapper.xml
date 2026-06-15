@@ -29,24 +29,29 @@
         JOIN MEMBER m ON j.INSTR_USER_ID = m.USER_ID
     </sql>
 
-    <!-- ──────────────────────────────────────────── -->
-    <!-- 특정 강사의 일지 목록 (강사 본인용)          -->
-    <!-- ──────────────────────────────────────────── -->
-    <select id="selectJournalListByInstructor"
+    <!-- ──────────────────────────────────────────────────────── -->
+    <!-- 일지 목록 조회 (검색 필터 통합)                         -->
+    <!--   instrUserId null → 전체 강사 (뷰어용)                 -->
+    <!--   instrUserId 있음 → 해당 강사 본인 일지만              -->
+    <!--   keyword / fromDt / toDt → 선택적 필터                 -->
+    <!-- ──────────────────────────────────────────────────────── -->
+    <select id="selectJournalList"
             resultType="kr.or.ddit.finalProject.dto.instructor.journal.InstructorJournalDto">
         SELECT <include refid="journalColumns"/>
         <include refid="journalFrom"/>
-        WHERE j.INSTR_USER_ID = #{instrUserId}
-        ORDER BY j.JRNL_DT DESC, j.JRNL_SN DESC
-    </select>
-
-    <!-- ──────────────────────────────────────────── -->
-    <!-- 전체 강사 일지 목록 (수석 강사 / 원장용)    -->
-    <!-- ──────────────────────────────────────────── -->
-    <select id="selectAllJournalList"
-            resultType="kr.or.ddit.finalProject.dto.instructor.journal.InstructorJournalDto">
-        SELECT <include refid="journalColumns"/>
-        <include refid="journalFrom"/>
+        WHERE 1=1
+        <if test="instrUserId != null">
+            AND j.INSTR_USER_ID = #{instrUserId}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND UPPER(j.JRNL_TITLE) LIKE '%' || UPPER(#{keyword}) || '%'
+        </if>
+        <if test="fromDt != null and fromDt != ''">
+            AND j.JRNL_DT &gt;= TO_DATE(#{fromDt}, 'YYYY-MM-DD')
+        </if>
+        <if test="toDt != null and toDt != ''">
+            AND j.JRNL_DT &lt;= TO_DATE(#{toDt}, 'YYYY-MM-DD')
+        </if>
         ORDER BY j.JRNL_DT DESC, j.JRNL_SN DESC
     </select>
 

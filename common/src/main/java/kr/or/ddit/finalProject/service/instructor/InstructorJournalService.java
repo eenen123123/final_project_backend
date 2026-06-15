@@ -16,13 +16,16 @@ import kr.or.ddit.finalProject.dto.instructor.journal.InstructorJournalDto;
 public interface InstructorJournalService {
 
     /**
-     * 일지 목록 조회
+     * 일지 목록 조회 (검색 필터 지원)
      *
      * @param userId   로그인 사용자 ID
-     * @param isViewer true이면 수석 강사/원장 → 전체 목록 반환
-     *                 false이면 일반 강사     → 본인 목록 반환
+     * @param isViewer true이면 수석 강사/원장 → 전체 목록, false이면 본인 목록
+     * @param keyword  제목 키워드 (null 또는 빈 문자열이면 전체)
+     * @param fromDt   시작일 yyyy-MM-dd (null이면 제한 없음)
+     * @param toDt     종료일 yyyy-MM-dd (null이면 제한 없음)
      */
-    List<InstructorJournalDto> retrieveJournalList(String userId, boolean isViewer);
+    List<InstructorJournalDto> retrieveJournalList(
+            String userId, boolean isViewer, String keyword, String fromDt, String toDt);
 
     /**
      * 일지 단건 상세 조회

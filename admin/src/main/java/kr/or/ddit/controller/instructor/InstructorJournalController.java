@@ -58,17 +58,25 @@ public class InstructorJournalController {
             @RequestParam(required = false) Long jrnlSn,
             @RequestParam(required = false, defaultValue = "false") boolean edit,
             @RequestParam(required = false, defaultValue = "false") boolean newForm,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String fromDt,
+            @RequestParam(required = false) String toDt,
             Model model,
             Authentication auth) {
 
         String userId    = auth.getName();
         boolean isViewer = isViewer(auth);
 
-        // 좌측 패널: 역할에 따라 목록 범위 결정
+        // 좌측 패널: 역할 + 필터 조건에 따라 목록 조회
         List<InstructorJournalDto> journalList =
-                journalService.retrieveJournalList(userId, isViewer);
+                journalService.retrieveJournalList(userId, isViewer, keyword, fromDt, toDt);
         model.addAttribute("journalList", journalList);
         model.addAttribute("isViewer", isViewer);
+
+        // 필터값 보존 (폼 재입력 + 목록 링크 href 유지용)
+        model.addAttribute("keyword", keyword != null ? keyword : "");
+        model.addAttribute("fromDt",  fromDt  != null ? fromDt  : "");
+        model.addAttribute("toDt",    toDt    != null ? toDt    : "");
 
         // 우측 패널 상태 결정
         if (newForm && !isViewer) {
