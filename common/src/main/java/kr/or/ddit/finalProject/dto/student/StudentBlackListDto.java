@@ -29,7 +29,6 @@ public class StudentBlackListDto implements Serializable {
     private LocalDateTime blklstEndDt;   // NULL = 적용 중, NOT NULL = 해제
     private String blklstLvlCd;          // 위험 등급 (공통코드 cl 700: 01 고위험 / 02 관찰)
     private String blklstCtgrCd;         // 유형     (공통코드 cl 701)
-    private String blklstMngrUserId;     // 담당자 (직원 USER_ID)
     private String blklstActnCn;         // 조치 내용
     private String blklstRsnCn;          // 현재 사유 (denormalize)
     private Integer blklstImpsDaysCnt;   // 정지 일수 (0/NULL = 영구) — END_DT 계산용 입력값
@@ -40,7 +39,6 @@ public class StudentBlackListDto implements Serializable {
     private String classNm;      // 수강중 클래스룸명 (오프라인 학생만, 다중이면 콤마 결합)
     private String blklstLvlNm;  // 등급명 (COM_CD)
     private String blklstCtgrNm; // 유형명 (COM_CD)
-    private String mngrUserName; // 담당자명 (MEMBER)
     private String status;       // 파생: 'active' | 'resolved'
 
     // ── 이력 파생 ──

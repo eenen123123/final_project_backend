@@ -44,4 +44,7 @@ public interface BlacklistService {
 
     /** 로그인 차단 여부: 현재 적용 중인 정지가 있으면 true */
     boolean isLoginBlocked(String userId);
+
+    /** 학생의 수강중 클래스룸명 (등록 picker 표시용) */
+    String getStudentClassNames(String userId);
 }

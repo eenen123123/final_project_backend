@@ -117,6 +117,11 @@ public class BlacklistServiceImpl implements BlacklistService {
         return blacklistMapper.countActiveBlock(userId) > 0;
     }
 
+    @Override
+    public String getStudentClassNames(String userId) {
+        return blacklistMapper.selectStudentClassNames(userId);
+    }
+
     /** 이력 1행 적재 공통 */
     private void insertHistory(String stdUserId, String reason, Integer impsDays, String loginUserId, String evtCd) {
         StudentBlackListHistoryDto hist = StudentBlackListHistoryDto.builder()

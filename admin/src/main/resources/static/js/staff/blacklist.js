@@ -28,6 +28,13 @@ function metaOf(row) {
   return row.status === 'resolved' ? RESOLVED_META : (LEVEL_META[row.blklstLvlCd] || LEVEL_META['02']);
 }
 
+/* 정지 기간 표시: 해제됨 / 경고(차단없음) / 영구정지 / ~날짜까지 */
+function suspendLabel(s) {
+  if (s.status === 'resolved') return '해제됨';
+  if (s.blklstLvlCd !== '01')  return '경고 · 차단 없음';
+  return s.blklstEndDt ? '정지 ~ ' + fmtDt(s.blklstEndDt) + ' 까지' : '영구정지';
+}
+
 /* ── 셀렉트(커스텀셀렉트 호환) ── */
 function setSelect(id, val) {
   const el = document.getElementById(id);
@@ -116,7 +123,7 @@ function renderCards(items) {
           </div>
           <div class="text-right shrink-0 space-y-1.5">
             <p class="text-xs text-slate-400 font-mono">${fmtDt(s.regDt || s.blklstStrtDt)}</p>
-            <p class="text-xs text-slate-400">담당: <span class="font-medium text-slate-600">${esc(s.mngrUserName) || '-'}</span></p>
+            <p class="text-xs font-medium ${s.status !== 'resolved' && s.blklstLvlCd === '01' ? 'text-red-500' : 'text-slate-400'}">${suspendLabel(s)}</p>
           </div>
         </div>
         ${s.blklstActnCn ? `
@@ -217,6 +224,15 @@ function pickStudent(prefix, userId, userName) {
   document.getElementById(ids.input).value = userName;
   document.getElementById(ids.hid).value = userId;
   document.getElementById(ids.list).classList.add('hidden');
+  // 등록 모달이면 선택한 학생의 수강중 클래스룸을 조회해 표시
+  if (prefix === 'bl') {
+    const grade = document.getElementById('blGrade');
+    grade.value = '조회 중...';
+    fetch('/admin/blacklist/classroom?userId=' + encodeURIComponent(userId))
+      .then(r => r.json())
+      .then(d => { grade.value = d.classNm || '클래스룸 미배정'; })
+      .catch(() => { grade.value = '-'; });
+  }
 }
 /* 바깥 클릭 시 결과 닫기 */
 document.addEventListener('click', e => {
@@ -226,20 +242,6 @@ document.addEventListener('click', e => {
       list.classList.add('hidden');
   });
 });
-
-/* ── 담당자(직원) 옵션 로드 ── */
-async function loadAssignees() {
-  try {
-    const p = new URLSearchParams({ page: 1, screenSize: 200 });
-    const data = await fetch('/admin/employees/search?' + p).then(r => r.json());
-    const sel = document.getElementById('blAssignee');
-    sel.innerHTML = '<option value="">담당자 선택</option>'
-      + (data.items || []).map(e => {
-          const nm = e.member ? e.member.userName : e.userId;
-          return `<option value="${esc(e.userId)}">${esc(nm)}</option>`;
-        }).join('');
-  } catch (e) { console.error('담당자 로딩 실패', e); }
-}
 
 /* ── 상세 모달 ── */
 const EVT_LABEL = { WARN: '경고', SUSP: '기간정지', PERM: '영구정지', MOD: '수정', REL: '해제' };
@@ -273,7 +275,7 @@ async function openDetail(stdUserId) {
       </div>
       <div class="grid grid-cols-2 gap-3 text-xs">
         <div class="bg-slate-50 rounded-xl p-3"><p class="text-slate-400 mb-1">유형</p><p class="font-semibold text-slate-700">${esc(info.blklstCtgrNm) || '-'}</p></div>
-        <div class="bg-slate-50 rounded-xl p-3"><p class="text-slate-400 mb-1">담당자</p><p class="font-semibold text-slate-700">${esc(info.mngrUserName) || '-'}</p></div>
+        <div class="bg-slate-50 rounded-xl p-3"><p class="text-slate-400 mb-1">정지 기간</p><p class="font-semibold ${info.status !== 'resolved' && info.blklstLvlCd === '01' ? 'text-red-600' : 'text-slate-700'}">${suspendLabel(info)}</p></div>
         <div class="bg-slate-50 rounded-xl p-3"><p class="text-slate-400 mb-1">등록자</p><p class="font-semibold text-slate-700">${esc(info.regUserName) || esc(info.regUserId) || '-'}</p></div>
         <div class="bg-slate-50 rounded-xl p-3"><p class="text-slate-400 mb-1">등록일</p><p class="font-semibold text-slate-700 font-mono">${fmtDt(info.regDt || info.blklstStrtDt)}</p></div>
       </div>
@@ -328,7 +330,6 @@ async function openBlacklistModal(stdUserId) {
       setSelect('blCategory', info.blklstCtgrCd);
       document.getElementById('blReason').value = info.blklstRsnCn || '';
       document.getElementById('blAction').value = info.blklstActnCn || '';
-      document.getElementById('blAssignee').value = info.blklstMngrUserId || '';
     } catch (e) { console.error(e); }
   } else {
     document.getElementById('blModalTitle').textContent = '주의 학생 등록';
@@ -339,7 +340,6 @@ async function openBlacklistModal(stdUserId) {
     setSelect('blCategory', '');
     document.getElementById('blReason').value = '';
     document.getElementById('blAction').value = '';
-    document.getElementById('blAssignee').value = '';
   }
   document.getElementById('blModal').classList.remove('hidden');
 }
@@ -353,7 +353,6 @@ async function saveBlacklist() {
   const category = getSelect('blCategory');
   const reason = document.getElementById('blReason').value.trim();
   const action = document.getElementById('blAction').value.trim();
-  const mngr   = document.getElementById('blAssignee').value;
   if (!stdUserId) { showHermesToast('학생을 검색하여 선택해 주세요.', 'error'); return; }
   if (!category)  { showHermesToast('유형을 선택해 주세요.', 'error'); return; }
   if (!reason)    { showHermesToast('등록 사유를 입력해 주세요.', 'error'); return; }
@@ -361,7 +360,6 @@ async function saveBlacklist() {
     stdUserId,
     blklstCtgrCd: category,
     blklstRsnCn: reason, blklstActnCn: action,
-    blklstMngrUserId: mngr || null,
     forcePermanent: document.getElementById('blForcePerm').checked
   };
   try {
@@ -418,5 +416,4 @@ window.addEventListener('load', function () {
   } else {
     loadSummary(); doSearch(1);
   }
-  loadAssignees();
 });

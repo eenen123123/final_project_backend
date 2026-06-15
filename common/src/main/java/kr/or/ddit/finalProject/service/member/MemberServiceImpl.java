@@ -146,7 +146,11 @@ public class MemberServiceImpl implements MemberService {
         // 주의 학생 정지 차단: 현재 적용 중인 정지(영구 또는 미만료)면 로그인 거부.
         // MEMBER 는 건드리지 않고 STUDENT_BLACK_LIST 를 조회해 판정한다(만료는 END_DT 비교로 자동 해제).
         if (blacklistMapper.countActiveBlock(memberDto.getUserId()) > 0) {
-            throw new FinalProjectException(ErrorCode.ACCOUNT_SUSPENDED);
+            java.time.LocalDateTime endDt = blacklistMapper.selectActiveBlockEndDt(memberDto.getUserId());
+            String msg = (endDt == null)
+                    ? "영구정지된 계정입니다. 관리자에게 문의하세요."
+                    : "정지된 계정입니다. " + endDt.toLocalDate() + " 까지 로그인할 수 없습니다.";
+            throw new FinalProjectException(ErrorCode.ACCOUNT_SUSPENDED, msg);
         }
         return memberDto;
     }
