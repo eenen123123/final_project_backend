@@ -67,6 +67,7 @@ public class AdminActivityExecutionService {
     private final ApprovalService approvalService;
     private final StaffService staffService;
     private final CommonCodeService commonCodeService;
+    private final SalaryAccountService salaryAccountService;
     private final CloudinaryUploadService cloudinaryUploadService;
     private final SubjectService subjectService;
     private final CurriculumService curriculumService;
@@ -111,6 +112,7 @@ public class AdminActivityExecutionService {
                 case "EMPLOYEE_REGISTER" -> executeEmployeeRegister(data, actorUserId);
                 case "EMPLOYEE_UPDATE"   -> executeEmployeeUpdate(data, actorUserId);
                 case "EMPLOYEE_RETIRE"   -> executeEmployeeRetire(data, actorUserId);
+                case "SALARY_ACCOUNT_UPDATE" -> executeSalaryAccountUpdate(data, actorUserId);
                 case "STUDENT_REGISTER"  -> executeStudentRegister(data, actorUserId);
                 case "STUDENT_UPDATE"    -> executeStudentUpdate(data, actorUserId);
                 case "STUDENT_RETIRE"    -> executeStudentRetire(data, actorUserId);
@@ -224,6 +226,29 @@ public class AdminActivityExecutionService {
 
         // 1. 대상 직원의 계정을 비활성화하고 퇴사 일자 및 퇴사 사유를 세팅한다.
         staffService.retireEmployee(userId, retmtRsn, actorUserId);
+    }
+
+    /**
+     * 급여·계좌 변경 집행 — 결재 승인 후 기본급 이력 갱신 + 급여 계좌 upsert.
+     * @param data 비포/애프터 구조를 포함할 수 있는 원시 변경 데이터
+     * @param actorUserId 변경을 최종 승인한 관리자 ID
+     */
+    @SuppressWarnings("unchecked")
+    private void executeSalaryAccountUpdate(Map<String, Object> data, String actorUserId) {
+        Map<String, Object> effectiveData = data.containsKey("after")
+            ? (Map<String, Object>) data.get("after")
+            : data;
+
+        String userId      = (String) effectiveData.get("userId");
+        String bankCd      = (String) effectiveData.get("bankCd");
+        String acntNo      = (String) effectiveData.get("acntNo");
+        String depositorNm = (String) effectiveData.get("depositorNm");
+
+        Object rawSalary = effectiveData.get("baseSalary");
+        Integer baseSalary = rawSalary != null && !String.valueOf(rawSalary).isBlank()
+            ? Integer.valueOf(String.valueOf(rawSalary)) : null;
+
+        salaryAccountService.applySalaryAndAccount(userId, baseSalary, bankCd, acntNo, depositorNm, actorUserId);
     }
 
     /**
