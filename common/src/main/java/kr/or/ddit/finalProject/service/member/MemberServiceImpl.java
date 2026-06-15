@@ -18,6 +18,7 @@ import kr.or.ddit.finalProject.dto.user.SignupRequestRecord;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.jwt.JwtTokenProvider;
+import kr.or.ddit.finalProject.mapper.BlacklistMapper;
 import kr.or.ddit.finalProject.mapper.MemberMapper;
 import kr.or.ddit.finalProject.mapper.RefreshTokenMapper;
 import kr.or.ddit.finalProject.mapper.email.EmailVerificationMapper;
@@ -35,6 +36,7 @@ public class MemberServiceImpl implements MemberService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenHashUtil tokenHashUtil;
+    private final BlacklistMapper blacklistMapper;
     private final RefreshTokenMapper refreshTokenMapper;
     private static final String BEARER = "Bearer ";
 
@@ -140,6 +142,15 @@ public class MemberServiceImpl implements MemberService {
         }
         if (!passwordEncoder.matches(signinRequestRecord.userPswd(), memberDto.getUserEnpswd())) {
             throw new FinalProjectException(ErrorCode.USERNAME_OR_PASSWORD_INCORRECT);
+        }
+        // 주의 학생 정지 차단: 현재 적용 중인 정지(영구 또는 미만료)면 로그인 거부.
+        // MEMBER 는 건드리지 않고 STUDENT_BLACK_LIST 를 조회해 판정한다(만료는 END_DT 비교로 자동 해제).
+        if (blacklistMapper.countActiveBlock(memberDto.getUserId()) > 0) {
+            java.time.LocalDateTime endDt = blacklistMapper.selectActiveBlockEndDt(memberDto.getUserId());
+            String msg = (endDt == null)
+                    ? "영구정지된 계정입니다. 관리자에게 문의하세요."
+                    : "정지된 계정입니다. " + endDt.toLocalDate() + " 까지 로그인할 수 없습니다.";
+            throw new FinalProjectException(ErrorCode.ACCOUNT_SUSPENDED, msg);
         }
         return memberDto;
     }

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import kr.or.ddit.finalProject.dto.course.CourseResponseDto;
+import kr.or.ddit.finalProject.dto.subject.SubjectClassificationDto;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.service.course.CourseService;
@@ -49,4 +50,10 @@ public class CourseController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/subjects")
+    public ResponseEntity<List<SubjectClassificationDto>> getSubjects() {
+
+        List<SubjectClassificationDto> classifications = courseService.retrieveSubjectClassificationListWithSubjects();
+        return ResponseEntity.ok(classifications);
+    }
 }

@@ -134,4 +134,9 @@ public interface CourseMapper {
      * 강좌 ID로 메인 페이지용 강좌 상세 정보를 조회한다.
      */
     CourseResponseDto selectCourseById(@Param("courseId") Long courseId);
+
+    /**
+     * 과목 분류 목록과 각 분류에 속한 과목 목록을 함께 조회한다.
+     */
+    List<SubjectClassificationDto> selectSubjectClassificationListWithSubjects();
 }

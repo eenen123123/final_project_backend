@@ -12,6 +12,12 @@ public class FinalProjectException extends RuntimeException {
         this.errorCode = errorCode;
     }
 
+    /** 상태코드는 ErrorCode를 따르되, 응답 메시지를 동적으로 지정할 때 사용 */
+    public FinalProjectException(ErrorCode errorCode, String message) {
+        super(message);
+        this.errorCode = errorCode;
+    }
+
     public FinalProjectException(ErrorCode errorCode, Throwable cause) {
         super(errorCode.getMessage(), cause);
         this.errorCode = errorCode;

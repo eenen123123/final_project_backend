@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.finalProject.mapper.BlacklistMapper">
+
+    <!-- 목록/상세 공통 SELECT 본문 (조인 포함) -->
+    <sql id="blacklistColumns">
+        SELECT
+            bl.STD_USER_ID          AS stdUserId,
+            bl.BLKLST_STRT_DT       AS blklstStrtDt,
+            bl.BLKLST_END_DT        AS blklstEndDt,
+            TRIM(bl.BLKLST_LVL_CD)  AS blklstLvlCd,
+            TRIM(bl.BLKLST_CTGR_CD) AS blklstCtgrCd,
+            bl.BLKLST_ACTN_CN       AS blklstActnCn,
+            bl.BLKLST_RSN_CN        AS blklstRsnCn,
+            m.USER_NAME             AS userName,
+            lc.COM_CD_NM            AS blklstLvlNm,
+            cc.COM_CD_NM            AS blklstCtgrNm,
+            cls.CLASS_NM            AS classNm,
+            CASE WHEN bl.BLKLST_END_DT IS NULL OR bl.BLKLST_END_DT > SYSTIMESTAMP
+                 THEN 'active' ELSE 'resolved' END AS status,
+            h.REG_USER_ID           AS regUserId,
+            rm.USER_NAME            AS regUserName,
+            h.REG_DT                AS regDt,
+            NVL(h.LOG_CNT, 0)       AS logCount
+        FROM STUDENT_BLACK_LIST bl
+        JOIN MEMBER m            ON m.USER_ID = bl.STD_USER_ID
+        LEFT JOIN COM_CD lc      ON TRIM(lc.CL_CODE) = '700' AND TRIM(lc.COM_CD) = TRIM(bl.BLKLST_LVL_CD)
+        LEFT JOIN COM_CD cc      ON TRIM(cc.CL_CODE) = '701' AND TRIM(cc.COM_CD) = TRIM(bl.BLKLST_CTGR_CD)
+        LEFT JOIN (
+            SELECT cm.USER_ID,
+                   LISTAGG(cl.CLASS_NM, ', ') WITHIN GROUP (ORDER BY cl.CLASS_NM) AS CLASS_NM
+            FROM CLASSROOM_MEMBER cm
+            JOIN CLASSROOM cl ON cl.CLASS_SN = cm.CLASS_SN
+            WHERE cm.ENRL_STAT_CD = '01'
+            GROUP BY cm.USER_ID
+        ) cls ON cls.USER_ID = bl.STD_USER_ID
+        LEFT JOIN (
+            SELECT BLKLST_STD_USER_ID,
+                   COUNT(*) AS LOG_CNT,
+                   MIN(CASE WHEN BLKLST_EVT_CD = 'REG' THEN BLKLST_REG_DT END)        AS REG_DT,
+                   MIN(CASE WHEN BLKLST_EVT_CD = 'REG' THEN BLKLST_RGTR_USER_ID END)  AS REG_USER_ID
+            FROM STUDENT_BLACK_LIST_HISTORY
+            GROUP BY BLKLST_STD_USER_ID
+        ) h ON h.BLKLST_STD_USER_ID = bl.STD_USER_ID
+        LEFT JOIN MEMBER rm      ON rm.USER_ID = h.REG_USER_ID
+    </sql>
+
+    <!-- 동적 검색 WHERE -->
+    <sql id="blacklistWhere">
+        <where>
+            <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
+                AND ( m.USER_NAME LIKE '%' || #{detailCondition.keyword} || '%'
+                   OR bl.BLKLST_RSN_CN LIKE '%' || #{detailCondition.keyword} || '%' )
+            </if>
+            <if test="detailCondition != null and detailCondition.level != null and detailCondition.level != ''">
+                AND TRIM(bl.BLKLST_LVL_CD) = #{detailCondition.level}
+            </if>
+            <if test="detailCondition != null and detailCondition.category != null and detailCondition.category != ''">
+                AND TRIM(bl.BLKLST_CTGR_CD) = #{detailCondition.category}
+            </if>
+            <if test="detailCondition != null and detailCondition.status == 'active'">
+                AND (bl.BLKLST_END_DT IS NULL OR bl.BLKLST_END_DT &gt; SYSTIMESTAMP)
+            </if>
+            <if test="detailCondition != null and detailCondition.status == 'resolved'">
+                AND bl.BLKLST_END_DT IS NOT NULL AND bl.BLKLST_END_DT &lt;= SYSTIMESTAMP
+            </if>
+        </where>
+    </sql>
+
+    <!-- 목록 동적 검색 + 서버 페이징 -->
+    <select id="searchBlacklist" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo"
+            resultType="kr.or.ddit.finalProject.dto.student.StudentBlackListDto">
+        <include refid="blacklistColumns"/>
+        <include refid="blacklistWhere"/>
+        ORDER BY
+        <choose>
+            <when test="orderBy == 'name'">m.USER_NAME</when>
+            <when test="orderBy == 'level'">bl.BLKLST_LVL_CD</when>
+            <when test="orderBy == 'date'">bl.BLKLST_STRT_DT</when>
+            <otherwise>bl.BLKLST_STRT_DT</otherwise>
+        </choose>
+        <choose>
+            <when test="orderDirection == 'ASC'">ASC</when>
+            <otherwise>DESC</otherwise>
+        </choose>
+        NULLS LAST
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <!-- 목록 전체 건수 -->
+    <select id="countBlacklist" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo" resultType="int">
+        SELECT COUNT(*)
+        FROM STUDENT_BLACK_LIST bl
+        JOIN MEMBER m ON m.USER_ID = bl.STD_USER_ID
+        <include refid="blacklistWhere"/>
+    </select>
+
+    <!-- 상단 요약 카드 -->
+    <select id="selectBlacklistSummary" resultType="map">
+        SELECT
+            COUNT(*) AS TOTAL_CNT,
+            COUNT(CASE WHEN (bl.BLKLST_END_DT IS NULL OR bl.BLKLST_END_DT > SYSTIMESTAMP) AND TRIM(bl.BLKLST_LVL_CD) = '01' THEN 1 END) AS HIGH_RISK_CNT,
+            COUNT(CASE WHEN (bl.BLKLST_END_DT IS NULL OR bl.BLKLST_END_DT > SYSTIMESTAMP) AND TRIM(bl.BLKLST_LVL_CD) = '02' THEN 1 END) AS OBSERVE_CNT,
+            COUNT(CASE WHEN bl.BLKLST_END_DT IS NOT NULL AND bl.BLKLST_END_DT &lt;= SYSTIMESTAMP THEN 1 END) AS RESOLVED_CNT
+        FROM STUDENT_BLACK_LIST bl
+    </select>
+
+    <!-- 단일 상세 -->
+    <select id="selectBlacklistDetail" resultType="kr.or.ddit.finalProject.dto.student.StudentBlackListDto">
+        <include refid="blacklistColumns"/>
+        WHERE bl.STD_USER_ID = #{stdUserId}
+    </select>
+
+    <!-- 변경 이력 (최신순) -->
+    <select id="selectBlacklistHistory" resultType="kr.or.ddit.finalProject.dto.student.StudentBlackListHistoryDto">
+        SELECT
+            h.BLKLST_HIST_SN        AS blklstHistSn,
+            h.BLKLST_STD_USER_ID    AS blklstStdUserId,
+            h.BLKLST_REG_DT         AS blklstRegDt,
+            h.BLKLST_RSN_CN         AS blklstRsnCn,
+            h.BLKLST_IMPS_DAYS_CNT  AS blklstImpsDaysCnt,
+            h.BLKLST_RGTR_USER_ID   AS blklstRgtrUserId,
+            TRIM(h.BLKLST_EVT_CD)   AS blklstEvtCd,
+            rm.USER_NAME            AS rgtrUserName
+        FROM STUDENT_BLACK_LIST_HISTORY h
+        LEFT JOIN MEMBER rm ON rm.USER_ID = h.BLKLST_RGTR_USER_ID
+        WHERE h.BLKLST_STD_USER_ID = #{stdUserId}
+        ORDER BY h.BLKLST_REG_DT DESC, h.BLKLST_HIST_SN DESC
+    </select>
+
+    <!-- 현재 등록 여부 -->
+    <select id="existsBlacklist" resultType="int">
+        SELECT COUNT(*) FROM STUDENT_BLACK_LIST WHERE STD_USER_ID = #{stdUserId}
+    </select>
+
+    <!-- 종료일 계산: 정지일수 0/NULL = 영구(NULL), N = 시작 + N일 -->
+    <sql id="endDtExpr">
+        CASE WHEN #{blklstImpsDaysCnt} IS NULL OR #{blklstImpsDaysCnt} = 0
+             THEN NULL
+             ELSE SYSTIMESTAMP + NUMTODSINTERVAL(#{blklstImpsDaysCnt}, 'DAY') END
+    </sql>
+
+    <!-- 현재 상태 신규 등록 -->
+    <insert id="insertBlacklist" parameterType="kr.or.ddit.finalProject.dto.student.StudentBlackListDto">
+        INSERT INTO STUDENT_BLACK_LIST
+            (STD_USER_ID, BLKLST_STRT_DT, BLKLST_END_DT,
+             BLKLST_LVL_CD, BLKLST_CTGR_CD, BLKLST_ACTN_CN, BLKLST_RSN_CN)
+        VALUES
+            (#{stdUserId}, SYSTIMESTAMP, <include refid="endDtExpr"/>,
+             #{blklstLvlCd}, #{blklstCtgrCd}, #{blklstActnCn}, #{blklstRsnCn})
+    </insert>
+
+    <!-- 재등록: 시작/종료일 갱신 + 속성 갱신 (재활성) -->
+    <update id="reactivateBlacklist" parameterType="kr.or.ddit.finalProject.dto.student.StudentBlackListDto">
+        UPDATE STUDENT_BLACK_LIST
+        SET BLKLST_STRT_DT      = SYSTIMESTAMP,
+            BLKLST_END_DT       = <include refid="endDtExpr"/>,
+            BLKLST_LVL_CD       = #{blklstLvlCd},
+            BLKLST_CTGR_CD      = #{blklstCtgrCd},
+            BLKLST_ACTN_CN      = #{blklstActnCn},
+            BLKLST_RSN_CN       = #{blklstRsnCn}
+        WHERE STD_USER_ID = #{stdUserId}
+    </update>
+
+    <!-- 속성 수정 (등급·날짜는 자동 관리이므로 제외) -->
+    <update id="updateBlacklist" parameterType="kr.or.ddit.finalProject.dto.student.StudentBlackListDto">
+        UPDATE STUDENT_BLACK_LIST
+        SET BLKLST_CTGR_CD      = #{blklstCtgrCd},
+            BLKLST_ACTN_CN      = #{blklstActnCn},
+            BLKLST_RSN_CN       = #{blklstRsnCn}
+        WHERE STD_USER_ID = #{stdUserId}
+    </update>
+
+    <!-- 해제 처리 -->
+    <update id="resolveBlacklist">
+        UPDATE STUDENT_BLACK_LIST
+        SET BLKLST_END_DT = SYSTIMESTAMP
+        WHERE STD_USER_ID = #{stdUserId}
+          AND (BLKLST_END_DT IS NULL OR BLKLST_END_DT > SYSTIMESTAMP)
+    </update>
+
+    <!-- 로그인 차단 판정: 고위험(='01', 정지)이면서 현재 적용 중(영구 또는 미만료)인 경우만.
+         관찰(='02')은 경고이므로 로그인 차단하지 않는다. -->
+    <select id="countActiveBlock" resultType="int">
+        SELECT COUNT(*)
+        FROM STUDENT_BLACK_LIST
+        WHERE STD_USER_ID = #{userId}
+          AND TRIM(BLKLST_LVL_CD) = '01'
+          AND (BLKLST_END_DT IS NULL OR BLKLST_END_DT &gt; SYSTIMESTAMP)
+    </select>
+
+    <!-- 현재 적용 중인 정지의 종료일 (NULL = 영구) -->
+    <select id="selectActiveBlockEndDt" resultType="java.time.LocalDateTime">
+        SELECT BLKLST_END_DT
+        FROM STUDENT_BLACK_LIST
+        WHERE STD_USER_ID = #{userId}
+          AND TRIM(BLKLST_LVL_CD) = '01'
+          AND (BLKLST_END_DT IS NULL OR BLKLST_END_DT &gt; SYSTIMESTAMP)
+    </select>
+
+    <!-- 누적 위반 횟수: 이력의 위반 이벤트(경고/정지/영구) 수 -->
+    <select id="countOffenses" resultType="int">
+        SELECT COUNT(*)
+        FROM STUDENT_BLACK_LIST_HISTORY
+        WHERE BLKLST_STD_USER_ID = #{userId}
+          AND TRIM(BLKLST_EVT_CD) IN ('WARN', 'SUSP', 'PERM')
+    </select>
+
+    <!-- 학생의 수강중('01') 클래스룸명 (콤마 결합) -->
+    <select id="selectStudentClassNames" resultType="string">
+        SELECT LISTAGG(cl.CLASS_NM, ', ') WITHIN GROUP (ORDER BY cl.CLASS_NM)
+        FROM CLASSROOM_MEMBER cm
+        JOIN CLASSROOM cl ON cl.CLASS_SN = cm.CLASS_SN
+        WHERE cm.USER_ID = #{userId}
+          AND cm.ENRL_STAT_CD = '01'
+    </select>
+
+    <!-- 이력 적재 -->
+    <insert id="insertBlacklistHistory" parameterType="kr.or.ddit.finalProject.dto.student.StudentBlackListHistoryDto">
+        INSERT INTO STUDENT_BLACK_LIST_HISTORY
+            (BLKLST_STD_USER_ID, BLKLST_REG_DT, BLKLST_RSN_CN,
+             BLKLST_IMPS_DAYS_CNT, BLKLST_RGTR_USER_ID, BLKLST_EVT_CD)
+        VALUES
+            (#{blklstStdUserId}, SYSTIMESTAMP, #{blklstRsnCn},
+             #{blklstImpsDaysCnt}, #{blklstRgtrUserId}, #{blklstEvtCd})
+    </insert>
+
+</mapper>

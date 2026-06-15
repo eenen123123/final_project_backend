@@ -3,6 +3,7 @@ package kr.or.ddit.controller.order;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -70,13 +71,13 @@ public class OrderController {
     }
 
     @GetMapping("/detail")
-    public ResponseEntity<List<OrderItemDto>> getOrderDetail(@RequestParam String id, Authentication authentication) {
+    public ResponseEntity<OrderDto> getOrderDetail(@RequestParam Long id, Authentication authentication) {
 
-        List<OrderItemDto> items = orderService.getOrderItemsByOrderSn(id, authentication.getName());
-        if (items == null || items.isEmpty()) {
+        OrderDto order = orderService.getOrderByOrderSn(id, authentication.getName());
+        if (order == null) {
             throw new FinalProjectException(ErrorCode.ORDER_NOT_FOUND);
         }
-        return ResponseEntity.ok(items);
+        return ResponseEntity.ok(order);
 
     }
 

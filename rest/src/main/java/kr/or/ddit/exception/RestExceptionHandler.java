@@ -30,10 +30,12 @@ public class RestExceptionHandler {
     @ExceptionHandler(FinalProjectException.class)
     public ResponseEntity<ErrorResponse> handle(FinalProjectException ex, HttpServletRequest request) {
         ErrorCode code = ex.getErrorCode();
-        log.error("[FinalProjectException] {}", code.getMessage(), ex);
-        saveErrorLog(code.name(), request, code.getMessage());
+        // 예외에 동적 메시지가 있으면 그것을, 없으면 ErrorCode 기본 메시지를 사용
+        String message = ex.getMessage() != null ? ex.getMessage() : code.getMessage();
+        log.error("[FinalProjectException] {}", message, ex);
+        saveErrorLog(code.name(), request, message);
         return ResponseEntity.status(code.getStatus())
-                .body(new ErrorResponse(code.getStatus().value(), code.getMessage()));
+                .body(new ErrorResponse(code.getStatus().value(), message));
     }
 
     // @Valid / @Validated 검증 실패 — 필드별 에러 메시지를 하나로 합쳐서 반환
