@@ -1,0 +1,11 @@
+/* 행정(blue) 테마 탭 */
+.hl-tab-btn { transition: all .18s; }
+.hl-tab-btn.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; font-weight: 700; }
+.hl-tab-panel { display: none; }
+.hl-tab-panel.active { display: block; }
+
+.leave-bar-track { height: .5rem; background: #f1f5f9; border-radius: 9999px; overflow: hidden; }
+.leave-bar-fill  { height: 100%; border-radius: 9999px; transition: width .4s; }
+
+/* 휴가 유형 배지 (공통코드 코드값 기준 색상 — 미정 코드는 기본 회색) */
+.type-badge { font-size: .68rem; font-weight: 700; padding: .15rem .55rem; border-radius: .4rem; background:#eff6ff; color:#1d4ed8; }

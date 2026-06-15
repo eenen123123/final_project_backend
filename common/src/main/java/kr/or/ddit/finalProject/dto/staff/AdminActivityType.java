@@ -25,7 +25,15 @@ public enum AdminActivityType {
     COMMON_CODE_CREATE      ("공통코드 등록",      "COM_CODE"),
     COMMON_CODE_UPDATE      ("공통코드 수정",      "COM_CODE"),
     COMMON_CODE_DELETE      ("공통코드 삭제",      "COM_CODE"),
-    LEAVE_REQUEST           ("휴가 신청",         "LEAVE_MGMT");
+    LEAVE_REQUEST           ("휴가 신청",         "LEAVE_MGMT"),
+    
+    // 과목 관리
+    SUBJECT_CL_CREATE("대분류 등록", "SUBJECT_MGMT"),
+    SUBJECT_CL_UPDATE("대분류 수정", "SUBJECT_MGMT"),
+    SUBJECT_CL_DELETE("대분류 삭제", "SUBJECT_MGMT"),
+    SUBJECT_CREATE("과목 등록",      "SUBJECT_MGMT"),
+    SUBJECT_UPDATE("과목 수정",      "SUBJECT_MGMT"),
+    SUBJECT_DELETE("과목 삭제",      "SUBJECT_MGMT");
 
     private final String label;
     private final String tmplCd;
