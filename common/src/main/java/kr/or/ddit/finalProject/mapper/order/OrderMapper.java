@@ -7,7 +7,9 @@ import org.apache.ibatis.annotations.Param;
 
 import kr.or.ddit.finalProject.dto.order.OrderDto;
 import kr.or.ddit.finalProject.dto.order.OrderItemDto;
+import kr.or.ddit.finalProject.dto.order.OrderSearchCondition;
 import kr.or.ddit.finalProject.dto.order.OrderStatus;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
 
 @Mapper
 public interface OrderMapper {
@@ -29,4 +31,12 @@ public interface OrderMapper {
     OrderItemDto selectCourseForOrder(@Param("prodSn") Long prodSn);
 
     OrderItemDto selectTextbookForOrder(@Param("prodSn") Long prodSn);
+
+    List<OrderDto> selectOrdersByUserId(@Param("userId") String userId,
+            @Param("paginationInfo") PaginationInfo<OrderSearchCondition> paginationInfo);
+
+    int selectOrderTotalCountByUserId(@Param("userId") String userId,
+            @Param("paginationInfo") PaginationInfo<OrderSearchCondition> paginationInfo);
+
+    List<OrderItemDto> selectOrderItemsByOrderSn(@Param("ordSn") String ordSn, @Param("userId") String userId);
 }
