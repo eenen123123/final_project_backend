@@ -148,4 +148,14 @@
         WHERE oi.ORD_SN = #{ordSn}
           AND os.USER_ID = #{userId}
     </select>
+
+    <!-- selectOrderByOrdSn --> 
+
+    <select id="selectOrderByOrdSn" resultMap="orderResultMap">
+        SELECT ORD_SN, ORD_ID, USER_ID, ORD_NM, TOT_AMT, ORD_STAT_CD, REG_DT, MDFCN_DT
+        FROM ORDERS
+        WHERE ORD_SN = #{ordSn}
+          AND USER_ID = #{userId}
+    </select>
+
 </mapper>

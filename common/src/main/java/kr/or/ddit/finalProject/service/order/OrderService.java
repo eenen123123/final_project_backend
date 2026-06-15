@@ -20,5 +20,5 @@ public interface OrderService {
 
     PageResponse<OrderDto> getOrdersByUserId(String userId, int page, LocalDateTime from, LocalDateTime to);
 
-    List<OrderItemDto> getOrderItemsByOrderSn(String ordSn, String userId);
+    OrderDto getOrderByOrderSn(Long ordSn, String userId);
 }

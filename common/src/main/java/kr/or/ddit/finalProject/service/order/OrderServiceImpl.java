@@ -18,7 +18,9 @@ import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.mapper.order.OrderMapper;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
@@ -117,8 +119,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderItemDto> getOrderItemsByOrderSn(String ordSn, String userId) {
-        return orderMapper.selectOrderItemsByOrderSn(ordSn, userId);
+    public OrderDto getOrderByOrderSn(Long ordSn, String userId) {
+        OrderDto order = orderMapper.selectOrderByOrdSn(ordSn, userId);
+        log.info("주문 상세 조회: ordSn={}, userId={}, order={}", ordSn, userId, order);
+        if (order != null) {
+            List<OrderItemDto> items = orderMapper.selectOrderItemsByOrderSn(order.getOrdSn(), userId);
+            order.setItems(items);
+        } else {
+            throw new FinalProjectException(ErrorCode.ORDER_NOT_FOUND);
+        }
+
+        return order;
     }
 
 }
