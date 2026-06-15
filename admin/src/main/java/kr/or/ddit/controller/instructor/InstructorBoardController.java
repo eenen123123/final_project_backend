@@ -51,7 +51,7 @@ public class InstructorBoardController {
         List<InstructorBoardResponse> boardList =
                 instructorBoardService.getInstructorBoardList(userId);
         model.addAttribute("boardList", boardList);
-        return "admin:/instructor/boardList";
+        return "admin:/instructor/board/list";
     }
 
     /**
@@ -83,7 +83,7 @@ public class InstructorBoardController {
         }
         board.setContent(sanitize(board.getContent()));
         model.addAttribute("board", board);
-        return "admin:/instructor/boardDetail";
+        return "admin:/instructor/board/detail";
     }
 
     /**
@@ -94,7 +94,7 @@ public class InstructorBoardController {
     @GetMapping("/insertForm")
     public String getInsertForm(Model model) {
         model.addAttribute("boardTypes", getBoardTypes());
-        return "admin:/instructor/boardInsertForm";
+        return "admin:/instructor/board/insertForm";
     }
 
     /**
@@ -157,7 +157,7 @@ public class InstructorBoardController {
                 .postCn(sanitize(responseDto.getContent())).build();
         model.addAttribute("board", board);
         model.addAttribute("boardTypes", getBoardTypes());
-        return "admin:/instructor/boardInsertForm";
+        return "admin:/instructor/board/insertForm";
     }
 
     /**

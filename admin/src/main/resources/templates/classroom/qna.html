@@ -1,8 +1,8 @@
-<!DOCTYPE html>
-<html th:replace="~{instructor/classroom-fragments :: layout(
-    ${classroom.classNm} + ' | 과제 제출',
+﻿<!DOCTYPE html>
+<html th:replace="~{classroom/fragments :: layout(
+    ${classroom.classNm} + ' | Q&A',
     ${classroom},
-    'assignments',
+    'qna',
     ~{:: #content}
 )}" lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head></head>
@@ -11,26 +11,21 @@
 
   <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
     <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-      <h2 class="text-sm font-bold text-slate-700">과제 목록</h2>
+      <h2 class="text-sm font-bold text-slate-700">Q&amp;A</h2>
       <button onclick="document.getElementById('writeForm').classList.toggle('hidden')"
               class="text-xs font-bold px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1">
-        <i class="fa-solid fa-plus text-[10px]"></i> 과제 등록
+        <i class="fa-solid fa-plus text-[10px]"></i> 질문 등록
       </button>
     </div>
 
-    <!-- 과제 등록 폼 -->
+    <!-- 질문 작성 폼 -->
     <div id="writeForm" class="hidden border-b border-slate-100 p-5 bg-slate-50/50">
-      <form th:action="@{/instructor/classroom/detail/{sn}/assignments/write(sn=${classroom.classSn})}" method="post">
+      <form th:action="@{/classroom/detail/{sn}/qna/write(sn=${classroom.classSn})}" method="post">
         <div class="flex flex-col gap-3">
-          <input type="text" name="asgmtSj" placeholder="과제 제목"
+          <input type="text" name="postSj" placeholder="질문 제목"
                  class="w-full text-sm px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400" required />
-          <textarea name="asgmtCn" placeholder="과제 내용" rows="3"
+          <textarea name="postCn" placeholder="질문 내용" rows="3"
                     class="w-full text-sm px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 resize-none" required></textarea>
-          <div class="flex items-center gap-3">
-            <label class="text-xs font-bold text-slate-500">제출 마감일</label>
-            <input type="datetime-local" name="sbmtDdlnDt"
-                   class="text-sm px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400" />
-          </div>
           <div class="flex justify-end gap-2">
             <button type="button" onclick="document.getElementById('writeForm').classList.add('hidden')"
                     class="text-xs font-bold px-4 py-2 text-slate-500 border border-slate-200 rounded-lg hover:text-slate-700 transition-colors">취소</button>
@@ -42,43 +37,45 @@
     </div>
 
     <!-- 빈 목록 -->
-    <div th:if="${#lists.isEmpty(assignmentList)}"
+    <div th:if="${#lists.isEmpty(qnaList)}"
          class="p-16 flex flex-col items-center justify-center text-center gap-3">
       <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-2xl">
-        <i class="fa-solid fa-file-lines"></i>
+        <i class="fa-solid fa-comments"></i>
       </div>
-      <p class="text-sm font-medium text-slate-500">등록된 과제가 없습니다.</p>
+      <p class="text-sm font-medium text-slate-500">등록된 질문이 없습니다.</p>
     </div>
 
-    <!-- 과제 목록 -->
-    <div th:unless="${#lists.isEmpty(assignmentList)}" class="overflow-x-auto">
+    <!-- Q&A 목록 -->
+    <div th:unless="${#lists.isEmpty(qnaList)}" class="overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider uppercase">
             <th class="py-3 px-6 w-12">번호</th>
             <th class="py-3 px-6">제목</th>
-            <th class="py-3 px-6 w-32 text-center">제출 현황</th>
-            <th class="py-3 px-6 w-36">마감일</th>
-            <th class="py-3 px-6 w-28">등록일</th>
+            <th class="py-3 px-6 w-24">작성자</th>
+            <th class="py-3 px-6 w-20 text-center">답변</th>
+            <th class="py-3 px-6 w-32">작성일</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
-          <tr th:each="asgmt, stat : ${assignmentList}" class="hover:bg-slate-50/50 transition-colors">
+          <tr th:each="qna, stat : ${qnaList}" class="hover:bg-slate-50/50 transition-colors">
             <td class="py-3 px-6 text-xs text-slate-400 font-mono"
-                th:text="${assignmentList.size() - stat.index}">1</td>
+                th:text="${qnaList.size() - stat.index}">1</td>
             <td class="py-3 px-6">
-              <a th:href="@{/instructor/classroom/detail/{sn}/assignments/{asgmtSn}(sn=${classroom.classSn},asgmtSn=${asgmt.asgmtSn})}"
+              <a th:href="@{/classroom/detail/{sn}/qna/{postSn}(sn=${classroom.classSn},postSn=${qna.postSn})}"
                  class="font-semibold text-slate-800 hover:text-blue-600 transition-colors"
-                 th:text="${asgmt.asgmtSj}">과제 제목</a>
+                 th:text="${qna.postSj}">질문 제목</a>
             </td>
+            <td class="py-3 px-6 text-xs text-slate-500"
+                th:text="${qna.memberDto != null ? qna.memberDto.userName : qna.wrtrUserId}">작성자</td>
             <td class="py-3 px-6 text-center">
-              <span class="text-xs font-bold"
-                    th:text="${asgmt.sbmtCnt + ' / ' + asgmt.totMemberCnt + '명'}">0 / 0명</span>
+              <span th:if="${qna.answYn == 'Y'}"
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600">답변완료</span>
+              <span th:unless="${qna.answYn == 'Y'}"
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-500">미답변</span>
             </td>
             <td class="py-3 px-6 text-xs text-slate-400 font-mono"
-                th:text="${asgmt.sbmtDdlnDt != null ? #temporals.format(asgmt.sbmtDdlnDt, 'yyyy-MM-dd HH:mm') : '-'}">-</td>
-            <td class="py-3 px-6 text-xs text-slate-400 font-mono"
-                th:text="${asgmt.regDt != null ? #temporals.format(asgmt.regDt, 'yyyy-MM-dd') : '-'}">-</td>
+                th:text="${qna.regDt != null ? #temporals.format(qna.regDt, 'yyyy-MM-dd') : '-'}">2026-06-01</td>
           </tr>
         </tbody>
       </table>
@@ -86,7 +83,7 @@
 
     <div class="border-t border-slate-100 px-6 py-3 bg-slate-50/50">
       <p class="text-xs text-slate-400">
-        전체 <span class="font-semibold text-slate-600" th:text="${#lists.size(assignmentList)}">0</span>건
+        전체 <span class="font-semibold text-slate-600" th:text="${#lists.size(qnaList)}">0</span>건
       </p>
     </div>
   </div>

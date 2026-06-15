@@ -1,4 +1,4 @@
-package kr.or.ddit.controller.instructor;
+﻿package kr.or.ddit.controller.instructor;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -25,9 +25,9 @@ import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
 import lombok.RequiredArgsConstructor;
 
 @Controller
-@RequestMapping("/instructor/classroom")
+@RequestMapping("/classroom")
 @RequiredArgsConstructor
-public class InstructorClassroomController {
+public class ClassroomController {
 
     private final ClassroomService classroomService;
     private final ClassroomHomeService classroomHomeService;
@@ -68,7 +68,7 @@ public class InstructorClassroomController {
         model.addAttribute("unansweredQnaCount",   instructorBoardService.getUnansweredQnaCount(classSn));
         model.addAttribute("pendingGradeCount",    assignmentBoardService.getPendingGradeCount(classSn));
         model.addAttribute("inactiveStudentCount", classroomHomeService.retrieveInactiveStudentCount(classSn));
-        return "instructor/classroom-home";
+        return "classroom/home";
     }
 
     // ── 온라인 강의 ──────────────────────────────────────────────
@@ -77,7 +77,7 @@ public class InstructorClassroomController {
     public String lectureList(@PathVariable Long classSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
         model.addAttribute("lectureList", classroomService.retrieveLecturesWithProgress(classSn));
-        return "instructor/classroom-lectures";
+        return "classroom/lectures";
     }
 
     // ── 공지사항 ──────────────────────────────────────────────────
@@ -86,14 +86,14 @@ public class InstructorClassroomController {
     public String noticeList(@PathVariable Long classSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
         model.addAttribute("noticeList", instructorBoardService.getClassroomNoticeList(classSn));
-        return "instructor/classroom-notice";
+        return "classroom/notice";
     }
 
     @GetMapping("/detail/{classSn}/notice/{postSn}")
     public String noticeDetail(@PathVariable Long classSn, @PathVariable Long postSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
         model.addAttribute("notice", instructorBoardService.getClassroomNoticeDetail(postSn, classSn));
-        return "instructor/classroom-notice-detail";
+        return "classroom/notice-detail";
     }
 
     @PostMapping("/detail/{classSn}/notice/write")
@@ -104,13 +104,13 @@ public class InstructorClassroomController {
         dto.setInstrUserId(authentication.getName());
         dto.setWrtrUserId(authentication.getName());
         instructorBoardService.insertClassroomNotice(dto);
-        return "redirect:/instructor/classroom/detail/" + classSn + "/notice";
+        return "redirect:/classroom/detail/" + classSn + "/notice";
     }
 
     @PostMapping("/detail/{classSn}/notice/{postSn}/delete")
     public String noticeDelete(@PathVariable Long classSn, @PathVariable Long postSn) {
         instructorBoardService.deleteClassroomNotice(postSn, classSn);
-        return "redirect:/instructor/classroom/detail/" + classSn + "/notice";
+        return "redirect:/classroom/detail/" + classSn + "/notice";
     }
 
     // ── 과제 제출 ────────────────────────────────────────────────
@@ -119,7 +119,7 @@ public class InstructorClassroomController {
     public String assignmentList(@PathVariable Long classSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
         model.addAttribute("assignmentList", assignmentBoardService.getAssignmentList(classSn));
-        return "instructor/classroom-assignments";
+        return "classroom/assignments";
     }
 
     @PostMapping("/detail/{classSn}/assignments/write")
@@ -129,7 +129,7 @@ public class InstructorClassroomController {
         dto.setClassSn(classSn);
         dto.setRgtrUserId(authentication.getName());
         assignmentBoardService.insertAssignment(dto);
-        return "redirect:/instructor/classroom/detail/" + classSn + "/assignments";
+        return "redirect:/classroom/detail/" + classSn + "/assignments";
     }
 
     @GetMapping("/detail/{classSn}/assignments/{asgmtSn}")
@@ -137,7 +137,7 @@ public class InstructorClassroomController {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
         model.addAttribute("assignment", assignmentBoardService.getAssignmentDetail(asgmtSn));
         model.addAttribute("submitList", assignmentBoardService.getSubmitList(asgmtSn, classSn));
-        return "instructor/classroom-assignment-detail";
+        return "classroom/assignment-detail";
     }
 
     @PostMapping("/detail/{classSn}/assignments/{asgmtSn}/grade/{sbmtSn}")
@@ -146,7 +146,7 @@ public class InstructorClassroomController {
                                   @RequestParam BigDecimal score,
                                   Authentication authentication) {
         assignmentBoardService.gradeSubmit(sbmtSn, score, authentication.getName());
-        return "redirect:/instructor/classroom/detail/" + classSn + "/assignments/" + asgmtSn;
+        return "redirect:/classroom/detail/" + classSn + "/assignments/" + asgmtSn;
     }
 
     // ── 성적 관리 ────────────────────────────────────────────────
@@ -155,7 +155,7 @@ public class InstructorClassroomController {
     public String gradeList(@PathVariable Long classSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
         model.addAttribute("gradeList", classroomService.retrieveGradeList(classSn));
-        return "instructor/classroom-grades";
+        return "classroom/grades";
     }
 
     // ── 수강생 목록 ──────────────────────────────────────────────
@@ -163,7 +163,7 @@ public class InstructorClassroomController {
     @GetMapping("/detail/{classSn}/members")
     public String memberList(@PathVariable Long classSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
-        return "instructor/classroom-members";
+        return "classroom/members";
     }
 
     // ── Q&A ──────────────────────────────────────────────────────
@@ -172,14 +172,14 @@ public class InstructorClassroomController {
     public String qnaList(@PathVariable Long classSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
         model.addAttribute("qnaList", instructorBoardService.getClassroomQnaList(classSn));
-        return "instructor/classroom-qna";
+        return "classroom/qna";
     }
 
     @GetMapping("/detail/{classSn}/qna/{postSn}")
     public String qnaDetail(@PathVariable Long classSn, @PathVariable Long postSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
         model.addAttribute("qna", instructorBoardService.getClassroomQnaDetail(postSn, classSn));
-        return "instructor/classroom-qna-detail";
+        return "classroom/qna-detail";
     }
 
     @PostMapping("/detail/{classSn}/qna/write")
@@ -190,7 +190,7 @@ public class InstructorClassroomController {
         dto.setInstrUserId(authentication.getName());
         dto.setWrtrUserId(authentication.getName());
         instructorBoardService.insertClassroomQna(dto);
-        return "redirect:/instructor/classroom/detail/" + classSn + "/qna";
+        return "redirect:/classroom/detail/" + classSn + "/qna";
     }
 
     @PostMapping("/detail/{classSn}/qna/{postSn}/answer")
@@ -198,6 +198,6 @@ public class InstructorClassroomController {
                             @RequestParam String answCn,
                             Authentication authentication) {
         instructorBoardService.answerClassroomQna(postSn, authentication.getName(), answCn);
-        return "redirect:/instructor/classroom/detail/" + classSn + "/qna/" + postSn;
+        return "redirect:/classroom/detail/" + classSn + "/qna/" + postSn;
     }
 }
