@@ -59,7 +59,13 @@
         .form-label    { display: block; font-size: 0.75rem; font-weight: 600; color: #475569; margin-bottom: 0.3rem; }
         .form-input    { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; font-size: 0.85rem; color: #334155; box-sizing: border-box; }
         .form-input:focus { outline: none; border-color: #0ea5e9; box-shadow: 0 0 0 2px rgba(14,165,233,0.15); }
+        .form-input.is-error { border-color: #f87171; box-shadow: 0 0 0 2px rgba(248,113,113,0.15); }
         .form-textarea { resize: vertical; min-height: 300px; font-family: inherit; }
+        .form-error  { display: none; font-size: 0.72rem; color: #ef4444; margin-top: 0.25rem; }
+        .form-error.visible { display: block; }
+        .form-hint   { font-size: 0.68rem; color: #94a3b8; margin-top: 0.2rem; text-align: right; }
+        .form-hint.warn { color: #f59e0b; }
+        .form-hint.over { color: #ef4444; }
         .btn-save   { font-size: 0.85rem; font-weight: 600; background: #0ea5e9; color: #fff; border: none; border-radius: 0.5rem; padding: 0.5rem 1.25rem; cursor: pointer; }
         .btn-save:hover { background: #0284c7; }
         .btn-cancel { font-size: 0.85rem; font-weight: 600; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.5rem 1rem; text-decoration: none; }
@@ -201,22 +207,25 @@
                 <h2 class="text-base font-bold text-slate-700 mb-4">
                     <i class="fa-solid fa-plus-circle mr-1 text-sky-400"></i>새 일지 작성
                 </h2>
-                <form th:action="@{/instructor/journals/create}" method="post">
+                <form id="form-create" th:action="@{/instructor/journals/create}" method="post" novalidate>
                     <div class="form-group">
                         <label class="form-label">제목 *</label>
-                        <input type="text" name="jrnlTitle" class="form-input"
-                               placeholder="일지 제목을 입력하세요" required />
+                        <input type="text" id="create-title" name="jrnlTitle" class="form-input"
+                               placeholder="일지 제목을 입력하세요" maxlength="200" />
+                        <div class="form-hint"><span id="create-title-count">0</span> / 200</div>
+                        <div class="form-error" id="create-title-error">제목을 입력해주세요.</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">업무 날짜 *</label>
-                        <!-- 오늘 날짜를 기본값으로 설정 -->
-                        <input type="date" name="jrnlDt" class="form-input"
-                               th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" required />
+                        <input type="date" id="create-dt" name="jrnlDt" class="form-input"
+                               th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" />
+                        <div class="form-error" id="create-dt-error">날짜를 선택해주세요.</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">내용 *</label>
-                        <textarea name="jrnlCont" class="form-input form-textarea"
-                                  placeholder="업무 내용을 자유롭게 작성하세요." required></textarea>
+                        <textarea id="create-cont" name="jrnlCont" class="form-input form-textarea"
+                                  placeholder="업무 내용을 자유롭게 작성하세요."></textarea>
+                        <div class="form-error" id="create-cont-error">내용을 입력해주세요.</div>
                     </div>
                     <div class="flex gap-2 justify-end">
                         <a th:href="@{/instructor/journals(selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}" class="btn-cancel">취소</a>
@@ -232,21 +241,25 @@
                 <h2 class="text-base font-bold text-slate-700 mb-4">
                     <i class="fa-solid fa-pen mr-1 text-sky-400"></i>일지 수정
                 </h2>
-                <form th:action="@{/instructor/journals/{sn}/update(sn=${selected.jrnlSn})}" method="post">
+                <form id="form-edit" th:action="@{/instructor/journals/{sn}/update(sn=${selected.jrnlSn})}" method="post" novalidate>
                     <div class="form-group">
                         <label class="form-label">제목 *</label>
-                        <input type="text" name="jrnlTitle" class="form-input"
-                               th:value="${selected.jrnlTitle}" required />
+                        <input type="text" id="edit-title" name="jrnlTitle" class="form-input"
+                               th:value="${selected.jrnlTitle}" maxlength="200" />
+                        <div class="form-hint"><span id="edit-title-count" th:text="${#strings.length(selected.jrnlTitle)}">0</span> / 200</div>
+                        <div class="form-error" id="edit-title-error">제목을 입력해주세요.</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">업무 날짜 *</label>
-                        <input type="date" name="jrnlDt" class="form-input"
-                               th:value="${selected.jrnlDt}" required />
+                        <input type="date" id="edit-dt" name="jrnlDt" class="form-input"
+                               th:value="${selected.jrnlDt}" />
+                        <div class="form-error" id="edit-dt-error">날짜를 선택해주세요.</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">내용 *</label>
-                        <textarea name="jrnlCont" class="form-input form-textarea"
-                                  required th:text="${selected.jrnlCont}"></textarea>
+                        <textarea id="edit-cont" name="jrnlCont" class="form-input form-textarea"
+                                  th:text="${selected.jrnlCont}"></textarea>
+                        <div class="form-error" id="edit-cont-error">내용을 입력해주세요.</div>
                     </div>
                     <div class="flex gap-2 justify-end">
                         <a th:href="@{/instructor/journals(jrnlSn=${selected.jrnlSn}, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}" class="btn-cancel">취소</a>
@@ -260,3 +273,90 @@
         </div><!-- /detail-pane -->
     </div><!-- /journal-layout -->
 </div>
+
+<th:block th:fragment="pageJs">
+<script>
+(function () {
+    const TITLE_MAX = 200;
+
+    function setError(inputEl, errorEl, msg) {
+        inputEl.classList.add('is-error');
+        errorEl.textContent = msg;
+        errorEl.classList.add('visible');
+    }
+    function clearError(inputEl, errorEl) {
+        inputEl.classList.remove('is-error');
+        errorEl.classList.remove('visible');
+    }
+    function updateCount(countEl, hintEl, len) {
+        countEl.textContent = len;
+        hintEl.classList.toggle('warn', len >= TITLE_MAX * 0.9 && len < TITLE_MAX);
+        hintEl.classList.toggle('over', len >= TITLE_MAX);
+    }
+
+    function bindForm(formId, titleId, countId, dtId, contId) {
+        const form    = document.getElementById(formId);
+        if (!form) return;
+
+        const titleEl = document.getElementById(titleId);
+        const countEl = document.getElementById(countId);
+        const hintEl  = countEl ? countEl.closest('.form-hint') : null;
+        const dtEl    = document.getElementById(dtId);
+        const contEl  = document.getElementById(contId);
+
+        const titleErr = document.getElementById(titleId + '-error');
+        const dtErr    = document.getElementById(dtId    + '-error');
+        const contErr  = document.getElementById(contId  + '-error');
+
+        // 글자수 카운터
+        if (titleEl && countEl) {
+            updateCount(countEl, hintEl, titleEl.value.length);
+            titleEl.addEventListener('input', () => {
+                updateCount(countEl, hintEl, titleEl.value.length);
+                if (titleEl.value.trim()) clearError(titleEl, titleErr);
+            });
+        }
+
+        // 날짜/내용 입력 시 에러 해제
+        if (dtEl) dtEl.addEventListener('change', () => { if (dtEl.value) clearError(dtEl, dtErr); });
+        if (contEl) contEl.addEventListener('input', () => { if (contEl.value.trim()) clearError(contEl, contErr); });
+
+        form.addEventListener('submit', function (e) {
+            let valid = true;
+
+            if (!titleEl.value.trim()) {
+                setError(titleEl, titleErr, '제목을 입력해주세요.');
+                valid = false;
+            } else if (titleEl.value.length > TITLE_MAX) {
+                setError(titleEl, titleErr, `제목은 ${TITLE_MAX}자 이내로 입력해주세요.`);
+                valid = false;
+            } else {
+                clearError(titleEl, titleErr);
+            }
+
+            if (!dtEl.value) {
+                setError(dtEl, dtErr, '날짜를 선택해주세요.');
+                valid = false;
+            } else {
+                clearError(dtEl, dtErr);
+            }
+
+            if (!contEl.value.trim()) {
+                setError(contEl, contErr, '내용을 입력해주세요.');
+                valid = false;
+            } else {
+                clearError(contEl, contErr);
+            }
+
+            if (!valid) {
+                e.preventDefault();
+                form.querySelector('.is-error').focus();
+            }
+        });
+    }
+
+    bindForm('form-create', 'create-title', 'create-title-count', 'create-dt', 'create-cont');
+    bindForm('form-edit',   'edit-title',   'edit-title-count',   'edit-dt',   'edit-cont');
+})();
+</script>
+</th:block>
