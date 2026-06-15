@@ -1,5 +1,6 @@
 package kr.or.ddit.finalProject.service.order;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -7,12 +8,15 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.order.OrderDto;
 import kr.or.ddit.finalProject.dto.order.OrderItemDto;
+import kr.or.ddit.finalProject.dto.order.OrderSearchCondition;
 import kr.or.ddit.finalProject.dto.order.OrderStatus;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.mapper.order.OrderMapper;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -94,4 +98,27 @@ public class OrderServiceImpl implements OrderService {
                 .itemQty(qty)
                 .build();
     }
+
+    @Override
+    public PageResponse<OrderDto> getOrdersByUserId(String userId, int page, LocalDateTime from, LocalDateTime to) {
+
+        PaginationInfo<OrderSearchCondition> paginationInfo = new PaginationInfo<>(10, page);
+        OrderSearchCondition condition = new OrderSearchCondition();
+        condition.setFrom(from);
+        condition.setTo(to);
+        paginationInfo.setDetailCondition(condition);
+
+        List<OrderDto> orders = orderMapper.selectOrdersByUserId(userId, paginationInfo);
+        int totalCount = orderMapper.selectOrderTotalCountByUserId(userId, paginationInfo);
+
+        PageResponse<OrderDto> response = new PageResponse<>(orders, totalCount);
+        return response;
+
+    }
+
+    @Override
+    public List<OrderItemDto> getOrderItemsByOrderSn(String ordSn, String userId) {
+        return orderMapper.selectOrderItemsByOrderSn(ordSn, userId);
+    }
+
 }
