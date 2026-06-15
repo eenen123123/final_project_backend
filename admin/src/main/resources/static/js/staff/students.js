@@ -641,7 +641,7 @@ function clearRrnDerived() {
 }
 
 function clearRrnOutputs() {
-  rrnRealValue = "";
+  HermesRrn.clear();
   document.getElementById("new-rrn").value = "";
   document.getElementById("new-rrn-display").value = "";
   clearRrnDerived();

@@ -29,25 +29,57 @@
         JOIN MEMBER m ON j.INSTR_USER_ID = m.USER_ID
     </sql>
 
-    <!-- ──────────────────────────────────────────── -->
-    <!-- 특정 강사의 일지 목록 (강사 본인용)          -->
-    <!-- ──────────────────────────────────────────── -->
-    <select id="selectJournalListByInstructor"
+    <!-- 공통 WHERE 조건 (목록 조회 / 카운트 공유) -->
+    <sql id="journalWhere">
+        WHERE j.DEL_YN = 'N'
+        <if test="instrUserId != null">
+            AND j.INSTR_USER_ID = #{instrUserId}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND UPPER(j.JRNL_TITLE) LIKE '%' || UPPER(#{keyword}) || '%'
+        </if>
+        <if test="fromDt != null and fromDt != ''">
+            AND j.JRNL_DT &gt;= TO_DATE(#{fromDt}, 'YYYY-MM-DD')
+        </if>
+        <if test="toDt != null and toDt != ''">
+            AND j.JRNL_DT &lt;= TO_DATE(#{toDt}, 'YYYY-MM-DD')
+        </if>
+    </sql>
+
+    <!-- ──────────────────────────────────────────────────────── -->
+    <!-- 일지 목록 조회 (검색 필터 + 페이지네이션)               -->
+    <!--   instrUserId null → 전체 강사 (뷰어용)                 -->
+    <!--   offset / pageSize → Oracle OFFSET FETCH 페이징        -->
+    <!-- ──────────────────────────────────────────────────────── -->
+    <select id="selectJournalList"
             resultType="kr.or.ddit.finalProject.dto.instructor.journal.InstructorJournalDto">
         SELECT <include refid="journalColumns"/>
         <include refid="journalFrom"/>
-        WHERE j.INSTR_USER_ID = #{instrUserId}
+        <include refid="journalWhere"/>
         ORDER BY j.JRNL_DT DESC, j.JRNL_SN DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
     </select>
 
-    <!-- ──────────────────────────────────────────── -->
-    <!-- 전체 강사 일지 목록 (수석 강사 / 원장용)    -->
-    <!-- ──────────────────────────────────────────── -->
-    <select id="selectAllJournalList"
-            resultType="kr.or.ddit.finalProject.dto.instructor.journal.InstructorJournalDto">
-        SELECT <include refid="journalColumns"/>
+    <!-- ──────────────────────────────────────────────────────── -->
+    <!-- 일지 전체 건수 조회 (페이지네이션 총 페이지 계산용)      -->
+    <!-- ──────────────────────────────────────────────────────── -->
+    <select id="selectJournalCount" resultType="int">
+        SELECT COUNT(*)
         <include refid="journalFrom"/>
-        ORDER BY j.JRNL_DT DESC, j.JRNL_SN DESC
+        <include refid="journalWhere"/>
+    </select>
+
+    <!-- ──────────────────────────────────────────────────────── -->
+    <!-- 일지를 작성한 강사 목록 (뷰어 강사 필터 드롭다운용)    -->
+    <!-- instrUserId / instrUserNm 만 반환 (삭제되지 않은 일지 기준) -->
+    <!-- ──────────────────────────────────────────────────────── -->
+    <select id="selectJournalInstructors"
+            resultType="kr.or.ddit.finalProject.dto.instructor.journal.InstructorJournalDto">
+        SELECT DISTINCT j.INSTR_USER_ID AS instrUserId, m.USER_NAME AS instrUserNm
+        FROM INSTRUCTOR_JOURNAL j
+        JOIN MEMBER m ON j.INSTR_USER_ID = m.USER_ID
+        WHERE j.DEL_YN = 'N'
+        ORDER BY instrUserNm
     </select>
 
     <!-- ──────────────────────────────────────────── -->
@@ -58,6 +90,7 @@
         SELECT <include refid="journalColumns"/>
         <include refid="journalFrom"/>
         WHERE j.JRNL_SN = #{jrnlSn}
+          AND j.DEL_YN = 'N'
     </select>
 
     <!-- ──────────────────────────────────────────── -->
@@ -98,11 +131,16 @@
     </update>
 
     <!-- ──────────────────────────────────────────── -->
-    <!-- 일지 삭제                                    -->
+    <!-- 일지 소프트 딜리트                           -->
+    <!-- DEL_YN='Y' 로 표시하고 삭제자/일시 기록     -->
     <!-- ──────────────────────────────────────────── -->
-    <delete id="deleteJournal">
-        DELETE FROM INSTRUCTOR_JOURNAL
+    <update id="deleteJournal">
+        UPDATE INSTRUCTOR_JOURNAL
+        SET
+            DEL_YN      = 'Y',
+            DEL_DT      = CURRENT_TIMESTAMP,
+            DEL_USER_ID = #{delUserId}
         WHERE JRNL_SN = #{jrnlSn}
-    </delete>
+    </update>
 
 </mapper>

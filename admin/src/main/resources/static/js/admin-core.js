@@ -20,14 +20,14 @@ function showHermesToast(message, type = "success") {
       "fixed bottom-6 right-6 z-50 space-y-3 pointer-events-none";
     document.body.appendChild(container);
   }
+  const styles = {
+    success: { bg: "bg-slate-900",  icon: '<i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>' },
+    error:   { bg: "bg-rose-600",   icon: '<i class="fa-solid fa-circle-exclamation text-white text-sm"></i>' },
+    warning: { bg: "bg-amber-500",  icon: '<i class="fa-solid fa-triangle-exclamation text-sm"></i>' },
+  };
+  const { bg, icon } = styles[type] || styles.success;
   const toast = document.createElement("div");
-  toast.className = `px-5 py-3.5 rounded-xl shadow-xl text-xs font-bold text-white transition-all duration-300 transform translate-y-4 opacity-0 flex items-center gap-3 pointer-events-auto ${
-    type === "success" ? "bg-slate-900" : "bg-rose-600"
-  }`;
-  const icon =
-    type === "success"
-      ? '<i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>'
-      : '<i class="fa-solid fa-circle-exclamation text-white text-sm"></i>';
+  toast.className = `px-5 py-3.5 rounded-xl shadow-xl text-xs font-bold text-white transition-all duration-300 transform translate-y-4 opacity-0 flex items-center gap-3 pointer-events-auto ${bg}`;
   toast.innerHTML = `${icon} <span>${message.replaceAll("\n", "<br>")}</span>`;
   container.appendChild(toast);
   setTimeout(() => toast.classList.remove("translate-y-4", "opacity-0"), 10);
@@ -40,29 +40,9 @@ function showHermesToast(message, type = "success") {
   }, 3000);
 }
 
-/** 경고(amber) 토스트 — 폼 입력 오류 안내용 */
+/** @deprecated showHermesToast(msg, 'warning') 을 사용하세요 */
 function showWarningToast(message) {
-  let container = document.getElementById("hm-toast-container");
-  if (!container) {
-    container = document.createElement("div");
-    container.id = "hm-toast-container";
-    container.className =
-      "fixed bottom-6 right-6 z-50 space-y-3 pointer-events-none";
-    document.body.appendChild(container);
-  }
-  const toast = document.createElement("div");
-  toast.className =
-    "px-5 py-3.5 rounded-xl shadow-xl text-xs font-bold text-white bg-amber-500 transition-all duration-300 transform translate-y-4 opacity-0 flex items-center gap-3 pointer-events-auto";
-  toast.innerHTML =
-    '<i class="fa-solid fa-triangle-exclamation text-sm"></i> <span>' +
-    message +
-    "</span>";
-  container.appendChild(toast);
-  setTimeout(() => toast.classList.remove("translate-y-4", "opacity-0"), 10);
-  setTimeout(() => {
-    toast.classList.add("opacity-0", "translate-y-4");
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
+  showHermesToast(message, "warning");
 }
 
 function showHermesLoading(message = "처리 중...") {
@@ -151,12 +131,12 @@ function hmDetectDeptColor() {
   return "violet";
 }
 
-function showHermesApprovalConfirm({ title, type, fields, target, onConfirm }) {
+function showHermesApprovalConfirm({ title, type, fields, target, onConfirm, color }) {
   const existing = document.getElementById("hm-approval-confirm-overlay");
   if (existing) existing.remove();
 
-  // 현재 부서 대표 색상으로 모달 내부 강조색을 통일 (없으면 기본 violet)
-  const c = hmDetectDeptColor();
+  // color 파라미터가 있으면 우선 사용, 없으면 DOM에서 감지
+  const c = color || hmDetectDeptColor();
 
   let bodyHtml = "";
   if (type === "create") {
@@ -528,11 +508,15 @@ function blurValidateEmail(el) {
 
 /* --- 모달 --- */
 
-function openModal(id) {
-  document.getElementById(id).classList.remove("hidden");
+function openModal(id, useFlex = false) {
+  const el = document.getElementById(id);
+  el.classList.remove("hidden");
+  if (useFlex) el.classList.add("flex");
 }
-function closeModal(id) {
-  document.getElementById(id).classList.add("hidden");
+function closeModal(id, useFlex = false) {
+  const el = document.getElementById(id);
+  el.classList.add("hidden");
+  if (useFlex) el.classList.remove("flex");
 }
 
 /* --- 주민등록번호 --- */
@@ -557,65 +541,69 @@ function maskRrn(formatted) {
   );
 }
 
-var rrnRealValue = ""; /* 실제 값 — 페이지별 autoFillTempPw 가 참조 */
-var rrnEyeOpen = false;
+const HermesRrn = {
+  value: "",
+  eyeOpen: false,
+  clear() { this.value = ""; },
+};
 
 function onRrnInput(el) {
   let digits = el.value.replace(/\D/g, "").replace(/\*/g, "");
   if (digits.length > 13) digits = digits.slice(0, 13);
   const formatted =
     digits.length > 6 ? digits.slice(0, 6) + "-" + digits.slice(6) : digits;
-  rrnRealValue = formatted;
+  HermesRrn.value = formatted;
   document.getElementById("new-rrn").value = formatted;
   el.value = formatted;
   autoFillTempPw(); /* 페이지별 함수 (employees.js / students.js) */
 }
 
 function onRrnFocus() {
-  document.getElementById("new-rrn-display").value = rrnRealValue;
+  document.getElementById("new-rrn-display").value = HermesRrn.value;
 }
 
 function onRrnBlur() {
-  if (!rrnEyeOpen)
-    document.getElementById("new-rrn-display").value = maskRrn(rrnRealValue);
+  if (!HermesRrn.eyeOpen)
+    document.getElementById("new-rrn-display").value = maskRrn(HermesRrn.value);
 }
 
 function toggleRrnVisibility() {
-  rrnEyeOpen = !rrnEyeOpen;
+  HermesRrn.eyeOpen = !HermesRrn.eyeOpen;
   const icon = document.getElementById("rrn-eye-icon");
   const display = document.getElementById("new-rrn-display");
-  icon.className = rrnEyeOpen
+  icon.className = HermesRrn.eyeOpen
     ? "fa-regular fa-eye text-sm"
     : "fa-regular fa-eye-slash text-sm";
-  display.value = rrnEyeOpen ? rrnRealValue : maskRrn(rrnRealValue);
+  display.value = HermesRrn.eyeOpen ? HermesRrn.value : maskRrn(HermesRrn.value);
 }
 
 /* --- 우편번호 --- */
 
-/** 신규 등록 폼 우편번호 (postcode / address / detailAddress) */
-function searchZipCode() {
+/**
+ * 카카오 우편번호 검색 팝업을 열고 결과를 지정한 필드에 채움
+ * @param {string} zipcodeId  우편번호 input ID
+ * @param {string} addressId  주소 input ID
+ * @param {string} detailId   상세주소 input ID (포커스 이동)
+ */
+function openZipCodeSearch(zipcodeId, addressId, detailId) {
   new daum.Postcode({
     oncomplete: function (data) {
       const addr =
         data.userSelectedType === "R" ? data.roadAddress : data.jibunAddress;
-      document.getElementById("postcode").value = data.zonecode;
-      document.getElementById("address").value = addr;
-      document.getElementById("detailAddress").focus();
+      document.getElementById(zipcodeId).value = data.zonecode;
+      document.getElementById(addressId).value = addr;
+      document.getElementById(detailId).focus();
     },
   }).open();
 }
 
-/** 상세 정보 수정 폼 우편번호 (edit-zipcode / edit-addr / edit-addr-detail) */
+/** @deprecated openZipCodeSearch() 를 사용하세요 */
+function searchZipCode() {
+  openZipCodeSearch("postcode", "address", "detailAddress");
+}
+/** @deprecated openZipCodeSearch() 를 사용하세요 */
 function searchDetailZipCode() {
-  new daum.Postcode({
-    oncomplete: function (data) {
-      const addr =
-        data.userSelectedType === "R" ? data.roadAddress : data.jibunAddress;
-      document.getElementById("edit-zipcode").value = data.zonecode;
-      document.getElementById("edit-addr").value = addr;
-      document.getElementById("edit-addr-detail").focus();
-    },
-  }).open();
+  openZipCodeSearch("edit-zipcode", "edit-addr", "edit-addr-detail");
 }
 
 /* ==========================================================================

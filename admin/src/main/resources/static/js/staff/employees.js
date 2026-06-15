@@ -1142,7 +1142,7 @@ function clearRrnDerived() {
 
 /* ─── 잘못된 주민번호 감지 시 입력 필드를 비우고 포커스를 주는 공통 함수 ─── */
 function clearRrnOutputs() {
-  rrnRealValue = "";
+  HermesRrn.clear();
   document.getElementById("new-rrn").value = "";
   document.getElementById("new-rrn-display").value = "";
   document.getElementById("new-brdt").value = "";

@@ -32,6 +32,11 @@ create table instructor_journal (
 
     -- 수정일시 (수정 시 애플리케이션에서 갱신)
    mdfcn_dt      timestamp null,
+
+    -- 소프트 딜리트 (프로젝트 표준 패턴)
+   del_yn        char(1)      default 'N' not null,
+   del_dt        timestamp    null,
+   del_user_id   varchar2(20) null,
    constraint pk_instructor_journal primary key ( jrnl_sn ),
    constraint fk_jrnl_instr foreign key ( instr_user_id )
       references member ( user_id )
@@ -61,3 +66,9 @@ comment on column instructor_journal.reg_dt is
    '등록일시';
 comment on column instructor_journal.mdfcn_dt is
    '수정일시';
+comment on column instructor_journal.del_yn is
+   '삭제 여부 (Y:삭제 / N:정상)';
+comment on column instructor_journal.del_dt is
+   '삭제 처리 일시';
+comment on column instructor_journal.del_user_id is
+   '삭제 처리자 ID';

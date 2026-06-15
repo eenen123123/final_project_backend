@@ -5,11 +5,15 @@ import java.util.List;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import jakarta.validation.Valid;
 
 import kr.or.ddit.finalProject.dto.instructor.journal.InstructorJournalDto;
 import kr.or.ddit.finalProject.service.instructor.InstructorJournalService;
@@ -58,17 +62,42 @@ public class InstructorJournalController {
             @RequestParam(required = false) Long jrnlSn,
             @RequestParam(required = false, defaultValue = "false") boolean edit,
             @RequestParam(required = false, defaultValue = "false") boolean newForm,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String fromDt,
+            @RequestParam(required = false) String toDt,
+            @RequestParam(required = false) String selectedInstrId,
+            @RequestParam(required = false, defaultValue = "1") int page,
             Model model,
             Authentication auth) {
 
         String userId    = auth.getName();
         boolean isViewer = isViewer(auth);
 
-        // 좌측 패널: 역할에 따라 목록 범위 결정
+        // 좌측 패널: 역할 + 필터 + 페이지에 따라 목록 조회
         List<InstructorJournalDto> journalList =
-                journalService.retrieveJournalList(userId, isViewer);
+                journalService.retrieveJournalList(userId, isViewer, selectedInstrId, keyword, fromDt, toDt, page);
+        int totalCount  = journalService.retrieveJournalCount(userId, isViewer, selectedInstrId, keyword, fromDt, toDt);
+        int totalPages  = (int) Math.ceil((double) totalCount / InstructorJournalService.PAGE_SIZE);
+        if (totalPages < 1) totalPages = 1;
+
         model.addAttribute("journalList", journalList);
         model.addAttribute("isViewer", isViewer);
+
+        // 필터값 보존 (폼 재입력 + 목록 링크 href 유지용)
+        model.addAttribute("keyword",         keyword         != null ? keyword         : "");
+        model.addAttribute("fromDt",          fromDt          != null ? fromDt          : "");
+        model.addAttribute("toDt",            toDt            != null ? toDt            : "");
+        model.addAttribute("selectedInstrId", selectedInstrId != null ? selectedInstrId : "");
+
+        // 뷰어 전용: 강사 선택 드롭다운용 목록
+        if (isViewer) {
+            model.addAttribute("journalInstructors", journalService.retrieveJournalInstructors());
+        }
+
+        // 페이지네이션 정보
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages",  totalPages);
+        model.addAttribute("totalCount",  totalCount);
 
         // 우측 패널 상태 결정
         if (newForm && !isViewer) {
@@ -109,8 +138,20 @@ public class InstructorJournalController {
     // ──────────────────────────────────────────────
 
     @PostMapping("/create")
-    public String createJournal(InstructorJournalDto dto, Authentication auth) {
-        dto.setInstrUserId(auth.getName()); // 작성자는 로그인 사용자로 고정
+    public String createJournal(@Valid InstructorJournalDto dto,
+                                BindingResult bindingResult,
+                                Authentication auth,
+                                RedirectAttributes ra) {
+        if (isViewer(auth)) {
+            ra.addFlashAttribute("errorMessage", "읽기 전용 권한으로는 일지를 작성할 수 없습니다.");
+            return "redirect:/instructor/journals";
+        }
+        if (bindingResult.hasErrors()) {
+            ra.addFlashAttribute("errorMessage",
+                    bindingResult.getFieldErrors().get(0).getDefaultMessage());
+            return "redirect:/instructor/journals?newForm=true";
+        }
+        dto.setInstrUserId(auth.getName());
         Long newSn = journalService.createJournal(dto);
         return "redirect:/instructor/journals?jrnlSn=" + newSn;
     }
@@ -121,8 +162,19 @@ public class InstructorJournalController {
 
     @PostMapping("/{jrnlSn}/update")
     public String updateJournal(@PathVariable Long jrnlSn,
-                                InstructorJournalDto dto,
-                                Authentication auth) {
+                                @Valid InstructorJournalDto dto,
+                                BindingResult bindingResult,
+                                Authentication auth,
+                                RedirectAttributes ra) {
+        if (isViewer(auth)) {
+            ra.addFlashAttribute("errorMessage", "읽기 전용 권한으로는 일지를 수정할 수 없습니다.");
+            return "redirect:/instructor/journals?jrnlSn=" + jrnlSn;
+        }
+        if (bindingResult.hasErrors()) {
+            ra.addFlashAttribute("errorMessage",
+                    bindingResult.getFieldErrors().get(0).getDefaultMessage());
+            return "redirect:/instructor/journals?jrnlSn=" + jrnlSn + "&edit=true";
+        }
         dto.setJrnlSn(jrnlSn);
         journalService.modifyJournal(dto, auth.getName()); // 소유권 검증은 서비스에서
         return "redirect:/instructor/journals?jrnlSn=" + jrnlSn;
@@ -133,7 +185,13 @@ public class InstructorJournalController {
     // ──────────────────────────────────────────────
 
     @PostMapping("/{jrnlSn}/delete")
-    public String deleteJournal(@PathVariable Long jrnlSn, Authentication auth) {
+    public String deleteJournal(@PathVariable Long jrnlSn,
+                                Authentication auth,
+                                RedirectAttributes ra) {
+        if (isViewer(auth)) {
+            ra.addFlashAttribute("errorMessage", "읽기 전용 권한으로는 일지를 삭제할 수 없습니다.");
+            return "redirect:/instructor/journals?jrnlSn=" + jrnlSn;
+        }
         journalService.removeJournal(jrnlSn, auth.getName()); // 소유권 검증은 서비스에서
         return "redirect:/instructor/journals";
     }
