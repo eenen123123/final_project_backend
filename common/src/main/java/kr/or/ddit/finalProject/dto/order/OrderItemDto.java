@@ -23,4 +23,6 @@ public class OrderItemDto {
     private Integer itemQty; // 수량 (기본 1)
     private LocalDateTime regDt; // 등록일시
 
+    private String prodImg; // 상품 이미지
+
 }

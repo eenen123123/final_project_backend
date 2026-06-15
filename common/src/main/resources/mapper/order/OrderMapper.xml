@@ -24,6 +24,8 @@
         <result property="prodPrice" column="PROD_PRICE"/>
         <result property="itemQty" column="ITEM_QTY"/>
         <result property="regDt" column="REG_DT"/>
+
+            <result property="prodImg" column="PROD_IMG"/>
     </resultMap>
 
     <insert id="insertOrder" parameterType="kr.or.ddit.finalProject.dto.order.OrderDto" useGeneratedKeys="true" keyProperty="ordSn" keyColumn="ORD_SN">
@@ -90,4 +92,60 @@
           AND USE_YN = 'Y'
     </select>
 
+
+    <sql id="orderSearchCondition">
+       <trim prefix="WHERE" prefixOverrides="AND">
+            user_id = #{userId}
+            <if test="paginationInfo.detailCondition.from != null">
+                AND REG_DT &gt;= #{paginationInfo.detailCondition.from}
+            </if>
+            <if test="paginationInfo.detailCondition.to != null">
+                AND REG_DT &lt;= #{paginationInfo.detailCondition.to}  
+            </if>
+        </trim>
+
+    </sql>
+
+    <!-- selectOrdersByUserId --> 
+
+    <select id="selectOrdersByUserId">
+        SELECT ORD_SN, ORD_ID, USER_ID, ORD_NM, TOT_AMT, ORD_STAT_CD, REG_DT, MDFCN_DT
+        FROM ORDERS
+        <include refid="orderSearchCondition"/>
+        ORDER BY REG_DT DESC
+        OFFSET #{paginationInfo.offset} ROWS FETCH NEXT #{paginationInfo.screenSize} ROWS ONLY
+    </select>
+
+    <!-- selectOrderTotalCountByUserId --> 
+
+    <select id="selectOrderTotalCountByUserId">
+        SELECT COUNT(*)
+        FROM ORDERS
+        <include refid="orderSearchCondition"/>
+    </select>
+
+    <!-- selectOrderItemsByOrderSn --> 
+
+    <select id="selectOrderItemsByOrderSn" resultMap="orderItemResultMap">
+        SELECT 
+            oi.ORD_ITEM_SN
+           , oi.ORD_SN
+           , oi.PROD_DIV_CD
+           , oi.PROD_SN
+           , oi.PROD_NM
+           , oi.PROD_PRICE
+           , oi.ITEM_QTY
+           , oi.REG_DT
+           , 
+            case 
+                when oi.PROD_DIV_CD = 'COURSE' then (select THMB_IMG from COURSE where COURSE_SN = oi.PROD_SN)
+                when oi.PROD_DIV_CD = 'TEXTBOOK' then (select THMB_IMG from TEXTBOOK where TEXTBOOK_SN = oi.PROD_SN)
+                else null
+            end as PROD_IMG
+             
+        FROM ORDER_ITEM oi
+        inner join ORDERS os on oi.ORD_SN = os.ORD_SN
+        WHERE oi.ORD_SN = #{ordSn}
+          AND os.USER_ID = #{userId}
+    </select>
 </mapper>

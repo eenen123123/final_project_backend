@@ -1,5 +1,7 @@
 package kr.or.ddit.controller.order;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -9,11 +11,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.order.OrderDto;
 import kr.or.ddit.finalProject.dto.order.OrderItemDto;
+import kr.or.ddit.finalProject.exception.ErrorCode;
+import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.service.order.OrderService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
@@ -28,4 +38,46 @@ public class OrderController {
             @RequestBody List<OrderItemDto> items) {
         return ResponseEntity.ok(orderService.createOrder(authentication.getName(), items));
     }
+
+    @GetMapping("/my")
+    public ResponseEntity<PageResponse<OrderDto>> getMyOrders(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to,
+
+            Authentication authentication
+
+    ) {
+        log.info("내 주문 조회 요청: page={}, from={}, to={}, user={}", page, from, to, authentication.getName());
+        // 2026-03-08 이렇게 날짜 범위가 문자열로 들어옴
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        LocalDateTime fromDate = null;
+        LocalDateTime toDate = null;
+        try {
+            if (from != null && !from.isEmpty()) {
+                fromDate = sdf.parse(from).toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
+            }
+            if (to != null && !to.isEmpty()) {
+                toDate = sdf.parse(to).toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
+            }
+        } catch (Exception e) {
+            log.error("날짜 파싱 오류: {}", e.getMessage());
+            throw new FinalProjectException(ErrorCode.INVALID_DATE_FORMAT);
+        }
+        PageResponse<OrderDto> orders = orderService.getOrdersByUserId(authentication.getName(), page, fromDate,
+                toDate);
+        return ResponseEntity.ok(orders);
+    }
+
+    @GetMapping("/detail")
+    public ResponseEntity<List<OrderItemDto>> getOrderDetail(@RequestParam String id, Authentication authentication) {
+
+        List<OrderItemDto> items = orderService.getOrderItemsByOrderSn(id, authentication.getName());
+        if (items == null || items.isEmpty()) {
+            throw new FinalProjectException(ErrorCode.ORDER_NOT_FOUND);
+        }
+        return ResponseEntity.ok(items);
+
+    }
+
 }

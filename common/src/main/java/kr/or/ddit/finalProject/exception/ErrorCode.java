@@ -3,7 +3,8 @@ package kr.or.ddit.finalProject.exception;
 import org.springframework.http.HttpStatus;
 
 /**
- * 프로젝트 전반에서 발생할 수 있는 다양한 예외 상황을 정의하는 열거형 클래스 각 예외 상황에 대한 고유한 코드와 메시지를 포함하여, 예외 처리 시 일관된 방식으로 사용할 수
+ * 프로젝트 전반에서 발생할 수 있는 다양한 예외 상황을 정의하는 열거형 클래스 각 예외 상황에 대한 고유한 코드와 메시지를 포함하여, 예외
+ * 처리 시 일관된 방식으로 사용할 수
  * 있음
  */
 //@formatter:off
@@ -23,9 +24,11 @@ public enum ErrorCode {
     CALENDAR_EVENT_NOT_FOUND(HttpStatus.NOT_FOUND, "캘린더 이벤트를 찾을 수 없습니다."),
     CALENDAR_SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "캘린더 일정을 찾을 수 없습니다."),
 
+    INVALID_DATE_FORMAT(HttpStatus.BAD_REQUEST, "날짜 형식이 올바르지 않습니다. yyyy-MM-dd 형식으로 입력해주세요."),
+
     // 교재 관련
     TEXTBOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 교재입니다."),
-LECTURE_NOT_FOUND(HttpStatus.NOT_FOUND, "강의를 찾을 수 없습니다."),
+    LECTURE_NOT_FOUND(HttpStatus.NOT_FOUND, "강의를 찾을 수 없습니다."),
 
     // 사용자 관련
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
