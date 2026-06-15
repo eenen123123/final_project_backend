@@ -15,9 +15,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.HashMap;
+
 import kr.or.ddit.finalProject.dto.course.CourseDto;
 import kr.or.ddit.finalProject.dto.curriculum.CurriculumDto;
+import kr.or.ddit.finalProject.dto.staff.AdminActivityType;
 import kr.or.ddit.finalProject.service.curriculum.CurriculumService;
+import kr.or.ddit.service.AdminActivityApprovalService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 public class InstructorCurriculumController {
 
     private final CurriculumService curriculumService;
+    private final AdminActivityApprovalService adminActivityApprovalService;
 
     // ── 페이지 렌더링 ────────────────────────────────────────────────
 
@@ -41,7 +46,7 @@ public class InstructorCurriculumController {
 
     // ── 커리큘럼 CRUD (AJAX) ─────────────────────────────────────────
 
-    /** 커리큘럼 생성. rgtrId/instructorId를 현재 로그인 사용자로 설정한다. */
+    /** 커리큘럼 생성 결재 요청. */
     @PostMapping("/create")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> create(
@@ -52,18 +57,25 @@ public class InstructorCurriculumController {
         curriculumDto.setRgtrId(userId);
         curriculumDto.setLastMdfrId(userId);
         try {
-            boolean created = curriculumService.createCurriculum(curriculumDto);
-            if (!created) {
-                return ResponseEntity.ok(Map.of("success", false, "message", "커리큘럼 생성에 실패했습니다."));
-            }
-            return ResponseEntity.ok(Map.of("success", true, "curriculumId", curriculumDto.getCurriculumId()));
+            // boolean created = curriculumService.createCurriculum(curriculumDto);
+            // if (!created) return ResponseEntity.ok(Map.of("success", false, "message", "커리큘럼 생성에 실패했습니다."));
+            // return ResponseEntity.ok(Map.of("success", true, "curriculumId", curriculumDto.getCurriculumId()));
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("curriculumDto", curriculumDto);
+            adminActivityApprovalService.submitForApproval(
+                userId,
+                AdminActivityType.CURRICULUM_CREATE,
+                curriculumDto.getTitle(),
+                payload
+            );
+            return ResponseEntity.ok(Map.of("success", true));
         } catch (Exception e) {
-            log.error("커리큘럼 생성 오류", e);
+            log.error("커리큘럼 생성 결재 요청 오류", e);
             return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
         }
     }
 
-    /** 커리큘럼 수정. 작성자 불일치 시 서비스에서 SecurityException을 던진다. */
+    /** 커리큘럼 수정 결재 요청. */
     @PostMapping("/{curriculumId}/update")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> update(
@@ -72,29 +84,47 @@ public class InstructorCurriculumController {
             Authentication authentication) {
         curriculumDto.setCurriculumId(curriculumId);
         try {
-            curriculumService.modifyCurriculum(curriculumDto, authentication.getName());
+            // curriculumService.modifyCurriculum(curriculumDto, authentication.getName());
+            // return ResponseEntity.ok(Map.of("success", true));
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("curriculumDto", curriculumDto);
+            adminActivityApprovalService.submitForApproval(
+                authentication.getName(),
+                AdminActivityType.CURRICULUM_UPDATE,
+                curriculumDto.getTitle(),
+                payload
+            );
             return ResponseEntity.ok(Map.of("success", true));
-        } catch (IllegalArgumentException | SecurityException e) {
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
-            log.error("커리큘럼 수정 오류", e);
+            log.error("커리큘럼 수정 결재 요청 오류", e);
             return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
         }
     }
 
-    /** 커리큘럼 논리 삭제 (USE_YN = 'N'). 작성자 불일치 시 서비스에서 SecurityException을 던진다. */
+    /** 커리큘럼 삭제 결재 요청 (승인 후 USE_YN = 'N' 처리). */
     @PostMapping("/{curriculumId}/delete")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> delete(
             @PathVariable Long curriculumId,
             Authentication authentication) {
         try {
-            curriculumService.removeCurriculumLogically(curriculumId, authentication.getName());
+            // curriculumService.removeCurriculumLogically(curriculumId, authentication.getName());
+            // return ResponseEntity.ok(Map.of("success", true));
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("curriculumId", curriculumId);
+            adminActivityApprovalService.submitForApproval(
+                authentication.getName(),
+                AdminActivityType.CURRICULUM_DELETE,
+                "커리큘럼 ID: " + curriculumId,
+                payload
+            );
             return ResponseEntity.ok(Map.of("success", true));
         } catch (IllegalArgumentException | SecurityException e) {
             return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
-            log.error("커리큘럼 삭제 오류", e);
+            log.error("커리큘럼 삭제 결재 요청 오류", e);
             return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
         }
     }

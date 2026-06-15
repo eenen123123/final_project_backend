@@ -3,11 +3,6 @@ let selectedClId = null;
 let deletingClId = null;
 let deletingSubjId = null;
 
-function escapeHtml(str) {
-  return String(str ?? "")
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-}
 
 /* ══════════════════════════════════════════════
    대분류 선택
@@ -70,9 +65,9 @@ async function loadSubjects() {
 }
 
 function buildSubjectRow(s) {
-  const nm = escapeHtml(s.subjNm) || "-";
+  const nm = escHtml(s.subjNm) || "-";
   const expln = s.subjExplnCn
-    ? `<p class="text-xs text-slate-400 mt-0.5 truncate">${escapeHtml(s.subjExplnCn)}</p>`
+    ? `<p class="text-xs text-slate-400 mt-0.5 truncate">${escHtml(s.subjExplnCn)}</p>`
     : "";
   return `
   <div class="subject-row flex items-center gap-3 px-4 py-3 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-sm transition-all"
@@ -87,15 +82,15 @@ function buildSubjectRow(s) {
     <div class="flex gap-1.5 shrink-0">
       <button type="button"
               data-subj-id="${s.subjId}"
-              data-nm="${escapeHtml(s.subjNm)}"
-              data-expln="${escapeHtml(s.subjExplnCn ?? '')}"
+              data-nm="${escHtml(s.subjNm)}"
+              data-expln="${escHtml(s.subjExplnCn ?? '')}"
               onclick="openSubjectEditInline(this)"
               class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors border border-blue-100">
         <i class="fa-solid fa-pen mr-1"></i>수정
       </button>
       <button type="button"
               data-subj-id="${s.subjId}"
-              data-nm="${escapeHtml(s.subjNm)}"
+              data-nm="${escHtml(s.subjNm)}"
               onclick="openDeleteSubjectModal(Number(this.dataset.subjId), this.dataset.nm)"
               class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium text-red-500 hover:bg-red-50 transition-colors border border-red-100">
         <i class="fa-solid fa-trash mr-1"></i>삭제
