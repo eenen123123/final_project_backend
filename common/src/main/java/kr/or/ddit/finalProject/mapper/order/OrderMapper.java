@@ -38,5 +38,7 @@ public interface OrderMapper {
     int selectOrderTotalCountByUserId(@Param("userId") String userId,
             @Param("paginationInfo") PaginationInfo<OrderSearchCondition> paginationInfo);
 
-    List<OrderItemDto> selectOrderItemsByOrderSn(@Param("ordSn") String ordSn, @Param("userId") String userId);
+    List<OrderItemDto> selectOrderItemsByOrderSn(@Param("ordSn") Long ordSn, @Param("userId") String userId);
+
+    OrderDto selectOrderByOrdSn(@Param("ordSn") Long ordSn, @Param("userId") String userId);
 }
