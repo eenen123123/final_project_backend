@@ -1,0 +1,78 @@
+<div class="doc-wrap">
+<style>
+  .doc-wrap { font-family: '맑은 고딕', 'Malgun Gothic', dotum, sans-serif; font-size: 13px; color: #000; }
+  .doc-title { text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 4px; margin: 4px 0 16px; }
+  .doc-table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
+  .doc-table th, .doc-table td { border: 1px solid #000; padding: 5px 8px; vertical-align: middle; }
+  .th { background: #ddd; font-weight: bold; text-align: center; white-space: nowrap; }
+  .section-head { background: #bbb; font-weight: bold; text-align: center; font-size: 12px; letter-spacing: 2px; }
+  .doc-input { width: 100%; border: none; outline: none; background: transparent; font-family: inherit; font-size: 13px; }
+  .doc-textarea { width: 100%; border: none; outline: none; background: transparent; font-family: inherit; font-size: 13px; resize: vertical; min-height: 160px; }
+</style>
+
+<div class="doc-title">과 목 관 리 결 재 서</div>
+
+<!-- 기안 정보 -->
+<table class="doc-table">
+  <colgroup><col width="13%"><col width="37%"><col width="13%"><col></colgroup>
+  <tr>
+    <td class="th">기안일</td>
+    <td><input class="doc-input" type="date" name="draftDate"></td>
+    <td class="th">기안자</td>
+    <td><input class="doc-input" type="text" name="drafter"></td>
+  </tr>
+  <tr>
+    <td class="th">소속부서</td>
+    <td><input class="doc-input" type="text" name="dept"></td>
+    <td class="th">처리구분</td>
+    <td>
+      <select class="doc-input" name="actionType" style="width: auto;">
+        <option value="">선택</option>
+        <option value="대분류 등록">대분류 등록</option>
+        <option value="대분류 수정">대분류 수정</option>
+        <option value="대분류 삭제">대분류 삭제</option>
+        <option value="과목 등록">과목 등록</option>
+        <option value="과목 수정">과목 수정</option>
+        <option value="과목 삭제">과목 삭제</option>
+      </select>
+    </td>
+  </tr>
+</table>
+
+<!-- 대분류 정보 -->
+<table class="doc-table">
+  <colgroup><col width="13%"><col></colgroup>
+  <tr>
+    <td class="section-head" colspan="2">[ 대 분 류 ]</td>
+  </tr>
+  <tr>
+    <td class="th">대분류명</td>
+    <td><input class="doc-input" type="text" name="subjClNm"></td>
+  </tr>
+</table>
+
+<!-- 과목 정보 (과목 등록/수정/삭제 시에만 작성) -->
+<table class="doc-table">
+  <colgroup><col width="13%"><col></colgroup>
+  <tr>
+    <td class="section-head" colspan="2">[ 과 목 ] &nbsp;<span style="font-size:11px; font-weight:normal;">과목 관련 처리 시에만 작성</span></td>
+  </tr>
+  <tr>
+    <td class="th">과목명</td>
+    <td><input class="doc-input" type="text" name="subjNm"></td>
+  </tr>
+  <tr>
+    <td class="th">과목 설명</td>
+    <td><input class="doc-input" type="text" name="subjExplnCn"></td>
+  </tr>
+</table>
+
+<!-- 요청 사유 -->
+<table class="doc-table">
+  <colgroup><col width="13%"><col></colgroup>
+  <tr>
+    <td class="th" style="vertical-align: top; padding-top: 8px;">요청 사유</td>
+    <td><textarea class="doc-textarea" name="reason" rows="8"></textarea></td>
+  </tr>
+</table>
+</div>

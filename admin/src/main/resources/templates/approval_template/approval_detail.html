@@ -422,6 +422,12 @@
     COMMON_CODE_CREATE:       { label: '공통코드 등록',      color: 'bg-teal-100 text-teal-700',     border: 'border-teal-200',    icon: 'fa-plus-circle',   dot: 'bg-teal-500'    },
     COMMON_CODE_UPDATE:       { label: '공통코드 수정',      color: 'bg-teal-100 text-teal-700',     border: 'border-teal-200',    icon: 'fa-pen-to-square', dot: 'bg-teal-500'    },
     COMMON_CODE_DELETE:       { label: '공통코드 삭제',      color: 'bg-red-100 text-red-700',       border: 'border-red-200',     icon: 'fa-trash',         dot: 'bg-red-500'     },
+    SUBJECT_CL_CREATE: { label: '대분류 등록', color: 'bg-blue-100 text-blue-700',  border: 'border-blue-200',  icon: 'fa-folder-plus',   dot: 'bg-blue-500'  },
+    SUBJECT_CL_UPDATE: { label: '대분류 수정', color: 'bg-blue-100 text-blue-700',  border: 'border-blue-200',  icon: 'fa-folder-open',   dot: 'bg-blue-500'  },
+    SUBJECT_CL_DELETE: { label: '대분류 삭제', color: 'bg-red-100 text-red-700',    border: 'border-red-200',   icon: 'fa-folder-minus',  dot: 'bg-red-500'   },
+    SUBJECT_CREATE:    { label: '과목 등록',   color: 'bg-cyan-100 text-cyan-700',  border: 'border-cyan-200',  icon: 'fa-book',          dot: 'bg-cyan-500'  },
+    SUBJECT_UPDATE:    { label: '과목 수정',   color: 'bg-cyan-100 text-cyan-700',  border: 'border-cyan-200',  icon: 'fa-pen-to-square', dot: 'bg-cyan-500'  },
+    SUBJECT_DELETE:    { label: '과목 삭제',   color: 'bg-red-100 text-red-700',    border: 'border-red-200',   icon: 'fa-book',          dot: 'bg-red-500'   },
   };
 
   const SECTION_CONFIG = {
@@ -430,6 +436,8 @@
     employeeSalaryDto: { label: '급여 정보',      icon: 'fa-won-sign',     color: 'text-emerald-500'},
     studentDto:        { label: '학생 정보',      icon: 'fa-user-graduate', color: 'text-violet-500' },
     dto:               { label: '공통코드 정보',  icon: 'fa-list',          color: 'text-indigo-500' },
+    subjClDto:         { label: '대분류 정보',   icon: 'fa-folder',        color: 'text-blue-500'   },
+    subjDto:           { label: '과목 정보',     icon: 'fa-book',          color: 'text-cyan-500'   },
   };
 
   const FIELD_LABELS = {
@@ -444,7 +452,9 @@
     studentId: '학번', grade: '학년', classNm: '반', ctrctEndYmd: '계약 종료일',
     clCode: '분류코드', clCdNm: '분류명', clCdExpln: '분류 설명',
     comCd: '코드값', comCdNm: '표시명', comCdExpln: '코드 설명',
-    useYn: '사용 여부'
+    useYn: '사용 여부',
+    subjClId: '대분류 ID', subjClNm: '대분류명',
+    subjId: '과목 ID', subjNm: '과목명', subjExplnCn: '과목 설명'
   };
 
   const FIELD_TRANSFORMS = {
