@@ -23,7 +23,7 @@
         </div>
         <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">전체 등록</p>
       </div>
-      <p class="text-2xl font-bold text-slate-800">8명</p>
+      <p class="text-2xl font-bold text-slate-800" id="sumTotal">0명</p>
       <p class="text-xs text-slate-400 mt-0.5">누적 등록 학생</p>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
@@ -33,7 +33,7 @@
         </div>
         <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">고위험</p>
       </div>
-      <p class="text-2xl font-bold text-red-600">2명</p>
+      <p class="text-2xl font-bold text-red-600" id="sumHighRisk">0명</p>
       <p class="text-xs text-slate-400 mt-0.5">즉각 조치 필요</p>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
@@ -43,7 +43,7 @@
         </div>
         <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">관찰 중</p>
       </div>
-      <p class="text-2xl font-bold text-amber-500">5명</p>
+      <p class="text-2xl font-bold text-amber-500" id="sumObserve">0명</p>
       <p class="text-xs text-slate-400 mt-0.5">지속 모니터링</p>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
@@ -53,7 +53,7 @@
         </div>
         <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">해제 완료</p>
       </div>
-      <p class="text-2xl font-bold text-emerald-600">1명</p>
+      <p class="text-2xl font-bold text-emerald-600" id="sumResolved">0명</p>
       <p class="text-xs text-slate-400 mt-0.5">정상화 처리</p>
     </div>
   </div>
@@ -74,25 +74,24 @@
     <div class="lg:col-span-2 space-y-4">
       <div class="flex flex-wrap items-center gap-3">
         <div class="w-52 relative">
-          <input type="text" class="hm-input pl-10" placeholder="학생명 또는 사유 검색..." oninput="filterList(this.value)">
+          <input type="text" id="fKeyword" class="hm-input pl-10" placeholder="학생명 또는 사유 검색..." oninput="onKeywordInput()">
           <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
         </div>
-        <select class="hm-input w-36" onchange="filterLevel(this.value)">
-          <option value="">등급 전체</option>
-          <option value="고위험">고위험</option>
-          <option value="관찰">관찰 중</option>
-          <option value="해제">해제 완료</option>
-        </select>
-        <select class="hm-input w-36" onchange="filterCategory(this.value)">
-          <option value="">유형 전체</option>
-          <option value="폭력">폭력/괴롭힘</option>
-          <option value="수납">수납 불이행</option>
-          <option value="태도">수업 태도</option>
-          <option value="기타">기타</option>
+        <select class="hm-input w-36" id="fLevel" data-cs-defer data-cl-code="700" data-all-label="등급 전체" onchange="doSearch(1)"></select>
+        <select class="hm-input w-36" id="fCategory" data-cs-defer data-cl-code="701" data-all-label="유형 전체" onchange="doSearch(1)"></select>
+        <select class="hm-input w-32" id="fStatus" onchange="doSearch(1)">
+          <option value="">상태 전체</option>
+          <option value="active">적용 중</option>
+          <option value="resolved">해제 완료</option>
         </select>
       </div>
 
       <div class="space-y-3" id="blacklistCards"></div>
+
+      <div class="flex items-center justify-between px-2 py-2">
+        <p class="text-xs text-slate-400" id="blPageInfo"></p>
+        <div id="blPagination" class="flex items-center gap-1"></div>
+      </div>
     </div>
 
     <!-- 사이드: 빠른 등록 + 유형별 현황 -->
@@ -104,20 +103,15 @@
           <i class="fa-solid fa-bolt mr-1.5 text-violet-500"></i>빠른 등록
         </h3>
         <div class="space-y-3">
-          <input type="text" class="hm-input" id="quickStudent" placeholder="학생명">
-          <select class="hm-input" id="quickLevel">
-            <option value="">등급 선택</option>
-            <option value="고위험">고위험</option>
-            <option value="관찰">관찰 중</option>
-          </select>
-          <select class="hm-input" id="quickCategory">
-            <option value="">유형 선택</option>
-            <option value="폭력">폭력/괴롭힘</option>
-            <option value="수납">수납 불이행</option>
-            <option value="태도">수업 태도</option>
-            <option value="기타">기타</option>
-          </select>
+          <div class="relative">
+            <input type="text" class="hm-input" id="quickStudent" placeholder="학생명 검색 후 선택" autocomplete="off"
+                   oninput="searchStudentPicker('quick')" onfocus="searchStudentPicker('quick')">
+            <input type="hidden" id="quickStudentId">
+            <div id="quickStudentResults" class="hidden absolute z-20 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto"></div>
+          </div>
+          <select class="hm-input" id="quickCategory" data-cs-defer data-cl-code="701" data-all-label="유형 선택"></select>
           <textarea class="hm-input resize-none" id="quickReason" rows="2" placeholder="등록 사유 요약"></textarea>
+          <p class="text-[11px] text-slate-400 leading-snug">누적 횟수로 자동 처리: 1회 경고 · 2회 7일 정지 · 3회+ 영구정지</p>
         </div>
         <button class="hm-btn-primary w-full mt-3" onclick="saveQuick()">
           <i class="fa-solid fa-floppy-disk"></i>
@@ -131,14 +125,6 @@
           <i class="fa-solid fa-chart-pie mr-1.5 text-violet-500"></i>유형별 현황
         </h3>
         <div class="space-y-2.5" id="categoryStats"></div>
-      </div>
-
-      <!-- 최근 공유 이력 -->
-      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-        <h3 class="text-sm font-bold text-slate-700 mb-3">
-          <i class="fa-solid fa-share-nodes mr-1.5 text-violet-500"></i>최근 내부 공유
-        </h3>
-        <div class="space-y-3" id="shareLog"></div>
       </div>
     </div>
   </div>
@@ -159,35 +145,36 @@
 
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block text-xs font-medium text-slate-500 mb-1.5">학생명 <span class="text-red-400">*</span></label>
-          <input type="text" class="hm-input" id="blName" placeholder="홍길동">
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">학생 <span class="text-red-400">*</span></label>
+          <div class="relative">
+            <input type="text" class="hm-input" id="blName" placeholder="학생명 검색 후 선택" autocomplete="off"
+                   oninput="searchStudentPicker('bl')" onfocus="searchStudentPicker('bl')">
+            <input type="hidden" id="blStudentId">
+            <div id="blStudentResults" class="hidden absolute z-20 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto"></div>
+          </div>
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-500 mb-1.5">학년/반</label>
-          <input type="text" class="hm-input" id="blGrade" placeholder="고2 수학반">
+          <label class="block text-xs font-medium text-slate-500 mb-1.5">클래스룸</label>
+          <input type="text" class="hm-input" id="blGrade" placeholder="-" readonly>
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-4">
+      <div class="flex items-start gap-2 p-3 bg-violet-50 border border-violet-100 rounded-xl text-xs text-violet-700">
+        <i class="fa-solid fa-circle-info mt-0.5 shrink-0"></i>
+        <p>등급·정지는 <strong>누적 위반 횟수로 자동 결정</strong>됩니다 — 1회 경고(차단 없음) · 2회 7일 정지 · 3회 이상 영구정지.</p>
+      </div>
+
+      <label class="flex items-center gap-3 p-3 bg-rose-50 border border-rose-100 rounded-xl cursor-pointer">
+        <input type="checkbox" class="hm-switch" id="blForcePerm">
         <div>
-          <label class="block text-xs font-medium text-slate-500 mb-1.5">위험 등급 <span class="text-red-400">*</span></label>
-          <select class="hm-input" id="blLevel">
-            <option value="">선택</option>
-            <option value="고위험">고위험</option>
-            <option value="관찰">관찰 중</option>
-            <option value="해제">해제 완료</option>
-          </select>
+          <p class="text-xs font-semibold text-rose-700">즉시 영구정지</p>
+          <p class="text-xs text-rose-500">누적 횟수를 무시하고 바로 영구 차단합니다 (사안이 중대한 경우).</p>
         </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-500 mb-1.5">유형 <span class="text-red-400">*</span></label>
-          <select class="hm-input" id="blCategory">
-            <option value="">선택</option>
-            <option value="폭력">폭력/괴롭힘</option>
-            <option value="수납">수납 불이행</option>
-            <option value="태도">수업 태도</option>
-            <option value="기타">기타</option>
-          </select>
-        </div>
+      </label>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5">유형 <span class="text-red-400">*</span></label>
+        <select class="hm-input" id="blCategory" data-cs-defer data-cl-code="701" data-all-label="선택"></select>
       </div>
 
       <div>
@@ -204,18 +191,7 @@
         <label class="block text-xs font-medium text-slate-500 mb-1.5">담당자 지정</label>
         <select class="hm-input" id="blAssignee">
           <option value="">담당자 선택</option>
-          <option>이담임</option>
-          <option>오행정</option>
-          <option>박팀장</option>
         </select>
-      </div>
-
-      <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-        <input type="checkbox" class="hm-switch" id="blShareAll" checked>
-        <div>
-          <p class="text-xs font-semibold text-slate-700">전 직원 내부 공유</p>
-          <p class="text-xs text-slate-400">체크 시 저장과 동시에 담당 직원에게 내부 알림 발송</p>
-        </div>
       </div>
     </div>
     <div class="flex gap-3 px-6 py-4 border-t border-slate-100 shrink-0">
@@ -247,401 +223,7 @@
 </div>
 
 
-<!-- ===== 페이지 스크립트 ===== -->
-<script>
-  /* ── 더미 데이터 ── */
-  const blData = [
-    {
-      id: 1,
-      name: '김민재', grade: '고2 수학반', level: '고위험', category: '폭력',
-      reason: '동급생 반복 언어폭력 및 수업 방해 행위 3회 이상 확인',
-      action: '학부모 면담 1차 완료, 2차 예정',
-      assignee: '이담임', registeredBy: '박팀장', date: '2026-05-20',
-      shared: true, logs: ['2026-05-20 박팀장이 등록', '2026-05-21 이담임이 담당자로 지정됨', '2026-05-23 학부모 면담 1차 조치 추가']
-    },
-    {
-      id: 2,
-      name: '이태양', grade: '중3 영어반', level: '고위험', category: '수납',
-      reason: '3개월 연속 수강료 미납, 연락 두절 상태',
-      action: '내용증명 발송 완료',
-      assignee: '오행정', registeredBy: '오행정', date: '2026-05-15',
-      shared: true, logs: ['2026-05-15 오행정이 등록', '2026-05-17 내용증명 발송 조치 추가']
-    },
-    {
-      id: 3,
-      name: '박서준', grade: '고1 국어반', level: '관찰', category: '태도',
-      reason: '수업 중 반복적인 핸드폰 사용 및 졸음, 주의 3회 부여',
-      action: '',
-      assignee: '이담임', registeredBy: '이담임', date: '2026-05-18',
-      shared: false, logs: ['2026-05-18 이담임이 등록']
-    },
-    {
-      id: 4,
-      name: '최지우', grade: '중2 수학반', level: '관찰', category: '폭력',
-      reason: '또래 학생 물품 무단 사용 및 경미한 신체 접촉 1회',
-      action: '구두 경고 완료',
-      assignee: '박팀장', registeredBy: '이담임', date: '2026-05-10',
-      shared: true, logs: ['2026-05-10 이담임이 등록', '2026-05-11 구두 경고 조치 추가']
-    },
-    {
-      id: 5,
-      name: '정하은', grade: '초5 영어반', level: '관찰', category: '태도',
-      reason: '수업 시작 후 반복적인 지각(5회 이상) 및 교재 미지참',
-      action: '',
-      assignee: '오행정', registeredBy: '오행정', date: '2026-05-08',
-      shared: false, logs: ['2026-05-08 오행정이 등록']
-    },
-    {
-      id: 6,
-      name: '강다원', grade: '고3 수학반', level: '관찰', category: '기타',
-      reason: '외부 학원 교재 반입 후 수업 중 타 학원 과제 수행',
-      action: '',
-      assignee: '이담임', registeredBy: '박팀장', date: '2026-04-30',
-      shared: false, logs: ['2026-04-30 박팀장이 등록']
-    },
-    {
-      id: 7,
-      name: '윤서아', grade: '중1 국어반', level: '관찰', category: '수납',
-      reason: '1개월 수강료 미납, 분납 합의 진행 중',
-      action: '분납 합의서 작성 중',
-      assignee: '오행정', registeredBy: '오행정', date: '2026-04-25',
-      shared: true, logs: ['2026-04-25 오행정이 등록', '2026-05-02 분납 합의 조치 추가']
-    },
-    {
-      id: 8,
-      name: '임재현', grade: '고2 영어반', level: '해제', category: '태도',
-      reason: '과거 수업 방해 이력 — 이후 개선되어 해제',
-      action: '학부모 협력 하에 정상화 완료',
-      assignee: '이담임', registeredBy: '이담임', date: '2026-03-10',
-      shared: false, logs: ['2026-03-10 이담임이 등록', '2026-04-15 이담임이 해제 처리']
-    },
-  ];
 
-  const categoryMeta = {
-    '폭력': { color: 'bg-red-50 text-red-700',     icon: 'fa-hand-fist',         bar: 'bg-red-400'    },
-    '수납': { color: 'bg-amber-50 text-amber-700',  icon: 'fa-won-sign',          bar: 'bg-amber-400'  },
-    '태도': { color: 'bg-orange-50 text-orange-700',icon: 'fa-person-chalkboard', bar: 'bg-orange-400' },
-    '기타': { color: 'bg-slate-100 text-slate-600', icon: 'fa-circle-dot',        bar: 'bg-slate-400'  },
-  };
-
-  const levelMeta = {
-    '고위험': { badge: 'bg-red-50 text-red-600',     icon: 'fa-circle-xmark',        border: 'border-red-200'    },
-    '관찰':   { badge: 'bg-amber-50 text-amber-600', icon: 'fa-eye',                 border: 'border-amber-200'  },
-    '해제':   { badge: 'bg-emerald-50 text-emerald-700', icon: 'fa-circle-check',    border: 'border-slate-100'  },
-  };
-
-  let filteredData = [...blData];
-
-  /* ── 카드 렌더링 ── */
-  function renderCards(data) {
-    const container = document.getElementById('blacklistCards');
-    if (data.length === 0) {
-      container.innerHTML = `<div class="bg-white rounded-2xl border border-slate-100 shadow-sm py-16 text-center text-slate-300">
-        <i class="fa-solid fa-triangle-exclamation text-4xl mb-3 block"></i>
-        <p class="text-sm">등록된 주의 학생이 없습니다.</p>
-      </div>`;
-      return;
-    }
-    container.innerHTML = data.map(s => {
-      const lm  = levelMeta[s.level]    || levelMeta['관찰'];
-      const cm  = categoryMeta[s.category] || categoryMeta['기타'];
-      const dim = s.level === '해제' ? 'opacity-60' : '';
-      return `
-        <div class="bg-white rounded-2xl border ${lm.border} shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer ${dim}"
-          onclick="openDetail(${s.id})">
-          <div class="flex items-start justify-between gap-4">
-
-            <!-- 학생 정보 -->
-            <div class="flex items-start gap-4 flex-1 min-w-0">
-              <div class="w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0 mt-0.5
-                ${s.level === '고위험' ? 'bg-red-500' : s.level === '해제' ? 'bg-slate-300' : 'bg-amber-400'}">
-                ${s.name.charAt(0)}
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <p class="font-bold text-slate-800">${s.name}</p>
-                  <span class="text-xs text-slate-400">${s.grade}</span>
-                </div>
-                <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-                  <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${lm.badge}">
-                    <i class="fa-solid ${lm.icon} text-[10px]"></i>${s.level}
-                  </span>
-                  <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${cm.color}">
-                    <i class="fa-solid ${cm.icon} text-[10px]"></i>${s.category}
-                  </span>
-                  ${s.shared ? '<span class="text-xs text-violet-500 font-medium"><i class="fa-solid fa-share-nodes text-[10px] mr-1"></i>공유됨</span>' : ''}
-                </div>
-                <p class="text-xs text-slate-500 mt-2 line-clamp-1">${s.reason}</p>
-              </div>
-            </div>
-
-            <!-- 우측 -->
-            <div class="text-right shrink-0 space-y-1.5">
-              <p class="text-xs text-slate-400 font-mono">${s.date}</p>
-              <p class="text-xs text-slate-400">담당: <span class="font-medium text-slate-600">${s.assignee}</span></p>
-            </div>
-          </div>
-
-          <!-- 조치 내용 -->
-          ${s.action ? `
-            <div class="mt-3.5 pt-3.5 border-t border-slate-50 flex items-center gap-2">
-              <i class="fa-solid fa-clipboard-check text-emerald-400 text-xs shrink-0"></i>
-              <p class="text-xs text-slate-500 truncate">${s.action}</p>
-            </div>
-          ` : ''}
-
-          <!-- 액션 버튼 -->
-          <div class="mt-3.5 pt-3.5 border-t border-slate-50 flex items-center justify-between">
-            <div class="flex items-center gap-1 text-xs text-slate-400">
-              <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
-              <span>${s.logs.length}건의 기록</span>
-            </div>
-            <div class="flex items-center gap-1">
-              <button onclick="event.stopPropagation(); openBlacklistModal(${s.id})"
-                class="text-xs text-slate-400 hover:text-violet-600 px-2.5 py-1 rounded-lg hover:bg-violet-50 transition-colors flex items-center gap-1">
-                <i class="fa-regular fa-pen-to-square"></i> 수정
-              </button>
-              ${s.level !== '해제'
-                ? `<button onclick="event.stopPropagation(); resolveEntry(${s.id})"
-                    class="text-xs text-slate-400 hover:text-emerald-600 px-2.5 py-1 rounded-lg hover:bg-emerald-50 transition-colors flex items-center gap-1">
-                    <i class="fa-solid fa-circle-check"></i> 해제
-                   </button>`
-                : ''}
-              <button onclick="event.stopPropagation(); shareEntry(${s.id})"
-                class="text-xs text-slate-400 hover:text-violet-600 px-2.5 py-1 rounded-lg hover:bg-violet-50 transition-colors flex items-center gap-1">
-                <i class="fa-solid fa-share-nodes"></i> 공유
-              </button>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  /* ── 유형별 통계 ── */
-  function renderStats() {
-    const counts = {};
-    blData.filter(s => s.level !== '해제').forEach(s => { counts[s.category] = (counts[s.category] || 0) + 1; });
-    const total = Object.values(counts).reduce((a, b) => a + b, 0) || 1;
-    document.getElementById('categoryStats').innerHTML = Object.entries(counts).map(([cat, cnt]) => {
-      const cm  = categoryMeta[cat] || categoryMeta['기타'];
-      const pct = Math.round((cnt / total) * 100);
-      return `
-        <div>
-          <div class="flex justify-between text-xs mb-1">
-            <span class="flex items-center gap-1.5 font-medium text-slate-600">
-              <i class="fa-solid ${cm.icon} text-[10px]"></i>${cat}
-            </span>
-            <span class="font-semibold text-slate-700">${cnt}명 <span class="text-slate-400 font-normal">(${pct}%)</span></span>
-          </div>
-          <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
-            <div class="h-full rounded-full ${cm.bar}" style="width:${pct}%"></div>
-          </div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  /* ── 최근 공유 이력 ── */
-  function renderShareLog() {
-    const recent = blData.flatMap(s => s.logs.map(l => ({ name: s.name, log: l }))).slice(-4).reverse();
-    document.getElementById('shareLog').innerHTML = recent.map(r => `
-      <div class="flex items-start gap-2.5">
-        <div class="w-6 h-6 rounded-lg bg-violet-50 text-violet-500 flex items-center justify-center text-[10px] shrink-0 mt-0.5">
-          <i class="fa-solid fa-share-nodes"></i>
-        </div>
-        <div>
-          <p class="text-xs font-semibold text-slate-700">${r.name}</p>
-          <p class="text-xs text-slate-400">${r.log}</p>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  /* ── 필터 ── */
-  function filterList(keyword) {
-    filteredData = keyword
-      ? blData.filter(s => s.name.includes(keyword) || s.reason.includes(keyword))
-      : [...blData];
-    renderCards(filteredData);
-  }
-
-  function filterLevel(level) {
-    filteredData = level ? blData.filter(s => s.level === level) : [...blData];
-    renderCards(filteredData);
-  }
-
-  function filterCategory(cat) {
-    filteredData = cat ? blData.filter(s => s.category === cat) : [...blData];
-    renderCards(filteredData);
-  }
-
-  /* ── 해제 처리 ── */
-  function resolveEntry(id) {
-    const s = blData.find(s => s.id === id);
-    if (!s) return;
-    s.level = '해제';
-    s.logs.push(`${new Date().toLocaleDateString('ko-KR')} 해제 처리됨`);
-    renderCards(filteredData);
-    renderStats();
-    showHermesToast(`${s.name} 학생이 주의 목록에서 해제되었습니다.`, 'success');
-  }
-
-  /* ── 공유 ── */
-  function shareEntry(id) {
-    const s = blData.find(s => s.id === id);
-    if (!s) return;
-    s.shared = true;
-    s.logs.push(`${new Date().toLocaleDateString('ko-KR')} 내부 공유 발송`);
-    renderCards(filteredData);
-    renderShareLog();
-    showHermesToast(`${s.name} 학생 정보를 내부 공유했습니다.`, 'success');
-  }
-
-  /* ── 상세 모달 ── */
-  function openDetail(id) {
-    const s   = blData.find(s => s.id === id);
-    if (!s) return;
-    const lm  = levelMeta[s.level]       || levelMeta['관찰'];
-    const cm  = categoryMeta[s.category] || categoryMeta['기타'];
-    document.getElementById('blDetailContent').innerHTML = `
-      <div class="flex items-center gap-4">
-        <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold text-xl
-          ${s.level === '고위험' ? 'bg-red-500' : s.level === '해제' ? 'bg-slate-300' : 'bg-amber-400'}">
-          ${s.name.charAt(0)}
-        </div>
-        <div>
-          <div class="flex items-center gap-2 flex-wrap">
-            <p class="text-lg font-bold text-slate-800">${s.name}</p>
-            <span class="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${lm.badge}">
-              <i class="fa-solid ${lm.icon} text-[10px]"></i>${s.level}
-            </span>
-          </div>
-          <p class="text-sm text-slate-400 mt-0.5">${s.grade}</p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3 text-xs">
-        <div class="bg-slate-50 rounded-xl p-3">
-          <p class="text-slate-400 mb-1">유형</p>
-          <span class="font-semibold ${cm.color} px-2 py-0.5 rounded-full">${s.category}</span>
-        </div>
-        <div class="bg-slate-50 rounded-xl p-3">
-          <p class="text-slate-400 mb-1">담당자</p>
-          <p class="font-semibold text-slate-700">${s.assignee}</p>
-        </div>
-        <div class="bg-slate-50 rounded-xl p-3">
-          <p class="text-slate-400 mb-1">등록자</p>
-          <p class="font-semibold text-slate-700">${s.registeredBy}</p>
-        </div>
-        <div class="bg-slate-50 rounded-xl p-3">
-          <p class="text-slate-400 mb-1">등록일</p>
-          <p class="font-semibold text-slate-700 font-mono">${s.date}</p>
-        </div>
-      </div>
-
-      <div class="bg-rose-50 border border-rose-100 rounded-xl p-4">
-        <p class="text-xs font-bold text-rose-700 mb-1.5">등록 사유</p>
-        <p class="text-sm text-rose-800 leading-relaxed">${s.reason}</p>
-      </div>
-
-      ${s.action ? `
-        <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
-          <p class="text-xs font-bold text-emerald-700 mb-1.5">조치 내용</p>
-          <p class="text-sm text-emerald-800 leading-relaxed">${s.action}</p>
-        </div>
-      ` : ''}
-
-      <div>
-        <p class="text-xs font-bold text-slate-500 mb-2">변경 이력</p>
-        <div class="space-y-2">
-          ${s.logs.map(l => `
-            <div class="flex items-start gap-2.5">
-              <div class="w-5 h-5 rounded-full bg-violet-100 text-violet-500 flex items-center justify-center text-[9px] shrink-0 mt-0.5">
-                <i class="fa-solid fa-clock"></i>
-              </div>
-              <p class="text-xs text-slate-500">${l}</p>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
-    document.getElementById('blDetailEditBtn').onclick = () => { closeDetailModal(); openBlacklistModal(id); };
-    document.getElementById('blDetailModal').classList.remove('hidden');
-  }
-
-  function closeDetailModal() {
-    document.getElementById('blDetailModal').classList.add('hidden');
-  }
-
-  /* ── 등록/수정 모달 ── */
-  let editingId = null;
-
-  function openBlacklistModal(id) {
-    editingId = id;
-    if (id) {
-      const s = blData.find(s => s.id === id);
-      document.getElementById('blModalTitle').textContent = '주의 학생 수정';
-      document.getElementById('blName').value     = s.name;
-      document.getElementById('blGrade').value    = s.grade;
-      document.getElementById('blLevel').value    = s.level;
-      document.getElementById('blCategory').value = s.category;
-      document.getElementById('blReason').value   = s.reason;
-      document.getElementById('blAction').value   = s.action;
-      document.getElementById('blAssignee').value = s.assignee;
-      document.getElementById('blShareAll').checked = s.shared;
-    } else {
-      document.getElementById('blModalTitle').textContent = '주의 학생 등록';
-      ['blName','blGrade','blReason','blAction'].forEach(id => { document.getElementById(id).value = ''; });
-      document.getElementById('blLevel').value    = '';
-      document.getElementById('blCategory').value = '';
-      document.getElementById('blAssignee').value = '';
-      document.getElementById('blShareAll').checked = true;
-    }
-    document.getElementById('blModal').classList.remove('hidden');
-  }
-
-  function closeBlacklistModal() {
-    document.getElementById('blModal').classList.add('hidden');
-    editingId = null;
-  }
-
-  function saveBlacklist() {
-    const name     = document.getElementById('blName').value.trim();
-    const level    = document.getElementById('blLevel').value;
-    const category = document.getElementById('blCategory').value;
-    const reason   = document.getElementById('blReason').value.trim();
-    if (!name)     { showHermesToast('학생명을 입력해 주세요.', 'error'); return; }
-    if (!level)    { showHermesToast('위험 등급을 선택해 주세요.', 'error'); return; }
-    if (!category) { showHermesToast('유형을 선택해 주세요.', 'error'); return; }
-    if (!reason)   { showHermesToast('등록 사유를 입력해 주세요.', 'error'); return; }
-    closeBlacklistModal();
-    showHermesToast(editingId ? `${name} 학생 정보가 수정되었습니다.` : `${name} 학생이 주의 목록에 등록되었습니다.`, 'success');
-  }
-
-  /* ── 빠른 등록 ── */
-  function saveQuick() {
-    const name     = document.getElementById('quickStudent').value.trim();
-    const level    = document.getElementById('quickLevel').value;
-    const category = document.getElementById('quickCategory').value;
-    const reason   = document.getElementById('quickReason').value.trim();
-    if (!name)     { showHermesToast('학생명을 입력해 주세요.', 'error'); return; }
-    if (!level)    { showHermesToast('등급을 선택해 주세요.', 'error'); return; }
-    if (!category) { showHermesToast('유형을 선택해 주세요.', 'error'); return; }
-    if (!reason)   { showHermesToast('등록 사유를 입력해 주세요.', 'error'); return; }
-    ['quickStudent','quickReason'].forEach(id => { document.getElementById(id).value = ''; });
-    document.getElementById('quickLevel').value    = '';
-    document.getElementById('quickCategory').value = '';
-    showHermesToast(`${name} 학생이 주의 목록에 등록되었습니다.`, 'success');
-  }
-
-  /* ── CSS 유틸 ── */
-  const style = document.createElement('style');
-  style.textContent = '.line-clamp-1{display:-webkit-box;-webkit-line-clamp:1;line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}';
-  document.head.appendChild(style);
-
-  /* ── 초기 렌더링 ── */
-  renderCards(blData);
-  renderStats();
-  renderShareLog();
-</script>
+<!-- ===== 페이지 스타일/스크립트 ===== -->
+<link rel="stylesheet" href="/css/staff/blacklist.css" />
+<script src="/js/staff/blacklist.js" defer></script>
