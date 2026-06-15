@@ -16,6 +16,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import jakarta.validation.Valid;
 
 import kr.or.ddit.finalProject.dto.instructor.journal.InstructorJournalDto;
+import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.service.instructor.InstructorJournalService;
 import lombok.RequiredArgsConstructor;
 
@@ -153,6 +154,10 @@ public class InstructorJournalController {
         }
         dto.setInstrUserId(auth.getName());
         Long newSn = journalService.createJournal(dto);
+        if (newSn == null) {
+            ra.addFlashAttribute("errorMessage", "일지 등록 중 오류가 발생했습니다.");
+            return "redirect:/instructor/journals?newForm=true";
+        }
         return "redirect:/instructor/journals?jrnlSn=" + newSn;
     }
 
@@ -176,7 +181,12 @@ public class InstructorJournalController {
             return "redirect:/instructor/journals?jrnlSn=" + jrnlSn + "&edit=true";
         }
         dto.setJrnlSn(jrnlSn);
-        journalService.modifyJournal(dto, auth.getName()); // 소유권 검증은 서비스에서
+        try {
+            journalService.modifyJournal(dto, auth.getName());
+        } catch (FinalProjectException e) {
+            ra.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/instructor/journals?jrnlSn=" + jrnlSn + "&edit=true";
+        }
         return "redirect:/instructor/journals?jrnlSn=" + jrnlSn;
     }
 
@@ -192,7 +202,12 @@ public class InstructorJournalController {
             ra.addFlashAttribute("errorMessage", "읽기 전용 권한으로는 일지를 삭제할 수 없습니다.");
             return "redirect:/instructor/journals?jrnlSn=" + jrnlSn;
         }
-        journalService.removeJournal(jrnlSn, auth.getName()); // 소유권 검증은 서비스에서
+        try {
+            journalService.removeJournal(jrnlSn, auth.getName());
+        } catch (FinalProjectException e) {
+            ra.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/instructor/journals?jrnlSn=" + jrnlSn;
+        }
         return "redirect:/instructor/journals";
     }
 }
