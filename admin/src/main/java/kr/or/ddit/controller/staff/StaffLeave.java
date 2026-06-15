@@ -20,7 +20,7 @@ import kr.or.ddit.finalProject.service.staff.StaffService;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 근태 및 휴가 관리 (행정)
+ * 휴가 관리 (행정)
  *
  * ✔ 이 화면은 "조회 전용" 행정 대시보드다.
  *   - 휴가 신청 / 직권 등록 등 쓰기 동작은 전부 전자결재로 처리한다.
@@ -39,7 +39,7 @@ public class StaffLeave {
     private static final int BLOCK_SIZE = 5;
 
     /**
-     * 근태 및 휴가 관리 메인 화면
+     * 휴가 관리 메인 화면
      */
     @GetMapping("/hr/leave")
     public String getHrLeave(Model model) {
