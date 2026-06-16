@@ -13,7 +13,7 @@
       <p class="text-sm text-slate-500 mt-0.5">강의 관련 공지, 질문, 자료를 등록합니다.</p>
     </div>
   </div>
-  <a th:href="@{/instructor/board/list(page=${listPage}, keyword=${listKeyword}, boardTypeCd=${listBoardTypeCd}, source=${listSource})}"
+  <a th:href="@{/instructor/board/list(page=${listPage}, keyword=${listKeyword}, boardTypeCd=${listBoardTypeCd})}"
      class="hm-btn-secondary text-base">
     <i class="fa-solid fa-list"></i>
     목록으로
@@ -38,7 +38,6 @@
   <input type="hidden" name="listPage" th:value="${listPage != null ? listPage : 1}" />
   <input type="hidden" name="listKeyword" th:value="${listKeyword != null ? listKeyword : ''}" />
   <input type="hidden" name="listBoardTypeCd" th:value="${listBoardTypeCd != null ? listBoardTypeCd : ''}" />
-  <input type="hidden" name="listSource" th:value="${listSource != null ? listSource : ''}" />
 
   <div class="divide-y divide-slate-100">
     <!-- 게시판 분류 -->
@@ -105,7 +104,7 @@
 
   <!-- 버튼 영역 -->
   <div class="flex justify-end gap-3 border-t border-slate-100 bg-slate-50 px-8 py-4">
-    <a th:href="@{/instructor/board/list(page=${listPage}, keyword=${listKeyword}, boardTypeCd=${listBoardTypeCd}, source=${listSource})}"
+    <a th:href="@{/instructor/board/list(page=${listPage}, keyword=${listKeyword}, boardTypeCd=${listBoardTypeCd})}"
        class="hm-btn-secondary bg-slate-200 text-slate-700 text-base hover:bg-slate-300">
       취소
     </a>
@@ -123,9 +122,15 @@
     Array.from(input.files).forEach(function(f) {
       const li = document.createElement('li');
       li.className = 'flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2';
-      li.innerHTML = '<i class="fa-solid fa-paperclip text-slate-400"></i>'
-        + '<span class="flex-1 truncate">' + f.name + '</span>'
-        + '<span class="text-xs text-slate-400">' + (f.size / 1024).toFixed(1) + ' KB</span>';
+      const icon = document.createElement('i');
+      icon.className = 'fa-solid fa-paperclip text-slate-400';
+      const name = document.createElement('span');
+      name.className = 'flex-1 truncate';
+      name.textContent = f.name;
+      const size = document.createElement('span');
+      size.className = 'text-xs text-slate-400';
+      size.textContent = (f.size / 1024).toFixed(1) + ' KB';
+      li.append(icon, name, size);
       list.appendChild(li);
     });
   }
@@ -134,11 +139,45 @@
 <script th:inline="javascript">
   document.addEventListener('DOMContentLoaded', function () {
     const savedContent = /*[[${board?.postCn}]]*/ null;
+
+    // TipTapEditor.mount의 initialContent는 JSON만 처리함.
+    // 검증 실패 후 redirect 시 savedContent가 HTML로 오므로 JSON 여부를 먼저 판별.
+    let initialForMount = '';
+    let htmlToRestore = null;
+    if (savedContent) {
+      try {
+        JSON.parse(savedContent);
+        initialForMount = savedContent; // JSON → TipTap이 직접 처리
+      } catch {
+        htmlToRestore = savedContent;   // HTML → mount 후 직접 주입
+      }
+    }
+
     TipTapEditor.mount('editor', {
       editable: true,
       outputInputId: 'postCnHidden',
-      initialContent: savedContent || '',
+      initialContent: initialForMount,
       imageUrlResolver: (fileId) => `/admin/files/${fileId}/view`,
+    });
+
+    // HTML 복원: TipTap은 내부적으로 setTimeout(0)으로 초기화하므로 폴링으로 대기
+    if (htmlToRestore) {
+      const t = setInterval(() => {
+        const el = document.querySelector('#editor .tiptap');
+        if (el && el.editor) {
+          el.editor.commands.setContent(htmlToRestore);
+          clearInterval(t);
+        }
+      }, 50);
+      setTimeout(() => clearInterval(t), 3000); // 3초 내 초기화 안 되면 포기
+    }
+
+    // submit 직전에 TipTap JSON → HTML 변환 후 hidden field에 기록
+    document.querySelector('form').addEventListener('submit', function () {
+      const el = document.querySelector('#editor .tiptap');
+      if (el && el.editor) {
+        document.getElementById('postCnHidden').value = el.editor.getHTML();
+      }
     });
   });
 </script>
