@@ -20,13 +20,15 @@ public interface InstructorBoardMapper {
             @Param("instrUserId") String instrUserId,
             @Param("keyword") String keyword,
             @Param("boardTypeCd") String boardTypeCd,
+            @Param("source") String source,
             @Param("offset") int offset,
             @Param("pageSize") int pageSize);
 
     public int selectInstructorBoardCount(
             @Param("instrUserId") String instrUserId,
             @Param("keyword") String keyword,
-            @Param("boardTypeCd") String boardTypeCd);
+            @Param("boardTypeCd") String boardTypeCd,
+            @Param("source") String source);
 
     public InstructorBoardDto selectInstructorBoardDetail(@Param("postSn") Long postSn, @Param("instrUserId") String instrUserId);
 

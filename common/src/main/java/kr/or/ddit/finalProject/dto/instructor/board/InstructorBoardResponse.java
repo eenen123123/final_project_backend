@@ -29,6 +29,8 @@ public class InstructorBoardResponse implements Serializable {
     private String regDt; // 게시글 등록일
     private String mdfcnDt; // 게시글 수정일
     private String atchFileId; // 첨부파일 ID
+    private Long classSn;     // NULL=강사 홈페이지, 값 있으면 클래스룸 전속
+    private String courseNm;  // 클래스룸 소속 강좌명 (classSn != null 일 때)
 
     private List<FileDto> files; // 첨부파일 목록 (없으면 null)
 

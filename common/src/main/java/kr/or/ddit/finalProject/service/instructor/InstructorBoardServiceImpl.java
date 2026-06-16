@@ -28,11 +28,11 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
 
     @Override
     public PageResponse<InstructorBoardResponse> getInstructorBoardList(
-            String instrUserId, String keyword, String boardTypeCd, int page, int pageSize) {
+            String instrUserId, String keyword, String boardTypeCd, String source, int page, int pageSize) {
         int offset = (page - 1) * pageSize;
-        int totalCount = instructorBoardMapper.selectInstructorBoardCount(instrUserId, keyword, boardTypeCd);
+        int totalCount = instructorBoardMapper.selectInstructorBoardCount(instrUserId, keyword, boardTypeCd, source);
         List<InstructorBoardDto> original = instructorBoardMapper.selectInstructorBoardList(
-                instrUserId, keyword, boardTypeCd, offset, pageSize);
+                instrUserId, keyword, boardTypeCd, source, offset, pageSize);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         List<InstructorBoardResponse> items = original.stream()
                 .map(dto -> {
@@ -49,6 +49,8 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
                     responseDto.setRegDt(dto.getRegDt() != null ? dto.getRegDt().format(formatter) : null);
                     responseDto.setMdfcnDt(dto.getMdfcnDt() != null ? dto.getMdfcnDt().format(formatter) : null);
                     responseDto.setAtchFileId(dto.getAtchFileId() != null ? dto.getAtchFileId().toString() : null);
+                    responseDto.setClassSn(dto.getClassSn());
+                    responseDto.setCourseNm(dto.getCourseNm());
                     return responseDto;
                 })
                 .toList();
@@ -75,6 +77,8 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
                 .regDt(original.getRegDt() != null ? original.getRegDt().format(formatter) : null)
                 .mdfcnDt(original.getMdfcnDt() != null ? original.getMdfcnDt().format(formatter) : null)
                 .atchFileId(original.getAtchFileId() != null ? original.getAtchFileId().toString() : null)
+                .classSn(original.getClassSn())
+                .courseNm(original.getCourseNm())
                 .build();
 
         if ("QNA".equals(original.getBoardTypeCd())) {

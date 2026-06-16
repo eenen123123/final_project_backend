@@ -39,9 +39,10 @@ public class InstructorBoardDto implements Serializable {
     private String lastMdfrId;
 
     private String useYn; // 사용여부 (Y: 활성, N: 삭제)
-    private Long classSn; // NULL=강사 페이지, 값 있으면 클래스룸 전속
+    private Long classSn; // NULL=강사 홈페이지, 값 있으면 클래스룸 전속
 
     // 조인 컬럼
-    private String boardTypeNm; // COM_CD.COM_CD_NM (게시판 분류명)
+    private String boardTypeNm; // 게시판 분류명
+    private String courseNm;    // 클래스룸 소속 강좌명 (classSn != null 일 때)
     private MemberDto memberDto; // 작성자 정보 포함
 }
