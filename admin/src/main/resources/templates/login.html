@@ -137,13 +137,13 @@
               const res = await fetch("/api/temp/accounts");
               const data = await res.json();
               data.forEach(account => {
-                let bgColorClass = "bg-gray-50";
+                let bgColorClass = "bg-gray-100";
                 if (account.department === "행정팀") {
-                  bgColorClass = "bg-blue-50";
+                  bgColorClass = "bg-blue-100";
                 } else if (account.department === "강사팀") {
-                  bgColorClass = "bg-green-50";
+                  bgColorClass = "bg-green-100";
                 } else if (account.department === "PD팀") {
-                  bgColorClass = "bg-yellow-50";
+                  bgColorClass = "bg-yellow-100";
                 }
                 const tr = document.createElement("tr");
                 tr.classList.add("border", bgColorClass);
