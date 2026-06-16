@@ -40,4 +40,6 @@ public interface MemberMapper {
     PageResponse<MemberDto> selectStudentListWithPaging(
             @Param("paging") PaginationInfo<MemberDto> paging);
 
+    List<MemberDto> searchStudentsForCoupon(@Param("q") String q);
+
 }

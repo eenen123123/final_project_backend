@@ -47,25 +47,27 @@
 
   <!-- ③ 목록 -->
   <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto" style="min-height:32rem">
     <table class="w-full text-sm">
       <thead class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
         <tr>
-          <th class="px-4 py-3 text-left">직원ID</th>
-          <th class="px-4 py-3 text-left">직원명</th>
-          <th class="px-4 py-3 text-left">부서</th>
-          <th class="px-4 py-3 text-left">직급</th>
-          <th class="px-4 py-3 text-center">상태</th>
-          <th class="px-4 py-3 text-right">기본급</th>
-          <th class="px-4 py-3 text-left">은행</th>
-          <th class="px-4 py-3 text-left">계좌번호</th>
-          <th class="px-4 py-3 text-left">예금주</th>
-          <th class="px-4 py-3 text-center">관리</th>
+          <th class="px-4 py-3 text-left w-35">직원ID</th>
+          <th class="px-4 py-3 text-left w-30">직원명</th>
+          <th class="px-4 py-3 text-left w-30">부서</th>
+          <th class="px-4 py-3 text-left w-30">직급</th>
+          <th class="px-4 py-3 text-center w-20">상태</th>
+          <th class="px-4 py-3 text-right w-30">기본급</th>
+          <th class="px-4 py-3 text-left w-30">은행</th>
+          <th class="px-4 py-3 text-left w-50">계좌번호</th>
+          <th class="px-4 py-3 text-left w-30">예금주</th>
+          <th class="px-4 py-3 text-center w-30">관리</th>
         </tr>
       </thead>
       <tbody id="salaryTbody" class="divide-y divide-slate-100">
         <tr><td colspan="10" class="px-4 py-10 text-center text-slate-400">불러오는 중...</td></tr>
       </tbody>
     </table>
+    </div>
 
     <!-- ④ 페이지네이션 (서버 페이징: 좌측 전체 건수 / 우측 버튼) -->
     <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
@@ -150,7 +152,7 @@
     return p;
   }
 
-  function won(v) { return v == null || v === '' ? '-' : Number(v).toLocaleString('ko-KR') + '원'; }
+  function won(v) { return v == null || v === '' ? '-' : Number(v).toLocaleString('ko-KR') + '만원'; }
   function statusBadge(cd) {
     if (cd === '02') return '<span class="status-badge status-leave">휴직</span>';
     if (cd === '03') return '<span class="status-badge status-resigned">퇴사</span>';
@@ -159,12 +161,12 @@
 
   function loadList(page) {
     currentPage = page || 1;
-    tbody.innerHTML = '<tr><td colspan="10" class="px-4 py-10 text-center text-slate-400">불러오는 중...</td></tr>';
     const p = filterQs();
     p.append('page', currentPage);
     p.append('screenSize', SCREEN_SIZE);
 
-    fetch('/admin/salary/list?' + p.toString())
+    // 로딩 플래시 없이 기존 행을 유지한 채 교체 → 높이/스크롤 점프 방지
+    return fetch('/admin/salary/list?' + p.toString())
       .then(r => r.json())
       .then(res => {
         const rows = res.items || [];
@@ -185,7 +187,7 @@
             <td class="px-4 py-3 text-slate-600">${escHtml(r.acntNo) || '-'}</td>
             <td class="px-4 py-3 text-slate-600">${escHtml(r.depositorNm) || '-'}</td>
             <td class="px-4 py-3 text-center">
-              <button class="text-blue-500 hover:text-blue-700 btn-edit"
+              <button type="button" class="text-blue-500 hover:text-blue-700 btn-edit"
                 data-id="${escHtml(r.userId)}" data-name="${escHtml(r.userName)}"
                 data-salary="${r.baseSalary ?? ''}" data-bank="${escHtml(r.bankCd)}"
                 data-banknm="${escHtml(r.bankNm)}" data-acnt="${escHtml(r.acntNo)}"
@@ -222,14 +224,14 @@
     const BASE = 'w-8 h-8 rounded-lg text-xs flex items-center justify-center';
     let html = '';
     if (startPage > 1) {
-      html += `<button data-page="${startPage - 1}" class="${BASE} text-slate-400 hover:bg-slate-100">‹</button>`;
+      html += `<button type="button" data-page="${startPage - 1}" class="${BASE} text-slate-400 hover:bg-slate-100">‹</button>`;
     }
     for (let p = startPage; p <= endPage; p++) {
       const cls = p === currentPage ? 'bg-blue-500 text-white font-bold' : 'text-slate-400 hover:bg-slate-100';
-      html += `<button data-page="${p}" class="${BASE} ${cls}">${p}</button>`;
+      html += `<button type="button" data-page="${p}" class="${BASE} ${cls}">${p}</button>`;
     }
     if (endPage < totalPage) {
-      html += `<button data-page="${endPage + 1}" class="${BASE} text-slate-400 hover:bg-slate-100">›</button>`;
+      html += `<button type="button" data-page="${endPage + 1}" class="${BASE} text-slate-400 hover:bg-slate-100">›</button>`;
     }
     pagingBox.innerHTML = html;
   }
@@ -237,9 +239,9 @@
   pagingBox.addEventListener('click', function (e) {
     const btn = e.target.closest('button[data-page]');
     if (!btn) return;
+    // 렌더 완료 후 스크롤 위치 복원 (employees.js goHrPage 와 동일 동작)
     const scrollY = window.scrollY;
-    loadList(Number(btn.dataset.page));
-    window.scrollTo({ top: scrollY, behavior: 'instant' });
+    loadList(Number(btn.dataset.page)).then(() => window.scrollTo({ top: scrollY, behavior: 'instant' }));
   });
 
   // ── 수정 모달 ──
