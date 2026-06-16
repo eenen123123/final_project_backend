@@ -15,20 +15,22 @@ public class AdminSecurityConfig {
     // 뷰 리졸버 작성 후 아래 코드를 사용하면 보안 관련 설정이 먹통이 되는 문제가 발생했음.
     // @Bean
     // public WebSecurityCustomizer webSecurityCustomizer() {
-    //     // 정적 리소스에 대한 보안 설정을 무시하도록 구성
-    //     return (web) -> web.ignoring().requestMatchers(
-    //             PathRequest.toStaticResources().atCommonLocations());
+    // // 정적 리소스에 대한 보안 설정을 무시하도록 구성
+    // return (web) -> web.ignoring().requestMatchers(
+    // PathRequest.toStaticResources().atCommonLocations());
     // }
     // @Bean
-    // public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    //     http.csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(requests
-    //             -> requests.requestMatchers("/", "/login").permitAll().requestMatchers("/admin/**")
-    //                     .hasRole("ADMIN"))
-    //             .formLogin(auth -> auth.loginPage("/login")
-    //             .loginProcessingUrl("/login")
-    //             .defaultSuccessUrl("/"))
-    //             .logout(logout -> logout.permitAll());
-    //     return http.build();
+    // public SecurityFilterChain securityFilterChain(HttpSecurity http) throws
+    // Exception {
+    // http.csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(requests
+    // -> requests.requestMatchers("/",
+    // "/login").permitAll().requestMatchers("/admin/**")
+    // .hasRole("ADMIN"))
+    // .formLogin(auth -> auth.loginPage("/login")
+    // .loginProcessingUrl("/login")
+    // .defaultSuccessUrl("/"))
+    // .logout(logout -> logout.permitAll());
+    // return http.build();
     // }
     // HttpSessionDestroyedEvent 발행에 필요 — 없으면 로그아웃/세션만료 이벤트가 터지지 않음
     @Bean
@@ -36,13 +38,19 @@ public class AdminSecurityConfig {
         return new HttpSessionEventPublisher();
     }
 
+    //@formatter:off
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(requests -> requests
+        http.csrf(AbstractHttpConfigurer::disable)
+        .authorizeHttpRequests(requests -> requests
                 // 정적 리소스에 대한 보안 설정을 무시하도록 구성
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+
+                .requestMatchers("/api/temp/accounts").permitAll() // 개발용 API, 실제 서비스에서는 제거 예정
+
                 // 로그인 페이지만 개방
-                .requestMatchers("/login").permitAll().requestMatchers("/static/**").permitAll()
+                .requestMatchers("/login").permitAll()
+                .requestMatchers("/static/**").permitAll()
 
                 .requestMatchers(HttpMethod.GET, "/admin/approval/template/view").permitAll()
 
@@ -54,4 +62,5 @@ public class AdminSecurityConfig {
 
         return http.build();
     }
+    //@formatter:on
 }
