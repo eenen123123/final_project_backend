@@ -116,6 +116,52 @@
           <!-- <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" /> -->
         </form>
       </div>
+      <div class="text-center text-sm text-gray-500 my-12">
+        <table class="w-[700px] border-collapse mx-auto mt-10 absolute text-center left-1/2 -translate-x-1/2 font-bold">
+          <thead class="bg-gray-200">
+            <tr class="border">
+              <th class="px-4 py-2 border">아이디</th>
+              <th class="px-4 py-2 border">이름</th>
+              <th class="px-4 py-2 border">Role</th>
+              <th class="px-4 py-2 border">부서</th>
+              <th class="px-4 py-2 border">직급</th>
+            </tr>
+          </thead>
+          <tbody id="account-info">
+          </tbody>
+        </table>
+        <script>
+          document.addEventListener("DOMContentLoaded",async () => {
+            const accountInfo = document.getElementById("account-info");
+            try {
+              const res = await fetch("/api/temp/accounts");
+              const data = await res.json();
+              data.forEach(account => {
+                let bgColorClass = "bg-gray-50";
+                if (account.department === "행정팀") {
+                  bgColorClass = "bg-blue-50";
+                } else if (account.department === "강사팀") {
+                  bgColorClass = "bg-green-50";
+                } else if (account.department === "PD팀") {
+                  bgColorClass = "bg-yellow-50";
+                }
+                const tr = document.createElement("tr");
+                tr.classList.add("border", bgColorClass);
+                tr.innerHTML = `
+                  <td class="px-4 py-2 border">${account.userId}</td>
+                  <td class="px-4 py-2 border">${account.userName}</td>
+                  <td class="px-4 py-2 border text-[12px]">${account.userRole}</td>
+                  <td class="px-4 py-2 border">${account.department}</td>
+                  <td class="px-4 py-2 border">${account.jobGrade}</td>
+                `;
+                accountInfo.appendChild(tr);
+              });
+            } catch (error) {
+              console.error("계정 정보를 불러오는 중 오류 발생:", error);
+            }
+          })
+        </script>
+      </div>
 
       <!-- 하단 안내 -->
       <p class="text-center text-slate-600 text-xs mt-6">
