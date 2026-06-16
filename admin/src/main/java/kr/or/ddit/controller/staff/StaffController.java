@@ -24,16 +24,6 @@ public class StaffController {
     StaffService staffService;
 
     /**
-     * 원비 및 수납 관리
-     * @return
-     */
-    @GetMapping("/billing")
-    public String getBilling() {
-        log.info("getBilling()");
-        return "admin:/staff/billing";
-    }
-
-    /**
      * 지출 및 영수증 관리
      * @return
      */

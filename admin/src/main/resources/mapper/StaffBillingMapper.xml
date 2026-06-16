@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.mapper.StaffBillingMapper">
+
+    <!-- 공통코드 분류
+         222: 원비 항목 / 223: 결제수단 / 224: 청구 상태 / 225: 결제 상태
+         학생 식별: MEMBER.USER_ROLE = 'ROLE_STUDENT' (오프라인 학생) -->
+
+    <!-- ================================================================
+         오늘 수납 현황 카드 요약
+         · 결제 완료(PAY_STAT_CD=01) 기준 baseDate 당일 집계
+         · 미납 인원/총액은 TUITION_BILL(미납01·연체02) 기준
+    ================================================================ -->
+    <select id="selectSummary" resultType="kr.or.ddit.finalProject.dto.tuition.BillingSummaryDto">
+        SELECT
+            (SELECT NVL(SUM(PAY_AMT), 0) FROM TUITION_PAYMENT
+              WHERE TRIM(PAY_STAT_CD) = '01'
+                AND TRUNC(PAY_DT) = TO_DATE(#{baseDate}, 'YYYY-MM-DD'))                         AS TODAY_AMT,
+            (SELECT COUNT(*) FROM TUITION_PAYMENT
+              WHERE TRIM(PAY_STAT_CD) = '01'
+                AND TRUNC(PAY_DT) = TO_DATE(#{baseDate}, 'YYYY-MM-DD'))                         AS TODAY_CNT,
+            (SELECT COUNT(DISTINCT USER_ID) FROM TUITION_BILL
+              WHERE TRIM(BILL_STAT_CD) IN ('01', '02'))                                         AS UNPAID_CNT,
+            (SELECT NVL(SUM(BILL_AMT), 0) FROM TUITION_BILL
+              WHERE TRIM(BILL_STAT_CD) IN ('01', '02'))                                         AS UNPAID_TOTAL_AMT,
+            (SELECT NVL(SUM(PAY_AMT), 0) FROM TUITION_PAYMENT
+              WHERE TRIM(PAY_STAT_CD) = '01' AND TRIM(PAY_MTHD_CD) = '01'
+                AND TRUNC(PAY_DT) = TO_DATE(#{baseDate}, 'YYYY-MM-DD'))                         AS CARD_AMT,
+            (SELECT COUNT(*) FROM TUITION_PAYMENT
+              WHERE TRIM(PAY_STAT_CD) = '01' AND TRIM(PAY_MTHD_CD) = '01'
+                AND TRUNC(PAY_DT) = TO_DATE(#{baseDate}, 'YYYY-MM-DD'))                         AS CARD_CARD_CNT,
+            (SELECT NVL(SUM(PAY_AMT), 0) FROM TUITION_PAYMENT
+              WHERE TRIM(PAY_STAT_CD) = '01' AND TRIM(PAY_MTHD_CD) IN ('02', '03')
+                AND TRUNC(PAY_DT) = TO_DATE(#{baseDate}, 'YYYY-MM-DD'))                         AS TRANSFER_AMT,
+            (SELECT COUNT(*) FROM TUITION_PAYMENT
+              WHERE TRIM(PAY_STAT_CD) = '01' AND TRIM(PAY_MTHD_CD) IN ('02', '03')
+                AND TRUNC(PAY_DT) = TO_DATE(#{baseDate}, 'YYYY-MM-DD'))                         AS TRANSFER_CNT
+        FROM DUAL
+    </select>
+
+    <!-- ================================================================
+         수납내역 공통 컬럼 (일일 수납 / 수납 이력)
+    ================================================================ -->
+    <sql id="paymentColumns">
+        P.PAY_SN, P.USER_ID,
+        M.USER_NAME          AS STUDENT_NM,
+        P.EXT_PAY_ID,
+        P.PAY_ITEM_CD,
+        CI.COM_CD_NM         AS PAY_ITEM_NM,
+        P.PAY_AMT,
+        P.PAY_MTHD_CD,
+        CM.COM_CD_NM         AS PAY_MTHD_NM,
+        P.CARD_NM,
+        P.INSTALLMENT_MM,
+        P.PAY_STAT_CD,
+        CS.COM_CD_NM         AS PAY_STAT_NM,
+        P.PAY_DT
+    </sql>
+
+    <sql id="paymentJoins">
+        FROM TUITION_PAYMENT P
+        JOIN MEMBER M       ON P.USER_ID = M.USER_ID AND M.USER_ROLE = 'ROLE_STUDENT'
+        LEFT JOIN COM_CD CI ON TRIM(CI.CL_CODE) = '222' AND TRIM(CI.COM_CD) = TRIM(P.PAY_ITEM_CD)
+        LEFT JOIN COM_CD CM ON TRIM(CM.CL_CODE) = '223' AND TRIM(CM.COM_CD) = TRIM(P.PAY_MTHD_CD)
+        LEFT JOIN COM_CD CS ON TRIM(CS.CL_CODE) = '225' AND TRIM(CS.COM_CD) = TRIM(P.PAY_STAT_CD)
+    </sql>
+
+    <!-- ── 일일 수납 내역: baseDate 당일 ─────────────────────── -->
+    <sql id="dailyReceiptWhere">
+        <where>
+            TRUNC(P.PAY_DT) = TO_DATE(#{detailCondition.baseDate}, 'YYYY-MM-DD')
+            <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
+                AND (UPPER(M.USER_NAME) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%'
+                  OR UPPER(P.EXT_PAY_ID) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%')
+            </if>
+            <if test="detailCondition.payMthdCd != null and detailCondition.payMthdCd != ''">
+                AND TRIM(P.PAY_MTHD_CD) = #{detailCondition.payMthdCd}
+            </if>
+            <if test="detailCondition.payStatCd != null and detailCondition.payStatCd != ''">
+                AND TRIM(P.PAY_STAT_CD) = #{detailCondition.payStatCd}
+            </if>
+        </where>
+    </sql>
+
+    <select id="searchDailyReceipts" resultType="kr.or.ddit.finalProject.dto.tuition.TuitionPaymentDto">
+        SELECT <include refid="paymentColumns"/>
+        <include refid="paymentJoins"/>
+        <include refid="dailyReceiptWhere"/>
+        ORDER BY P.PAY_DT DESC, P.PAY_SN DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <select id="countDailyReceipts" resultType="int">
+        SELECT COUNT(*)
+        FROM TUITION_PAYMENT P
+        JOIN MEMBER M ON P.USER_ID = M.USER_ID AND M.USER_ROLE = 'ROLE_STUDENT'
+        <include refid="dailyReceiptWhere"/>
+    </select>
+
+    <!-- ── 수납 이력 조회: 기간 + 학생명/결제ID + 결제수단 + 항목 ─ -->
+    <sql id="historyWhere">
+        <where>
+            <if test="detailCondition.fromDt != null and detailCondition.fromDt != ''">
+                AND P.PAY_DT &gt;= TO_DATE(#{detailCondition.fromDt}, 'YYYY-MM-DD')
+            </if>
+            <if test="detailCondition.toDt != null and detailCondition.toDt != ''">
+                AND P.PAY_DT &lt; TO_DATE(#{detailCondition.toDt}, 'YYYY-MM-DD') + 1
+            </if>
+            <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
+                AND (UPPER(M.USER_NAME) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%'
+                  OR UPPER(P.EXT_PAY_ID) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%')
+            </if>
+            <if test="detailCondition.payMthdCd != null and detailCondition.payMthdCd != ''">
+                AND TRIM(P.PAY_MTHD_CD) = #{detailCondition.payMthdCd}
+            </if>
+            <if test="detailCondition.payItemCd != null and detailCondition.payItemCd != ''">
+                AND TRIM(P.PAY_ITEM_CD) = #{detailCondition.payItemCd}
+            </if>
+        </where>
+    </sql>
+
+    <select id="searchPaymentHistory" resultType="kr.or.ddit.finalProject.dto.tuition.TuitionPaymentDto">
+        SELECT <include refid="paymentColumns"/>
+        <include refid="paymentJoins"/>
+        <include refid="historyWhere"/>
+        ORDER BY P.PAY_DT DESC, P.PAY_SN DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <select id="countPaymentHistory" resultType="int">
+        SELECT COUNT(*)
+        FROM TUITION_PAYMENT P
+        JOIN MEMBER M ON P.USER_ID = M.USER_ID AND M.USER_ROLE = 'ROLE_STUDENT'
+        <include refid="historyWhere"/>
+    </select>
+
+    <!-- ================================================================
+         미납자 관리: 학생별 미납(01)·연체(02) 청구 집계
+         · unpaidAmt   = SUM(BILL_AMT)
+         · overdueCnt  = COUNT(*)  (누적 미납 건수 = 회차)
+         · lastNoticeDt= 최근 안내(NOTIFICATION) 일시
+         · 학부모명/연락처는 매핑 부재로 미연동(null)
+    ================================================================ -->
+    <sql id="unpaidWhere">
+        WHERE TRIM(B.BILL_STAT_CD) IN ('01', '02')
+          AND M.USER_ROLE = 'ROLE_STUDENT'
+        <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
+            AND UPPER(M.USER_NAME) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%'
+        </if>
+    </sql>
+
+    <sql id="unpaidHaving">
+        <if test="detailCondition.minOverdue != null and detailCondition.minOverdue != ''">
+            HAVING COUNT(*) &gt;= #{detailCondition.minOverdue}
+        </if>
+    </sql>
+
+    <select id="searchUnpaid" resultType="kr.or.ddit.finalProject.dto.tuition.TuitionUnpaidDto">
+        SELECT
+            B.USER_ID,
+            M.USER_NAME         AS STUDENT_NM,
+            NULL                AS PARENT_NM,
+            NULL                AS PARENT_TEL,
+            SUM(B.BILL_AMT)     AS UNPAID_AMT,
+            COUNT(*)            AS OVERDUE_CNT,
+            (SELECT MAX(N.RCPT_DT) FROM NOTIFICATION N
+              WHERE N.RCVR_USER_ID = B.USER_ID) AS LAST_NOTICE_DT
+        FROM TUITION_BILL B
+        JOIN MEMBER M ON B.USER_ID = M.USER_ID
+        <include refid="unpaidWhere"/>
+        GROUP BY B.USER_ID, M.USER_NAME
+        <include refid="unpaidHaving"/>
+        ORDER BY OVERDUE_CNT DESC, UNPAID_AMT DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <select id="countUnpaid" resultType="int">
+        SELECT COUNT(*) FROM (
+            SELECT B.USER_ID
+            FROM TUITION_BILL B
+            JOIN MEMBER M ON B.USER_ID = M.USER_ID
+            <include refid="unpaidWhere"/>
+            GROUP BY B.USER_ID, M.USER_NAME
+            <include refid="unpaidHaving"/>
+        )
+    </select>
+
+    <!-- ================================================================
+         Excel 업로드 적재 (외부 급여지급 프로그램 수납내역)
+    ================================================================ -->
+    <select id="existsByExtPayId" resultType="int">
+        SELECT COUNT(*) FROM TUITION_PAYMENT WHERE EXT_PAY_ID = #{extPayId}
+    </select>
+
+    <insert id="insertPayment" parameterType="kr.or.ddit.finalProject.dto.tuition.TuitionPaymentDto">
+        INSERT INTO TUITION_PAYMENT (
+            USER_ID, EXT_PAY_ID, PAY_ITEM_CD, PAY_AMT, PAY_MTHD_CD,
+            CARD_NM, INSTALLMENT_MM, PAY_STAT_CD, PAY_DT
+        ) VALUES (
+            #{userId}, #{extPayId}, #{payItemCd}, #{payAmt}, #{payMthdCd},
+            #{cardNm}, #{installmentMm}, #{payStatCd}, #{payDt}
+        )
+    </insert>
+
+    <select id="selectPaySnByExtPayId" resultType="long">
+        SELECT PAY_SN FROM TUITION_PAYMENT WHERE EXT_PAY_ID = #{extPayId}
+    </select>
+
+    <update id="settleMatchingBill">
+        UPDATE TUITION_BILL
+           SET BILL_STAT_CD = '03',
+               PAY_SN       = #{paySn},
+               MDFCN_DT     = CURRENT_TIMESTAMP
+         WHERE BILL_SN = (
+            SELECT BILL_SN FROM (
+                SELECT BILL_SN
+                FROM TUITION_BILL
+                WHERE USER_ID = #{userId}
+                  AND TRIM(BILL_STAT_CD) IN ('01', '02')
+                  AND BILL_AMT = #{amount}
+                ORDER BY DUE_DT ASC, BILL_SN ASC
+            ) WHERE ROWNUM = 1
+         )
+    </update>
+
+</mapper>
