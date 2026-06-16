@@ -16,10 +16,18 @@
     </resultMap>
 
     <select id="selectCartByUserId" resultMap="cartResultMap">
-        SELECT CART_SN, USER_ID, PROD_DIV_CD, PROD_SN, PROD_NM, PROD_PRICE, ITEM_QTY, REG_DT
-        FROM CART
-        WHERE USER_ID = #{userId}
-        ORDER BY REG_DT DESC
+        SELECT c.CART_SN, c.USER_ID, c.PROD_DIV_CD, c.PROD_SN, c.PROD_NM,
+               CASE c.PROD_DIV_CD
+                   WHEN 'TEXTBOOK' THEN t.SALE_PRC_AMT
+                   WHEN 'COURSE'   THEN co.COURSE_PRICE
+                   ELSE c.PROD_PRICE
+               END AS PROD_PRICE,
+               c.ITEM_QTY, c.REG_DT
+        FROM CART c
+        LEFT JOIN TEXTBOOK t  ON c.PROD_DIV_CD = 'TEXTBOOK' AND c.PROD_SN = t.TEXTBOOK_SN
+        LEFT JOIN COURSE   co ON c.PROD_DIV_CD = 'COURSE'   AND c.PROD_SN = co.COURSE_SN
+        WHERE c.USER_ID = #{userId}
+        ORDER BY c.REG_DT DESC
     </select>
 
     <select id="selectCartByUserAndProd" resultMap="cartResultMap">
@@ -62,5 +70,13 @@
           AND PROD_DIV_CD = #{prodDivCd}
           AND PROD_SN = #{prodSn}
     </delete>
+
+    <update id="updateCartQty">
+        UPDATE CART
+        SET ITEM_QTY = #{itemQty}
+        WHERE CART_SN = #{cartSn}
+          AND USER_ID = #{userId}
+          AND PROD_DIV_CD = 'TEXTBOOK'
+    </update>
 
 </mapper>

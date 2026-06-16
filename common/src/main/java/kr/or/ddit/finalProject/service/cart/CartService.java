@@ -13,4 +13,6 @@ public interface CartService {
     void removeCartItem(Long cartSn, String userId);
 
     void clearCart(String userId);
+
+    void updateCartQty(Long cartSn, String userId, int itemQty);
 }

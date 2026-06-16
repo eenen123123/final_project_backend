@@ -90,6 +90,9 @@ public class OrderServiceImpl implements OrderService {
                 if (found == null) {
                     throw new FinalProjectException(ErrorCode.COURSE_NOT_FOUND);
                 }
+                if (req.getItemQty() != null && req.getItemQty() != 1) {
+                    throw new FinalProjectException(ErrorCode.BAD_REQUEST);
+                }
                 break;
             case TEXTBOOK:
                 found = orderMapper.selectTextbookForOrder(req.getProdSn());
