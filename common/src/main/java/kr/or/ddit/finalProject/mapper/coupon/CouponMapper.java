@@ -35,4 +35,13 @@ public interface CouponMapper {
     // 쿠폰 삭제 (관리자) - 발급 이력 없을 때만
     int deleteCoupon(@Param("couponSn") Long couponSn);
 
+    // 전체 발급내역 조회 (관리자)
+    List<UserCouponDto> selectAllUserCoupons();
+
+    // 쿠폰 코드로 쿠폰 조회 (사용자 등록용)
+    CouponDto selectCouponByCode(@Param("couponCode") String couponCode);
+
+    // 사용자가 해당 쿠폰을 이미 발급받았는지 확인
+    int existsUserCoupon(@Param("userId") String userId, @Param("couponSn") Long couponSn);
+
 }

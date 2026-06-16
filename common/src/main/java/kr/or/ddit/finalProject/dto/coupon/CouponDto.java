@@ -23,5 +23,6 @@ public class CouponDto {
     private String useYn;        // 활성 여부 (Y:활성 / N:비활성)
     private String regUserId;    // 등록한 관리자 ID
     private LocalDateTime regDt; // 등록일시
+    private String couponCode;   // 사용자 직접 입력용 쿠폰 코드 (nullable, unique)
 
 }
