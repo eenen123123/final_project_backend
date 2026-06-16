@@ -37,8 +37,7 @@ public class SecurityConfig {
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/mypage/**")
-                        .hasAnyAuthority("ROLE_USER", "ROLE_STUDENT", "ROLE_PARENT")
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/mypage/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/test/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/payments/confirm").permitAll()
