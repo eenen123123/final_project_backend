@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.instructor.board.BoardType;
+import kr.or.ddit.finalProject.service.file.FileUploadService;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardResponse;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorPublicBoardDetail;
@@ -23,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 public class InstructorBoardServiceImpl implements InstructorBoardService {
 
     private final InstructorBoardMapper instructorBoardMapper;
+    private final FileUploadService fileUploadService;
 
     @Override
     public PageResponse<InstructorBoardResponse> getInstructorBoardList(
@@ -77,6 +79,9 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
 
         if ("QNA".equals(original.getBoardTypeCd())) {
             response.setAnswer(instructorBoardMapper.selectInstructorQnaAnswer(original.getPostSn()));
+        }
+        if (original.getAtchFileId() != null) {
+            response.setFiles(fileUploadService.retrieveFilesByGroupId(original.getAtchFileId().intValue()));
         }
 
         return response;

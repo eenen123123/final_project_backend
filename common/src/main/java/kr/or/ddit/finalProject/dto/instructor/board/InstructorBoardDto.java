@@ -21,13 +21,14 @@ public class InstructorBoardDto implements Serializable {
     private String instrUserId;
     private String wrtrUserId; // MEMBER.USER_ID 참조
 
+    @NotBlank(message = "게시판 분류를 선택해주세요.")
     private String boardTypeCd; // BoardType enum name (NOTICE / QNA / DATAROOM)
 
-    @NotBlank
+    @NotBlank(message = "제목을 입력해주세요.")
     @Size(max = 100, message = "제목은 100자를 초과할 수 없습니다.")
     private String postSj;
 
-    @NotBlank
+    @NotBlank(message = "내용을 입력해주세요.")
     private String postCn;
 
     private Long inqCnt;

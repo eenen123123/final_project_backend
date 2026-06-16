@@ -1,7 +1,9 @@
 package kr.or.ddit.finalProject.dto.instructor.board;
 
 import java.io.Serializable;
+import java.util.List;
 
+import kr.or.ddit.finalProject.dto.file.FileDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,7 +30,9 @@ public class InstructorBoardResponse implements Serializable {
     private String mdfcnDt; // 게시글 수정일
     private String atchFileId; // 첨부파일 ID
 
-    // Q&A 답변 (boardTypeCd='03' 일 때만 채워짐, 아니면 null)
+    private List<FileDto> files; // 첨부파일 목록 (없으면 null)
+
+    // Q&A 답변 (boardTypeCd='QNA' 일 때만 채워짐, 아니면 null)
     private InstructorQnaAnswerDto answer;
 
 }

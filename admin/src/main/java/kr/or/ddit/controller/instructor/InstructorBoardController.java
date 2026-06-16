@@ -3,6 +3,8 @@ package kr.or.ddit.controller.instructor;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,9 +22,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.or.ddit.finalProject.dto.common.CommonCodeDto;
+import kr.or.ddit.finalProject.dto.file.FileCtxType;
 import kr.or.ddit.finalProject.dto.instructor.board.BoardType;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardResponse;
+import kr.or.ddit.finalProject.service.file.FileUploadService;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 public class InstructorBoardController {
 
     private final InstructorBoardService instructorBoardService;
+    private final FileUploadService fileUploadService;
 
     /**
      * 강사 게시판 목록 조회
@@ -127,7 +132,12 @@ public class InstructorBoardController {
      */
     @PostMapping("/insert")
     public String insertBoard(@Validated @ModelAttribute InstructorBoardDto instructorBoardDto,
-            BindingResult error, RedirectAttributes redirectAttributes) {
+            BindingResult error,
+            @RequestParam(value = "attachFiles", required = false) List<MultipartFile> attachFiles,
+            @RequestParam(defaultValue = "1") int listPage,
+            @RequestParam(defaultValue = "") String listKeyword,
+            @RequestParam(defaultValue = "") String listBoardTypeCd,
+            RedirectAttributes redirectAttributes) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         instructorBoardDto.setInstrUserId(userId);
         instructorBoardDto.setWrtrUserId(userId);
@@ -138,21 +148,50 @@ public class InstructorBoardController {
                     .findFirst().orElse("입력값을 확인해주세요.");
             redirectAttributes.addFlashAttribute("board", instructorBoardDto);
             redirectAttributes.addFlashAttribute("errorMessage", errorMsg);
+            redirectAttributes.addFlashAttribute("listPage", listPage);
+            redirectAttributes.addFlashAttribute("listKeyword", listKeyword);
+            redirectAttributes.addFlashAttribute("listBoardTypeCd", listBoardTypeCd);
             return "redirect:/instructor/board/insertForm";
+        }
+
+        if (isBlankHtml(instructorBoardDto.getPostCn())) {
+            redirectAttributes.addFlashAttribute("board", instructorBoardDto);
+            redirectAttributes.addFlashAttribute("errorMessage", "내용을 입력해주세요.");
+            redirectAttributes.addFlashAttribute("listPage", listPage);
+            redirectAttributes.addFlashAttribute("listKeyword", listKeyword);
+            redirectAttributes.addFlashAttribute("listBoardTypeCd", listBoardTypeCd);
+            return "redirect:/instructor/board/insertForm";
+        }
+
+        if (hasFiles(attachFiles)) {
+            int groupId = fileUploadService.createFileGroup();
+            instructorBoardDto.setAtchFileId((long) groupId);
+            for (MultipartFile f : attachFiles) {
+                if (!f.isEmpty()) {
+                    fileUploadService.uploadFile(f, userId, groupId, FileCtxType.INSTRUCTOR, String.valueOf(groupId));
+                }
+            }
         }
         try {
             int rowcnt = instructorBoardService.insertInstructorBoard(instructorBoardDto);
             if (rowcnt > 0) {
-                return "redirect:/instructor/board/detail/" + instructorBoardDto.getPostSn();
+                return "redirect:/instructor/board/detail/" + instructorBoardDto.getPostSn()
+                        + "?page=" + listPage + "&keyword=" + listKeyword + "&boardTypeCd=" + listBoardTypeCd;
             } else {
                 redirectAttributes.addFlashAttribute("board", instructorBoardDto);
                 redirectAttributes.addFlashAttribute("errorMessage", "게시글 등록에 실패했습니다. 다시 시도해주세요.");
+                redirectAttributes.addFlashAttribute("listPage", listPage);
+                redirectAttributes.addFlashAttribute("listKeyword", listKeyword);
+                redirectAttributes.addFlashAttribute("listBoardTypeCd", listBoardTypeCd);
                 return "redirect:/instructor/board/insertForm";
             }
         } catch (Exception e) {
             log.error("게시글 등록 중 오류 발생", e);
             redirectAttributes.addFlashAttribute("board", instructorBoardDto);
             redirectAttributes.addFlashAttribute("errorMessage", "게시글 등록 중 오류가 발생했습니다. 다시 시도해주세요.");
+            redirectAttributes.addFlashAttribute("listPage", listPage);
+            redirectAttributes.addFlashAttribute("listKeyword", listKeyword);
+            redirectAttributes.addFlashAttribute("listBoardTypeCd", listBoardTypeCd);
             return "redirect:/instructor/board/insertForm";
         }
     }
@@ -184,6 +223,15 @@ public class InstructorBoardController {
         model.addAttribute("listPage", page);
         model.addAttribute("listKeyword", keyword);
         model.addAttribute("listBoardTypeCd", boardTypeCd);
+        String atchFileIdStr = responseDto.getAtchFileId();
+        if (atchFileIdStr != null && !atchFileIdStr.isBlank()) {
+            try {
+                model.addAttribute("existingFiles",
+                        fileUploadService.retrieveFilesByGroupId(Integer.parseInt(atchFileIdStr)));
+            } catch (NumberFormatException ignored) {
+                // atchFileId가 숫자가 아닌 경우 파일 목록 없이 진행
+            }
+        }
         return "admin:/instructor/board/insertForm";
     }
 
@@ -197,7 +245,12 @@ public class InstructorBoardController {
      */
     @PostMapping("/update")
     public String updateBoard(@Validated @ModelAttribute InstructorBoardDto instructorBoardDto,
-            BindingResult error, RedirectAttributes redirectAttributes) {
+            BindingResult error,
+            @RequestParam(value = "attachFiles", required = false) List<MultipartFile> attachFiles,
+            @RequestParam(defaultValue = "1") int listPage,
+            @RequestParam(defaultValue = "") String listKeyword,
+            @RequestParam(defaultValue = "") String listBoardTypeCd,
+            RedirectAttributes redirectAttributes) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         instructorBoardDto.setInstrUserId(userId);
         instructorBoardDto.setLastMdfrId(userId);
@@ -208,22 +261,53 @@ public class InstructorBoardController {
                     .findFirst().orElse("입력값을 확인해주세요.");
             redirectAttributes.addFlashAttribute("board", instructorBoardDto);
             redirectAttributes.addFlashAttribute("errorMessage", errorMsg);
-            return "redirect:/instructor/board/updateForm/" + instructorBoardDto.getPostSn();
+            redirectAttributes.addFlashAttribute("listPage", listPage);
+            redirectAttributes.addFlashAttribute("listKeyword", listKeyword);
+            redirectAttributes.addFlashAttribute("listBoardTypeCd", listBoardTypeCd);
+            return "redirect:/instructor/board/updateForm/" + instructorBoardDto.getPostSn()
+                    + "?page=" + listPage + "&keyword=" + listKeyword + "&boardTypeCd=" + listBoardTypeCd;
         }
+
+        if (isBlankHtml(instructorBoardDto.getPostCn())) {
+            redirectAttributes.addFlashAttribute("board", instructorBoardDto);
+            redirectAttributes.addFlashAttribute("errorMessage", "내용을 입력해주세요.");
+            redirectAttributes.addFlashAttribute("listPage", listPage);
+            redirectAttributes.addFlashAttribute("listKeyword", listKeyword);
+            redirectAttributes.addFlashAttribute("listBoardTypeCd", listBoardTypeCd);
+            return "redirect:/instructor/board/updateForm/" + instructorBoardDto.getPostSn()
+                    + "?page=" + listPage + "&keyword=" + listKeyword + "&boardTypeCd=" + listBoardTypeCd;
+        }
+
+        if (hasFiles(attachFiles)) {
+            Long existingAtchFileId = instructorBoardDto.getAtchFileId();
+            int groupId = existingAtchFileId != null
+                    ? existingAtchFileId.intValue()
+                    : fileUploadService.createFileGroup();
+            instructorBoardDto.setAtchFileId((long) groupId);
+            for (MultipartFile f : attachFiles) {
+                if (!f.isEmpty()) {
+                    fileUploadService.uploadFile(f, userId, groupId, FileCtxType.INSTRUCTOR, String.valueOf(groupId));
+                }
+            }
+        }
+
         try {
             int rowcnt = instructorBoardService.updateInstructorBoard(instructorBoardDto);
             if (rowcnt > 0) {
-                return "redirect:/instructor/board/detail/" + instructorBoardDto.getPostSn();
+                return "redirect:/instructor/board/detail/" + instructorBoardDto.getPostSn()
+                        + "?page=" + listPage + "&keyword=" + listKeyword + "&boardTypeCd=" + listBoardTypeCd;
             } else {
                 redirectAttributes.addFlashAttribute("board", instructorBoardDto);
                 redirectAttributes.addFlashAttribute("errorMessage", "게시글 수정에 실패했습니다. 다시 시도해주세요.");
-                return "redirect:/instructor/board/updateForm/" + instructorBoardDto.getPostSn();
+                return "redirect:/instructor/board/updateForm/" + instructorBoardDto.getPostSn()
+                        + "?page=" + listPage + "&keyword=" + listKeyword + "&boardTypeCd=" + listBoardTypeCd;
             }
         } catch (Exception e) {
             log.error("게시글 수정 중 오류 발생", e);
             redirectAttributes.addFlashAttribute("board", instructorBoardDto);
             redirectAttributes.addFlashAttribute("errorMessage", "게시글 수정 중 오류가 발생했습니다. 다시 시도해주세요.");
-            return "redirect:/instructor/board/updateForm/" + instructorBoardDto.getPostSn();
+            return "redirect:/instructor/board/updateForm/" + instructorBoardDto.getPostSn()
+                    + "?page=" + listPage + "&keyword=" + listKeyword + "&boardTypeCd=" + listBoardTypeCd;
         }
     }
 
@@ -268,6 +352,16 @@ public class InstructorBoardController {
         instructorBoardService.restoreInstructorBoard(postSn, userId);
         redirectAttributes.addFlashAttribute("successMessage", "게시글이 복구되었습니다.");
         return "redirect:/instructor/board/detail/" + postSn;
+    }
+
+    private boolean hasFiles(List<MultipartFile> files) {
+        return files != null && !files.isEmpty() && !files.get(0).isEmpty();
+    }
+
+    // Tiptap이 빈 상태에서 제출해도 <p></p> 같은 HTML을 보내므로 텍스트 노드 유무로 판별
+    private boolean isBlankHtml(String html) {
+        if (html == null) return true;
+        return Jsoup.parse(html).text().isBlank();
     }
 
     // Toast UI Editor 허용 태그 목록 — 매 호출마다 재생성하지 않도록 static 상수로 선언
