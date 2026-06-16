@@ -29,6 +29,7 @@ public class CouponServiceImpl implements CouponService {
     @Override
     @Transactional
     public CouponDto createCoupon(CouponDto couponDto, String adminId) {
+        // 필수 입력값 누락 체크
         if (couponDto.getCouponNm() == null || couponDto.getCouponNm().isBlank()) {
             throw new FinalProjectException(ErrorCode.BAD_REQUEST);
         }
@@ -39,20 +40,24 @@ public class CouponServiceImpl implements CouponService {
             throw new FinalProjectException(ErrorCode.BAD_REQUEST);
         }
 
-        // discType에 따라 할인값 서버 검증 (클라이언트 값 신뢰 X)
+        // 할인 방식에 맞는 값이 들어왔는지 서버에서 직접 검증
+        // 정액: 할인 금액이 반드시 양수여야 함, 정률 필드는 0으로 초기화
+        // 정률: 할인율이 1~100 사이여야 함, 정액 필드는 0으로 초기화
+        // (클라이언트에서 두 필드를 동시에 보내도 서버가 강제로 정리)
         if (couponDto.getDiscType() == DiscType.FIXED) {
             if (couponDto.getDiscAmt() == null || couponDto.getDiscAmt() <= 0) {
                 throw new FinalProjectException(ErrorCode.COUPON_INVALID_DISCOUNT);
             }
-            couponDto.setDiscRate(0); // 정액이면 rate는 0으로 강제
+            couponDto.setDiscRate(0);
         } else if (couponDto.getDiscType() == DiscType.RATE) {
             if (couponDto.getDiscRate() == null || couponDto.getDiscRate() < 1 || couponDto.getDiscRate() > 100) {
                 throw new FinalProjectException(ErrorCode.COUPON_INVALID_DISCOUNT);
             }
-            couponDto.setDiscAmt(0L); // 정률이면 amt는 0으로 강제
+            couponDto.setDiscAmt(0L);
         }
 
-        // 클라이언트가 보낸 useYn, regUserId 는 무시하고 서버에서 설정
+        // 클라이언트가 보낸 useYn, regUserId는 무시하고 서버에서 덮어씀
+        // (프론트에서 임의로 비활성/타인 ID를 넣어도 무효)
         couponDto.setUseYn(ACTIVE);
         couponDto.setRegUserId(adminId);
 
@@ -114,13 +119,16 @@ public class CouponServiceImpl implements CouponService {
     @Override
     @Transactional
     public CouponDto updateCoupon(CouponDto couponDto) {
+        // PK 누락 여부
         if (couponDto.getCouponSn() == null) {
             throw new FinalProjectException(ErrorCode.BAD_REQUEST);
         }
+        // 수정 대상 쿠폰이 DB에 실제로 존재하는지
         CouponDto existing = couponMapper.selectCouponBySn(couponDto.getCouponSn());
         if (existing == null) {
             throw new FinalProjectException(ErrorCode.COUPON_NOT_FOUND);
         }
+        // 필수 입력값 누락
         if (couponDto.getCouponNm() == null || couponDto.getCouponNm().isBlank()) {
             throw new FinalProjectException(ErrorCode.BAD_REQUEST);
         }
@@ -130,6 +138,7 @@ public class CouponServiceImpl implements CouponService {
         if (couponDto.getValidDays() == null || couponDto.getValidDays() <= 0) {
             throw new FinalProjectException(ErrorCode.BAD_REQUEST);
         }
+        // 할인 방식별 값 검증 + 반대편 필드 0 초기화 (createCoupon과 동일 규칙)
         if (couponDto.getDiscType() == DiscType.FIXED) {
             if (couponDto.getDiscAmt() == null || couponDto.getDiscAmt() <= 0) {
                 throw new FinalProjectException(ErrorCode.COUPON_INVALID_DISCOUNT);
@@ -141,7 +150,7 @@ public class CouponServiceImpl implements CouponService {
             }
             couponDto.setDiscAmt(0L);
         }
-        // useYn은 클라이언트 값 그대로 허용 (관리자가 활성/비활성 변경 가능)
+        // useYn 미전송 시 기존 값 유지 (관리자가 명시적으로 보낸 경우만 변경)
         if (couponDto.getUseYn() == null) {
             couponDto.setUseYn(existing.getUseYn());
         }
@@ -153,10 +162,12 @@ public class CouponServiceImpl implements CouponService {
     @Override
     @Transactional
     public void deleteCoupon(Long couponSn) {
+        // 삭제 대상이 존재하는지
         CouponDto existing = couponMapper.selectCouponBySn(couponSn);
         if (existing == null) {
             throw new FinalProjectException(ErrorCode.COUPON_NOT_FOUND);
         }
+        // deleted == 0 이면 USER_COUPON 발급 이력 있는 것 -> 삭제 불가
         int deleted = couponMapper.deleteCoupon(couponSn);
         if (deleted == 0) {
             throw new FinalProjectException(ErrorCode.COUPON_DELETE_FAILED);
@@ -167,9 +178,11 @@ public class CouponServiceImpl implements CouponService {
     @Override
     @Transactional
     public List<UserCouponDto> bulkIssueCoupon(Long couponSn, List<String> userIds, String adminId) {
+        // 발급 대상 목록이 비어있는지
         if (userIds == null || userIds.isEmpty()) {
             throw new FinalProjectException(ErrorCode.COUPON_ISSUE_TARGET_REQUIRED);
         }
+        // 쿠폰 존재 여부 + 활성 여부 (DB 재조회, 클라이언트 값 신뢰 X)
         CouponDto coupon = couponMapper.selectCouponBySn(couponSn);
         if (coupon == null) {
             throw new FinalProjectException(ErrorCode.COUPON_NOT_FOUND);
@@ -177,6 +190,7 @@ public class CouponServiceImpl implements CouponService {
         if (!ACTIVE.equals(coupon.getUseYn())) {
             throw new FinalProjectException(ErrorCode.COUPON_INACTIVE);
         }
+        // 만료일 서버 계산, 루프마다 빈 userId 스킵
         LocalDate expiryDt = LocalDate.now().plusDays(coupon.getValidDays());
         List<UserCouponDto> issued = new ArrayList<>();
         for (String userId : userIds) {
