@@ -1,224 +1,357 @@
-<title th:fragment="pageTitle">쿠폰 관리 | HERMES</title>
+<title th:fragment="pageTitle">쿠폰/포인트 관리 | HERMES</title>
 
 <div class="space-y-6">
 
   <!-- 페이지 헤더 -->
   <div>
-    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">쿠폰 관리</h1>
-    <p class="text-sm text-slate-500 mt-1">쿠폰을 등록하고 회원에게 발급합니다.</p>
+    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">쿠폰/포인트 관리</h1>
+    <p class="text-sm text-slate-500 mt-1">쿠폰 및 포인트를 등록하고 회원에게 발급합니다.</p>
   </div>
 
-  <!-- 통계 카드 -->
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-
-    <!-- 총 쿠폰 (클릭 → 필터 해제) -->
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4 cursor-pointer hover:shadow-md transition-shadow"
-         onclick="filterTable('Y'); filterByDiscType('all')">
-      <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center text-xl shrink-0">
-        <i class="fa-solid fa-ticket"></i>
-      </div>
-      <div>
-        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">총 쿠폰</p>
-        <p class="text-2xl font-bold text-slate-800 mt-0.5" th:text="${#lists.size(coupons) + '개'}">0개</p>
-      </div>
-    </div>
-
-    <!-- 활성 쿠폰 -->
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
-      <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl shrink-0">
-        <i class="fa-solid fa-circle-check"></i>
-      </div>
-      <div>
-        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">활성 쿠폰</p>
-        <p class="text-2xl font-bold text-slate-800 mt-0.5"
-           th:text="${#lists.size(coupons.?[useYn == 'Y']) + '개'}">0개</p>
-      </div>
-    </div>
-
-    <!-- 비활성 쿠폰 -->
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
-      <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center text-xl shrink-0">
-        <i class="fa-solid fa-circle-xmark"></i>
-      </div>
-      <div>
-        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">비활성 쿠폰</p>
-        <p class="text-2xl font-bold text-slate-800 mt-0.5"
-           th:text="${#lists.size(coupons.?[useYn != 'Y']) + '개'}">0개</p>
-      </div>
-    </div>
-
-    <!-- 보관함 -->
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4 cursor-pointer hover:shadow-md transition-shadow"
-         onclick="filterTable('archive')">
-      <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center text-xl shrink-0">
-        <i class="fa-solid fa-box-archive"></i>
-      </div>
-      <div>
-        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">보관함</p>
-        <p class="text-2xl font-bold text-slate-800 mt-0.5"
-           th:text="${#lists.size(coupons.?[useYn != 'Y']) + '개'}">0개</p>
-      </div>
-    </div>
-
+  <!-- 쿠폰/포인트 탭 -->
+  <div class="flex border-b border-slate-200">
+    <button type="button" id="tabCoupon" onclick="switchTab('coupon')"
+      class="px-6 py-3 text-sm font-semibold border-b-2 border-slate-900 text-slate-900 transition-colors">
+      쿠폰
+    </button>
+    <button type="button" id="tabPoint" onclick="switchTab('point')"
+      class="px-6 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-colors">
+      포인트
+    </button>
   </div>
 
-  <!-- 테이블 카드 -->
-  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+  <!-- 쿠폰 탭 내용 -->
+  <div id="panelCoupon">
 
-    <!-- 툴바 -->
-    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-      <div class="flex items-center gap-2">
-        <p class="text-sm text-slate-500">
-          총 <span id="visibleCount" class="font-bold text-slate-800" th:text="${#lists.size(coupons)}">0</span>개 쿠폰
-        </p>
-        <button type="button" id="filterResetBtn" onclick="filterTable('Y')"
-          class="hidden text-xs px-2 py-1 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors">
-          <i class="fa-solid fa-xmark mr-1"></i>필터 해제
-        </button>
-      </div>
-      <div class="flex items-center gap-3">
-        <div class="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
-          <button id="discFilterAll" onclick="filterByDiscType('all')"
-            class="px-3 py-1.5 bg-slate-800 text-white transition-colors">전체</button>
-          <button id="discFilterRate" onclick="filterByDiscType('RATE')"
-            class="px-3 py-1.5 text-slate-500 hover:bg-slate-50 transition-colors">정률</button>
-          <button id="discFilterFixed" onclick="filterByDiscType('FIXED')"
-            class="px-3 py-1.5 text-slate-500 hover:bg-slate-50 transition-colors">정액</button>
+    <!-- 통계 카드 -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+      <!-- 총 쿠폰 -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4 cursor-pointer hover:shadow-md transition-shadow"
+           onclick="showCouponList(); filterTable('Y'); filterByDiscType('all')">
+        <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center text-xl shrink-0">
+          <i class="fa-solid fa-ticket"></i>
         </div>
-        <a href="/admin/coupon/insert" class="hm-btn-primary whitespace-nowrap">
-          <i class="fa-solid fa-plus"></i>
-          <span>쿠폰 등록</span>
-        </a>
+        <div>
+          <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">총 쿠폰</p>
+          <p class="text-2xl font-bold text-slate-800 mt-0.5" th:text="${#lists.size(coupons) + '개'}">0개</p>
+        </div>
       </div>
+
+      <!-- 활성 쿠폰 -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4 cursor-pointer hover:shadow-md transition-shadow"
+           onclick="showCouponList(); filterTable('Y'); filterByDiscType('all')">
+        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl shrink-0">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <div>
+          <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">활성 쿠폰</p>
+          <p class="text-2xl font-bold text-slate-800 mt-0.5"
+             th:text="${#lists.size(coupons.?[useYn == 'Y']) + '개'}">0개</p>
+        </div>
+      </div>
+
+      <!-- 비활성 쿠폰 (클릭 → 비활성 필터) -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4 cursor-pointer hover:shadow-md transition-shadow"
+           onclick="showCouponList(); filterTable('archive')">
+        <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center text-xl shrink-0">
+          <i class="fa-solid fa-circle-xmark"></i>
+        </div>
+        <div>
+          <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">비활성 쿠폰</p>
+          <p class="text-2xl font-bold text-slate-800 mt-0.5"
+             th:text="${#lists.size(coupons.?[useYn != 'Y']) + '개'}">0개</p>
+        </div>
+      </div>
+
+      <!-- 쿠폰 발급내역 (클릭 → 발급내역만 표시) -->
+      <div id="issuedCard" class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4 cursor-pointer hover:shadow-md transition-shadow"
+           onclick="showIssuedSection()">
+        <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-500 flex items-center justify-center text-xl shrink-0">
+          <i class="fa-solid fa-ticket"></i>
+        </div>
+        <div>
+          <p class="text-base font-bold text-slate-900">쿠폰 발급내역</p>
+        </div>
+      </div>
+
     </div>
 
-    <!-- 테이블 -->
-    <div class="overflow-x-auto">
-      <table style="width:100%; table-layout:fixed; border-collapse:collapse; text-align:left;">
-        <colgroup>
-          <col style="width: 22%" />
-          <col style="width: 10%" />
-          <col style="width: 13%" />
-          <col style="width: 12%" />
-          <col style="width: 10%" />
-          <col style="width: 9%" />
-          <col style="width: 12%" />
-          <col style="width: 12%" />
-        </colgroup>
-        <thead>
-          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
-            <th class="py-4 px-6 text-left">쿠폰명</th>
-            <th class="py-4 px-6 text-center">할인방식</th>
-            <th class="py-4 px-6 text-center">할인값</th>
-            <th class="py-4 px-6 text-center">사용범위</th>
-            <th class="py-4 px-6 text-center">유효일수</th>
-            <th class="py-4 px-6 text-center">상태</th>
-            <th class="py-4 px-6 text-center">등록일</th>
-            <th class="py-4 px-6 text-center">관리</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+    <!-- 쿠폰 목록 테이블 카드 -->
+    <div id="couponListSection" class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
 
-          <tr th:if="${#lists.isEmpty(coupons)}">
-            <td colspan="8" class="py-20 text-center text-slate-400 text-sm">
-              <i class="fa-solid fa-ticket text-3xl text-slate-200 mb-3 block"></i>
-              등록된 쿠폰이 없습니다.
-            </td>
-          </tr>
+      <!-- 툴바 -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <p class="text-sm text-slate-500">
+            총 <span id="visibleCount" class="font-bold text-slate-800" th:text="${#lists.size(coupons)}">0</span>개 쿠폰
+          </p>
+          <button type="button" id="filterResetBtn" onclick="filterTable('Y')"
+            class="hidden text-xs px-2 py-1 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors">
+            <i class="fa-solid fa-xmark mr-1"></i>필터 해제
+          </button>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
+            <button id="discFilterAll" onclick="filterByDiscType('all')"
+              class="px-3 py-1.5 bg-slate-800 text-white transition-colors">전체</button>
+            <button id="discFilterRate" onclick="filterByDiscType('RATE')"
+              class="px-3 py-1.5 text-slate-500 hover:bg-slate-50 transition-colors">정률</button>
+            <button id="discFilterFixed" onclick="filterByDiscType('FIXED')"
+              class="px-3 py-1.5 text-slate-500 hover:bg-slate-50 transition-colors">정액</button>
+          </div>
+          <a href="/admin/coupon/insert" class="hm-btn-primary whitespace-nowrap">
+            <i class="fa-solid fa-plus"></i>
+            <span>쿠폰 등록</span>
+          </a>
+        </div>
+      </div>
 
-          <tr th:each="coupon : ${coupons}"
-              th:data-use-yn="${coupon.useYn}"
-              th:data-disc-type="${coupon.discType.name()}"
-              class="coupon-row hover:bg-slate-50/50 transition-colors">
+      <!-- 테이블 -->
+      <div class="overflow-x-auto">
+        <table style="width:100%; table-layout:fixed; border-collapse:collapse; text-align:left;">
+          <colgroup>
+            <col style="width: 22%" />
+            <col style="width: 10%" />
+            <col style="width: 13%" />
+            <col style="width: 12%" />
+            <col style="width: 10%" />
+            <col style="width: 9%" />
+            <col style="width: 12%" />
+            <col style="width: 12%" />
+          </colgroup>
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+              <th class="py-4 px-6 text-left">쿠폰명</th>
+              <th class="py-4 px-6 text-center">할인방식</th>
+              <th class="py-4 px-6 text-center">할인값</th>
+              <th class="py-4 px-6 text-center">사용범위</th>
+              <th class="py-4 px-6 text-center">유효일수</th>
+              <th class="py-4 px-6 text-center">상태</th>
+              <th class="py-4 px-6 text-center">등록일</th>
+              <th class="py-4 px-6 text-center">관리</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
 
-            <!-- 쿠폰명 (클릭 → 수정 모달) -->
-            <td class="py-4 px-6">
-              <button type="button" onclick="openEditModal(this)"
-                th:data-sn="${coupon.couponSn}"
-                th:data-nm="${coupon.couponNm}"
-                th:data-disc-type="${coupon.discType.name()}"
-                th:data-disc-amt="${coupon.discAmt}"
-                th:data-disc-rate="${coupon.discRate}"
-                th:data-use-limit="${coupon.useLimitCd}"
-                th:data-valid-days="${coupon.validDays}"
+            <tr th:if="${#lists.isEmpty(coupons)}">
+              <td colspan="8" class="py-20 text-center text-slate-400 text-sm">
+                <i class="fa-solid fa-ticket text-3xl text-slate-200 mb-3 block"></i>
+                등록된 쿠폰이 없습니다.
+              </td>
+            </tr>
+
+            <tr th:each="coupon : ${coupons}"
                 th:data-use-yn="${coupon.useYn}"
-                class="text-left group">
-                <p class="font-semibold text-slate-800 truncate group-hover:text-blue-600 transition-colors"
-                   th:text="${coupon.couponNm}">-</p>
-                <p class="text-xs text-slate-400 mt-0.5" th:text="${'등록: ' + coupon.regUserId}">-</p>
-              </button>
-            </td>
+                th:data-disc-type="${coupon.discType.name()}"
+                class="coupon-row hover:bg-slate-50/50 transition-colors">
 
-            <!-- 할인방식 -->
-            <td class="py-4 px-6 text-center">
-              <span th:if="${coupon.discType.name() == 'FIXED'}"
-                class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-600">정액</span>
-              <span th:if="${coupon.discType.name() == 'RATE'}"
-                class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-600">정률</span>
-            </td>
+              <!-- 쿠폰명 (클릭 → 수정 모달) -->
+              <td class="py-4 px-6">
+                <button type="button" onclick="openEditModal(this)"
+                  th:data-sn="${coupon.couponSn}"
+                  th:data-nm="${coupon.couponNm}"
+                  th:data-disc-type="${coupon.discType.name()}"
+                  th:data-disc-amt="${coupon.discAmt}"
+                  th:data-disc-rate="${coupon.discRate}"
+                  th:data-use-limit="${coupon.useLimitCd}"
+                  th:data-valid-days="${coupon.validDays}"
+                  th:data-use-yn="${coupon.useYn}"
+                  th:data-coupon-code="${coupon.couponCode}"
+                  class="text-left group">
+                  <p class="font-semibold text-slate-800 truncate group-hover:text-blue-600 transition-colors"
+                     th:text="${coupon.couponNm}">-</p>
+                  <p th:if="${coupon.couponCode != null}"
+                     class="text-xs font-mono text-slate-400 mt-0.5"
+                     th:text="${coupon.couponCode.substring(0,5) + '-' + coupon.couponCode.substring(5,10) + '-' + coupon.couponCode.substring(10,15)}">-</p>
+                </button>
+              </td>
 
-            <!-- 할인값 -->
-            <td class="py-4 px-6 text-center font-mono text-sm">
-              <span th:if="${coupon.discType.name() == 'FIXED'}"
-                th:text="${#numbers.formatInteger(coupon.discAmt, 0, 'COMMA') + '원'}">-</span>
-              <span th:if="${coupon.discType.name() == 'RATE'}"
-                th:text="${coupon.discRate + '%'}">-</span>
-            </td>
+              <!-- 할인방식 -->
+              <td class="py-4 px-6 text-center">
+                <span th:if="${coupon.discType.name() == 'FIXED'}"
+                  class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-600">정액</span>
+                <span th:if="${coupon.discType.name() == 'RATE'}"
+                  class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-600">정률</span>
+              </td>
 
-            <!-- 사용범위 -->
-            <td class="py-4 px-6 text-center">
-              <span th:switch="${coupon.useLimitCd}">
-                <span th:case="'COURSE'" class="text-xs text-indigo-500 font-medium">강좌</span>
-                <span th:case="'TEXTBOOK'" class="text-xs text-emerald-500 font-medium">교재</span>
-                <span th:case="*" class="text-xs text-slate-500 font-medium">전체</span>
-              </span>
-            </td>
+              <!-- 할인값 -->
+              <td class="py-4 px-6 text-center font-mono text-sm">
+                <span th:if="${coupon.discType.name() == 'FIXED'}"
+                  th:text="${#numbers.formatInteger(coupon.discAmt, 0, 'COMMA') + '원'}">-</span>
+                <span th:if="${coupon.discType.name() == 'RATE'}"
+                  th:text="${coupon.discRate + '%'}">-</span>
+              </td>
 
-            <!-- 유효일수 -->
-            <td class="py-4 px-6 text-center font-mono text-sm" th:text="${coupon.validDays + '일'}">-</td>
+              <!-- 사용범위 -->
+              <td class="py-4 px-6 text-center">
+                <span th:switch="${coupon.useLimitCd}">
+                  <span th:case="'COURSE'" class="text-xs text-indigo-500 font-medium">강좌</span>
+                  <span th:case="'TEXTBOOK'" class="text-xs text-emerald-500 font-medium">교재</span>
+                  <span th:case="*" class="text-xs text-slate-500 font-medium">전체</span>
+                </span>
+              </td>
 
-            <!-- 상태 -->
-            <td class="py-4 px-6 text-center">
-              <span th:if="${coupon.useYn == 'Y'}"
-                class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-600">활성</span>
-              <span th:if="${coupon.useYn != 'Y'}"
-                class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-500">비활성</span>
-            </td>
+              <!-- 유효일수 -->
+              <td class="py-4 px-6 text-center font-mono text-sm" th:text="${coupon.validDays + '일'}">-</td>
 
-            <!-- 등록일 -->
-            <td class="py-4 px-6 text-center">
-              <span class="text-xs text-slate-500"
-                th:text="${coupon.regDt != null ? #temporals.format(coupon.regDt, 'yyyy.MM.dd') : '-'}">-</span>
-            </td>
+              <!-- 상태 -->
+              <td class="py-4 px-6 text-center">
+                <span th:if="${coupon.useYn == 'Y'}"
+                  class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-600">활성</span>
+                <span th:if="${coupon.useYn != 'Y'}"
+                  class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-500">비활성</span>
+              </td>
 
-            <!-- 관리 -->
-            <td class="py-4 px-6 text-center">
-              <button type="button"
-                th:if="${coupon.useYn == 'Y'}"
-                onclick="openIssuePopup(this)"
-                th:data-sn="${coupon.couponSn}"
-                th:data-nm="${coupon.couponNm}"
-                class="inline-flex items-center text-xs px-3 py-1.5 rounded-xl font-medium text-blue-600 border border-blue-200 hover:bg-blue-50 transition-colors whitespace-nowrap">
-                <i class="fa-solid fa-paper-plane mr-1"></i>발급
-              </button>
-              <button type="button"
-                th:if="${coupon.useYn != 'Y'}"
-                onclick="deleteArchivedCoupon(this)"
-                th:data-sn="${coupon.couponSn}"
-                th:data-nm="${coupon.couponNm}"
-                class="archive-delete-btn hidden inline-flex items-center text-xs px-3 py-1.5 rounded-xl font-medium text-rose-500 border border-rose-200 hover:bg-rose-50 transition-colors whitespace-nowrap">
-                <i class="fa-solid fa-trash mr-1"></i>삭제
-              </button>
-            </td>
+              <!-- 등록일 -->
+              <td class="py-4 px-6 text-center">
+                <span class="text-xs text-slate-500"
+                  th:text="${coupon.regDt != null ? #temporals.format(coupon.regDt, 'yyyy.MM.dd') : '-'}">-</span>
+              </td>
 
-          </tr>
-        </tbody>
-      </table>
+              <!-- 관리 -->
+              <td class="py-4 px-6 text-center">
+                <button type="button"
+                  th:if="${coupon.useYn == 'Y'}"
+                  onclick="openIssuePopup(this)"
+                  th:data-sn="${coupon.couponSn}"
+                  th:data-nm="${coupon.couponNm}"
+                  class="inline-flex items-center text-xs px-3 py-1.5 rounded-xl font-medium text-blue-600 border border-blue-200 hover:bg-blue-50 transition-colors whitespace-nowrap">
+                  <i class="fa-solid fa-paper-plane mr-1"></i>발급
+                </button>
+                <button type="button"
+                  th:if="${coupon.useYn != 'Y'}"
+                  onclick="deleteArchivedCoupon(this)"
+                  th:data-sn="${coupon.couponSn}"
+                  th:data-nm="${coupon.couponNm}"
+                  class="archive-delete-btn hidden inline-flex items-center text-xs px-3 py-1.5 rounded-xl font-medium text-rose-500 border border-rose-200 hover:bg-rose-50 transition-colors whitespace-nowrap">
+                  <i class="fa-solid fa-trash mr-1"></i>삭제
+                </button>
+              </td>
+
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
     </div>
 
+    <!-- 쿠폰 발급내역 (기본 숨김) -->
+    <div id="issuedSection" class="hidden bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
+        <p class="text-sm text-slate-500">
+          총 <span class="font-bold text-slate-800" th:text="${#lists.size(issuedCoupons)}">0</span>개의 발급 내역
+        </p>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table style="width:100%; table-layout:fixed; border-collapse:collapse; text-align:left;">
+          <colgroup>
+            <col style="width: 36%" />
+            <col style="width: 15%" />
+            <col style="width: 15%" />
+            <col style="width: 16%" />
+            <col style="width: 18%" />
+          </colgroup>
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+              <th class="py-4 px-6 text-left">쿠폰명</th>
+              <th class="py-4 px-4 text-left">만료 기간</th>
+              <th class="py-4 px-4 text-left">발급 날짜</th>
+              <th class="py-4 px-4 text-center">수신 ID</th>
+              <th class="py-4 px-4 text-left">발급 ID</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+
+            <tr th:if="${#lists.isEmpty(issuedCoupons)}">
+              <td colspan="5" class="py-16 text-center text-slate-400 text-sm">
+                <i class="fa-solid fa-ticket text-3xl text-slate-200 mb-3 block"></i>
+                발급된 쿠폰이 없습니다.
+              </td>
+            </tr>
+
+            <tr th:each="uc : ${issuedCoupons}" class="hover:bg-slate-50/50 transition-colors">
+              <td class="py-4 px-6">
+                <p class="font-semibold text-slate-800 truncate" th:text="${uc.couponNm}">-</p>
+              </td>
+              <td class="py-4 px-4 font-mono text-xs text-slate-600"
+                  th:text="${uc.expiryDt != null ? #temporals.format(uc.expiryDt, 'yyyy.MM.dd') : '-'}">-</td>
+              <td class="py-4 px-4 font-mono text-xs text-slate-600"
+                  th:text="${uc.issueDt != null ? #temporals.format(uc.issueDt, 'yyyy.MM.dd') : '-'}">-</td>
+              <td class="py-4 px-4 text-center">
+                <button type="button"
+                  th:data-coupon-sn="${uc.couponSn}"
+                  th:data-coupon-nm="${uc.couponNm}"
+                  onclick="openReceiverModal(this)"
+                  class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
+                  확인
+                </button>
+              </td>
+              <td class="py-4 px-4">
+                <span class="text-xs font-medium text-slate-500" th:text="${uc.issuedBy != null ? uc.issuedBy : '-'}">-</span>
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- 포인트 탭 내용 (미구현) -->
+  <div id="panelPoint" class="hidden">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-16 text-center text-slate-400">
+      <i class="fa-solid fa-star text-4xl text-slate-200 mb-4 block"></i>
+      <p class="text-sm font-medium">포인트 관리는 준비 중입니다.</p>
+    </div>
   </div>
 
 </div>
+
+<!-- 수신 회원 목록 모달 -->
+<div id="receiverModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/40" onclick="closeReceiverModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4">
+    <div class="px-6 py-4 flex items-center justify-between border-b border-slate-100">
+      <div>
+        <p class="text-xs text-slate-400 mb-0.5">수신 회원 목록</p>
+        <h2 id="receiverModalTitle" class="text-sm font-bold text-slate-900">-</h2>
+      </div>
+      <button type="button" onclick="closeReceiverModal()" class="text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="overflow-x-auto overflow-y-auto" style="max-height:420px;">
+      <table style="width:100%; table-layout:fixed; border-collapse:collapse;">
+        <colgroup>
+          <col style="width:28%"/>
+          <col style="width:28%"/>
+          <col style="width:24%"/>
+          <col style="width:20%"/>
+        </colgroup>
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+            <th class="py-3 px-4 text-left">수신 ID</th>
+            <th class="py-3 px-4 text-left">유저 이름</th>
+            <th class="py-3 px-4 text-left">만료기간</th>
+            <th class="py-3 px-4 text-center">사용여부</th>
+          </tr>
+        </thead>
+        <tbody id="receiverTableBody" class="divide-y divide-slate-50 text-sm text-slate-700">
+        </tbody>
+      </table>
+    </div>
+    <div id="receiverPaging" class="px-4 py-4 border-t border-slate-100 flex items-center justify-center gap-3"></div>
+  </div>
+</div>
+
+<script th:inline="javascript">
+var issuedCouponsData = /*[(${issuedCouponsJson})]*/ [];
+</script>
 
 <!-- 수정 모달 -->
 <div id="editModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
@@ -234,11 +367,19 @@
     </div>
 
     <!-- 쿠폰명 -->
-    <div class="px-6 py-4">
-      <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-        쿠폰명 <span class="text-rose-400">*</span>
-      </label>
-      <input type="text" id="editCouponNm" class="hm-input w-full" maxlength="100" />
+    <div class="px-6 py-4 space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+          쿠폰명 <span class="text-rose-400">*</span>
+        </label>
+        <input type="text" id="editCouponNm" class="hm-input w-full" maxlength="100" />
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+          쿠폰 코드
+        </label>
+        <input type="text" id="editCouponCode" class="hm-input w-full font-mono bg-slate-50 text-slate-400 cursor-default" readonly />
+      </div>
     </div>
 
     <!-- 할인 방식 -->
@@ -289,7 +430,7 @@
           <span class="text-sm font-medium text-slate-700">활성</span>
         </label>
         <label class="flex items-center gap-2 cursor-pointer">
-          <input type="radio" name="editUseYn" value="N" class="w-4 h-4 accent-slate-400" />
+          <input type="radio" name="editUseYn" value="N" class="w-4 h-4 accent-rose-500" />
           <span class="text-sm font-medium text-slate-700">비활성</span>
         </label>
       </div>
@@ -310,150 +451,4 @@
   </div>
 </div>
 
-<script th:inline="javascript">
-  let activeUseYnFilter = 'Y';  // 기본: 활성 쿠폰만
-  let activeDiscFilter  = 'all';
-
-  function applyFilters() {
-    const rows = document.querySelectorAll('.coupon-row');
-    const isArchive = activeUseYnFilter === 'archive';
-    let visible = 0;
-    rows.forEach(function(row) {
-      const yn   = row.dataset.useYn;
-      const disc = row.dataset.discType;
-      const passUseYn = isArchive ? yn !== 'Y' : yn === 'Y';
-      const passDisc  = activeDiscFilter === 'all' || disc === activeDiscFilter;
-      const show = passUseYn && passDisc;
-      row.style.display = show ? '' : 'none';
-      if (show) visible++;
-    });
-    document.getElementById('visibleCount').textContent = visible;
-    // 보관함 모드일 때만 삭제 버튼 표시
-    document.querySelectorAll('.archive-delete-btn').forEach(function(btn) {
-      btn.classList.toggle('hidden', !isArchive);
-    });
-    // 보관함 모드일 때만 필터 해제 버튼 표시
-    document.getElementById('filterResetBtn').classList.toggle('hidden', !isArchive);
-  }
-
-  function filterTable(mode) {
-    activeUseYnFilter = mode;
-    applyFilters();
-  }
-
-  async function deleteArchivedCoupon(btn) {
-    const couponSn = btn.dataset.sn;
-    const couponNm = btn.dataset.nm;
-    if (!confirm(`"${couponNm}" 쿠폰을 삭제하시겠습니까?`)) return;
-    const res = await fetch(`/admin/coupon/${couponSn}`, { method: 'DELETE' });
-    if (res.ok || res.status === 204) {
-      location.reload();
-    } else {
-      const err = await res.json().catch(function() { return null; });
-      alert(err?.message || '삭제 중 오류가 발생했습니다.');
-    }
-  }
-
-  function filterByDiscType(type) {
-    activeDiscFilter = type;
-    ['all', 'Rate', 'Fixed'].forEach(function(k) {
-      const btn = document.getElementById('discFilter' + (k === 'all' ? 'All' : k));
-      const active = (k === 'all' && type === 'all') || ('RATE' === type && k === 'Rate') || ('FIXED' === type && k === 'Fixed');
-      btn.className = 'px-3 py-1.5 transition-colors ' + (active ? 'bg-slate-800 text-white' : 'text-slate-500 hover:bg-slate-50');
-    });
-    applyFilters();
-  }
-
-  let editCouponSn = null;
-
-  function openEditModal(btn) {
-    editCouponSn = parseInt(btn.dataset.sn);
-    document.getElementById('editCouponNm').value     = btn.dataset.nm;
-    document.getElementById('editDiscAmt').value      = btn.dataset.discAmt || '';
-    document.getElementById('editDiscRate').value     = btn.dataset.discRate || '';
-    document.getElementById('editUseLimitCd').value   = btn.dataset.useLimit || 'ALL';
-    document.getElementById('editValidDays').value    = btn.dataset.validDays || '';
-
-    const discType = btn.dataset.discType;
-    document.getElementById('editDiscTypeFixed').checked = discType === 'FIXED';
-    document.getElementById('editDiscTypeRate').checked  = discType === 'RATE';
-    onEditDiscTypeChange();
-
-    document.querySelectorAll('input[name="editUseYn"]').forEach(function(r) {
-      r.checked = r.value === btn.dataset.useYn;
-    });
-
-    document.getElementById('editModal').classList.remove('hidden');
-  }
-
-  function closeEditModal() {
-    document.getElementById('editModal').classList.add('hidden');
-    editCouponSn = null;
-  }
-
-  function onEditDiscTypeChange() {
-    const isFixed = document.getElementById('editDiscTypeFixed').checked;
-    document.getElementById('editFieldFixed').classList.toggle('hidden', !isFixed);
-    document.getElementById('editFieldRate').classList.toggle('hidden', isFixed);
-  }
-
-  async function submitEdit() {
-    const couponNm  = document.getElementById('editCouponNm').value.trim();
-    const discType  = document.querySelector('input[name="editDiscType"]:checked').value;
-    const useLimitCd = document.getElementById('editUseLimitCd').value;
-    const validDays = parseInt(document.getElementById('editValidDays').value);
-    const useYn     = document.querySelector('input[name="editUseYn"]:checked').value;
-
-    if (!couponNm) { alert('쿠폰명을 입력하세요.'); return; }
-    if (!validDays || validDays < 1) { alert('유효일수를 1일 이상 입력하세요.'); return; }
-
-    const body = { couponNm, discType, useLimitCd, validDays, useYn };
-    if (discType === 'FIXED') {
-      const discAmt = parseInt(document.getElementById('editDiscAmt').value);
-      if (!discAmt || discAmt < 1) { alert('할인 금액을 입력하세요.'); return; }
-      body.discAmt = discAmt;
-    } else {
-      const discRate = parseInt(document.getElementById('editDiscRate').value);
-      if (!discRate || discRate < 1 || discRate > 100) { alert('할인율을 1~100 사이로 입력하세요.'); return; }
-      body.discRate = discRate;
-    }
-
-    const res = await fetch(`/admin/coupon/${editCouponSn}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-
-    if (res.ok) {
-      location.reload();
-    } else {
-      const err = await res.json().catch(function() { return null; });
-      alert(err?.message || '수정 중 오류가 발생했습니다.');
-    }
-  }
-
-  async function submitDelete() {
-    if (!confirm('이 쿠폰을 삭제하시겠습니까?\n발급 이력이 있는 경우 삭제되지 않습니다.')) return;
-
-    const res = await fetch(`/admin/coupon/${editCouponSn}`, { method: 'DELETE' });
-
-    if (res.ok || res.status === 204) {
-      location.reload();
-    } else {
-      const err = await res.json().catch(function() { return null; });
-      alert(err?.message || '삭제 중 오류가 발생했습니다.');
-    }
-  }
-
-  document.addEventListener('DOMContentLoaded', applyFilters);
-
-  function openIssuePopup(btn) {
-    const couponSn = btn.dataset.sn;
-    const couponNm = encodeURIComponent(btn.dataset.nm);
-    window.open(
-      `/admin/coupon/popup/users?couponSn=${couponSn}&couponNm=${couponNm}`,
-      'couponIssue',
-      'width=600,height=640,resizable=yes,scrollbars=yes'
-    );
-  }
-</script>
+<script src="/js/couponpoint.js"></script>

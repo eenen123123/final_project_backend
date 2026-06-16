@@ -1,7 +1,9 @@
 package kr.or.ddit.controller.coupon;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -19,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import kr.or.ddit.finalProject.dto.coupon.CouponDto;
 import kr.or.ddit.finalProject.dto.coupon.UserCouponDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
@@ -35,12 +39,27 @@ public class AdminCouponController {
 
     private final CouponService couponService;
     private final MemberMapper memberMapper;
+    private final ObjectMapper objectMapper;
 
     // GET /admin/coupon - 쿠폰 목록 페이지
     @GetMapping
-    public String couponList(Model model) {
-        List<CouponDto> coupons = couponService.getAllCoupons();
-        model.addAttribute("coupons", coupons);
+    public String couponList(Model model) throws Exception {
+        List<UserCouponDto> issuedCoupons = couponService.getAllIssuedCoupons();
+        model.addAttribute("coupons", couponService.getAllCoupons());
+        model.addAttribute("issuedCoupons", issuedCoupons);
+
+        List<Map<String, Object>> issuedForJs = issuedCoupons.stream().map(uc -> {
+            Map<String, Object> m = new HashMap<>();
+            m.put("couponSn", uc.getCouponSn());
+            m.put("couponNm", uc.getCouponNm());
+            m.put("userId", uc.getUserId());
+            m.put("userName", uc.getUserName() != null ? uc.getUserName() : "");
+            m.put("useYn", uc.getUseYn() != null ? uc.getUseYn().name() : "N");
+            m.put("expiryDt", uc.getExpiryDt() != null ? uc.getExpiryDt().toString() : "");
+            return m;
+        }).collect(Collectors.toList());
+        model.addAttribute("issuedCouponsJson", objectMapper.writeValueAsString(issuedForJs));
+
         return "admin:/coupon/coupon_list";
     }
 

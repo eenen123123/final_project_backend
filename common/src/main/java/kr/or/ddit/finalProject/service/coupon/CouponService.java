@@ -31,4 +31,10 @@ public interface CouponService {
     // 쿠폰 삭제 (관리자) - 발급 이력 없을 때만 가능
     void deleteCoupon(Long couponSn);
 
+    // 전체 발급내역 조회 (관리자)
+    List<UserCouponDto> getAllIssuedCoupons();
+
+    // 쿠폰 코드 입력으로 발급 (사용자)
+    UserCouponDto redeemCoupon(String couponCode, String userId);
+
 }
