@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.mapper.TuitionBatchMapper">
+
+    <!-- ================================================================
+         1. 월 청구 선생성 (결제일 3일 전)
+            · DUE_DT = 가입일(JOIN_DT)의 일(day)을 당월에 적용, 말일 보정
+            · BILL_AMT = 활동 등록(ENRL_STAT_CD='01') 강좌 수강료 합계
+            · (USER_ID, 당월 BILL_YM) 중복 청구 방지
+    ================================================================ -->
+    <insert id="generateMonthlyBills">
+        INSERT INTO TUITION_BILL (USER_ID, BILL_YM, BILL_ITEM_CD, BILL_AMT, DUE_DT, BILL_STAT_CD)
+        SELECT s.USER_ID,
+               TO_CHAR(SYSDATE, 'YYYYMM'),
+               '01',                       <!-- 원비 항목 -->
+               s.BILL_AMT,
+               s.DUE_DT,
+               '01'                        <!-- 미납 -->
+        FROM (
+            SELECT m.USER_ID,
+                   LEAST(
+                       TRUNC(SYSDATE, 'MM') + (TO_NUMBER(TO_CHAR(m.JOIN_DT, 'DD')) - 1),
+                       TRUNC(LAST_DAY(SYSDATE))
+                   ) AS DUE_DT,
+                   (SELECT NVL(SUM(co.COURSE_PRICE), 0)
+                      FROM CLASSROOM_MEMBER cm
+                      JOIN CLASSROOM cl ON cm.CLASS_SN = cl.CLASS_SN
+                      JOIN COURSE     co ON cl.COURSE_SN = co.COURSE_SN
+                     WHERE cm.USER_ID = m.USER_ID
+                       AND TRIM(cm.ENRL_STAT_CD) = '01') AS BILL_AMT
+            FROM MEMBER m
+            WHERE m.USER_ROLE = 'ROLE_STUDENT'
+        ) s
+        WHERE s.BILL_AMT > 0
+          AND s.DUE_DT BETWEEN TRUNC(SYSDATE) AND TRUNC(SYSDATE) + 3
+          AND NOT EXISTS (
+              SELECT 1 FROM TUITION_BILL b
+              WHERE b.USER_ID = s.USER_ID
+                AND b.BILL_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+          )
+    </insert>
+
+    <!-- ================================================================
+         2. 연체 전환 (결제일 경과한 미납)
+    ================================================================ -->
+    <update id="markOverdueBills">
+        UPDATE TUITION_BILL
+           SET BILL_STAT_CD = '02',
+               MDFCN_DT     = CURRENT_TIMESTAMP
+         WHERE TRIM(BILL_STAT_CD) = '01'
+           AND DUE_DT &lt; TRUNC(SYSDATE)
+    </update>
+
+    <!-- ================================================================
+         3. 블랙리스트 자동 등록 (누적 미납/연체 threshold회 이상)
+            · 이력(HISTORY)을 먼저 기록 → 본 테이블 등록 순으로 호출
+            · 이미 블랙리스트에 있는 학생은 제외
+    ================================================================ -->
+    <insert id="registerBlacklistHistory">
+        INSERT INTO STUDENT_BLACK_LIST_HISTORY (BLKLST_STD_USER_ID, BLKLST_RSN_CN, BLKLST_RGTR_USER_ID)
+        SELECT t.USER_ID,
+               '원비 누적 미납 ' || t.CNT || '회 (배치 자동 등록)',
+               'SYSTEM'
+        FROM (
+            SELECT USER_ID, COUNT(*) AS CNT
+            FROM TUITION_BILL
+            WHERE TRIM(BILL_STAT_CD) IN ('01', '02')
+            GROUP BY USER_ID
+            HAVING COUNT(*) &gt;= #{threshold}
+        ) t
+        WHERE NOT EXISTS (
+            SELECT 1 FROM STUDENT_BLACK_LIST bl WHERE bl.STD_USER_ID = t.USER_ID
+        )
+    </insert>
+
+    <insert id="registerBlacklist">
+        INSERT INTO STUDENT_BLACK_LIST (STD_USER_ID, BLKLST_STRT_DT)
+        SELECT t.USER_ID, CURRENT_TIMESTAMP
+        FROM (
+            SELECT USER_ID
+            FROM TUITION_BILL
+            WHERE TRIM(BILL_STAT_CD) IN ('01', '02')
+            GROUP BY USER_ID
+            HAVING COUNT(*) &gt;= #{threshold}
+        ) t
+        WHERE NOT EXISTS (
+            SELECT 1 FROM STUDENT_BLACK_LIST bl WHERE bl.STD_USER_ID = t.USER_ID
+        )
+    </insert>
+
+</mapper>
