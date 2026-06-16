@@ -100,7 +100,7 @@
                 AND REG_DT &gt;= #{paginationInfo.detailCondition.from}
             </if>
             <if test="paginationInfo.detailCondition.to != null">
-                AND REG_DT &lt;= #{paginationInfo.detailCondition.to}  
+                AND REG_DT &lt; #{paginationInfo.detailCondition.to} + INTERVAL '1' DAY
             </if>
         </trim>
 
