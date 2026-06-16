@@ -16,7 +16,7 @@
       <!-- 활성 게시글: 수정 + 삭제 버튼 -->
       <th:block th:if="${board.useYn != 'N'}">
         <a
-          th:href="@{/instructor/board/updateForm/{postSn}(postSn=${board.postSn}, page=${listPage}, keyword=${listKeyword}, boardTypeCd=${listBoardTypeCd}, source=${listSource})}"
+          th:href="@{/instructor/board/updateForm/{postSn}(postSn=${board.postSn}, page=${listPage}, keyword=${listKeyword}, boardTypeCd=${listBoardTypeCd})}"
           class="hm-btn-primary hm-btn-sky text-base"
         >
           <i class="fa-solid fa-pen"></i>
@@ -30,7 +30,6 @@
           <input type="hidden" name="listPage" th:value="${listPage}" />
           <input type="hidden" name="listKeyword" th:value="${listKeyword}" />
           <input type="hidden" name="listBoardTypeCd" th:value="${listBoardTypeCd}" />
-          <input type="hidden" name="listSource" th:value="${listSource}" />
           <button
             type="button"
             onclick="openDeleteModal()"
@@ -50,14 +49,13 @@
           <input type="hidden" name="listPage" th:value="${listPage}" />
           <input type="hidden" name="listKeyword" th:value="${listKeyword}" />
           <input type="hidden" name="listBoardTypeCd" th:value="${listBoardTypeCd}" />
-          <input type="hidden" name="listSource" th:value="${listSource}" />
           <button type="submit" class="hm-btn-primary hm-btn-emerald text-base">
             <i class="fa-solid fa-rotate-left"></i>
             복구
           </button>
         </form>
       </th:block>
-      <a th:href="@{/instructor/board/list(page=${listPage}, keyword=${listKeyword}, boardTypeCd=${listBoardTypeCd}, source=${listSource})}"
+      <a th:href="@{/instructor/board/list(page=${listPage}, keyword=${listKeyword}, boardTypeCd=${listBoardTypeCd})}"
          class="hm-btn-secondary text-base">
         <i class="fa-solid fa-list"></i>
         목록으로
@@ -118,21 +116,12 @@
           <i class="fa-regular fa-calendar mr-1"></i>
           <span th:text="${board.regDt}"></span>
         </span>
-        <span th:if="${board.classSn != null}"
-              class="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-semibold text-violet-700">
-          <i class="fa-solid fa-chalkboard-user"></i>
-          <span th:text="${board.courseNm != null ? board.courseNm : '클래스룸'}"></span>
-        </span>
-        <span th:if="${board.classSn == null}"
-              class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-500">
-          <i class="fa-solid fa-house"></i>홈페이지
-        </span>
       </div>
     </div>
 
     <!-- 본문 영역 -->
     <div
-      class="min-h-64 px-8 py-6 text-base leading-relaxed text-slate-700"
+      class="board-content min-h-64 px-8 py-6 text-base"
       th:utext="${board.content}"
     ></div>
   </div>
@@ -161,7 +150,7 @@
   </div>
 
   <!-- Q&A 답변 섹션 -->
-  <div th:if="${board.boardTypeCd == 'QNA'}" class="mt-6 overflow-hidden rounded-2xl border border-amber-200 bg-amber-50 shadow-sm">
+  <div th:if="${board.boardTypeCd == 'QNA' and board.useYn != 'N'}" class="mt-6 overflow-hidden rounded-2xl border border-amber-200 bg-amber-50 shadow-sm">
     <div class="border-b border-amber-200 px-8 py-4">
       <h3 class="text-base font-semibold text-amber-800">
         <i class="fa-solid fa-reply mr-2"></i>답변
@@ -191,7 +180,6 @@
         <input type="hidden" name="listPage" th:value="${listPage}" />
         <input type="hidden" name="listKeyword" th:value="${listKeyword}" />
         <input type="hidden" name="listBoardTypeCd" th:value="${listBoardTypeCd}" />
-        <input type="hidden" name="listSource" th:value="${listSource}" />
         <textarea name="answCn" rows="5" required
                   th:text="${board.answer.answCn}"
                   class="w-full rounded-xl border border-amber-300 bg-white px-4 py-3 text-sm text-slate-700 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"></textarea>
@@ -210,7 +198,6 @@
         <input type="hidden" name="listPage" th:value="${listPage}" />
         <input type="hidden" name="listKeyword" th:value="${listKeyword}" />
         <input type="hidden" name="listBoardTypeCd" th:value="${listBoardTypeCd}" />
-        <input type="hidden" name="listSource" th:value="${listSource}" />
         <textarea name="answCn" rows="5" required
                   placeholder="답변을 입력하세요."
                   class="w-full rounded-xl border border-amber-300 bg-white px-4 py-3 text-sm text-slate-700 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"></textarea>
