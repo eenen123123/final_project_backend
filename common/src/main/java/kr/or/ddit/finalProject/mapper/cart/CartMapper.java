@@ -28,4 +28,7 @@ public interface CartMapper {
     int deleteCartByUserAndProd(@Param("userId") String userId,
             @Param("prodDivCd") ProductType prodDivCd,
             @Param("prodSn") Long prodSn);
+
+    // 교재 수량 변경 (TEXTBOOK만 허용, COURSE는 0 반환)
+    int updateCartQty(@Param("cartSn") Long cartSn, @Param("userId") String userId, @Param("itemQty") int itemQty);
 }

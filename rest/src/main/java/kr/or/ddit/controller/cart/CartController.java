@@ -2,12 +2,15 @@ package kr.or.ddit.controller.cart;
 
 import java.util.List;
 
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,6 +42,15 @@ public class CartController {
         cartDto.setUserId(authentication.getName());
         cartService.addToCart(cartDto);
         return ResponseEntity.status(HttpStatus.CREATED).body("장바구니에 담겼습니다.");
+    }
+
+    // PATCH /api/cart/{cartSn} - 교재 수량 변경
+    @PatchMapping("/{cartSn}")
+    public ResponseEntity<Void> updateCartQty(Authentication authentication,
+            @PathVariable Long cartSn,
+            @RequestBody Map<String, Integer> body) {
+        cartService.updateCartQty(cartSn, authentication.getName(), body.get("itemQty"));
+        return ResponseEntity.noContent().build();
     }
 
     // DELETE /api/cart/{cartSn}
