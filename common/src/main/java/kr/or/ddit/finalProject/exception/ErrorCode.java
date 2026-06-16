@@ -157,7 +157,9 @@ public enum ErrorCode {
     COUPON_INACTIVE(HttpStatus.BAD_REQUEST, "비활성화된 쿠폰입니다."),
     COUPON_INVALID_DISCOUNT(HttpStatus.BAD_REQUEST, "할인 방식에 맞는 할인값을 입력해주세요."),
     COUPON_ISSUE_TARGET_REQUIRED(HttpStatus.BAD_REQUEST, "발급 대상 사용자 ID가 필요합니다."),
-    COUPON_DELETE_FAILED(HttpStatus.CONFLICT, "발급 이력이 있는 쿠폰은 삭제할 수 없습니다.");
+    COUPON_DELETE_FAILED(HttpStatus.CONFLICT, "발급 이력이 있는 쿠폰은 삭제할 수 없습니다."),
+    COUPON_CODE_NOT_FOUND(HttpStatus.NOT_FOUND, "유효하지 않은 쿠폰 번호입니다."),
+    COUPON_ALREADY_ISSUED(HttpStatus.CONFLICT, "이미 발급받은 쿠폰입니다.");
 
     // =============================
     private final HttpStatus status;

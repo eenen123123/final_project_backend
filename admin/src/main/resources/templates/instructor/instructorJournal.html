@@ -1,17 +1,28 @@
+<title th:fragment="pageTitle">업무 일지 관리 | HERMES</title>
+
 <div class="journal-container">
     <link rel="stylesheet" th:href="@{/css/instructor/journal.css}" />
 
     <!-- 페이지 헤더 -->
-    <div class="flex items-center gap-2 mb-5">
-        <div class="w-1 h-7 rounded-full bg-sky-500"></div>
-        <h1 class="text-2xl font-bold text-slate-800">업무 일지</h1>
-        <span th:if="${isViewer}"
-              class="text-xs font-semibold text-sky-600 bg-sky-50 border border-sky-200 rounded-full px-2 py-0.5 ml-2">읽기 전용</span>
+    <div class="flex items-center justify-between mb-5">
+        <div class="flex items-center gap-2">
+            <div class="w-1 h-7 rounded-full bg-sky-500"></div>
+            <div>
+                <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                    <span class="text-sky-500 font-medium">업무 일지</span>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-800">업무 일지
+                    <span th:if="${isViewer}"
+                        class="text-xs font-semibold text-sky-600 bg-sky-50 border border-sky-200 rounded-full px-2 py-0.5 ml-2">읽기 전용</span>
+                </h1>
+                <p class="text-sm text-slate-500 mt-0.5">업무 기록을 작성하고 관리합니다.</p>
+            </div>
+        </div>
     </div>
 
     <!-- 서버 검증 에러 배너 -->
     <div th:if="${errorMessage}"
-         class="flex items-center gap-2 mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-semibold">
+        class="flex items-center gap-2 mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-semibold">
         <i class="fa-solid fa-circle-exclamation text-red-400"></i>
         <span th:text="${errorMessage}"></span>
     </div>
@@ -25,8 +36,8 @@
                 <h2><i class="fa-solid fa-book-open mr-1 text-sky-400"></i>일지 목록</h2>
                 <!-- 뷰어(수석 강사·원장)는 작성 버튼 숨김 -->
                 <a th:unless="${isViewer}"
-                   th:href="@{/instructor/journals(newForm=true, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}"
-                   class="btn-new">
+                    th:href="@{/instructor/journals(newForm=true, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}"
+                    class="btn-new">
                     <i class="fa-solid fa-plus mr-0.5"></i> 새 일지
                 </a>
             </div>
@@ -37,13 +48,11 @@
                     <!-- 뷰어 전용: 강사 선택 드롭다운 -->
                     <select th:if="${isViewer}" name="selectedInstrId" class="filter-select">
                         <option value="">전체 강사</option>
-                        <option th:each="instr : ${journalInstructors}"
-                                th:value="${instr.instrUserId}"
-                                th:text="${instr.instrUserNm}"
-                                th:selected="${instr.instrUserId == selectedInstrId}"></option>
+                        <option th:each="instr : ${journalInstructors}" th:value="${instr.instrUserId}"
+                            th:text="${instr.instrUserNm}" th:selected="${instr.instrUserId == selectedInstrId}">
+                        </option>
                     </select>
-                    <input type="text" name="keyword" placeholder="제목 검색"
-                           th:value="${keyword}" />
+                    <input type="text" name="keyword" placeholder="제목 검색" th:value="${keyword}" />
                     <div class="filter-date-row">
                         <input type="date" name="fromDt" th:value="${fromDt}" />
                         <span>~</span>
@@ -53,22 +62,20 @@
                         <i class="fa-solid fa-magnifying-glass mr-1"></i>검색
                     </button>
                     <a th:if="${keyword != '' or fromDt != '' or toDt != '' or selectedInstrId != ''}"
-                       th:href="@{/instructor/journals}"
-                       class="btn-filter-reset">필터 초기화</a>
+                        th:href="@{/instructor/journals}" class="btn-filter-reset">필터 초기화</a>
                 </form>
             </div>
 
             <div class="journal-list">
-                <div th:if="${#lists.isEmpty(journalList)}"
-                     class="text-center text-slate-400 text-xs py-8">
+                <div th:if="${#lists.isEmpty(journalList)}" class="text-center text-slate-400 text-xs py-8">
                     작성된 일지가 없습니다.
                 </div>
 
                 <a th:each="j : ${journalList}"
-                   th:href="@{/instructor/journals(jrnlSn=${j.jrnlSn}, page=${currentPage}, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}"
-                   th:classappend="${selected != null and selected.jrnlSn == j.jrnlSn} ? 'active' : ''"
-                   class="journal-item">
-                    <div class="item-date"  th:text="${j.jrnlDt}">2026-06-01</div>
+                    th:href="@{/instructor/journals(jrnlSn=${j.jrnlSn}, page=${currentPage}, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}"
+                    th:classappend="${selected != null and selected.jrnlSn == j.jrnlSn} ? 'active' : ''"
+                    class="journal-item">
+                    <div class="item-date" th:text="${j.jrnlDt}">2026-06-01</div>
                     <div class="item-title" th:text="${j.jrnlTitle}">제목</div>
                     <!-- 뷰어 모드: 목록에서 작성 강사 이름 표시 -->
                     <div th:if="${isViewer}" class="item-author" th:text="${j.instrUserNm}"></div>
@@ -78,18 +85,17 @@
             <!-- 페이지네이션 -->
             <div class="pagination" th:if="${totalPages > 1}">
                 <a th:if="${currentPage > 1}"
-                   th:href="@{/instructor/journals(page=${currentPage - 1}, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}">
+                    th:href="@{/instructor/journals(page=${currentPage - 1}, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}">
                     <i class="fa-solid fa-chevron-left"></i> 이전
                 </a>
                 <span th:unless="${currentPage > 1}" class="disabled">
                     <i class="fa-solid fa-chevron-left"></i> 이전
                 </span>
 
-                <span class="page-info"
-                      th:text="${currentPage} + ' / ' + ${totalPages} + ' 페이지'"></span>
+                <span class="page-info" th:text="${currentPage} + ' / ' + ${totalPages} + ' 페이지'"></span>
 
                 <a th:if="${currentPage < totalPages}"
-                   th:href="@{/instructor/journals(page=${currentPage + 1}, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}">
+                    th:href="@{/instructor/journals(page=${currentPage + 1}, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}">
                     다음 <i class="fa-solid fa-chevron-right"></i>
                 </a>
                 <span th:unless="${currentPage < totalPages}" class="disabled">
@@ -114,10 +120,9 @@
                     <!-- 본인 일지에만 수정·삭제 버튼 표시 (isOwner = 본인 작성 + 뷰어 아님) -->
                     <div class="action-bar" th:if="${isOwner}">
                         <a th:href="@{/instructor/journals(jrnlSn=${selected.jrnlSn}, edit=true, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}"
-                           class="btn-edit"><i class="fa-solid fa-pen mr-1"></i>수정</a>
-                        <form id="form-delete"
-                              th:action="@{/instructor/journals/{sn}/delete(sn=${selected.jrnlSn})}"
-                              method="post">
+                            class="btn-edit"><i class="fa-solid fa-pen mr-1"></i>수정</a>
+                        <form id="form-delete" th:action="@{/instructor/journals/{sn}/delete(sn=${selected.jrnlSn})}"
+                            method="post">
                             <button type="button" class="btn-delete" onclick="openDeleteModal()">
                                 <i class="fa-solid fa-trash mr-1"></i>삭제
                             </button>
@@ -147,25 +152,28 @@
                     <div class="form-group">
                         <label class="form-label">제목 *</label>
                         <input type="text" id="create-title" name="jrnlTitle" class="hm-input hm-input-sky"
-                               placeholder="일지 제목을 입력하세요" maxlength="200" />
+                            placeholder="일지 제목을 입력하세요" maxlength="200" />
                         <div class="form-hint"><span id="create-title-count">0</span> / 200</div>
                         <div class="form-error" id="create-title-error">제목을 입력해주세요.</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">업무 날짜 *</label>
                         <input type="date" id="create-dt" name="jrnlDt" class="hm-input hm-input-sky"
-                               th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}" />
+                            th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}" />
                         <div class="form-hint"></div>
                         <div class="form-error" id="create-dt-error">날짜를 선택해주세요.</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">내용 *</label>
-                        <div id="editor-create"><div class="editor-skeleton"></div></div>
+                        <div id="editor-create">
+                            <div class="editor-skeleton"></div>
+                        </div>
                         <input type="hidden" name="jrnlCont" id="create-cont" />
                         <div class="form-error" id="create-cont-error">내용을 입력해주세요.</div>
                     </div>
                     <div class="flex gap-2 justify-end">
-                        <a th:href="@{/instructor/journals(selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}" class="hm-btn-secondary">취소</a>
+                        <a th:href="@{/instructor/journals(selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}"
+                            class="hm-btn-secondary">취소</a>
                         <button type="submit" class="hm-btn-primary hm-btn-sky">
                             <i class="fa-solid fa-floppy-disk mr-1"></i>저장
                         </button>
@@ -178,30 +186,35 @@
                 <h2 class="text-base font-bold text-slate-700 mb-4">
                     <i class="fa-solid fa-pen mr-1 text-sky-400"></i>일지 수정
                 </h2>
-                <form id="form-edit" th:action="@{/instructor/journals/{sn}/update(sn=${selected.jrnlSn})}" method="post" novalidate>
+                <form id="form-edit" th:action="@{/instructor/journals/{sn}/update(sn=${selected.jrnlSn})}"
+                    method="post" novalidate>
                     <div class="form-group">
                         <label class="form-label">제목 *</label>
                         <input type="text" id="edit-title" name="jrnlTitle" class="hm-input hm-input-sky"
-                               th:value="${selected.jrnlTitle}" maxlength="200" />
-                        <div class="form-hint"><span id="edit-title-count" th:text="${#strings.length(selected.jrnlTitle)}">0</span> / 200</div>
+                            th:value="${selected.jrnlTitle}" maxlength="200" />
+                        <div class="form-hint"><span id="edit-title-count"
+                                th:text="${#strings.length(selected.jrnlTitle)}">0</span> / 200</div>
                         <div class="form-error" id="edit-title-error">제목을 입력해주세요.</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">업무 날짜 *</label>
                         <input type="date" id="edit-dt" name="jrnlDt" class="hm-input hm-input-sky"
-                               th:value="${selected.jrnlDt}" />
+                            th:value="${selected.jrnlDt}" />
                         <div class="form-hint"></div>
                         <div class="form-error" id="edit-dt-error">날짜를 선택해주세요.</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">내용 *</label>
-                        <div id="editor-edit"><div class="editor-skeleton"></div></div>
+                        <div id="editor-edit">
+                            <div class="editor-skeleton"></div>
+                        </div>
                         <input type="hidden" name="jrnlCont" id="edit-cont" />
                         <input type="hidden" id="edit-cont-init" th:value="${selected.jrnlCont}" />
                         <div class="form-error" id="edit-cont-error">내용을 입력해주세요.</div>
                     </div>
                     <div class="flex gap-2 justify-end">
-                        <a th:href="@{/instructor/journals(jrnlSn=${selected.jrnlSn}, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}" class="hm-btn-secondary">취소</a>
+                        <a th:href="@{/instructor/journals(jrnlSn=${selected.jrnlSn}, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}"
+                            class="hm-btn-secondary">취소</a>
                         <button type="submit" class="hm-btn-primary hm-btn-sky">
                             <i class="fa-solid fa-floppy-disk mr-1"></i>저장
                         </button>
@@ -222,10 +235,8 @@
                 <h3 class="font-bold text-slate-800 mb-2 text-lg">일지 삭제</h3>
                 <p class="text-sm text-slate-500 mb-6">이 일지를 삭제하시겠습니까?<br>삭제한 일지는 복구할 수 없습니다.</p>
                 <div class="flex gap-3 justify-center">
-                    <button type="button" onclick="closeDeleteModal()"
-                            class="hm-btn-secondary flex-1">취소</button>
-                    <button type="button" onclick="confirmDelete()"
-                            class="hm-btn-danger flex-1">삭제</button>
+                    <button type="button" onclick="closeDeleteModal()" class="hm-btn-secondary flex-1">취소</button>
+                    <button type="button" onclick="confirmDelete()" class="hm-btn-danger flex-1">삭제</button>
                 </div>
             </div>
         </div>

@@ -1,5 +1,6 @@
 package kr.or.ddit.finalProject.service.coupon;
 
+import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,17 @@ import lombok.extern.slf4j.Slf4j;
 public class CouponServiceImpl implements CouponService {
 
     private static final String ACTIVE = "Y";
+    private static final String CODE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    private static final int CODE_LENGTH = 15;
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
+    private String generateCouponCode() {
+        StringBuilder sb = new StringBuilder(CODE_LENGTH);
+        for (int i = 0; i < CODE_LENGTH; i++) {
+            sb.append(CODE_CHARS.charAt(SECURE_RANDOM.nextInt(CODE_CHARS.length())));
+        }
+        return sb.toString();
+    }
 
     private final CouponMapper couponMapper;
 
@@ -60,6 +72,7 @@ public class CouponServiceImpl implements CouponService {
         // (프론트에서 임의로 비활성/타인 ID를 넣어도 무효)
         couponDto.setUseYn(ACTIVE);
         couponDto.setRegUserId(adminId);
+        couponDto.setCouponCode(generateCouponCode());
 
         couponMapper.insertCoupon(couponDto);
         log.info("쿠폰 생성: couponSn={}, couponNm={}, adminId={}", couponDto.getCouponSn(), couponDto.getCouponNm(), adminId);
@@ -114,6 +127,42 @@ public class CouponServiceImpl implements CouponService {
     @Override
     public List<UserCouponDto> getExpiringCoupons(String userId) {
         return couponMapper.selectExpiringCoupons(userId);
+    }
+
+    @Override
+    public List<UserCouponDto> getAllIssuedCoupons() {
+        return couponMapper.selectAllUserCoupons();
+    }
+
+    @Override
+    @Transactional
+    public UserCouponDto redeemCoupon(String couponCode, String userId) {
+        // 코드로 쿠폰 조회
+        CouponDto coupon = couponMapper.selectCouponByCode(couponCode);
+        if (coupon == null) {
+            throw new FinalProjectException(ErrorCode.COUPON_CODE_NOT_FOUND);
+        }
+        // 비활성 쿠폰 체크
+        if (!ACTIVE.equals(coupon.getUseYn())) {
+            throw new FinalProjectException(ErrorCode.COUPON_INACTIVE);
+        }
+        // 중복 발급 체크
+        if (couponMapper.existsUserCoupon(userId, coupon.getCouponSn()) > 0) {
+            throw new FinalProjectException(ErrorCode.COUPON_ALREADY_ISSUED);
+        }
+
+        LocalDate expiryDt = LocalDate.now().plusDays(coupon.getValidDays());
+        UserCouponDto userCoupon = UserCouponDto.builder()
+                .userId(userId)
+                .couponSn(coupon.getCouponSn())
+                .couponNm(coupon.getCouponNm())
+                .expiryDt(expiryDt)
+                .useYn(CouponUseStatus.N)
+                .build();
+
+        couponMapper.insertUserCoupon(userCoupon);
+        log.info("쿠폰 코드 등록: userId={}, couponCode={}, couponNm={}", userId, couponCode, coupon.getCouponNm());
+        return userCoupon;
     }
 
     @Override

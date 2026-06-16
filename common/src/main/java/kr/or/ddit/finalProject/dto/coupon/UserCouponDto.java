@@ -25,5 +25,6 @@ public class UserCouponDto {
     private Long orderSn;           // 사용한 주문 SN (미사용 시 null)
     private String issuedBy;        // 발급한 관리자 ID (이벤트 자동 발급 시 null)
     private LocalDateTime regDt;    // 등록일시
+    private String userName;        // 수신 유저 이름 (JOIN 조회 시)
 
 }
