@@ -1,5 +1,5 @@
-<!DOCTYPE html>
-<html th:replace="~{instructor/classroom-fragments :: layout(
+﻿<!DOCTYPE html>
+<html th:replace="~{classroom/fragments :: layout(
     ${classroom.classNm} + ' | 공지사항',
     ${classroom},
     'notice',
@@ -20,7 +20,7 @@
 
     <!-- 작성 폼 -->
     <div id="writeForm" class="hidden border-b border-slate-100 p-5 bg-slate-50/50">
-      <form th:action="@{/instructor/classroom/detail/{sn}/notice/write(sn=${classroom.classSn})}" method="post">
+      <form th:action="@{/classroom/detail/{sn}/notice/write(sn=${classroom.classSn})}" method="post">
         <div class="flex flex-col gap-3">
           <input type="text" name="postSj" placeholder="제목을 입력하세요"
                  class="w-full text-sm px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400" required />
@@ -62,7 +62,7 @@
             <td class="py-3 px-6 text-xs text-slate-400 font-mono"
                 th:text="${noticeList.size() - stat.index}">1</td>
             <td class="py-3 px-6">
-              <a th:href="@{/instructor/classroom/detail/{sn}/notice/{postSn}(sn=${classroom.classSn},postSn=${notice.postSn})}"
+              <a th:href="@{/classroom/detail/{sn}/notice/{postSn}(sn=${classroom.classSn},postSn=${notice.postSn})}"
                  class="font-semibold text-slate-800 hover:text-blue-600 transition-colors"
                  th:text="${notice.postSj}">공지 제목</a>
             </td>
@@ -71,7 +71,7 @@
             <td class="py-3 px-6 text-xs text-slate-400 font-mono"
                 th:text="${notice.regDt != null ? #temporals.format(notice.regDt, 'yyyy-MM-dd') : '-'}">2026-06-01</td>
             <td class="py-3 px-6">
-              <form th:action="@{/instructor/classroom/detail/{sn}/notice/{postSn}/delete(sn=${classroom.classSn},postSn=${notice.postSn})}"
+              <form th:action="@{/classroom/detail/{sn}/notice/{postSn}/delete(sn=${classroom.classSn},postSn=${notice.postSn})}"
                     method="post"
                     onsubmit="return confirm('삭제하시겠습니까?')">
                 <button type="submit"

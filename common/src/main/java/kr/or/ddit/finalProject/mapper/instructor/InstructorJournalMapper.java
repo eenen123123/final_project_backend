@@ -17,16 +17,37 @@ import kr.or.ddit.finalProject.dto.instructor.journal.InstructorJournalDto;
 public interface InstructorJournalMapper {
 
     /**
-     * 특정 강사의 일지 목록 조회 (날짜 내림차순)
-     * 강사 본인 조회에 사용합니다.
+     * 일지 목록 조회 (검색 필터 + 페이지네이션)
+     *
+     * @param instrUserId null이면 전체 강사 조회 (뷰어용), 값이 있으면 해당 강사만 조회
+     * @param keyword     제목 키워드 (null 또는 빈 문자열이면 전체)
+     * @param fromDt      시작일 yyyy-MM-dd (null이면 제한 없음)
+     * @param toDt        종료일 yyyy-MM-dd (null이면 제한 없음)
+     * @param offset      건너뛸 행 수 (0-based)
+     * @param pageSize    페이지당 조회 건수
      */
-    List<InstructorJournalDto> selectJournalListByInstructor(@Param("instrUserId") String instrUserId);
+    List<InstructorJournalDto> selectJournalList(
+            @Param("instrUserId") String instrUserId,
+            @Param("keyword")     String keyword,
+            @Param("fromDt")      String fromDt,
+            @Param("toDt")        String toDt,
+            @Param("offset")      int offset,
+            @Param("pageSize")    int pageSize);
 
     /**
-     * 전체 강사의 일지 목록 조회 (날짜 내림차순)
-     * 수석 강사(T001) / 원장(Z001) 조회에 사용합니다.
+     * 일지 전체 건수 조회 (페이지네이션 총 페이지 계산용)
      */
-    List<InstructorJournalDto> selectAllJournalList();
+    int selectJournalCount(
+            @Param("instrUserId") String instrUserId,
+            @Param("keyword")     String keyword,
+            @Param("fromDt")      String fromDt,
+            @Param("toDt")        String toDt);
+
+    /**
+     * 일지를 한 건 이상 작성한 강사 목록 조회 (뷰어 강사 필터 드롭다운용)
+     * instrUserId / instrUserNm 필드만 채워서 반환합니다.
+     */
+    List<InstructorJournalDto> selectJournalInstructors();
 
     /**
      * 일지 단건 상세 조회
@@ -48,8 +69,8 @@ public interface InstructorJournalMapper {
     void updateJournal(InstructorJournalDto dto);
 
     /**
-     * 업무 일지 삭제
+     * 업무 일지 소프트 딜리트 (DEL_YN='Y', DEL_DT, DEL_USER_ID 기록)
      * 소유권 확인은 서비스에서 합니다.
      */
-    void deleteJournal(@Param("jrnlSn") Long jrnlSn);
+    void deleteJournal(@Param("jrnlSn") Long jrnlSn, @Param("delUserId") String delUserId);
 }

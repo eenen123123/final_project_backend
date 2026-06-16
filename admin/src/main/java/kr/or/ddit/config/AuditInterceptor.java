@@ -1,22 +1,5 @@
 package kr.or.ddit.config;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import kr.or.ddit.dto.AuditLogDto;
-import kr.or.ddit.finalProject.util.TraceIdHolder;
-import kr.or.ddit.service.AuditLogService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.util.ContentCachingRequestWrapper;
-
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -26,39 +9,58 @@ import java.util.Enumeration;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.lang.NonNull;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.util.ContentCachingRequestWrapper;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import kr.or.ddit.dto.AuditLogDto;
+import kr.or.ddit.finalProject.util.TraceIdHolder;
+import kr.or.ddit.service.AuditLogService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class AuditInterceptor implements HandlerInterceptor {
 
     private static final int PARAMS_MAX_LEN = 4000;
-    private static final Set<String> MASKED_KEYS =
-            Set.of("password", "passwd", "secretkey", "secret", "token", "accesstoken", "refreshtoken");
+    private static final Set<String> MASKED_KEYS
+            = Set.of("password", "passwd", "secretkey", "secret", "token", "accesstoken", "refreshtoken");
     private static final String[] IP_HEADERS = {
-            "X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP",
-            "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR"
+        "X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP",
+        "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR"
     };
 
     private final AuditLogService auditLogService;
-    private final ObjectMapper    objectMapper;
+    private final ObjectMapper objectMapper;
 
     @Override
     public boolean preHandle(@NonNull HttpServletRequest request,
-                             @NonNull HttpServletResponse response,
-                             @NonNull Object handler) {
+            @NonNull HttpServletResponse response,
+            @NonNull Object handler) {
         return true;
     }
 
     @Override
     public void afterCompletion(@NonNull HttpServletRequest request,
-                                @NonNull HttpServletResponse response,
-                                @NonNull Object handler,
-                                @org.springframework.lang.Nullable Exception ex) {
+            @NonNull HttpServletResponse response,
+            @NonNull Object handler,
+            @org.springframework.lang.Nullable Exception ex) {
         try {
-            String traceId  = TraceIdHolder.get();
-            String adminId  = resolveAdminId();
-            String ip       = resolveClientIp(request);
-            String params   = extractParams(request);
+            String traceId = TraceIdHolder.get();
+            String adminId = resolveAdminId();
+            String ip = resolveClientIp(request);
+            String params = extractParams(request);
 
             AuditLogDto dto = AuditLogDto.builder()
                     .traceId(traceId != null ? traceId : "unknown")
@@ -77,7 +79,6 @@ public class AuditInterceptor implements HandlerInterceptor {
     }
 
     // ── 파라미터 수집 ──────────────────────────────────────────
-
     private String extractParams(HttpServletRequest request) {
         String contentType = request.getContentType();
 
@@ -109,7 +110,9 @@ public class AuditInterceptor implements HandlerInterceptor {
             JsonNode node = objectMapper.readTree(body);
             if (node instanceof ObjectNode obj) {
                 MASKED_KEYS.forEach(key -> {
-                    if (obj.has(key)) obj.put(key, "[MASKED]");
+                    if (obj.has(key)) {
+                        obj.put(key, "[MASKED]");
+                    }
                 });
                 return obj.toString();
             }
@@ -132,12 +135,13 @@ public class AuditInterceptor implements HandlerInterceptor {
     }
 
     private String truncate(String s) {
-        if (s == null || s.length() <= PARAMS_MAX_LEN) return s;
+        if (s == null || s.length() <= PARAMS_MAX_LEN) {
+            return s;
+        }
         return s.substring(0, PARAMS_MAX_LEN) + "...[truncated]";
     }
 
     // ── 보조 ──────────────────────────────────────────────────
-
     private String resolveAdminId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
@@ -173,7 +177,9 @@ public class AuditInterceptor implements HandlerInterceptor {
             Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
             while (interfaces.hasMoreElements()) {
                 NetworkInterface iface = interfaces.nextElement();
-                if (!iface.isUp() || iface.isLoopback() || iface.isVirtual()) continue;
+                if (!iface.isUp() || iface.isLoopback() || iface.isVirtual()) {
+                    continue;
+                }
                 Enumeration<InetAddress> addresses = iface.getInetAddresses();
                 while (addresses.hasMoreElements()) {
                     InetAddress addr = addresses.nextElement();

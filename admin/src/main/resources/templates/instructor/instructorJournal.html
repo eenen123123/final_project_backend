@@ -1,51 +1,5 @@
 <div class="journal-container">
-    <link rel="stylesheet" th:href="@{/css/instructor/curriculum.css}" />
-    <style>
-        /* ── 레이아웃 ── */
-        .journal-layout    { display: flex; gap: 1rem; height: calc(100vh - 140px); min-height: 500px; }
-        .journal-list-pane { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; background: #fff; border: 1px solid #e2e8f0; border-radius: 0.75rem; overflow: hidden; }
-        .journal-detail-pane { flex: 1; background: #fff; border: 1px solid #e2e8f0; border-radius: 0.75rem; overflow-y: auto; padding: 1.5rem; }
-
-        /* ── 목록 패널 ── */
-        .list-header { padding: 1rem; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; }
-        .list-header h2 { font-size: 0.875rem; font-weight: 700; color: #334155; }
-        .btn-new { font-size: 0.72rem; font-weight: 600; background: #0ea5e9; color: #fff; border: none; border-radius: 0.375rem; padding: 0.3rem 0.7rem; cursor: pointer; text-decoration: none; }
-        .btn-new:hover { background: #0284c7; }
-
-        .journal-list { overflow-y: auto; flex: 1; }
-        .journal-item { display: block; padding: 0.75rem 1rem; border-bottom: 1px solid #f8fafc; text-decoration: none; transition: background 0.1s; }
-        .journal-item:hover { background: #f0f9ff; }
-        .journal-item.active { background: #e0f2fe; border-left: 3px solid #0ea5e9; }
-        .journal-item .item-date  { font-size: 0.7rem; color: #94a3b8; }
-        .journal-item .item-title { font-size: 0.8rem; font-weight: 600; color: #334155; margin-top: 0.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .journal-item .item-author { font-size: 0.68rem; color: #0369a1; font-weight: 600; margin-top: 0.1rem; }
-
-        /* ── 상세/폼 패널 ── */
-        .empty-hint { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #cbd5e1; }
-        .empty-hint i { font-size: 2.5rem; margin-bottom: 0.5rem; }
-        .empty-hint p { font-size: 0.85rem; }
-
-        .detail-title   { font-size: 1.25rem; font-weight: 700; color: #0f172a; margin-bottom: 0.25rem; }
-        .detail-meta    { font-size: 0.75rem; color: #94a3b8; display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid #f1f5f9; }
-        .detail-content { font-size: 0.875rem; color: #334155; line-height: 1.75; white-space: pre-wrap; }
-
-        .action-bar { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; justify-content: flex-end; }
-        .btn-edit   { font-size: 0.78rem; font-weight: 600; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 0.375rem; padding: 0.35rem 0.85rem; text-decoration: none; }
-        .btn-edit:hover { background: #e2e8f0; }
-        .btn-delete { font-size: 0.78rem; font-weight: 600; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; border-radius: 0.375rem; padding: 0.35rem 0.85rem; cursor: pointer; }
-        .btn-delete:hover { background: #fecaca; }
-
-        /* ── 폼 ── */
-        .form-group    { margin-bottom: 1rem; }
-        .form-label    { display: block; font-size: 0.75rem; font-weight: 600; color: #475569; margin-bottom: 0.3rem; }
-        .form-input    { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; font-size: 0.85rem; color: #334155; box-sizing: border-box; }
-        .form-input:focus { outline: none; border-color: #0ea5e9; box-shadow: 0 0 0 2px rgba(14,165,233,0.15); }
-        .form-textarea { resize: vertical; min-height: 300px; font-family: inherit; }
-        .btn-save   { font-size: 0.85rem; font-weight: 600; background: #0ea5e9; color: #fff; border: none; border-radius: 0.5rem; padding: 0.5rem 1.25rem; cursor: pointer; }
-        .btn-save:hover { background: #0284c7; }
-        .btn-cancel { font-size: 0.85rem; font-weight: 600; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.5rem 1rem; text-decoration: none; }
-        .btn-cancel:hover { background: #e2e8f0; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/instructor/journal.css}" />
 
     <!-- 페이지 헤더 -->
     <div class="flex items-center gap-2 mb-5">
@@ -53,6 +7,13 @@
         <h1 class="text-2xl font-bold text-slate-800">업무 일지</h1>
         <span th:if="${isViewer}"
               class="text-xs font-semibold text-sky-600 bg-sky-50 border border-sky-200 rounded-full px-2 py-0.5 ml-2">읽기 전용</span>
+    </div>
+
+    <!-- 서버 검증 에러 배너 -->
+    <div th:if="${errorMessage}"
+         class="flex items-center gap-2 mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-semibold">
+        <i class="fa-solid fa-circle-exclamation text-red-400"></i>
+        <span th:text="${errorMessage}"></span>
     </div>
 
     <!-- 2-pane 레이아웃 -->
@@ -64,10 +25,37 @@
                 <h2><i class="fa-solid fa-book-open mr-1 text-sky-400"></i>일지 목록</h2>
                 <!-- 뷰어(수석 강사·원장)는 작성 버튼 숨김 -->
                 <a th:unless="${isViewer}"
-                   th:href="@{/instructor/journals(newForm=true)}"
+                   th:href="@{/instructor/journals(newForm=true, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}"
                    class="btn-new">
                     <i class="fa-solid fa-plus mr-0.5"></i> 새 일지
                 </a>
+            </div>
+
+            <!-- 검색/필터 영역 -->
+            <div class="filter-area">
+                <form th:action="@{/instructor/journals}" method="get">
+                    <!-- 뷰어 전용: 강사 선택 드롭다운 -->
+                    <select th:if="${isViewer}" name="selectedInstrId" class="filter-select">
+                        <option value="">전체 강사</option>
+                        <option th:each="instr : ${journalInstructors}"
+                                th:value="${instr.instrUserId}"
+                                th:text="${instr.instrUserNm}"
+                                th:selected="${instr.instrUserId == selectedInstrId}"></option>
+                    </select>
+                    <input type="text" name="keyword" placeholder="제목 검색"
+                           th:value="${keyword}" />
+                    <div class="filter-date-row">
+                        <input type="date" name="fromDt" th:value="${fromDt}" />
+                        <span>~</span>
+                        <input type="date" name="toDt" th:value="${toDt}" />
+                    </div>
+                    <button type="submit" class="btn-filter">
+                        <i class="fa-solid fa-magnifying-glass mr-1"></i>검색
+                    </button>
+                    <a th:if="${keyword != '' or fromDt != '' or toDt != '' or selectedInstrId != ''}"
+                       th:href="@{/instructor/journals}"
+                       class="btn-filter-reset">필터 초기화</a>
+                </form>
             </div>
 
             <div class="journal-list">
@@ -77,7 +65,7 @@
                 </div>
 
                 <a th:each="j : ${journalList}"
-                   th:href="@{/instructor/journals(jrnlSn=${j.jrnlSn})}"
+                   th:href="@{/instructor/journals(jrnlSn=${j.jrnlSn}, page=${currentPage}, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}"
                    th:classappend="${selected != null and selected.jrnlSn == j.jrnlSn} ? 'active' : ''"
                    class="journal-item">
                     <div class="item-date"  th:text="${j.jrnlDt}">2026-06-01</div>
@@ -85,6 +73,28 @@
                     <!-- 뷰어 모드: 목록에서 작성 강사 이름 표시 -->
                     <div th:if="${isViewer}" class="item-author" th:text="${j.instrUserNm}"></div>
                 </a>
+            </div>
+
+            <!-- 페이지네이션 -->
+            <div class="pagination" th:if="${totalPages > 1}">
+                <a th:if="${currentPage > 1}"
+                   th:href="@{/instructor/journals(page=${currentPage - 1}, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}">
+                    <i class="fa-solid fa-chevron-left"></i> 이전
+                </a>
+                <span th:unless="${currentPage > 1}" class="disabled">
+                    <i class="fa-solid fa-chevron-left"></i> 이전
+                </span>
+
+                <span class="page-info"
+                      th:text="${currentPage} + ' / ' + ${totalPages} + ' 페이지'"></span>
+
+                <a th:if="${currentPage < totalPages}"
+                   th:href="@{/instructor/journals(page=${currentPage + 1}, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}">
+                    다음 <i class="fa-solid fa-chevron-right"></i>
+                </a>
+                <span th:unless="${currentPage < totalPages}" class="disabled">
+                    다음 <i class="fa-solid fa-chevron-right"></i>
+                </span>
             </div>
         </div>
 
@@ -99,20 +109,21 @@
 
             <!-- (2) 읽기 모드 -->
             <div th:if="${mode == 'view'}">
-                <!-- 본인 일지에만 수정·삭제 버튼 표시 (isOwner = 본인 작성 + 뷰어 아님) -->
-                <div class="action-bar" th:if="${isOwner}">
-                    <a th:href="@{/instructor/journals(jrnlSn=${selected.jrnlSn}, edit=true)}"
-                       class="btn-edit"><i class="fa-solid fa-pen mr-1"></i>수정</a>
-                    <form th:action="@{/instructor/journals/{sn}/delete(sn=${selected.jrnlSn})}"
-                          method="post"
-                          onsubmit="return confirm('이 일지를 삭제하시겠습니까?')">
-                        <button type="submit" class="btn-delete">
-                            <i class="fa-solid fa-trash mr-1"></i>삭제
-                        </button>
-                    </form>
+                <div class="detail-header">
+                    <div class="detail-title" th:text="${selected.jrnlTitle}">제목</div>
+                    <!-- 본인 일지에만 수정·삭제 버튼 표시 (isOwner = 본인 작성 + 뷰어 아님) -->
+                    <div class="action-bar" th:if="${isOwner}">
+                        <a th:href="@{/instructor/journals(jrnlSn=${selected.jrnlSn}, edit=true, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}"
+                           class="btn-edit"><i class="fa-solid fa-pen mr-1"></i>수정</a>
+                        <form id="form-delete"
+                              th:action="@{/instructor/journals/{sn}/delete(sn=${selected.jrnlSn})}"
+                              method="post">
+                            <button type="button" class="btn-delete" onclick="openDeleteModal()">
+                                <i class="fa-solid fa-trash mr-1"></i>삭제
+                            </button>
+                        </form>
+                    </div>
                 </div>
-
-                <div class="detail-title" th:text="${selected.jrnlTitle}">제목</div>
                 <div class="detail-meta">
                     <span><i class="fa-regular fa-calendar mr-1"></i><span th:text="${selected.jrnlDt}"></span></span>
                     <!-- 뷰어 모드: 작성자 표시 -->
@@ -124,7 +135,7 @@
                         수정: <span th:text="${selected.mdfcnDt}"></span>
                     </span>
                 </div>
-                <div class="detail-content" th:text="${selected.jrnlCont}">내용</div>
+                <div class="detail-content" th:utext="${selected.jrnlCont}">내용</div>
             </div>
 
             <!-- (3) 새 일지 작성 폼 -->
@@ -132,26 +143,30 @@
                 <h2 class="text-base font-bold text-slate-700 mb-4">
                     <i class="fa-solid fa-plus-circle mr-1 text-sky-400"></i>새 일지 작성
                 </h2>
-                <form th:action="@{/instructor/journals/create}" method="post">
+                <form id="form-create" th:action="@{/instructor/journals/create}" method="post" novalidate>
                     <div class="form-group">
                         <label class="form-label">제목 *</label>
-                        <input type="text" name="jrnlTitle" class="form-input"
-                               placeholder="일지 제목을 입력하세요" required />
+                        <input type="text" id="create-title" name="jrnlTitle" class="hm-input hm-input-sky"
+                               placeholder="일지 제목을 입력하세요" maxlength="200" />
+                        <div class="form-hint"><span id="create-title-count">0</span> / 200</div>
+                        <div class="form-error" id="create-title-error">제목을 입력해주세요.</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">업무 날짜 *</label>
-                        <!-- 오늘 날짜를 기본값으로 설정 -->
-                        <input type="date" name="jrnlDt" class="form-input"
-                               th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" required />
+                        <input type="date" id="create-dt" name="jrnlDt" class="hm-input hm-input-sky"
+                               th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}" />
+                        <div class="form-hint"></div>
+                        <div class="form-error" id="create-dt-error">날짜를 선택해주세요.</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">내용 *</label>
-                        <textarea name="jrnlCont" class="form-input form-textarea"
-                                  placeholder="업무 내용을 자유롭게 작성하세요." required></textarea>
+                        <div id="editor-create"><div class="editor-skeleton"></div></div>
+                        <input type="hidden" name="jrnlCont" id="create-cont" />
+                        <div class="form-error" id="create-cont-error">내용을 입력해주세요.</div>
                     </div>
                     <div class="flex gap-2 justify-end">
-                        <a th:href="@{/instructor/journals}" class="btn-cancel">취소</a>
-                        <button type="submit" class="btn-save">
+                        <a th:href="@{/instructor/journals(selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}" class="hm-btn-secondary">취소</a>
+                        <button type="submit" class="hm-btn-primary hm-btn-sky">
                             <i class="fa-solid fa-floppy-disk mr-1"></i>저장
                         </button>
                     </div>
@@ -163,25 +178,31 @@
                 <h2 class="text-base font-bold text-slate-700 mb-4">
                     <i class="fa-solid fa-pen mr-1 text-sky-400"></i>일지 수정
                 </h2>
-                <form th:action="@{/instructor/journals/{sn}/update(sn=${selected.jrnlSn})}" method="post">
+                <form id="form-edit" th:action="@{/instructor/journals/{sn}/update(sn=${selected.jrnlSn})}" method="post" novalidate>
                     <div class="form-group">
                         <label class="form-label">제목 *</label>
-                        <input type="text" name="jrnlTitle" class="form-input"
-                               th:value="${selected.jrnlTitle}" required />
+                        <input type="text" id="edit-title" name="jrnlTitle" class="hm-input hm-input-sky"
+                               th:value="${selected.jrnlTitle}" maxlength="200" />
+                        <div class="form-hint"><span id="edit-title-count" th:text="${#strings.length(selected.jrnlTitle)}">0</span> / 200</div>
+                        <div class="form-error" id="edit-title-error">제목을 입력해주세요.</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">업무 날짜 *</label>
-                        <input type="date" name="jrnlDt" class="form-input"
-                               th:value="${selected.jrnlDt}" required />
+                        <input type="date" id="edit-dt" name="jrnlDt" class="hm-input hm-input-sky"
+                               th:value="${selected.jrnlDt}" />
+                        <div class="form-hint"></div>
+                        <div class="form-error" id="edit-dt-error">날짜를 선택해주세요.</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">내용 *</label>
-                        <textarea name="jrnlCont" class="form-input form-textarea"
-                                  required th:text="${selected.jrnlCont}"></textarea>
+                        <div id="editor-edit"><div class="editor-skeleton"></div></div>
+                        <input type="hidden" name="jrnlCont" id="edit-cont" />
+                        <input type="hidden" id="edit-cont-init" th:value="${selected.jrnlCont}" />
+                        <div class="form-error" id="edit-cont-error">내용을 입력해주세요.</div>
                     </div>
                     <div class="flex gap-2 justify-end">
-                        <a th:href="@{/instructor/journals(jrnlSn=${selected.jrnlSn})}" class="btn-cancel">취소</a>
-                        <button type="submit" class="btn-save">
+                        <a th:href="@{/instructor/journals(jrnlSn=${selected.jrnlSn}, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}" class="hm-btn-secondary">취소</a>
+                        <button type="submit" class="hm-btn-primary hm-btn-sky">
                             <i class="fa-solid fa-floppy-disk mr-1"></i>저장
                         </button>
                     </div>
@@ -190,4 +211,30 @@
 
         </div><!-- /detail-pane -->
     </div><!-- /journal-layout -->
+
+    <!-- 삭제 확인 모달 -->
+    <div id="modal-delete-journal" class="fixed inset-0 bg-black/40 z-50 hidden items-center justify-center p-4">
+        <div class="hm-modal-inner max-w-sm">
+            <div class="p-6 text-center">
+                <div class="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-trash text-red-500 text-2xl"></i>
+                </div>
+                <h3 class="font-bold text-slate-800 mb-2 text-lg">일지 삭제</h3>
+                <p class="text-sm text-slate-500 mb-6">이 일지를 삭제하시겠습니까?<br>삭제한 일지는 복구할 수 없습니다.</p>
+                <div class="flex gap-3 justify-center">
+                    <button type="button" onclick="closeDeleteModal()"
+                            class="hm-btn-secondary flex-1">취소</button>
+                    <button type="button" onclick="confirmDelete()"
+                            class="hm-btn-danger flex-1">삭제</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<th:block th:fragment="pageJs">
+    <th:block th:if="${mode == 'new' or mode == 'edit'}">
+        <script defer th:src="@{/js/tiptap/tiptap-editor.iife.js}"></script>
+    </th:block>
+    <script defer th:src="@{/js/instructor/journal.js}"></script>
+</th:block>
