@@ -11,9 +11,10 @@ import kr.or.ddit.finalProject.dto.instructor.board.InstructorPublicBoardItem;
 public interface InstructorBoardService {
 
     /**
-     * 강사 게시판 목록 조회
+     * 강사 게시판 목록 조회 (검색 + 페이징)
      */
-    List<InstructorBoardResponse> getInstructorBoardList(String instrUserId);
+    PageResponse<InstructorBoardResponse> getInstructorBoardList(
+            String instrUserId, String keyword, String boardTypeCd, int page, int pageSize);
 
     /**
      * 강사 게시판 상세 조회

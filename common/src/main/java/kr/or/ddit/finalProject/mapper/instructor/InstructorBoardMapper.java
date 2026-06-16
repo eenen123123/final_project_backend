@@ -16,7 +16,17 @@ import kr.or.ddit.finalProject.dto.instructor.board.PostNavItem;
 @Mapper
 public interface InstructorBoardMapper {
 
-    public List<InstructorBoardDto> selectInstructorBoardList(@Param("instrUserId") String instrUserId);
+    public List<InstructorBoardDto> selectInstructorBoardList(
+            @Param("instrUserId") String instrUserId,
+            @Param("keyword") String keyword,
+            @Param("boardTypeCd") String boardTypeCd,
+            @Param("offset") int offset,
+            @Param("pageSize") int pageSize);
+
+    public int selectInstructorBoardCount(
+            @Param("instrUserId") String instrUserId,
+            @Param("keyword") String keyword,
+            @Param("boardTypeCd") String boardTypeCd);
 
     public InstructorBoardDto selectInstructorBoardDetail(@Param("postSn") Long postSn, @Param("instrUserId") String instrUserId);
 

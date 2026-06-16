@@ -21,14 +21,14 @@ public class InstructorBoardDto implements Serializable {
     private String instrUserId;
     private String wrtrUserId; // MEMBER.USER_ID 참조
 
-    @Size(max = 10)
-    private String boardTypeCd; // COM_CD 공통코드 참조
+    @NotBlank(message = "게시판 분류를 선택해주세요.")
+    private String boardTypeCd; // BoardType enum name (NOTICE / QNA / DATAROOM)
 
-    @NotBlank
+    @NotBlank(message = "제목을 입력해주세요.")
     @Size(max = 100, message = "제목은 100자를 초과할 수 없습니다.")
     private String postSj;
 
-    @NotBlank
+    @NotBlank(message = "내용을 입력해주세요.")
     private String postCn;
 
     private Long inqCnt;
@@ -39,9 +39,9 @@ public class InstructorBoardDto implements Serializable {
     private String lastMdfrId;
 
     private String useYn; // 사용여부 (Y: 활성, N: 삭제)
-    private Long classSn; // NULL=강사 페이지, 값 있으면 클래스룸 전속
+    private Long classSn; // NULL=강사 홈페이지, 값 있으면 클래스룸 전속
 
     // 조인 컬럼
-    private String boardTypeNm; // COM_CD.COM_CD_NM (게시판 분류명)
+    private String boardTypeNm; // 게시판 분류명
     private MemberDto memberDto; // 작성자 정보 포함
 }

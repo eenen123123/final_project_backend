@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.dto.instructor.board.BoardType;
+import kr.or.ddit.finalProject.service.file.FileUploadService;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardResponse;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorPublicBoardDetail;
@@ -22,31 +24,37 @@ import lombok.extern.slf4j.Slf4j;
 public class InstructorBoardServiceImpl implements InstructorBoardService {
 
     private final InstructorBoardMapper instructorBoardMapper;
+    private final FileUploadService fileUploadService;
 
     @Override
-    public List<InstructorBoardResponse> getInstructorBoardList(String instrUserId) {
-        List<InstructorBoardDto> original = instructorBoardMapper.selectInstructorBoardList(instrUserId);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        List<InstructorBoardResponse> response
-                = original.stream()
-                        .map(dto -> {
-                            String userName = dto.getMemberDto() != null ? dto.getMemberDto().getUserName() : "";
-                            InstructorBoardResponse responseDto = new InstructorBoardResponse();
-                            responseDto.setPostSn(dto.getPostSn());
-                            responseDto.setUseYn(dto.getUseYn());
-                            responseDto.setBoardTypeCd(dto.getBoardTypeCd());
-                            responseDto.setBoardTypeNm(dto.getBoardTypeNm());
-                            responseDto.setUserName(userName);
-                            responseDto.setTitle(dto.getPostSj());
-                            responseDto.setContent(dto.getPostCn());
-                            responseDto.setRegDt(dto.getRegDt() != null ? dto.getRegDt().format(formatter) : null);
-                            responseDto.setMdfcnDt(dto.getMdfcnDt() != null ? dto.getMdfcnDt().format(formatter) : null);
-                            responseDto.setAtchFileId(dto.getAtchFileId() != null ? dto.getAtchFileId().toString() : null);
-                            return responseDto;
-                        })
-                        .toList();
-        log.info("게시글 목록 조회 : {}", response);
-        return response;
+    public PageResponse<InstructorBoardResponse> getInstructorBoardList(
+            String instrUserId, String keyword, String boardTypeCd, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        int totalCount = instructorBoardMapper.selectInstructorBoardCount(instrUserId, keyword, boardTypeCd);
+        List<InstructorBoardDto> original = instructorBoardMapper.selectInstructorBoardList(
+                instrUserId, keyword, boardTypeCd, offset, pageSize);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        List<InstructorBoardResponse> items = java.util.stream.IntStream.range(0, original.size())
+                .mapToObj(i -> {
+                    InstructorBoardDto dto = original.get(i);
+                    String userName = dto.getMemberDto() != null ? dto.getMemberDto().getUserName() : "";
+                    InstructorBoardResponse responseDto = new InstructorBoardResponse();
+                    responseDto.setPostSn(dto.getPostSn());
+                    responseDto.setDisplayNo(totalCount - offset - i);
+                    responseDto.setUseYn(dto.getUseYn());
+                    responseDto.setBoardTypeCd(dto.getBoardTypeCd());
+                    responseDto.setBoardTypeNm(resolveBoardTypeNm(dto.getBoardTypeCd()));
+                    responseDto.setUserName(userName);
+                    responseDto.setTitle(dto.getPostSj());
+                    responseDto.setContent(dto.getPostCn());
+                    responseDto.setInqCnt(dto.getInqCnt());
+                    responseDto.setRegDt(dto.getRegDt() != null ? dto.getRegDt().format(formatter) : null);
+                    responseDto.setMdfcnDt(dto.getMdfcnDt() != null ? dto.getMdfcnDt().format(formatter) : null);
+                    responseDto.setAtchFileId(dto.getAtchFileId() != null ? dto.getAtchFileId().toString() : null);
+                    return responseDto;
+                })
+                .toList();
+        return new PageResponse<>(items, totalCount);
     }
 
     @Override
@@ -61,17 +69,21 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
                 .postSn(original.getPostSn())
                 .useYn(original.getUseYn())
                 .boardTypeCd(original.getBoardTypeCd())
-                .boardTypeNm(original.getBoardTypeNm())
+                .boardTypeNm(resolveBoardTypeNm(original.getBoardTypeCd()))
                 .userName(userName)
                 .title(original.getPostSj())
                 .content(original.getPostCn())
+                .inqCnt(original.getInqCnt())
                 .regDt(original.getRegDt() != null ? original.getRegDt().format(formatter) : null)
                 .mdfcnDt(original.getMdfcnDt() != null ? original.getMdfcnDt().format(formatter) : null)
                 .atchFileId(original.getAtchFileId() != null ? original.getAtchFileId().toString() : null)
                 .build();
 
-        if ("03".equals(original.getBoardTypeCd())) {
+        if ("QNA".equals(original.getBoardTypeCd())) {
             response.setAnswer(instructorBoardMapper.selectInstructorQnaAnswer(original.getPostSn()));
+        }
+        if (original.getAtchFileId() != null) {
+            response.setFiles(fileUploadService.retrieveFilesByGroupId(original.getAtchFileId().intValue()));
         }
 
         return response;
@@ -82,7 +94,7 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     public int insertInstructorBoard(InstructorBoardDto instructorBoardDto) {
         int rowcnt = instructorBoardMapper.insertInstructorBoard(instructorBoardDto);
         if (rowcnt > 0) {
-            if ("03".equals(instructorBoardDto.getBoardTypeCd())) {
+            if ("QNA".equals(instructorBoardDto.getBoardTypeCd())) {
                 instructorBoardMapper.insertInstructorQna(instructorBoardDto.getPostSn());
             }
             log.info("게시글 등록 성공 : {}", instructorBoardDto);
@@ -126,7 +138,7 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
 
     @Override
     public int insertClassroomNotice(InstructorBoardDto dto) {
-        dto.setBoardTypeCd("02");
+        dto.setBoardTypeCd("NOTICE");
         return instructorBoardMapper.insertClassroomNotice(dto);
     }
 
@@ -148,7 +160,7 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
 
     @Override
     public void insertClassroomQna(InstructorBoardDto dto) {
-        dto.setBoardTypeCd("03");
+        dto.setBoardTypeCd("QNA");
         instructorBoardMapper.insertClassroomQnaBoard(dto);
         instructorBoardMapper.insertClassroomQnaChild(dto.getPostSn());
     }
@@ -179,6 +191,11 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
         List<InstructorPublicBoardItem> items
                 = instructorBoardMapper.selectPublicBoardList(instrUuid, boardTypeCd, offset, size);
         return new PageResponse<>(items, total);
+    }
+
+    private static String resolveBoardTypeNm(String boardTypeCd) {
+        if (boardTypeCd == null) return "";
+        try { return BoardType.valueOf(boardTypeCd).getLabel(); } catch (IllegalArgumentException e) { return boardTypeCd; }
     }
 
     @Override
