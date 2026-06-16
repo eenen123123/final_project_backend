@@ -17,10 +17,7 @@
             <result property="mdfcnDt" column="MDFCN_DT"/>
             <result property="rgtrId" column="RGTR_ID"/>
             <result property="lastMdfrId" column="LAST_MDFR_ID"/>
-
             <result property="useYn" column="USE_YN"/>
-            <result property="classSn" column="CLASS_SN"/>
-            <result property="courseNm" column="COURSE_NM"/>
 
             <association property="memberDto" javaType="kr.or.ddit.finalProject.dto.member.MemberDto">
                   <result property="userName" column="USER_NAME"/>
@@ -29,17 +26,12 @@
 
       <sql id="boardListWhere">
             WHERE IB.INSTR_USER_ID = #{instrUserId}
+                  AND IB.CLASS_SN IS NULL
             <if test="boardTypeCd != null and boardTypeCd != ''">
                   AND IB.BOARD_TYPE_CD = #{boardTypeCd}
             </if>
             <if test="keyword != null and keyword != ''">
                   AND UPPER(IB.POST_SJ) LIKE '%' || UPPER(#{keyword}) || '%'
-            </if>
-            <if test="source == 'home'">
-                  AND IB.CLASS_SN IS NULL
-            </if>
-            <if test="source == 'classroom'">
-                  AND IB.CLASS_SN IS NOT NULL
             </if>
       </sql>
 
@@ -57,13 +49,9 @@
                   , IB.RGTR_ID
                   , IB.LAST_MDFR_ID
                   , IB.USE_YN
-                  , IB.CLASS_SN
-                  , CO.COURSE_NM
                   , M.USER_NAME
             FROM INSTRUCTOR_BOARD IB
                   INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
-                  LEFT JOIN CLASSROOM CL ON IB.CLASS_SN = CL.CLASS_SN
-                  LEFT JOIN COURSE CO ON CL.COURSE_SN = CO.COURSE_SN
             <include refid="boardListWhere"/>
             ORDER BY IB.REG_DT DESC
             OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
@@ -89,15 +77,12 @@
                   , IB.RGTR_ID
                   , IB.LAST_MDFR_ID
                   , IB.USE_YN
-                  , IB.CLASS_SN
-                  , CO.COURSE_NM
                   , M.USER_NAME
             FROM INSTRUCTOR_BOARD IB
                   INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
-                  LEFT JOIN CLASSROOM CL ON IB.CLASS_SN = CL.CLASS_SN
-                  LEFT JOIN COURSE CO ON CL.COURSE_SN = CO.COURSE_SN
             WHERE IB.POST_SN = #{postSn}
                   AND IB.INSTR_USER_ID = #{instrUserId}
+                  AND IB.CLASS_SN IS NULL
       </select>
 
       <insert id="insertInstructorBoard" useGeneratedKeys="true" keyProperty="postSn" keyColumn="POST_SN">
@@ -109,6 +94,7 @@
                   , POST_CN
                   , INQ_CNT
                   , ATCH_FILE_ID
+                  , USE_YN
                   , REG_DT
                   , MDFCN_DT
                   , RGTR_ID
@@ -122,6 +108,7 @@
                   , #{postCn}
                   , 0
                   , #{atchFileId, jdbcType=NUMERIC}
+                  , 'Y'
                   , SYSDATE
                   , SYSDATE
                   , #{wrtrUserId}
@@ -139,7 +126,8 @@
                   , MDFCN_DT = SYSDATE
                   , LAST_MDFR_ID = #{lastMdfrId}
             WHERE POST_SN = #{postSn}
-                  AND INSTR_USER_ID = #{instrUserId} 
+                  AND INSTR_USER_ID = #{instrUserId}
+                  AND CLASS_SN IS NULL
       </update>
 
       <update id="deleteInstructorBoard">
@@ -147,6 +135,7 @@
             SET USE_YN = 'N'
             WHERE POST_SN = #{postSn}
                   AND INSTR_USER_ID = #{instrUserId}
+                  AND CLASS_SN IS NULL
       </update>
 
       <update id="restoreInstructorBoard">
@@ -154,6 +143,7 @@
             SET USE_YN = 'Y'
             WHERE POST_SN = #{postSn}
                   AND INSTR_USER_ID = #{instrUserId}
+                  AND CLASS_SN IS NULL
       </update>
 
       <!-- ── 클래스룸 공지사항 ──────────────────────────────────── -->

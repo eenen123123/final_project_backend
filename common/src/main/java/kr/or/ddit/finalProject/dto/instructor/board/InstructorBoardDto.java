@@ -43,6 +43,5 @@ public class InstructorBoardDto implements Serializable {
 
     // 조인 컬럼
     private String boardTypeNm; // 게시판 분류명
-    private String courseNm;    // 클래스룸 소속 강좌명 (classSn != null 일 때)
     private MemberDto memberDto; // 작성자 정보 포함
 }
