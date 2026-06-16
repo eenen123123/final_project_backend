@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import kr.or.ddit.finalProject.dto.cart.ProductType;
 import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.order.OrderDto;
 import kr.or.ddit.finalProject.dto.order.OrderItemDto;
@@ -25,6 +26,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
+    private static final long BOOK_SHIPPING_FEE = 3000; // 교재 포함 시 배송비
+
     private final OrderMapper orderMapper;
 
     @Override
@@ -35,11 +38,18 @@ public class OrderServiceImpl implements OrderService {
         }
 
         long totAmt = 0;
+        boolean hasBook = false;
         List<OrderItemDto> orderItems = new ArrayList<>();
         for (OrderItemDto req : items) {
             OrderItemDto item = lookupProduct(req);
             totAmt += item.getProdPrice() * item.getItemQty();
+            if (item.getProdDivCd() == ProductType.TEXTBOOK) {
+                hasBook = true;
+            }
             orderItems.add(item);
+        }
+        if (hasBook) {
+            totAmt += BOOK_SHIPPING_FEE; // 교재가 있으면 배송비 1회 부과
         }
 
         String ordNm = orderItems.get(0).getProdNm();
