@@ -34,4 +34,16 @@ public class SuneungGradeCutDto {
 
     /** 비율(퍼센트) */
     private Double ratio;
+
+    private Long subjClId; // 과목 대분류 ID
+    /*
+     * 1 국어
+     * 2 수학
+     * 3 영어
+     * 4 사회탐구
+     * 5 과학탐구
+     * 21 한국사
+     */
+
+    private String subjClNm; // 과목 대분류 이름
 }
