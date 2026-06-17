@@ -78,10 +78,8 @@ async function loadMappedCourses() {
     countEl.textContent = `총 ${courses.length}개`;
 
     const card = document.getElementById("card-" + selectedCurriculumId);
-    if (card) {
-      const countEl = card.querySelector(".card-course-count");
-      if (countEl) countEl.textContent = courses.length;
-    }
+    const countEl = card?.querySelector(".card-course-count");
+    if (countEl) countEl.textContent = courses.length;
 
     if (courses.length === 0) {
       listEl.innerHTML = "";
@@ -130,6 +128,11 @@ function buildMappedCourseRow(c) {
       ${duration}
     </div>
     ${opnnBadge}
+    <a href="/admin/course/detail?courseSn=${c.courseSn}"
+       class="relative group shrink-0 p-1.5 rounded-lg text-slate-300 hover:text-sky-500 hover:bg-sky-50 transition-colors">
+      <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+      <span class="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-2 whitespace-nowrap rounded-lg bg-slate-800 px-2 py-1 text-[11px] text-white opacity-0 transition-opacity group-hover:opacity-100 z-10">강좌 상세</span>
+    </a>
     <button type="button"
             data-sn="${c.courseSn}" data-nm="${escHtml(c.courseNm)}"
             onclick="openRemoveCourseModal(Number(this.dataset.sn), this.dataset.nm)"
