@@ -3,6 +3,11 @@
 .vscode/
 .bkit/
 .understand-anything/
-data/
+/data/
 .settings/
 sample_videos/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
