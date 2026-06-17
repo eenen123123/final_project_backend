@@ -22,4 +22,5 @@ public class CourseResponseDto implements Serializable {
     private String explain;
     private boolean isNew; // NEW 뱃지 표시 여부
     private boolean isBest; // BEST 뱃지 표시 여부
+    private String thumbnailImg;
 }
