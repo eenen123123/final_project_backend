@@ -24,5 +24,6 @@ public class CouponDto {
     private String regUserId;    // 등록한 관리자 ID
     private LocalDateTime regDt; // 등록일시
     private String couponCode;   // 사용자 직접 입력용 쿠폰 코드 (nullable, unique)
+    private String couponType;   // COUPON:할인쿠폰 / STUDY_POINT:스터디포인트 정의
 
 }

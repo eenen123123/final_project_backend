@@ -19,7 +19,9 @@ import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.mapper.cart.CartMapper;
 import kr.or.ddit.finalProject.mapper.order.OrderMapper;
 import kr.or.ddit.finalProject.mapper.pay.PayHistMapper;
+import kr.or.ddit.finalProject.dto.coupon.AssetType;
 import kr.or.ddit.finalProject.service.enrollment.CourseEnrollmentService;
+import kr.or.ddit.finalProject.service.coupon.PointService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,6 +38,7 @@ public class TossPayConfirmService {
     private final PayHistMapper payHistMapper;
     private final CartMapper cartMapper;
     private final CourseEnrollmentService enrollmentService;
+    private final PointService pointService;
 
     /**
      * 토스 결제 승인 + 결제/주문 확정 처리.
@@ -72,6 +75,13 @@ public class TossPayConfirmService {
                 enrollmentService.grantOrExtend(userId, item.getProdSn(), order.getOrdSn());
             }
         }
+
+        // HM 포인트 적립 (결제금액의 1%, 0이면 스킵)
+        long earnAmt = order.getTotAmt() / 100;
+        if (earnAmt > 0) {
+            pointService.earnPoint(userId, AssetType.HM_POINT, earnAmt, order.getOrdSn(), order.getOrdNm());
+        }
+
         return response;
     }
 
