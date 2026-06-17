@@ -39,8 +39,8 @@ function selectCurriculum(curriculumId, strt, end) {
     card.classList.add("border-sky-400", "bg-sky-50/40");
   }
 
-  document.getElementById("panel-title").textContent =
-    card.querySelector(".card-title").textContent;
+  const titleEl = card?.querySelector(".card-title");
+  document.getElementById("panel-title").textContent = titleEl ? titleEl.textContent : "";
   document.getElementById("panel-period").textContent = strt
     ? `${strt} ~ ${end}`
     : "기간 미설정";
@@ -327,9 +327,10 @@ function closeCreateForm() {
   });
   document.getElementById("create-error").classList.add("hidden");
 }
-function validateCurriculumForm(title, strtDt, endDt) {
+function validateCurriculumForm(title, strtDt, endDt, explnCn) {
   if (!title) return "커리큘럼명은 필수 입력 항목입니다.";
   if (title.length > 200) return "커리큘럼명은 200자 이내로 입력해 주세요.";
+  if (explnCn && explnCn.length > 4000) return "설명은 4000자 이내로 입력해 주세요.";
   if (strtDt && endDt && new Date(endDt) < new Date(strtDt)) return "종료일은 시작일 이후여야 합니다.";
   return null;
 }
@@ -338,8 +339,9 @@ async function submitCreate() {
   const title = document.getElementById("create-title").value.trim();
   const strtDt = document.getElementById("create-strtDt").value;
   const endDt = document.getElementById("create-endDt").value;
+  const explnCn = document.getElementById("create-explnCn").value;
   const errorEl = document.getElementById("create-error");
-  const validationError = validateCurriculumForm(title, strtDt, endDt);
+  const validationError = validateCurriculumForm(title, strtDt, endDt, explnCn);
   if (validationError) {
     errorEl.textContent = validationError;
     errorEl.classList.remove("hidden");
@@ -406,9 +408,10 @@ async function submitEdit(btn) {
   const title = editDiv.querySelector(".edit-title").value.trim();
   const strtDt = editDiv.querySelector(".edit-strtDt").value;
   const endDt = editDiv.querySelector(".edit-endDt").value;
+  const explnCn = editDiv.querySelector(".edit-explnCn").value;
   const errorEl = editDiv.querySelector(".edit-error");
 
-  const validationError = validateCurriculumForm(title, strtDt, endDt);
+  const validationError = validateCurriculumForm(title, strtDt, endDt, explnCn);
   if (validationError) {
     errorEl.textContent = validationError;
     errorEl.classList.remove("hidden");

@@ -28,7 +28,7 @@
   <!-- 상단 브레드크럼 -->
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-2 text-xs text-slate-400">
-      <a href="/admin/course/list" class="hover:text-orange-500 transition-colors">강좌 관리</a>
+      <a th:href="@{/admin/course/list}" class="hover:text-orange-500 transition-colors">강좌 관리</a>
       <i class="fa-solid fa-chevron-right text-[10px]"></i>
       <a th:href="@{/admin/lectures/list(courseId=${course.courseSn})}"
          th:text="${course.courseNm}"
