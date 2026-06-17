@@ -110,7 +110,7 @@ public class InstructorController {
     @GetMapping("/{instrUuid}/board/notice")
     public ResponseEntity<PageResponse<InstructorPublicBoardItem>> getNoticeList(
             @PathVariable String instrUuid,
-            @RequestParam(defaultValue = "0") int pageIndex,
+            @RequestParam(name = "page", defaultValue = "0") int pageIndex,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(instructorBoardService.getPublicBoardList(instrUuid, "02", pageIndex, size));
     }
@@ -121,7 +121,7 @@ public class InstructorController {
     @GetMapping("/{instrUuid}/board/qna")
     public ResponseEntity<PageResponse<InstructorPublicBoardItem>> getQnaList(
             @PathVariable String instrUuid,
-            @RequestParam(defaultValue = "0") int pageIndex,
+            @RequestParam(name = "page", defaultValue = "0") int pageIndex,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(instructorBoardService.getPublicBoardList(instrUuid, "03", pageIndex, size));
     }
@@ -132,7 +132,7 @@ public class InstructorController {
     @GetMapping("/{instrUuid}/board/dataroom")
     public ResponseEntity<PageResponse<InstructorPublicBoardItem>> getDataroomList(
             @PathVariable String instrUuid,
-            @RequestParam(defaultValue = "0") int pageIndex,
+            @RequestParam(name = "page", defaultValue = "0") int pageIndex,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(instructorBoardService.getPublicBoardList(instrUuid, "04", pageIndex, size));
     }
