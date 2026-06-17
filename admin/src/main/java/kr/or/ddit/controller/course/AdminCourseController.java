@@ -34,8 +34,8 @@ public class AdminCourseController {
      * 강좌 등록 폼 페이지 반환. 현재 로그인한 강사의 커리큘럼 목록과 과목 분류 목록을 모델에 담아 전달한다.
      */
     @GetMapping("/insert")
-    public String insertForm(Model model) {
-        model.addAttribute("curriculumList", curriculumService.retrieveAllList());
+    public String insertForm(Model model, Authentication authentication) {
+        model.addAttribute("curriculumList", curriculumService.retrieveList(authentication.getName()));
         model.addAttribute("subjClList", courseService.retrieveSubjectClassificationList());
         return "admin:/course/insert-course";
     }
@@ -92,15 +92,14 @@ public class AdminCourseController {
             redirectAttributes.addFlashAttribute("errorMsg", "존재하지 않는 강좌입니다.");
             return "redirect:/admin/course/list";
         }
-        // TODO: 강좌 관리를 강사 전용 페이지로 이관 시 소유권 체크 활성화
-        // if (!authentication.getName().equals(course.getInstrUserId())) {
-        //     redirectAttributes.addFlashAttribute("errorMsg", "본인이 작성한 강좌만 수정할 수 있습니다.");
-        //     return "redirect:/admin/course/list";
-        // }
+        if (!authentication.getName().equals(course.getInstrUserId())) {
+            redirectAttributes.addFlashAttribute("errorMsg", "본인이 등록한 강좌만 수정할 수 있습니다.");
+            return "redirect:/admin/course/list";
+        }
         if (!model.containsAttribute("course")) {
             model.addAttribute("course", course);
         }
-        model.addAttribute("curriculumList", curriculumService.retrieveAllList());
+        model.addAttribute("curriculumList", curriculumService.retrieveList(authentication.getName()));
         model.addAttribute("subjClList", courseService.retrieveSubjectClassificationList());
         return "admin:/course/insert-course";
     }

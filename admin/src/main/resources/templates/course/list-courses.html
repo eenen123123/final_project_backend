@@ -18,6 +18,7 @@
     </div>
     <a
       th:href="@{/admin/course/insert}"
+      sec:authorize="hasAuthority('D300')"
       class="hm-btn-primary hm-btn-orange shrink-0"
     >
       <i class="fa-solid fa-plus"></i>
@@ -97,12 +98,13 @@
             <th class="py-4 px-3 w-20 text-center">강의 수</th>
             <th class="py-4 px-3 w-24 text-center">공개</th>
             <th class="py-4 px-4 w-28 text-center">등록일</th>
+            <th class="py-4 px-4 w-24 text-center">바로가기</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
           <!-- 강좌 없을 때 -->
           <tr th:if="${courseList == null or courseList.isEmpty()}">
-            <td colspan="8" class="py-16 text-center">
+            <td colspan="9" class="py-16 text-center">
               <div class="flex flex-col items-center gap-3 text-slate-300">
                 <i class="fa-solid fa-book-open text-4xl"></i>
                 <p class="text-sm">등록된 강좌가 없습니다.</p>
@@ -224,6 +226,18 @@
                 th:text="${course.regDt != null ? #temporals.format(course.regDt, 'yyyy.MM.dd') : '-'}"
                 >-</span
               >
+            </td>
+
+            <!-- 바로가기 버튼 -->
+            <td class="py-4 px-4 text-center" onclick="event.stopPropagation()">
+              <a
+                th:href="@{/admin/lectures/list(courseId=${course.courseSn})}"
+                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-orange-500 hover:bg-orange-50 transition-colors border border-orange-100"
+                title="강의 목록"
+              >
+                <i class="fa-solid fa-film text-[11px]"></i>
+                <span>강의</span>
+              </a>
             </td>
           </tr>
         </tbody>

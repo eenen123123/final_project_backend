@@ -93,7 +93,7 @@
   <update id="mapCourseToCurriculum">
     UPDATE COURSE
     SET CURRICULUM_ID = #{curriculumId}, SORT_ORD = #{sortOrd}
-    WHERE COURSE_SN = #{courseSn}
+    WHERE COURSE_SN = #{courseSn} AND CURRICULUM_ID IS NULL
   </update>
 
   <update id="unmapCourseFromCurriculum">

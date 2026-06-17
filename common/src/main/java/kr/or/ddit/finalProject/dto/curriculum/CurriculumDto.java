@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -13,6 +15,8 @@ import lombok.EqualsAndHashCode;
 public class CurriculumDto {
 
     private Long curriculumId;
+    @NotBlank(message = "커리큘럼명은 필수 입력 항목입니다.")
+    @Size(max = 200, message = "커리큘럼명은 200자 이내로 입력해 주세요.")
     private String title;
     private String instructorId;
     private String useYn;
@@ -20,6 +24,7 @@ public class CurriculumDto {
     private LocalDate strtDt;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate endDt;
+    @Size(max = 4000, message = "설명은 4000자 이내로 입력해 주세요.")
     private String explnCn;
     private String rgtrId;
     private LocalDateTime regDt;
