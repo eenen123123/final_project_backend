@@ -1,45 +1,47 @@
-<div class="sidebar-section">
-  <p
-    class="sidebar-title text-violet-500"
-  >
-    원장 전용 권한
-  </p>
+﻿<div class="sidebar-section" data-section-key="원장 업무" style="--section-color: #8b5cf6;">
+  <p class="sidebar-title text-violet-500 sidebar-section-toggle"><i class="fa-solid fa-user-tie sidebar-section-icon"></i>원장 업무<i class="fa-solid fa-chevron-down sidebar-section-arrow"></i></p>
   <ul class="sidebar-list">
     <!-- 1 그룹: 실시간 모니터링 및 일정 -->
     <li>
-      <a href="/admin/monitoring" class="sidebar-link">
+      <a href="/admin/monitoring" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/monitoring')} ? 'active'">
         <i class="fa-solid fa-desktop sidebar-icon"></i>
         <span class="sidebar-link-text">학사 운영 모니터링</span>
       </a>
     </li>
     <li>
-      <a href="/admin/system/monitoring" class="sidebar-link">
+      <a href="/admin/system/monitoring" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/system/monitoring')} ? 'active'">
         <i class="fa-solid fa-user-shield sidebar-icon"></i>
         <span class="sidebar-link-text">시스템 로그 관리</span>
       </a>
     </li>
     <li>
-        <a href="/admin/calendar" class="sidebar-link">
-            <i class="fa-solid fa-calendar-days sidebar-icon"></i>
-            <span class="sidebar-link-text">통합 일정 관리</span>
-        </a>
+      <a href="/admin/calendar" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/calendar')} ? 'active'">
+        <i class="fa-solid fa-calendar-days sidebar-icon"></i>
+        <span class="sidebar-link-text">통합 일정 관리</span>
+      </a>
     </li>
 
     <!-- 2 그룹: 최종 승인 및 결재 -->
     <li>
-        <a href="/admin/approval" class="sidebar-link">
-            <i class="fa-solid fa-file-signature sidebar-icon"></i>
-            <span class="sidebar-link-text">내부 전자 결재</span>
-        </a>
+      <a href="/admin/approval" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/approval')} ? 'active'">
+        <i class="fa-solid fa-file-signature sidebar-icon"></i>
+        <span class="sidebar-link-text">내부 전자 결재</span>
+      </a>
     </li>
     <li>
-      <a href="/admin/payments/approve" class="sidebar-link">
+      <a href="/admin/payments/approve" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/payments')} ? 'active'">
         <i class="fa-solid fa-credit-card sidebar-icon"></i>
         <span class="sidebar-link-text">결제 최종 승인</span>
       </a>
     </li>
     <li>
-      <a href="/admin/students/approve" class="sidebar-link">
+      <a href="/admin/students/approve" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/students')} ? 'active'">
         <i class="fa-solid fa-user-check sidebar-icon"></i>
         <span class="sidebar-link-text">학생 관리 최종 승인</span>
       </a>
@@ -47,24 +49,25 @@
 
     <!-- 3 그룹: 경영 분석 및 보안 설정 -->
     <li>
-      <a href="/admin/finance" class="sidebar-link">
+      <a href="/admin/finance" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/finance')} ? 'active'">
         <i class="fa-solid fa-coins sidebar-icon"></i>
         <span class="sidebar-link-text">매출 및 재무 분석</span>
       </a>
     </li>
     <li>
-      <a href="/admin/quality" class="sidebar-link">
+      <a href="/admin/quality" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/quality')} ? 'active'">
         <i class="fa-solid fa-star-half-stroke sidebar-icon"></i>
         <span class="sidebar-link-text">서비스 품질 관리</span>
       </a>
     </li>
     <li>
-      <a href="/admin/settings/permissions" class="sidebar-link">
+      <a href="/admin/settings/permissions" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/settings/permissions')} ? 'active'">
         <i class="fa-solid fa-user-shield sidebar-icon"></i>
         <span class="sidebar-link-text">관리자 권한 설정</span>
       </a>
     </li>
-    
-    
   </ul>
 </div>

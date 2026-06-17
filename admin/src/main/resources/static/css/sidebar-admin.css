@@ -4,30 +4,43 @@
    HERMES 어드민 사이드바 전용 스타일
    ========================================================================== */
 
-/* 사이드바 축소(Collapsed) 상태 레이아웃 구조 디자인 */
-#adminSidebar.sidebar-collapsed {
-    width: 5.5rem; /* 축소 시 아이콘만 보이는 너비 */
+/*
+  width만 트랜지션 대상으로 지정한다.
+  transition-all을 쓰면 관계없는 속성(color, opacity 등)까지
+  매 프레임 감지해 불필요한 repaint가 발생한다.
+*/
+#adminSidebar {
+    transition-property: width;
+    transition-duration: 150ms;
+    transition-timing-function: ease;
 }
 
-#adminSidebar.sidebar-collapsed .sidebar-title,
-#adminSidebar.sidebar-collapsed .sidebar-link-text,
-#adminSidebar.sidebar-collapsed .sidebar-badge {
-    opacity: 0;
-    pointer-events: none;
-    display: none !important;
+/*
+  [FOUC 방지] sidebar-admin.js가 실행되기 전에 사이드바를 미리 숨긴다.
+  admin-layout.html의 <head> 인라인 스크립트가 localStorage 값을 읽어
+  html 태그에 data-sidebar="hidden" 속성을 추가하면 이 규칙이 즉시 적용된다.
+  JS가 뜨면 이 속성을 제거하고 .sidebar-hidden 클래스로 관리를 넘긴다.
+  transition: none으로 초기 렌더링 시 애니메이션이 재생되지 않게 막는다.
+*/
+html[data-sidebar="hidden"] #adminSidebar {
+    width: 0;
+    transition: none;
 }
 
-#adminSidebar.sidebar-collapsed .sidebar-link {
-    justify-content: center;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+/* 햄버거 버튼 클릭으로 사이드바를 완전히 숨긴 상태 */
+#adminSidebar.sidebar-hidden {
+    width: 0;
+    min-width: 0;
+    border: none;
 }
 
-/* ========================================================================== 
-   사이드바 메뉴 공통 스타일
+/* ==========================================================================
+   섹션 (역할별 메뉴 그룹)
    ========================================================================== */
+
 .sidebar-section {
-    padding: 0 1rem 2rem;
+    padding: 0 1rem;
+    margin-top: -0.4rem;
 }
 
 .sidebar-title {
@@ -36,18 +49,79 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.2em;
-    margin-bottom: 1rem;
-    transition: opacity 0.2s;
+    margin-bottom: 0.25rem;
     white-space: nowrap;
 }
 
+/* 클릭으로 섹션을 접고 펼 수 있는 타이틀 */
+.sidebar-title.sidebar-section-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-right: 0.5rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* 화살표를 오른쪽 끝에 붙인다 */
+.sidebar-title.sidebar-section-toggle .sidebar-section-arrow {
+    margin-left: auto;
+}
+
+/* 섹션 타이틀 앞 역할 아이콘 (Font Awesome) */
+.sidebar-section-icon {
+    width: 1.5rem;
+    text-align: center;
+    font-size: 1.1rem;
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+}
+
+.sidebar-section-arrow {
+    font-size: 0.875rem;
+    opacity: 0.5;
+    transition: transform 0.2s ease, opacity 0.2s;
+    flex-shrink: 0;
+}
+
+/* 호버 시 화살표를 선명하게 — 클릭 가능함을 암시 */
+.sidebar-title.sidebar-section-toggle:hover .sidebar-section-arrow {
+    opacity: 1;
+}
+
+/* 섹션이 접힌 상태: 화살표를 90도 회전해 '닫힘' 방향을 표시 */
+.sidebar-section.section-collapsed .sidebar-section-arrow {
+    transform: rotate(90deg);
+}
+
+/* ==========================================================================
+   메뉴 목록 — 섹션 접기/펼치기 애니메이션
+   ========================================================================== */
+
+/*
+  height 대신 max-height를 애니메이션하는 이유:
+  CSS transition은 auto 값을 지원하지 않아 height: auto → 0 전환이 불가능하다.
+  max-height에 충분히 큰 값을 지정하면 auto처럼 동작하면서 transition이 적용된다.
+  800px은 현재 가장 긴 섹션의 실제 높이보다 크면 충분하다.
+*/
 .sidebar-list {
-    margin: 0;
+    margin: 0.5rem 0 0;
     padding: 0;
     list-style: none;
     display: grid;
     row-gap: 0.25rem;
+    overflow: hidden;
+    max-height: 800px;
+    transition: max-height 0.2s linear;
 }
+
+.sidebar-section.section-collapsed .sidebar-list {
+    max-height: 0;
+}
+
+/* ==========================================================================
+   개별 메뉴 링크
+   ========================================================================== */
 
 .sidebar-link {
     display: flex;
@@ -55,14 +129,31 @@
     gap: 1rem;
     padding: 0.75rem 1rem;
     border-radius: 1rem;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
     color: inherit;
     text-decoration: none;
 }
 
+/*
+  호버 색상은 --section-color CSS 변수를 사용한다.
+  각 메뉴 HTML 파일(menu_*.html)에서 섹션별로 역할에 맞는 색상을
+  style="--section-color: #..." 인라인 변수로 지정하고 있다.
+  이 변수를 통해 역할마다 다른 호버 색상을 단일 CSS 규칙으로 처리한다.
+*/
 .sidebar-link:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(255, 255, 255, 0.07);
+    color: var(--section-color, #ffffff);
+}
+
+/* 현재 페이지 활성 메뉴 */
+.sidebar-link.active {
+    background-color: rgba(255, 255, 255, 0.12);
     color: #ffffff;
+}
+
+/* 활성 메뉴도 호버 시 섹션 색상으로 변경 */
+.sidebar-link.active:hover {
+    color: var(--section-color, #ffffff);
 }
 
 .sidebar-icon {
@@ -74,5 +165,4 @@
 .sidebar-link-text {
     font-size: 0.875rem;
     white-space: nowrap;
-    transition: opacity 0.2s;
 }

@@ -1,138 +1,148 @@
-<div class="sidebar-section">
-  <p
-  class="sidebar-title text-blue-500"
-  >
-  행정 전용 권한
-</p>
-<ul class="sidebar-list">
-  <!-- 1 그룹: 통합 운영 및 소통 -->
-  <li>
-    <a href="/admin/calendar" class="sidebar-link">
-      <i class="fa-solid fa-calendar-days sidebar-icon"></i>
-      <span class="sidebar-link-text">통합 일정 관리</span>
-    </a>
-  </li>
-  <!-- <li>
-    <a href="/admin/notifications/parent" class="sidebar-link">
-      <i class="fa-solid fa-bell sidebar-icon"></i>
-      <span class="sidebar-link-text">실시간 공지 / 안내 발송</span>
-    </a>
-  </li> -->
-  <li>
-    <a href="/admin/board/customer-service" class="sidebar-link">
-      <i class="fa-solid fa-headset sidebar-icon"></i>
-      <span class="sidebar-link-text">고객센터 관리</span>
-    </a>
-  </li>
-  <!-- <li>
-    <a href="/admin/attendance" class="sidebar-link">
-      <i class="fa-solid fa-calendar-check sidebar-icon"></i>
-      <span class="sidebar-link-text">출결 관리</span>
-    </a>
-  </li> -->
+﻿<div class="sidebar-section" data-section-key="행정 업무" style="--section-color: #3b82f6;">
+  <p class="sidebar-title text-blue-500 sidebar-section-toggle"><i class="fa-solid fa-building-user sidebar-section-icon"></i>행정 업무<i class="fa-solid fa-chevron-down sidebar-section-arrow"></i></p>
+  <ul class="sidebar-list">
+    <!-- 1 그룹: 통합 운영 및 소통 -->
+    <li>
+      <a href="/admin/calendar" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/calendar')} ? 'active'">
+        <i class="fa-solid fa-calendar-days sidebar-icon"></i>
+        <span class="sidebar-link-text">통합 일정 관리</span>
+      </a>
+    </li>
+    <!-- <li>
+      <a href="/admin/notifications/parent" class="sidebar-link">
+        <i class="fa-solid fa-bell sidebar-icon"></i>
+        <span class="sidebar-link-text">실시간 공지 / 안내 발송</span>
+      </a>
+    </li> -->
+    <li>
+      <a href="/admin/board/customer-service" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/board/customer-service')} ? 'active'">
+        <i class="fa-solid fa-headset sidebar-icon"></i>
+        <span class="sidebar-link-text">고객센터 관리</span>
+      </a>
+    </li>
+    <!-- <li>
+      <a href="/admin/attendance" class="sidebar-link">
+        <i class="fa-solid fa-calendar-check sidebar-icon"></i>
+        <span class="sidebar-link-text">출결 관리</span>
+      </a>
+    </li> -->
 
-  <!-- 2 그룹: 인사 및 사용자 관리 -->
-  <li>
-    <a href="/admin/employees" class="sidebar-link">
-      <i class="fa-solid fa-users-gear sidebar-icon"></i>
-      <span class="sidebar-link-text">사용자 관리</span>
-    </a>
-  </li>
-  <li>
-    <a href="/admin/org" class="sidebar-link">
-      <i class="fa-solid fa-sitemap sidebar-icon"></i>
-      <span class="sidebar-link-text">조직 관리</span>
-    </a>
-  </li>
-  
-  <!-- <li>
-    <a href="/admin/hr/leave" class="sidebar-link">
-      <i class="fa-solid fa-business-time sidebar-icon"></i>
-      <span class="sidebar-link-text">휴가 관리</span>
-    </a>
-  </li> -->
-  <!-- <li>
-    <a href="/admin/salary" class="sidebar-link">
-      <i class="fa-solid fa-money-bill-wave sidebar-icon"></i>
-      <span class="sidebar-link-text">급여 · 계좌 관리</span>
-    </a>
-  </li> -->
-  <li>
-    <a href="/admin/blacklist" class="sidebar-link">
-      <i class="fa-solid fa-user-slash sidebar-icon"></i>
-      <span class="sidebar-link-text">블랙리스트 관리</span>
-    </a>
-  </li>
+    <!-- 2 그룹: 인사 및 사용자 관리 -->
+    <li>
+      <a href="/admin/employees" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/employees')} ? 'active'">
+        <i class="fa-solid fa-users-gear sidebar-icon"></i>
+        <span class="sidebar-link-text">사용자 관리</span>
+      </a>
+    </li>
+    <li>
+      <a href="/admin/org" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/org')} ? 'active'">
+        <i class="fa-solid fa-sitemap sidebar-icon"></i>
+        <span class="sidebar-link-text">조직 관리</span>
+      </a>
+    </li>
 
-  <!-- 3 그룹: 재무 및 물류 -->
-  <li>
-    <a href="/admin/billing" class="sidebar-link">
-      <i class="fa-solid fa-money-check-dollar sidebar-icon"></i>
-      <span class="sidebar-link-text">원비 및 수납 관리</span>
-    </a>
-  </li>
-  <li>
-    <a href="/admin/expenses" class="sidebar-link">
-      <i class="fa-solid fa-receipt sidebar-icon"></i>
-      <span class="sidebar-link-text">지출 및 영수증 관리</span>
-    </a>
-  </li>
-  <!-- <li>
-    <a href="/admin/logistics" class="sidebar-link">
-      <i class="fa-solid fa-boxes-stacked sidebar-icon"></i>
-      <span class="sidebar-link-text">교재 및 물류 관리</span>
-    </a>
-  </li> -->
-  <li>
-    <a href="/admin/textbook" class="sidebar-link">
-      <i class="fa-solid fa-book sidebar-icon"></i>
-      <span class="sidebar-link-text">교재 관리</span>
-    </a>
-  </li>
-  <!-- <li>
-    <a href="/admin/textbook/stock" class="sidebar-link">
-      <i class="fa-solid fa-boxes-stacked sidebar-icon"></i>
-      <span class="sidebar-link-text">교재 재고 관리</span>
-    </a>
-  </li> -->
+    <!-- <li>
+      <a href="/admin/hr/leave" class="sidebar-link">
+        <i class="fa-solid fa-business-time sidebar-icon"></i>
+        <span class="sidebar-link-text">휴가 관리</span>
+      </a>
+    </li> -->
+    <!-- <li>
+      <a href="/admin/salary" class="sidebar-link">
+        <i class="fa-solid fa-money-bill-wave sidebar-icon"></i>
+        <span class="sidebar-link-text">급여 · 계좌 관리</span>
+      </a>
+    </li> -->
+    <li>
+      <a href="/admin/blacklist" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/blacklist')} ? 'active'">
+        <i class="fa-solid fa-user-slash sidebar-icon"></i>
+        <span class="sidebar-link-text">블랙리스트 관리</span>
+      </a>
+    </li>
 
-  <li>
-    <a href="/admin/featured" class="sidebar-link">
-      <i class="fa-solid fa-star sidebar-icon"></i>
-      <span class="sidebar-link-text">추천 항목 관리</span>
-    </a>
-  </li>
-  <li>
-    <a href="/admin/coupon" class="sidebar-link">
-      <i class="fa-solid fa-ticket sidebar-icon"></i>
-      <span class="sidebar-link-text">쿠폰/포인트 관리</span>
-    </a>
-  </li>
+    <!-- 3 그룹: 재무 및 물류 -->
+    <li>
+      <a href="/admin/billing" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/billing')} ? 'active'">
+        <i class="fa-solid fa-money-check-dollar sidebar-icon"></i>
+        <span class="sidebar-link-text">원비 및 수납 관리</span>
+      </a>
+    </li>
+    <li>
+      <a href="/admin/expenses" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/expenses')} ? 'active'">
+        <i class="fa-solid fa-receipt sidebar-icon"></i>
+        <span class="sidebar-link-text">지출 및 영수증 관리</span>
+      </a>
+    </li>
+    <!-- <li>
+      <a href="/admin/logistics" class="sidebar-link">
+        <i class="fa-solid fa-boxes-stacked sidebar-icon"></i>
+        <span class="sidebar-link-text">교재 및 물류 관리</span>
+      </a>
+    </li> -->
+    <li>
+      <a href="/admin/textbook" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/textbook')} ? 'active'">
+        <i class="fa-solid fa-book sidebar-icon"></i>
+        <span class="sidebar-link-text">교재 관리</span>
+      </a>
+    </li>
+    <!-- <li>
+      <a href="/admin/textbook/stock" class="sidebar-link">
+        <i class="fa-solid fa-boxes-stacked sidebar-icon"></i>
+        <span class="sidebar-link-text">교재 재고 관리</span>
+      </a>
+    </li> -->
 
-  <!-- 4그룹: 시설 및 지원 -->
-   <li>
-    <a href="/admin/common-codes" class="sidebar-link">
-      <i class="fa-solid fa-list-check sidebar-icon"></i>
-      <span class="sidebar-link-text">공통코드 관리</span>
-    </a>
-  </li>
-  <li>
-    <a href="/admin/facilities" class="sidebar-link">
-      <i class="fa-solid fa-building-user sidebar-icon"></i>
-      <span class="sidebar-link-text">시설 및 업체 관리</span>
-    </a>
-  </li>
-  <li>
-    <a href="/admin/certificates" class="sidebar-link">
-      <i class="fa-solid fa-certificate sidebar-icon"></i>
-      <span class="sidebar-link-text">증명서 발급 관리</span>
-    </a>
-  </li>
-  <li>
-    <a href="/admin/subject" class="sidebar-link">
-      <i class="fa-solid fa-book sidebar-icon"></i>
-      <span class="sidebar-link-text">과목 관리</span>
-    </a>
-  </li>
+    <li>
+      <a href="/admin/featured" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/featured')} ? 'active'">
+        <i class="fa-solid fa-star sidebar-icon"></i>
+        <span class="sidebar-link-text">추천 항목 관리</span>
+      </a>
+    </li>
+    <li>
+      <a href="/admin/coupon" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/coupon')} ? 'active'">
+        <i class="fa-solid fa-ticket sidebar-icon"></i>
+        <span class="sidebar-link-text">쿠폰/포인트 관리</span>
+      </a>
+    </li>
+
+    <!-- 4그룹: 시설 및 지원 -->
+    <li>
+      <a href="/admin/common-codes" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/common-codes')} ? 'active'">
+        <i class="fa-solid fa-list-check sidebar-icon"></i>
+        <span class="sidebar-link-text">공통코드 관리</span>
+      </a>
+    </li>
+    <li>
+      <a href="/admin/facilities" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/facilities')} ? 'active'">
+        <i class="fa-solid fa-building-user sidebar-icon"></i>
+        <span class="sidebar-link-text">시설 및 업체 관리</span>
+      </a>
+    </li>
+    <li>
+      <a href="/admin/certificates" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/certificates')} ? 'active'">
+        <i class="fa-solid fa-certificate sidebar-icon"></i>
+        <span class="sidebar-link-text">증명서 발급 관리</span>
+      </a>
+    </li>
+    <li>
+      <a href="/admin/subject" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/subject')} ? 'active'">
+        <i class="fa-solid fa-book sidebar-icon"></i>
+        <span class="sidebar-link-text">과목 관리</span>
+      </a>
+    </li>
   </ul>
 </div>
