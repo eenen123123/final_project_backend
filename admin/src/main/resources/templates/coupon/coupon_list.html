@@ -64,17 +64,6 @@
         </div>
       </div>
 
-      <!-- 쿠폰 발급내역 (클릭 → 발급내역만 표시) -->
-      <div id="issuedCard" class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4 cursor-pointer hover:shadow-md transition-shadow"
-           onclick="showIssuedSection()">
-        <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-500 flex items-center justify-center text-xl shrink-0">
-          <i class="fa-solid fa-ticket"></i>
-        </div>
-        <div>
-          <p class="text-base font-bold text-slate-900">쿠폰 발급내역</p>
-        </div>
-      </div>
-
     </div>
 
     <!-- 쿠폰 목록 테이블 카드 -->
@@ -100,10 +89,10 @@
             <button id="discFilterFixed" onclick="filterByDiscType('FIXED')"
               class="px-3 py-1.5 text-slate-500 hover:bg-slate-50 transition-colors">정액</button>
           </div>
-          <a href="/admin/coupon/insert" class="hm-btn-primary whitespace-nowrap">
+          <button type="button" onclick="openCouponInsertPopup()" class="hm-btn-primary whitespace-nowrap">
             <i class="fa-solid fa-plus"></i>
             <span>쿠폰 등록</span>
-          </a>
+          </button>
         </div>
       </div>
 
@@ -211,89 +200,35 @@
 
               <!-- 관리 -->
               <td class="py-4 px-6 text-center">
-                <button type="button"
-                  th:if="${coupon.useYn == 'Y'}"
-                  onclick="openIssuePopup(this)"
-                  th:data-sn="${coupon.couponSn}"
-                  th:data-nm="${coupon.couponNm}"
-                  class="inline-flex items-center text-xs px-3 py-1.5 rounded-xl font-medium text-blue-600 border border-blue-200 hover:bg-blue-50 transition-colors whitespace-nowrap">
-                  <i class="fa-solid fa-paper-plane mr-1"></i>발급
-                </button>
-                <button type="button"
-                  th:if="${coupon.useYn != 'Y'}"
-                  onclick="deleteArchivedCoupon(this)"
-                  th:data-sn="${coupon.couponSn}"
-                  th:data-nm="${coupon.couponNm}"
-                  class="archive-delete-btn hidden inline-flex items-center text-xs px-3 py-1.5 rounded-xl font-medium text-rose-500 border border-rose-200 hover:bg-rose-50 transition-colors whitespace-nowrap">
-                  <i class="fa-solid fa-trash mr-1"></i>삭제
-                </button>
+                <div class="flex items-center justify-center gap-3">
+                  <button type="button"
+                    th:if="${coupon.useYn == 'Y'}"
+                    onclick="openIssuePopup(this)"
+                    th:data-sn="${coupon.couponSn}"
+                    th:data-nm="${coupon.couponNm}"
+                    class="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors">
+                    발급
+                  </button>
+                  <button type="button"
+                    th:if="${coupon.useYn != 'Y'}"
+                    onclick="deleteArchivedCoupon(this)"
+                    th:data-sn="${coupon.couponSn}"
+                    th:data-nm="${coupon.couponNm}"
+                    class="archive-delete-btn hidden text-xs font-bold text-rose-500 hover:text-rose-700 transition-colors">
+                    삭제
+                  </button>
+                  <span th:if="${coupon.useYn == 'Y'}" class="text-slate-200">|</span>
+                  <button type="button"
+                    onclick="openRecipientsPopup(this)"
+                    th:data-sn="${coupon.couponSn}"
+                    th:data-nm="${coupon.couponNm}"
+                    class="text-xs font-bold text-violet-600 hover:text-violet-800 transition-colors">
+                    내역
+                  </button>
+                </div>
               </td>
 
             </tr>
-          </tbody>
-        </table>
-      </div>
-
-    </div>
-
-    <!-- 쿠폰 발급내역 (기본 숨김) -->
-    <div id="issuedSection" class="hidden bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-
-      <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
-        <p class="text-sm text-slate-500">
-          총 <span class="font-bold text-slate-800" th:text="${#lists.size(issuedCoupons)}">0</span>개의 발급 내역
-        </p>
-      </div>
-
-      <div class="overflow-x-auto">
-        <table style="width:100%; table-layout:fixed; border-collapse:collapse; text-align:left;">
-          <colgroup>
-            <col style="width: 36%" />
-            <col style="width: 15%" />
-            <col style="width: 15%" />
-            <col style="width: 16%" />
-            <col style="width: 18%" />
-          </colgroup>
-          <thead>
-            <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
-              <th class="py-4 px-6 text-left">쿠폰명</th>
-              <th class="py-4 px-4 text-left">만료 기간</th>
-              <th class="py-4 px-4 text-left">발급 날짜</th>
-              <th class="py-4 px-4 text-center">수신 ID</th>
-              <th class="py-4 px-4 text-left">발급 ID</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
-
-            <tr th:if="${#lists.isEmpty(issuedCoupons)}">
-              <td colspan="5" class="py-16 text-center text-slate-400 text-sm">
-                <i class="fa-solid fa-ticket text-3xl text-slate-200 mb-3 block"></i>
-                발급된 쿠폰이 없습니다.
-              </td>
-            </tr>
-
-            <tr th:each="uc : ${issuedCoupons}" class="hover:bg-slate-50/50 transition-colors">
-              <td class="py-4 px-6">
-                <p class="font-semibold text-slate-800 truncate" th:text="${uc.couponNm}">-</p>
-              </td>
-              <td class="py-4 px-4 font-mono text-xs text-slate-600"
-                  th:text="${uc.expiryDt != null ? #temporals.format(uc.expiryDt, 'yyyy.MM.dd') : '-'}">-</td>
-              <td class="py-4 px-4 font-mono text-xs text-slate-600"
-                  th:text="${uc.issueDt != null ? #temporals.format(uc.issueDt, 'yyyy.MM.dd') : '-'}">-</td>
-              <td class="py-4 px-4 text-center">
-                <button type="button"
-                  th:data-coupon-sn="${uc.couponSn}"
-                  th:data-coupon-nm="${uc.couponNm}"
-                  onclick="openReceiverModal(this)"
-                  class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
-                  확인
-                </button>
-              </td>
-              <td class="py-4 px-4">
-                <span class="text-xs font-medium text-slate-500" th:text="${uc.issuedBy != null ? uc.issuedBy : '-'}">-</span>
-              </td>
-            </tr>
-
           </tbody>
         </table>
       </div>
@@ -302,55 +237,304 @@
 
   </div>
 
-  <!-- 포인트 탭 내용 (미구현) -->
+  <!-- 포인트 탭 내용 -->
   <div id="panelPoint" class="hidden">
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-16 text-center text-slate-400">
-      <i class="fa-solid fa-star text-4xl text-slate-200 mb-4 block"></i>
-      <p class="text-sm font-medium">포인트 관리는 준비 중입니다.</p>
-    </div>
-  </div>
 
-</div>
-
-<!-- 수신 회원 목록 모달 -->
-<div id="receiverModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
-  <div class="absolute inset-0 bg-black/40" onclick="closeReceiverModal()"></div>
-  <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4">
-    <div class="px-6 py-4 flex items-center justify-between border-b border-slate-100">
-      <div>
-        <p class="text-xs text-slate-400 mb-0.5">수신 회원 목록</p>
-        <h2 id="receiverModalTitle" class="text-sm font-bold text-slate-900">-</h2>
-      </div>
-      <button type="button" onclick="closeReceiverModal()" class="text-slate-400 hover:text-slate-600">
-        <i class="fa-solid fa-xmark"></i>
+    <!-- 포인트 서브탭 -->
+    <div class="flex border-b border-slate-200 mb-6">
+      <button type="button" id="ptabStudy" onclick="switchPointTab('study')"
+        class="px-5 py-2.5 text-sm font-semibold border-b-2 border-slate-900 text-slate-900 transition-colors">
+        스터디포인트
+      </button>
+      <button type="button" id="ptabHm" onclick="switchPointTab('hm')"
+        class="px-5 py-2.5 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-colors">
+        HM 포인트
+      </button>
+      <button type="button" id="ptabMoney" onclick="switchPointTab('money')"
+        class="px-5 py-2.5 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-colors">
+        HM 머니
       </button>
     </div>
-    <div class="overflow-x-auto overflow-y-auto" style="max-height:420px;">
-      <table style="width:100%; table-layout:fixed; border-collapse:collapse;">
-        <colgroup>
-          <col style="width:28%"/>
-          <col style="width:28%"/>
-          <col style="width:24%"/>
-          <col style="width:20%"/>
-        </colgroup>
-        <thead>
-          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
-            <th class="py-3 px-4 text-left">수신 ID</th>
-            <th class="py-3 px-4 text-left">유저 이름</th>
-            <th class="py-3 px-4 text-left">만료기간</th>
-            <th class="py-3 px-4 text-center">사용여부</th>
-          </tr>
-        </thead>
-        <tbody id="receiverTableBody" class="divide-y divide-slate-50 text-sm text-slate-700">
-        </tbody>
-      </table>
+
+    <!-- 스터디포인트 패널 -->
+    <div id="ppanelStudy">
+
+      <!-- 통계 카드 -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4 cursor-pointer hover:shadow-md transition-shadow"
+             onclick="showStudyDefList()">
+          <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-500 flex items-center justify-center text-xl shrink-0">
+            <i class="fa-solid fa-star"></i>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">총 포인트 정의</p>
+            <p class="text-2xl font-bold text-slate-800 mt-0.5" th:text="${#lists.size(studyPointDefs) + '개'}">0개</p>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4 cursor-pointer hover:shadow-md transition-shadow"
+             onclick="showStudyDefList()">
+          <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl shrink-0">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">활성</p>
+            <p class="text-2xl font-bold text-slate-800 mt-0.5"
+               th:text="${#lists.size(studyPointDefs.?[useYn == 'Y']) + '개'}">0개</p>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4 cursor-pointer hover:shadow-md transition-shadow"
+             onclick="showStudyDefList()">
+          <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center text-xl shrink-0">
+            <i class="fa-solid fa-circle-xmark"></i>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">비활성</p>
+            <p class="text-2xl font-bold text-slate-800 mt-0.5"
+               th:text="${#lists.size(studyPointDefs.?[useYn != 'Y']) + '개'}">0개</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 포인트 정의 목록 -->
+      <div id="studyDefSection" class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+          <p class="text-sm text-slate-500">
+            총 <span class="font-bold text-slate-800" th:text="${#lists.size(studyPointDefs)}">0</span>개 포인트 정의
+          </p>
+          <button type="button" onclick="openStudyDefModal()" class="hm-btn-primary whitespace-nowrap">
+            <i class="fa-solid fa-plus"></i>
+            <span>스터디포인트 등록</span>
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table style="width:100%; table-layout:fixed; border-collapse:collapse; text-align:left;">
+            <colgroup>
+              <col style="width:30%" />
+              <col style="width:14%" />
+              <col style="width:10%" />
+              <col style="width:14%" />
+              <col style="width:16%" />
+              <col style="width:16%" />
+            </colgroup>
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+                <th class="py-4 px-6 text-left">포인트 항목</th>
+                <th class="py-4 px-6 text-center">지급량</th>
+                <th class="py-4 px-6 text-center">상태</th>
+                <th class="py-4 px-6 text-center">등록일</th>
+                <th class="py-4 px-6 text-center">생성자 ID</th>
+                <th class="py-4 px-6 text-center">관리</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+
+              <tr th:if="${#lists.isEmpty(studyPointDefs)}">
+                <td colspan="6" class="py-20 text-center text-slate-400 text-sm">
+                  <i class="fa-solid fa-star text-3xl text-slate-200 mb-3 block"></i>
+                  등록된 스터디포인트 항목이 없습니다.
+                </td>
+              </tr>
+
+              <tr th:each="def : ${studyPointDefs}"
+                  class="hover:bg-slate-50/50 transition-colors">
+                <td class="py-4 px-6">
+                  <button type="button" onclick="openStudyDefEditModal(this)"
+                    th:data-sn="${def.couponSn}"
+                    th:data-nm="${def.couponNm}"
+                    th:data-amt="${def.discAmt}"
+                    th:data-use-yn="${def.useYn}"
+                    class="text-left group">
+                    <p class="font-semibold text-slate-800 group-hover:text-violet-600 transition-colors"
+                       th:text="${def.couponNm}">-</p>
+                  </button>
+                </td>
+                <td class="py-4 px-6 text-center font-mono font-bold text-slate-800"
+                    th:text="${#numbers.formatInteger(def.discAmt, 0, 'COMMA') + 'p'}">-</td>
+                <td class="py-4 px-6 text-center">
+                  <span th:if="${def.useYn == 'Y'}"
+                    class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-600">활성</span>
+                  <span th:if="${def.useYn != 'Y'}"
+                    class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-500">비활성</span>
+                </td>
+                <td class="py-4 px-6 text-center text-xs text-slate-500"
+                    th:text="${def.regDt != null ? #temporals.format(def.regDt, 'yyyy.MM.dd') : '-'}">-</td>
+                <td class="py-4 px-6 text-center text-xs font-mono text-slate-500"
+                    th:text="${def.regUserId != null ? def.regUserId : '-'}">-</td>
+                <td class="py-4 px-6 text-center">
+                  <div class="flex items-center justify-center gap-3">
+                    <button type="button"
+                      th:if="${def.useYn == 'Y'}"
+                      onclick="openStudyIssuePopup(this)"
+                      th:data-sn="${def.couponSn}"
+                      th:data-nm="${def.couponNm}"
+                      class="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors">
+                      발급
+                    </button>
+                    <span th:if="${def.useYn == 'Y'}" class="text-slate-200">|</span>
+                    <button type="button"
+                      onclick="openStudyRecipientsPopup(this)"
+                      th:data-sn="${def.couponSn}"
+                      th:data-nm="${def.couponNm}"
+                      class="text-xs font-bold text-violet-600 hover:text-violet-800 transition-colors">
+                      내역
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
-    <div id="receiverPaging" class="px-4 py-4 border-t border-slate-100 flex items-center justify-center gap-3"></div>
+
+    <!-- HM 포인트 패널 -->
+    <div id="ppanelHm" class="hidden">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="relative flex-1 max-w-xs">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
+          <input type="text" id="hmSearchQ" placeholder="이름 또는 ID 검색"
+            class="w-full pl-8 pr-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:border-slate-400"
+            onkeydown="if(event.key==='Enter') searchPointUsers('HM_POINT')" />
+        </div>
+        <div class="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
+          <button type="button" id="hmFAll" onclick="setPointRoleFilter('hm','all')" class="px-3 py-2 bg-slate-700 text-white cursor-pointer">전체</button>
+          <button type="button" id="hmFStudent" onclick="setPointRoleFilter('hm','ROLE_STUDENT')" class="px-3 py-2 text-slate-500 bg-white hover:bg-slate-50 border-l border-slate-200 cursor-pointer">학생</button>
+          <button type="button" id="hmFUser" onclick="setPointRoleFilter('hm','ROLE_USER')" class="px-3 py-2 text-slate-500 bg-white hover:bg-slate-50 border-l border-slate-200 cursor-pointer">일반회원</button>
+        </div>
+        <button type="button" onclick="searchPointUsers('HM_POINT')" class="hm-btn-primary whitespace-nowrap">검색</button>
+      </div>
+      <div class="flex gap-4" style="height:520px;">
+        <!-- 왼쪽: 유저 목록 -->
+        <div class="w-72 shrink-0 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col overflow-hidden">
+          <div class="px-4 py-2.5 border-b border-slate-100 bg-slate-50">
+            <p class="text-xs font-bold text-slate-500 tracking-wider">회원 목록</p>
+          </div>
+          <div class="flex-1 overflow-y-auto">
+            <table class="w-full text-sm">
+              <tbody id="hmUserTableBody">
+                <tr><td class="py-12 text-center text-slate-300 text-xs"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="hmUserPaging" class="shrink-0 border-t border-slate-100 px-3 py-2 flex items-center justify-center gap-2 text-xs"></div>
+        </div>
+        <!-- 오른쪽: 이력 패널 -->
+        <div class="flex-1 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col overflow-hidden">
+          <div id="hmHistEmpty" class="flex-1 flex flex-col items-center justify-center text-slate-300 gap-2">
+            <i class="fa-solid fa-arrow-pointer text-3xl"></i>
+            <p class="text-sm">회원을 클릭하면 이력이 표시됩니다.</p>
+          </div>
+          <div id="hmHistContent" class="hidden flex-col h-full">
+            <div class="px-5 py-4 border-b border-slate-100 bg-slate-50 shrink-0">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-xs text-slate-400 mb-0.5">HM 포인트 이력</p>
+                  <p id="hmHistTitle" class="text-sm font-bold text-slate-800">-</p>
+                </div>
+                <div class="text-right">
+                  <p class="text-xs text-slate-400 mb-1">잔여 포인트</p>
+                  <p id="hmHistBal" class="text-2xl font-black text-blue-600 font-mono">0p</p>
+                </div>
+              </div>
+            </div>
+            <div class="flex-1 overflow-y-auto">
+              <table class="w-full text-sm">
+                <thead class="sticky top-0 bg-slate-50 border-b border-slate-100">
+                  <tr class="text-xs font-bold text-slate-500">
+                    <th class="py-2.5 px-5 text-left">날짜</th>
+                    <th class="py-2.5 px-3 text-center">구분</th>
+                    <th class="py-2.5 px-3 text-center">변동량</th>
+                    <th class="py-2.5 px-3 text-left">메모</th>
+                  </tr>
+                </thead>
+                <tbody id="hmHistBody" class="divide-y divide-slate-50"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HM 머니 패널 -->
+    <div id="ppanelMoney" class="hidden">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="relative flex-1 max-w-xs">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
+          <input type="text" id="moneySearchQ" placeholder="이름 또는 ID 검색"
+            class="w-full pl-8 pr-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:border-slate-400"
+            onkeydown="if(event.key==='Enter') searchPointUsers('HM_MONEY')" />
+        </div>
+        <div class="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
+          <button type="button" id="moneyFAll" onclick="setPointRoleFilter('money','all')" class="px-3 py-2 bg-slate-700 text-white cursor-pointer">전체</button>
+          <button type="button" id="moneyFStudent" onclick="setPointRoleFilter('money','ROLE_STUDENT')" class="px-3 py-2 text-slate-500 bg-white hover:bg-slate-50 border-l border-slate-200 cursor-pointer">학생</button>
+          <button type="button" id="moneyFUser" onclick="setPointRoleFilter('money','ROLE_USER')" class="px-3 py-2 text-slate-500 bg-white hover:bg-slate-50 border-l border-slate-200 cursor-pointer">일반회원</button>
+        </div>
+        <button type="button" onclick="searchPointUsers('HM_MONEY')" class="hm-btn-primary whitespace-nowrap">검색</button>
+      </div>
+      <div class="flex gap-4" style="height:520px;">
+        <div class="w-72 shrink-0 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col overflow-hidden">
+          <div class="px-4 py-2.5 border-b border-slate-100 bg-slate-50">
+            <p class="text-xs font-bold text-slate-500 tracking-wider">회원 목록</p>
+          </div>
+          <div class="flex-1 overflow-y-auto">
+            <table class="w-full text-sm">
+              <tbody id="moneyUserTableBody">
+                <tr><td class="py-12 text-center text-slate-300 text-xs"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="moneyUserPaging" class="shrink-0 border-t border-slate-100 px-3 py-2 flex items-center justify-center gap-2 text-xs"></div>
+        </div>
+        <div class="flex-1 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col overflow-hidden">
+          <div id="moneyHistEmpty" class="flex-1 flex flex-col items-center justify-center text-slate-300 gap-2">
+            <i class="fa-solid fa-arrow-pointer text-3xl"></i>
+            <p class="text-sm">회원을 클릭하면 이력이 표시됩니다.</p>
+          </div>
+          <div id="moneyHistContent" class="hidden flex-col h-full">
+            <div class="px-5 py-4 border-b border-slate-100 bg-slate-50 shrink-0">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-xs text-slate-400 mb-0.5">HM 머니 이력</p>
+                  <p id="moneyHistTitle" class="text-sm font-bold text-slate-800">-</p>
+                </div>
+                <div class="text-right">
+                  <p class="text-xs text-slate-400 mb-1">잔액</p>
+                  <p id="moneyHistBal" class="text-2xl font-black text-emerald-600 font-mono">0원</p>
+                </div>
+              </div>
+            </div>
+            <div class="flex-1 overflow-y-auto">
+              <table class="w-full text-sm">
+                <thead class="sticky top-0 bg-slate-50 border-b border-slate-100">
+                  <tr class="text-xs font-bold text-slate-500">
+                    <th class="py-2.5 px-5 text-left">날짜</th>
+                    <th class="py-2.5 px-3 text-center">구분</th>
+                    <th class="py-2.5 px-3 text-center">변동량</th>
+                    <th class="py-2.5 px-3 text-left">메모</th>
+                  </tr>
+                </thead>
+                <tbody id="moneyHistBody" class="divide-y divide-slate-50"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
+
 </div>
+
 
 <script th:inline="javascript">
 var issuedCouponsData = /*[(${issuedCouponsJson})]*/ [];
+var pointGrantsData   = /*[(${pointGrantsJson})]*/ [];
 </script>
 
 <!-- 수정 모달 -->
@@ -446,6 +630,135 @@ var issuedCouponsData = /*[(${issuedCouponsJson})]*/ [];
         <button type="button" onclick="closeEditModal()" class="hm-btn-ghost">취소</button>
         <button type="button" onclick="submitEdit()" class="hm-btn-primary">저장</button>
       </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 포인트 이력 모달 (HM포인트/HM머니 공용) -->
+<div id="pointHistModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/40" onclick="closePointHistModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4">
+    <div class="px-6 py-4 flex items-center justify-between border-b border-slate-100">
+      <div>
+        <p class="text-xs text-slate-400 mb-0.5" id="pointHistModalSubtitle">이력</p>
+        <h2 id="pointHistModalTitle" class="text-sm font-bold text-slate-900">-</h2>
+      </div>
+      <button type="button" onclick="closePointHistModal()" class="text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="overflow-x-auto overflow-y-auto" style="max-height:420px;">
+      <table style="width:100%; table-layout:fixed; border-collapse:collapse;">
+        <colgroup>
+          <col style="width:22%"/><col style="width:16%"/><col style="width:18%"/><col style="width:44%"/>
+        </colgroup>
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+            <th class="py-3 px-6 text-left">날짜</th>
+            <th class="py-3 px-4 text-center">구분</th>
+            <th class="py-3 px-4 text-center">변동량</th>
+            <th class="py-3 px-4 text-left">메모</th>
+          </tr>
+        </thead>
+        <tbody id="pointHistModalBody" class="divide-y divide-slate-50 text-sm text-slate-700"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 스터디포인트 내용 수정 모달 -->
+<div id="studyDefEditModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/40" onclick="closeStudyDefEditModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 divide-y divide-slate-100">
+    <div class="px-6 py-4 flex items-center justify-between">
+      <h2 class="text-base font-bold text-slate-900">포인트 내용 수정</h2>
+      <button type="button" onclick="closeStudyDefEditModal()" class="text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="px-6 py-4 space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+          정의명 <span class="text-rose-400">*</span>
+        </label>
+        <input type="text" id="editStudyDefNm" class="hm-input w-full" maxlength="100" />
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+          지급량 (p) <span class="text-rose-400">*</span>
+        </label>
+        <input type="number" id="editStudyDefAmt" class="hm-input w-full" min="1" />
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">상태</label>
+        <div class="flex gap-4">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="editStudyDefUseYn" value="Y" class="w-4 h-4 accent-emerald-500" />
+            <span class="text-sm font-medium text-slate-700">활성</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="editStudyDefUseYn" value="N" class="w-4 h-4 accent-rose-500" />
+            <span class="text-sm font-medium text-slate-700">비활성</span>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="px-6 py-4 bg-slate-50/60 rounded-b-2xl flex items-center justify-between">
+      <button type="button" onclick="submitStudyDefDelete()"
+        class="inline-flex items-center text-xs px-3 py-1.5 rounded-xl font-medium text-rose-500 border border-rose-200 hover:bg-rose-50 transition-colors">
+        <i class="fa-solid fa-trash mr-1"></i>삭제
+      </button>
+      <div class="flex gap-2">
+        <button type="button" onclick="closeStudyDefEditModal()" class="hm-btn-ghost">취소</button>
+        <button type="button" onclick="submitStudyDefEdit()" class="hm-btn-primary">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 포인트 지급 모달 -->
+<div id="grantModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/40" onclick="closeGrantModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 divide-y divide-slate-100">
+
+    <div class="px-6 py-4 flex items-center justify-between">
+      <h2 class="text-base font-bold text-slate-900">포인트 지급</h2>
+      <button type="button" onclick="closeGrantModal()" class="text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="px-6 py-4 space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+          회원 ID <span class="text-rose-400">*</span>
+        </label>
+        <input type="text" id="grantUserId" class="hm-input w-full" placeholder="회원 ID 입력" />
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+          포인트 유형
+        </label>
+        <select id="grantAssetType" class="hm-input w-full">
+          <option value="STUDY_POINT">스터디포인트</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+          지급량 (p) <span class="text-rose-400">*</span>
+        </label>
+        <input type="number" id="grantAmount" class="hm-input w-full" placeholder="0" min="1" />
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">메모</label>
+        <input type="text" id="grantMemo" class="hm-input w-full" placeholder="지급 사유 (선택)" maxlength="200" />
+      </div>
+    </div>
+
+    <div class="px-6 py-4 bg-slate-50/60 rounded-b-2xl flex justify-end gap-2">
+      <button type="button" onclick="closeGrantModal()" class="hm-btn-ghost">취소</button>
+      <button type="button" onclick="submitGrant()" class="hm-btn-primary">지급</button>
     </div>
 
   </div>

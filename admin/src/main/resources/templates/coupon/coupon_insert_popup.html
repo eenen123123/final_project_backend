@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>쿠폰 등록</title>
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" th:href="@{/css/admin-core.css}" />
+  <style>body { font-family: 'Noto Sans KR', sans-serif; }</style>
+</head>
+<body class="bg-white text-slate-800">
+
+  <!-- 헤더 -->
+  <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 bg-white">
+    <div>
+      <h1 class="text-sm font-bold text-slate-800">
+        <i class="fa-solid fa-ticket mr-2 text-blue-500"></i>쿠폰 등록
+      </h1>
+      <p class="text-xs text-slate-400 mt-0.5">등록 후 회원에게 개별 발급할 수 있습니다.</p>
+    </div>
+    <button type="button" onclick="window.close()"
+      class="text-slate-400 hover:text-slate-600 text-lg leading-none">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+
+  <!-- 폼 -->
+  <div class="flex-1 px-5 py-4 space-y-5">
+
+    <!-- 쿠폰명 -->
+    <div>
+      <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+        쿠폰명 <span class="text-rose-400">*</span>
+      </label>
+      <input type="text" id="couponNm" class="hm-input w-full"
+        placeholder="예) 신규 가입 20% 할인 쿠폰" maxlength="100" />
+    </div>
+
+    <!-- 할인 방식 -->
+    <div>
+      <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+        할인 방식 <span class="text-rose-400">*</span>
+      </label>
+      <div class="flex gap-4 mb-3">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="radio" name="discType" value="FIXED" id="discTypeFixed"
+            onchange="onDiscTypeChange()" checked class="w-4 h-4 accent-blue-600" />
+          <span class="text-sm font-medium text-slate-700">정액 (원)</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="radio" name="discType" value="RATE" id="discTypeRate"
+            onchange="onDiscTypeChange()" class="w-4 h-4 accent-blue-600" />
+          <span class="text-sm font-medium text-slate-700">정률 (%)</span>
+        </label>
+      </div>
+      <div id="fieldFixed">
+        <input type="number" id="discAmt" class="hm-input" placeholder="할인 금액 (원)" min="1" style="width:12rem;" />
+      </div>
+      <div id="fieldRate" class="hidden">
+        <input type="number" id="discRate" class="hm-input" placeholder="할인율 (%)" min="1" max="100" style="width:8rem;" />
+      </div>
+    </div>
+
+    <!-- 사용 범위 -->
+    <div>
+      <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">사용 가능 범위</label>
+      <select id="useLimitCd" class="hm-input" style="width:14rem;">
+        <option value="ALL">전체 (강좌 + 교재)</option>
+        <option value="COURSE">강좌만</option>
+        <option value="TEXTBOOK">교재만</option>
+      </select>
+    </div>
+
+    <!-- 유효일수 -->
+    <div>
+      <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+        유효일수 <span class="text-rose-400">*</span>
+        <span class="text-slate-300 font-normal normal-case ml-1">발급일 기준 만료까지의 일수</span>
+      </label>
+      <input type="number" id="validDays" class="hm-input" placeholder="예) 30" min="1" style="width:8rem;" />
+    </div>
+
+  </div>
+
+  <!-- 하단 버튼 -->
+  <div class="px-5 py-3 border-t border-slate-100 bg-white flex items-center justify-end gap-3">
+    <button type="button" onclick="window.close()" class="hm-btn-ghost">취소</button>
+    <button type="button" onclick="submitInsert()" class="hm-btn-primary">
+      <i class="fa-solid fa-plus mr-1.5"></i>등록
+    </button>
+  </div>
+
+  <script>
+    function onDiscTypeChange() {
+      const isFixed = document.getElementById('discTypeFixed').checked;
+      document.getElementById('fieldFixed').classList.toggle('hidden', !isFixed);
+      document.getElementById('fieldRate').classList.toggle('hidden', isFixed);
+    }
+
+    async function submitInsert() {
+      const couponNm   = document.getElementById('couponNm').value.trim();
+      const discType   = document.querySelector('input[name="discType"]:checked').value;
+      const useLimitCd = document.getElementById('useLimitCd').value;
+      const validDays  = parseInt(document.getElementById('validDays').value);
+
+      if (!couponNm) { alert('쿠폰명을 입력하세요.'); return; }
+      if (!validDays || validDays < 1) { alert('유효일수를 1일 이상 입력하세요.'); return; }
+
+      const body = { couponNm, discType, useLimitCd, validDays };
+      if (discType === 'FIXED') {
+        const discAmt = parseInt(document.getElementById('discAmt').value);
+        if (!discAmt || discAmt < 1) { alert('할인 금액을 입력하세요.'); return; }
+        body.discAmt = discAmt;
+      } else {
+        const discRate = parseInt(document.getElementById('discRate').value);
+        if (!discRate || discRate < 1 || discRate > 100) { alert('할인율을 1~100 사이로 입력하세요.'); return; }
+        body.discRate = discRate;
+      }
+
+      const res = await fetch('/admin/coupon/insert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      if (res.ok) {
+        if (window.opener) window.opener.location.reload();
+        window.close();
+      } else {
+        const err = await res.json().catch(() => null);
+        alert(err?.message || '등록 중 오류가 발생했습니다.');
+      }
+    }
+  </script>
+</body>
+</html>

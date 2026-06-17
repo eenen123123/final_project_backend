@@ -15,7 +15,9 @@
   <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 bg-white shrink-0">
     <div>
       <h1 class="text-sm font-bold text-slate-800">
-        <i class="fa-solid fa-ticket mr-2 text-blue-500"></i>쿠폰 발급 - 회원 선택
+        <i th:if="${issueType == 'study'}" class="fa-solid fa-star mr-2 text-violet-500"></i>
+        <i th:if="${issueType != 'study'}" class="fa-solid fa-ticket mr-2 text-blue-500"></i>
+        <span th:text="${issueType == 'study' ? '스터디포인트 발급 - 회원 선택' : '쿠폰 발급 - 회원 선택'}">발급 - 회원 선택</span>
       </h1>
       <p id="couponNmLabel" class="text-xs text-slate-400 mt-0.5" th:text="${couponNm}">-</p>
     </div>
@@ -38,13 +40,21 @@
     </div>
   </div>
 
-  <!-- 전체 선택 -->
-  <div class="flex items-center gap-2 px-5 py-2 border-b border-slate-100 bg-slate-50 shrink-0">
+  <!-- 전체 선택 + 역할 필터 -->
+  <div class="flex items-center gap-3 px-5 py-2 border-b border-slate-100 bg-slate-50 shrink-0">
     <label class="flex items-center gap-2 cursor-pointer select-none">
       <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"
         class="w-4 h-4 accent-blue-600 rounded" />
       <span class="text-xs font-medium text-slate-500">전체 선택</span>
     </label>
+    <div class="flex rounded border border-slate-200 overflow-hidden text-[11px] font-medium">
+      <button type="button" id="filterAll" onclick="filterByRole('all')"
+        class="px-2.5 py-1 bg-slate-700 text-white transition-colors">전체</button>
+      <button type="button" id="filterStudent" onclick="filterByRole('ROLE_STUDENT')"
+        class="px-2.5 py-1 text-slate-500 hover:bg-slate-100 bg-white transition-colors border-l border-slate-200">학생</button>
+      <button type="button" id="filterUser" onclick="filterByRole('ROLE_USER')"
+        class="px-2.5 py-1 text-slate-500 hover:bg-slate-100 bg-white transition-colors border-l border-slate-200">일반회원</button>
+    </div>
     <span class="ml-auto text-xs text-slate-500">
       <span id="selectedCount" class="font-bold text-blue-600">0</span>명 선택됨
     </span>
@@ -74,6 +84,9 @@
     </div>
   </div>
 
+  <!-- 페이징 -->
+  <div id="pagingArea" class="shrink-0 px-5 py-2 border-t border-slate-100 bg-white flex items-center justify-center gap-1.5"></div>
+
   <!-- 하단 발급 버튼 -->
   <div class="shrink-0 px-5 py-3 border-t border-slate-100 bg-white flex items-center justify-end gap-3">
     <button type="button" onclick="window.close()" class="hm-btn-ghost">취소</button>
@@ -84,8 +97,15 @@
   </div>
 
   <script th:inline="javascript">
-    const COUPON_SN = /*[[${couponSn}]]*/ 0;
+    const COUPON_SN   = /*[[${couponSn}]]*/ 0;
+    const ISSUE_TYPE  = /*[[${issueType}]]*/ 'coupon';
     let searchTimer = null;
+    let allUsers = [];
+    let filteredUsers = [];
+    let activeRole = 'all';
+    let currentPage = 1;
+    const PAGE_SIZE = 10;
+    let selectedUserIds = new Set();
 
     function scheduleSearch() {
       clearTimeout(searchTimer);
@@ -104,28 +124,87 @@
       document.getElementById('loadingMsg').classList.add('hidden');
 
       if (!res.ok) { document.getElementById('emptyMsg').classList.remove('hidden'); return; }
-      const users = await res.json();
-      renderUsers(users);
+      allUsers = await res.json();
+      applyRoleFilter();
     }
 
-    function renderUsers(users) {
+    function filterByRole(role) {
+      activeRole = role;
+      ['All','Student','User'].forEach(function(k) {
+        var id = 'filter' + k;
+        var roleVal = k === 'All' ? 'all' : k === 'Student' ? 'ROLE_STUDENT' : 'ROLE_USER';
+        var btn = document.getElementById(id);
+        btn.className = 'px-2.5 py-1 transition-colors ' + (roleVal === role
+          ? 'bg-slate-700 text-white'
+          : 'text-slate-500 hover:bg-slate-100 bg-white border-l border-slate-200');
+      });
+      applyRoleFilter();
+    }
+
+    function applyRoleFilter() {
+      filteredUsers = activeRole === 'all'
+        ? allUsers
+        : allUsers.filter(function(u) { return u.userRole === activeRole; });
+      currentPage = 1;
+      selectedUserIds.clear();
+      renderPage();
+    }
+
+    function renderPage() {
+      var start = (currentPage - 1) * PAGE_SIZE;
+      var pageData = filteredUsers.slice(start, start + PAGE_SIZE);
+      renderUsers(pageData, filteredUsers.length);
+    }
+
+    function renderPaging(total) {
+      var totalPages = Math.ceil(total / PAGE_SIZE) || 1;
+      var area = document.getElementById('pagingArea');
+      if (totalPages <= 1) { area.innerHTML = ''; return; }
+      var GROUP = 5;
+      var group = Math.ceil(currentPage / GROUP);
+      var start = (group - 1) * GROUP + 1;
+      var end   = Math.min(group * GROUP, totalPages);
+      var cls   = 'w-7 h-7 flex items-center justify-center rounded text-xs font-medium transition-colors border border-slate-200 cursor-pointer ';
+      var html  = '';
+      if (group > 1) {
+        html += '<button onclick="goToPage(' + ((group - 1) * GROUP) + ')" class="' + cls + 'text-slate-500 hover:bg-slate-50">&lt;</button>';
+      }
+      for (var p = start; p <= end; p++) {
+        html += '<button onclick="goToPage(' + p + ')" class="' + cls + (p === currentPage ? 'bg-slate-800 text-white border-slate-800' : 'text-slate-500 hover:bg-slate-50') + '">' + p + '</button>';
+      }
+      if (end < totalPages) {
+        html += '<button onclick="goToPage(' + (end + 1) + ')" class="' + cls + 'text-slate-500 hover:bg-slate-50">&gt;</button>';
+      }
+      area.innerHTML = html;
+    }
+
+    function goToPage(p) {
+      currentPage = p;
+      renderPage();
+    }
+
+    function renderUsers(users, total) {
       const tbody = document.getElementById('userList');
+      tbody.innerHTML = '';
       if (!users || users.length === 0) {
         document.getElementById('emptyMsg').classList.remove('hidden');
+        document.getElementById('pagingArea').innerHTML = '';
+        updateCount();
         return;
       }
+      document.getElementById('emptyMsg').classList.add('hidden');
+      renderPaging(total != null ? total : users.length);
       users.forEach(function(u) {
         const roleLabel = u.userRole === 'ROLE_STUDENT' ? '학생' : '일반회원';
-        const roleCls   = u.userRole === 'ROLE_STUDENT'
-          ? 'bg-indigo-50 text-indigo-600'
-          : 'bg-slate-100 text-slate-500';
+        const roleCls   = u.userRole === 'ROLE_STUDENT' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-500';
         const tr = document.createElement('tr');
         tr.className = 'border-t border-slate-100 hover:bg-blue-50/40 transition-colors cursor-pointer';
         tr.dataset.userId = u.userId;
+        const checked = selectedUserIds.has(u.userId) ? 'checked' : '';
         tr.innerHTML = `
           <td class="px-5 py-3">
             <input type="checkbox" class="user-checkbox w-4 h-4 accent-blue-600 rounded"
-              value="${u.userId}" onchange="updateCount()" />
+              value="${u.userId}" ${checked} onchange="onCheckChange(this)" />
           </td>
           <td class="px-4 py-3 font-mono text-slate-700">${u.userId}</td>
           <td class="px-4 py-3 font-medium text-slate-800">${u.userName ?? '-'}</td>
@@ -136,13 +215,26 @@
           if (e.target.type === 'checkbox') return;
           const cb = tr.querySelector('.user-checkbox');
           cb.checked = !cb.checked;
-          updateCount();
+          onCheckChange(cb);
         });
         tbody.appendChild(tr);
       });
+      updateCount();
+    }
+
+    function onCheckChange(cb) {
+      if (cb.checked) selectedUserIds.add(cb.value);
+      else selectedUserIds.delete(cb.value);
+      updateCount();
     }
 
     function toggleSelectAll(master) {
+      if (master.checked) {
+        filteredUsers.forEach(function(u) { selectedUserIds.add(u.userId); });
+      } else {
+        filteredUsers.forEach(function(u) { selectedUserIds.delete(u.userId); });
+      }
+      // 현재 페이지 체크박스도 동기화
       document.querySelectorAll('.user-checkbox').forEach(function(cb) {
         cb.checked = master.checked;
       });
@@ -150,18 +242,23 @@
     }
 
     function updateCount() {
-      const checked = document.querySelectorAll('.user-checkbox:checked').length;
-      const total   = document.querySelectorAll('.user-checkbox').length;
-      document.getElementById('selectedCount').textContent = checked;
-      document.getElementById('selectAll').checked = total > 0 && checked === total;
-      document.getElementById('submitLabel').textContent = checked > 0 ? `${checked}명에게 발급하기` : '발급하기';
+      const count = selectedUserIds.size;
+      document.getElementById('selectedCount').textContent = count;
+      const pageChecked = document.querySelectorAll('.user-checkbox:checked').length;
+      const pageTotal   = document.querySelectorAll('.user-checkbox').length;
+      document.getElementById('selectAll').checked = pageTotal > 0 && pageChecked === pageTotal;
+      document.getElementById('submitLabel').textContent = count > 0 ? count + '명에게 발급하기' : '발급하기';
     }
 
     async function submitIssue() {
-      const userIds = Array.from(document.querySelectorAll('.user-checkbox:checked')).map(function(cb) { return cb.value; });
+      const userIds = Array.from(selectedUserIds);
       if (userIds.length === 0) { alert('발급할 회원을 선택하세요.'); return; }
 
-      const res = await fetch(`/admin/coupon/${COUPON_SN}/issue/bulk`, {
+      const url = ISSUE_TYPE === 'study'
+        ? `/admin/coupon/study-point/${COUPON_SN}/issue/bulk`
+        : `/admin/coupon/${COUPON_SN}/issue/bulk`;
+
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userIds })
@@ -169,7 +266,8 @@
 
       if (res.ok) {
         const data = await res.json();
-        alert(`${data.count}명에게 쿠폰이 발급되었습니다.`);
+        const label = ISSUE_TYPE === 'study' ? '스터디포인트가' : '쿠폰이';
+        alert(`${data.count}명에게 ${label} 발급되었습니다.`);
         window.close();
       } else {
         const err = await res.json().catch(function() { return null; });
