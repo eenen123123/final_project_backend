@@ -69,8 +69,9 @@ public interface InstructorBoardService {
 
     // ── 공개 강사 게시판 (React 프론트용) ──────────────────────────
 
-    /** 강사 공개 게시판 목록을 페이징하여 반환한다. boardTypeCd: 02=공지, 03=QnA, 04=자료실 */
-    PageResponse<InstructorPublicBoardItem> getPublicBoardList(String instrUuid, String boardTypeCd, int page, int size);
+    /** 강사 공개 게시판 목록을 페이징하여 반환한다. boardTypeCd: 02=공지, 03=QnA, 04=자료실
+     *  @param pageIndex 0-based 페이지 인덱스 (React 프론트 기준) */
+    PageResponse<InstructorPublicBoardItem> getPublicBoardList(String instrUuid, String boardTypeCd, int pageIndex, int size);
 
     /** 강사 공개 게시판 상세 정보(이전/다음글, 첨부파일 포함)를 반환하고 조회수를 증가시킨다. */
     InstructorPublicBoardDetail getPublicBoardDetail(String instrUuid, Long postSn);
