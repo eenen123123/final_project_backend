@@ -3,8 +3,6 @@ package kr.or.ddit.controller;
 import java.io.IOException;
 import java.util.Map;
 
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -18,6 +16,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import kr.or.ddit.finalProject.dto.board.DataRoomDto;
+import kr.or.ddit.finalProject.util.TipTapSanitizer;
 import kr.or.ddit.finalProject.dto.board.FaqDto;
 import kr.or.ddit.finalProject.dto.board.NoticeDto;
 import kr.or.ddit.finalProject.dto.board.QnaDto;
@@ -261,7 +260,7 @@ public class CustomerServiceController {
     public String dataRoomEditForm(@PathVariable Long postSn, Model model) {
         model.addAttribute("pageTitle", "자료실 수정 | HERMES");
         DataRoomDto dataRoom = dataRoomService.getById(postSn, null);
-        dataRoom.setPostCn(sanitize(dataRoom.getPostCn()));
+        dataRoom.setPostCn(TipTapSanitizer.clean(dataRoom.getPostCn()));
         model.addAttribute("dataRoom", dataRoom);
         return "admin:/board/dataroom/dataroom_edit";
     }
@@ -271,7 +270,7 @@ public class CustomerServiceController {
             @RequestParam(required = false) MultipartFile attachFile,
             Authentication authentication) {
         dataRoomDto.setPostSn(postSn);
-        dataRoomDto.setPostCn(sanitize(dataRoomDto.getPostCn()));
+        dataRoomDto.setPostCn(TipTapSanitizer.clean(dataRoomDto.getPostCn()));
         dataRoomDto.setAttachFile(attachFile);
         dataRoomService.update(dataRoomDto);
         return "redirect:/admin/board/customer-service?tab=tab-dataroom";
@@ -283,16 +282,4 @@ public class CustomerServiceController {
         return "redirect:/admin/board/customer-service?tab=tab-dataroom";
     }
 
-    private static final Safelist TOAST_SAFELIST = Safelist.relaxed()
-            .addTags("del", "s", "hr", "input")
-            .addAttributes("input", "type", "checked", "disabled").addAttributes("span", "style")
-            .addAttributes("p", "style").addAttributes("h1", "style").addAttributes("h2", "style")
-            .addAttributes("h3", "style").addAttributes("h4", "style").addAttributes("h5", "style")
-            .addAttributes("h6", "style").addAttributes("img", "src");
-
-    private String sanitize(String html) {
-        if (html == null)
-            return null;
-        return Jsoup.clean(html, TOAST_SAFELIST);
-    }
 }
