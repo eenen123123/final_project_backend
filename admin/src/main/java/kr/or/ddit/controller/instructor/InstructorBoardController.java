@@ -70,7 +70,7 @@ public class InstructorBoardController {
         model.addAttribute("keyword", keyword);
         model.addAttribute("boardTypeCd", boardTypeCd);
         model.addAttribute("boardTypes", boardTypeList());
-        return "admin:/instructor/board/list";
+        return "admin:/instructor/board/list-instructor-board";
     }
 
     /**
@@ -121,7 +121,7 @@ public class InstructorBoardController {
         model.addAttribute("listPage", page);
         model.addAttribute("listKeyword", keyword);
         model.addAttribute("listBoardTypeCd", boardTypeCd);
-        return "admin:/instructor/board/detail";
+        return "admin:/instructor/board/detail-instructor-board";
     }
 
     /**
@@ -139,7 +139,7 @@ public class InstructorBoardController {
         model.addAttribute("listPage", page);
         model.addAttribute("listKeyword", keyword);
         model.addAttribute("listBoardTypeCd", boardTypeCd);
-        return "admin:/instructor/board/insertForm";
+        return "admin:/instructor/board/form-instructor-board";
     }
 
     /**
@@ -261,7 +261,7 @@ public class InstructorBoardController {
         } else {
             model.addAttribute("existingFiles", List.of());
         }
-        return "admin:/instructor/board/insertForm";
+        return "admin:/instructor/board/form-instructor-board";
     }
 
     /**
