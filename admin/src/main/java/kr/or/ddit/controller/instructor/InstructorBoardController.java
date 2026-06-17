@@ -451,7 +451,7 @@ public class InstructorBoardController {
             .addAttributes("input", "type", "checked", "disabled").addAttributes("span", "style")
             .addAttributes("p", "style").addAttributes("h1", "style").addAttributes("h2", "style")
             .addAttributes("h3", "style").addAttributes("h4", "style").addAttributes("h5", "style")
-            .addAttributes("h6", "style").addAttributes("img", "src")
+            .addAttributes("h6", "style").addAttributes("img", "src", "data-file-id")
             .addAttributes("mark", "data-color", "style")
             .addProtocols("img", "src", "http", "https", "data");
 
