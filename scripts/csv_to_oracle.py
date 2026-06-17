@@ -31,10 +31,34 @@ CSV_DIR = os.path.join(SCRIPT_DIR, "data")
 
 INSERT_SQL = """
     INSERT INTO SUNEUNG_GRADE_CUT
-        (YEAR, EXAM_TYPE, SUBJECT, GRADE, CUT_SCORE, PEOPLE, RATIO)
+        (YEAR, EXAM_TYPE, SUBJECT, SUBJ_CL_ID, GRADE, CUT_SCORE, PEOPLE, RATIO)
     VALUES
-        (:1, :2, :3, :4, :5, :6, :7)
+        (:1, :2, :3, :4, :5, :6, :7, :8)
 """
+
+# 과목명 표기 통일 - 공공데이터 연도별 표기 흔들림 보정 (최신 표기로 통일)
+SUBJECT_ALIASES = {
+    '한국 지리': '한국지리',
+    '세계 지리': '세계지리',
+}
+
+# 과목 -> 대분류(SUBJ_CL_ID). 여기 없는 과목(제2외국어/한문, 직업탐구)은 import 시 제외됨.
+SUBJECT_CLASSIFICATION = {
+    # 국어 (1)
+    '국어': 1,
+    # 수학 (2) - 개편 전 가/나형 포함
+    '수학': 2, '수학 가형': 2, '수학 나형': 2,
+    # 영어 (3)
+    '영어': 3,
+    # 사회탐구 (4)
+    '생활과 윤리': 4, '윤리와 사상': 4, '한국지리': 4, '세계지리': 4,
+    '동아시아사': 4, '세계사': 4, '경제': 4, '정치와 법': 4, '사회·문화': 4,
+    # 과학탐구 (5)
+    '물리학 Ⅰ': 5, '화학 Ⅰ': 5, '생명과학 Ⅰ': 5, '지구과학 Ⅰ': 5,
+    '물리학 Ⅱ': 5, '화학 Ⅱ': 5, '생명과학 Ⅱ': 5, '지구과학 Ⅱ': 5,
+    # 한국사 (21)
+    '한국사': 21,
+}
 
 def parse_int(val):
     """숫자 파싱 - 빈값, '-' 처리"""
@@ -99,15 +123,19 @@ def process_csv(filepath, cursor, year, exam_type):
         reader = csv.DictReader(f)
         for row in reader:
             grade     = parse_int(row.get('등급', ''))
-            subject   = row.get('과목', '').strip()
+            subject   = unicodedata.normalize('NFC', row.get('과목', '').strip())
             cut_score = parse_int(row.get('구분 점수', ''))
             people    = parse_int(row.get('인원(명)', ''))
             ratio     = parse_float(row.get('비율(퍼센트)', ''))
 
-            if not subject or grade is None:
+            # 표기 통일 후 대분류 매핑. 매핑에 없는 과목(제2외국어/한문, 직업탐구)은 제외
+            subject = SUBJECT_ALIASES.get(subject, subject)
+            subj_cl_id = SUBJECT_CLASSIFICATION.get(subject)
+
+            if not subject or grade is None or subj_cl_id is None:
                 continue
 
-            rows.append((year, exam_type, subject, grade, cut_score, people, ratio))
+            rows.append((year, exam_type, subject, subj_cl_id, grade, cut_score, people, ratio))
 
     cursor.executemany(INSERT_SQL, rows)
     print(f"  {len(rows)}건 insert 완료")
