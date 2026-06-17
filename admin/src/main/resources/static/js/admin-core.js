@@ -310,8 +310,7 @@ class CustomSelect {
   }
 
   _bind() {
-    this._control.addEventListener("click", (e) => {
-      e.stopPropagation();
+    this._control.addEventListener("click", () => {
       if (!this._el.disabled) this._toggle();
     });
 
