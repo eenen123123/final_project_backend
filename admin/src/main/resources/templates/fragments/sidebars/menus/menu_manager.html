@@ -1,10 +1,11 @@
-<div class="sidebar-section">
-  <p class="sidebar-title text-emerald-500">행정팀장 전용 권한</p>
+﻿<div class="sidebar-section" data-section-key="행정팀장 업무" style="--section-color: #10b981;">
+  <p class="sidebar-title text-emerald-500 sidebar-section-toggle"><i class="fa-solid fa-users-gear sidebar-section-icon"></i>행정팀장 업무<i class="fa-solid fa-chevron-down sidebar-section-arrow"></i></p>
   <ul class="sidebar-list">
 
     <!-- 1 그룹: 강사 및 업무 모니터링 -->
     <li>
-      <a href="/admin/instructors/monitor" class="sidebar-link">
+      <a href="/admin/instructors/monitor" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/instructors/monitor')} ? 'active'">
         <i class="fa-solid fa-chalkboard-user sidebar-icon"></i>
         <span class="sidebar-link-text">강사 및 업무 모니터링</span>
       </a>
@@ -12,13 +13,15 @@
 
     <!-- 2 그룹: 고객 케어 및 원생 유지 관리 -->
     <li>
-      <a href="/admin/consultation" class="sidebar-link">
+      <a href="/admin/consultation" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/consultation')} ? 'active'">
         <i class="fa-solid fa-handshake sidebar-icon"></i>
         <span class="sidebar-link-text">학부모 상담 관리</span>
       </a>
     </li>
     <li>
-      <a href="/admin/retention" class="sidebar-link">
+      <a href="/admin/retention" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/retention')} ? 'active'">
         <i class="fa-solid fa-shield-heart sidebar-icon"></i>
         <span class="sidebar-link-text">퇴원 방어 및 유지</span>
       </a>
@@ -26,13 +29,15 @@
 
     <!-- 3 그룹: 결재 요청 및 하위 권한 운영 -->
     <li>
-      <a href="/admin/approval/request" class="sidebar-link">
+      <a href="/admin/approval/request" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/approval/request')} ? 'active'">
         <i class="fa-solid fa-paper-plane sidebar-icon"></i>
         <span class="sidebar-link-text">원장 승인 요청 관리</span>
       </a>
     </li>
     <li>
-      <a href="/admin/settings/manager-permissions" class="sidebar-link">
+      <a href="/admin/settings/manager-permissions" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/settings/manager-permissions')} ? 'active'">
         <i class="fa-solid fa-user-gear sidebar-icon"></i>
         <span class="sidebar-link-text">관리자 권한 운영</span>
       </a>
