@@ -125,6 +125,11 @@
       th:utext="${board.content}"
     ></div>
   </div>
+<script>
+  document.querySelectorAll('.board-content img[data-file-id]').forEach(function(img) {
+    img.src = '/admin/files/' + img.dataset.fileId + '/view';
+  });
+</script>
 
   <!-- 첨부파일 섹션 -->
   <div th:if="${board.files != null and not #lists.isEmpty(board.files)}"
