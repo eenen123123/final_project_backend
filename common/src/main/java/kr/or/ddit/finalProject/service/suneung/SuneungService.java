@@ -1,5 +1,6 @@
 package kr.or.ddit.finalProject.service.suneung;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -39,6 +40,15 @@ public class SuneungService {
     public List<ExamType> getExamTypes(Integer year) {
         List<ExamType> gradeCuts = suneungGradeCutMapper.selectExamTypesByYear(year);
         return gradeCuts;
+    }
+
+    /** (연도, 시험) 기준 대분류명 -> 세부과목 목록. 대분류/세부과목 정렬 순서는 매퍼 ORDER BY를 따른다. */
+    public Map<String, List<String>> getSubjects(Integer year, ExamType examType) {
+        List<SuneungGradeCutDto> rows = suneungGradeCutMapper.selectSubjectListByYearAndExamType(year, examType);
+        return rows.stream().collect(Collectors.groupingBy(
+                SuneungGradeCutDto::getSubjClNm,
+                LinkedHashMap::new,
+                Collectors.mapping(SuneungGradeCutDto::getSubject, Collectors.toList())));
     }
 
     public List<String> getSubjectClassifications(Integer year, ExamType examType) {

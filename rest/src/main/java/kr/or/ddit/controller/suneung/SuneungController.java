@@ -51,6 +51,20 @@ public class SuneungController {
         return ResponseEntity.ok(subjectClassifications);
     }
 
+    @GetMapping("/subjects")
+    public ResponseEntity<Map<String, List<String>>> getSubjects(@RequestParam Integer year,
+            @RequestParam String examType) {
+        ExamType examTypeEnum;
+        try {
+            examTypeEnum = ExamType.valueOf(examType);
+        } catch (IllegalArgumentException e) {
+            throw new FinalProjectException(ErrorCode.NOT_SUPPORTED_EXAM_TYPE);
+        }
+
+        Map<String, List<String>> subjects = suneungService.getSubjects(year, examTypeEnum);
+        return ResponseEntity.ok(subjects);
+    }
+
     @GetMapping("/subjects-and-years")
     public ResponseEntity<Map<String, ?>> getSubjectsAndYears() {
         Map<String, ?> subjectsAndYears = suneungService.getSubjectsAndYears();

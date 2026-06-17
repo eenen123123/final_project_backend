@@ -48,8 +48,9 @@
 
     <select id="selectSubjectListByYearAndExamType" resultType="kr.or.ddit.finalProject.dto.suneung.SuneungGradeCutDto">
         SELECT DISTINCT sgc.subject, sgc.SUBJ_CL_ID , sc.SUBJ_CL_NM 
-        FROM SUNEUNG_GRADE_CUT sgc 
-        INNER JOIN SUBJECT_CLASSIFICATION sc ON sgc.SUBJ_CL_ID = sc.SUBJ_CL_ID 
+        FROM SUNEUNG_GRADE_CUT sgc
+        INNER JOIN SUBJECT_CLASSIFICATION sc ON sgc.SUBJ_CL_ID = sc.SUBJ_CL_ID
         WHERE sgc.year = #{year} AND sgc.exam_type = #{examType}
+        ORDER BY sgc.SUBJ_CL_ID, sgc.subject
     </select>
 </mapper>
