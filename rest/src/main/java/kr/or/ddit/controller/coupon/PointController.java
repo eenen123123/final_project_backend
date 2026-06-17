@@ -30,16 +30,23 @@ public class PointController {
         return ResponseEntity.ok(balance);
     }
 
-    // GET /api/points/history - 포인트 이력 조회
+    // GET /api/points/history?assetType=HM_POINT - 포인트 이력 조회 (타입별)
     @GetMapping("/history")
-    public ResponseEntity<List<PointHistDto>> getHistory(Authentication authentication) {
-        return ResponseEntity.ok(pointService.getPointHistory(authentication.getName()));
+    public ResponseEntity<List<PointHistDto>> getHistory(Authentication authentication,
+            @RequestParam AssetType assetType) {
+        return ResponseEntity.ok(pointService.getPointHistoryByType(authentication.getName(), assetType));
     }
 
-    // GET /api/points/expiring - 소멸 예정 포인트 조회
+    // GET /api/points/expiring?assetType=HM_POINT - 소멸 예정 포인트 잔액 조회
     @GetMapping("/expiring")
-    public ResponseEntity<List<MemberCouponPointDto>> getExpiring(Authentication authentication) {
-        return ResponseEntity.ok(pointService.getExpiringPoints(authentication.getName()));
+    public ResponseEntity<Long> getExpiring(Authentication authentication,
+            @RequestParam AssetType assetType) {
+        List<MemberCouponPointDto> expiring = pointService.getExpiringPoints(authentication.getName());
+        long total = expiring.stream()
+                .filter(p -> p.getAssetType() == assetType && p.getPointAmt() != null)
+                .mapToLong(MemberCouponPointDto::getPointAmt)
+                .sum();
+        return ResponseEntity.ok(total);
     }
 
 }

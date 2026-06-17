@@ -13,6 +13,7 @@ import kr.or.ddit.finalProject.dto.coupon.PointHistDto;
 import kr.or.ddit.finalProject.dto.coupon.PointHistType;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
+import kr.or.ddit.finalProject.mapper.MemberMapper;
 import kr.or.ddit.finalProject.mapper.coupon.PointMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,11 +23,20 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class PointServiceImpl implements PointService {
 
+    private static final long MIN_USE_AMOUNT = 1_000L;
+
     private final PointMapper pointMapper;
+    private final MemberMapper memberMapper;
 
     @Override
     @Transactional
     public void earnPoint(String userId, AssetType assetType, long amount, Long ordSn, String memo) {
+        validatePointType(assetType);
+        validateAmount(amount);
+        if (userId == null || userId.isBlank()) {
+            throw new FinalProjectException(ErrorCode.BAD_REQUEST);
+        }
+
         MemberCouponPointDto grant = MemberCouponPointDto.builder()
                 .userId(userId)
                 .assetType(assetType)
@@ -36,15 +46,14 @@ public class PointServiceImpl implements PointService {
                 .build();
         pointMapper.insertPointGrant(grant);
 
-        PointHistDto hist = PointHistDto.builder()
+        pointMapper.insertPointHist(PointHistDto.builder()
                 .mcpntSn(grant.getMcpntSn())
                 .userId(userId)
                 .histType(PointHistType.EARN)
                 .changeAmt(amount)
                 .ordSn(ordSn)
                 .memo(memo)
-                .build();
-        pointMapper.insertPointHist(hist);
+                .build());
 
         log.info("포인트 적립: userId={}, assetType={}, amount={}", userId, assetType, amount);
     }
@@ -52,19 +61,29 @@ public class PointServiceImpl implements PointService {
     @Override
     @Transactional
     public void usePoint(String userId, AssetType assetType, long amount, Long ordSn, String memo) {
-        long balance = getPointBalance(userId, assetType);
-        if (balance < amount) {
+        validatePointType(assetType);
+        validateAmount(amount);
+        if (userId == null || userId.isBlank()) {
             throw new FinalProjectException(ErrorCode.BAD_REQUEST);
         }
+        // 1,000p 미만 사용 불가
+        if (amount < MIN_USE_AMOUNT) {
+            throw new FinalProjectException(ErrorCode.POINT_MINIMUM_USAGE);
+        }
 
-        PointHistDto hist = PointHistDto.builder()
+        // 잔액 재조회 (차감 직전 DB 최신값 기준)
+        long balance = getPointBalance(userId, assetType);
+        if (balance < amount) {
+            throw new FinalProjectException(ErrorCode.POINT_INSUFFICIENT_BALANCE);
+        }
+
+        pointMapper.insertPointHist(PointHistDto.builder()
                 .userId(userId)
                 .histType(PointHistType.USE)
                 .changeAmt(-amount)
                 .ordSn(ordSn)
                 .memo(memo)
-                .build();
-        pointMapper.insertPointHist(hist);
+                .build());
 
         log.info("포인트 사용: userId={}, assetType={}, amount={}", userId, assetType, amount);
     }
@@ -88,10 +107,22 @@ public class PointServiceImpl implements PointService {
     @Override
     @Transactional
     public void grantStudyPoint(String userId, long amount, String adminId, String memo) {
-        if (amount <= 0) {
+        if (userId == null || userId.isBlank()) {
             throw new FinalProjectException(ErrorCode.BAD_REQUEST);
         }
-        earnPoint(userId, AssetType.STUDY_POINT, amount, null, memo != null ? memo : "관리자 지급 (" + adminId + ")");
+        if (adminId == null || adminId.isBlank()) {
+            throw new FinalProjectException(ErrorCode.BAD_REQUEST);
+        }
+        // 대상 회원 존재 여부 확인
+        memberMapper.findByUserId(userId)
+                .orElseThrow(() -> new FinalProjectException(ErrorCode.POINT_ISSUE_USER_NOT_FOUND));
+
+        if (amount <= 0) {
+            throw new FinalProjectException(ErrorCode.POINT_INVALID_AMOUNT);
+        }
+
+        earnPoint(userId, AssetType.STUDY_POINT, amount, null,
+                memo != null && !memo.isBlank() ? memo : "관리자 지급 (" + adminId + ")");
         log.info("스터디포인트 수동 지급: userId={}, amount={}, adminId={}", userId, amount, adminId);
     }
 
@@ -115,4 +146,17 @@ public class PointServiceImpl implements PointService {
         return pointMapper.selectUserNameById(userId);
     }
 
+    // ── 공통 검증 ──────────────────────────────────────────
+
+    private void validatePointType(AssetType assetType) {
+        if (assetType == null || assetType == AssetType.COUPON) {
+            throw new FinalProjectException(ErrorCode.POINT_INVALID_TYPE);
+        }
+    }
+
+    private void validateAmount(long amount) {
+        if (amount <= 0) {
+            throw new FinalProjectException(ErrorCode.POINT_INVALID_AMOUNT);
+        }
+    }
 }
