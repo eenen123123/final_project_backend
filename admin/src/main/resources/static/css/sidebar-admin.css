@@ -40,7 +40,11 @@ html[data-sidebar="hidden"] #adminSidebar {
 
 .sidebar-section {
     padding: 0 1rem;
-    margin-top: -0.4rem;
+    margin-top: 0;
+}
+
+.sidebar-section:first-child {
+    margin-top: 0.75rem;
 }
 
 .sidebar-title {
@@ -105,7 +109,7 @@ html[data-sidebar="hidden"] #adminSidebar {
   800px은 현재 가장 긴 섹션의 실제 높이보다 크면 충분하다.
 */
 .sidebar-list {
-    margin: 0.5rem 0 0;
+    margin: 0.5rem 0;
     padding: 0;
     list-style: none;
     display: grid;
