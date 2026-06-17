@@ -28,7 +28,7 @@
   <!-- 상단 브레드크럼 -->
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-2 text-xs text-slate-400">
-      <a href="/admin/course" class="hover:text-orange-500 transition-colors">강좌 관리</a>
+      <a href="/admin/course/list" class="hover:text-orange-500 transition-colors">강좌 관리</a>
       <i class="fa-solid fa-chevron-right text-[10px]"></i>
       <a th:href="@{/admin/lectures/list(courseId=${course.courseSn})}"
          th:text="${course.courseNm}"
@@ -37,6 +37,13 @@
       <span class="text-orange-500 font-medium truncate max-w-xs" th:text="${lecture.lectureNm}">강의명</span>
     </div>
     <div class="flex items-center gap-2 shrink-0">
+      <a
+        th:href="@{/admin/lectures/list(courseId=${course.courseSn})}"
+        class="hm-btn-secondary text-xs"
+      >
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>강의 목록</span>
+      </a>
       <span class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl font-semibold"
             th:classappend="${lecture.opnnYn == 'Y'} ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'">
         <i class="fa-solid fa-circle text-[8px]"></i>
@@ -98,10 +105,12 @@
             <p class="text-xs text-slate-400 mt-1" th:text="${course.courseNm}">강좌명</p>
           </div>
           <div class="flex items-center gap-2 shrink-0">
-            <button class="hm-btn-secondary text-xs" title="수정">
+            <a th:if="${#authentication.name == course.instrUserId}"
+               th:href="@{/admin/lectures/edit(lectureId=${lecture.lectureSn})}"
+               class="hm-btn-secondary text-xs">
               <i class="fa-solid fa-pen"></i>
               <span>수정</span>
-            </button>
+            </a>
           </div>
         </div>
 
@@ -140,7 +149,7 @@
           <ul th:if="${lectures != null and !lectures.isEmpty()}" class="divide-y divide-slate-50">
             <li th:each="lec, iter : ${lectures}">
               <a th:href="@{/admin/lectures/view(lectureId=${lec.lectureSn})}"
-                 class="lecture-item flex items-center gap-3 px-4 py-3.5 hover:bg-orange-50/60 transition-colors block"
+                 class="lecture-item flex items-center gap-3 px-4 py-3.5 hover:bg-orange-50/60 transition-colors"
                  th:classappend="${lec.lectureSn == lecture.lectureSn} ? ' active' : ''">
                 <!-- 순서 번호 -->
                 <span class="w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center shrink-0 transition-colors"

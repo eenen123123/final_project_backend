@@ -29,13 +29,23 @@
         등록된 강의를 확인하고 관리합니다.
       </p>
     </div>
-    <a
-      th:href="@{/admin/lectures/insert(courseId=${course.courseSn})}"
-      class="hm-btn-primary hm-btn-orange shrink-0"
-    >
-      <i class="fa-solid fa-plus"></i>
-      <span>강의 추가</span>
-    </a>
+    <div class="flex items-center gap-2 shrink-0">
+      <a
+        th:href="@{/admin/course/detail(courseSn=${course.courseSn})}"
+        class="hm-btn-secondary"
+      >
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>강좌 상세</span>
+      </a>
+      <a
+        th:if="${#authentication.name == course.instrUserId}"
+        th:href="@{/admin/lectures/insert(courseId=${course.courseSn})}"
+        class="hm-btn-primary hm-btn-orange"
+      >
+        <i class="fa-solid fa-plus"></i>
+        <span>강의 추가</span>
+      </a>
+    </div>
   </div>
 
   <!-- 목록 테이블 -->

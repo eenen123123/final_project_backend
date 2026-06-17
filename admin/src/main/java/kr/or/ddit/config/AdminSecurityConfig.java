@@ -59,6 +59,10 @@ public class AdminSecurityConfig {
                 // 강사 전용 (D300)
                 .requestMatchers("/instructor/**", "/classroom/**").hasAuthority("D300")
 
+                // 강좌 목록/상세는 전체 관리자 허용, 등록/수정/삭제는 강사(D300) 전용
+                .requestMatchers(HttpMethod.GET, "/admin/course/list", "/admin/course/detail").hasRole("ADMIN")
+                .requestMatchers("/admin/course/**").hasAuthority("D300")
+
                 // PD 전용 (D200)
                 .requestMatchers("/admin/media/**").hasAuthority("D200")
 
