@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,6 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import kr.or.ddit.finalProject.dto.common.CommonCodeDto;
+import kr.or.ddit.finalProject.util.TipTapSanitizer;
 import kr.or.ddit.finalProject.dto.file.FileCtxType;
 import kr.or.ddit.finalProject.dto.instructor.board.BoardType;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
@@ -70,7 +70,7 @@ public class InstructorBoardController {
         model.addAttribute("keyword", keyword);
         model.addAttribute("boardTypeCd", boardTypeCd);
         model.addAttribute("boardTypes", boardTypeList());
-        return "admin:/instructor/board/list";
+        return "admin:/instructor/board/list-instructor-board";
     }
 
     /**
@@ -116,12 +116,11 @@ public class InstructorBoardController {
         if (board == null) {
             return "redirect:/instructor/board/list";
         }
-        board.setContent(sanitize(board.getContent()));
         model.addAttribute("board", board);
         model.addAttribute("listPage", page);
         model.addAttribute("listKeyword", keyword);
         model.addAttribute("listBoardTypeCd", boardTypeCd);
-        return "admin:/instructor/board/detail";
+        return "admin:/instructor/board/detail-instructor-board";
     }
 
     /**
@@ -139,7 +138,7 @@ public class InstructorBoardController {
         model.addAttribute("listPage", page);
         model.addAttribute("listKeyword", keyword);
         model.addAttribute("listBoardTypeCd", boardTypeCd);
-        return "admin:/instructor/board/insertForm";
+        return "admin:/instructor/board/form-instructor-board";
     }
 
     /**
@@ -161,7 +160,7 @@ public class InstructorBoardController {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         instructorBoardDto.setInstrUserId(userId);
         instructorBoardDto.setWrtrUserId(userId);
-        instructorBoardDto.setPostCn(sanitize(instructorBoardDto.getPostCn()));
+        instructorBoardDto.setPostCn(TipTapSanitizer.clean(instructorBoardDto.getPostCn()));
 
         if (error.hasErrors()) {
             String errorMsg = error.getAllErrors().stream().map(e -> e.getDefaultMessage())
@@ -244,7 +243,7 @@ public class InstructorBoardController {
         }
         InstructorBoardDto board = InstructorBoardDto.builder().postSn(responseDto.getPostSn())
                 .boardTypeCd(responseDto.getBoardTypeCd()).postSj(responseDto.getTitle())
-                .postCn(sanitize(responseDto.getContent())).build();
+                .postCn(responseDto.getContent()).build();
         model.addAttribute("board", board);
         model.addAttribute("boardTypes", boardTypeList());
         model.addAttribute("listPage", page);
@@ -261,7 +260,7 @@ public class InstructorBoardController {
         } else {
             model.addAttribute("existingFiles", List.of());
         }
-        return "admin:/instructor/board/insertForm";
+        return "admin:/instructor/board/form-instructor-board";
     }
 
     /**
@@ -283,7 +282,7 @@ public class InstructorBoardController {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         instructorBoardDto.setInstrUserId(userId);
         instructorBoardDto.setLastMdfrId(userId);
-        instructorBoardDto.setPostCn(sanitize(instructorBoardDto.getPostCn()));
+        instructorBoardDto.setPostCn(TipTapSanitizer.clean(instructorBoardDto.getPostCn()));
 
         if (error.hasErrors()) {
             String errorMsg = error.getAllErrors().stream().map(e -> e.getDefaultMessage())
@@ -445,22 +444,5 @@ public class InstructorBoardController {
         return Jsoup.parse(html).text().isBlank();
     }
 
-    // Toast UI Editor 허용 태그 목록 — 매 호출마다 재생성하지 않도록 static 상수로 선언
-    private static final Safelist EDITOR_SAFELIST = Safelist.relaxed().preserveRelativeLinks(true)
-            .addTags("del", "s", "hr", "input", "mark")
-            .addAttributes("input", "type", "checked", "disabled").addAttributes("span", "style")
-            .addAttributes("p", "style").addAttributes("h1", "style").addAttributes("h2", "style")
-            .addAttributes("h3", "style").addAttributes("h4", "style").addAttributes("h5", "style")
-            .addAttributes("h6", "style").addAttributes("img", "src")
-            .addAttributes("mark", "data-color", "style")
-            .addProtocols("img", "src", "http", "https", "data");
-
-    // XSS 방어: 허용 태그만 남기고 나머지 제거
-    private String sanitize(String html) {
-        if (html == null) {
-            return null;
-        }
-        return Jsoup.clean(html, EDITOR_SAFELIST);
-    }
 
 }

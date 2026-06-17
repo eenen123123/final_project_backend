@@ -141,6 +141,11 @@
                     </span>
                 </div>
                 <div class="detail-content" th:utext="${selected.jrnlCont}">내용</div>
+<script>
+  document.querySelectorAll('.detail-content img[data-file-id]').forEach(function(img) {
+    img.src = '/admin/files/' + img.dataset.fileId + '/view';
+  });
+</script>
             </div>
 
             <!-- (3) 새 일지 작성 폼 -->

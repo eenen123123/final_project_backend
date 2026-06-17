@@ -59,7 +59,7 @@
 
       <!-- 로그인 카드 -->
       <div class="bg-white/5 border border-white/10 rounded-2xl p-8 shadow-xl">
-        <form th:action="@{/login}" method="post" class="space-y-5">
+        <form th:action="@{/login}" method="post" class="space-y-5" id="login-form">
           <div>
             <label
               for="username"
@@ -118,6 +118,7 @@
       </div>
       <div class="text-center text-sm text-gray-500 my-12">
         <table class="w-[700px] border-collapse mx-auto mt-10 absolute text-center left-1/2 -translate-x-1/2 font-bold">
+          <caption class="text-lg mb-4 bg-gray-200 p-2">계정 정보, 클릭해서 로그인(관리자 계정만 가능)</caption>
           <thead class="bg-gray-200">
             <tr class="border">
               <th class="px-4 py-2 border">아이디</th>
@@ -146,14 +147,25 @@
                   bgColorClass = "bg-yellow-100";
                 }
                 const tr = document.createElement("tr");
-                tr.classList.add("border", bgColorClass);
+                tr.classList.add("border", bgColorClass, "cursor-pointer", "hover:bg-white");
                 tr.innerHTML = `
-                  <td class="px-4 py-2 border">${account.userId}</td>
+                  <td class="px-4 py-2 border""
+                  >${account.userId}</td>
                   <td class="px-4 py-2 border">${account.userName}</td>
                   <td class="px-4 py-2 border text-[12px]">${account.userRole}</td>
                   <td class="px-4 py-2 border">${account.department}</td>
                   <td class="px-4 py-2 border">${account.jobGrade}</td>
                 `;
+                tr.addEventListener("click", () => {
+                  const usernameInput = document.getElementById("username");
+                  const passwordInput = document.getElementById("password");
+                  const loginForm = document.getElementById("login-form");
+                  usernameInput.value = account.userId;
+                  passwordInput.value = "java";
+                  if (confirm(`계정 ${account.userId}로 로그인 하시겠습니까?`)) {
+                    loginForm.submit();
+                  }
+                })
                 accountInfo.appendChild(tr);
               });
             } catch (error) {

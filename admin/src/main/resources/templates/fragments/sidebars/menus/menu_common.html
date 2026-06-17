@@ -1,50 +1,58 @@
-<div class="sidebar-section">
-  <p class="sidebar-title text-slate-500">공통 업무</p>
+﻿<div class="sidebar-section" data-section-key="공통 업무" style="--section-color: #cbd5e1;">
+  <p class="sidebar-title text-slate-300 sidebar-section-toggle"><i class="fa-solid fa-briefcase sidebar-section-icon"></i>공통 업무<i class="fa-solid fa-chevron-down sidebar-section-arrow"></i></p>
   <ul class="sidebar-list">
     <li>
-      <a href="/admin/note" class="sidebar-link">
+      <a href="/admin/note" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/note')} ? 'active'">
         <i class="fa-solid fa-envelope sidebar-icon"></i>
         <span class="sidebar-link-text">메시지 관리</span>
       </a>
     </li>
     <li>
-      <a href="/admin/chat/room/list" class="sidebar-link">
+      <a href="/admin/chat/room/list" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/chat')} ? 'active'">
         <i class="fa-solid fa-comments sidebar-icon"></i>
         <span class="sidebar-link-text">사내 메신저</span>
       </a>
     </li>
     <li>
-      <a href="/admin/approval" class="sidebar-link">
+      <a href="/admin/approval" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/approval')} ? 'active'">
         <i class="fa-solid fa-file-signature sidebar-icon"></i>
         <span class="sidebar-link-text">내부 전자 결재</span>
       </a>
     </li>
     <li>
-      <a href="/admin/board/customer-service" class="sidebar-link">
+      <a href="/admin/board/customer-service" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/board/customer-service')} ? 'active'">
         <i class="fa-solid fa-headset sidebar-icon"></i>
         <span class="sidebar-link-text">고객센터 관리</span>
       </a>
     </li>
     <li>
-      <a href="/admin/calendar" class="sidebar-link">
+      <a href="/admin/calendar" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/calendar')} ? 'active'">
         <i class="fa-solid fa-calendar-days sidebar-icon"></i>
         <span class="sidebar-link-text">통합 일정 관리</span>
       </a>
     </li>
     <li>
-      <a href="/admin/lectures/insert?courseId=81" class="sidebar-link">
+      <a href="/admin/lectures/insert?courseId=81" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/lectures/insert')} ? 'active'">
         <i class="fa-solid fa-chalkboard sidebar-icon"></i>
         <span class="sidebar-link-text">강의 등록(지수함수와 로그)</span>
       </a>
     </li>
     <li>
-      <a href="/admin/lectures/list?courseId=81" class="sidebar-link">
+      <a href="/admin/lectures/list?courseId=81" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/lectures/list')} ? 'active'">
         <i class="fa-solid fa-chalkboard sidebar-icon"></i>
         <span class="sidebar-link-text">강의 목록(지수함수와 로그)</span>
       </a>
     </li>
     <li>
-      <a href="/admin/course/list" class="sidebar-link">
+      <a href="/admin/course/list" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/course')} ? 'active'">
         <i class="fa-solid fa-chalkboard sidebar-icon"></i>
         <span class="sidebar-link-text">강좌 관리</span>
       </a>

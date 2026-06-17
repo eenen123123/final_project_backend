@@ -227,7 +227,9 @@
     C.COURSE_SN   AS courseSn,
     C.COURSE_NM   AS title,
     C.COURSE_PRICE AS price,
-    C.THMB_IMG    AS thumbnailUrl,
+
+    <!-- 강좌의 썸네일 이미지에서 교재의 썸네일 이미지로 변경 -->
+    T.THMB_IMG    AS thumbnailUrl,
     S.SUBJ_NM     AS category,
     (SELECT COUNT(*)
      FROM CLASSROOM CL
@@ -236,6 +238,7 @@
   FROM COURSE C
   INNER JOIN INSTRUCTOR I  ON C.INSTR_USER_ID = I.INSTR_USER_ID
   LEFT  JOIN SUBJECT S     ON C.SUBJ_ID = S.SUBJ_ID
+  join textbook t on c.course_sn = t.course_sn
   WHERE I.INSTR_UUID = #{instrUuid}
     AND C.OPNN_YN   = 'Y'
   ORDER BY C.SORT_ORD ASC, C.COURSE_SN ASC
@@ -341,6 +344,7 @@
     <result property="explain" column="COURSE_EXPLN_CN"/>
     <result property="isNew" column="IS_NEW"/>
     <result property="isBest" column="IS_BEST"/>
+    <result property="thumbnailImg" column="THUMBNAIL_IMG"/>
   </resultMap>
 
 
@@ -350,11 +354,12 @@
         select c.COURSE_SN, c.COURSE_NM
         , s.SUBJ_NM, m.USER_NAME AS INSTR_USER_NM, c.SUBJ_ID, c.COURSE_PRICE, c.COURSE_EXPLN_CN
                 , CASE WHEN c.REG_DT >= ADD_MONTHS(SYSDATE, -1) THEN 1 ELSE 0 END AS IS_NEW
-                , 1 AS IS_BEST, i.instr_uuid
+                , 1 AS IS_BEST, i.instr_uuid, t.THMB_IMG AS THUMBNAIL_IMG
         from course c
         inner join subject s on c.SUBJ_ID = s.SUBJ_ID
         inner join member m on c.INSTR_USER_ID = m.USER_ID
         inner join instructor i on c.INSTR_USER_ID = i.INSTR_USER_ID
+        inner join textbook t on c.COURSE_SN = t.COURSE_SN
     <include refid="courseListSearch"/>
   </select>
 

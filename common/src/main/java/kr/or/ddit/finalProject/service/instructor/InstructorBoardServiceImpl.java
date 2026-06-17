@@ -185,8 +185,8 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     // ── 공개 강사 게시판 (React 프론트용) ──────────────────────────
     @Override
     public PageResponse<InstructorPublicBoardItem> getPublicBoardList(
-            String instrUuid, String boardTypeCd, int page, int size) {
-        int offset = page * size;
+            String instrUuid, String boardTypeCd, int pageIndex, int size) {
+        int offset = pageIndex * size;
         int total = instructorBoardMapper.selectPublicBoardCount(instrUuid, boardTypeCd);
         List<InstructorPublicBoardItem> items
                 = instructorBoardMapper.selectPublicBoardList(instrUuid, boardTypeCd, offset, size);

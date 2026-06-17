@@ -1,17 +1,17 @@
-<div class="sidebar-section">
-  <p class="sidebar-title text-orange-500">PD 전용 권한</p>
+﻿<div class="sidebar-section" data-section-key="PD 업무" style="--section-color: #f97316;">
+  <p class="sidebar-title text-orange-500 sidebar-section-toggle"><i class="fa-solid fa-film sidebar-section-icon"></i>PD 업무<i class="fa-solid fa-chevron-down sidebar-section-arrow"></i></p>
   <ul class="sidebar-list">
     <!-- 1 그룹: 실시간 방송 및 안내 연동 -->
     <li>
-      <a href="/admin/media/live" class="sidebar-link group">
-        <i
-          class="fa-solid fa-tower-broadcast sidebar-icon group-hover:text-orange-400"
-        ></i>
+      <a href="/admin/media/live" class="sidebar-link group"
+         th:classappend="${currentUri.startsWith('/admin/media/live')} ? 'active'">
+        <i class="fa-solid fa-tower-broadcast sidebar-icon group-hover:text-orange-400"></i>
         <span class="sidebar-link-text">라이브 VOD 아카이빙</span>
       </a>
     </li>
     <li>
-      <a href="/admin/media/notices" class="sidebar-link">
+      <a href="/admin/media/notices" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/media/notices')} ? 'active'">
         <i class="fa-solid fa-bullhorn sidebar-icon"></i>
         <span class="sidebar-link-text">영상 관련 공지 연동</span>
       </a>
@@ -19,19 +19,22 @@
 
     <!-- 2 그룹: 콘텐츠 업로드 및 파일 관리 -->
     <li>
-      <a href="/admin/media/upload" class="sidebar-link">
+      <a href="/admin/media/upload" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/media/upload')} ? 'active'">
         <i class="fa-solid fa-clapperboard sidebar-icon"></i>
         <span class="sidebar-link-text">영상 업로드 및 게시</span>
       </a>
     </li>
     <li>
-      <a href="/admin/media/media-list" class="sidebar-link">
+      <a href="/admin/media/media-list" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/media/media-list')} ? 'active'">
         <i class="fa-solid fa-file-video sidebar-icon"></i>
         <span class="sidebar-link-text">강의 영상 관리</span>
       </a>
     </li>
     <li>
-      <a href="/admin/media/files" class="sidebar-link">
+      <a href="/admin/media/files" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/media/files')} ? 'active'">
         <i class="fa-solid fa-file-video sidebar-icon"></i>
         <span class="sidebar-link-text">강의 파일 관리</span>
       </a>
@@ -39,13 +42,15 @@
 
     <!-- 3 그룹: 인코딩 최적화 및 품질 관리 -->
     <li>
-      <a href="/admin/media/optimize" class="sidebar-link">
+      <a href="/admin/media/optimize" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/media/optimize')} ? 'active'">
         <i class="fa-solid fa-sliders sidebar-icon"></i>
         <span class="sidebar-link-text">강의 정보 최적화</span>
       </a>
     </li>
     <li>
-      <a href="/admin/media/quality" class="sidebar-link">
+      <a href="/admin/media/quality" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/media/quality')} ? 'active'">
         <i class="fa-solid fa-compact-disc sidebar-icon"></i>
         <span class="sidebar-link-text">품질 및 호환성 관리</span>
       </a>
