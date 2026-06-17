@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.suneung.SuneungGradeCutMapper">
+
+    <!-- 수능 등급 컷 조회 (연도별) -->
+    <select id="selectSuneungGradeCutListByYear" resultType="kr.or.ddit.finalProject.dto.suneung.SuneungGradeCutDto">
+        SELECT *
+        FROM suneung_grade_cut
+        WHERE year = #{year}
+    </select>
+
+    <!-- 과목 목록 조회 -->
+    <select id="selectSubjectList" resultType="string">
+        SELECT DISTINCT subject
+        FROM suneung_grade_cut
+    </select>
+</mapper>
