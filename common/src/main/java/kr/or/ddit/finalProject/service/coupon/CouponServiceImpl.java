@@ -17,6 +17,7 @@ import kr.or.ddit.finalProject.dto.coupon.PointHistDto;
 import kr.or.ddit.finalProject.dto.coupon.PointHistType;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
+import kr.or.ddit.finalProject.mapper.MemberMapper;
 import kr.or.ddit.finalProject.mapper.coupon.CouponMapper;
 import kr.or.ddit.finalProject.mapper.coupon.PointMapper;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +43,7 @@ public class CouponServiceImpl implements CouponService {
 
     private final CouponMapper couponMapper;
     private final PointMapper pointMapper;
+    private final MemberMapper memberMapper;
 
     @Override
     @Transactional
@@ -96,6 +98,9 @@ public class CouponServiceImpl implements CouponService {
         if (userId == null || userId.isBlank()) {
             throw new FinalProjectException(ErrorCode.COUPON_ISSUE_TARGET_REQUIRED);
         }
+        // 대상 회원 존재 여부 확인
+        memberMapper.findByUserId(userId)
+                .orElseThrow(() -> new FinalProjectException(ErrorCode.POINT_ISSUE_USER_NOT_FOUND));
 
         // 쿠폰 존재 여부 및 활성 여부 서버에서 재조회 (클라이언트 값 사용 X)
         CouponDto coupon = couponMapper.selectCouponBySn(couponSn);
@@ -238,6 +243,15 @@ public class CouponServiceImpl implements CouponService {
         if (userIds == null || userIds.isEmpty()) {
             throw new FinalProjectException(ErrorCode.COUPON_ISSUE_TARGET_REQUIRED);
         }
+        // 대상 회원 전체 존재 여부 확인
+        List<String> validIds = userIds.stream()
+                .filter(id -> id != null && !id.isBlank())
+                .distinct()
+                .toList();
+        int existCount = memberMapper.isAllExistUsers(validIds);
+        if (existCount != validIds.size()) {
+            throw new FinalProjectException(ErrorCode.POINT_ISSUE_USER_NOT_FOUND);
+        }
         // 쿠폰 존재 여부 + 활성 여부 (DB 재조회, 클라이언트 값 신뢰 X)
         CouponDto coupon = couponMapper.selectCouponBySn(couponSn);
         if (coupon == null) {
@@ -322,6 +336,13 @@ public class CouponServiceImpl implements CouponService {
     @Override
     @Transactional
     public MemberCouponPointDto issueStudyPoint(Long couponSn, String userId, String adminId) {
+        if (userId == null || userId.isBlank()) {
+            throw new FinalProjectException(ErrorCode.COUPON_ISSUE_TARGET_REQUIRED);
+        }
+        // 대상 회원 존재 여부 확인
+        memberMapper.findByUserId(userId)
+                .orElseThrow(() -> new FinalProjectException(ErrorCode.POINT_ISSUE_USER_NOT_FOUND));
+
         CouponDto def = couponMapper.selectStudyPointDefBySn(couponSn);
         if (def == null) throw new FinalProjectException(ErrorCode.COUPON_NOT_FOUND);
         if (!ACTIVE.equals(def.getUseYn())) throw new FinalProjectException(ErrorCode.COUPON_INACTIVE);
@@ -353,6 +374,15 @@ public class CouponServiceImpl implements CouponService {
     public List<MemberCouponPointDto> bulkIssueStudyPoint(Long couponSn, List<String> userIds, String adminId) {
         if (userIds == null || userIds.isEmpty()) {
             throw new FinalProjectException(ErrorCode.COUPON_ISSUE_TARGET_REQUIRED);
+        }
+        // 대상 회원 전체 존재 여부 확인
+        List<String> validIds = userIds.stream()
+                .filter(id -> id != null && !id.isBlank())
+                .distinct()
+                .toList();
+        int existCount = memberMapper.isAllExistUsers(validIds);
+        if (existCount != validIds.size()) {
+            throw new FinalProjectException(ErrorCode.POINT_ISSUE_USER_NOT_FOUND);
         }
         CouponDto def = couponMapper.selectStudyPointDefBySn(couponSn);
         if (def == null) throw new FinalProjectException(ErrorCode.COUPON_NOT_FOUND);

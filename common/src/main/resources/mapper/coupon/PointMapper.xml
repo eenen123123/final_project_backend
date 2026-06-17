@@ -28,6 +28,7 @@
         <result property="ordSn"    column="ORD_SN"/>
         <result property="memo"     column="MEMO"/>
         <result property="regDt"    column="REG_DT"/>
+        <result property="expiryDt" column="EXPIRY_DT"/>
     </resultMap>
 
     <!-- 포인트 지급건 삽입 -->
@@ -69,10 +70,13 @@
 
     <!-- 포인트 이력 조회 (사용자) -->
     <select id="selectPointHistByUserId" resultMap="pointHistResultMap">
-        SELECT POINT_HIST_SN, MCPNT_SN, USER_ID, HIST_TYPE, CHANGE_AMT, ORD_SN, MEMO, REG_DT
-        FROM POINT_HIST
-        WHERE USER_ID = #{userId}
-        ORDER BY REG_DT DESC
+        SELECT ph.POINT_HIST_SN, ph.MCPNT_SN, ph.USER_ID, ph.HIST_TYPE,
+               ph.CHANGE_AMT, ph.ORD_SN, ph.MEMO, ph.REG_DT,
+               mcp.EXPIRY_DT
+        FROM POINT_HIST ph
+        JOIN MEMBER_COUPONPOINT mcp ON ph.MCPNT_SN = mcp.MCPNT_SN
+        WHERE ph.USER_ID = #{userId}
+        ORDER BY ph.REG_DT DESC
     </select>
 
     <!-- 소멸 예정 포인트 조회 - 다음달 만료분 -->
@@ -116,7 +120,8 @@
     <!-- 특정 유저의 포인트 이력 조회 (타입별) -->
     <select id="selectPointHistByUserAndType" resultMap="pointHistResultMap">
         SELECT ph.POINT_HIST_SN, ph.MCPNT_SN, ph.USER_ID, ph.HIST_TYPE,
-               ph.CHANGE_AMT, ph.ORD_SN, ph.MEMO, ph.REG_DT
+               ph.CHANGE_AMT, ph.ORD_SN, ph.MEMO, ph.REG_DT,
+               mcp.EXPIRY_DT
         FROM POINT_HIST ph
         JOIN MEMBER_COUPONPOINT mcp ON ph.MCPNT_SN = mcp.MCPNT_SN
         WHERE ph.USER_ID = #{userId}

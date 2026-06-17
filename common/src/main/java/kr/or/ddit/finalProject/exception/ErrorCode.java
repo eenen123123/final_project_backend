@@ -159,7 +159,14 @@ public enum ErrorCode {
     COUPON_ISSUE_TARGET_REQUIRED(HttpStatus.BAD_REQUEST, "발급 대상 사용자 ID가 필요합니다."),
     COUPON_DELETE_FAILED(HttpStatus.CONFLICT, "발급 이력이 있는 쿠폰은 삭제할 수 없습니다."),
     COUPON_CODE_NOT_FOUND(HttpStatus.NOT_FOUND, "유효하지 않은 쿠폰 번호입니다."),
-    COUPON_ALREADY_ISSUED(HttpStatus.CONFLICT, "이미 발급받은 쿠폰입니다.");
+    COUPON_ALREADY_ISSUED(HttpStatus.CONFLICT, "이미 발급받은 쿠폰입니다."),
+
+    // 포인트 관련
+    POINT_INVALID_AMOUNT(HttpStatus.BAD_REQUEST, "포인트 금액은 1 이상이어야 합니다."),
+    POINT_INVALID_TYPE(HttpStatus.BAD_REQUEST, "쿠폰 유형은 포인트로 처리할 수 없습니다."),
+    POINT_MINIMUM_USAGE(HttpStatus.BAD_REQUEST, "포인트는 1,000p 이상부터 사용 가능합니다."),
+    POINT_INSUFFICIENT_BALANCE(HttpStatus.BAD_REQUEST, "포인트 잔액이 부족합니다."),
+    POINT_ISSUE_USER_NOT_FOUND(HttpStatus.NOT_FOUND, "발급 대상 회원을 찾을 수 없습니다.");
 
     // =============================
     private final HttpStatus status;

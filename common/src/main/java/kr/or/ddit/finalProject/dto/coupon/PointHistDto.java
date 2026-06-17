@@ -1,5 +1,6 @@
 package kr.or.ddit.finalProject.dto.coupon;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
@@ -21,4 +22,5 @@ public class PointHistDto {
     private Long ordSn;                // FK → ORDERS.ORD_SN (사용 시)
     private String memo;               // 변동 사유
     private LocalDateTime regDt;       // 등록일시
+    private LocalDate expiryDt;        // 만료일 (JOIN from MEMBER_COUPONPOINT)
 }
