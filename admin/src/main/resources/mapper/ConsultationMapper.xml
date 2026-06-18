@@ -164,18 +164,19 @@
     </select>
 
     <!-- ── 학생이 수강 중인 강좌 (상담 상세 모달) ──────────────── -->
-    <select id="selectStudentCourses" resultType="kr.or.ddit.finalProject.dto.consultation.ConsultationCourseDto">
+    <select id="selectStudentCourses" resultType="kr.or.ddit.finalProject.dto.course.CourseDto">
         SELECT
-            CL.CLASS_NM    AS CLASS_NM,
-            CO.COURSE_NM   AS COURSE_NM,
-            IM.USER_NAME   AS INSTR_NM
+            CO.COURSE_SN     AS COURSE_SN,
+            CO.COURSE_NM     AS COURSE_NM,
+            CO.INSTR_USER_ID AS INSTR_USER_ID,
+            IM.USER_NAME     AS INSTR_NM
         FROM CLASSROOM_MEMBER CM
         JOIN CLASSROOM CL   ON CM.CLASS_SN = CL.CLASS_SN
         JOIN COURSE CO      ON CL.COURSE_SN = CO.COURSE_SN
         LEFT JOIN MEMBER IM ON CO.INSTR_USER_ID = IM.USER_ID
         WHERE CM.USER_ID = #{stdUserId}
           AND TRIM(CM.ENRL_STAT_CD) IN ('ENROLLED', 'COMPLETED')
-        ORDER BY CL.CLASS_NM
+        ORDER BY CO.COURSE_NM
     </select>
 
     <!-- ================================================================
