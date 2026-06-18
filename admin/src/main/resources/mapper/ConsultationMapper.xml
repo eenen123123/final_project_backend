@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.mapper.ConsultationMapper">
+
+    <!-- 공통코드 분류
+         211: 상담 유형 (01 대면 / 02 전화 / 03 문자)
+         212: 상담 상태 (01 예정 / 02 완료 / 03 후속조치 / 04 취소)
+         학생-학부모 매칭: STUDENT.PRNT_USER_ID → MEMBER -->
+
+    <!-- ================================================================
+         상단 요약 카드
+    ================================================================ -->
+    <select id="selectSummary" resultType="kr.or.ddit.finalProject.dto.consultation.ConsultationSummaryDto">
+        SELECT
+            (SELECT COUNT(*) FROM CONSULTATION
+              WHERE CNSL_DT &gt;= TRUNC(SYSDATE, 'MM')
+                AND CNSL_DT &lt;  ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 1))   AS MONTH_CNT,
+            (SELECT COUNT(*) FROM CONSULTATION WHERE TRIM(CNSL_STAT_CD) = '01') AS SCHEDULED_CNT,
+            (SELECT COUNT(*) FROM CONSULTATION WHERE TRIM(CNSL_STAT_CD) = '02') AS DONE_CNT,
+            (SELECT COUNT(*) FROM CONSULTATION WHERE TRIM(CNSL_STAT_CD) = '03') AS FOLLOWUP_CNT
+        FROM DUAL
+    </select>
+
+    <!-- ================================================================
+         상담 이력 공통 컬럼 / 조인
+    ================================================================ -->
+    <sql id="consultColumns">
+        C.CNSL_SN, C.STD_USER_ID,
+        SM.USER_NAME       AS STUDENT_NM,
+        PM.USER_NAME       AS PARENT_NM,
+        C.CHRG_USER_ID,
+        CM.USER_NAME       AS CHRG_NM,
+        C.CNSL_TYPE_CD,
+        CT.COM_CD_NM       AS CNSL_TYPE_NM,
+        C.CNSL_STAT_CD,
+        CS.COM_CD_NM       AS CNSL_STAT_NM,
+        C.CNSL_DT, C.CNSL_CN, C.CNSL_SMRY, C.FLLW_UP_CN
+    </sql>
+
+    <sql id="consultJoins">
+        FROM CONSULTATION C
+        JOIN STUDENT S      ON C.STD_USER_ID = S.STD_USER_ID
+        JOIN MEMBER SM      ON S.STD_USER_ID = SM.USER_ID
+        LEFT JOIN MEMBER PM ON S.PRNT_USER_ID = PM.USER_ID
+        LEFT JOIN MEMBER CM ON C.CHRG_USER_ID = CM.USER_ID
+        LEFT JOIN COM_CD CT ON TRIM(CT.CL_CODE) = '211' AND TRIM(CT.COM_CD) = TRIM(C.CNSL_TYPE_CD)
+        LEFT JOIN COM_CD CS ON TRIM(CS.CL_CODE) = '212' AND TRIM(CS.COM_CD) = TRIM(C.CNSL_STAT_CD)
+    </sql>
+
+    <!-- ── 전체 상담 이력 검색 조건 ───────────────────────────── -->
+    <sql id="consultWhere">
+        <where>
+            <if test="detailCondition.stdUserId != null and detailCondition.stdUserId != ''">
+                AND C.STD_USER_ID = #{detailCondition.stdUserId}
+            </if>
+            <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
+                AND (UPPER(SM.USER_NAME) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%'
+                  OR UPPER(PM.USER_NAME) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%')
+            </if>
+            <if test="detailCondition.cnslTypeCd != null and detailCondition.cnslTypeCd != ''">
+                AND TRIM(C.CNSL_TYPE_CD) = #{detailCondition.cnslTypeCd}
+            </if>
+            <if test="detailCondition.cnslStatCd != null and detailCondition.cnslStatCd != ''">
+                AND TRIM(C.CNSL_STAT_CD) = #{detailCondition.cnslStatCd}
+            </if>
+        </where>
+    </sql>
+
+    <select id="searchConsultations" resultType="kr.or.ddit.finalProject.dto.consultation.ConsultationDto">
+        SELECT <include refid="consultColumns"/>
+        <include refid="consultJoins"/>
+        <include refid="consultWhere"/>
+        ORDER BY C.CNSL_DT DESC, C.CNSL_SN DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <select id="countConsultations" resultType="int">
+        SELECT COUNT(*)
+        FROM CONSULTATION C
+        JOIN STUDENT S      ON C.STD_USER_ID = S.STD_USER_ID
+        JOIN MEMBER SM      ON S.STD_USER_ID = SM.USER_ID
+        LEFT JOIN MEMBER PM ON S.PRNT_USER_ID = PM.USER_ID
+        <include refid="consultWhere"/>
+    </select>
+
+    <!-- ── 학생별 상담 이력 (비페이징 · 타임라인) ──────────────── -->
+    <select id="selectByStudent" resultType="kr.or.ddit.finalProject.dto.consultation.ConsultationDto">
+        SELECT <include refid="consultColumns"/>
+        <include refid="consultJoins"/>
+        WHERE C.STD_USER_ID = #{stdUserId}
+        ORDER BY C.CNSL_DT DESC, C.CNSL_SN DESC
+    </select>
+
+    <!-- ── 캘린더 표시용 (기간 조회) ───────────────────────────── -->
+    <select id="selectForCalendar" resultType="kr.or.ddit.finalProject.dto.consultation.ConsultationDto">
+        SELECT <include refid="consultColumns"/>
+        <include refid="consultJoins"/>
+        WHERE C.CNSL_DT &gt;= TO_DATE(SUBSTR(#{start}, 1, 10), 'YYYY-MM-DD')
+          AND C.CNSL_DT &lt;  TO_DATE(SUBSTR(#{end},   1, 10), 'YYYY-MM-DD')
+        ORDER BY C.CNSL_DT
+    </select>
+
+    <!-- ── 상담 상세 (보기 모달) ───────────────────────────────── -->
+    <select id="selectById" resultType="kr.or.ddit.finalProject.dto.consultation.ConsultationDto">
+        SELECT <include refid="consultColumns"/>
+        <include refid="consultJoins"/>
+        WHERE C.CNSL_SN = #{cnslSn}
+    </select>
+
+    <!-- ================================================================
+         학생 모달 검색 (STUDENT 기준)
+    ================================================================ -->
+    <sql id="studentColumns">
+        S.STD_USER_ID,
+        SM.USER_NAME   AS STUDENT_NM,
+        SM.USER_TELNO  AS STUDENT_TEL,
+        S.ENRL_SCHL_NM,
+        PM.USER_NAME   AS PARENT_NM,
+        S.PRNT_TELNO   AS PARENT_TEL,
+        (SELECT MAX(CR.CLASS_NM)
+           FROM CLASSROOM_MEMBER CMB
+           JOIN CLASSROOM CR ON CMB.CLASS_SN = CR.CLASS_SN
+          WHERE CMB.USER_ID = S.STD_USER_ID)               AS CLASS_NM,
+        (SELECT COUNT(*) FROM CONSULTATION CC
+          WHERE CC.STD_USER_ID = S.STD_USER_ID)            AS CNSL_CNT
+    </sql>
+
+    <sql id="studentWhere">
+        <where>
+            <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
+                AND (UPPER(SM.USER_NAME) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%'
+                  OR UPPER(PM.USER_NAME) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%')
+            </if>
+        </where>
+    </sql>
+
+    <select id="searchStudents" resultType="kr.or.ddit.finalProject.dto.consultation.ConsultationStudentDto">
+        SELECT <include refid="studentColumns"/>
+        FROM STUDENT S
+        JOIN MEMBER SM      ON S.STD_USER_ID = SM.USER_ID
+        LEFT JOIN MEMBER PM ON S.PRNT_USER_ID = PM.USER_ID
+        <include refid="studentWhere"/>
+        ORDER BY SM.USER_NAME
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <select id="countStudents" resultType="int">
+        SELECT COUNT(*)
+        FROM STUDENT S
+        JOIN MEMBER SM      ON S.STD_USER_ID = SM.USER_ID
+        LEFT JOIN MEMBER PM ON S.PRNT_USER_ID = PM.USER_ID
+        <include refid="studentWhere"/>
+    </select>
+
+    <!-- ── 학생 1인 정보 + 학부모 자동 매칭 ─────────────────────── -->
+    <select id="selectStudentInfo" resultType="kr.or.ddit.finalProject.dto.consultation.ConsultationStudentDto">
+        SELECT <include refid="studentColumns"/>
+        FROM STUDENT S
+        JOIN MEMBER SM      ON S.STD_USER_ID = SM.USER_ID
+        LEFT JOIN MEMBER PM ON S.PRNT_USER_ID = PM.USER_ID
+        WHERE S.STD_USER_ID = #{stdUserId}
+    </select>
+
+    <!-- ── 학생이 수강 중인 강좌 (상담 상세 모달) ──────────────── -->
+    <select id="selectStudentCourses" resultType="kr.or.ddit.finalProject.dto.course.CourseDto">
+        SELECT
+            CO.COURSE_SN     AS COURSE_SN,
+            CO.COURSE_NM     AS COURSE_NM,
+            CO.INSTR_USER_ID AS INSTR_USER_ID,
+            IM.USER_NAME     AS INSTR_NM
+        FROM CLASSROOM_MEMBER CM
+        JOIN CLASSROOM CL   ON CM.CLASS_SN = CL.CLASS_SN
+        JOIN COURSE CO      ON CL.COURSE_SN = CO.COURSE_SN
+        LEFT JOIN MEMBER IM ON CO.INSTR_USER_ID = IM.USER_ID
+        WHERE CM.USER_ID = #{stdUserId}
+          AND TRIM(CM.ENRL_STAT_CD) IN ('ENROLLED', 'COMPLETED')
+        ORDER BY CO.COURSE_NM
+    </select>
+
+    <!-- ================================================================
+         상담 기록 저장
+    ================================================================ -->
+    <insert id="insertConsultation" parameterType="kr.or.ddit.finalProject.dto.consultation.ConsultationDto">
+        INSERT INTO CONSULTATION (
+            STD_USER_ID, CHRG_USER_ID, CNSL_TYPE_CD, CNSL_STAT_CD,
+            CNSL_DT, CNSL_CN, CNSL_SMRY, FLLW_UP_CN, RGTR_ID
+        ) VALUES (
+            #{stdUserId}, #{chrgUserId}, #{cnslTypeCd}, #{cnslStatCd},
+            #{cnslDt}, #{cnslCn}, #{cnslSmry}, #{fllwUpCn}, #{rgtrId}
+        )
+    </insert>
+
+</mapper>
