@@ -41,14 +41,16 @@
             <td class="py-3 px-6 font-semibold text-slate-800" th:text="${member.userName}">홍길동</td>
             <td class="py-3 px-6 text-xs text-slate-500 font-mono" th:text="${member.userId}">user123</td>
             <td class="py-3 px-6 text-center">
-              <span th:if="${member.enrlStatCd == '01'}"
-                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-600">수강중</span>
-              <span th:if="${member.enrlStatCd == '02'}"
-                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600">수강완료</span>
-              <span th:if="${member.enrlStatCd == '03'}"
-                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-500">중도탈퇴</span>
-              <span th:if="${member.enrlStatCd == '04'}"
-                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-400">등록취소</span>
+              <th:block th:switch="${member.enrlStatCd}">
+                <span th:case="${T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).ENROLLED}"
+                      class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-600">수강중</span>
+                <span th:case="${T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).COMPLETED}"
+                      class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600">수강완료</span>
+                <span th:case="${T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).WITHDRAWN}"
+                      class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-500">중도탈퇴</span>
+                <span th:case="${T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).CANCELLED}"
+                      class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-400">등록취소</span>
+              </th:block>
             </td>
             <td class="py-3 px-6 text-xs text-slate-400 font-mono" th:text="${member.formattedRegDt}">2026-01-01</td>
           </tr>

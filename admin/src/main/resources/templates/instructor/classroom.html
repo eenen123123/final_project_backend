@@ -150,22 +150,24 @@
 
             <!-- 수강 상태 배지 -->
             <td class="py-4 px-6">
-              <span th:if="${member.enrlStatCd == '01'}"
-                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600">
-                <i class="fa-solid fa-circle-dot text-[8px]"></i> 수강중
-              </span>
-              <span th:if="${member.enrlStatCd == '02'}"
-                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-50 text-sky-600">
-                <i class="fa-solid fa-circle-check text-[8px]"></i> 수강완료
-              </span>
-              <span th:if="${member.enrlStatCd == '03'}"
-                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-500">
-                <i class="fa-solid fa-circle-xmark text-[8px]"></i> 중도탈퇴
-              </span>
-              <span th:if="${member.enrlStatCd == '04'}"
-                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500">
-                <i class="fa-solid fa-circle text-[8px]"></i> 등록취소
-              </span>
+              <th:block th:switch="${member.enrlStatCd}">
+                <span th:case="${T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).ENROLLED}"
+                      class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600">
+                  <i class="fa-solid fa-circle-dot text-[8px]"></i> 수강중
+                </span>
+                <span th:case="${T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).COMPLETED}"
+                      class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-50 text-sky-600">
+                  <i class="fa-solid fa-circle-check text-[8px]"></i> 수강완료
+                </span>
+                <span th:case="${T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).WITHDRAWN}"
+                      class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-500">
+                  <i class="fa-solid fa-circle-xmark text-[8px]"></i> 중도탈퇴
+                </span>
+                <span th:case="${T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).CANCELLED}"
+                      class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500">
+                  <i class="fa-solid fa-circle text-[8px]"></i> 등록취소
+                </span>
+              </th:block>
             </td>
 
             <!-- 등록일 -->
