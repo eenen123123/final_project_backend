@@ -158,7 +158,13 @@ function openProcessModal(student) {
   document.getElementById("procModalStudentId").value = student && student.stdUserId ? student.stdUserId : "";
   document.getElementById("procModalStudentNm").value = student && student.studentNm ? student.studentNm : "";
   document.getElementById("procModalContent").value = "";
+  document.getElementById("procModalDt").value = defaultDatetime();
   document.getElementById("processModal").classList.remove("hidden");
+}
+function defaultDatetime() {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  return now.toISOString().slice(0, 16);
 }
 function closeProcessModal() {
   document.getElementById("processModal").classList.add("hidden");
@@ -166,8 +172,13 @@ function closeProcessModal() {
 function saveProcessRecord() {
   const stdUserId = document.getElementById("procModalStudentId").value;
   const rtnpCn = document.getElementById("procModalContent").value.trim();
+  const rtnpDt = document.getElementById("procModalDt").value;
   if (!stdUserId) {
     showHermesToast("학생을 선택해 주세요.", "error");
+    return;
+  }
+  if (!rtnpDt) {
+    showHermesToast("상담 일시를 입력해 주세요.", "error");
     return;
   }
   if (!rtnpCn) {
@@ -179,6 +190,7 @@ function saveProcessRecord() {
     wdrwRsnCd: document.getElementById("procModalReason").value,
     rtnpRsltCd: document.getElementById("procModalResult").value,
     rtnpCn: rtnpCn,
+    rtnpDt: rtnpDt,
   };
   fetch(`${RET_BASE}/processes`, {
     method: "POST",
@@ -195,7 +207,7 @@ function saveProcessRecord() {
       closeProcessModal();
       loadSummary();
       loadProcesses(1);
-      refreshCalendar();
+      SharedCalendar.reload();
     })
     .catch(() => showHermesToast("저장 중 오류가 발생했습니다.", "error"));
 }
@@ -301,176 +313,6 @@ function uploadAttendance(input) {
     });
 }
 
-/* ── 상담 프로세스 캘린더 (커스텀 월 그리드) ── */
-let retCalYear = new Date().getFullYear();
-let retCalMonth = new Date().getMonth();
-let retPickerYear = retCalYear;
-let retEventsByDate = {};
-
-function pad2(n) {
-  return String(n).padStart(2, "0");
-}
-function ymd(y, m, d) {
-  return y + "-" + pad2(m + 1) + "-" + pad2(d);
-}
-function rsltClass(name) {
-  return name === "유지" ? "rslt-retained" : name === "퇴원" ? "rslt-left" : "rslt-ongoing";
-}
-
-function initCalendar() {
-  document.addEventListener("click", (e) => {
-    const picker = document.getElementById("ret-month-picker");
-    const btn = document.getElementById("ret-month-picker-btn");
-    if (picker && btn && !picker.contains(e.target) && !btn.contains(e.target)) picker.classList.add("hidden");
-  });
-  loadCalendar();
-}
-function loadCalendar() {
-  const firstDow = new Date(retCalYear, retCalMonth, 1).getDay();
-  const gridStart = new Date(retCalYear, retCalMonth, 1 - firstDow);
-  const gridEnd = new Date(gridStart);
-  gridEnd.setDate(gridEnd.getDate() + 42);
-  const startStr = ymd(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate());
-  const endStr = ymd(gridEnd.getFullYear(), gridEnd.getMonth(), gridEnd.getDate());
-  fetch(`${RET_BASE}/calendar?start=${startStr}&end=${endStr}`)
-    .then((r) => r.json())
-    .then((list) => {
-      retEventsByDate = {};
-      list.forEach((c) => {
-        const d = (c.rtnpDt || "").substring(0, 10);
-        if (!d) return;
-        (retEventsByDate[d] = retEventsByDate[d] || []).push(c);
-      });
-      renderCalendar();
-    });
-}
-function refreshCalendar() {
-  loadCalendar();
-}
-function renderCalendar() {
-  document.getElementById("ret-cal-year").textContent = retCalYear;
-  document.getElementById("ret-cal-month").textContent = pad2(retCalMonth + 1);
-
-  const today = new Date();
-  const todayStr = ymd(today.getFullYear(), today.getMonth(), today.getDate());
-  const firstDow = new Date(retCalYear, retCalMonth, 1).getDay();
-  const daysInMonth = new Date(retCalYear, retCalMonth + 1, 0).getDate();
-  const daysInPrev = new Date(retCalYear, retCalMonth, 0).getDate();
-
-  const cells = [];
-  for (let i = firstDow - 1; i >= 0; i--)
-    cells.push({ day: daysInPrev - i, year: retCalMonth === 0 ? retCalYear - 1 : retCalYear, month: retCalMonth === 0 ? 11 : retCalMonth - 1, other: true });
-  for (let d = 1; d <= daysInMonth; d++) cells.push({ day: d, year: retCalYear, month: retCalMonth, other: false });
-  const rem = 42 - cells.length;
-  for (let d = 1; d <= rem; d++)
-    cells.push({ day: d, year: retCalMonth === 11 ? retCalYear + 1 : retCalYear, month: retCalMonth === 11 ? 0 : retCalMonth + 1, other: true });
-
-  const grid = document.getElementById("ret-cal-grid");
-  grid.innerHTML = "";
-  cells.forEach((cell, idx) => {
-    const ds = ymd(cell.year, cell.month, cell.day);
-    const isSun = idx % 7 === 0;
-    const isSat = idx % 7 === 6;
-    const isToday = ds === todayStr;
-    const dayEvents = cell.other ? [] : retEventsByDate[ds] || [];
-
-    const div = document.createElement("div");
-    div.className = "cal-cell border-r border-b border-slate-100 p-1.5 flex flex-col gap-0.5 transition-colors";
-    if (cell.other) div.classList.add("other-month");
-    else {
-      if (isSun) div.classList.add("sun-bg");
-      if (isToday) div.classList.add("today-cell");
-    }
-
-    const dateDiv = document.createElement("div");
-    dateDiv.className = "flex items-center gap-1 mb-0.5";
-    const span = document.createElement("span");
-    span.className = "text-xs font-medium";
-    span.textContent = cell.day;
-    if (cell.other) span.classList.add("text-slate-300");
-    else if (isSun) span.classList.add("text-red-400");
-    else if (isSat) span.classList.add("text-blue-400");
-    else span.classList.add("text-slate-700");
-    dateDiv.appendChild(span);
-    if (isToday && !cell.other) {
-      const tb = document.createElement("span");
-      tb.className = "text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-violet-500 text-white leading-none";
-      tb.textContent = "Today";
-      dateDiv.appendChild(tb);
-    }
-    div.appendChild(dateDiv);
-
-    dayEvents.slice(0, 3).forEach((ev) => {
-      const bar = document.createElement("div");
-      bar.className = "event-bar " + rsltClass(ev.rtnpRsltNm);
-      const label = (ev.studentNm || "") + (ev.rtnpRsltNm ? " " + ev.rtnpRsltNm : "");
-      bar.textContent = label.length > 14 ? label.slice(0, 14) + "..." : label;
-      bar.title = label;
-      div.appendChild(bar);
-    });
-    if (dayEvents.length > 3) {
-      const more = document.createElement("span");
-      more.className = "text-[10px] text-slate-400";
-      more.textContent = "+" + (dayEvents.length - 3) + "건";
-      div.appendChild(more);
-    }
-    grid.appendChild(div);
-  });
-}
-function retCalPrev() {
-  if (retCalMonth === 0) {
-    retCalYear--;
-    retCalMonth = 11;
-  } else retCalMonth--;
-  loadCalendar();
-}
-function retCalNext() {
-  if (retCalMonth === 11) {
-    retCalYear++;
-    retCalMonth = 0;
-  } else retCalMonth++;
-  loadCalendar();
-}
-function retCalToday() {
-  const t = new Date();
-  retCalYear = t.getFullYear();
-  retCalMonth = t.getMonth();
-  loadCalendar();
-}
-function retTogglePicker() {
-  const p = document.getElementById("ret-month-picker");
-  p.classList.toggle("hidden");
-  retPickerYear = retCalYear;
-  retRenderPickerMonths();
-}
-function retRenderPickerMonths() {
-  document.getElementById("ret-picker-year").textContent = retPickerYear;
-  const c = document.getElementById("ret-picker-months");
-  c.innerHTML = "";
-  for (let m = 0; m < 12; m++) {
-    const b = document.createElement("button");
-    b.textContent = m + 1 + "월";
-    b.className =
-      "py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer " +
-      (retPickerYear === retCalYear && m === retCalMonth ? "bg-violet-600 text-white" : "hover:bg-slate-100 text-slate-700");
-    b.onclick = () => {
-      retCalYear = retPickerYear;
-      retCalMonth = m;
-      document.getElementById("ret-month-picker").classList.add("hidden");
-      loadCalendar();
-    };
-    c.appendChild(b);
-  }
-}
-function retPickerPrevYear() {
-  retPickerYear--;
-  retRenderPickerMonths();
-}
-function retPickerNextYear() {
-  retPickerYear++;
-  retRenderPickerMonths();
-}
-
 /* ── 초기화 ── */
 document.addEventListener("DOMContentLoaded", function () {
   loadCommonCodes("anoType", "226", "전체 유형");
@@ -478,7 +320,11 @@ document.addEventListener("DOMContentLoaded", function () {
   loadCommonCodes("procModalReason", "203");
   loadCommonCodes("procModalResult", "227");
 
-  initCalendar();
+  SharedCalendar.init({
+    onEventClick: (ev) => {
+      showHermesToast(`[${ev.source}] ${ev.title}${ev.label ? " · " + ev.label : ""}`, "info");
+    },
+  });
   loadSummary();
   loadAnomalies(1);
   loadProcesses(1);
