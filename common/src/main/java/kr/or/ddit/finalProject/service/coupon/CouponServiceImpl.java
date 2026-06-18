@@ -17,9 +17,11 @@ import kr.or.ddit.finalProject.dto.coupon.PointHistDto;
 import kr.or.ddit.finalProject.dto.coupon.PointHistType;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
+import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.mapper.MemberMapper;
 import kr.or.ddit.finalProject.mapper.coupon.CouponMapper;
 import kr.or.ddit.finalProject.mapper.coupon.PointMapper;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -131,8 +133,11 @@ public class CouponServiceImpl implements CouponService {
     }
 
     @Override
-    public List<MemberCouponPointDto> getMyCoupons(String userId) {
-        return couponMapper.selectUserCouponsByUserId(userId);
+    public PageResponse<MemberCouponPointDto> getMyCoupons(String userId, String startDate, String endDate, int page) {
+        PaginationInfo<?> paginationInfo = new PaginationInfo<>(10, page);
+        List<MemberCouponPointDto> items = couponMapper.selectUserCouponsByUserId(userId, startDate, endDate, paginationInfo);
+        int totalCount = couponMapper.selectUserCouponCountByUserId(userId, startDate, endDate);
+        return new PageResponse<>(items, totalCount);
     }
 
     @Override

@@ -46,7 +46,7 @@ public class AdminPointController {
             @RequestParam String userId,
             @RequestParam AssetType assetType) {
         long balance = pointService.getPointBalance(userId, assetType);
-        List<PointHistDto> history = pointService.getPointHistoryByType(userId, assetType);
+        List<PointHistDto> history = pointService.getPointHistoryByType(userId, assetType, null, null, 1).getItems();
         String userName = pointService.getUserName(userId);
 
         Map<String, Object> result = new HashMap<>();

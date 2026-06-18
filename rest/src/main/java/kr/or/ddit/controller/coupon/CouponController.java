@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.coupon.MemberCouponPointDto;
 import kr.or.ddit.finalProject.service.coupon.CouponService;
 import lombok.RequiredArgsConstructor;
@@ -22,10 +24,13 @@ public class CouponController {
 
     private final CouponService couponService;
 
-    // GET /api/coupons/my - 내 쿠폰 목록
+    // GET /api/coupons/my?startDate=&endDate=&page=1 - 내 쿠폰 목록 (날짜 범위, 페이징)
     @GetMapping("/my")
-    public ResponseEntity<List<MemberCouponPointDto>> getMyCoupons(Authentication authentication) {
-        return ResponseEntity.ok(couponService.getMyCoupons(authentication.getName()));
+    public ResponseEntity<PageResponse<MemberCouponPointDto>> getMyCoupons(Authentication authentication,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(defaultValue = "1") int page) {
+        return ResponseEntity.ok(couponService.getMyCoupons(authentication.getName(), startDate, endDate, page));
     }
 
     // GET /api/coupons/my/expiring - 소멸 예정 쿠폰 (다음달 만료)
