@@ -34,8 +34,8 @@
     <!-- 답변 영역 -->
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
 
-      <!-- 답변 완료 -->
-      <div th:if="${qna.answYn == 'Y'}">
+      <!-- 답변 완료 + 수정 모드 아닐 때 -->
+      <div th:if="${qna.answYn == 'Y' and !editAnswer}">
         <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-2 bg-emerald-50/50">
           <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
           <span class="text-sm font-bold text-emerald-700">강사 답변</span>
@@ -43,28 +43,44 @@
                 th:text="${qna.answrUserNm != null ? qna.answrUserNm : qna.answrUserId}">강사명</span>
           <span class="text-xs text-slate-400"
                 th:text="${qna.answDt != null ? #temporals.format(qna.answDt, 'yyyy-MM-dd HH:mm') : ''}"></span>
+          <a th:href="@{/classroom/detail/{sn}/qna/{postSn}(sn=${classroom.classSn},postSn=${qna.postSn},editAnswer=true)}"
+             class="text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors ml-2">수정</a>
         </div>
         <div class="px-6 py-6 text-sm text-slate-700 leading-relaxed whitespace-pre-wrap"
              th:text="${qna.answCn}">답변 내용</div>
       </div>
 
-      <!-- 답변 작성 폼 (미답변 시) -->
-      <div th:unless="${qna.answYn == 'Y'}">
-        <div class="px-6 py-4 border-b border-slate-100">
-          <span class="text-sm font-bold text-slate-700">답변 작성</span>
+      <!-- 답변 작성/수정 폼 -->
+      <div th:if="${qna.answYn != 'Y' or editAnswer}">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          <span class="text-sm font-bold text-slate-700"
+                th:text="${editAnswer} ? '답변 수정' : '답변 작성'">답변 작성</span>
+          <a th:if="${editAnswer}"
+             th:href="@{/classroom/detail/{sn}/qna/{postSn}(sn=${classroom.classSn},postSn=${qna.postSn})}"
+             class="text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors">취소</a>
         </div>
         <div class="p-5">
           <form th:action="@{/classroom/detail/{sn}/qna/{postSn}/answer(sn=${classroom.classSn},postSn=${qna.postSn})}"
                 method="post">
             <textarea name="answCn" placeholder="답변을 입력하세요" rows="5"
-                      class="w-full text-sm px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 resize-none" required></textarea>
+                      class="w-full text-sm px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 resize-none"
+                      required
+                      th:text="${editAnswer} ? ${qna.answCn} : ''"></textarea>
             <div class="flex justify-end mt-3">
               <button type="submit"
-                      class="text-xs font-bold px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">답변 등록</button>
+                      class="text-xs font-bold px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      th:text="${editAnswer} ? '수정 완료' : '답변 등록'">답변 등록</button>
             </div>
           </form>
         </div>
       </div>
+    </div>
+
+    <div>
+      <a th:href="@{/classroom/detail/{sn}/qna(sn=${classroom.classSn})}"
+         class="text-xs font-bold text-slate-500 hover:text-slate-700 flex items-center gap-1 transition-colors w-fit">
+        <i class="fa-solid fa-chevron-left text-[10px]"></i> 목록으로
+      </a>
     </div>
 
   </div>
@@ -76,13 +92,6 @@
       <i class="fa-solid fa-circle-exclamation"></i>
     </div>
     <p class="text-sm font-medium text-slate-500">존재하지 않는 질문입니다.</p>
-  </div>
-
-  <div>
-    <a th:href="@{/classroom/detail/{sn}/qna(sn=${classroom.classSn})}"
-       class="text-xs font-bold text-slate-500 hover:text-slate-700 flex items-center gap-1 transition-colors w-fit">
-      <i class="fa-solid fa-chevron-left text-[10px]"></i> 목록으로
-    </a>
   </div>
 
 </div>

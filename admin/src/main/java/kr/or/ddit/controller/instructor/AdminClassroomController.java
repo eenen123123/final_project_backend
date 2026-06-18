@@ -202,24 +202,16 @@ public class AdminClassroomController {
     public String qnaList(@PathVariable Long classSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
         model.addAttribute("qnaList", instructorBoardService.getClassroomQnaList(classSn));
-        return "classroom/qna";
+        return "classroom/list-classroom-qna";
     }
 
     @GetMapping("/detail/{classSn}/qna/{postSn}")
-    public String qnaDetail(@PathVariable Long classSn, @PathVariable Long postSn, Model model) {
+    public String qnaDetail(@PathVariable Long classSn, @PathVariable Long postSn,
+            @RequestParam(required = false) boolean editAnswer, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
         model.addAttribute("qna", instructorBoardService.getClassroomQnaDetail(postSn, classSn));
-        return "classroom/qna-detail";
-    }
-
-    @PostMapping("/detail/{classSn}/qna/write")
-    public String qnaWrite(@PathVariable Long classSn, @ModelAttribute InstructorBoardDto dto,
-            Authentication authentication) {
-        dto.setClassSn(classSn);
-        dto.setInstrUserId(authentication.getName());
-        dto.setWrtrUserId(authentication.getName());
-        instructorBoardService.insertClassroomQna(dto);
-        return "redirect:/classroom/detail/" + classSn + "/qna";
+        model.addAttribute("editAnswer", editAnswer);
+        return "classroom/detail-classroom-qna";
     }
 
     @PostMapping("/detail/{classSn}/qna/{postSn}/answer")

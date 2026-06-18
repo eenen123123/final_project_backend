@@ -10,30 +10,8 @@
 <div id="content">
 
   <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+    <div class="px-6 py-4 border-b border-slate-100">
       <h2 class="text-sm font-bold text-slate-700">Q&amp;A</h2>
-      <button onclick="document.getElementById('writeForm').classList.toggle('hidden')"
-              class="text-xs font-bold px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1">
-        <i class="fa-solid fa-plus text-[10px]"></i> 질문 등록
-      </button>
-    </div>
-
-    <!-- 질문 작성 폼 -->
-    <div id="writeForm" class="hidden border-b border-slate-100 p-5 bg-slate-50/50">
-      <form th:action="@{/classroom/detail/{sn}/qna/write(sn=${classroom.classSn})}" method="post">
-        <div class="flex flex-col gap-3">
-          <input type="text" name="postSj" placeholder="질문 제목"
-                 class="w-full text-sm px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400" required />
-          <textarea name="postCn" placeholder="질문 내용" rows="3"
-                    class="w-full text-sm px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 resize-none" required></textarea>
-          <div class="flex justify-end gap-2">
-            <button type="button" onclick="document.getElementById('writeForm').classList.add('hidden')"
-                    class="text-xs font-bold px-4 py-2 text-slate-500 border border-slate-200 rounded-lg hover:text-slate-700 transition-colors">취소</button>
-            <button type="submit"
-                    class="text-xs font-bold px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">등록</button>
-          </div>
-        </div>
-      </form>
     </div>
 
     <!-- 빈 목록 -->
