@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import kr.or.ddit.finalProject.dto.assignment.AssignmentBoardDto;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomListResponse;
@@ -43,23 +44,12 @@ public class ClassroomController {
         return "admin:/instructor/classroomList";
     }
 
-    @ModelAttribute
-    public void addCalendarAttributes(@PathVariable(required = false) Long classSn, Model model) {
-        if (classSn == null)
-            return;
+    @GetMapping("/detail/{classSn}")
+    public String classroomDetail(@PathVariable Long classSn, Model model) {
         LocalDate now = LocalDate.now();
         int year = now.getYear();
         int month = now.getMonthValue();
-        model.addAttribute("calendarYear", year);
-        model.addAttribute("calendarMonth", month);
-        model.addAttribute("calendarPadding",
-                classroomHomeService.retrieveCalendarPadding(year, month));
-        model.addAttribute("calendarDays",
-                classroomHomeService.retrieveCalendarDays(classSn, year, month));
-    }
 
-    @GetMapping("/detail/{classSn}")
-    public String classroomDetail(@PathVariable Long classSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
         model.addAttribute("weeklyData", classroomHomeService.retrieveWeeklyData(classSn));
         model.addAttribute("weeklyCompareText",
@@ -68,13 +58,23 @@ public class ClassroomController {
         model.addAttribute("assignmentCount",
                 classroomHomeService.retrieveUpcomingAssignmentCount(classSn));
         model.addAttribute("todayQuestion", classroomHomeService.retrieveTodayQuestion(classSn));
-        model.addAttribute("noticeCount", 0);
         model.addAttribute("unansweredQnaCount",
                 instructorBoardService.getUnansweredQnaCount(classSn));
         model.addAttribute("pendingGradeCount",
                 assignmentBoardService.getPendingGradeCount(classSn));
         model.addAttribute("inactiveStudentCount",
                 classroomHomeService.retrieveInactiveStudentCount(classSn));
+        model.addAttribute("calendarYear", year);
+        model.addAttribute("calendarMonth", month);
+        model.addAttribute("calendarPadding",
+                classroomHomeService.retrieveCalendarPadding(year, month));
+        model.addAttribute("calendarDays",
+                classroomHomeService.retrieveCalendarDays(classSn, year, month));
+
+        List<kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto> notices =
+                instructorBoardService.getClassroomNoticeList(classSn);
+        model.addAttribute("recentNotice", notices.isEmpty() ? null : notices.get(0));
+
         return "classroom/home";
     }
 

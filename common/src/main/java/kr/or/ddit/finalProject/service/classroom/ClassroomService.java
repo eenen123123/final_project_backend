@@ -11,6 +11,8 @@ public interface ClassroomService {
 
     List<ClassroomListResponse> retrieveClassroomList(String instrUserId);
 
+    List<ClassroomListResponse> retrieveMyClassrooms(String userId);
+
     ClassroomDetailResponse retrieveClassroomDetail(Long classSn);
 
     List<ClassroomGradeDto> retrieveGradeList(Long classSn);

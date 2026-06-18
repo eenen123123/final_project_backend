@@ -64,6 +64,11 @@ public class ClassroomServiceImpl implements ClassroomService {
     }
 
     @Override
+    public List<ClassroomListResponse> retrieveMyClassrooms(String userId) {
+        return classroomMemberMapper.selectClassroomsByUserId(userId);
+    }
+
+    @Override
     public List<ClassroomGradeDto> retrieveGradeList(Long classSn) {
         return classroomMemberMapper.selectGradeList(classSn);
     }
