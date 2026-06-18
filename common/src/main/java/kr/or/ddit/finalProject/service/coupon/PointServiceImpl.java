@@ -6,11 +6,13 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.coupon.AssetType;
 import kr.or.ddit.finalProject.dto.coupon.CouponUseStatus;
 import kr.or.ddit.finalProject.dto.coupon.MemberCouponPointDto;
 import kr.or.ddit.finalProject.dto.coupon.PointHistDto;
 import kr.or.ddit.finalProject.dto.coupon.PointHistType;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.mapper.MemberMapper;
@@ -137,8 +139,11 @@ public class PointServiceImpl implements PointService {
     }
 
     @Override
-    public List<PointHistDto> getPointHistoryByType(String userId, AssetType assetType) {
-        return pointMapper.selectPointHistByUserAndType(userId, assetType);
+    public PageResponse<PointHistDto> getPointHistoryByType(String userId, AssetType assetType, String startDate, String endDate, int page) {
+        PaginationInfo<?> paginationInfo = new PaginationInfo<>(10, page);
+        List<PointHistDto> items = pointMapper.selectPointHistByUserAndType(userId, assetType, startDate, endDate, paginationInfo);
+        int totalCount = pointMapper.selectPointHistCountByUserAndType(userId, assetType, startDate, endDate);
+        return new PageResponse<>(items, totalCount);
     }
 
     @Override

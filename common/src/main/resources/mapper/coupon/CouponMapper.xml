@@ -126,13 +126,32 @@
         )
     </insert>
 
-    <!-- 내 쿠폰 목록 조회 (사용자) -->
+    <!-- 쿠폰 공통 조건 -->
+    <sql id="userCouponCondition">
+        WHERE USER_ID = #{userId}
+          AND ASSET_TYPE = 'COUPON'
+        <if test="startDate != null and startDate != ''">
+            AND TRUNC(ISSUE_DT) &gt;= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND TRUNC(ISSUE_DT) &lt;= TO_DATE(#{endDate}, 'YYYY-MM-DD')
+        </if>
+    </sql>
+
+    <!-- 내 쿠폰 목록 조회 (사용자, 날짜 범위, 페이징) -->
     <select id="selectUserCouponsByUserId" resultMap="memberCouponPointResultMap">
         SELECT MCPNT_SN, USER_ID, COUPON_SN, COUPON_NM, ISSUE_DT, EXPIRY_DT, USE_YN, USE_DT, ORDER_SN, ISSUED_BY, REG_DT
         FROM MEMBER_COUPONPOINT
-        WHERE USER_ID = #{userId}
-          AND ASSET_TYPE = 'COUPON'
+        <include refid="userCouponCondition"/>
         ORDER BY ISSUE_DT DESC
+        OFFSET #{paginationInfo.offset} ROWS FETCH NEXT #{paginationInfo.screenSize} ROWS ONLY
+    </select>
+
+    <!-- 내 쿠폰 전체 건수 -->
+    <select id="selectUserCouponCountByUserId" resultType="int">
+        SELECT COUNT(*)
+        FROM MEMBER_COUPONPOINT
+        <include refid="userCouponCondition"/>
     </select>
 
     <!-- 전체 발급내역 조회 (관리자) - 수신 유저 이름 포함 -->

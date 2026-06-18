@@ -8,7 +8,7 @@
         INSERT INTO PAY_HIST (
             USER_ID, PAY_DIV_CD, TOSS_PAYMENT_KEY, ORD_SN, PTNR_ORD_ID,
             ITEM_NM, ITEM_QTY, PAY_STAT_CD, TOT_AMT, TAX_FREE_AMT, VAT_AMT,
-            PAY_READY_DT, PAY_APRVL_DT, RGTR_ID
+            PAY_READY_DT, PAY_APRVL_DT, RGTR_ID, POINT_AMT
         ) VALUES (
             #{userId},
             #{payDivCd},
@@ -23,7 +23,8 @@
             #{vatAmt},
             #{payReadyDt},
             #{payAprvlDt},
-            #{rgtrId}
+            #{rgtrId},
+            #{pointAmt}
         )
     </insert>
 

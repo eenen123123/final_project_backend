@@ -28,5 +28,6 @@ public class PayHistDto {
     private LocalDateTime payReadyDt; // [Toss]requestedAt
     private LocalDateTime payAprvlDt; // [Toss]approvedAt
     private String rgtrId; // 등록자 ID
+    private Long pointAmt; // [포인트 시스템] 결제 시 사용한 포인트량
 
 }

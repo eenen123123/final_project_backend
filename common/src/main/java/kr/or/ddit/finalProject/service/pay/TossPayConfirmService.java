@@ -76,7 +76,17 @@ public class TossPayConfirmService {
             }
         }
 
-        // HM 포인트 적립 (결제금액의 1%, 0이면 스킵)
+        // 포인트 차감 (주문 생성 시 검증 완료, 결제 승인 후 실제 차감)
+        if (order.getPointAmt() != null && order.getPointAmt() > 0) {
+            pointService.usePoint(
+                    userId,
+                    order.getPointType(),
+                    order.getPointAmt(),
+                    order.getOrdSn(),
+                    "주문 결제 사용 - " + order.getOrdNm());
+        }
+
+        // HM 포인트 적립 (실제 현금 결제액의 1%, 0이면 스킵)
         long earnAmt = order.getTotAmt() / 100;
         if (earnAmt > 0) {
             pointService.earnPoint(userId, AssetType.HM_POINT, earnAmt, order.getOrdSn(), order.getOrdNm());
@@ -103,6 +113,7 @@ public class TossPayConfirmService {
                 .payReadyDt(toLocalDateTime(response.getRequestedAt()))
                 .payAprvlDt(toLocalDateTime(response.getApprovedAt()))
                 .rgtrId(userId)
+                .pointAmt(order.getPointAmt())
                 .build();
     }
 

@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Param;
 
 import kr.or.ddit.finalProject.dto.coupon.CouponDto;
 import kr.or.ddit.finalProject.dto.coupon.MemberCouponPointDto;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
 
 @Mapper
 public interface CouponMapper {
@@ -23,8 +24,18 @@ public interface CouponMapper {
     // 유저에게 쿠폰 발급 (관리자)
     int insertUserCoupon(MemberCouponPointDto userCouponDto);
 
-    // 내 쿠폰 목록 조회 (사용자)
-    List<MemberCouponPointDto> selectUserCouponsByUserId(@Param("userId") String userId);
+    // 내 쿠폰 목록 조회 (사용자, 날짜 범위, 페이징)
+    List<MemberCouponPointDto> selectUserCouponsByUserId(
+            @Param("userId") String userId,
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate,
+            @Param("paginationInfo") PaginationInfo<?> paginationInfo);
+
+    // 내 쿠폰 전체 건수
+    int selectUserCouponCountByUserId(
+            @Param("userId") String userId,
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate);
 
     // 소멸 예정 쿠폰 조회 - 다음달 만료 (사용자)
     List<MemberCouponPointDto> selectExpiringCoupons(@Param("userId") String userId);

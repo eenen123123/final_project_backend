@@ -11,6 +11,8 @@
         <result property="ordNm" column="ORD_NM"/>
         <result property="totAmt" column="TOT_AMT"/>
         <result property="ordStatCd" column="ORD_STAT_CD"/>
+        <result property="pointAmt"  column="POINT_AMT"/>
+        <result property="pointType" column="POINT_TYPE"/>
         <result property="regDt" column="REG_DT"/>
         <result property="mdfcnDt" column="MDFCN_DT"/>
     </resultMap>
@@ -29,13 +31,15 @@
     </resultMap>
 
     <insert id="insertOrder" parameterType="kr.or.ddit.finalProject.dto.order.OrderDto" useGeneratedKeys="true" keyProperty="ordSn" keyColumn="ORD_SN">
-        INSERT INTO ORDERS (ORD_ID, USER_ID, ORD_NM, TOT_AMT, ORD_STAT_CD)
+        INSERT INTO ORDERS (ORD_ID, USER_ID, ORD_NM, TOT_AMT, ORD_STAT_CD, POINT_AMT, POINT_TYPE)
         VALUES (
             #{ordId},
             #{userId},
             #{ordNm},
             #{totAmt},
-            #{ordStatCd}
+            #{ordStatCd},
+            #{pointAmt},
+            #{pointType}
         )
     </insert>
 
@@ -52,7 +56,7 @@
     </insert>
 
     <select id="selectOrderByOrdId" resultMap="orderResultMap">
-        SELECT ORD_SN, ORD_ID, USER_ID, ORD_NM, TOT_AMT, ORD_STAT_CD, REG_DT, MDFCN_DT
+        SELECT ORD_SN, ORD_ID, USER_ID, ORD_NM, TOT_AMT, ORD_STAT_CD, POINT_AMT, POINT_TYPE, REG_DT, MDFCN_DT
         FROM ORDERS
         WHERE ORD_ID = #{ordId}
     </select>
