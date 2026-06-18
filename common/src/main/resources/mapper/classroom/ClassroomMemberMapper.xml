@@ -55,7 +55,7 @@
            ON s.SBMT_USER_ID = cm.USER_ID
           AND s.ASGMT_SN IN (SELECT ASGMT_SN FROM ASSIGNMENT_BOARD WHERE CLASS_SN = #{classSn})
     WHERE cm.CLASS_SN = #{classSn}
-      AND cm.ENRL_STAT_CD = '01'
+      AND cm.ENRL_STAT_CD = 'ENROLLED'
     GROUP BY cm.USER_ID, m.USER_NAME
     ORDER BY m.USER_NAME ASC
   </select>
@@ -71,7 +71,7 @@
     JOIN CLASSROOM cl ON cm.CLASS_SN = cl.CLASS_SN
     JOIN COURSE c     ON cl.COURSE_SN = c.COURSE_SN
     WHERE cm.USER_ID = #{userId}
-      AND cm.ENRL_STAT_CD = '01'
+      AND cm.ENRL_STAT_CD = 'ENROLLED'
     ORDER BY cm.REG_DT DESC
   </select>
 

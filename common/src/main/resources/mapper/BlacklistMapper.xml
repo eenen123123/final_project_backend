@@ -32,7 +32,7 @@
                    LISTAGG(cl.CLASS_NM, ', ') WITHIN GROUP (ORDER BY cl.CLASS_NM) AS CLASS_NM
             FROM CLASSROOM_MEMBER cm
             JOIN CLASSROOM cl ON cl.CLASS_SN = cm.CLASS_SN
-            WHERE cm.ENRL_STAT_CD = '01'
+            WHERE cm.ENRL_STAT_CD = 'ENROLLED'
             GROUP BY cm.USER_ID
         ) cls ON cls.USER_ID = bl.STD_USER_ID
         LEFT JOIN (
@@ -213,7 +213,7 @@
         FROM CLASSROOM_MEMBER cm
         JOIN CLASSROOM cl ON cl.CLASS_SN = cm.CLASS_SN
         WHERE cm.USER_ID = #{userId}
-          AND cm.ENRL_STAT_CD = '01'
+          AND cm.ENRL_STAT_CD = 'ENROLLED'
     </select>
 
     <!-- 이력 적재 -->

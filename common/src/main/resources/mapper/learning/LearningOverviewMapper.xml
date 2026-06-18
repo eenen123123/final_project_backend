@@ -60,10 +60,10 @@
         LEFT JOIN (
             SELECT CLASS_SN,
                    COUNT(*)                                                 AS TOTAL_STUDENTS,
-                   SUM(CASE WHEN ENRL_STAT_CD = '01' THEN 1 ELSE 0 END)   AS ACTIVE_STUDENTS,
-                   SUM(CASE WHEN ENRL_STAT_CD = '02' THEN 1 ELSE 0 END)   AS COMPLETED_STUDENTS
+                   SUM(CASE WHEN ENRL_STAT_CD = 'ENROLLED' THEN 1 ELSE 0 END)   AS ACTIVE_STUDENTS,
+                   SUM(CASE WHEN ENRL_STAT_CD = 'COMPLETED' THEN 1 ELSE 0 END)   AS COMPLETED_STUDENTS
             FROM CLASSROOM_MEMBER
-            WHERE ENRL_STAT_CD IN ('01', '02')
+            WHERE ENRL_STAT_CD IN ('ENROLLED', 'COMPLETED')
             GROUP BY CLASS_SN
         ) s ON cl.CLASS_SN = s.CLASS_SN
         LEFT JOIN (
@@ -78,7 +78,7 @@
             JOIN CLASSROOM_MEMBER cm
               ON scp.CLASS_SN = cm.CLASS_SN
              AND scp.USER_ID  = cm.USER_ID
-             AND cm.ENRL_STAT_CD IN ('01', '02')
+             AND cm.ENRL_STAT_CD IN ('ENROLLED', 'COMPLETED')
             WHERE scp.CMPL_YN = 'Y'
             GROUP BY scp.CLASS_SN
         ) prog ON cl.CLASS_SN = prog.CLASS_SN
