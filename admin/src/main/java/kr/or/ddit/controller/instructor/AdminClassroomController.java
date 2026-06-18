@@ -21,7 +21,6 @@ import kr.or.ddit.finalProject.dto.classroom.ClassroomListResponse;
 import kr.or.ddit.finalProject.dto.file.FileCtxType;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
 import kr.or.ddit.finalProject.service.assignment.AssignmentBoardService;
-import kr.or.ddit.finalProject.service.classroom.ClassroomHomeService;
 import kr.or.ddit.finalProject.service.classroom.ClassroomService;
 import kr.or.ddit.finalProject.service.file.FileUploadService;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
@@ -36,7 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 public class AdminClassroomController {
 
     private final ClassroomService classroomService;
-    private final ClassroomHomeService classroomHomeService;
     private final InstructorBoardService instructorBoardService;
     private final AssignmentBoardService assignmentBoardService;
     private final FileUploadService fileUploadService;
@@ -57,25 +55,25 @@ public class AdminClassroomController {
         int month = now.getMonthValue();
 
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
-        model.addAttribute("weeklyData", classroomHomeService.retrieveWeeklyData(classSn));
+        model.addAttribute("weeklyData", classroomService.retrieveWeeklyData(classSn));
         model.addAttribute("weeklyCompareText",
-                classroomHomeService.retrieveWeeklyCompareText(classSn));
-        model.addAttribute("achievements", classroomHomeService.retrieveAchievements(classSn));
+                classroomService.retrieveWeeklyCompareText(classSn));
+        model.addAttribute("achievements", classroomService.retrieveAchievements(classSn));
         model.addAttribute("assignmentCount",
-                classroomHomeService.retrieveUpcomingAssignmentCount(classSn));
-        model.addAttribute("todayQuestion", classroomHomeService.retrieveTodayQuestion(classSn));
+                classroomService.retrieveUpcomingAssignmentCount(classSn));
+        model.addAttribute("todayQuestion", classroomService.retrieveTodayQuestion(classSn));
         model.addAttribute("unansweredQnaCount",
                 instructorBoardService.getUnansweredQnaCount(classSn));
         model.addAttribute("pendingGradeCount",
                 assignmentBoardService.getPendingGradeCount(classSn));
         model.addAttribute("inactiveStudentCount",
-                classroomHomeService.retrieveInactiveStudentCount(classSn));
+                classroomService.retrieveInactiveStudentCount(classSn));
         model.addAttribute("calendarYear", year);
         model.addAttribute("calendarMonth", month);
         model.addAttribute("calendarPadding",
-                classroomHomeService.retrieveCalendarPadding(year, month));
+                classroomService.retrieveCalendarPadding(year, month));
         model.addAttribute("calendarDays",
-                classroomHomeService.retrieveCalendarDays(classSn, year, month));
+                classroomService.retrieveCalendarDays(classSn, year, month));
 
         List<kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto> notices =
                 instructorBoardService.getClassroomNoticeList(classSn);
