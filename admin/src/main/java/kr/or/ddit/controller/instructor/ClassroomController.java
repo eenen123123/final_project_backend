@@ -133,6 +133,7 @@ public class ClassroomController {
         dto.setPostSn(postSn);
         dto.setClassSn(classSn);
         dto.setWrtrUserId(authentication.getName());
+        dto.setInstrUserId(authentication.getName());
         instructorBoardService.updateClassroomNotice(dto);
         return "redirect:/classroom/detail/" + classSn + "/notice/" + postSn;
     }

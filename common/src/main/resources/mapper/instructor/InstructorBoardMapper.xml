@@ -195,6 +195,7 @@
                 LAST_MDFR_ID = #{wrtrUserId}
             WHERE POST_SN  = #{postSn}
               AND CLASS_SN = #{classSn}
+              AND USE_YN   = 'Y'
       </update>
 
       <update id="deleteClassroomNotice">
