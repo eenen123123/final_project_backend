@@ -28,7 +28,9 @@
     ================================================================ -->
     <sql id="consultColumns">
         C.CNSL_SN, C.STD_USER_ID,
-        SM.USER_NAME       AS STUDENT_NM,
+        NVL(SM.USER_NAME, C.CNSL_NM)     AS STUDENT_NM,
+        NVL(SM.USER_TELNO, C.CNSL_TELNO) AS CNSL_TELNO,
+        CASE WHEN C.STD_USER_ID IS NOT NULL THEN '재원생' ELSE '신규문의' END AS TARGET_TYPE,
         PM.USER_NAME       AS PARENT_NM,
         C.CHRG_USER_ID,
         CM.USER_NAME       AS CHRG_NM,
@@ -41,12 +43,12 @@
 
     <sql id="consultJoins">
         FROM CONSULTATION C
-        JOIN STUDENT S      ON C.STD_USER_ID = S.STD_USER_ID
-        JOIN MEMBER SM      ON S.STD_USER_ID = SM.USER_ID
-        LEFT JOIN MEMBER PM ON S.PRNT_USER_ID = PM.USER_ID
-        LEFT JOIN MEMBER CM ON C.CHRG_USER_ID = CM.USER_ID
-        LEFT JOIN COM_CD CT ON TRIM(CT.CL_CODE) = '211' AND TRIM(CT.COM_CD) = TRIM(C.CNSL_TYPE_CD)
-        LEFT JOIN COM_CD CS ON TRIM(CS.CL_CODE) = '212' AND TRIM(CS.COM_CD) = TRIM(C.CNSL_STAT_CD)
+        LEFT JOIN MEMBER SM  ON C.STD_USER_ID = SM.USER_ID
+        LEFT JOIN STUDENT S  ON C.STD_USER_ID = S.STD_USER_ID
+        LEFT JOIN MEMBER PM  ON S.PRNT_USER_ID = PM.USER_ID
+        LEFT JOIN MEMBER CM  ON C.CHRG_USER_ID = CM.USER_ID
+        LEFT JOIN COM_CD CT  ON TRIM(CT.CL_CODE) = '211' AND TRIM(CT.COM_CD) = TRIM(C.CNSL_TYPE_CD)
+        LEFT JOIN COM_CD CS  ON TRIM(CS.CL_CODE) = '212' AND TRIM(CS.COM_CD) = TRIM(C.CNSL_STAT_CD)
     </sql>
 
     <!-- ── 전체 상담 이력 검색 조건 ───────────────────────────── -->
@@ -56,8 +58,9 @@
                 AND C.STD_USER_ID = #{detailCondition.stdUserId}
             </if>
             <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
-                AND (UPPER(SM.USER_NAME) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%'
-                  OR UPPER(PM.USER_NAME) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%')
+                AND (UPPER(NVL(SM.USER_NAME, C.CNSL_NM)) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%'
+                  OR UPPER(PM.USER_NAME) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%'
+                  OR NVL(SM.USER_TELNO, C.CNSL_TELNO) LIKE '%' || #{detailCondition.keyword} || '%')
             </if>
             <if test="detailCondition.cnslTypeCd != null and detailCondition.cnslTypeCd != ''">
                 AND TRIM(C.CNSL_TYPE_CD) = #{detailCondition.cnslTypeCd}
@@ -79,8 +82,8 @@
     <select id="countConsultations" resultType="int">
         SELECT COUNT(*)
         FROM CONSULTATION C
-        JOIN STUDENT S      ON C.STD_USER_ID = S.STD_USER_ID
-        JOIN MEMBER SM      ON S.STD_USER_ID = SM.USER_ID
+        LEFT JOIN MEMBER SM ON C.STD_USER_ID = SM.USER_ID
+        LEFT JOIN STUDENT S ON C.STD_USER_ID = S.STD_USER_ID
         LEFT JOIN MEMBER PM ON S.PRNT_USER_ID = PM.USER_ID
         <include refid="consultWhere"/>
     </select>
@@ -112,8 +115,9 @@
     <!-- ================================================================
          학생 모달 검색 (STUDENT 기준)
     ================================================================ -->
+    <!-- 등록 학생은 MEMBER(USER_ROLE='ROLE_STUDENT') 기준, 학부모/학교는 STUDENT LEFT JOIN -->
     <sql id="studentColumns">
-        S.STD_USER_ID,
+        SM.USER_ID     AS STD_USER_ID,
         SM.USER_NAME   AS STUDENT_NM,
         SM.USER_TELNO  AS STUDENT_TEL,
         S.ENRL_SCHL_NM,
@@ -122,45 +126,47 @@
         (SELECT MAX(CR.CLASS_NM)
            FROM CLASSROOM_MEMBER CMB
            JOIN CLASSROOM CR ON CMB.CLASS_SN = CR.CLASS_SN
-          WHERE CMB.USER_ID = S.STD_USER_ID)               AS CLASS_NM,
+          WHERE CMB.USER_ID = SM.USER_ID)                  AS CLASS_NM,
         (SELECT COUNT(*) FROM CONSULTATION CC
-          WHERE CC.STD_USER_ID = S.STD_USER_ID)            AS CNSL_CNT
+          WHERE CC.STD_USER_ID = SM.USER_ID)               AS CNSL_CNT
     </sql>
 
-    <sql id="studentWhere">
-        <where>
-            <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
-                AND (UPPER(SM.USER_NAME) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%'
-                  OR UPPER(PM.USER_NAME) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%')
-            </if>
-        </where>
+    <sql id="studentFrom">
+        FROM MEMBER SM
+        LEFT JOIN STUDENT S ON SM.USER_ID = S.STD_USER_ID
+        LEFT JOIN MEMBER PM ON S.PRNT_USER_ID = PM.USER_ID
+        WHERE SM.USER_ROLE = 'ROLE_STUDENT'
+    </sql>
+
+    <sql id="studentKeyword">
+        <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
+            AND (UPPER(SM.USER_NAME) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%'
+              OR UPPER(PM.USER_NAME) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%')
+        </if>
     </sql>
 
     <select id="searchStudents" resultType="kr.or.ddit.finalProject.dto.consultation.ConsultationStudentDto">
         SELECT <include refid="studentColumns"/>
-        FROM STUDENT S
-        JOIN MEMBER SM      ON S.STD_USER_ID = SM.USER_ID
-        LEFT JOIN MEMBER PM ON S.PRNT_USER_ID = PM.USER_ID
-        <include refid="studentWhere"/>
+        <include refid="studentFrom"/>
+        <include refid="studentKeyword"/>
         ORDER BY SM.USER_NAME
         OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
     </select>
 
     <select id="countStudents" resultType="int">
         SELECT COUNT(*)
-        FROM STUDENT S
-        JOIN MEMBER SM      ON S.STD_USER_ID = SM.USER_ID
+        FROM MEMBER SM
+        LEFT JOIN STUDENT S ON SM.USER_ID = S.STD_USER_ID
         LEFT JOIN MEMBER PM ON S.PRNT_USER_ID = PM.USER_ID
-        <include refid="studentWhere"/>
+        WHERE SM.USER_ROLE = 'ROLE_STUDENT'
+        <include refid="studentKeyword"/>
     </select>
 
     <!-- ── 학생 1인 정보 + 학부모 자동 매칭 ─────────────────────── -->
     <select id="selectStudentInfo" resultType="kr.or.ddit.finalProject.dto.consultation.ConsultationStudentDto">
         SELECT <include refid="studentColumns"/>
-        FROM STUDENT S
-        JOIN MEMBER SM      ON S.STD_USER_ID = SM.USER_ID
-        LEFT JOIN MEMBER PM ON S.PRNT_USER_ID = PM.USER_ID
-        WHERE S.STD_USER_ID = #{stdUserId}
+        <include refid="studentFrom"/>
+          AND SM.USER_ID = #{stdUserId}
     </select>
 
     <!-- ── 학생이 수강 중인 강좌 (상담 상세 모달) ──────────────── -->
@@ -184,10 +190,10 @@
     ================================================================ -->
     <insert id="insertConsultation" parameterType="kr.or.ddit.finalProject.dto.consultation.ConsultationDto">
         INSERT INTO CONSULTATION (
-            STD_USER_ID, CHRG_USER_ID, CNSL_TYPE_CD, CNSL_STAT_CD,
+            STD_USER_ID, CNSL_NM, CNSL_TELNO, CHRG_USER_ID, CNSL_TYPE_CD, CNSL_STAT_CD,
             CNSL_DT, CNSL_CN, CNSL_SMRY, FLLW_UP_CN, RGTR_ID
         ) VALUES (
-            #{stdUserId}, #{chrgUserId}, #{cnslTypeCd}, #{cnslStatCd},
+            #{stdUserId}, #{cnslNm}, #{cnslTelno}, #{chrgUserId}, #{cnslTypeCd}, #{cnslStatCd},
             #{cnslDt}, #{cnslCn}, #{cnslSmry}, #{fllwUpCn}, #{rgtrId}
         )
     </insert>

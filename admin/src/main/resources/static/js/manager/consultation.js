@@ -293,7 +293,7 @@ function loadHistory(page) {
             (c) => `
           <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
             <td class="py-3 px-3 text-slate-600 whitespace-nowrap">${fmtDt(c.cnslDt)}</td>
-            <td class="py-3 px-3 font-medium text-slate-800">${esc(c.studentNm)}</td>
+            <td class="py-3 px-3 font-medium text-slate-800">${esc(c.studentNm)}${c.targetType === "신규문의" ? '<span class="target-badge">신규문의</span>' : ""}</td>
             <td class="py-3 px-3 text-slate-600">${esc(c.parentNm) || "-"}</td>
             <td class="py-3 px-3 text-slate-500 text-xs">${esc(c.chrgNm) || "-"}</td>
             <td class="py-3 px-3">${typeBadge(c.cnslTypeNm)}</td>
@@ -412,27 +412,51 @@ function applyStudent(s) {
   document.getElementById("writeParentNm").value = s.parentNm || "(매칭된 학부모 없음)";
 }
 
+/* ── 상담 대상 구분 (재원생 / 신규 문의) ── */
+let writeMode = "member";
+function setWriteMode(mode) {
+  writeMode = mode;
+  const isMember = mode === "member";
+  document.getElementById("memberBlock").classList.toggle("hidden", !isMember);
+  document.getElementById("prospectBlock").classList.toggle("hidden", isMember);
+  document.getElementById("modeMemberBtn").classList.toggle("is-active", isMember);
+  document.getElementById("modeProspectBtn").classList.toggle("is-active", !isMember);
+  // 신규 문의는 전화 1차 상담이 기본 → 유형을 전화(02)로 기본 선택
+  if (!isMember) {
+    const typeSel = document.getElementById("writeType");
+    if (typeSel) {
+      typeSel.value = "02";
+      if (window.initCustomSelect) window.initCustomSelect(typeSel);
+    }
+  }
+}
+
 /* ── 상세 모달 ── */
 function openDetailModal(cnslSn) {
   fetch(`${CON_BASE}/detail/${cnslSn}`)
     .then((r) => r.json())
     .then((c) => {
+      const isMember = !!c.stdUserId;
+      const targetBadge = isMember
+        ? `<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-violet-50 text-violet-700">재원생</span>`
+        : `<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-600">신규문의</span>`;
       document.getElementById("detailModalTitle").textContent = `${c.studentNm} · ${fmtDt(c.cnslDt)} 상담 기록`;
       document.getElementById("detailModalBody").innerHTML = `
         <div class="grid grid-cols-2 gap-3 bg-slate-50 rounded-xl p-4">
-          <div><p class="text-xs text-slate-400 mb-0.5">학생</p><p class="font-medium">${esc(c.studentNm)}</p></div>
-          <div><p class="text-xs text-slate-400 mb-0.5">학부모</p><p class="font-medium">${esc(c.parentNm) || "-"}</p></div>
+          <div><p class="text-xs text-slate-400 mb-0.5">대상자</p><p class="font-medium flex items-center gap-1.5">${esc(c.studentNm)} ${targetBadge}</p></div>
+          <div><p class="text-xs text-slate-400 mb-0.5">연락처</p><p class="font-medium">${esc(c.cnslTelno) || "-"}</p></div>
+          ${isMember ? `<div><p class="text-xs text-slate-400 mb-0.5">학부모</p><p class="font-medium">${esc(c.parentNm) || "-"}</p></div>` : ""}
           <div><p class="text-xs text-slate-400 mb-0.5">담당강사</p><p class="font-medium">${esc(c.chrgNm) || "-"}</p></div>
           <div><p class="text-xs text-slate-400 mb-0.5">일시</p><p class="font-medium">${fmtDt(c.cnslDt)}</p></div>
           <div class="col-span-2"><p class="text-xs text-slate-400 mb-0.5">유형 / 상태</p><p class="font-medium flex gap-1">${typeBadge(c.cnslTypeNm)} ${statusBadge(c.cnslStatNm)}</p></div>
         </div>
-        <div id="detailCourses"><p class="text-xs text-slate-400 mb-1 font-semibold uppercase tracking-wider">수강 강좌</p><p class="text-xs text-slate-300 px-1">불러오는 중...</p></div>
+        ${isMember ? `<div id="detailCourses"><p class="text-xs text-slate-400 mb-1 font-semibold uppercase tracking-wider">수강 강좌</p><p class="text-xs text-slate-300 px-1">불러오는 중...</p></div>` : ""}
         ${c.cnslCn ? `<div><p class="text-xs text-slate-400 mb-1 font-semibold uppercase tracking-wider">상담 내용</p><p class="text-sm leading-relaxed bg-white border border-slate-100 rounded-xl p-3 whitespace-pre-line">${esc(c.cnslCn)}</p></div>` : ""}
         ${c.cnslSmry ? `<div><p class="text-xs text-slate-400 mb-1 font-semibold uppercase tracking-wider">상담 요약</p><p class="text-sm leading-relaxed bg-white border border-slate-100 rounded-xl p-3">${esc(c.cnslSmry)}</p></div>` : ""}
         ${c.fllwUpCn ? `<div><p class="text-xs text-slate-400 mb-1 font-semibold uppercase tracking-wider">후속 조치</p><p class="text-sm leading-relaxed bg-amber-50 border border-amber-100 rounded-xl p-3 text-amber-700 whitespace-pre-line">${esc(c.fllwUpCn)}</p></div>` : ""}
       `;
       document.getElementById("detailModal").classList.remove("hidden");
-      loadDetailCourses(c.stdUserId);
+      if (isMember) loadDetailCourses(c.stdUserId);
     });
 }
 
@@ -473,12 +497,33 @@ function closeDetailModal() {
 
 /* ── 상담 기록 저장 ── */
 function saveConsultRecord() {
-  const stdUserId = document.getElementById("writeStudentId").value;
   const cnslDt = document.getElementById("writeDatetime").value;
   const cnslCn = document.getElementById("writeContent").value.trim();
-  if (!stdUserId) {
-    showHermesToast("학생을 선택해 주세요.", "error");
-    return;
+
+  const params = {
+    cnslDt: cnslDt,
+    cnslTypeCd: document.getElementById("writeType").value,
+    cnslStatCd: document.getElementById("writeStatus").value,
+    cnslCn: cnslCn,
+    cnslSmry: document.getElementById("writeSummary").value.trim(),
+    fllwUpCn: document.getElementById("writeFollowup").value.trim(),
+  };
+
+  if (writeMode === "member") {
+    const stdUserId = document.getElementById("writeStudentId").value;
+    if (!stdUserId) {
+      showHermesToast("재원생을 선택해 주세요.", "error");
+      return;
+    }
+    params.stdUserId = stdUserId;
+  } else {
+    const cnslNm = document.getElementById("writeCnslNm").value.trim();
+    if (!cnslNm) {
+      showHermesToast("문의자 이름을 입력해 주세요.", "error");
+      return;
+    }
+    params.cnslNm = cnslNm;
+    params.cnslTelno = document.getElementById("writeCnslTelno").value.trim();
   }
   if (!cnslDt) {
     showHermesToast("상담 일시를 입력해 주세요.", "error");
@@ -488,16 +533,6 @@ function saveConsultRecord() {
     showHermesToast("상담 내용을 입력해 주세요.", "error");
     return;
   }
-
-  const params = {
-    stdUserId: stdUserId,
-    cnslDt: cnslDt,
-    cnslTypeCd: document.getElementById("writeType").value,
-    cnslStatCd: document.getElementById("writeStatus").value,
-    cnslCn: cnslCn,
-    cnslSmry: document.getElementById("writeSummary").value.trim(),
-    fllwUpCn: document.getElementById("writeFollowup").value.trim(),
-  };
   fetch(`${CON_BASE}/save`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -518,10 +553,12 @@ function saveConsultRecord() {
     .catch(() => showHermesToast("저장 중 오류가 발생했습니다.", "error"));
 }
 function resetWriteForm() {
-  ["writeStudentId", "writeStudentNm", "writeParentNm", "writeContent", "writeSummary", "writeFollowup"].forEach((id) => {
-    document.getElementById(id).value = "";
+  ["writeStudentId", "writeStudentNm", "writeParentNm", "writeCnslNm", "writeCnslTelno", "writeContent", "writeSummary", "writeFollowup"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
   });
   document.getElementById("writeDatetime").value = defaultDatetime();
+  setWriteMode("member");
 }
 function defaultDatetime() {
   const now = new Date();
@@ -538,6 +575,7 @@ document.addEventListener("DOMContentLoaded", function () {
   loadCommonCodes("writeStatus", "212");
 
   document.getElementById("writeDatetime").value = defaultDatetime();
+  setWriteMode("member");
 
   initCalendar();
   loadSummary();

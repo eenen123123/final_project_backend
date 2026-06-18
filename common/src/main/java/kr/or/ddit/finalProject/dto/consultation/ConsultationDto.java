@@ -12,8 +12,11 @@ import lombok.Data;
 public class ConsultationDto {
 
     private Long cnslSn;            // 상담 일련번호 (PK)
-    private String stdUserId;      // 학생 ID
-    private String studentNm;      // 학생명 (MEMBER 조인)
+    private String stdUserId;      // 재원생 ID (신규 문의자는 null)
+    private String studentNm;      // 대상자명 (재원생: MEMBER, 신규 문의자: CNSL_NM)
+    private String cnslNm;         // 신규 문의자 입력명 (저장용)
+    private String cnslTelno;      // 연락처 (재원생: MEMBER.USER_TELNO, 신규: 입력값)
+    private String targetType;     // 구분 (재원생 / 신규문의)
     private String parentNm;       // 학부모명 (STUDENT.PRNT_USER_ID → MEMBER 조인)
     private String chrgUserId;     // 담당 강사 ID
     private String chrgNm;         // 담당 강사명 (MEMBER 조인)
