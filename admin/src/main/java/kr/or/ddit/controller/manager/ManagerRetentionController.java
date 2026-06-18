@@ -1,6 +1,7 @@
 package kr.or.ddit.controller.manager;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -110,6 +111,7 @@ public class ManagerRetentionController {
             @RequestParam(required = false) String wdrwRsnCd,
             @RequestParam(required = false) String rtnpCn,
             @RequestParam(required = false) String rtnpRsltCd,
+            @RequestParam(required = false) String rtnpDt,
             Principal principal) {
 
         Map<String, Object> result = new HashMap<>();
@@ -129,6 +131,7 @@ public class ManagerRetentionController {
         dto.setWdrwRsnCd(blankToNull(wdrwRsnCd));
         dto.setRtnpCn(rtnpCn.trim());
         dto.setRtnpRsltCd(orDefault(rtnpRsltCd, "01")); // 미지정 시 진행중
+        dto.setRtnpDt(parseDateTime(rtnpDt));           // 미지정 시 null → 매퍼에서 현재시각
         dto.setChrgUserId(loginId);
         dto.setRgtrId(loginId);
 
@@ -151,6 +154,15 @@ public class ManagerRetentionController {
     }
 
     // ───────────────────────────── helpers ─────────────────────────────
+
+    /** datetime-local("yyyy-MM-dd'T'HH:mm") 또는 "yyyy-MM-dd" 파싱, 없으면 null */
+    private LocalDateTime parseDateTime(String raw) {
+        if (raw == null || raw.isBlank()) return null;
+        String v = raw.trim().replace(' ', 'T');
+        if (v.length() == 10) v = v + "T00:00:00"; // 날짜만 입력 시
+        else if (v.length() == 16) v = v + ":00";  // 초 보정
+        return LocalDateTime.parse(v);
+    }
 
     private String blankToNull(String v) {
         return (v == null || v.isBlank()) ? null : v.trim();

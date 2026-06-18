@@ -72,192 +72,6 @@ function goWriteTab() {
   switchConTab("tab-write", document.querySelector('.con-tab-btn[data-tab="tab-write"]'));
 }
 
-/* ── 상담 캘린더 (커스텀 월 그리드 · 실제 데이터 연동) ── */
-let conCalYear = new Date().getFullYear();
-let conCalMonth = new Date().getMonth();
-let conPickerYear = conCalYear;
-let conEventsByDate = {};
-
-function pad2(n) {
-  return String(n).padStart(2, "0");
-}
-function ymd(y, m, d) {
-  return y + "-" + pad2(m + 1) + "-" + pad2(d);
-}
-function statClass(name) {
-  return name === "완료"
-    ? "stat-done"
-    : name === "예정"
-      ? "stat-scheduled"
-      : name === "후속 조치"
-        ? "stat-followup"
-        : "stat-cancelled";
-}
-
-function initCalendar() {
-  // 월 선택 피커 외부 클릭 시 닫기
-  document.addEventListener("click", (e) => {
-    const picker = document.getElementById("con-month-picker");
-    const btn = document.getElementById("con-month-picker-btn");
-    if (picker && btn && !picker.contains(e.target) && !btn.contains(e.target)) picker.classList.add("hidden");
-  });
-  loadCalendar();
-}
-
-/* 현재 보이는 6주(42칸) 범위의 상담을 조회 후 렌더 */
-function loadCalendar() {
-  const firstDow = new Date(conCalYear, conCalMonth, 1).getDay();
-  const gridStart = new Date(conCalYear, conCalMonth, 1 - firstDow);
-  const gridEnd = new Date(gridStart);
-  gridEnd.setDate(gridEnd.getDate() + 42);
-  const startStr = ymd(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate());
-  const endStr = ymd(gridEnd.getFullYear(), gridEnd.getMonth(), gridEnd.getDate());
-  fetch(`${CON_BASE}/calendar?start=${startStr}&end=${endStr}`)
-    .then((r) => r.json())
-    .then((list) => {
-      conEventsByDate = {};
-      list.forEach((c) => {
-        const d = (c.cnslDt || "").substring(0, 10);
-        if (!d) return;
-        (conEventsByDate[d] = conEventsByDate[d] || []).push(c);
-      });
-      renderCalendar();
-    });
-}
-function refreshCalendar() {
-  loadCalendar();
-}
-
-function renderCalendar() {
-  document.getElementById("con-cal-year").textContent = conCalYear;
-  document.getElementById("con-cal-month").textContent = pad2(conCalMonth + 1);
-
-  const today = new Date();
-  const todayStr = ymd(today.getFullYear(), today.getMonth(), today.getDate());
-  const firstDow = new Date(conCalYear, conCalMonth, 1).getDay();
-  const daysInMonth = new Date(conCalYear, conCalMonth + 1, 0).getDate();
-  const daysInPrev = new Date(conCalYear, conCalMonth, 0).getDate();
-
-  const cells = [];
-  for (let i = firstDow - 1; i >= 0; i--)
-    cells.push({ day: daysInPrev - i, year: conCalMonth === 0 ? conCalYear - 1 : conCalYear, month: conCalMonth === 0 ? 11 : conCalMonth - 1, other: true });
-  for (let d = 1; d <= daysInMonth; d++) cells.push({ day: d, year: conCalYear, month: conCalMonth, other: false });
-  const rem = 42 - cells.length;
-  for (let d = 1; d <= rem; d++)
-    cells.push({ day: d, year: conCalMonth === 11 ? conCalYear + 1 : conCalYear, month: conCalMonth === 11 ? 0 : conCalMonth + 1, other: true });
-
-  const grid = document.getElementById("con-cal-grid");
-  grid.innerHTML = "";
-  cells.forEach((cell, idx) => {
-    const ds = ymd(cell.year, cell.month, cell.day);
-    const isSun = idx % 7 === 0;
-    const isSat = idx % 7 === 6;
-    const isToday = ds === todayStr;
-    const dayEvents = cell.other ? [] : conEventsByDate[ds] || [];
-
-    const div = document.createElement("div");
-    div.className = "cal-cell border-r border-b border-slate-100 p-1.5 flex flex-col gap-0.5 transition-colors";
-    if (cell.other) div.classList.add("other-month");
-    else {
-      if (isSun) div.classList.add("sun-bg");
-      if (isToday) div.classList.add("today-cell");
-    }
-
-    const dateDiv = document.createElement("div");
-    dateDiv.className = "flex items-center gap-1 mb-0.5";
-    const span = document.createElement("span");
-    span.className = "text-xs font-medium";
-    span.textContent = cell.day;
-    if (cell.other) span.classList.add("text-slate-300");
-    else if (isSun) span.classList.add("text-red-400");
-    else if (isSat) span.classList.add("text-blue-400");
-    else span.classList.add("text-slate-700");
-    dateDiv.appendChild(span);
-    if (isToday && !cell.other) {
-      const tb = document.createElement("span");
-      tb.className = "text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-violet-500 text-white leading-none";
-      tb.textContent = "Today";
-      dateDiv.appendChild(tb);
-    }
-    div.appendChild(dateDiv);
-
-    dayEvents.slice(0, 3).forEach((ev) => {
-      const bar = document.createElement("div");
-      bar.className = "event-bar " + statClass(ev.cnslStatNm);
-      const label = (ev.studentNm || "") + (ev.cnslTypeNm ? " " + ev.cnslTypeNm : "");
-      bar.textContent = label.length > 14 ? label.slice(0, 14) + "..." : label;
-      bar.title = label;
-      bar.onclick = (e) => {
-        e.stopPropagation();
-        openDetailModal(ev.cnslSn);
-      };
-      div.appendChild(bar);
-    });
-    if (dayEvents.length > 3) {
-      const more = document.createElement("span");
-      more.className = "text-[10px] text-slate-400";
-      more.textContent = "+" + (dayEvents.length - 3) + "건";
-      div.appendChild(more);
-    }
-    grid.appendChild(div);
-  });
-}
-
-/* ── 캘린더 이동 / 월 선택 피커 ── */
-function conCalPrev() {
-  if (conCalMonth === 0) {
-    conCalYear--;
-    conCalMonth = 11;
-  } else conCalMonth--;
-  loadCalendar();
-}
-function conCalNext() {
-  if (conCalMonth === 11) {
-    conCalYear++;
-    conCalMonth = 0;
-  } else conCalMonth++;
-  loadCalendar();
-}
-function conCalToday() {
-  const t = new Date();
-  conCalYear = t.getFullYear();
-  conCalMonth = t.getMonth();
-  loadCalendar();
-}
-function conTogglePicker() {
-  const p = document.getElementById("con-month-picker");
-  p.classList.toggle("hidden");
-  conPickerYear = conCalYear;
-  conRenderPickerMonths();
-}
-function conRenderPickerMonths() {
-  document.getElementById("con-picker-year").textContent = conPickerYear;
-  const c = document.getElementById("con-picker-months");
-  c.innerHTML = "";
-  for (let m = 0; m < 12; m++) {
-    const b = document.createElement("button");
-    b.textContent = m + 1 + "월";
-    b.className =
-      "py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer " +
-      (conPickerYear === conCalYear && m === conCalMonth ? "bg-violet-600 text-white" : "hover:bg-slate-100 text-slate-700");
-    b.onclick = () => {
-      conCalYear = conPickerYear;
-      conCalMonth = m;
-      document.getElementById("con-month-picker").classList.add("hidden");
-      loadCalendar();
-    };
-    c.appendChild(b);
-  }
-}
-function conPickerPrevYear() {
-  conPickerYear--;
-  conRenderPickerMonths();
-}
-function conPickerNextYear() {
-  conPickerYear++;
-  conRenderPickerMonths();
-}
-
 /* ── 요약 카드 ── */
 function loadSummary() {
   fetch(`${CON_BASE}/summary`)
@@ -548,7 +362,7 @@ function saveConsultRecord() {
       resetWriteForm();
       loadSummary();
       loadHistory(1);
-      refreshCalendar();
+      SharedCalendar.reload();
     })
     .catch(() => showHermesToast("저장 중 오류가 발생했습니다.", "error"));
 }
@@ -577,7 +391,11 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("writeDatetime").value = defaultDatetime();
   setWriteMode("member");
 
-  initCalendar();
+  SharedCalendar.init({
+    onEventClick: (ev) => {
+      if (ev.source === "상담") openDetailModal(ev.refId);
+    },
+  });
   loadSummary();
   loadHistory(1);
   switchConTab("tab-history", document.querySelector('.con-tab-btn[data-tab="tab-history"]'));
