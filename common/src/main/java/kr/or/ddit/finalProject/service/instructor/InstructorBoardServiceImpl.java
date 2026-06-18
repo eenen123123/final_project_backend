@@ -143,6 +143,12 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     }
 
     @Override
+    @Transactional
+    public int updateClassroomNotice(InstructorBoardDto dto) {
+        return instructorBoardMapper.updateClassroomNotice(dto);
+    }
+
+    @Override
     public int deleteClassroomNotice(Long postSn, Long classSn) {
         return instructorBoardMapper.deleteClassroomNotice(postSn, classSn);
     }

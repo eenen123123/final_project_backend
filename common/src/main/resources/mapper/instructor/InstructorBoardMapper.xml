@@ -187,6 +187,16 @@
             )
       </insert>
 
+      <update id="updateClassroomNotice">
+            UPDATE INSTRUCTOR_BOARD
+            SET POST_SJ     = #{postSj},
+                POST_CN     = #{postCn},
+                MDFCN_DT    = SYSDATE,
+                LAST_MDFR_ID = #{wrtrUserId}
+            WHERE POST_SN  = #{postSn}
+              AND CLASS_SN = #{classSn}
+      </update>
+
       <update id="deleteClassroomNotice">
             UPDATE INSTRUCTOR_BOARD
             SET USE_YN = 'N', MDFCN_DT = SYSDATE

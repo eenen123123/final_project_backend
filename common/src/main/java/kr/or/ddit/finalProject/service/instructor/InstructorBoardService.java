@@ -49,6 +49,8 @@ public interface InstructorBoardService {
 
     int insertClassroomNotice(InstructorBoardDto dto);
 
+    int updateClassroomNotice(InstructorBoardDto dto);
+
     int deleteClassroomNotice(Long postSn, Long classSn);
 
     // ── 클래스룸 Q&A ──────────────────────────────────────────────

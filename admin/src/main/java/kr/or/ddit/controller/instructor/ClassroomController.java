@@ -104,6 +104,12 @@ public class ClassroomController {
         return "classroom/notice-detail";
     }
 
+    @GetMapping("/detail/{classSn}/notice/write")
+    public String noticeWriteForm(@PathVariable Long classSn, Model model) {
+        model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
+        return "classroom/notice-form";
+    }
+
     @PostMapping("/detail/{classSn}/notice/write")
     public String noticeWrite(@PathVariable Long classSn, @ModelAttribute InstructorBoardDto dto,
             Authentication authentication) {
@@ -112,6 +118,23 @@ public class ClassroomController {
         dto.setWrtrUserId(authentication.getName());
         instructorBoardService.insertClassroomNotice(dto);
         return "redirect:/classroom/detail/" + classSn + "/notice";
+    }
+
+    @GetMapping("/detail/{classSn}/notice/{postSn}/edit")
+    public String noticeEditForm(@PathVariable Long classSn, @PathVariable Long postSn, Model model) {
+        model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
+        model.addAttribute("editNotice", instructorBoardService.getClassroomNoticeDetail(postSn, classSn));
+        return "classroom/notice-form";
+    }
+
+    @PostMapping("/detail/{classSn}/notice/{postSn}/edit")
+    public String noticeEdit(@PathVariable Long classSn, @PathVariable Long postSn,
+            @ModelAttribute InstructorBoardDto dto, Authentication authentication) {
+        dto.setPostSn(postSn);
+        dto.setClassSn(classSn);
+        dto.setWrtrUserId(authentication.getName());
+        instructorBoardService.updateClassroomNotice(dto);
+        return "redirect:/classroom/detail/" + classSn + "/notice/" + postSn;
     }
 
     @PostMapping("/detail/{classSn}/notice/{postSn}/delete")
