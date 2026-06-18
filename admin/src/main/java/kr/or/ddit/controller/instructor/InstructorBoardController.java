@@ -214,8 +214,11 @@ public class InstructorBoardController {
                 instructorBoardService.updateInstructorBoard(instructorBoardDto);
                 log.info("게시글 등록 및 파일 업로드 성공 (postSn={}, groupId={})", instructorBoardDto.getPostSn(), groupId);
             } catch (Exception e) {
-                log.warn("파일 업로드 중 오류 발생 (게시글은 등록됨, groupId={}): {}", groupId, e.getMessage());
+                log.error("파일 업로드 실패 — 등록된 게시글 보상 삭제 (postSn={}, groupId={})", instructorBoardDto.getPostSn(), groupId, e);
                 cleanupFileGroup(groupId, userId);
+                instructorBoardService.deleteInstructorBoard(instructorBoardDto.getPostSn(), userId);
+                redirectAttributes.addFlashAttribute("errorMessage", "파일 업로드에 실패했습니다. 다시 시도해주세요.");
+                return "redirect:" + insertFormUrl(listPage, listKeyword, listBoardTypeCd);
             }
         }
 
@@ -298,24 +301,48 @@ public class InstructorBoardController {
             return "redirect:" + updateFormUrl(instructorBoardDto.getPostSn(), listPage, listKeyword, listBoardTypeCd);
         }
 
-        // 신규 파일 그룹이 생성된 경우에만 실패 시 정리 (기존 그룹 추가는 롤백 불가)
         int newGroupId = -1;
+        List<Integer> addedFileSns = List.of();
         if (hasFiles(attachFiles)) {
             Long existingAtchFileId = instructorBoardDto.getAtchFileId();
             if (existingAtchFileId != null) {
                 int groupId = existingAtchFileId.intValue();
-                for (MultipartFile f : attachFiles) {
-                    if (!f.isEmpty()) {
-                        fileUploadService.uploadFile(f, userId, groupId, FileCtxType.INSTRUCTOR, String.valueOf(groupId));
+                List<Integer> before = fileUploadService.retrieveFilesByGroupId(groupId)
+                        .stream().map(f -> f.getAtchFileDtlSn()).toList();
+                try {
+                    for (MultipartFile f : attachFiles) {
+                        if (!f.isEmpty()) {
+                            fileUploadService.uploadFile(f, userId, groupId, FileCtxType.INSTRUCTOR, String.valueOf(groupId));
+                        }
                     }
+                } catch (Exception e) {
+                    log.error("게시글 수정 파일 업로드 실패 (postSn={}, groupId={})", instructorBoardDto.getPostSn(), groupId, e);
+                    fileUploadService.retrieveFilesByGroupId(groupId)
+                            .stream().map(f -> f.getAtchFileDtlSn())
+                            .filter(sn -> !before.contains(sn))
+                            .forEach(sn -> fileUploadService.removeFile(sn, userId));
+                    redirectAttributes.addFlashAttribute("board", instructorBoardDto);
+                    redirectAttributes.addFlashAttribute("errorMessage", "파일 업로드에 실패했습니다. 다시 시도해주세요.");
+                    return "redirect:" + updateFormUrl(instructorBoardDto.getPostSn(), listPage, listKeyword, listBoardTypeCd);
                 }
+                addedFileSns = fileUploadService.retrieveFilesByGroupId(groupId)
+                        .stream().map(f -> f.getAtchFileDtlSn())
+                        .filter(sn -> !before.contains(sn)).toList();
             } else {
-                newGroupId = fileUploadService.createFileGroup();
-                instructorBoardDto.setAtchFileId((long) newGroupId);
-                for (MultipartFile f : attachFiles) {
-                    if (!f.isEmpty()) {
-                        fileUploadService.uploadFile(f, userId, newGroupId, FileCtxType.INSTRUCTOR, String.valueOf(newGroupId));
+                try {
+                    newGroupId = fileUploadService.createFileGroup();
+                    instructorBoardDto.setAtchFileId((long) newGroupId);
+                    for (MultipartFile f : attachFiles) {
+                        if (!f.isEmpty()) {
+                            fileUploadService.uploadFile(f, userId, newGroupId, FileCtxType.INSTRUCTOR, String.valueOf(newGroupId));
+                        }
                     }
+                } catch (Exception e) {
+                    log.error("게시글 수정 파일 업로드 실패 — 새 그룹 정리 (postSn={}, groupId={})", instructorBoardDto.getPostSn(), newGroupId, e);
+                    cleanupFileGroup(newGroupId, userId);
+                    redirectAttributes.addFlashAttribute("board", instructorBoardDto);
+                    redirectAttributes.addFlashAttribute("errorMessage", "파일 업로드에 실패했습니다. 다시 시도해주세요.");
+                    return "redirect:" + updateFormUrl(instructorBoardDto.getPostSn(), listPage, listKeyword, listBoardTypeCd);
                 }
             }
         }
@@ -325,6 +352,7 @@ public class InstructorBoardController {
             if (rowcnt > 0) {
                 return "redirect:" + detailUrl(instructorBoardDto.getPostSn(), listPage, listKeyword, listBoardTypeCd);
             } else {
+                addedFileSns.forEach(sn -> fileUploadService.removeFile(sn, userId));
                 cleanupFileGroup(newGroupId, userId);
                 redirectAttributes.addFlashAttribute("board", instructorBoardDto);
                 redirectAttributes.addFlashAttribute("errorMessage", "게시글 수정에 실패했습니다. 다시 시도해주세요.");
@@ -332,11 +360,34 @@ public class InstructorBoardController {
             }
         } catch (Exception e) {
             log.error("게시글 수정 중 오류 발생", e);
+            addedFileSns.forEach(sn -> fileUploadService.removeFile(sn, userId));
             cleanupFileGroup(newGroupId, userId);
             redirectAttributes.addFlashAttribute("board", instructorBoardDto);
             redirectAttributes.addFlashAttribute("errorMessage", "게시글 수정 중 오류가 발생했습니다. 다시 시도해주세요.");
             return "redirect:" + updateFormUrl(instructorBoardDto.getPostSn(), listPage, listKeyword, listBoardTypeCd);
         }
+    }
+
+    @PostMapping("/file/{fileDtlSn}/delete")
+    public String deleteFile(@PathVariable Integer fileDtlSn,
+            @RequestParam Long postSn,
+            @RequestParam(defaultValue = "1") int listPage,
+            @RequestParam(defaultValue = "") String listKeyword,
+            @RequestParam(defaultValue = "") String listBoardTypeCd) {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        String updateFormUrl = updateFormUrl(postSn, listPage, listKeyword, listBoardTypeCd);
+        InstructorBoardResponse board = instructorBoardService.getInstructorBoardDetail(postSn, userId);
+        if (board == null || board.getAtchFileId() == null || board.getAtchFileId().isBlank()) {
+            return "redirect:" + updateFormUrl;
+        }
+        boolean owned = fileUploadService.retrieveFilesByGroupId(Integer.parseInt(board.getAtchFileId()))
+                .stream().anyMatch(f -> fileDtlSn.equals(f.getAtchFileDtlSn()));
+        if (!owned) {
+            log.warn("파일 소유권 불일치 — 삭제 거부 (postSn={}, fileDtlSn={})", postSn, fileDtlSn);
+            return "redirect:" + updateFormUrl;
+        }
+        fileUploadService.removeFile(fileDtlSn, userId);
+        return "redirect:" + updateFormUrl;
     }
 
     /**

@@ -62,6 +62,14 @@
             <span th:text="${f.orgnFileNm}" class="flex-1 truncate"></span>
             <span class="text-slate-400"
                   th:text="${#numbers.formatDecimal(f.fileSizeCnt / 1024.0, 1, 1) + ' KB'}"></span>
+            <form th:action="@{/classroom/detail/{sn}/notice/{postSn}/file/{fileDtlSn}/delete(sn=${classroom.classSn},postSn=${editNotice.postSn},fileDtlSn=${f.atchFileDtlSn})}"
+                  method="post"
+                  onsubmit="return confirm('파일을 삭제하시겠습니까?')">
+              <button type="submit"
+                      class="text-rose-400 hover:text-rose-600 transition-colors ml-1">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </form>
           </div>
         </div>
 
@@ -114,12 +122,34 @@
   document.addEventListener('DOMContentLoaded', function () {
     const savedContent = /*[[${editNotice?.postCn}]]*/ null;
 
+    let initialForMount = '';
+    let htmlToRestore = null;
+    if (savedContent) {
+      try {
+        JSON.parse(savedContent);
+        initialForMount = savedContent;
+      } catch {
+        htmlToRestore = savedContent;
+      }
+    }
+
     TipTapEditor.mount('editor', {
       editable: true,
       outputInputId: 'postCnHidden',
-      initialContent: savedContent || '',
+      initialContent: initialForMount,
       imageUrlResolver: (fileId) => `/admin/files/${fileId}/view`,
     });
+
+    if (htmlToRestore) {
+      const t = setInterval(() => {
+        const el = document.querySelector('#editor .tiptap');
+        if (el && el.editor) {
+          el.editor.commands.setContent(htmlToRestore);
+          clearInterval(t);
+        }
+      }, 50);
+      setTimeout(() => clearInterval(t), 3000);
+    }
 
     document.querySelector('form').addEventListener('submit', function () {
       const el = document.querySelector('#editor .tiptap');

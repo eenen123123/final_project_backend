@@ -182,23 +182,46 @@ public class AdminClassroomController {
         dto.setPostCn(TipTapSanitizer.clean(dto.getPostCn()));
 
         int newGroupId = -1;
+        List<Integer> addedFileSns = Collections.emptyList();
+        String editUrl = "redirect:/classroom/detail/" + classSn + "/notice/" + postSn;
+        String editErrorUrl = editUrl + "/edit?error=fileUploadFailed";
         if (hasFiles(attachFiles)) {
             Long existingGroupId = dto.getAtchFileId();
             if (existingGroupId != null) {
-                for (MultipartFile f : attachFiles) {
-                    if (!f.isEmpty()) {
-                        fileUploadService.uploadFile(f, userId, existingGroupId.intValue(),
-                                FileCtxType.INSTRUCTOR, String.valueOf(existingGroupId));
+                List<Integer> before = fileUploadService.retrieveFilesByGroupId(existingGroupId.intValue())
+                        .stream().map(f -> f.getAtchFileDtlSn()).toList();
+                try {
+                    for (MultipartFile f : attachFiles) {
+                        if (!f.isEmpty()) {
+                            fileUploadService.uploadFile(f, userId, existingGroupId.intValue(),
+                                    FileCtxType.INSTRUCTOR, String.valueOf(existingGroupId));
+                        }
                     }
+                } catch (Exception e) {
+                    log.error("공지 수정 파일 업로드 실패 (postSn={}, groupId={})", postSn, existingGroupId, e);
+                    fileUploadService.retrieveFilesByGroupId(existingGroupId.intValue())
+                            .stream().map(f -> f.getAtchFileDtlSn())
+                            .filter(sn -> !before.contains(sn))
+                            .forEach(sn -> fileUploadService.removeFile(sn, userId));
+                    return editErrorUrl;
                 }
+                addedFileSns = fileUploadService.retrieveFilesByGroupId(existingGroupId.intValue())
+                        .stream().map(f -> f.getAtchFileDtlSn())
+                        .filter(sn -> !before.contains(sn)).toList();
             } else {
-                newGroupId = fileUploadService.createFileGroup();
-                dto.setAtchFileId((long) newGroupId);
-                for (MultipartFile f : attachFiles) {
-                    if (!f.isEmpty()) {
-                        fileUploadService.uploadFile(f, userId, newGroupId,
-                                FileCtxType.INSTRUCTOR, String.valueOf(newGroupId));
+                try {
+                    newGroupId = fileUploadService.createFileGroup();
+                    dto.setAtchFileId((long) newGroupId);
+                    for (MultipartFile f : attachFiles) {
+                        if (!f.isEmpty()) {
+                            fileUploadService.uploadFile(f, userId, newGroupId,
+                                    FileCtxType.INSTRUCTOR, String.valueOf(newGroupId));
+                        }
                     }
+                } catch (Exception e) {
+                    log.error("공지 수정 파일 업로드 실패 — 새 그룹 정리 (postSn={}, groupId={})", postSn, newGroupId, e);
+                    cleanupFileGroup(newGroupId, userId);
+                    return editErrorUrl;
                 }
             }
         }
@@ -206,11 +229,13 @@ public class AdminClassroomController {
         try {
             instructorBoardService.updateClassroomNotice(dto);
         } catch (Exception e) {
-            log.warn("공지 수정 실패 (groupId={}): {}", newGroupId, e.getMessage());
+            log.error("공지 수정 DB 반영 실패 (postSn={}, groupId={})", postSn, newGroupId, e);
+            addedFileSns.forEach(sn -> fileUploadService.removeFile(sn, userId));
             cleanupFileGroup(newGroupId, userId);
+            return editErrorUrl;
         }
 
-        return "redirect:/classroom/detail/" + classSn + "/notice/" + postSn;
+        return editUrl;
     }
 
     private void cleanupFileGroup(int groupId, String userId) {
@@ -221,6 +246,24 @@ public class AdminClassroomController {
         } catch (Exception ex) {
             log.warn("파일 그룹 정리 실패 (groupId={}): {}", groupId, ex.getMessage());
         }
+    }
+
+    @PostMapping("/detail/{classSn}/notice/{postSn}/file/{fileDtlSn}/delete")
+    public String noticeFileDelete(@PathVariable Long classSn, @PathVariable Long postSn,
+            @PathVariable Integer fileDtlSn, Authentication authentication) {
+        String editUrl = "redirect:/classroom/detail/" + classSn + "/notice/" + postSn + "/edit";
+        InstructorBoardDto notice = instructorBoardService.getClassroomNoticeDetail(postSn, classSn);
+        if (notice == null || notice.getAtchFileId() == null) {
+            return editUrl;
+        }
+        boolean owned = fileUploadService.retrieveFilesByGroupId(notice.getAtchFileId().intValue())
+                .stream().anyMatch(f -> fileDtlSn.equals(f.getAtchFileDtlSn()));
+        if (!owned) {
+            log.warn("파일 소유권 불일치 — 삭제 거부 (postSn={}, fileDtlSn={})", postSn, fileDtlSn);
+            return editUrl;
+        }
+        fileUploadService.removeFile(fileDtlSn, authentication.getName());
+        return editUrl;
     }
 
     @PostMapping("/detail/{classSn}/notice/{postSn}/delete")
@@ -278,7 +321,7 @@ public class AdminClassroomController {
     @GetMapping("/detail/{classSn}/members")
     public String memberList(@PathVariable Long classSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
-        return "classroom/members";
+        return "classroom/list-classroom-members";
     }
 
     // ── Q&A ──────────────────────────────────────────────────────
