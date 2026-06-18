@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 @Controller
 @RequestMapping("/classroom")
 @RequiredArgsConstructor
-public class ClassroomController {
+public class AdminClassroomController {
 
     private final ClassroomService classroomService;
     private final ClassroomHomeService classroomHomeService;
