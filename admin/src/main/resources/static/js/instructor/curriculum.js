@@ -4,6 +4,7 @@ let deletingId = null;
 let removingCourseSn = null;
 let sortable = null;
 let allAvailableCourses = [];
+let reorderInProgress = false;
 
 
 /**
@@ -38,8 +39,8 @@ function selectCurriculum(curriculumId, strt, end) {
     card.classList.add("border-sky-400", "bg-sky-50/40");
   }
 
-  document.getElementById("panel-title").textContent =
-    card.querySelector(".card-title").textContent;
+  const titleEl = card?.querySelector(".card-title");
+  document.getElementById("panel-title").textContent = titleEl ? titleEl.textContent : "";
   document.getElementById("panel-period").textContent = strt
     ? `${strt} ~ ${end}`
     : "기간 미설정";
@@ -77,8 +78,8 @@ async function loadMappedCourses() {
     countEl.textContent = `총 ${courses.length}개`;
 
     const card = document.getElementById("card-" + selectedCurriculumId);
-    if (card)
-      card.querySelector(".card-course-count").textContent = courses.length;
+    const countEl = card?.querySelector(".card-course-count");
+    if (countEl) countEl.textContent = courses.length;
 
     if (courses.length === 0) {
       listEl.innerHTML = "";
@@ -127,6 +128,11 @@ function buildMappedCourseRow(c) {
       ${duration}
     </div>
     ${opnnBadge}
+    <a href="/admin/course/detail?courseSn=${c.courseSn}"
+       class="relative group shrink-0 p-1.5 rounded-lg text-slate-300 hover:text-sky-500 hover:bg-sky-50 transition-colors">
+      <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+      <span class="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-2 whitespace-nowrap rounded-lg bg-slate-800 px-2 py-1 text-[11px] text-white opacity-0 transition-opacity group-hover:opacity-100 z-10">강좌 상세</span>
+    </a>
     <button type="button"
             data-sn="${c.courseSn}" data-nm="${escHtml(c.courseNm)}"
             onclick="openRemoveCourseModal(Number(this.dataset.sn), this.dataset.nm)"
@@ -140,6 +146,9 @@ function buildMappedCourseRow(c) {
    순서 저장
 ══════════════════════════════════════════════ */
 async function saveOrder() {
+  if (reorderInProgress) return;
+  reorderInProgress = true;
+
   const items = document.querySelectorAll("#mapped-course-list > [data-sn]");
   const courseSnList = Array.from(items).map((el) => Number(el.dataset.sn));
 
@@ -165,6 +174,8 @@ async function saveOrder() {
   } catch (e) {
     alert("서버 오류로 순서 저장에 실패했습니다.");
     loadMappedCourses();
+  } finally {
+    reorderInProgress = false;
   }
 }
 
@@ -319,11 +330,23 @@ function closeCreateForm() {
   });
   document.getElementById("create-error").classList.add("hidden");
 }
+function validateCurriculumForm(title, strtDt, endDt, explnCn) {
+  if (!title) return "커리큘럼명은 필수 입력 항목입니다.";
+  if (title.length > 200) return "커리큘럼명은 200자 이내로 입력해 주세요.";
+  if (explnCn && explnCn.length > 4000) return "설명은 4000자 이내로 입력해 주세요.";
+  if (strtDt && endDt && new Date(endDt) < new Date(strtDt)) return "종료일은 시작일 이후여야 합니다.";
+  return null;
+}
+
 async function submitCreate() {
   const title = document.getElementById("create-title").value.trim();
+  const strtDt = document.getElementById("create-strtDt").value;
+  const endDt = document.getElementById("create-endDt").value;
+  const explnCn = document.getElementById("create-explnCn").value;
   const errorEl = document.getElementById("create-error");
-  if (!title) {
-    errorEl.textContent = "커리큘럼명은 필수 입력 항목입니다.";
+  const validationError = validateCurriculumForm(title, strtDt, endDt, explnCn);
+  if (validationError) {
+    errorEl.textContent = validationError;
     errorEl.classList.remove("hidden");
     return;
   }
@@ -386,10 +409,14 @@ async function submitEdit(btn) {
   const card = editDiv.closest(".curriculum-card");
   const cardId = card.id.replace("card-", "");
   const title = editDiv.querySelector(".edit-title").value.trim();
+  const strtDt = editDiv.querySelector(".edit-strtDt").value;
+  const endDt = editDiv.querySelector(".edit-endDt").value;
+  const explnCn = editDiv.querySelector(".edit-explnCn").value;
   const errorEl = editDiv.querySelector(".edit-error");
 
-  if (!title) {
-    errorEl.textContent = "커리큘럼명은 필수 입력 항목입니다.";
+  const validationError = validateCurriculumForm(title, strtDt, endDt, explnCn);
+  if (validationError) {
+    errorEl.textContent = validationError;
     errorEl.classList.remove("hidden");
     return;
   }

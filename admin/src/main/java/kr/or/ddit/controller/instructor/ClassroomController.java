@@ -1,4 +1,4 @@
-﻿package kr.or.ddit.controller.instructor;
+package kr.or.ddit.controller.instructor;
 
 import java.time.LocalDate;
 import java.util.List;

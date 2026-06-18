@@ -103,7 +103,10 @@ public class CurriculumServiceImpl implements CurriculumService {
             throw new SecurityException("본인의 강좌만 커리큘럼에 추가할 수 있습니다.");
         }
         int nextSortOrd = curriculumMapper.selectMaxCourseSortOrd(curriculumId) + 1;
-        curriculumMapper.mapCourseToCurriculum(courseSn, curriculumId, nextSortOrd);
+        int affected = curriculumMapper.mapCourseToCurriculum(courseSn, curriculumId, nextSortOrd);
+        if (affected == 0) {
+            throw new IllegalArgumentException("이미 다른 커리큘럼에 배정된 강좌입니다.");
+        }
     }
 
     /**

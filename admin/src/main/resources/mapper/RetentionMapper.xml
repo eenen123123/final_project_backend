@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.mapper.RetentionMapper">
+
+    <!-- 공통코드
+         226 출결 유형 (01 출석 / 02 결석 / 03 지각 / 04 조퇴)
+         227 퇴원방어 결과 (01 진행중 / 02 유지 / 03 퇴원)
+         203 학생 퇴소 사유
+         오프라인 학생: MEMBER.USER_ROLE = 'ROLE_STUDENT'
+         위험점수: 결석×3 + 조퇴×2 + 지각×1 (최근 30일) -->
+
+    <!-- ================================================================
+         상단 요약 카드
+    ================================================================ -->
+    <select id="selectSummary" resultType="kr.or.ddit.finalProject.dto.retention.RetentionSummaryDto">
+        SELECT
+            (SELECT COUNT(*) FROM MEMBER WHERE USER_ROLE = 'ROLE_STUDENT')                       AS TOTAL_STUDENTS,
+            (SELECT COUNT(*) FROM (
+                SELECT A.STD_USER_ID
+                FROM STUDENT_ATTENDANCE A
+                JOIN MEMBER M ON A.STD_USER_ID = M.USER_ID AND M.USER_ROLE = 'ROLE_STUDENT'
+                WHERE A.ATND_REG_DT >= SYSDATE - 30
+                  AND TRIM(A.ATND_TYPE_CD) IN ('02', '03', '04')
+                GROUP BY A.STD_USER_ID
+                HAVING SUM(CASE WHEN TRIM(A.ATND_TYPE_CD) = '02' THEN 3
+                                WHEN TRIM(A.ATND_TYPE_CD) = '04' THEN 2
+                                WHEN TRIM(A.ATND_TYPE_CD) = '03' THEN 1 ELSE 0 END) >= 12
+            ))                                                                                   AS RISK_CNT,
+            (SELECT COUNT(DISTINCT A.STD_USER_ID)
+                FROM STUDENT_ATTENDANCE A
+                JOIN MEMBER M ON A.STD_USER_ID = M.USER_ID AND M.USER_ROLE = 'ROLE_STUDENT'
+                WHERE A.ATND_REG_DT >= SYSDATE - 30
+                  AND TRIM(A.ATND_TYPE_CD) IN ('02', '03', '04'))                                AS ATTN_ABNORMAL_CNT,
+            (SELECT COUNT(DISTINCT STD_USER_ID) FROM RETENTION_PROCESS WHERE TRIM(RTNP_RSLT_CD) = '02') AS RETAINED_CNT
+        FROM DUAL
+    </select>
+
+    <!-- ================================================================
+         근태 특이사항 집계 (최근 30일 · 오프라인 학생)
+    ================================================================ -->
+    <sql id="anomalyInner">
+        SELECT
+            A.STD_USER_ID,
+            M.USER_NAME AS STUDENT_NM,
+            (SELECT MAX(CR.CLASS_NM)
+               FROM CLASSROOM_MEMBER CMB JOIN CLASSROOM CR ON CMB.CLASS_SN = CR.CLASS_SN
+              WHERE CMB.USER_ID = A.STD_USER_ID)                                  AS CLASS_NM,
+            SUM(CASE WHEN TRIM(A.ATND_TYPE_CD) = '02' THEN 1 ELSE 0 END)          AS ABSENT_CNT,
+            SUM(CASE WHEN TRIM(A.ATND_TYPE_CD) = '03' THEN 1 ELSE 0 END)          AS LATE_CNT,
+            SUM(CASE WHEN TRIM(A.ATND_TYPE_CD) = '04' THEN 1 ELSE 0 END)          AS EARLY_CNT,
+            SUM(CASE WHEN TRIM(A.ATND_TYPE_CD) = '02' THEN 3
+                     WHEN TRIM(A.ATND_TYPE_CD) = '04' THEN 2
+                     WHEN TRIM(A.ATND_TYPE_CD) = '03' THEN 1 ELSE 0 END)          AS RISK_SCORE,
+            MAX(A.ATND_REG_DT)                                                    AS LAST_NOTE_DT,
+            (SELECT LN.ATND_NOTE_CN FROM (
+                SELECT A2.ATND_NOTE_CN
+                FROM STUDENT_ATTENDANCE A2
+                WHERE A2.STD_USER_ID = A.STD_USER_ID
+                  AND TRIM(A2.ATND_TYPE_CD) IN ('02', '03', '04')
+                ORDER BY A2.ATND_REG_DT DESC
+             ) LN WHERE ROWNUM = 1)                                              AS LAST_NOTE
+        FROM STUDENT_ATTENDANCE A
+        JOIN MEMBER M ON A.STD_USER_ID = M.USER_ID AND M.USER_ROLE = 'ROLE_STUDENT'
+        WHERE A.ATND_REG_DT >= SYSDATE - 30
+          AND TRIM(A.ATND_TYPE_CD) IN ('02', '03', '04')
+        <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
+            AND UPPER(M.USER_NAME) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%'
+        </if>
+        GROUP BY A.STD_USER_ID, M.USER_NAME
+    </sql>
+
+    <sql id="anomalyOuterWhere">
+        <where>
+            <if test="detailCondition.atndTypeCd == '02'">AND V.ABSENT_CNT &gt; 0</if>
+            <if test="detailCondition.atndTypeCd == '03'">AND V.LATE_CNT &gt; 0</if>
+            <if test="detailCondition.atndTypeCd == '04'">AND V.EARLY_CNT &gt; 0</if>
+            <if test="detailCondition.riskLevel == '고위험'">AND V.RISK_SCORE &gt;= 12</if>
+            <if test="detailCondition.riskLevel == '중위험'">AND V.RISK_SCORE &gt;= 6 AND V.RISK_SCORE &lt; 12</if>
+            <if test="detailCondition.riskLevel == '저위험'">AND V.RISK_SCORE &lt; 6</if>
+        </where>
+    </sql>
+
+    <select id="searchAnomalies" resultType="kr.or.ddit.finalProject.dto.retention.RetentionAttendanceDto">
+        SELECT V.STD_USER_ID, V.STUDENT_NM, V.CLASS_NM,
+               V.ABSENT_CNT, V.LATE_CNT, V.EARLY_CNT, V.RISK_SCORE,
+               V.LAST_NOTE, V.LAST_NOTE_DT,
+               CASE WHEN V.RISK_SCORE >= 12 THEN '고위험'
+                    WHEN V.RISK_SCORE >= 6  THEN '중위험'
+                    ELSE '저위험' END AS RISK_LEVEL
+        FROM ( <include refid="anomalyInner"/> ) V
+        <include refid="anomalyOuterWhere"/>
+        ORDER BY V.RISK_SCORE DESC, V.LAST_NOTE_DT DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <select id="countAnomalies" resultType="int">
+        SELECT COUNT(*)
+        FROM ( <include refid="anomalyInner"/> ) V
+        <include refid="anomalyOuterWhere"/>
+    </select>
+
+    <!-- ================================================================
+         상담 프로세스 이력 (학생별 집계)
+    ================================================================ -->
+    <sql id="processInner">
+        SELECT
+            P.STD_USER_ID,
+            M.USER_NAME AS STUDENT_NM,
+            (SELECT MAX(CR.CLASS_NM)
+               FROM CLASSROOM_MEMBER CMB JOIN CLASSROOM CR ON CMB.CLASS_SN = CR.CLASS_SN
+              WHERE CMB.USER_ID = P.STD_USER_ID)                                  AS CLASS_NM,
+            COUNT(*)            AS CNSL_CNT,
+            MAX(P.RTNP_DT)      AS LAST_DT,
+            (SELECT RC.COM_CD_NM FROM RETENTION_PROCESS LP
+                LEFT JOIN COM_CD RC ON TRIM(RC.CL_CODE) = '203' AND TRIM(RC.COM_CD) = TRIM(LP.WDRW_RSN_CD)
+              WHERE LP.STD_USER_ID = P.STD_USER_ID
+              ORDER BY LP.RTNP_DT DESC FETCH FIRST 1 ROW ONLY)                    AS WDRW_RSN_NM,
+            (SELECT LP.RTNP_RSLT_CD FROM RETENTION_PROCESS LP
+              WHERE LP.STD_USER_ID = P.STD_USER_ID
+              ORDER BY LP.RTNP_DT DESC FETCH FIRST 1 ROW ONLY)                    AS RTNP_RSLT_CD,
+            (SELECT SC.COM_CD_NM FROM RETENTION_PROCESS LP
+                LEFT JOIN COM_CD SC ON TRIM(SC.CL_CODE) = '227' AND TRIM(SC.COM_CD) = TRIM(LP.RTNP_RSLT_CD)
+              WHERE LP.STD_USER_ID = P.STD_USER_ID
+              ORDER BY LP.RTNP_DT DESC FETCH FIRST 1 ROW ONLY)                    AS RTNP_RSLT_NM,
+            (SELECT IM.USER_NAME FROM RETENTION_PROCESS LP
+                LEFT JOIN MEMBER IM ON LP.CHRG_USER_ID = IM.USER_ID
+              WHERE LP.STD_USER_ID = P.STD_USER_ID
+              ORDER BY LP.RTNP_DT DESC FETCH FIRST 1 ROW ONLY)                    AS CHRG_NM
+        FROM RETENTION_PROCESS P
+        JOIN MEMBER M ON P.STD_USER_ID = M.USER_ID
+        <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
+            WHERE UPPER(M.USER_NAME) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%'
+        </if>
+        GROUP BY P.STD_USER_ID, M.USER_NAME
+    </sql>
+
+    <sql id="processOuterWhere">
+        <if test="detailCondition.result != null and detailCondition.result != ''">
+            WHERE V.RTNP_RSLT_CD = #{detailCondition.result}
+        </if>
+    </sql>
+
+    <select id="searchProcesses" resultType="kr.or.ddit.finalProject.dto.retention.RetentionProcessDto">
+        SELECT V.* FROM ( <include refid="processInner"/> ) V
+        <include refid="processOuterWhere"/>
+        ORDER BY V.LAST_DT DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <select id="countProcesses" resultType="int">
+        SELECT COUNT(*) FROM ( <include refid="processInner"/> ) V
+        <include refid="processOuterWhere"/>
+    </select>
+
+    <!-- ── 상담 프로세스 캘린더 (기간 조회) ────────────────────── -->
+    <select id="selectProcessCalendar" resultType="kr.or.ddit.finalProject.dto.retention.RetentionProcessDto">
+        SELECT
+            P.RTNP_SN, P.STD_USER_ID,
+            M.USER_NAME  AS STUDENT_NM,
+            P.RTNP_DT,
+            P.RTNP_RSLT_CD,
+            SC.COM_CD_NM AS RTNP_RSLT_NM
+        FROM RETENTION_PROCESS P
+        JOIN MEMBER M       ON P.STD_USER_ID = M.USER_ID
+        LEFT JOIN COM_CD SC ON TRIM(SC.CL_CODE) = '227' AND TRIM(SC.COM_CD) = TRIM(P.RTNP_RSLT_CD)
+        WHERE P.RTNP_DT >= TO_DATE(SUBSTR(#{start}, 1, 10), 'YYYY-MM-DD')
+          AND P.RTNP_DT &lt;  TO_DATE(SUBSTR(#{end},   1, 10), 'YYYY-MM-DD')
+        ORDER BY P.RTNP_DT
+    </select>
+
+    <!-- ── 상담 프로세스 저장 ──────────────────────────────────── -->
+    <insert id="insertProcess" parameterType="kr.or.ddit.finalProject.dto.retention.RetentionProcessDto">
+        INSERT INTO RETENTION_PROCESS (
+            STD_USER_ID, WDRW_RSN_CD, RTNP_CN, RTNP_RSLT_CD, CHRG_USER_ID, RTNP_DT, RGTR_ID
+        ) VALUES (
+            #{stdUserId}, #{wdrwRsnCd}, #{rtnpCn}, #{rtnpRsltCd}, #{chrgUserId}, CURRENT_TIMESTAMP, #{rgtrId}
+        )
+    </insert>
+
+    <!-- ================================================================
+         근태 Excel 업로드 적재
+    ================================================================ -->
+    <select id="existsStudent" resultType="int">
+        SELECT COUNT(*) FROM MEMBER WHERE USER_ID = #{stdUserId} AND USER_ROLE = 'ROLE_STUDENT'
+    </select>
+
+    <insert id="insertAttendance" parameterType="kr.or.ddit.finalProject.dto.student.StudentAttendanceDto">
+        INSERT INTO STUDENT_ATTENDANCE (
+            STD_USER_ID, ATND_TYPE_CD, ATND_REG_DT, ATND_NOTE_CN
+        ) VALUES (
+            #{stdUserId}, #{atndTypeCd}, #{atndRegDt}, #{atndNoteCn}
+        )
+    </insert>
+
+</mapper>

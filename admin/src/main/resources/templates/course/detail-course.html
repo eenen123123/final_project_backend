@@ -34,11 +34,14 @@
         <i class="fa-solid fa-arrow-left"></i>
         <span>목록</span>
       </a>
-      <button type="button" onclick="openDeleteModal()" class="hm-btn-danger">
+      <button
+        th:if="${#authentication.name == course.instrUserId}"
+        type="button" onclick="openDeleteModal()" class="hm-btn-danger">
         <i class="fa-solid fa-trash"></i>
         <span>강좌 삭제</span>
       </button>
       <a
+        th:if="${#authentication.name == course.instrUserId}"
         th:href="@{/admin/course/edit(courseSn=${course.courseSn})}"
         class="hm-btn-primary hm-btn-orange"
       >

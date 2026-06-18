@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import jakarta.validation.Valid;
 
 import java.util.HashMap;
 
@@ -34,6 +37,14 @@ public class InstructorCurriculumController {
     private final CurriculumService curriculumService;
     private final AdminActivityApprovalService adminActivityApprovalService;
 
+    private String validateDates(CurriculumDto dto) {
+        if (dto.getStrtDt() != null && dto.getEndDt() != null
+                && dto.getEndDt().isBefore(dto.getStrtDt())) {
+            return "종료일은 시작일 이후여야 합니다.";
+        }
+        return null;
+    }
+
     // ── 페이지 렌더링 ────────────────────────────────────────────────
 
     /** 커리큘럼 목록 페이지. 로그인한 강사의 커리큘럼만 표시한다. */
@@ -50,16 +61,23 @@ public class InstructorCurriculumController {
     @PostMapping("/create")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> create(
-            @ModelAttribute CurriculumDto curriculumDto,
+            @Valid @ModelAttribute CurriculumDto curriculumDto,
+            BindingResult bindingResult,
             Authentication authentication) {
+        if (bindingResult.hasErrors()) {
+            var fe = bindingResult.getFieldError();
+            String msg = fe != null ? fe.getDefaultMessage() : "입력값이 올바르지 않습니다.";
+            return ResponseEntity.ok(Map.of("success", false, "message", msg));
+        }
+        String dateError = validateDates(curriculumDto);
+        if (dateError != null) {
+            return ResponseEntity.ok(Map.of("success", false, "message", dateError));
+        }
         String userId = authentication.getName();
         curriculumDto.setInstructorId(userId);
         curriculumDto.setRgtrId(userId);
         curriculumDto.setLastMdfrId(userId);
         try {
-            // boolean created = curriculumService.createCurriculum(curriculumDto);
-            // if (!created) return ResponseEntity.ok(Map.of("success", false, "message", "커리큘럼 생성에 실패했습니다."));
-            // return ResponseEntity.ok(Map.of("success", true, "curriculumId", curriculumDto.getCurriculumId()));
             Map<String, Object> payload = new HashMap<>();
             payload.put("curriculumDto", curriculumDto);
             adminActivityApprovalService.submitForApproval(
@@ -80,12 +98,20 @@ public class InstructorCurriculumController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> update(
             @PathVariable Long curriculumId,
-            @ModelAttribute CurriculumDto curriculumDto,
+            @Valid @ModelAttribute CurriculumDto curriculumDto,
+            BindingResult bindingResult,
             Authentication authentication) {
+        if (bindingResult.hasErrors()) {
+            var fe = bindingResult.getFieldError();
+            String msg = fe != null ? fe.getDefaultMessage() : "입력값이 올바르지 않습니다.";
+            return ResponseEntity.ok(Map.of("success", false, "message", msg));
+        }
+        String dateError = validateDates(curriculumDto);
+        if (dateError != null) {
+            return ResponseEntity.ok(Map.of("success", false, "message", dateError));
+        }
         curriculumDto.setCurriculumId(curriculumId);
         try {
-            // curriculumService.modifyCurriculum(curriculumDto, authentication.getName());
-            // return ResponseEntity.ok(Map.of("success", true));
             Map<String, Object> payload = new HashMap<>();
             payload.put("curriculumDto", curriculumDto);
             adminActivityApprovalService.submitForApproval(
@@ -110,8 +136,6 @@ public class InstructorCurriculumController {
             @PathVariable Long curriculumId,
             Authentication authentication) {
         try {
-            // curriculumService.removeCurriculumLogically(curriculumId, authentication.getName());
-            // return ResponseEntity.ok(Map.of("success", true));
             Map<String, Object> payload = new HashMap<>();
             payload.put("curriculumId", curriculumId);
             adminActivityApprovalService.submitForApproval(
