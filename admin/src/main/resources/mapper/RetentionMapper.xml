@@ -175,7 +175,8 @@
         INSERT INTO RETENTION_PROCESS (
             STD_USER_ID, WDRW_RSN_CD, RTNP_CN, RTNP_RSLT_CD, CHRG_USER_ID, RTNP_DT, RGTR_ID
         ) VALUES (
-            #{stdUserId}, #{wdrwRsnCd}, #{rtnpCn}, #{rtnpRsltCd}, #{chrgUserId}, CURRENT_TIMESTAMP, #{rgtrId}
+            #{stdUserId}, #{wdrwRsnCd}, #{rtnpCn}, #{rtnpRsltCd}, #{chrgUserId},
+            NVL(#{rtnpDt}, CURRENT_TIMESTAMP), #{rgtrId}
         )
     </insert>
 
