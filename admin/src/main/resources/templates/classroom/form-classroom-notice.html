@@ -15,12 +15,26 @@
           th:text="${editNotice != null} ? '공지 수정' : '공지 작성'">공지 작성</h2>
     </div>
 
+    <!-- 파일 업로드 실패 에러 -->
+    <div th:if="${param.error != null}"
+         class="mx-6 mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
+      <i class="fa-solid fa-circle-exclamation mr-1"></i>
+      파일 업로드에 실패했습니다. 다시 시도해주세요.
+    </div>
+
     <form th:action="${editNotice != null}
                       ? @{/classroom/detail/{sn}/notice/{postSn}/edit(sn=${classroom.classSn},postSn=${editNotice.postSn})}
                       : @{/classroom/detail/{sn}/notice/write(sn=${classroom.classSn})}"
           method="post"
+          enctype="multipart/form-data"
           class="p-6 flex flex-col gap-4">
 
+      <input type="hidden" name="postCn" id="postCnHidden" />
+      <input type="hidden" name="atchFileId"
+             th:if="${editNotice != null and editNotice.atchFileId != null}"
+             th:value="${editNotice.atchFileId}" />
+
+      <!-- 제목 -->
       <div class="flex flex-col gap-1.5">
         <label class="text-xs font-bold text-slate-500">제목</label>
         <input type="text" name="postSj"
@@ -30,15 +44,37 @@
                required />
       </div>
 
+      <!-- 내용 (Tiptap) -->
       <div class="flex flex-col gap-1.5">
         <label class="text-xs font-bold text-slate-500">내용</label>
-        <textarea name="postCn" rows="10"
-                  placeholder="내용을 입력하세요"
-                  class="w-full text-sm px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 resize-none"
-                  required
-                  th:text="${editNotice != null} ? ${editNotice.postCn} : ''"></textarea>
+        <div id="editor" class="border border-slate-200 rounded-xl overflow-hidden min-h-[240px]"></div>
       </div>
 
+      <!-- 첨부파일 -->
+      <div class="flex flex-col gap-2">
+        <label class="text-xs font-bold text-slate-500">첨부파일</label>
+
+        <!-- 기존 파일 목록 (수정 시) -->
+        <div th:if="${not #lists.isEmpty(existingFiles)}" class="space-y-1">
+          <div th:each="f : ${existingFiles}"
+               class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+            <i class="fa-solid fa-paperclip text-slate-400"></i>
+            <span th:text="${f.orgnFileNm}" class="flex-1 truncate"></span>
+            <span class="text-slate-400"
+                  th:text="${#numbers.formatDecimal(f.fileSizeCnt / 1024.0, 1, 1) + ' KB'}"></span>
+          </div>
+        </div>
+
+        <!-- 파일 선택 -->
+        <label class="flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-500 hover:border-blue-400 hover:text-blue-500 transition-colors">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <span>파일 선택 (여러 개 가능)</span>
+          <input type="file" name="attachFiles" multiple class="hidden" onchange="showSelectedFiles(this)" />
+        </label>
+        <ul id="selectedFileList" class="space-y-1 text-sm text-slate-600"></ul>
+      </div>
+
+      <!-- 버튼 -->
       <div class="flex justify-end gap-2 pt-2">
         <a th:href="${editNotice != null}
                      ? @{/classroom/detail/{sn}/notice/{postSn}(sn=${classroom.classSn},postSn=${editNotice.postSn})}
@@ -52,5 +88,46 @@
   </div>
 
 </div>
+
+<script>
+  function showSelectedFiles(input) {
+    const list = document.getElementById('selectedFileList');
+    list.innerHTML = '';
+    Array.from(input.files).forEach(function(f) {
+      const li = document.createElement('li');
+      li.className = 'flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2';
+      const icon = document.createElement('i');
+      icon.className = 'fa-solid fa-paperclip text-slate-400';
+      const name = document.createElement('span');
+      name.className = 'flex-1 truncate text-xs';
+      name.textContent = f.name;
+      const size = document.createElement('span');
+      size.className = 'text-xs text-slate-400';
+      size.textContent = (f.size / 1024).toFixed(1) + ' KB';
+      li.append(icon, name, size);
+      list.appendChild(li);
+    });
+  }
+</script>
+<script defer th:src="@{/js/tiptap/tiptap-editor.iife.js}"></script>
+<script th:inline="javascript">
+  document.addEventListener('DOMContentLoaded', function () {
+    const savedContent = /*[[${editNotice?.postCn}]]*/ null;
+
+    TipTapEditor.mount('editor', {
+      editable: true,
+      outputInputId: 'postCnHidden',
+      initialContent: savedContent || '',
+      imageUrlResolver: (fileId) => `/admin/files/${fileId}/view`,
+    });
+
+    document.querySelector('form').addEventListener('submit', function () {
+      const el = document.querySelector('#editor .tiptap');
+      if (el && el.editor) {
+        document.getElementById('postCnHidden').value = el.editor.getHTML();
+      }
+    });
+  });
+</script>
 </body>
 </html>
