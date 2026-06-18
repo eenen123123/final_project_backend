@@ -9,7 +9,7 @@ import kr.or.ddit.finalProject.dto.classroom.ClassroomGradeDto;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomListResponse;
 import kr.or.ddit.finalProject.dto.classroom.TodayQuestionDto;
 import kr.or.ddit.finalProject.dto.classroom.WeeklyDayDto;
-import kr.or.ddit.finalProject.dto.lecture.LectureProgressDto;
+import kr.or.ddit.finalProject.dto.lecture.ClassroomLectureResponse;
 
 public interface ClassroomService {
 
@@ -21,7 +21,7 @@ public interface ClassroomService {
 
     List<ClassroomGradeDto> retrieveGradeList(Long classSn);
 
-    List<LectureProgressDto> retrieveLecturesWithProgress(Long classSn);
+    List<ClassroomLectureResponse> retrieveLecturesWithProgress(Long classSn);
 
     List<WeeklyDayDto> retrieveWeeklyData(Long classSn);
 

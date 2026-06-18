@@ -5,6 +5,7 @@ import java.util.List;
 import kr.or.ddit.finalProject.dto.course.CourseDto;
 import kr.or.ddit.finalProject.dto.lecture.LectureDto;
 import kr.or.ddit.finalProject.dto.lecture.LectureResponseDto;
+import kr.or.ddit.finalProject.dto.lecture.StudentLectureProgressResponse;
 
 public interface LectureService {
 
@@ -21,4 +22,10 @@ public interface LectureService {
     List<LectureResponseDto> retrieveLectureListByCourseSn(Long courseSn, String userId);
 
     void updateLectureProgress(Long lectureId, Long courseId, Integer progress, String userId);
+
+    void toggleOpnnYn(Long lectureSn, String userId);
+
+    void toggleLockYn(Long lectureSn, String userId);
+
+    List<StudentLectureProgressResponse> retrieveStudentProgressByLecture(Long classSn, Long lectureSn);
 }

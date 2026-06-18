@@ -22,7 +22,7 @@ import kr.or.ddit.finalProject.dto.classroom.ClassroomMemberListResponse;
 import kr.or.ddit.finalProject.dto.classroom.TodayQuestionDto;
 import kr.or.ddit.finalProject.dto.classroom.WeeklyDayDto;
 import kr.or.ddit.finalProject.dto.coursecohort.CourseCohortListResponse;
-import kr.or.ddit.finalProject.dto.lecture.LectureProgressDto;
+import kr.or.ddit.finalProject.dto.lecture.ClassroomLectureResponse;
 import kr.or.ddit.finalProject.mapper.classroom.ClassroomMapper;
 import kr.or.ddit.finalProject.mapper.classroom.ClassroomMemberMapper;
 import kr.or.ddit.finalProject.mapper.coursecohort.CourseCohortMapper;
@@ -88,7 +88,7 @@ public class ClassroomServiceImpl implements ClassroomService {
     }
 
     @Override
-    public List<LectureProgressDto> retrieveLecturesWithProgress(Long classSn) {
+    public List<ClassroomLectureResponse> retrieveLecturesWithProgress(Long classSn) {
         return lectureMapper.selectLecturesWithProgress(classSn);
     }
 

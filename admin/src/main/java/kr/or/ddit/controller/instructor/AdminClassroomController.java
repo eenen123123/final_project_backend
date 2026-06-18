@@ -20,10 +20,15 @@ import kr.or.ddit.finalProject.dto.assignment.AssignmentBoardDto;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomListResponse;
 import kr.or.ddit.finalProject.dto.file.FileCtxType;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse;
 import kr.or.ddit.finalProject.service.assignment.AssignmentBoardService;
 import kr.or.ddit.finalProject.service.classroom.ClassroomService;
 import kr.or.ddit.finalProject.service.file.FileUploadService;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
+import kr.or.ddit.finalProject.service.lecture.LectureService;
 import kr.or.ddit.finalProject.util.TipTapSanitizer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AdminClassroomController {
 
     private final ClassroomService classroomService;
+    private final LectureService lectureService;
     private final InstructorBoardService instructorBoardService;
     private final AssignmentBoardService assignmentBoardService;
     private final FileUploadService fileUploadService;
@@ -88,7 +94,47 @@ public class AdminClassroomController {
     public String lectureList(@PathVariable Long classSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
         model.addAttribute("lectureList", classroomService.retrieveLecturesWithProgress(classSn));
-        return "classroom/lectures";
+        return "classroom/list-classroom-lectures";
+    }
+
+    @GetMapping("/detail/{classSn}/lectures/{lectureSn}")
+    public String lectureDetail(@PathVariable Long classSn, @PathVariable Long lectureSn, Model model) {
+        ClassroomDetailResponse classroom = classroomService.retrieveClassroomDetail(classSn);
+        kr.or.ddit.finalProject.dto.lecture.LectureDto lecture = lectureService.retrieveLectureBySn(lectureSn);
+        if (lecture == null || !lecture.getCourseSn().equals(classroom.getCourseSn())) {
+            return "redirect:/classroom/detail/" + classSn + "/lectures";
+        }
+        model.addAttribute("classroom", classroom);
+        model.addAttribute("lecture", lecture);
+        model.addAttribute("studentProgress",
+                lectureService.retrieveStudentProgressByLecture(classSn, lectureSn));
+        return "classroom/detail-classroom-lecture";
+    }
+
+    @PostMapping("/detail/{classSn}/lectures/{lectureSn}/toggle-opnn")
+    @ResponseBody
+    public ResponseEntity<String> toggleOpnn(@PathVariable Long classSn, @PathVariable Long lectureSn,
+            Authentication authentication) {
+        ClassroomDetailResponse classroom = classroomService.retrieveClassroomDetail(classSn);
+        kr.or.ddit.finalProject.dto.lecture.LectureDto lecture = lectureService.retrieveLectureBySn(lectureSn);
+        if (lecture == null || !lecture.getCourseSn().equals(classroom.getCourseSn())) {
+            return ResponseEntity.badRequest().body("invalid");
+        }
+        lectureService.toggleOpnnYn(lectureSn, authentication.getName());
+        return ResponseEntity.ok("ok");
+    }
+
+    @PostMapping("/detail/{classSn}/lectures/{lectureSn}/toggle-lock")
+    @ResponseBody
+    public ResponseEntity<String> toggleLock(@PathVariable Long classSn, @PathVariable Long lectureSn,
+            Authentication authentication) {
+        ClassroomDetailResponse classroom = classroomService.retrieveClassroomDetail(classSn);
+        kr.or.ddit.finalProject.dto.lecture.LectureDto lecture = lectureService.retrieveLectureBySn(lectureSn);
+        if (lecture == null || !lecture.getCourseSn().equals(classroom.getCourseSn())) {
+            return ResponseEntity.badRequest().body("invalid");
+        }
+        lectureService.toggleLockYn(lectureSn, authentication.getName());
+        return ResponseEntity.ok("ok");
     }
 
     // ── 공지사항 ──────────────────────────────────────────────────
