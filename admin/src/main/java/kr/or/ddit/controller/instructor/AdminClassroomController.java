@@ -85,7 +85,7 @@ public class AdminClassroomController {
                 instructorBoardService.getClassroomNoticeList(classSn);
         model.addAttribute("recentNotice", notices.isEmpty() ? null : notices.get(0));
 
-        return "classroom/home";
+        return "classroom/home-classroom";
     }
 
     // ── 온라인 강의 ──────────────────────────────────────────────
@@ -322,7 +322,7 @@ public class AdminClassroomController {
     public String assignmentList(@PathVariable Long classSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
         model.addAttribute("assignmentList", assignmentBoardService.getAssignmentList(classSn));
-        return "classroom/assignments";
+        return "classroom/list-classroom-assignments";
     }
 
     @PostMapping("/detail/{classSn}/assignments/write")
@@ -357,7 +357,7 @@ public class AdminClassroomController {
     public String gradeList(@PathVariable Long classSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
         model.addAttribute("gradeList", classroomService.retrieveGradeList(classSn));
-        return "classroom/grades";
+        return "classroom/list-classroom-grades";
     }
 
     // ── 수강생 목록 ──────────────────────────────────────────────

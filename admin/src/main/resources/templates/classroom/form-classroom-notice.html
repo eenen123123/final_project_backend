@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{classroom/fragments :: layout(
+<html th:replace="~{classroom/layout-classroom :: layout(
     ${editNotice != null} ? (${classroom.classNm} + ' | 공지 수정') : (${classroom.classNm} + ' | 공지 작성'),
     ${classroom},
     'notice',
