@@ -93,7 +93,7 @@ public class ClassroomController {
     public String noticeList(@PathVariable Long classSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
         model.addAttribute("noticeList", instructorBoardService.getClassroomNoticeList(classSn));
-        return "classroom/notice";
+        return "classroom/list-classroom-notices";
     }
 
     @GetMapping("/detail/{classSn}/notice/{postSn}")
@@ -101,13 +101,13 @@ public class ClassroomController {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
         model.addAttribute("notice",
                 instructorBoardService.getClassroomNoticeDetail(postSn, classSn));
-        return "classroom/notice-detail";
+        return "classroom/detail-classroom-notice";
     }
 
     @GetMapping("/detail/{classSn}/notice/write")
     public String noticeWriteForm(@PathVariable Long classSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
-        return "classroom/notice-form";
+        return "classroom/form-classroom-notice";
     }
 
     @PostMapping("/detail/{classSn}/notice/write")
@@ -124,7 +124,7 @@ public class ClassroomController {
     public String noticeEditForm(@PathVariable Long classSn, @PathVariable Long postSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
         model.addAttribute("editNotice", instructorBoardService.getClassroomNoticeDetail(postSn, classSn));
-        return "classroom/notice-form";
+        return "classroom/form-classroom-notice";
     }
 
     @PostMapping("/detail/{classSn}/notice/{postSn}/edit")
