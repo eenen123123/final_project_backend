@@ -26,6 +26,7 @@ public class ClassroomDetailResponse {
     private List<CourseCohortListResponse> cohorts;    // 서비스에서 세팅
 
     private String instrNm;      // MEMBER.USER_NAME (강사명)
+    private String instrUserId;  // COURSE.INSTR_USER_ID (소유 강사 ID)
     private int memberCount;     // 현재 수강생 수
     private String instrUuid;    // 강사 프로필 이미지 UUID
 

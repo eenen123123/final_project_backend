@@ -23,6 +23,7 @@
     <result property="enrlStrtYmd"  column="ENRL_STRT_YMD" />
     <result property="enrlEndYmd"   column="ENRL_END_YMD" />
     <result property="instrNm"      column="INSTR_NM" />
+    <result property="instrUserId"  column="INSTR_USER_ID" />
     <result property="memberCount"  column="MEMBER_COUNT" />
     <result property="instrUuid"    column="INSTR_UUID"/>
   </resultMap>
@@ -55,8 +56,9 @@
         cl.CLASS_STAT_CD,
         cl.ENRL_STRT_YMD,
         cl.ENRL_END_YMD,
+        c.INSTR_USER_ID,
         m.USER_NAME AS INSTR_NM,
-            i.instr_uuid,
+        i.instr_uuid,
         (
             SELECT COUNT(*)
             FROM CLASSROOM_MEMBER cm

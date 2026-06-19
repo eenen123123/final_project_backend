@@ -3,6 +3,8 @@ package kr.or.ddit.finalProject.dto.assignment;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,6 +21,7 @@ public class AssignmentBoardDto implements Serializable {
     private String rgtrUserId;
     private String asgmtSj;
     private String asgmtCn;
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime sbmtDdlnDt;
     private String asgmtStatCd;
     private String atchFileId;

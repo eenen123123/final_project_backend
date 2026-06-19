@@ -1,8 +1,10 @@
 package kr.or.ddit.controller.instructor;
 
+import java.beans.PropertyEditorSupport;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Comparator;
@@ -12,7 +14,9 @@ import java.util.stream.Collectors;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -59,6 +63,29 @@ public class AdminClassroomController {
                     classroomService.retrieveUpcomingAssignmentCount(classSn));
             model.addAttribute("unansweredQnaCount",
                     instructorBoardService.getUnansweredQnaCount(classSn));
+        }
+    }
+
+    /** datetime-local 빈 문자열 → null 바인딩 (마감일 미입력 허용) */
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+        binder.registerCustomEditor(LocalDateTime.class, new PropertyEditorSupport() {
+            @Override
+            public void setAsText(String text) {
+                setValue((text == null || text.trim().isEmpty()) ? null
+                        : LocalDateTime.parse(text, fmt));
+            }
+        });
+    }
+
+    /** classSn이 현재 인증 사용자의 클래스룸인지 확인 — 없거나 소유자 불일치 시 null 반환 */
+    private ClassroomDetailResponse getOwnedClassroom(Long classSn, String userId) {
+        try {
+            ClassroomDetailResponse classroom = classroomService.retrieveClassroomDetail(classSn);
+            return userId.equals(classroom.getInstrUserId()) ? classroom : null;
+        } catch (IllegalArgumentException e) {
+            return null;
         }
     }
 
@@ -391,10 +418,22 @@ public class AdminClassroomController {
         return "classroom/list-classroom-assignments";
     }
 
+    // 과제 등록 폼
+    @GetMapping("/detail/{classSn}/assignments/write")
+    public String assignmentWriteForm(@PathVariable Long classSn, Model model,
+            Authentication authentication) {
+        ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
+        if (classroom == null) return "redirect:/classroom/list";
+        model.addAttribute("classroom", classroom);
+        return "classroom/form-classroom-assignment";
+    }
+
     // 과제 등록
     @PostMapping("/detail/{classSn}/assignments/write")
     public String assignmentWrite(@PathVariable Long classSn,
             @ModelAttribute AssignmentBoardDto dto, Authentication authentication) {
+        if (getOwnedClassroom(classSn, authentication.getName()) == null)
+            return "redirect:/classroom/list";
         dto.setClassSn(classSn);
         dto.setRgtrUserId(authentication.getName());
         assignmentBoardService.insertAssignment(dto);
@@ -415,12 +454,61 @@ public class AdminClassroomController {
         return "classroom/assignment-detail";
     }
 
-    // 과제 채점 (점수 저장)
+    // 과제 수정 폼
+    @GetMapping("/detail/{classSn}/assignments/{asgmtSn}/edit")
+    public String assignmentEditForm(@PathVariable Long classSn, @PathVariable Long asgmtSn,
+            Model model, Authentication authentication) {
+        ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
+        if (classroom == null) return "redirect:/classroom/list";
+        AssignmentBoardDto assignment = assignmentBoardService.getAssignmentDetail(asgmtSn);
+        if (assignment == null || !classSn.equals(assignment.getClassSn()))
+            return "redirect:/classroom/detail/" + classSn + "/assignments";
+        model.addAttribute("classroom", classroom);
+        model.addAttribute("editAssignment", assignment);
+        return "classroom/form-classroom-assignment";
+    }
+
+    // 과제 수정 저장
+    @PostMapping("/detail/{classSn}/assignments/{asgmtSn}/edit")
+    public String assignmentEdit(@PathVariable Long classSn, @PathVariable Long asgmtSn,
+            @ModelAttribute AssignmentBoardDto dto, Authentication authentication) {
+        if (getOwnedClassroom(classSn, authentication.getName()) == null)
+            return "redirect:/classroom/list";
+        AssignmentBoardDto existing = assignmentBoardService.getAssignmentDetail(asgmtSn);
+        if (existing == null || !classSn.equals(existing.getClassSn()))
+            return "redirect:/classroom/detail/" + classSn + "/assignments";
+        dto.setAsgmtSn(asgmtSn);
+        dto.setClassSn(classSn);
+        dto.setLastMdfrId(authentication.getName());
+        assignmentBoardService.updateAssignment(dto);
+        return "redirect:/classroom/detail/" + classSn + "/assignments/" + asgmtSn;
+    }
+
+    // 과제 삭제
+    @PostMapping("/detail/{classSn}/assignments/{asgmtSn}/delete")
+    public String assignmentDelete(@PathVariable Long classSn, @PathVariable Long asgmtSn,
+            Authentication authentication) {
+        if (getOwnedClassroom(classSn, authentication.getName()) == null)
+            return "redirect:/classroom/list";
+        AssignmentBoardDto assignment = assignmentBoardService.getAssignmentDetail(asgmtSn);
+        if (assignment == null || !classSn.equals(assignment.getClassSn()))
+            return "redirect:/classroom/detail/" + classSn + "/assignments";
+        assignmentBoardService.deleteAssignment(asgmtSn, classSn);
+        return "redirect:/classroom/detail/" + classSn + "/assignments";
+    }
+
+    // 과제 채점 — 강사 소유권 및 과제 소속 검증 후 채점
     @PostMapping("/detail/{classSn}/assignments/{asgmtSn}/grade/{sbmtSn}")
     public String assignmentGrade(@PathVariable Long classSn, @PathVariable Long asgmtSn,
             @PathVariable Long sbmtSn, @RequestParam BigDecimal score,
             Authentication authentication) {
-        assignmentBoardService.gradeSubmit(sbmtSn, score, authentication.getName());
+        if (getOwnedClassroom(classSn, authentication.getName()) == null)
+            return "redirect:/classroom/list";
+        AssignmentBoardDto assignment = assignmentBoardService.getAssignmentDetail(asgmtSn);
+        if (assignment == null || !classSn.equals(assignment.getClassSn()))
+            return "redirect:/classroom/detail/" + classSn + "/assignments";
+        int updated = assignmentBoardService.gradeSubmit(sbmtSn, asgmtSn, score, authentication.getName());
+        if (updated == 0) log.warn("gradeSubmit 0 rows: classSn={} asgmtSn={} sbmtSn={}", classSn, asgmtSn, sbmtSn);
         return "redirect:/classroom/detail/" + classSn + "/assignments/" + asgmtSn;
     }
 
