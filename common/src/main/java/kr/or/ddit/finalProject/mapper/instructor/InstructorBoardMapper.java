@@ -46,6 +46,8 @@ public interface InstructorBoardMapper {
 
     int insertClassroomNotice(InstructorBoardDto dto);
 
+    int updateClassroomNotice(InstructorBoardDto dto);
+
     int deleteClassroomNotice(@Param("postSn") Long postSn, @Param("classSn") Long classSn);
 
     // ── 클래스룸 Q&A ──────────────────────────────────────────────

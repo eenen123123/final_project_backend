@@ -51,4 +51,9 @@ public class AssignmentBoardServiceImpl implements AssignmentBoardService {
     public int getPendingGradeCount(Long classSn) {
         return assignmentSubmitMapper.selectPendingGradeCount(classSn);
     }
+
+    @Override
+    public List<AssignmentSubmitDto> getRecentSubmits(Long classSn, int limit) {
+        return assignmentSubmitMapper.selectRecentSubmitsByClass(classSn, limit);
+    }
 }

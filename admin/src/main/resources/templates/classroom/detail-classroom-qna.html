@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html th:replace="~{classroom/layout-classroom :: layout(
+    ${classroom.classNm} + ' | Q&A 상세',
+    ${classroom},
+    'qna',
+    ~{:: #content}
+)}" lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div id="content">
+
+  <div th:if="${qna != null}" class="flex flex-col gap-5">
+
+    <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
+      <div class="px-7 py-5 border-b border-slate-100 flex items-start justify-between gap-4">
+        <div>
+          <h1 class="text-base font-bold text-slate-800" th:text="${qna.postSj}">질문 제목</h1>
+          <div class="flex items-center gap-3 mt-2 text-sm text-slate-400">
+            <span th:text="${qna.memberDto != null ? qna.memberDto.userName : qna.wrtrUserId}">작성자</span>
+            <span class="w-px h-3 bg-slate-200"></span>
+            <span th:text="${qna.regDt != null ? #temporals.format(qna.regDt, 'yyyy-MM-dd HH:mm') : '-'}">2026-06-01</span>
+          </div>
+        </div>
+        <span th:if="${qna.answYn == 'Y'}"
+              class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold text-emerald-500 border border-emerald-100 flex-shrink-0">답변완료</span>
+        <span th:unless="${qna.answYn == 'Y'}"
+              class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold text-amber-500 border border-amber-100 flex-shrink-0">미답변</span>
+      </div>
+      <div class="px-7 py-7 text-sm text-slate-700 leading-relaxed whitespace-pre-wrap min-h-[120px]"
+           th:text="${qna.postCn}">질문 내용</div>
+    </div>
+
+    <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
+
+      <div th:if="${qna.answYn == 'Y' and !editAnswer}">
+        <div class="px-7 py-4 border-b border-slate-100 flex items-center gap-3">
+          <i class="fa-solid fa-circle-check text-emerald-500"></i>
+          <span class="text-sm font-bold text-slate-700">강사 답변</span>
+          <span class="ml-auto text-sm text-slate-400"
+                th:text="${qna.answrUserNm != null ? qna.answrUserNm : qna.answrUserId}">강사명</span>
+          <span class="text-sm text-slate-400"
+                th:text="${qna.answDt != null ? #temporals.format(qna.answDt, 'yyyy-MM-dd HH:mm') : ''}"></span>
+          <a th:href="@{/classroom/detail/{sn}/qna/{postSn}(sn=${classroom.classSn},postSn=${qna.postSn},editAnswer=true)}"
+             class="text-sm font-semibold text-slate-400 hover:text-slate-600 transition-colors">수정</a>
+        </div>
+        <div class="px-7 py-7 text-sm text-slate-700 leading-relaxed whitespace-pre-wrap"
+             th:text="${qna.answCn}">답변 내용</div>
+      </div>
+
+      <div th:if="${qna.answYn != 'Y' or editAnswer}">
+        <div class="px-7 py-4 border-b border-slate-100 flex items-center justify-between">
+          <span class="text-sm font-bold text-slate-800"
+                th:text="${editAnswer} ? '답변 수정' : '답변 작성'">답변 작성</span>
+          <a th:if="${editAnswer}"
+             th:href="@{/classroom/detail/{sn}/qna/{postSn}(sn=${classroom.classSn},postSn=${qna.postSn})}"
+             class="text-sm font-semibold text-slate-400 hover:text-slate-600 transition-colors">취소</a>
+        </div>
+        <div class="p-7">
+          <form th:action="@{/classroom/detail/{sn}/qna/{postSn}/answer(sn=${classroom.classSn},postSn=${qna.postSn})}"
+                method="post">
+            <textarea name="answCn" placeholder="답변을 입력하세요" rows="5"
+                      class="w-full text-sm px-4 py-3 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 transition-colors resize-none"
+                      required
+                      th:text="${editAnswer} ? ${qna.answCn} : ''"></textarea>
+            <div class="flex justify-end mt-4">
+              <button type="submit"
+                      class="text-sm font-semibold px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      th:text="${editAnswer} ? '수정 완료' : '답변 등록'">답변 등록</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <a th:href="@{/classroom/detail/{sn}/qna(sn=${classroom.classSn})}"
+       class="text-sm font-semibold text-slate-400 hover:text-slate-600 flex items-center gap-2 transition-colors w-fit">
+      <i class="fa-solid fa-arrow-left text-xs"></i> 목록으로
+    </a>
+
+  </div>
+
+  <div th:unless="${qna != null}"
+       class="bg-white border border-slate-100 rounded-xl p-20 flex flex-col items-center gap-4 text-center">
+    <div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 text-3xl">
+      <i class="fa-solid fa-circle-exclamation"></i>
+    </div>
+    <p class="text-base font-medium text-slate-400">존재하지 않는 질문입니다.</p>
+  </div>
+
+</div>
+</body>
+</html>

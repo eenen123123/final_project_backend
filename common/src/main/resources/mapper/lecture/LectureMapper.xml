@@ -21,14 +21,23 @@
         <result property="lastMdfrId" column="LAST_MDFR_ID" />
     </resultMap>
 
-    <resultMap id="lectureProgressMap" type="kr.or.ddit.finalProject.dto.lecture.LectureProgressDto">
+    <resultMap id="lectureProgressMap" type="kr.or.ddit.finalProject.dto.lecture.ClassroomLectureResponse">
         <result property="lectureSn" column="LECTURE_SN" />
         <result property="lectureNm" column="LECTURE_NM" />
         <result property="lectureDuration" column="LECTURE_DURATION" />
         <result property="lectureTypeCd" column="LECTURE_TYPE_CD" />
         <result property="sortOrd" column="SORT_ORD" />
+        <result property="opnnYn" column="OPNN_YN" />
+        <result property="lockYn" column="LOCK_YN" />
         <result property="cmplCnt" column="CMPL_CNT" />
         <result property="totMemberCnt" column="TOT_MEMBER_CNT" />
+    </resultMap>
+
+    <resultMap id="studentLectureProgressMap" type="kr.or.ddit.finalProject.dto.lecture.StudentLectureProgressResponse">
+        <result property="userId" column="USER_ID" />
+        <result property="userName" column="USER_NAME" />
+        <result property="cmplYn" column="CMPL_YN" />
+        <result property="cmplDt" column="CMPL_DT" />
     </resultMap>
 
     <select id="selectLecturesWithProgress" resultMap="lectureProgressMap">
@@ -38,20 +47,53 @@
         l.LECTURE_DURATION,
         l.LECTURE_TYPE_CD,
         l.SORT_ORD,
+        l.OPNN_YN,
+        l.LOCK_YN,
         COUNT(CASE WHEN p.CMPL_YN = 'Y' THEN 1 END) AS CMPL_CNT,
         (SELECT COUNT(*)
          FROM CLASSROOM_MEMBER
          WHERE CLASS_SN = #{classSn}
-           AND ENRL_STAT_CD = '01') AS TOT_MEMBER_CNT
+           AND ENRL_STAT_CD = 'ENROLLED') AS TOT_MEMBER_CNT
     FROM LECTURE l
     JOIN CLASSROOM c ON c.COURSE_SN = l.COURSE_SN
     LEFT JOIN STUDENT_CONTENT_PROGRESS p
            ON p.LECTURE_SN = l.LECTURE_SN
           AND p.CLASS_SN   = #{classSn}
     WHERE c.CLASS_SN = #{classSn}
-    GROUP BY l.LECTURE_SN, l.LECTURE_NM, l.LECTURE_DURATION, l.LECTURE_TYPE_CD, l.SORT_ORD
+    GROUP BY l.LECTURE_SN, l.LECTURE_NM, l.LECTURE_DURATION, l.LECTURE_TYPE_CD, l.SORT_ORD, l.OPNN_YN, l.LOCK_YN
     ORDER BY l.SORT_ORD ASC, l.LECTURE_SN ASC
     </select>
+
+    <select id="selectStudentProgressByLecture" resultMap="studentLectureProgressMap">
+    SELECT
+        cm.USER_ID,
+        m.USER_NAME,
+        NVL(p.CMPL_YN, 'N') AS CMPL_YN,
+        TO_CHAR(p.CMPL_DT, 'YYYY-MM-DD HH24:MI') AS CMPL_DT
+    FROM CLASSROOM_MEMBER cm
+    JOIN MEMBER m ON m.USER_ID = cm.USER_ID
+    LEFT JOIN STUDENT_CONTENT_PROGRESS p
+           ON p.USER_ID     = cm.USER_ID
+          AND p.CLASS_SN    = cm.CLASS_SN
+          AND p.LECTURE_SN  = #{lectureSn}
+    WHERE cm.CLASS_SN     = #{classSn}
+      AND cm.ENRL_STAT_CD = 'ENROLLED'
+    ORDER BY m.USER_NAME ASC
+    </select>
+
+    <update id="updateOpnnYn">
+    UPDATE LECTURE
+    SET OPNN_YN     = #{opnnYn},
+        LAST_MDFR_ID = #{userId}
+    WHERE LECTURE_SN = #{lectureSn}
+    </update>
+
+    <update id="updateLockYn">
+    UPDATE LECTURE
+    SET LOCK_YN     = #{lockYn},
+        LAST_MDFR_ID = #{userId}
+    WHERE LECTURE_SN = #{lectureSn}
+    </update>
 
     <select id="selectLectureByCourseSn" resultMap="lectureMap">
     SELECT

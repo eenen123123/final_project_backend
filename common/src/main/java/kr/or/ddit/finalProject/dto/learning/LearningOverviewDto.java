@@ -1,5 +1,6 @@
 package kr.or.ddit.finalProject.dto.learning;
 
+import kr.or.ddit.finalProject.dto.classroom.ClassStatus;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -13,7 +14,7 @@ public class LearningOverviewDto {
     private String classNm;
     private String courseNm;
     private Long courseSn;
-    private String classStatCd;
+    private ClassStatus classStatCd;
     private String enrlStrtYmd;
     private String enrlEndYmd;
 

@@ -175,17 +175,29 @@
               AND IB.USE_YN   = 'Y'
       </select>
 
-      <insert id="insertClassroomNotice">
+      <insert id="insertClassroomNotice" useGeneratedKeys="true" keyProperty="postSn" keyColumn="POST_SN">
             INSERT INTO INSTRUCTOR_BOARD (
                   INSTR_USER_ID, WRTR_USER_ID, BOARD_TYPE_CD,
                   CLASS_SN, POST_SJ, POST_CN,
-                  INQ_CNT, USE_YN, REG_DT, MDFCN_DT, RGTR_ID, LAST_MDFR_ID
+                  INQ_CNT, ATCH_FILE_ID, USE_YN, REG_DT, MDFCN_DT, RGTR_ID, LAST_MDFR_ID
             ) VALUES (
                   #{instrUserId}, #{wrtrUserId}, 'NOTICE',
                   #{classSn}, #{postSj}, #{postCn},
-                  0, 'Y', SYSDATE, SYSDATE, #{wrtrUserId}, #{wrtrUserId}
+                  0, #{atchFileId, jdbcType=NUMERIC}, 'Y', SYSDATE, SYSDATE, #{wrtrUserId}, #{wrtrUserId}
             )
       </insert>
+
+      <update id="updateClassroomNotice">
+            UPDATE INSTRUCTOR_BOARD
+            SET POST_SJ      = #{postSj},
+                POST_CN      = #{postCn},
+                ATCH_FILE_ID = #{atchFileId, jdbcType=NUMERIC},
+                MDFCN_DT     = SYSDATE,
+                LAST_MDFR_ID = #{wrtrUserId}
+            WHERE POST_SN  = #{postSn}
+              AND CLASS_SN = #{classSn}
+              AND USE_YN   = 'Y'
+      </update>
 
       <update id="deleteClassroomNotice">
             UPDATE INSTRUCTOR_BOARD

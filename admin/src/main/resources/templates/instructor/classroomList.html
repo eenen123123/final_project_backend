@@ -84,25 +84,25 @@
             <!-- 상태 배지 -->
             <td class="py-4 px-6">
               <span
-                th:if="${classroom.classStatCd == '01'}"
+                th:if="${classroom.classStatCd.name() == 'RECRUITING'}"
                 class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-50 text-sky-600"
               >
                 <i class="fa-solid fa-circle-dot text-[8px]"></i> 모집중
               </span>
               <span
-                th:if="${classroom.classStatCd == '02'}"
+                th:if="${classroom.classStatCd.name() == 'ACTIVE'}"
                 class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600"
               >
                 <i class="fa-solid fa-circle-dot text-[8px]"></i> 운영중
               </span>
               <span
-                th:if="${classroom.classStatCd == '03'}"
+                th:if="${classroom.classStatCd.name() == 'CLOSED'}"
                 class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500"
               >
                 <i class="fa-solid fa-circle text-[8px]"></i> 종료
               </span>
               <span
-                th:if="${classroom.classStatCd == '04'}"
+                th:if="${classroom.classStatCd.name() == 'WAITING'}"
                 class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-600"
               >
                 <i class="fa-solid fa-circle-dot text-[8px]"></i> 대기

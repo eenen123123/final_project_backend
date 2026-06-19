@@ -6,13 +6,14 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import kr.or.ddit.finalProject.dto.course.CourseDto;
 import kr.or.ddit.finalProject.dto.lecture.LectureDto;
-import kr.or.ddit.finalProject.dto.lecture.LectureProgressDto;
+import kr.or.ddit.finalProject.dto.lecture.ClassroomLectureResponse;
 import kr.or.ddit.finalProject.dto.lecture.LectureResponseDto;
+import kr.or.ddit.finalProject.dto.lecture.StudentLectureProgressResponse;
 
 @Mapper
 public interface LectureMapper {
 
-    List<LectureProgressDto> selectLecturesWithProgress(@Param("classSn") Long classSn);
+    List<ClassroomLectureResponse> selectLecturesWithProgress(@Param("classSn") Long classSn);
 
     List<LectureDto> selectLectureByCourseSn(@Param("courseSn") Long courseSn);
 
@@ -31,4 +32,16 @@ public interface LectureMapper {
             @Param("progress") Integer progress, @Param("userId") String userId);
 
     CourseDto findCourseIdByFileServerId(@Param("fileServerId") long fileServerId);
+
+    List<StudentLectureProgressResponse> selectStudentProgressByLecture(
+            @Param("classSn") Long classSn,
+            @Param("lectureSn") Long lectureSn);
+
+    int updateOpnnYn(@Param("lectureSn") Long lectureSn,
+                     @Param("opnnYn") String opnnYn,
+                     @Param("userId") String userId);
+
+    int updateLockYn(@Param("lectureSn") Long lectureSn,
+                     @Param("lockYn") String lockYn,
+                     @Param("userId") String userId);
 }
