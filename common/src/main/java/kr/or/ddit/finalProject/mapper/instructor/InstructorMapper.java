@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import kr.or.ddit.finalProject.dto.instructor.profile.InstructorDetailResponse;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorDto;
 import kr.or.ddit.finalProject.dto.instructor.profile.InstructorListResponse;
 
 @Mapper
@@ -20,5 +21,8 @@ public interface InstructorMapper {
     List<InstructorListResponse> selectInstructors(@Param("subjClId") Long subjClId);
 
     InstructorDetailResponse selectInstructorByUuid(@Param("instrUuid") String instrUuid);
+
+
+    List<InstructorDto> selectAllInstructor();
 
 }
