@@ -18,7 +18,7 @@ public class ClassroomDetailResponse {
     private String classNm;
     private String courseNm;
     private Long courseSn;
-    private String classStatCd;  // 01=모집중, 02=운영중, 03=종료, 04=대기
+    private ClassStatus classStatCd;
     private String enrlStrtYmd;  // 운영 시작일 (YYYY.MM.DD, DB는 YYYYMMDD → 서비스에서 포맷)
     private String enrlEndYmd;   // 운영 종료일 (YYYY.MM.DD, null=무기한)
 
