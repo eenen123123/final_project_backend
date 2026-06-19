@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.mapper.CertificateMapper">
+
+    <!-- 공통코드 분류: 228 증명서 종류 / 200 재직 상태 -->
+
+    <!-- 발급 레코드 + 직원 정보 자동 조인 (스냅샷 미보관) -->
+    <sql id="certColumns">
+        c.CERT_SN, c.USER_ID, c.CERT_TY_CD, c.ISSUE_RSN, c.ISSUE_PURPS,
+        c.PRN_YN, c.ISSUE_DT, c.PRN_DT,
+        ct.COM_CD_NM AS CERT_TY_NM,
+        m.USER_NAME  AS USER_NAME,
+        m.USER_BRDT  AS USER_BRDT,
+        m.USER_GNDR_CD AS USER_GNDR_CD,
+        m.USER_TELNO AS USER_TELNO,
+        m.USER_ADDR  AS USER_ADDR,
+        m.USER_DADDR AS USER_DADDR,
+        d.DEPT_NM    AS DEPT_NM,
+        jg.JBGR_NM   AS JBGR_NM,
+        ei.JOIN_YMD  AS JOIN_YMD,
+        es.COM_CD_NM AS EMPL_STAT_NM
+    </sql>
+
+    <sql id="certJoins">
+        FROM CERTIFICATE_ISSUE c
+        JOIN      MEMBER          m   ON c.USER_ID = m.USER_ID
+        LEFT JOIN EMPLOYEE_INFO   ei  ON c.USER_ID = ei.USER_ID
+        LEFT JOIN DEPARTMENT      d   ON ei.DEPT_CD = d.DEPT_CD
+        LEFT JOIN JOB_GRADE       jg  ON ei.JBGR_CD = jg.JBGR_CD
+        LEFT JOIN COM_CD          ct  ON TRIM(ct.CL_CODE) = '228' AND TRIM(ct.COM_CD) = TRIM(c.CERT_TY_CD)
+        LEFT JOIN COM_CD          es  ON TRIM(es.CL_CODE) = '200' AND TRIM(es.COM_CD) = TRIM(ei.EMPL_STAT_CD)
+    </sql>
+
+    <!-- ── 신청 즉시 자동발급 ───────────────────────────── -->
+    <insert id="insertCertificate" parameterType="kr.or.ddit.finalProject.dto.certificate.CertificateIssueDto"
+            useGeneratedKeys="true" keyProperty="certSn" keyColumn="CERT_SN">
+        INSERT INTO CERTIFICATE_ISSUE (USER_ID, CERT_TY_CD, ISSUE_RSN, ISSUE_PURPS, PRN_YN, ISSUE_DT, RGTR_ID, REG_DT)
+        VALUES (#{userId}, #{certTyCd}, #{issueRsn}, #{issuePurps}, 'N', SYSTIMESTAMP, #{userId}, SYSTIMESTAMP)
+    </insert>
+
+    <!-- ── 단건 조회 (출력용) ───────────────────────────── -->
+    <select id="selectByCertSn" resultType="kr.or.ddit.finalProject.dto.certificate.CertificateIssueDto">
+        SELECT <include refid="certColumns"/>
+        <include refid="certJoins"/>
+        WHERE c.CERT_SN = #{certSn}
+    </select>
+
+    <!-- ── 본인 발급 이력 검색 조건 ─────────────────────── -->
+    <sql id="myWhere">
+        <where>
+            c.USER_ID = #{detailCondition.userId}
+            <if test="detailCondition.certTyCd != null and detailCondition.certTyCd != ''">
+                AND TRIM(c.CERT_TY_CD) = #{detailCondition.certTyCd}
+            </if>
+            <if test="detailCondition.prnYn != null and detailCondition.prnYn != ''">
+                AND c.PRN_YN = #{detailCondition.prnYn}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectMyList" resultType="kr.or.ddit.finalProject.dto.certificate.CertificateIssueDto">
+        SELECT <include refid="certColumns"/>
+        <include refid="certJoins"/>
+        <include refid="myWhere"/>
+        ORDER BY c.ISSUE_DT DESC, c.CERT_SN DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <select id="countMyList" resultType="int">
+        SELECT COUNT(*)
+        FROM CERTIFICATE_ISSUE c
+        <include refid="myWhere"/>
+    </select>
+
+    <!-- ── 출력 처리 (1회 제한) ─────────────────────────── -->
+    <update id="markPrinted">
+        UPDATE CERTIFICATE_ISSUE
+           SET PRN_YN = 'Y',
+               PRN_DT = SYSTIMESTAMP,
+               LAST_MDFR_ID = #{userId},
+               MDFCN_DT = SYSTIMESTAMP
+         WHERE CERT_SN = #{certSn}
+           AND USER_ID = #{userId}
+           AND PRN_YN = 'N'
+    </update>
+
+    <!-- ── 전체 발급 이력 (행정직원 모니터링) ───────────── -->
+    <sql id="allWhere">
+        <where>
+            <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
+                AND UPPER(m.USER_NAME) LIKE '%' || UPPER(#{detailCondition.keyword}) || '%'
+            </if>
+            <if test="detailCondition.certTyCd != null and detailCondition.certTyCd != ''">
+                AND TRIM(c.CERT_TY_CD) = #{detailCondition.certTyCd}
+            </if>
+            <if test="detailCondition.prnYn != null and detailCondition.prnYn != ''">
+                AND c.PRN_YN = #{detailCondition.prnYn}
+            </if>
+            <if test="detailCondition.fromDt != null and detailCondition.fromDt != ''">
+                AND c.ISSUE_DT &gt;= TO_DATE(#{detailCondition.fromDt}, 'YYYY-MM-DD')
+            </if>
+            <if test="detailCondition.toDt != null and detailCondition.toDt != ''">
+                AND c.ISSUE_DT &lt; TO_DATE(#{detailCondition.toDt}, 'YYYY-MM-DD') + 1
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectAllList" resultType="kr.or.ddit.finalProject.dto.certificate.CertificateIssueDto">
+        SELECT <include refid="certColumns"/>
+        <include refid="certJoins"/>
+        <include refid="allWhere"/>
+        ORDER BY c.ISSUE_DT DESC, c.CERT_SN DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <select id="countAllList" resultType="int">
+        SELECT COUNT(*)
+        FROM CERTIFICATE_ISSUE c
+        JOIN MEMBER m ON c.USER_ID = m.USER_ID
+        <include refid="allWhere"/>
+    </select>
+
+</mapper>
