@@ -5,38 +5,38 @@
 
 <mapper namespace="kr.or.ddit.finalProject.mapper.course.CourseMapper">
 
-  <resultMap id="courseMap" type="kr.or.ddit.finalProject.dto.course.CourseDto">
-    <id property="courseSn" column="COURSE_SN" />
-    <result property="curriculumId" column="CURRICULUM_ID" />
-    <result property="subjId" column="SUBJ_ID" />
-    <result property="instrUserId" column="INSTR_USER_ID" />
-    <result property="courseNm" column="COURSE_NM" />
-    <result property="courseExplnCn" column="COURSE_EXPLN_CN" />
-    <result property="thmbImg" column="THMB_IMG" />
-    <result property="totLrnTimeCnt" column="TOT_LRN_TIME_CNT" />
-    <result property="opnnYn" column="OPNN_YN" />
-    <result property="coursePrice" column="COURSE_PRICE" />
-    <result property="sortOrd" column="SORT_ORD" />
-    <result property="rgtrId" column="RGTR_ID" />
-    <result property="lastMdfrId" column="LAST_MDFR_ID" />
-    <result property="regDt" column="REG_DT" />
-    <result property="mdfcnDt" column="MDFCN_DT" />
-  </resultMap>
+    <resultMap id="courseMap" type="kr.or.ddit.finalProject.dto.course.CourseDto">
+        <id property="courseSn" column="COURSE_SN" />
+        <result property="curriculumId" column="CURRICULUM_ID" />
+        <result property="subjId" column="SUBJ_ID" />
+        <result property="instrUserId" column="INSTR_USER_ID" />
+        <result property="courseNm" column="COURSE_NM" />
+        <result property="courseExplnCn" column="COURSE_EXPLN_CN" />
+        <result property="thmbImg" column="THMB_IMG" />
+        <result property="totLrnTimeCnt" column="TOT_LRN_TIME_CNT" />
+        <result property="opnnYn" column="OPNN_YN" />
+        <result property="coursePrice" column="COURSE_PRICE" />
+        <result property="sortOrd" column="SORT_ORD" />
+        <result property="rgtrId" column="RGTR_ID" />
+        <result property="lastMdfrId" column="LAST_MDFR_ID" />
+        <result property="regDt" column="REG_DT" />
+        <result property="mdfcnDt" column="MDFCN_DT" />
+    </resultMap>
 
-  <resultMap id="courseWithTitleMap" type="kr.or.ddit.finalProject.dto.course.CourseDto" extends="courseMap">
-    <result property="curriculumTitle" column="CURRICULUM_TITLE" />
-  </resultMap>
+    <resultMap id="courseWithTitleMap" type="kr.or.ddit.finalProject.dto.course.CourseDto" extends="courseMap">
+        <result property="curriculumTitle" column="CURRICULUM_TITLE" />
+    </resultMap>
 
-  <resultMap id="courseAdminDetailMap" type="kr.or.ddit.finalProject.dto.course.CourseDto" extends="courseMap">
-    <result property="instrNm" column="INSTR_NM" />
-    <result property="curriculumTitle" column="CURRICULUM_TITLE" />
-    <result property="subjNm" column="SUBJ_NM" />
-    <result property="subjClId" column="SUBJ_CL_ID" />
-    <result property="subjClNm" column="SUBJ_CL_NM" />
-    <result property="lectureCnt" column="LECTURE_CNT" />
-  </resultMap>
+    <resultMap id="courseAdminDetailMap" type="kr.or.ddit.finalProject.dto.course.CourseDto" extends="courseMap">
+        <result property="instrNm" column="INSTR_NM" />
+        <result property="curriculumTitle" column="CURRICULUM_TITLE" />
+        <result property="subjNm" column="SUBJ_NM" />
+        <result property="subjClId" column="SUBJ_CL_ID" />
+        <result property="subjClNm" column="SUBJ_CL_NM" />
+        <result property="lectureCnt" column="LECTURE_CNT" />
+    </resultMap>
 
-  <select id="selectCourseAdminDetail" resultMap="courseAdminDetailMap">
+    <select id="selectCourseAdminDetail" resultMap="courseAdminDetailMap">
   SELECT
     c.COURSE_SN, c.CURRICULUM_ID, c.SUBJ_ID, c.INSTR_USER_ID,
     c.COURSE_NM, c.COURSE_EXPLN_CN, c.THMB_IMG, c.TOT_LRN_TIME_CNT,
@@ -54,9 +54,9 @@
   LEFT JOIN SUBJECT s   ON c.SUBJ_ID = s.SUBJ_ID
   LEFT JOIN SUBJECT_CLASSIFICATION sc ON s.SUBJ_CL_ID = sc.SUBJ_CL_ID
   WHERE c.COURSE_SN = #{courseSn}
-  </select>
+    </select>
 
-  <select id="selectCoursesByInstructor" resultMap="courseWithTitleMap">
+    <select id="selectCoursesByInstructor" resultMap="courseWithTitleMap">
     SELECT
       c.COURSE_SN, c.CURRICULUM_ID, c.INSTR_USER_ID, c.COURSE_NM,
       c.COURSE_EXPLN_CN, c.OPNN_YN, c.SORT_ORD, c.REG_DT,
@@ -65,9 +65,9 @@
     LEFT JOIN CURRICULUM cur ON c.CURRICULUM_ID = cur.CURRICULUM_ID
     WHERE c.INSTR_USER_ID = #{instrUserId}
     ORDER BY cur.TITLE NULLS LAST, c.SORT_ORD ASC, c.COURSE_SN ASC
-  </select>
+    </select>
 
-  <select id="selectCourseByCurriculumId" resultMap="courseMap">
+    <select id="selectCourseByCurriculumId" resultMap="courseMap">
     SELECT
       COURSE_SN, CURRICULUM_ID, SUBJ_ID,
       INSTR_USER_ID, COURSE_NM, COURSE_EXPLN_CN, THMB_IMG,
@@ -77,9 +77,9 @@
     FROM COURSE
     WHERE CURRICULUM_ID = #{curriculumId}
     ORDER BY SORT_ORD ASC, REG_DT ASC
-  </select>
+    </select>
 
-  <select id="selectCourseBySn" resultMap="courseMap">
+    <select id="selectCourseBySn" resultMap="courseMap">
     SELECT
       COURSE_SN, CURRICULUM_ID, SUBJ_ID,
       INSTR_USER_ID, COURSE_NM, COURSE_EXPLN_CN, THMB_IMG,
@@ -88,18 +88,18 @@
       RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
     FROM COURSE
     WHERE COURSE_SN = #{courseSn}
-  </select>
+    </select>
 
-  <select id="selectMaxSortOrdByCurriculumId" resultType="int">
+    <select id="selectMaxSortOrdByCurriculumId" resultType="int">
     SELECT NVL(MAX(SORT_ORD), 0) FROM COURSE WHERE CURRICULUM_ID = #{curriculumId}
-  </select>
+    </select>
 
-  <update id="resequenceSortOrd">
+    <update id="resequenceSortOrd">
     UPDATE COURSE SET SORT_ORD = SORT_ORD - 1
     WHERE CURRICULUM_ID = #{curriculumId} AND SORT_ORD > #{sortOrd}
-  </update>
+    </update>
 
-  <insert id="insertCourse" parameterType="kr.or.ddit.finalProject.dto.course.CourseDto">
+    <insert id="insertCourse" parameterType="kr.or.ddit.finalProject.dto.course.CourseDto" useGeneratedKeys="true" keyProperty="courseSn" keyColumn="COURSE_SN">
     INSERT INTO COURSE (
       CURRICULUM_ID, SUBJ_ID, INSTR_USER_ID,
       COURSE_NM, COURSE_EXPLN_CN, THMB_IMG, TOT_LRN_TIME_CNT,
@@ -108,7 +108,7 @@
       RGTR_ID, REG_DT, LAST_MDFR_ID, MDFCN_DT
     ) VALUES (
       #{curriculumId, jdbcType=NUMERIC},
-      #{subjId, jdbcType=NUMERIC}, <!-- #{subjClId, jdbcType=NUMERIC}, -->
+      #{subjId, jdbcType=NUMERIC},                                         <!-- #{subjClId, jdbcType=NUMERIC}, -->
       #{instrUserId},
       #{courseNm},
       #{courseExplnCn, jdbcType=VARCHAR},
@@ -122,9 +122,9 @@
       #{lastMdfrId},
       CURRENT_TIMESTAMP
     )
-  </insert>
+    </insert>
 
-  <update id="updateCourse" parameterType="kr.or.ddit.finalProject.dto.course.CourseDto">
+    <update id="updateCourse" parameterType="kr.or.ddit.finalProject.dto.course.CourseDto">
     UPDATE COURSE
     SET
       COURSE_NM       = #{courseNm},
@@ -137,60 +137,60 @@
       LAST_MDFR_ID    = #{lastMdfrId},
       MDFCN_DT        = CURRENT_TIMESTAMP
     WHERE COURSE_SN = #{courseSn}
-  </update>
+    </update>
 
-  <delete id="deleteCourse">
+    <delete id="deleteCourse">
     DELETE FROM COURSE WHERE COURSE_SN = #{courseSn}
-  </delete>
+    </delete>
 
-  <select id="countLectureByCourse" resultType="int">
+    <select id="countLectureByCourse" resultType="int">
     SELECT COUNT(*) FROM LECTURE WHERE COURSE_SN = #{courseSn}
-  </select>
+    </select>
 
-  <sql id="courseListSearchWhere">
-    <trim prefix="WHERE" prefixOverrides="AND">
-      <if test="detailCondition != null and detailCondition.opnnYn != null and detailCondition.opnnYn != ''">
+    <sql id="courseListSearchWhere">
+        <trim prefix="WHERE" prefixOverrides="AND">
+            <if test="detailCondition != null and detailCondition.opnnYn != null and detailCondition.opnnYn != ''">
         AND c.OPNN_YN = #{detailCondition.opnnYn}
-      </if>
-      <if test="detailCondition != null">
-        <if test="detailCondition.instrNm != null and detailCondition.instrNm != ''">
+            </if>
+            <if test="detailCondition != null">
+                <if test="detailCondition.instrNm != null and detailCondition.instrNm != ''">
           AND m.USER_NAME LIKE '%' || #{detailCondition.instrNm} || '%'
-        </if>
-        <if test="detailCondition.subjClId != null">
+                </if>
+                <if test="detailCondition.subjClId != null">
           AND sc.SUBJ_CL_ID = #{detailCondition.subjClId}
-        </if>
-        <if test="detailCondition.subjId != null">
+                </if>
+                <if test="detailCondition.subjId != null">
           AND c.SUBJ_ID = #{detailCondition.subjId}
-        </if>
-        <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
+                </if>
+                <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
           AND (c.COURSE_NM LIKE '%' || #{detailCondition.keyword} || '%'
             OR m.USER_NAME LIKE '%' || #{detailCondition.keyword} || '%')
-        </if>
-      </if>
-    </trim>
-  </sql>
+                </if>
+            </if>
+        </trim>
+    </sql>
 
-  <!-- 관리자 강좌 목록용 resultMap -->
-  <resultMap id="courseListMap" type="kr.or.ddit.finalProject.dto.course.CourseDto">
-    <id property="courseSn" column="COURSE_SN" />
-    <result property="courseNm" column="COURSE_NM" />
-    <result property="coursePrice" column="COURSE_PRICE" />
-    <result property="opnnYn" column="OPNN_YN" />
-    <result property="totLrnTimeCnt" column="TOT_LRN_TIME_CNT" />
-    <result property="regDt" column="REG_DT" />
-    <result property="instrUserId" column="INSTR_USER_ID" />
-    <result property="instrNm" column="INSTR_NM" />
-    <result property="curriculumId" column="CURRICULUM_ID" />
-    <result property="curriculumTitle" column="CURRICULUM_TITLE" />
-    <result property="subjId" column="SUBJ_ID" />
-    <result property="subjNm" column="SUBJ_NM" />
-    <result property="subjClId" column="SUBJ_CL_ID" />
-    <result property="subjClNm" column="SUBJ_CL_NM" />
-    <result property="lectureCnt" column="LECTURE_CNT" />
-  </resultMap>
+    <!-- 관리자 강좌 목록용 resultMap -->
+    <resultMap id="courseListMap" type="kr.or.ddit.finalProject.dto.course.CourseDto">
+        <id property="courseSn" column="COURSE_SN" />
+        <result property="courseNm" column="COURSE_NM" />
+        <result property="coursePrice" column="COURSE_PRICE" />
+        <result property="opnnYn" column="OPNN_YN" />
+        <result property="totLrnTimeCnt" column="TOT_LRN_TIME_CNT" />
+        <result property="regDt" column="REG_DT" />
+        <result property="instrUserId" column="INSTR_USER_ID" />
+        <result property="instrNm" column="INSTR_NM" />
+        <result property="curriculumId" column="CURRICULUM_ID" />
+        <result property="curriculumTitle" column="CURRICULUM_TITLE" />
+        <result property="subjId" column="SUBJ_ID" />
+        <result property="subjNm" column="SUBJ_NM" />
+        <result property="subjClId" column="SUBJ_CL_ID" />
+        <result property="subjClNm" column="SUBJ_CL_NM" />
+        <result property="lectureCnt" column="LECTURE_CNT" />
+    </resultMap>
 
-  <!-- 관리자 강좌 목록 조회 -->
-  <select id="selectCourseList" resultMap="courseListMap">
+    <!-- 관리자 강좌 목록 조회 -->
+    <select id="selectCourseList" resultMap="courseListMap">
   SELECT
     c.COURSE_SN, c.CURRICULUM_ID, c.SUBJ_ID, c.INSTR_USER_ID,
     c.COURSE_NM, c.COURSE_PRICE, c.OPNN_YN,
@@ -206,29 +206,29 @@
   LEFT JOIN CURRICULUM cur ON c.CURRICULUM_ID = cur.CURRICULUM_ID
   LEFT JOIN SUBJECT s ON c.SUBJ_ID = s.SUBJ_ID
   LEFT JOIN SUBJECT_CLASSIFICATION sc ON s.SUBJ_CL_ID = sc.SUBJ_CL_ID
-    <include refid="courseListSearchWhere"/>
+        <include refid="courseListSearchWhere"/>
   ORDER BY cur.TITLE NULLS LAST, c.SORT_ORD ASC, c.REG_DT DESC
   OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
-  </select>
+    </select>
 
-  <!-- 공개 강좌 목록 총 개수 -->
-  <select id="selectCourseListCount" resultType="int">
+    <!-- 공개 강좌 목록 총 개수 -->
+    <select id="selectCourseListCount" resultType="int">
   SELECT COUNT(*)
   FROM COURSE c
   JOIN MEMBER m ON c.INSTR_USER_ID = m.USER_ID
   LEFT JOIN SUBJECT s ON c.SUBJ_ID = s.SUBJ_ID
   LEFT JOIN SUBJECT_CLASSIFICATION sc ON s.SUBJ_CL_ID = sc.SUBJ_CL_ID
-    <include refid="courseListSearchWhere"/>
-  </select>
+        <include refid="courseListSearchWhere"/>
+    </select>
 
-  <!-- 강사 UUID로 강좌 목록 조회 (공개 강사 페이지용) -->
-  <select id="selectCoursesByInstrUuid" resultType="kr.or.ddit.finalProject.dto.instructor.profile.InstructorPublicCourseResponse">
+    <!-- 강사 UUID로 강좌 목록 조회 (공개 강사 페이지용) -->
+    <select id="selectCoursesByInstrUuid" resultType="kr.or.ddit.finalProject.dto.instructor.profile.InstructorPublicCourseResponse">
   SELECT
     C.COURSE_SN   AS courseSn,
     C.COURSE_NM   AS title,
     C.COURSE_PRICE AS price,
 
-    <!-- 강좌의 썸네일 이미지에서 교재의 썸네일 이미지로 변경 -->
+                                            <!-- 강좌의 썸네일 이미지에서 교재의 썸네일 이미지로 변경 -->
     T.THMB_IMG    AS thumbnailUrl,
     S.SUBJ_NM     AS category,
     (SELECT COUNT(*)
@@ -242,19 +242,19 @@
   WHERE I.INSTR_UUID = #{instrUuid}
     AND C.OPNN_YN   = 'Y'
   ORDER BY C.SORT_ORD ASC, C.COURSE_SN ASC
-  </select>
+    </select>
 
 
-  <!-- 대분류별 소분류 목록 조회 -->
-  <select id="selectSubjectsBySubjClId" resultType="kr.or.ddit.finalProject.dto.subject.SubjectDto">
+    <!-- 대분류별 소분류 목록 조회 -->
+    <select id="selectSubjectsBySubjClId" resultType="kr.or.ddit.finalProject.dto.subject.SubjectDto">
   SELECT SUBJ_ID, SUBJ_NM
   FROM SUBJECT
   WHERE SUBJ_CL_ID = #{subjClId}
   ORDER BY SUBJ_ID ASC
-  </select>
+    </select>
 
-  <!-- 강사 UUID + 강좌 번호로 강좌 상세 조회 (공개 강사 페이지용) -->
-  <select id="selectCourseDetailByUuidAndSn" resultType="kr.or.ddit.finalProject.dto.course.CourseDetailResponse">
+    <!-- 강사 UUID + 강좌 번호로 강좌 상세 조회 (공개 강사 페이지용) -->
+    <select id="selectCourseDetailByUuidAndSn" resultType="kr.or.ddit.finalProject.dto.course.CourseDetailResponse">
   SELECT
     C.COURSE_SN        AS courseSn,
     C.COURSE_NM        AS title,
@@ -273,10 +273,10 @@
   WHERE I.INSTR_UUID = #{instrUuid}
     AND C.COURSE_SN  = #{courseSn}
     AND C.OPNN_YN    = 'Y'
-  </select>
+    </select>
 
-  <!-- 강좌의 강의 목록 조회 (공개 강사 페이지용) -->
-  <select id="selectPublicCourseLectures" resultType="kr.or.ddit.finalProject.dto.course.CourseLectureItem">
+    <!-- 강좌의 강의 목록 조회 (공개 강사 페이지용) -->
+    <select id="selectPublicCourseLectures" resultType="kr.or.ddit.finalProject.dto.course.CourseLectureItem">
   SELECT
     LECTURE_SN       AS lectureSn,
     LECTURE_NM       AS title,
@@ -288,69 +288,69 @@
   WHERE COURSE_SN = #{courseSn}
     AND OPNN_YN   = 'Y'
   ORDER BY SORT_ORD ASC, LECTURE_SN ASC
-  </select>
+    </select>
 
-  <!-- 과목 분류별 강사 목록 조회 -->
-  <select id="selectInstructorsBySubjClId" resultType="kr.or.ddit.finalProject.dto.member.MemberDto">
+    <!-- 과목 분류별 강사 목록 조회 -->
+    <select id="selectInstructorsBySubjClId" resultType="kr.or.ddit.finalProject.dto.member.MemberDto">
   SELECT DISTINCT m.USER_ID, m.USER_NAME
   FROM COURSE c
   JOIN MEMBER m ON c.INSTR_USER_ID = m.USER_ID
   LEFT JOIN SUBJECT s ON c.SUBJ_ID = s.SUBJ_ID
   LEFT JOIN SUBJECT_CLASSIFICATION sc ON s.SUBJ_CL_ID = sc.SUBJ_CL_ID
   WHERE c.OPNN_YN = 'Y'
-    <if test="subjClId != null">
+        <if test="subjClId != null">
     AND sc.SUBJ_CL_ID = #{subjClId}
-    </if>
+        </if>
   ORDER BY m.USER_NAME ASC
-  </select>
+    </select>
 
-  <!-- 과목 분류 목록 조회 (사용중인 것만) -->
-  <select id="selectSubjectClassificationList" resultType="kr.or.ddit.finalProject.dto.subject.SubjectClassificationDto">
+    <!-- 과목 분류 목록 조회 (사용중인 것만) -->
+    <select id="selectSubjectClassificationList" resultType="kr.or.ddit.finalProject.dto.subject.SubjectClassificationDto">
   SELECT SUBJ_CL_ID, SUBJ_CL_NM
   FROM SUBJECT_CLASSIFICATION
   WHERE USE_YN = 'Y'
   ORDER BY SUBJ_CL_ID ASC
-  </select>
+    </select>
 
 
 
 
-  <sql id="courseListSearch">
-    <trim prefix="WHERE" prefixOverrides="AND ">
+    <sql id="courseListSearch">
+        <trim prefix="WHERE" prefixOverrides="AND ">
                 AND c.OPNN_YN = 'Y'
-      <if test="paginationInfo.detailCondition != null">
-        <if test="paginationInfo.detailCondition.instructorName != null and paginationInfo.detailCondition.instructorName != ''">
+            <if test="paginationInfo.detailCondition != null">
+                <if test="paginationInfo.detailCondition.instructorName != null and paginationInfo.detailCondition.instructorName != ''">
                       and  instr(m.user_name, #{paginationInfo.detailCondition.instructorName}) &gt; 0
-        </if>
-        <if test="paginationInfo.detailCondition.subjectName != null and paginationInfo.detailCondition.subjectName != ''">
+                </if>
+                <if test="paginationInfo.detailCondition.subjectName != null and paginationInfo.detailCondition.subjectName != ''">
                         and  instr(s.SUBJ_NM, #{paginationInfo.detailCondition.subjectName}) &gt; 0
-        </if>
-        <if test="paginationInfo.detailCondition.courseName != null and paginationInfo.detailCondition.courseName != ''">
+                </if>
+                <if test="paginationInfo.detailCondition.courseName != null and paginationInfo.detailCondition.courseName != ''">
                         and  instr(c.COURSE_NM, #{paginationInfo.detailCondition.courseName}) &gt; 0
-        </if>
-      </if>
-    </trim>
-  </sql>
+                </if>
+            </if>
+        </trim>
+    </sql>
 
-  <resultMap id="courseResponseMap" type="kr.or.ddit.finalProject.dto.course.CourseResponseDto">
-    <id property="courseSn" column="COURSE_SN" />
-    <result property="courseName" column="COURSE_NM" />
-    <result property="subjectName" column="SUBJ_NM" />
-    <result property="instructorName" column="INSTR_USER_NM"/>
-    <result property="instrUuid" column="INSTR_UUID"/>
-    <result property="instructorProfileImg" column="INSTR_PROFILE_IMG"/>
-    <result property="subjectId" column="SUBJ_ID"/>
-    <result property="coursePrice" column="COURSE_PRICE"/>
-    <result property="explain" column="COURSE_EXPLN_CN"/>
-    <result property="isNew" column="IS_NEW"/>
-    <result property="isBest" column="IS_BEST"/>
-    <result property="thumbnailImg" column="THUMBNAIL_IMG"/>
-  </resultMap>
+    <resultMap id="courseResponseMap" type="kr.or.ddit.finalProject.dto.course.CourseResponseDto">
+        <id property="courseSn" column="COURSE_SN" />
+        <result property="courseName" column="COURSE_NM" />
+        <result property="subjectName" column="SUBJ_NM" />
+        <result property="instructorName" column="INSTR_USER_NM"/>
+        <result property="instrUuid" column="INSTR_UUID"/>
+        <result property="instructorProfileImg" column="INSTR_PROFILE_IMG"/>
+        <result property="subjectId" column="SUBJ_ID"/>
+        <result property="coursePrice" column="COURSE_PRICE"/>
+        <result property="explain" column="COURSE_EXPLN_CN"/>
+        <result property="isNew" column="IS_NEW"/>
+        <result property="isBest" column="IS_BEST"/>
+        <result property="thumbnailImg" column="THUMBNAIL_IMG"/>
+    </resultMap>
 
 
-  <!-- selectCourseListForMain -->
+    <!-- selectCourseListForMain -->
 
-  <select id="selectCourseListForMain" resultMap="courseResponseMap">
+    <select id="selectCourseListForMain" resultMap="courseResponseMap">
         select c.COURSE_SN, c.COURSE_NM
         , s.SUBJ_NM, m.USER_NAME AS INSTR_USER_NM, c.SUBJ_ID, c.COURSE_PRICE, c.COURSE_EXPLN_CN
                 , CASE WHEN c.REG_DT >= ADD_MONTHS(SYSDATE, -1) THEN 1 ELSE 0 END AS IS_NEW
@@ -364,16 +364,16 @@
     offset #{paginationInfo.offset} rows fetch next #{paginationInfo.screenSize} rows only
   </select>
 
-  <select id="selectCourseListCountForMain" resultType="int">
+    <select id="selectCourseListCountForMain" resultType="int">
         select count(*)
         from course c
         inner join subject s on c.SUBJ_ID = s.SUBJ_ID
         inner join member m on c.INSTR_USER_ID = m.USER_ID
         inner join instructor i on c.INSTR_USER_ID = i.INSTR_USER_ID
-    <include refid="courseListSearch"/>
-  </select>
+        <include refid="courseListSearch"/>
+    </select>
 
-  <select id="selectCourseById" resultMap="courseResponseMap">
+    <select id="selectCourseById" resultMap="courseResponseMap">
         select c.COURSE_SN, c.COURSE_NM
         , s.SUBJ_NM, m.USER_NAME AS INSTR_USER_NM, c.SUBJ_ID, c.COURSE_PRICE, c.COURSE_EXPLN_CN
                 , CASE WHEN c.REG_DT >= ADD_MONTHS(SYSDATE, -1) THEN 1 ELSE 0 END AS IS_NEW
@@ -385,9 +385,9 @@
         inner join member m on c.INSTR_USER_ID = m.USER_ID
         inner join instructor i on c.INSTR_USER_ID = i.INSTR_USER_ID
         where c.COURSE_SN = #{courseId}
-  </select>
+    </select>
 
-    <!-- selectSubjectClassificationListWithSubjects --> 
+    <!-- selectSubjectClassificationListWithSubjects -->
 
     <!-- 
     public class SubjectClassificationDto implements Serializable {
