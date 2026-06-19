@@ -141,6 +141,18 @@
         OFFSET #{paginationInfo.offset} ROWS FETCH NEXT #{paginationInfo.screenSize} ROWS ONLY
     </select>
 
+    <!-- 특정 유저의 포인트 이력 전체 조회 (관리자용, 페이징 없음) -->
+    <select id="selectAllPointHistByUserAndType" resultMap="pointHistResultMap">
+        SELECT ph.POINT_HIST_SN, ph.MCPNT_SN, ph.USER_ID, ph.HIST_TYPE,
+               ph.CHANGE_AMT, ph.ORD_SN, ph.MEMO, ph.REG_DT,
+               mcp.EXPIRY_DT
+        FROM POINT_HIST ph
+        JOIN MEMBER_COUPONPOINT mcp ON ph.MCPNT_SN = mcp.MCPNT_SN
+        WHERE ph.USER_ID = #{userId}
+          AND mcp.ASSET_TYPE = #{assetType}
+        ORDER BY ph.REG_DT DESC
+    </select>
+
     <!-- 포인트 이력 전체 건수 -->
     <select id="selectPointHistCountByUserAndType" resultType="int">
         SELECT COUNT(*)

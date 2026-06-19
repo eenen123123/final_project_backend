@@ -33,8 +33,11 @@ public interface PointService {
     // 스터디포인트 지급 내역 검색
     List<MemberCouponPointDto> searchStudyGrants(String q);
 
-    // 특정 유저의 포인트 이력 조회 (타입별, 날짜 범위, 페이징)
+    // 특정 유저의 포인트 이력 조회 (타입별, 날짜 범위, 페이징) - 사용자용
     PageResponse<PointHistDto> getPointHistoryByType(String userId, AssetType assetType, String startDate, String endDate, int page);
+
+    // 특정 유저의 포인트 이력 전체 조회 (관리자용)
+    List<PointHistDto> getAllPointHistoryByType(String userId, AssetType assetType);
 
     // 유저 이름 조회
     String getUserName(String userId);

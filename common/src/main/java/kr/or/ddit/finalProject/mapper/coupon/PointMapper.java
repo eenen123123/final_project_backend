@@ -42,6 +42,11 @@ public interface PointMapper {
             @Param("endDate") String endDate,
             @Param("paginationInfo") PaginationInfo<?> paginationInfo);
 
+    // 특정 유저의 포인트 이력 전체 조회 (관리자용)
+    List<PointHistDto> selectAllPointHistByUserAndType(
+            @Param("userId") String userId,
+            @Param("assetType") AssetType assetType);
+
     // 포인트 이력 전체 건수
     int selectPointHistCountByUserAndType(
             @Param("userId") String userId,
