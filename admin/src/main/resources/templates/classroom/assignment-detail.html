@@ -12,15 +12,27 @@
   <div th:if="${assignment != null}" class="flex flex-col gap-5">
 
     <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
-      <div class="px-7 py-5 border-b border-slate-100">
-        <h1 class="text-base font-bold text-slate-800" th:text="${assignment.asgmtSj}">과제 제목</h1>
-        <div class="flex items-center gap-3 mt-2 text-sm text-slate-400">
-          <span th:if="${assignment.sbmtDdlnDt != null}">
-            마감 <span class="font-semibold text-rose-500"
-                       th:text="${#temporals.format(assignment.sbmtDdlnDt, 'yyyy-MM-dd HH:mm')}"></span>
-          </span>
-          <span class="w-px h-3 bg-slate-200" th:if="${assignment.sbmtDdlnDt != null}"></span>
-          <span th:text="${assignment.sbmtCnt + ' / ' + assignment.totMemberCnt + '명 제출'}">0 / 0명 제출</span>
+      <div class="px-7 py-5 border-b border-slate-100 flex items-start justify-between gap-4">
+        <div>
+          <h1 class="text-base font-bold text-slate-800" th:text="${assignment.asgmtSj}">과제 제목</h1>
+          <div class="flex items-center gap-3 mt-2 text-sm text-slate-400">
+            <span th:if="${assignment.sbmtDdlnDt != null}">
+              마감 <span class="font-semibold text-rose-500"
+                         th:text="${#temporals.format(assignment.sbmtDdlnDt, 'yyyy-MM-dd HH:mm')}"></span>
+            </span>
+            <span class="w-px h-3 bg-slate-200" th:if="${assignment.sbmtDdlnDt != null}"></span>
+            <span th:text="${assignment.sbmtCnt + ' / ' + assignment.totMemberCnt + '명 제출'}">0 / 0명 제출</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <a th:href="@{/classroom/detail/{sn}/assignments/{asgmtSn}/edit(sn=${classroom.classSn},asgmtSn=${assignment.asgmtSn})}"
+             class="text-sm font-semibold px-4 py-2 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">수정</a>
+          <form th:action="@{/classroom/detail/{sn}/assignments/{asgmtSn}/delete(sn=${classroom.classSn},asgmtSn=${assignment.asgmtSn})}"
+                method="post"
+                onsubmit="return confirm('과제를 삭제하면 제출 내역도 함께 삭제됩니다. 삭제하시겠습니까?')">
+            <button type="submit"
+                    class="text-sm font-semibold px-4 py-2 border border-rose-100 text-rose-500 rounded-lg hover:bg-rose-50 transition-colors">삭제</button>
+          </form>
         </div>
       </div>
       <div class="px-7 py-7 text-sm text-slate-700 leading-relaxed whitespace-pre-wrap min-h-[80px]"
