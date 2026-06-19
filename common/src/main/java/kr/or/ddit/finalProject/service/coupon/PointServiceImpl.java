@@ -139,6 +139,11 @@ public class PointServiceImpl implements PointService {
     }
 
     @Override
+    public List<PointHistDto> getAllPointHistoryByType(String userId, AssetType assetType) {
+        return pointMapper.selectAllPointHistByUserAndType(userId, assetType);
+    }
+
+    @Override
     public PageResponse<PointHistDto> getPointHistoryByType(String userId, AssetType assetType, String startDate, String endDate, int page) {
         PaginationInfo<?> paginationInfo = new PaginationInfo<>(10, page);
         List<PointHistDto> items = pointMapper.selectPointHistByUserAndType(userId, assetType, startDate, endDate, paginationInfo);
