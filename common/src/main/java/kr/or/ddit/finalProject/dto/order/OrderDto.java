@@ -3,6 +3,7 @@ package kr.or.ddit.finalProject.dto.order;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import kr.or.ddit.finalProject.dto.coupon.AssetType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +23,9 @@ public class OrderDto {
     private OrderStatus ordStatCd; // PENDING / PAID / CANCELED
     private LocalDateTime regDt; // 등록일시
     private LocalDateTime mdfcnDt; // 수정일시
+
+    private Long pointAmt;             // 사용 포인트량 (0이면 미사용)
+    private AssetType pointType;       // HM_POINT | STUDY_POINT | HM_MONEY
 
     private List<OrderItemDto> items; // 주문 상품 목록
 

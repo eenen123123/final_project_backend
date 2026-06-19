@@ -2,6 +2,7 @@ package kr.or.ddit.finalProject.service.coupon;
 
 import java.util.List;
 
+import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.coupon.CouponDto;
 import kr.or.ddit.finalProject.dto.coupon.MemberCouponPointDto;
 
@@ -16,8 +17,8 @@ public interface CouponService {
     // 유저에게 쿠폰 발급 (관리자)
     MemberCouponPointDto issueCoupon(Long couponSn, String userId, String adminId);
 
-    // 내 쿠폰 목록 조회 (사용자)
-    List<MemberCouponPointDto> getMyCoupons(String userId);
+    // 내 쿠폰 목록 조회 (사용자, 날짜 범위, 페이징)
+    PageResponse<MemberCouponPointDto> getMyCoupons(String userId, String startDate, String endDate, int page);
 
     // 소멸 예정 쿠폰 조회 - 다음달 만료 (사용자)
     List<MemberCouponPointDto> getExpiringCoupons(String userId);

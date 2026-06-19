@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.coupon.AssetType;
 import kr.or.ddit.finalProject.dto.coupon.MemberCouponPointDto;
 import kr.or.ddit.finalProject.dto.coupon.PointHistDto;
@@ -30,14 +31,17 @@ public class PointController {
         return ResponseEntity.ok(balance);
     }
 
-    // GET /api/points/history?assetType=HM_POINT - 포인트 이력 조회 (타입별)
+    // GET /api/points/history?assetType=HM_POINT&startDate=&endDate=&page=1
     @GetMapping("/history")
-    public ResponseEntity<List<PointHistDto>> getHistory(Authentication authentication,
-            @RequestParam AssetType assetType) {
-        return ResponseEntity.ok(pointService.getPointHistoryByType(authentication.getName(), assetType));
+    public ResponseEntity<PageResponse<PointHistDto>> getHistory(Authentication authentication,
+            @RequestParam AssetType assetType,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(defaultValue = "1") int page) {
+        return ResponseEntity.ok(pointService.getPointHistoryByType(authentication.getName(), assetType, startDate, endDate, page));
     }
 
-    // GET /api/points/expiring?assetType=HM_POINT - 소멸 예정 포인트 잔액 조회
+    // GET /api/points/expiring?assetType=HM_POINT - 소멸 예정 포인트 잔액 합계
     @GetMapping("/expiring")
     public ResponseEntity<Long> getExpiring(Authentication authentication,
             @RequestParam AssetType assetType) {
@@ -47,6 +51,17 @@ public class PointController {
                 .mapToLong(MemberCouponPointDto::getPointAmt)
                 .sum();
         return ResponseEntity.ok(total);
+    }
+
+    // GET /api/points/expiring/items?assetType=HM_POINT - 소멸 예정 포인트 목록 (모달용)
+    @GetMapping("/expiring/items")
+    public ResponseEntity<List<MemberCouponPointDto>> getExpiringItems(Authentication authentication,
+            @RequestParam AssetType assetType) {
+        List<MemberCouponPointDto> expiring = pointService.getExpiringPoints(authentication.getName());
+        List<MemberCouponPointDto> filtered = expiring.stream()
+                .filter(p -> p.getAssetType() == assetType)
+                .toList();
+        return ResponseEntity.ok(filtered);
     }
 
 }

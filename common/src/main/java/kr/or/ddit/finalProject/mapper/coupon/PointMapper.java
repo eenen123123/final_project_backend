@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Param;
 import kr.or.ddit.finalProject.dto.coupon.AssetType;
 import kr.or.ddit.finalProject.dto.coupon.MemberCouponPointDto;
 import kr.or.ddit.finalProject.dto.coupon.PointHistDto;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
 
 @Mapper
 public interface PointMapper {
@@ -33,8 +34,20 @@ public interface PointMapper {
     // 스터디포인트 지급 내역 검색 (userId or userName)
     List<MemberCouponPointDto> searchStudyGrants(@Param("q") String q);
 
-    // 특정 유저의 포인트 이력 조회 (타입별)
-    List<PointHistDto> selectPointHistByUserAndType(@Param("userId") String userId, @Param("assetType") AssetType assetType);
+    // 특정 유저의 포인트 이력 조회 (타입별, 날짜 범위, 페이징)
+    List<PointHistDto> selectPointHistByUserAndType(
+            @Param("userId") String userId,
+            @Param("assetType") AssetType assetType,
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate,
+            @Param("paginationInfo") PaginationInfo<?> paginationInfo);
+
+    // 포인트 이력 전체 건수
+    int selectPointHistCountByUserAndType(
+            @Param("userId") String userId,
+            @Param("assetType") AssetType assetType,
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate);
 
     // 유저 ID로 회원 이름 조회
     String selectUserNameById(@Param("userId") String userId);

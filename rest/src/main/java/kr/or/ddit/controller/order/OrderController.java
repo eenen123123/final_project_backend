@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.dto.order.OrderCreateRequest;
 import kr.or.ddit.finalProject.dto.order.OrderDto;
 import kr.or.ddit.finalProject.dto.order.OrderItemDto;
 import kr.or.ddit.finalProject.exception.ErrorCode;
@@ -34,10 +35,15 @@ public class OrderController {
 
     // POST /api/orders : 결제 전 주문 선생성(PENDING)
     // 응답의 ordId/totAmt를 토스 결제창 requestPayment(orderId, amount)에 사용
+    // [포인트 시스템] 요청 바디를 OrderCreateRequest로 변경 (items + pointAmt + pointType 포함)
     @PostMapping
     public ResponseEntity<OrderDto> createOrder(Authentication authentication,
-            @RequestBody List<OrderItemDto> items) {
-        return ResponseEntity.ok(orderService.createOrder(authentication.getName(), items));
+            @RequestBody OrderCreateRequest request) {
+        return ResponseEntity.ok(orderService.createOrder(
+                authentication.getName(),
+                request.getItems(),
+                request.getPointAmt(),
+                request.getPointType()));
     }
 
     @GetMapping("/my")

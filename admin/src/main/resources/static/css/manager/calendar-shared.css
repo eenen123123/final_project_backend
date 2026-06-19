@@ -1,0 +1,26 @@
+/* ============================================================
+   매니저 공용 캘린더 (학부모 상담 + 퇴원 방어 통합)
+   · 두 화면이 동일한 캘린더를 공유 · 출처별 색 구분
+============================================================ */
+
+.cal-cell { min-height: 96px; }
+
+.event-bar {
+  font-size: 10px;
+  line-height: 1.3;
+  padding: 1px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.event-bar:hover { filter: brightness(0.95); }
+
+/* 출처별 색: 상담(보라) / 방어(주황) */
+.event-bar.src-consult   { background: #ede9fe; color: #6d28d9; }
+.event-bar.src-retention { background: #ffedd5; color: #c2410c; }
+
+.today-cell  { background: #f5f3ff !important; }
+.other-month { background: #f8fafc !important; }
+.sun-bg      { background: #fff5f5; }

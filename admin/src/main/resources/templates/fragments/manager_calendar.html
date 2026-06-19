@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+  <!-- ============================================================
+       매니저 통합 캘린더 프래그먼트 (상담 + 퇴원방어 공용)
+       · 학부모 상담 관리 / 퇴원 방어 화면이 동일하게 사용
+       · 동작은 calendar-shared.js (SharedCalendar) 가 담당
+  ============================================================ -->
+  <div th:fragment="managerCalendar" class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50/60">
+      <div class="flex items-center gap-2 relative">
+        <button onclick="SharedCalendar.prev()" class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-200 text-slate-500 transition-colors cursor-pointer">
+          <i class="fa-solid fa-chevron-left text-xs"></i>
+        </button>
+        <button id="cal-month-picker-btn" onclick="SharedCalendar.togglePicker()"
+          class="text-base font-bold text-slate-800 hover:text-violet-600 transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-violet-50">
+          <span id="cal-year">2026</span>.<span id="cal-month">06</span>
+        </button>
+        <button onclick="SharedCalendar.next()" class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-200 text-slate-500 transition-colors cursor-pointer">
+          <i class="fa-solid fa-chevron-right text-xs"></i>
+        </button>
+        <button onclick="SharedCalendar.today()" class="ml-1 text-xs font-semibold text-slate-500 border border-slate-200 rounded-lg px-2.5 py-1 hover:bg-slate-50 cursor-pointer">오늘</button>
+        <div id="cal-month-picker" class="absolute top-10 left-0 z-50 hidden bg-white border border-slate-200 rounded-xl shadow-lg p-4 w-60">
+          <div class="flex items-center justify-between mb-3">
+            <button onclick="SharedCalendar.pickerPrevYear()" class="text-slate-400 hover:text-slate-700 cursor-pointer px-2 py-1 rounded hover:bg-slate-100">‹</button>
+            <span id="cal-picker-year" class="text-sm font-bold text-slate-800">2026</span>
+            <button onclick="SharedCalendar.pickerNextYear()" class="text-slate-400 hover:text-slate-700 cursor-pointer px-2 py-1 rounded hover:bg-slate-100">›</button>
+          </div>
+          <div class="grid grid-cols-4 gap-1.5" id="cal-picker-months"></div>
+        </div>
+      </div>
+      <div class="flex items-center gap-4 text-[11px] font-medium text-slate-500">
+        <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-violet-400"></span>학부모 상담</span>
+        <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-orange-400"></span>퇴원 방어</span>
+      </div>
+    </div>
+    <div class="grid grid-cols-7 border-b border-slate-100">
+      <div class="py-2 text-center text-[11px] font-bold text-red-400">SUN</div>
+      <div class="py-2 text-center text-[11px] font-bold text-slate-400">MON</div>
+      <div class="py-2 text-center text-[11px] font-bold text-slate-400">TUE</div>
+      <div class="py-2 text-center text-[11px] font-bold text-slate-400">WED</div>
+      <div class="py-2 text-center text-[11px] font-bold text-slate-400">THU</div>
+      <div class="py-2 text-center text-[11px] font-bold text-slate-400">FRI</div>
+      <div class="py-2 text-center text-[11px] font-bold text-blue-400">SAT</div>
+    </div>
+    <div id="cal-grid" class="grid grid-cols-7 border-l border-slate-100"></div>
+  </div>
+</body>
+</html>

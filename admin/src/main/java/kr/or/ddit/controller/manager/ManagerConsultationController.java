@@ -135,7 +135,9 @@ public class ManagerConsultationController {
     @PostMapping("/save")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> save(
-            @RequestParam String stdUserId,
+            @RequestParam(required = false) String stdUserId,
+            @RequestParam(required = false) String cnslNm,
+            @RequestParam(required = false) String cnslTelno,
             @RequestParam String cnslDt,
             @RequestParam(required = false) String cnslTypeCd,
             @RequestParam(required = false) String cnslStatCd,
@@ -145,8 +147,10 @@ public class ManagerConsultationController {
             Principal principal) {
 
         Map<String, Object> result = new HashMap<>();
-        if (stdUserId == null || stdUserId.isBlank()) {
-            result.put("error", "학생을 선택해 주세요.");
+        boolean isMember = stdUserId != null && !stdUserId.isBlank();
+        // 재원생(stdUserId) 또는 신규 문의자(이름) 중 하나는 필수
+        if (!isMember && (cnslNm == null || cnslNm.isBlank())) {
+            result.put("error", "재원생을 선택하거나 신규 문의자 이름을 입력해 주세요.");
             return ResponseEntity.badRequest().body(result);
         }
         if (cnslDt == null || cnslDt.isBlank()) {
@@ -161,7 +165,10 @@ public class ManagerConsultationController {
         String loginId = principal != null ? principal.getName() : "SYSTEM";
 
         ConsultationDto dto = new ConsultationDto();
-        dto.setStdUserId(stdUserId.trim());
+        dto.setStdUserId(isMember ? stdUserId.trim() : null);
+        // 신규 문의자(비회원)는 이름/연락처를 직접 저장, 재원생은 MEMBER에서 조회되므로 null
+        dto.setCnslNm(isMember ? null : blankToNull(cnslNm));
+        dto.setCnslTelno(isMember ? null : blankToNull(cnslTelno));
         dto.setChrgUserId(loginId);                       // 담당 강사 = 작성한 로그인 사용자
         dto.setCnslTypeCd(blankToNull(cnslTypeCd));
         dto.setCnslStatCd(orDefault(cnslStatCd, "02"));   // 미지정 시 완료

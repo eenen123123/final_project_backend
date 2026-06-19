@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import kr.or.ddit.finalProject.dto.cart.ProductType;
 import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.dto.coupon.AssetType;
 import kr.or.ddit.finalProject.dto.order.OrderDto;
 import kr.or.ddit.finalProject.dto.order.OrderItemDto;
 import kr.or.ddit.finalProject.dto.order.OrderSearchCondition;
@@ -18,6 +19,7 @@ import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.mapper.order.OrderMapper;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
+import kr.or.ddit.finalProject.service.coupon.PointService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,10 +31,11 @@ public class OrderServiceImpl implements OrderService {
     private static final long BOOK_SHIPPING_FEE = 3000; // 교재 포함 시 배송비
 
     private final OrderMapper orderMapper;
+    private final PointService pointService;
 
     @Override
     @Transactional
-    public OrderDto createOrder(String userId, List<OrderItemDto> items) {
+    public OrderDto createOrder(String userId, List<OrderItemDto> items, long pointAmt, AssetType pointType) {
         if (items == null || items.isEmpty()) {
             throw new FinalProjectException(ErrorCode.BAD_REQUEST);
         }
@@ -52,6 +55,25 @@ public class OrderServiceImpl implements OrderService {
             totAmt += BOOK_SHIPPING_FEE; // 교재가 있으면 배송비 1회 부과
         }
 
+        // 포인트 사용 검증 (토스 API 호출 전 선검증, 실제 차감은 결제 승인 후 수행)
+        if (pointAmt > 0) {
+            if (pointType == null || pointType == AssetType.COUPON) {
+                throw new FinalProjectException(ErrorCode.POINT_INVALID_TYPE);
+            }
+            if (pointAmt < 1_000) {
+                throw new FinalProjectException(ErrorCode.POINT_MINIMUM_USAGE);
+            }
+            if (pointAmt > totAmt) {
+                throw new FinalProjectException(ErrorCode.BAD_REQUEST);
+            }
+            long balance = pointService.getPointBalance(userId, pointType);
+            if (balance < pointAmt) {
+                throw new FinalProjectException(ErrorCode.POINT_INSUFFICIENT_BALANCE);
+            }
+            // 포인트 차감 후 실제 현금 결제액 (토스 결제 금액 = 상품금액 - 포인트)
+            totAmt -= pointAmt;
+        }
+
         String ordNm = orderItems.get(0).getProdNm();
         if (orderItems.size() > 1) {
             ordNm += " 외 " + (orderItems.size() - 1) + "건";
@@ -66,6 +88,8 @@ public class OrderServiceImpl implements OrderService {
                 .ordNm(ordNm)
                 .totAmt(totAmt)
                 .ordStatCd(OrderStatus.PENDING)
+                .pointAmt(pointAmt > 0 ? Long.valueOf(pointAmt) : null)
+                .pointType(pointAmt > 0 ? pointType : null)
                 .build();
         orderMapper.insertOrder(order);
 
@@ -116,7 +140,6 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public PageResponse<OrderDto> getOrdersByUserId(String userId, int page, LocalDateTime from, LocalDateTime to) {
-
         PaginationInfo<OrderSearchCondition> paginationInfo = new PaginationInfo<>(10, page);
         OrderSearchCondition condition = new OrderSearchCondition();
         condition.setFrom(from);
@@ -126,9 +149,7 @@ public class OrderServiceImpl implements OrderService {
         List<OrderDto> orders = orderMapper.selectOrdersByUserId(userId, paginationInfo);
         int totalCount = orderMapper.selectOrderTotalCountByUserId(userId, paginationInfo);
 
-        PageResponse<OrderDto> response = new PageResponse<>(orders, totalCount);
-        return response;
-
+        return new PageResponse<>(orders, totalCount);
     }
 
     @Override
@@ -141,7 +162,6 @@ public class OrderServiceImpl implements OrderService {
         } else {
             throw new FinalProjectException(ErrorCode.ORDER_NOT_FOUND);
         }
-
         return order;
     }
 
