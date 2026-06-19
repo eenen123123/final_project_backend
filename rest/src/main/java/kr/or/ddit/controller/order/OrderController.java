@@ -43,7 +43,8 @@ public class OrderController {
                 authentication.getName(),
                 request.getItems(),
                 request.getPointAmt(),
-                request.getPointType()));
+                request.getPointType(),
+                request.getShipping()));
     }
 
     @GetMapping("/my")

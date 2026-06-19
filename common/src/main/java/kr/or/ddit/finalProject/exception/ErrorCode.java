@@ -155,6 +155,19 @@ public enum ErrorCode {
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다."),
     ORDER_ALREADY_PAID(HttpStatus.CONFLICT, "이미 처리된 주문입니다."),
     ORDER_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "주문 금액이 일치하지 않습니다."),
+    // 배송 관련
+    SHIPPING_NOT_FOUND(HttpStatus.NOT_FOUND, "배송 정보를 찾을 수 없습니다."),
+    SHIPPING_ALREADY_IN_PROGRESS(HttpStatus.CONFLICT, "이미 배송이 시작되어 주소를 변경할 수 없습니다."),
+    SHIPPING_STATUS_REQUIRED(HttpStatus.BAD_REQUEST, "배송 상태를 입력해주세요."),
+    SHIPPING_INVOICE_REQUIRED(HttpStatus.BAD_REQUEST, "배송중 상태로 변경 시 송장번호는 필수입니다."),
+    SHIPPING_BUYER_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "구매자 이름을 입력해주세요."),
+    SHIPPING_BUYER_TEL_REQUIRED(HttpStatus.BAD_REQUEST, "구매자 연락처를 입력해주세요."),
+    SHIPPING_ORD_SN_REQUIRED(HttpStatus.BAD_REQUEST, "주문 번호가 필요합니다."),
+    // 배송지 관련
+    ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "배송지를 찾을 수 없습니다."),
+    ADDRESS_ACCESS_DENIED(HttpStatus.FORBIDDEN, "본인의 배송지만 수정·삭제할 수 있습니다."),
+    ADDRESS_RECEIVER_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "수령인 이름을 입력해주세요."),
+    ADDRESS_RECEIVER_TEL_REQUIRED(HttpStatus.BAD_REQUEST, "수령인 연락처를 입력해주세요."),
     // 쿠폰 관련
     COUPON_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 쿠폰입니다."),
     COUPON_INACTIVE(HttpStatus.BAD_REQUEST, "비활성화된 쿠폰입니다."),

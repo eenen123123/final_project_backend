@@ -27,6 +27,8 @@ public class OrderDto {
     private Long pointAmt;             // 사용 포인트량 (0이면 미사용)
     private AssetType pointType;       // HM_POINT | STUDY_POINT | HM_MONEY
 
+    private boolean hasTextbook;       // 교재 포함 여부 (배송 정보 표시용)
+
     private List<OrderItemDto> items; // 주문 상품 목록
 
 }

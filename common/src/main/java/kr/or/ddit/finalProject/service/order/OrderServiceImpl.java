@@ -14,6 +14,7 @@ import kr.or.ddit.finalProject.dto.coupon.AssetType;
 import kr.or.ddit.finalProject.dto.order.OrderDto;
 import kr.or.ddit.finalProject.dto.order.OrderItemDto;
 import kr.or.ddit.finalProject.dto.order.OrderSearchCondition;
+import kr.or.ddit.finalProject.dto.order.OrderShippingDto;
 import kr.or.ddit.finalProject.dto.order.OrderStatus;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
@@ -32,10 +33,11 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderMapper orderMapper;
     private final PointService pointService;
+    private final OrderShippingService orderShippingService;
 
     @Override
     @Transactional
-    public OrderDto createOrder(String userId, List<OrderItemDto> items, long pointAmt, AssetType pointType) {
+    public OrderDto createOrder(String userId, List<OrderItemDto> items, long pointAmt, AssetType pointType, OrderShippingDto shipping) {
         if (items == null || items.isEmpty()) {
             throw new FinalProjectException(ErrorCode.BAD_REQUEST);
         }
@@ -53,6 +55,16 @@ public class OrderServiceImpl implements OrderService {
         }
         if (hasBook) {
             totAmt += BOOK_SHIPPING_FEE; // 교재가 있으면 배송비 1회 부과
+            // 주문 INSERT 전에 배송지 선검증 (INSERT 후 검증 시 고아 PENDING 주문 발생 방지)
+            if (shipping == null) {
+                throw new FinalProjectException(ErrorCode.BAD_REQUEST);
+            }
+            if (shipping.getBuyerNm() == null || shipping.getBuyerNm().isBlank()) {
+                throw new FinalProjectException(ErrorCode.SHIPPING_BUYER_NAME_REQUIRED);
+            }
+            if (shipping.getBuyerTel() == null || shipping.getBuyerTel().isBlank()) {
+                throw new FinalProjectException(ErrorCode.SHIPPING_BUYER_TEL_REQUIRED);
+            }
         }
 
         // 포인트 사용 검증 (토스 API 호출 전 선검증, 실제 차감은 결제 승인 후 수행)
@@ -97,6 +109,13 @@ public class OrderServiceImpl implements OrderService {
             item.setOrdSn(order.getOrdSn());
             orderMapper.insertOrderItem(item);
         }
+
+        if (hasBook) {
+            shipping.setOrdSn(order.getOrdSn());
+            shipping.setRgtrId(userId);
+            orderShippingService.registerOrderShipping(shipping);
+        }
+
         order.setItems(orderItems);
         return order;
     }
