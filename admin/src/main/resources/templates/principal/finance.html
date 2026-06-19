@@ -9,24 +9,15 @@
   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
     <div>
       <h1 class="text-2xl font-bold text-slate-900 tracking-tight">매출 및 재무 분석</h1>
-      <p class="text-sm text-slate-500 mt-1">월별 매출 추이, 항목별 수익 비율, 수입·지출 자금 흐름을 통합 조회합니다.</p>
+      <p class="text-sm text-slate-500 mt-1">원비 수납과 온라인 결제(강의·교재)를 합산한 매출 현황을 조회합니다.</p>
     </div>
-    <div class="flex items-center gap-3">
-      <div class="w-40">
-        <select class="hm-input" id="yearSelect" onchange="updateCharts()">
-          <option value="2026" selected>2026년</option>
-          <option value="2025">2025년</option>
-          <option value="2024">2024년</option>
-        </select>
-      </div>
-      <button class="hm-btn-primary" onclick="showHermesToast('재무 리포트를 내보내기합니다.', 'success')">
-        <i class="fa-solid fa-file-arrow-down"></i>
-        <span>리포트 내보내기</span>
-      </button>
+    <div class="w-40">
+      <!-- 연도: 공통코드 218 -->
+      <select class="hm-input" id="yearSelect" onchange="loadMonthly(this.value)"></select>
     </div>
   </div>
 
-  <!-- ② 요약 통계 카드 -->
+  <!-- ② 요약 통계 카드 (이번 달) -->
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
       <div class="flex items-center gap-3 mb-3">
@@ -35,8 +26,7 @@
         </div>
         <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">이번 달 매출</p>
       </div>
-      <p class="text-2xl font-bold text-slate-800">38,240,000</p>
-      <p class="text-xs text-slate-400 mt-0.5">원</p>
+      <p class="text-2xl font-bold text-slate-800"><span id="card-total">0</span> <span class="text-sm text-slate-400">원</span></p>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
       <div class="flex items-center gap-3 mb-3">
@@ -45,28 +35,28 @@
         </div>
         <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">전월 대비</p>
       </div>
-      <p class="text-2xl font-bold text-emerald-600">+12.4%</p>
-      <p class="text-xs text-slate-400 mt-0.5">전월 34,020,000원</p>
+      <p class="text-2xl font-bold text-slate-800" id="card-growth">-</p>
+      <p class="text-xs text-slate-400 mt-0.5" id="card-growth-prev">전월 0원</p>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
       <div class="flex items-center gap-3 mb-3">
         <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-lg shrink-0">
           <i class="fa-solid fa-building-columns"></i>
         </div>
-        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">수강료 수입</p>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">원비 수입</p>
       </div>
-      <p class="text-2xl font-bold text-slate-800">31,200,000</p>
-      <p class="text-xs text-slate-400 mt-0.5">원 (전체의 81.6%)</p>
+      <p class="text-2xl font-bold text-slate-800"><span id="card-tuition">0</span> <span class="text-sm text-slate-400">원</span></p>
+      <p class="text-xs text-slate-400 mt-0.5" id="card-tuition-pct">-</p>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
       <div class="flex items-center gap-3 mb-3">
-        <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg shrink-0">
-          <i class="fa-solid fa-circle-minus"></i>
+        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg shrink-0">
+          <i class="fa-solid fa-cart-shopping"></i>
         </div>
-        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">이번 달 지출</p>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">강의·교재 수입</p>
       </div>
-      <p class="text-2xl font-bold text-slate-800">21,850,000</p>
-      <p class="text-xs text-rose-500 mt-0.5 font-medium">순이익 16,390,000원</p>
+      <p class="text-2xl font-bold text-slate-800"><span id="card-online">0</span> <span class="text-sm text-slate-400">원</span></p>
+      <p class="text-xs text-slate-400 mt-0.5" id="card-online-pct">-</p>
     </div>
   </div>
 
@@ -86,99 +76,31 @@
       <button data-tab="tab-cashflow"
         class="fin-tab-btn px-5 py-2.5 text-sm font-semibold rounded-t-xl transition-all text-slate-500 hover:text-violet-600 border-b-2 border-transparent"
         onclick="switchFinTab('tab-cashflow', this)">
-        <i class="fa-solid fa-arrows-left-right mr-2"></i>수입 / 지출 통합 조회
+        <i class="fa-solid fa-receipt mr-2"></i>수입 거래 내역
       </button>
     </div>
 
     <!-- ===== TAB 1: 월별 매출 추이 ===== -->
     <div id="tab-trend" class="fin-tab-panel p-6 space-y-6">
-      <!-- 막대 차트 -->
       <div class="h-72">
         <canvas id="monthlyChart"></canvas>
       </div>
 
-      <!-- 월별 상세 테이블 -->
       <div class="rounded-xl border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
                 <th class="py-3.5 px-6">월</th>
-                <th class="py-3.5 px-6 text-right">수강료 수입</th>
-                <th class="py-3.5 px-6 text-right">교재비 수입</th>
-                <th class="py-3.5 px-6 text-right">기타 수입</th>
+                <th class="py-3.5 px-6 text-right">원비</th>
+                <th class="py-3.5 px-6 text-right">강의</th>
+                <th class="py-3.5 px-6 text-right">교재</th>
+                <th class="py-3.5 px-6 text-right">기타</th>
                 <th class="py-3.5 px-6 text-right">총 매출</th>
                 <th class="py-3.5 px-6 text-center">전월 대비</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
-
-              <tr class="hover:bg-slate-50/50 transition-colors font-semibold bg-violet-50/40">
-                <td class="py-3.5 px-6 text-violet-700 font-bold">5월 <span class="text-xs text-violet-400">(이번 달)</span></td>
-                <td class="py-3.5 px-6 text-right font-mono">31,200,000</td>
-                <td class="py-3.5 px-6 text-right font-mono">4,840,000</td>
-                <td class="py-3.5 px-6 text-right font-mono">2,200,000</td>
-                <td class="py-3.5 px-6 text-right font-mono font-bold text-slate-900">38,240,000</td>
-                <td class="py-3.5 px-6 text-center">
-                  <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-600">
-                    <i class="fa-solid fa-arrow-up text-[10px]"></i>+12.4%
-                  </span>
-                </td>
-              </tr>
-
-              <tr class="hover:bg-slate-50/50 transition-colors">
-                <td class="py-3.5 px-6">4월</td>
-                <td class="py-3.5 px-6 text-right font-mono">27,800,000</td>
-                <td class="py-3.5 px-6 text-right font-mono">4,220,000</td>
-                <td class="py-3.5 px-6 text-right font-mono">2,000,000</td>
-                <td class="py-3.5 px-6 text-right font-mono font-bold">34,020,000</td>
-                <td class="py-3.5 px-6 text-center">
-                  <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-600">
-                    <i class="fa-solid fa-arrow-up text-[10px]"></i>+5.1%
-                  </span>
-                </td>
-              </tr>
-
-              <tr class="hover:bg-slate-50/50 transition-colors">
-                <td class="py-3.5 px-6">3월</td>
-                <td class="py-3.5 px-6 text-right font-mono">26,400,000</td>
-                <td class="py-3.5 px-6 text-right font-mono">4,010,000</td>
-                <td class="py-3.5 px-6 text-right font-mono">1,980,000</td>
-                <td class="py-3.5 px-6 text-right font-mono font-bold">32,390,000</td>
-                <td class="py-3.5 px-6 text-center">
-                  <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-600">
-                    <i class="fa-solid fa-arrow-up text-[10px]"></i>+18.3%
-                  </span>
-                </td>
-              </tr>
-
-              <tr class="hover:bg-slate-50/50 transition-colors">
-                <td class="py-3.5 px-6">2월</td>
-                <td class="py-3.5 px-6 text-right font-mono">22,100,000</td>
-                <td class="py-3.5 px-6 text-right font-mono">3,200,000</td>
-                <td class="py-3.5 px-6 text-right font-mono">1,080,000</td>
-                <td class="py-3.5 px-6 text-right font-mono font-bold">27,380,000</td>
-                <td class="py-3.5 px-6 text-center">
-                  <span class="inline-flex items-center gap-1 text-xs font-bold text-rose-500">
-                    <i class="fa-solid fa-arrow-down text-[10px]"></i>-8.2%
-                  </span>
-                </td>
-              </tr>
-
-              <tr class="hover:bg-slate-50/50 transition-colors">
-                <td class="py-3.5 px-6">1월</td>
-                <td class="py-3.5 px-6 text-right font-mono">24,500,000</td>
-                <td class="py-3.5 px-6 text-right font-mono">3,600,000</td>
-                <td class="py-3.5 px-6 text-right font-mono">1,700,000</td>
-                <td class="py-3.5 px-6 text-right font-mono font-bold">29,800,000</td>
-                <td class="py-3.5 px-6 text-center">
-                  <span class="inline-flex items-center gap-1 text-xs font-medium text-slate-400">
-                    <i class="fa-solid fa-minus text-[10px]"></i> 기준월
-                  </span>
-                </td>
-              </tr>
-
-            </tbody>
+            <tbody id="trend-tbody" class="divide-y divide-slate-50 text-sm text-slate-700"></tbody>
           </table>
         </div>
       </div>
@@ -187,203 +109,34 @@
     <!-- ===== TAB 2: 항목별 비율 분석 ===== -->
     <div id="tab-ratio" class="fin-tab-panel p-6 hidden">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-        <!-- 도넛 차트 -->
         <div class="flex flex-col items-center">
           <h3 class="text-sm font-bold text-slate-700 mb-4">이번 달 수입 항목별 비율</h3>
           <div class="w-64 h-64">
             <canvas id="ratioChart"></canvas>
           </div>
         </div>
-
-        <!-- 항목 상세 -->
-        <div class="space-y-3">
-          <h3 class="text-sm font-bold text-slate-700 mb-4">항목 상세 분석</h3>
-
-          <div class="flex items-center justify-between p-4 rounded-xl bg-slate-50 border border-slate-100">
-            <div class="flex items-center gap-3">
-              <span class="w-3 h-3 rounded-full bg-violet-500 shrink-0"></span>
-              <div>
-                <p class="text-sm font-semibold text-slate-700">원비 (수강료)</p>
-                <p class="text-xs text-slate-400 mt-0.5">전체 수강생 월별 납부</p>
-              </div>
-            </div>
-            <div class="text-right">
-              <p class="text-sm font-bold text-slate-800 font-mono">31,200,000원</p>
-              <p class="text-xs text-violet-600 font-bold mt-0.5">81.6%</p>
-            </div>
-          </div>
-
-          <div class="flex items-center justify-between p-4 rounded-xl bg-slate-50 border border-slate-100">
-            <div class="flex items-center gap-3">
-              <span class="w-3 h-3 rounded-full bg-sky-400 shrink-0"></span>
-              <div>
-                <p class="text-sm font-semibold text-slate-700">교재비</p>
-                <p class="text-xs text-slate-400 mt-0.5">교재 및 부교재 판매</p>
-              </div>
-            </div>
-            <div class="text-right">
-              <p class="text-sm font-bold text-slate-800 font-mono">4,840,000원</p>
-              <p class="text-xs text-sky-500 font-bold mt-0.5">12.7%</p>
-            </div>
-          </div>
-
-          <div class="flex items-center justify-between p-4 rounded-xl bg-slate-50 border border-slate-100">
-            <div class="flex items-center gap-3">
-              <span class="w-3 h-3 rounded-full bg-amber-400 shrink-0"></span>
-              <div>
-                <p class="text-sm font-semibold text-slate-700">모의고사비</p>
-                <p class="text-xs text-slate-400 mt-0.5">정기 모의고사 응시료</p>
-              </div>
-            </div>
-            <div class="text-right">
-              <p class="text-sm font-bold text-slate-800 font-mono">1,400,000원</p>
-              <p class="text-xs text-amber-500 font-bold mt-0.5">3.7%</p>
-            </div>
-          </div>
-
-          <div class="flex items-center justify-between p-4 rounded-xl bg-slate-50 border border-slate-100">
-            <div class="flex items-center gap-3">
-              <span class="w-3 h-3 rounded-full bg-emerald-400 shrink-0"></span>
-              <div>
-                <p class="text-sm font-semibold text-slate-700">기타 수입</p>
-                <p class="text-xs text-slate-400 mt-0.5">상담료, 특강비 등</p>
-              </div>
-            </div>
-            <div class="text-right">
-              <p class="text-sm font-bold text-slate-800 font-mono">800,000원</p>
-              <p class="text-xs text-emerald-500 font-bold mt-0.5">2.1%</p>
-            </div>
-          </div>
-
-          <!-- 합계 -->
-          <div class="flex items-center justify-between p-4 rounded-xl bg-violet-600 text-white mt-2">
-            <p class="text-sm font-bold">총 수입 합계</p>
-            <p class="text-base font-bold font-mono">38,240,000원</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- 지출 항목 비율 -->
-      <div class="mt-8 pt-6 border-t border-slate-100">
-        <h3 class="text-sm font-bold text-slate-700 mb-4">이번 달 지출 항목별 내역</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-
-          <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
-            <div class="flex items-center justify-between mb-2">
-              <p class="text-xs font-bold text-slate-600">강사 급여</p>
-              <p class="text-xs font-bold text-rose-500">72.2%</p>
-            </div>
-            <p class="text-lg font-bold text-slate-800 font-mono">15,780,000원</p>
-            <div class="mt-2 h-1.5 rounded-full bg-slate-200 overflow-hidden">
-              <div class="h-full bg-rose-400 rounded-full" style="width: 72%"></div>
-            </div>
-          </div>
-
-          <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
-            <div class="flex items-center justify-between mb-2">
-              <p class="text-xs font-bold text-slate-600">임대료</p>
-              <p class="text-xs font-bold text-amber-500">13.7%</p>
-            </div>
-            <p class="text-lg font-bold text-slate-800 font-mono">3,000,000원</p>
-            <div class="mt-2 h-1.5 rounded-full bg-slate-200 overflow-hidden">
-              <div class="h-full bg-amber-400 rounded-full" style="width: 14%"></div>
-            </div>
-          </div>
-
-          <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
-            <div class="flex items-center justify-between mb-2">
-              <p class="text-xs font-bold text-slate-600">교재 구매비</p>
-              <p class="text-xs font-bold text-sky-500">7.3%</p>
-            </div>
-            <p class="text-lg font-bold text-slate-800 font-mono">1,600,000원</p>
-            <div class="mt-2 h-1.5 rounded-full bg-slate-200 overflow-hidden">
-              <div class="h-full bg-sky-400 rounded-full" style="width: 7%"></div>
-            </div>
-          </div>
-
-          <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
-            <div class="flex items-center justify-between mb-2">
-              <p class="text-xs font-bold text-slate-600">공과금 / 관리비</p>
-              <p class="text-xs font-bold text-teal-500">3.7%</p>
-            </div>
-            <p class="text-lg font-bold text-slate-800 font-mono">810,000원</p>
-            <div class="mt-2 h-1.5 rounded-full bg-slate-200 overflow-hidden">
-              <div class="h-full bg-teal-400 rounded-full" style="width: 4%"></div>
-            </div>
-          </div>
-
-          <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
-            <div class="flex items-center justify-between mb-2">
-              <p class="text-xs font-bold text-slate-600">마케팅비</p>
-              <p class="text-xs font-bold text-violet-500">3.0%</p>
-            </div>
-            <p class="text-lg font-bold text-slate-800 font-mono">660,000원</p>
-            <div class="mt-2 h-1.5 rounded-full bg-slate-200 overflow-hidden">
-              <div class="h-full bg-violet-400 rounded-full" style="width: 3%"></div>
-            </div>
-          </div>
-
-          <div class="p-4 rounded-xl bg-rose-50 border border-rose-100">
-            <div class="flex items-center justify-between mb-2">
-              <p class="text-xs font-bold text-rose-600">총 지출</p>
-              <p class="text-xs font-bold text-rose-500">100%</p>
-            </div>
-            <p class="text-lg font-bold text-rose-700 font-mono">21,850,000원</p>
-            <p class="text-xs text-rose-400 mt-1">순이익: 16,390,000원</p>
-          </div>
-
-        </div>
+        <div class="space-y-3" id="ratio-breakdown"></div>
       </div>
     </div>
 
-    <!-- ===== TAB 3: 수입/지출 통합 조회 ===== -->
+    <!-- ===== TAB 3: 수입 거래 내역 ===== -->
     <div id="tab-cashflow" class="fin-tab-panel p-6 space-y-5 hidden">
       <!-- 필터 -->
       <div class="flex flex-wrap items-center gap-3">
-        <div class="w-full sm:w-40">
-          <select class="hm-input">
-            <option>2026년 5월</option>
-            <option>2026년 4월</option>
-            <option>2026년 3월</option>
-            <option>2026년 2월</option>
-            <option>2026년 1월</option>
-          </select>
-        </div>
-        <div class="w-full sm:w-44">
-          <select class="hm-input">
-            <option value="">전체 거래 유형</option>
-            <option>수입</option>
-            <option>지출</option>
-          </select>
-        </div>
-        <div class="w-full sm:w-44">
-          <select class="hm-input">
-            <option value="">항목 전체</option>
-            <option>원비</option>
-            <option>교재비</option>
-            <option>강사 급여</option>
-            <option>임대료</option>
-            <option>기타</option>
-          </select>
-        </div>
+        <input type="month" class="hm-input w-44" id="tx-month" onchange="loadTransactions(1)" />
+        <!-- 결제수단: 공통코드 223 -->
+        <select class="hm-input w-44" id="tx-mthd" onchange="loadTransactions(1)"></select>
       </div>
 
       <!-- 월 요약 배너 -->
-      <div class="grid grid-cols-3 gap-4">
-        <div class="rounded-xl bg-emerald-50 border border-emerald-100 p-4 text-center">
-          <p class="text-xs font-bold text-emerald-600 uppercase tracking-wider">총 수입</p>
-          <p class="text-xl font-bold text-emerald-700 font-mono mt-1">38,240,000</p>
-          <p class="text-xs text-emerald-500 mt-0.5">원</p>
-        </div>
-        <div class="rounded-xl bg-rose-50 border border-rose-100 p-4 text-center">
-          <p class="text-xs font-bold text-rose-600 uppercase tracking-wider">총 지출</p>
-          <p class="text-xl font-bold text-rose-700 font-mono mt-1">21,850,000</p>
-          <p class="text-xs text-rose-500 mt-0.5">원</p>
-        </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="rounded-xl bg-violet-50 border border-violet-100 p-4 text-center">
-          <p class="text-xs font-bold text-violet-600 uppercase tracking-wider">순이익</p>
-          <p class="text-xl font-bold text-violet-700 font-mono mt-1">16,390,000</p>
-          <p class="text-xs text-violet-500 mt-0.5">원</p>
+          <p class="text-xs font-bold text-violet-600 uppercase tracking-wider">선택 월 총 수입</p>
+          <p class="text-xl font-bold text-violet-700 font-mono mt-1"><span id="tx-total">0</span> 원</p>
+        </div>
+        <div class="rounded-xl bg-slate-50 border border-slate-100 p-4 text-center">
+          <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">거래 건수</p>
+          <p class="text-xl font-bold text-slate-700 font-mono mt-1"><span id="tx-count">0</span> 건</p>
         </div>
       </div>
 
@@ -394,121 +147,19 @@
             <thead>
               <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
                 <th class="py-3.5 px-6">날짜</th>
+                <th class="py-3.5 px-6 text-center">구분</th>
                 <th class="py-3.5 px-6">항목</th>
-                <th class="py-3.5 px-6">상세 내용</th>
-                <th class="py-3.5 px-6 text-center">유형</th>
+                <th class="py-3.5 px-6">구매자</th>
+                <th class="py-3.5 px-6 text-center">결제수단</th>
                 <th class="py-3.5 px-6 text-right">금액 (원)</th>
-                <th class="py-3.5 px-6 text-right">잔액 (원)</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
-
-              <tr class="hover:bg-slate-50/50 transition-colors">
-                <td class="py-3.5 px-6 text-xs text-slate-500 font-mono whitespace-nowrap">2026-05-26</td>
-                <td class="py-3.5 px-6 font-medium">원비</td>
-                <td class="py-3.5 px-6 text-slate-500 text-xs">5월 수강료 최종 수납 (고등 수학 A)</td>
-                <td class="py-3.5 px-6 text-center">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
-                    <i class="fa-solid fa-arrow-up text-[10px]"></i> 수입
-                  </span>
-                </td>
-                <td class="py-3.5 px-6 text-right font-mono font-semibold text-emerald-600">+4,500,000</td>
-                <td class="py-3.5 px-6 text-right font-mono text-slate-600">52,140,000</td>
-              </tr>
-
-              <tr class="hover:bg-slate-50/50 transition-colors">
-                <td class="py-3.5 px-6 text-xs text-slate-500 font-mono whitespace-nowrap">2026-05-25</td>
-                <td class="py-3.5 px-6 font-medium">강사 급여</td>
-                <td class="py-3.5 px-6 text-slate-500 text-xs">5월분 강사 급여 지급 (6명)</td>
-                <td class="py-3.5 px-6 text-center">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700">
-                    <i class="fa-solid fa-arrow-down text-[10px]"></i> 지출
-                  </span>
-                </td>
-                <td class="py-3.5 px-6 text-right font-mono font-semibold text-rose-600">-15,780,000</td>
-                <td class="py-3.5 px-6 text-right font-mono text-slate-600">47,640,000</td>
-              </tr>
-
-              <tr class="hover:bg-slate-50/50 transition-colors">
-                <td class="py-3.5 px-6 text-xs text-slate-500 font-mono whitespace-nowrap">2026-05-20</td>
-                <td class="py-3.5 px-6 font-medium">교재비</td>
-                <td class="py-3.5 px-6 text-slate-500 text-xs">5월 교재 판매 수납 완료</td>
-                <td class="py-3.5 px-6 text-center">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
-                    <i class="fa-solid fa-arrow-up text-[10px]"></i> 수입
-                  </span>
-                </td>
-                <td class="py-3.5 px-6 text-right font-mono font-semibold text-emerald-600">+4,840,000</td>
-                <td class="py-3.5 px-6 text-right font-mono text-slate-600">63,420,000</td>
-              </tr>
-
-              <tr class="hover:bg-slate-50/50 transition-colors">
-                <td class="py-3.5 px-6 text-xs text-slate-500 font-mono whitespace-nowrap">2026-05-15</td>
-                <td class="py-3.5 px-6 font-medium">임대료</td>
-                <td class="py-3.5 px-6 text-slate-500 text-xs">5월 건물 임대료 자동이체</td>
-                <td class="py-3.5 px-6 text-center">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700">
-                    <i class="fa-solid fa-arrow-down text-[10px]"></i> 지출
-                  </span>
-                </td>
-                <td class="py-3.5 px-6 text-right font-mono font-semibold text-rose-600">-3,000,000</td>
-                <td class="py-3.5 px-6 text-right font-mono text-slate-600">58,580,000</td>
-              </tr>
-
-              <tr class="hover:bg-slate-50/50 transition-colors">
-                <td class="py-3.5 px-6 text-xs text-slate-500 font-mono whitespace-nowrap">2026-05-10</td>
-                <td class="py-3.5 px-6 font-medium">원비</td>
-                <td class="py-3.5 px-6 text-slate-500 text-xs">5월 수강료 1차 수납 (중등반 전체)</td>
-                <td class="py-3.5 px-6 text-center">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
-                    <i class="fa-solid fa-arrow-up text-[10px]"></i> 수입
-                  </span>
-                </td>
-                <td class="py-3.5 px-6 text-right font-mono font-semibold text-emerald-600">+14,200,000</td>
-                <td class="py-3.5 px-6 text-right font-mono text-slate-600">61,580,000</td>
-              </tr>
-
-              <tr class="hover:bg-slate-50/50 transition-colors">
-                <td class="py-3.5 px-6 text-xs text-slate-500 font-mono whitespace-nowrap">2026-05-05</td>
-                <td class="py-3.5 px-6 font-medium">마케팅비</td>
-                <td class="py-3.5 px-6 text-slate-500 text-xs">SNS 광고 집행비 (5월)</td>
-                <td class="py-3.5 px-6 text-center">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700">
-                    <i class="fa-solid fa-arrow-down text-[10px]"></i> 지출
-                  </span>
-                </td>
-                <td class="py-3.5 px-6 text-right font-mono font-semibold text-rose-600">-660,000</td>
-                <td class="py-3.5 px-6 text-right font-mono text-slate-600">47,380,000</td>
-              </tr>
-
-              <tr class="hover:bg-slate-50/50 transition-colors">
-                <td class="py-3.5 px-6 text-xs text-slate-500 font-mono whitespace-nowrap">2026-05-02</td>
-                <td class="py-3.5 px-6 font-medium">공과금</td>
-                <td class="py-3.5 px-6 text-slate-500 text-xs">전기·가스·수도 납부</td>
-                <td class="py-3.5 px-6 text-center">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700">
-                    <i class="fa-solid fa-arrow-down text-[10px]"></i> 지출
-                  </span>
-                </td>
-                <td class="py-3.5 px-6 text-right font-mono font-semibold text-rose-600">-810,000</td>
-                <td class="py-3.5 px-6 text-right font-mono text-slate-600">48,040,000</td>
-              </tr>
-
-            </tbody>
+            <tbody id="tx-tbody" class="divide-y divide-slate-50 text-sm text-slate-700"></tbody>
           </table>
         </div>
         <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
-          <p class="text-xs text-slate-400">2026년 5월 전체 16건 중 1 – 7 표시</p>
-          <div class="flex items-center gap-1">
-            <button class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 flex items-center justify-center text-xs">
-              <i class="fa-solid fa-chevron-left"></i>
-            </button>
-            <button class="w-8 h-8 rounded-lg bg-violet-600 text-white text-xs font-bold flex items-center justify-center">1</button>
-            <button class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 text-xs flex items-center justify-center">2</button>
-            <button class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 flex items-center justify-center text-xs">
-              <i class="fa-solid fa-chevron-right"></i>
-            </button>
-          </div>
+          <p class="text-xs text-slate-400" id="tx-info"></p>
+          <div class="flex items-center gap-1" id="tx-pagination"></div>
         </div>
       </div>
     </div>
@@ -516,119 +167,9 @@
   </div>
 </div>
 
+<!-- Tailwind safelist: 동적 JS 클래스 인식용 -->
+<div class="hidden w-8 h-8 rounded-lg text-xs items-center justify-center bg-violet-600 text-white font-bold text-slate-400 hover:bg-slate-100"></div>
 
-<!-- ===== 페이지 스크립트 ===== -->
-<script>
-  function switchFinTab(tabId, btn) {
-    document.querySelectorAll('.fin-tab-panel').forEach(p => p.classList.add('hidden'));
-    document.querySelectorAll('.fin-tab-btn').forEach(b => {
-      b.classList.remove('text-violet-600', 'border-violet-500', 'bg-violet-50/60');
-      b.classList.add('text-slate-500', 'border-transparent');
-    });
-    document.getElementById(tabId).classList.remove('hidden');
-    btn.classList.remove('text-slate-500', 'border-transparent');
-    btn.classList.add('text-violet-600', 'border-violet-500', 'bg-violet-50/60');
-
-    /* 탭 전환 시 차트 재렌더 (canvas 크기 보정) */
-    if (tabId === 'tab-trend' && monthlyChart) monthlyChart.resize();
-    if (tabId === 'tab-ratio' && ratioChart) ratioChart.resize();
-  }
-
-  /* ── 월별 매출 막대 차트 ── */
-  const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
-  const monthlyChart = new Chart(monthlyCtx, {
-    type: 'bar',
-    data: {
-      labels: ['1월', '2월', '3월', '4월', '5월'],
-      datasets: [
-        {
-          label: '수강료 수입',
-          data: [24500000, 22100000, 26400000, 27800000, 31200000],
-          backgroundColor: 'rgba(124, 58, 237, 0.85)',
-          borderRadius: 6,
-          borderSkipped: false,
-        },
-        {
-          label: '교재비',
-          data: [3600000, 3200000, 4010000, 4220000, 4840000],
-          backgroundColor: 'rgba(56, 189, 248, 0.8)',
-          borderRadius: 6,
-          borderSkipped: false,
-        },
-        {
-          label: '기타 수입',
-          data: [1700000, 1080000, 1980000, 2000000, 2200000],
-          backgroundColor: 'rgba(52, 211, 153, 0.8)',
-          borderRadius: 6,
-          borderSkipped: false,
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12 } },
-        tooltip: {
-          callbacks: {
-            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString()}원`
-          }
-        }
-      },
-      scales: {
-        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 12 } } },
-        y: {
-          stacked: true,
-          grid: { color: 'rgba(148,163,184,0.1)' },
-          ticks: {
-            font: { size: 11 },
-            callback: v => (v / 10000000).toFixed(0) + '천만'
-          }
-        }
-      }
-    }
-  });
-
-  /* ── 항목별 비율 도넛 차트 ── */
-  const ratioCtx = document.getElementById('ratioChart').getContext('2d');
-  const ratioChart = new Chart(ratioCtx, {
-    type: 'doughnut',
-    data: {
-      labels: ['원비 (수강료)', '교재비', '모의고사비', '기타 수입'],
-      datasets: [{
-        data: [31200000, 4840000, 1400000, 800000],
-        backgroundColor: [
-          'rgba(124, 58, 237, 0.85)',
-          'rgba(56, 189, 248, 0.85)',
-          'rgba(251, 191, 36, 0.85)',
-          'rgba(52, 211, 153, 0.85)'
-        ],
-        borderWidth: 0,
-        hoverOffset: 8
-      }]
-    },
-    options: {
-      responsive: true,
-      cutout: '68%',
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => ` ${ctx.label}: ${ctx.parsed.toLocaleString()}원`
-          }
-        }
-      }
-    }
-  });
-
-  function updateCharts() {
-    /* 연도 변경 시 데이터 업데이트 훅 (실제 연동 시 여기서 API 호출) */
-    showHermesToast(document.getElementById('yearSelect').value + '년 데이터를 불러왔습니다.', 'success');
-  }
-
-  /* 탭 초기화 — 차트 선언 이후에 실행해야 ReferenceError 없음 */
-  (function () {
-    const firstBtn = document.querySelector('.fin-tab-btn[data-tab="tab-trend"]');
-    if (firstBtn) switchFinTab('tab-trend', firstBtn);
-  })();
-</script>
+<th:block th:fragment="pageJs">
+  <script th:src="@{/js/principal/finance.js}"></script>
+</th:block>
