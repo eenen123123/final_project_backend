@@ -1,786 +1,164 @@
-<!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8" />
-  <title>증명서 발급 관리</title>
-  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="stylesheet" href="/css/admin-core.css" />
-  <style>
-    .ct-tab-btn { transition: all .18s; }
-    .ct-tab-btn.active {
-      color: #7c3aed;
-      border-bottom: 2px solid #7c3aed;
-      font-weight: 700;
-    }
-    .ct-tab-panel { display: none; }
-    .ct-tab-panel.active { display: block; }
+<title th:fragment="pageTitle">증명서 관리 | HERMES</title>
 
-    /* 증명서 미리보기 */
-    .cert-preview {
-      background: #fff;
-      border: 1px solid #d1d5db;
-      border-radius: .5rem;
-      font-family: "Noto Serif KR", "Noto Sans KR", serif;
-      font-size: .78rem;
-      line-height: 1.8;
-      color: #1e293b;
-    }
-    .cert-preview .cert-title {
-      font-size: 1.25rem;
-      font-weight: 900;
-      text-align: center;
-      letter-spacing: .15em;
-      border-bottom: 2.5px solid #1e293b;
-      padding-bottom: .5rem;
-      margin-bottom: 1rem;
-    }
-    .cert-preview table { width: 100%; border-collapse: collapse; }
-    .cert-preview td { padding: .35rem .5rem; vertical-align: top; }
-    .cert-preview .cert-label { width: 6.5rem; color: #475569; font-weight: 600; }
-    .cert-preview .cert-seal {
-      width: 4.5rem; height: 4.5rem;
-      border: 2px solid #dc2626; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      color: #dc2626; font-size: .65rem; font-weight: 700;
-      text-align: center; line-height: 1.4;
-    }
+<div class="space-y-6">
 
-    .hist-row:hover { background: #f8fafc; }
-    .doc-chip {
-      display: inline-flex; align-items: center; gap: .3rem;
-      font-size: .68rem; font-weight: 700; padding: .18rem .6rem;
-      border-radius: .4rem;
-    }
-    .doc-tuition  { background: #ede9fe; color: #6d28d9; }
-    .doc-employ   { background: #e0f2fe; color: #0369a1; }
-    .doc-career   { background: #f0fdf4; color: #14532d; }
-    .doc-salary   { background: #fff7ed; color: #c2410c; }
-
-    .status-issued   { background: #d1fae5; color: #065f46; }
-    .status-pending  { background: #fef9c3; color: #854d0e; }
-    .status-canceled { background: #fee2e2; color: #991b1b; }
-  </style>
-</head>
-<body>
-
-<!-- ───────────────── 페이지 헤더 ───────────────── -->
-<div class="flex items-center justify-between mb-6">
-  <div>
-    <h1 class="text-xl font-bold text-slate-800">증명서 발급 관리</h1>
-    <p class="text-sm text-slate-500 mt-0.5">수강료 납입 증명서 및 직원 재직증명서를 발급·관리합니다.</p>
-  </div>
-  <div class="flex gap-2">
-    <button onclick="openModal('modal-tuition-cert')" class="text-sm font-semibold border border-violet-300 text-violet-700 px-4 py-2.5 rounded-xl hover:bg-violet-50 flex items-center gap-2 transition-colors">
-      <i class="fa-solid fa-file-invoice-dollar"></i>수강료 납입증명서
-    </button>
-    <button onclick="openModal('modal-employ-cert')" class="hm-btn-primary">
-      <i class="fa-solid fa-id-card"></i>재직증명서 발급
-    </button>
-  </div>
-</div>
-
-<!-- ───────────────── 요약 카드 4개 ───────────────── -->
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
-    <div class="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
-      <i class="fa-solid fa-file-lines text-violet-600"></i>
-    </div>
+  <!-- ① 페이지 헤더 -->
+  <div class="flex items-center justify-between">
     <div>
-      <p class="text-xs text-slate-500">이달 발급 건수</p>
-      <p class="text-xl font-bold text-slate-800">23</p>
+      <h1 class="text-xl font-bold text-slate-800">증명서 관리</h1>
+      <p class="text-sm text-slate-500 mt-0.5">직원이 셀프 발급한 재직·경력의 전체 발급 현황을 조회합니다.</p>
     </div>
-  </div>
-  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
-    <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-      <i class="fa-solid fa-file-invoice-dollar text-blue-600"></i>
-    </div>
-    <div>
-      <p class="text-xs text-slate-500">수강료 납입증명</p>
-      <p class="text-xl font-bold text-slate-800">14</p>
-    </div>
-  </div>
-  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
-    <div class="w-10 h-10 rounded-xl bg-sky-100 flex items-center justify-center">
-      <i class="fa-solid fa-id-card text-sky-600"></i>
-    </div>
-    <div>
-      <p class="text-xs text-slate-500">재직증명서</p>
-      <p class="text-xl font-bold text-slate-800">7</p>
-    </div>
-  </div>
-  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
-    <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-      <i class="fa-solid fa-box-archive text-emerald-600"></i>
-    </div>
-    <div>
-      <p class="text-xs text-slate-500">서류 보관 건수</p>
-      <p class="text-xl font-bold text-slate-800">142</p>
-    </div>
-  </div>
-</div>
-
-<!-- ───────────────── 탭 네비게이션 ───────────────── -->
-<div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
-  <div class="flex border-b border-slate-100 px-6">
-    <button class="ct-tab-btn active py-3.5 px-4 text-sm text-slate-500 -mb-px" data-tab="ct-tab-tuition" onclick="switchCtTab('ct-tab-tuition',this)">
-      <i class="fa-solid fa-file-invoice-dollar mr-1.5"></i>수강료 납입증명서
-    </button>
-    <button class="ct-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px" data-tab="ct-tab-employ" onclick="switchCtTab('ct-tab-employ',this)">
-      <i class="fa-solid fa-id-card mr-1.5"></i>재직증명서
-    </button>
-    <button class="ct-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px" data-tab="ct-tab-history" onclick="switchCtTab('ct-tab-history',this)">
-      <i class="fa-solid fa-clock-rotate-left mr-1.5"></i>발급 이력 전체
-    </button>
   </div>
 
-  <!-- ══════ 탭1: 수강료 납입증명서 ══════ -->
-  <div id="ct-tab-tuition" class="ct-tab-panel active p-6">
-    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-      <!-- 발급 내역 목록 -->
-      <div>
-        <div class="flex flex-wrap gap-3 mb-4">
-          <div class="relative flex-1 min-w-40">
-            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-            <input type="text" placeholder="학생명 또는 보호자 검색..." class="hm-input pl-10" oninput="filterTuition()" id="tuition-search" />
-          </div>
-          <input type="month" class="hm-input w-36" id="tuition-month" onchange="filterTuition()" />
-        </div>
-
-        <div id="tuition-list" class="space-y-2"></div>
+  <!-- ② 검색 필터 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+    <div class="flex flex-wrap gap-3 items-end">
+      <div class="relative min-w-48">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+        <input type="text" id="cm-keyword" class="hm-input pl-10 w-52" placeholder="직원 이름 검색..."
+               onkeydown="if(event.key==='Enter') loadCerts(1)" />
       </div>
-
-      <!-- 미리보기 패널 -->
-      <div>
-        <div class="flex items-center justify-between mb-3">
-          <p class="text-sm font-bold text-slate-700">납입증명서 미리보기</p>
-          <button onclick="printCert('tuition-preview-area')" class="text-xs font-semibold text-slate-600 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 flex items-center gap-1.5">
-            <i class="fa-solid fa-print"></i>출력
-          </button>
-        </div>
-        <div class="cert-preview p-6" id="tuition-preview-area">
-          <div class="cert-title">수강료 납입 증명서</div>
-          <table class="mb-4">
-            <tr><td class="cert-label">학생명</td><td id="pr-student">-</td></tr>
-            <tr><td class="cert-label">생년월일</td><td id="pr-birth">-</td></tr>
-            <tr><td class="cert-label">보호자명</td><td id="pr-parent">-</td></tr>
-            <tr><td class="cert-label">수강 과정</td><td id="pr-course">-</td></tr>
-            <tr><td class="cert-label">납부 기간</td><td id="pr-period">-</td></tr>
-            <tr><td class="cert-label">납부 금액</td><td id="pr-amount" class="font-bold">-</td></tr>
-            <tr><td class="cert-label">납부 방법</td><td id="pr-method">-</td></tr>
-          </table>
-          <p class="text-xs text-slate-500 mt-4 mb-1" id="pr-purpose-line">위 사항을 증명합니다.</p>
-          <div class="flex items-end justify-between mt-4">
-            <div>
-              <p class="text-xs text-slate-500">발급일: <span id="pr-issue-date">-</span></p>
-              <p class="text-sm font-bold mt-0.5">HERMES 아카데미</p>
-              <p class="text-xs text-slate-500">원장: 홍 원 장 (인)</p>
-            </div>
-            <div class="cert-seal">원<br>장<br>인</div>
-          </div>
-        </div>
-      </div>
+      <select class="hm-input w-36" id="cm-type" onchange="loadCerts(1)">
+        <option value="">전체 종류</option>
+        <option th:each="t : ${certTypes}" th:value="${t.comCd}" th:text="${t.comCdNm}"></option>
+      </select>
+      <select class="hm-input w-32" id="cm-prn" onchange="loadCerts(1)">
+        <option value="">전체 상태</option>
+        <option value="N">미출력</option>
+        <option value="Y">출력완료</option>
+      </select>
+      <input type="date" class="hm-input w-40" id="cm-from" onchange="loadCerts(1)" />
+      <span class="text-slate-400">~</span>
+      <input type="date" class="hm-input w-40" id="cm-to" onchange="loadCerts(1)" />
+      <button onclick="loadCerts(1)" class="hm-btn-primary px-5 py-2.5"><i class="fa-solid fa-magnifying-glass mr-1.5"></i>조회</button>
     </div>
   </div>
 
-  <!-- ══════ 탭2: 재직증명서 ══════ -->
-  <div id="ct-tab-employ" class="ct-tab-panel p-6">
-    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-      <!-- 발급 내역 목록 -->
-      <div>
-        <div class="flex flex-wrap gap-3 mb-4">
-          <div class="relative flex-1 min-w-40">
-            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-            <input type="text" placeholder="직원 이름 검색..." class="hm-input pl-10" oninput="filterEmploy()" id="employ-search" />
-          </div>
-          <input type="month" class="hm-input w-36" id="employ-month" onchange="filterEmploy()" />
-        </div>
-
-        <div id="employ-list" class="space-y-2"></div>
-      </div>
-
-      <!-- 미리보기 패널 -->
-      <div>
-        <div class="flex items-center justify-between mb-3">
-          <p class="text-sm font-bold text-slate-700">재직증명서 미리보기</p>
-          <div class="flex gap-2">
-            <button onclick="downloadCert()" class="text-xs font-semibold text-violet-600 border border-violet-300 px-3 py-1.5 rounded-lg hover:bg-violet-50 flex items-center gap-1.5">
-              <i class="fa-solid fa-file-pdf"></i>PDF
-            </button>
-            <button onclick="printCert('employ-preview-area')" class="text-xs font-semibold text-slate-600 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 flex items-center gap-1.5">
-              <i class="fa-solid fa-print"></i>출력
-            </button>
-          </div>
-        </div>
-        <div class="cert-preview p-6" id="employ-preview-area">
-          <div class="cert-title">재 직 증 명 서</div>
-          <table class="mb-4">
-            <tr><td class="cert-label">성명</td><td id="ep-name">-</td></tr>
-            <tr><td class="cert-label">생년월일</td><td id="ep-birth">-</td></tr>
-            <tr><td class="cert-label">직책</td><td id="ep-role">-</td></tr>
-            <tr><td class="cert-label">부서</td><td id="ep-dept">-</td></tr>
-            <tr><td class="cert-label">입사일</td><td id="ep-entry">-</td></tr>
-            <tr><td class="cert-label">고용 형태</td><td id="ep-type">-</td></tr>
-            <tr><td class="cert-label">제출처</td><td id="ep-purpose">-</td></tr>
-          </table>
-          <p class="text-xs text-slate-500 mt-4">위 사람은 본원에 위와 같이 재직하고 있음을 증명합니다.</p>
-          <div class="flex items-end justify-between mt-4">
-            <div>
-              <p class="text-xs text-slate-500">발급일: <span id="ep-issue-date">-</span></p>
-              <p class="text-sm font-bold mt-0.5">HERMES 아카데미</p>
-              <p class="text-xs text-slate-500">원장: 홍 원 장 (인)</p>
-            </div>
-            <div class="cert-seal">원<br>장<br>인</div>
-          </div>
-        </div>
-      </div>
+  <!-- ③ 발급 이력 테이블 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+    <div class="flex items-center justify-between p-5 border-b border-slate-100">
+      <p class="text-sm font-bold text-slate-700">발급 이력 <span class="text-slate-400 font-normal">(<span id="cm-total">0</span>건)</span></p>
     </div>
-  </div>
-
-  <!-- ══════ 탭3: 발급 이력 전체 ══════ -->
-  <div id="ct-tab-history" class="ct-tab-panel p-6">
-    <div class="flex flex-wrap gap-3 mb-5 items-end justify-between">
-      <div class="flex flex-wrap gap-3">
-        <div class="relative min-w-44">
-          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-          <input type="text" placeholder="이름 검색..." class="hm-input pl-10 w-48" oninput="filterHistory()" id="hist-search" />
-        </div>
-        <select class="hm-input w-40" id="hist-type-filter" onchange="filterHistory()">
-          <option value="">전체 유형</option>
-          <option value="수강료납입증명">수강료납입증명</option>
-          <option value="재직증명서">재직증명서</option>
-          <option value="경력증명서">경력증명서</option>
-          <option value="급여확인서">급여확인서</option>
-        </select>
-        <input type="month" class="hm-input w-36" id="hist-month" onchange="filterHistory()" />
-      </div>
-      <button onclick="showHermesToast('엑셀 내보내기 준비 중','info')" class="text-sm font-semibold border border-slate-200 text-slate-600 px-4 py-2 rounded-xl hover:bg-slate-50 flex items-center gap-1.5">
-        <i class="fa-solid fa-file-excel text-emerald-600"></i>내보내기
-      </button>
-    </div>
-
-    <div class="overflow-x-auto rounded-xl border border-slate-100">
+    <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead>
           <tr class="bg-slate-50 text-slate-500 text-xs">
             <th class="text-left py-3 px-4 font-semibold">발급일시</th>
             <th class="text-left py-3 px-4 font-semibold">신청자</th>
-            <th class="text-left py-3 px-4 font-semibold">구분</th>
-            <th class="text-left py-3 px-4 font-semibold">증명서 유형</th>
+            <th class="text-left py-3 px-4 font-semibold">부서 / 직급</th>
+            <th class="text-left py-3 px-4 font-semibold">증명서 종류</th>
             <th class="text-left py-3 px-4 font-semibold">제출처</th>
-            <th class="text-left py-3 px-4 font-semibold">발급 담당</th>
+            <th class="text-left py-3 px-4 font-semibold">필요 사유</th>
             <th class="text-left py-3 px-4 font-semibold">상태</th>
-            <th class="text-left py-3 px-4 font-semibold"></th>
           </tr>
         </thead>
-        <tbody id="hist-table-body" class="divide-y divide-slate-50"></tbody>
+        <tbody id="cm-tbody" class="divide-y divide-slate-50"></tbody>
       </table>
     </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════ -->
-<!--  MODAL: 수강료 납입증명서 발급                     -->
-<!-- ═══════════════════════════════════════════════════ -->
-<div id="modal-tuition-cert" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-    <div class="flex items-center justify-between p-6 border-b border-slate-100">
-      <h2 class="font-bold text-slate-800"><i class="fa-solid fa-file-invoice-dollar mr-2 text-violet-500"></i>수강료 납입증명서 발급</h2>
-      <button onclick="closeModal('modal-tuition-cert')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
-    </div>
-    <div class="p-6 space-y-4">
-      <div class="grid grid-cols-2 gap-3">
-        <div class="col-span-2">
-          <label class="text-xs text-slate-500 mb-1 block">학생 선택 <span class="text-red-400">*</span></label>
-          <select class="hm-input" id="tc-student" onchange="fillTuitionStudent()">
-            <option value="">학생 검색 또는 선택</option>
-            <option value="1">김지훈 (보호자: 김성준)</option>
-            <option value="2">이서연 (보호자: 이민호)</option>
-            <option value="3">박민준 (보호자: 박재현)</option>
-            <option value="4">정하은 (보호자: 정영수)</option>
-            <option value="5">최예린 (보호자: 최기봉)</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-xs text-slate-500 mb-1 block">납부 기간 시작 <span class="text-red-400">*</span></label>
-          <input type="month" class="hm-input" id="tc-start" />
-        </div>
-        <div>
-          <label class="text-xs text-slate-500 mb-1 block">납부 기간 종료 <span class="text-red-400">*</span></label>
-          <input type="month" class="hm-input" id="tc-end" />
-        </div>
-        <div>
-          <label class="text-xs text-slate-500 mb-1 block">총 납부 금액 <span class="text-red-400">*</span></label>
-          <input type="text" class="hm-input" id="tc-amount" placeholder="예: 600,000원" oninput="formatAmount(this)" />
-        </div>
-        <div>
-          <label class="text-xs text-slate-500 mb-1 block">납부 방법</label>
-          <select class="hm-input" id="tc-method">
-            <option>카드</option><option>계좌이체</option><option>현금</option>
-          </select>
-        </div>
-        <div class="col-span-2">
-          <label class="text-xs text-slate-500 mb-1 block">수강 과정</label>
-          <input type="text" class="hm-input" id="tc-course" placeholder="예: 수학 심화 / 영어 기초" />
-        </div>
-        <div class="col-span-2">
-          <label class="text-xs text-slate-500 mb-1 block">제출처(용도)</label>
-          <input type="text" class="hm-input" id="tc-purpose" placeholder="예: 연말정산, 정부지원금 신청" />
-        </div>
-      </div>
-
-      <!-- 자동 채워진 학생 정보 표시 -->
-      <div id="tc-student-info" class="hidden bg-slate-50 rounded-xl px-4 py-3">
-        <p class="text-xs font-bold text-slate-600 mb-2">자동 입력 정보</p>
-        <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-          <div class="flex gap-2"><span class="text-slate-400 w-16">학생명</span><span class="font-semibold text-slate-700" id="tc-info-name">-</span></div>
-          <div class="flex gap-2"><span class="text-slate-400 w-16">보호자</span><span class="font-semibold text-slate-700" id="tc-info-parent">-</span></div>
-          <div class="flex gap-2"><span class="text-slate-400 w-16">생년월일</span><span class="font-semibold text-slate-700" id="tc-info-birth">-</span></div>
-          <div class="flex gap-2"><span class="text-slate-400 w-16">반</span><span class="font-semibold text-slate-700" id="tc-info-class">-</span></div>
-        </div>
-      </div>
-    </div>
-    <div class="flex gap-3 justify-end p-6 border-t border-slate-100">
-      <button onclick="closeModal('modal-tuition-cert')" class="text-sm text-slate-500 px-5 py-2.5 rounded-xl hover:bg-slate-100 font-semibold">취소</button>
-      <button onclick="previewTuition()" class="text-sm font-bold border border-violet-300 text-violet-700 px-5 py-2.5 rounded-xl hover:bg-violet-50">미리보기</button>
-      <button onclick="issueTuitionCert()" class="hm-btn-primary px-6 py-2.5">발급 완료</button>
+    <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+      <p class="text-xs text-slate-400" id="cm-pagination-info"></p>
+      <div id="cm-pagination" class="flex items-center gap-1"></div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════ -->
-<!--  MODAL: 재직증명서 발급                            -->
-<!-- ═══════════════════════════════════════════════════ -->
-<div id="modal-employ-cert" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-    <div class="flex items-center justify-between p-6 border-b border-slate-100">
-      <h2 class="font-bold text-slate-800"><i class="fa-solid fa-id-card mr-2 text-sky-500"></i>재직증명서 발급</h2>
-      <button onclick="closeModal('modal-employ-cert')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
-    </div>
-    <div class="p-6 space-y-4">
-      <div>
-        <label class="text-xs text-slate-500 mb-1 block">직원 선택 <span class="text-red-400">*</span></label>
-        <select class="hm-input" id="ec-emp" onchange="fillEmployeeInfo()">
-          <option value="">선택</option>
-          <option value="1">김현정 (매니저 / 운영팀)</option>
-          <option value="2">이수민 (행정 / 행정팀)</option>
-          <option value="3">박지호 (강사 / 강의팀)</option>
-          <option value="4">정민석 (PD / 운영팀)</option>
-        </select>
-      </div>
-
-      <!-- 직원 정보 자동 표시 -->
-      <div id="ec-emp-info" class="hidden bg-sky-50 rounded-xl px-4 py-3">
-        <p class="text-xs font-bold text-sky-700 mb-2">자동 입력 정보</p>
-        <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-          <div class="flex gap-2"><span class="text-slate-400 w-16">성명</span><span class="font-semibold text-slate-700" id="ec-info-name">-</span></div>
-          <div class="flex gap-2"><span class="text-slate-400 w-16">생년월일</span><span class="font-semibold text-slate-700" id="ec-info-birth">-</span></div>
-          <div class="flex gap-2"><span class="text-slate-400 w-16">직책</span><span class="font-semibold text-slate-700" id="ec-info-role">-</span></div>
-          <div class="flex gap-2"><span class="text-slate-400 w-16">입사일</span><span class="font-semibold text-slate-700" id="ec-info-entry">-</span></div>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="text-xs text-slate-500 mb-1 block">증명서 유형 <span class="text-red-400">*</span></label>
-          <select class="hm-input" id="ec-type">
-            <option>재직증명서</option>
-            <option>경력증명서</option>
-            <option>급여확인서</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-xs text-slate-500 mb-1 block">발급 부수</label>
-          <select class="hm-input" id="ec-copies">
-            <option>1부</option><option>2부</option><option>3부</option>
-          </select>
-        </div>
-        <div class="col-span-2">
-          <label class="text-xs text-slate-500 mb-1 block">제출처 <span class="text-red-400">*</span></label>
-          <input type="text" class="hm-input" id="ec-purpose" placeholder="예: 은행, 정부기관, 보험사" />
-        </div>
-        <div class="col-span-2">
-          <label class="text-xs text-slate-500 mb-1 block">비고</label>
-          <input type="text" class="hm-input" id="ec-note" placeholder="특이사항 입력" />
-        </div>
-      </div>
-
-      <!-- 급여 포함 여부 (급여확인서 선택 시) -->
-      <div id="ec-salary-section" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-3">
-        <p class="text-xs font-bold text-amber-700 mb-2">급여 정보 포함</p>
-        <div class="flex items-center gap-4 text-xs">
-          <label class="flex items-center gap-1.5 cursor-pointer">
-            <input type="checkbox" class="accent-amber-500" id="ec-include-salary" checked />
-            <span class="text-slate-700">월 급여액 포함</span>
-          </label>
-          <label class="flex items-center gap-1.5 cursor-pointer">
-            <input type="checkbox" class="accent-amber-500" id="ec-include-bonus" />
-            <span class="text-slate-700">상여금 포함</span>
-          </label>
-        </div>
-      </div>
-
-      <!-- 서류 파일 첨부 -->
-      <div>
-        <label class="text-xs text-slate-500 mb-1 block">신청 서류 첨부 (선택)</label>
-        <label class="flex items-center justify-center gap-2 border-2 border-dashed border-slate-300 rounded-xl py-4 cursor-pointer hover:border-violet-400 hover:bg-violet-50 transition-colors">
-          <input type="file" class="hidden" id="ec-file" onchange="showEcFileName(this)" />
-          <i class="fa-solid fa-paperclip text-slate-400"></i>
-          <span class="text-xs text-slate-500" id="ec-file-name">파일을 첨부하세요 (신청서, 위임장 등)</span>
-        </label>
-      </div>
-    </div>
-    <div class="flex gap-3 justify-end p-6 border-t border-slate-100">
-      <button onclick="closeModal('modal-employ-cert')" class="text-sm text-slate-500 px-5 py-2.5 rounded-xl hover:bg-slate-100 font-semibold">취소</button>
-      <button onclick="previewEmploy()" class="text-sm font-bold border border-sky-300 text-sky-700 px-5 py-2.5 rounded-xl hover:bg-sky-50">미리보기</button>
-      <button onclick="issueEmployCert()" class="hm-btn-primary px-6 py-2.5">발급 완료</button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════ -->
-<!--  MODAL: 발급 이력 상세                             -->
-<!-- ═══════════════════════════════════════════════════ -->
-<div id="modal-hist-detail" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-    <div class="flex items-center justify-between p-6 border-b border-slate-100">
-      <h2 class="font-bold text-slate-800">발급 이력 상세</h2>
-      <button onclick="closeModal('modal-hist-detail')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
-    </div>
-    <div class="p-6 space-y-0" id="hist-detail-body"></div>
-    <div class="flex gap-3 justify-end p-6 border-t border-slate-100">
-      <button onclick="closeModal('modal-hist-detail')" class="text-sm text-slate-500 px-5 py-2.5 rounded-xl hover:bg-slate-100 font-semibold">닫기</button>
-      <button onclick="reIssueCert()" class="hm-btn-primary px-5 py-2.5">재발급</button>
-    </div>
-  </div>
-</div>
+<!-- Tailwind safelist: 동적 JS 클래스 인식용 -->
+<div class="hidden w-8 h-8 rounded-lg text-xs items-center justify-center bg-blue-500 text-white font-bold text-slate-400 hover:bg-slate-100"></div>
 
 <script>
-/* ─── 더미 데이터 ─── */
-const students = {
-  '1': { name:'김지훈', parent:'김성준', birth:'2012-04-15', class:'수학A반' },
-  '2': { name:'이서연', parent:'이민호', birth:'2011-09-22', class:'영어B반' },
-  '3': { name:'박민준', parent:'박재현', birth:'2013-01-05', class:'수학B반' },
-  '4': { name:'정하은', parent:'정영수', birth:'2012-11-30', class:'국어A반' },
-  '5': { name:'최예린', parent:'최기봉', birth:'2011-06-18', class:'영어A반' },
-};
+  const CM_BASE = '/admin/certificates';
+  const CM_SIZE = 10;
+  const CM_BLOCK = 5;
+  let cmPage = 1;
 
-const empData = {
-  '1': { name:'김현정', birth:'1992-05-14', role:'매니저', dept:'운영팀', entry:'2023-03-02', workType:'정규직', salary:'320만원' },
-  '2': { name:'이수민', birth:'1996-11-28', role:'행정',   dept:'행정팀', entry:'2024-01-08', workType:'정규직', salary:'270만원' },
-  '3': { name:'박지호', birth:'1989-03-07', role:'강사',   dept:'강의팀', entry:'2022-09-01', workType:'정규직', salary:'350만원' },
-  '4': { name:'정민석', birth:'1993-08-20', role:'PD',     dept:'운영팀', entry:'2024-03-04', workType:'정규직', salary:'290만원' },
-};
+  function p2(n) { return String(n).padStart(2, '0'); }
+  function fmtDateTime(v) {
+    if (!v) return '-';
+    if (Array.isArray(v)) { const [y, mo, d, h = 0, mi = 0] = v; return `${y}-${p2(mo)}-${p2(d)} ${p2(h)}:${p2(mi)}`; }
+    return String(v).replace('T', ' ').substring(0, 16);
+  }
 
-const tuitionHistory = [
-  { id:1, issuedAt:'2026-05-24 14:30', name:'김지훈', who:'학생', type:'수강료납입증명', period:'2025-01 ~ 2025-12', amount:'7,200,000원', purpose:'연말정산', issuer:'이수민', status:'발급' },
-  { id:2, issuedAt:'2026-05-22 10:15', name:'이서연', who:'학생', type:'수강료납입증명', period:'2026-01 ~ 2026-05', amount:'3,000,000원', purpose:'정부지원금', issuer:'이수민', status:'발급' },
-  { id:3, issuedAt:'2026-05-20 16:00', name:'박민준', who:'학생', type:'수강료납입증명', period:'2025-03 ~ 2026-02', amount:'5,400,000원', purpose:'연말정산', issuer:'김현정', status:'발급' },
-];
+  /* ─── 페이징 (employees.html 동일 스타일) ─── */
+  function renderCmPagination(totalCount) {
+    const container = document.getElementById('cm-pagination');
+    const info = document.getElementById('cm-pagination-info');
+    if (!container) return;
 
-const employHistory = [
-  { id:4, issuedAt:'2026-05-25 09:00', name:'김현정', who:'직원', type:'재직증명서', period:'-', purpose:'은행 대출', issuer:'이수민', status:'발급' },
-  { id:5, issuedAt:'2026-05-18 11:30', name:'박지호', who:'직원', type:'경력증명서', period:'-', purpose:'이직 지원', issuer:'이수민', status:'발급' },
-  { id:6, issuedAt:'2026-04-30 15:45', name:'이수민', who:'직원', type:'급여확인서', period:'-', purpose:'임대차 계약', issuer:'김현정', status:'발급' },
-  { id:7, issuedAt:'2026-04-10 10:00', name:'정민석', who:'직원', type:'재직증명서', period:'-', purpose:'보험 가입', issuer:'이수민', status:'취소' },
-];
+    const totalPage = Math.ceil(totalCount / CM_SIZE);
+    const start = totalCount === 0 ? 0 : (cmPage - 1) * CM_SIZE + 1;
+    const end = Math.min(cmPage * CM_SIZE, totalCount);
+    if (info) {
+      info.textContent = totalCount === 0
+        ? '데이터가 없습니다.'
+        : `전체 ${totalCount}건 중 ${start} – ${end} 표시`;
+    }
 
-const allHistory = [...tuitionHistory, ...employHistory].sort((a,b) => b.id - a.id);
-let selectedHistId = null;
+    if (totalPage <= 1) { container.innerHTML = ''; return; }
 
-/* ─── 탭 전환 ─── */
-function switchCtTab(tabId, btn) {
-  document.querySelectorAll('.ct-tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.ct-tab-panel').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById(tabId).classList.add('active');
-}
+    const endPage = Math.min(Math.ceil(cmPage / CM_BLOCK) * CM_BLOCK, totalPage);
+    const startPage = Math.max(endPage - CM_BLOCK + 1, 1);
 
-/* ─── 탭1: 수강료 납입증명 목록 ─── */
-function renderTuitionList(list) {
-  const el = document.getElementById('tuition-list');
-  if (!list.length) { el.innerHTML = '<p class="text-sm text-slate-400 text-center py-8">해당 발급 이력이 없습니다.</p>'; return; }
-  el.innerHTML = list.map(h => `
-    <div class="flex items-center justify-between bg-white border border-slate-100 rounded-xl px-4 py-3 hover:border-violet-300 hover:shadow-sm transition-all cursor-pointer hist-row" onclick="openHistDetail(${h.id})">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center text-xs font-bold text-violet-700 flex-shrink-0">${h.name[0]}</div>
-        <div>
-          <div class="flex items-center gap-1.5 flex-wrap">
-            <span class="text-sm font-bold text-slate-800">${h.name}</span>
-            <span class="doc-chip doc-tuition">${h.type}</span>
-            <span class="text-xs font-bold px-2 py-0.5 rounded-full ${h.status==='발급'?'status-issued':'status-canceled'}">${h.status}</span>
-          </div>
-          <p class="text-xs text-slate-500 mt-0.5">${h.period} · ${h.amount} · ${h.purpose}</p>
-        </div>
-      </div>
-      <p class="text-xs text-slate-400 flex-shrink-0">${h.issuedAt}</p>
-    </div>
-  `).join('');
-}
+    const BASE = 'w-8 h-8 rounded-lg text-xs flex items-center justify-center';
+    let html = '';
+    if (startPage > 1) {
+      html += `<button onclick="loadCerts(${startPage - 1})" class="${BASE} text-slate-400 hover:bg-slate-100">‹</button>`;
+    }
+    for (let p = startPage; p <= endPage; p++) {
+      const cls = p === cmPage ? 'bg-blue-500 text-white font-bold' : 'text-slate-400 hover:bg-slate-100';
+      html += `<button onclick="loadCerts(${p})" class="${BASE} ${cls}">${p}</button>`;
+    }
+    if (endPage < totalPage) {
+      html += `<button onclick="loadCerts(${endPage + 1})" class="${BASE} text-slate-400 hover:bg-slate-100">›</button>`;
+    }
+    container.innerHTML = html;
+  }
 
-function filterTuition() {
-  const q = document.getElementById('tuition-search').value.trim();
-  const m = document.getElementById('tuition-month').value;
-  renderTuitionList(tuitionHistory.filter(h => (!q || h.name.includes(q)) && (!m || h.issuedAt.startsWith(m))));
-}
+  function loadCerts(page) {
+    cmPage = page;
+    const params = new URLSearchParams({ page, screenSize: CM_SIZE });
+    const kw = document.getElementById('cm-keyword').value.trim();
+    const ty = document.getElementById('cm-type').value;
+    const prn = document.getElementById('cm-prn').value;
+    const from = document.getElementById('cm-from').value;
+    const to = document.getElementById('cm-to').value;
+    if (kw) params.set('keyword', kw);
+    if (ty) params.set('certTyCd', ty);
+    if (prn) params.set('prnYn', prn);
+    if (from) params.set('fromDt', from);
+    if (to) params.set('toDt', to);
 
-/* ─── 탭2: 재직증명서 목록 ─── */
-function renderEmployList(list) {
-  const typeChip = { '재직증명서':'doc-employ','경력증명서':'doc-career','급여확인서':'doc-salary' };
-  const el = document.getElementById('employ-list');
-  if (!list.length) { el.innerHTML = '<p class="text-sm text-slate-400 text-center py-8">해당 발급 이력이 없습니다.</p>'; return; }
-  el.innerHTML = list.map(h => `
-    <div class="flex items-center justify-between bg-white border border-slate-100 rounded-xl px-4 py-3 hover:border-sky-300 hover:shadow-sm transition-all cursor-pointer hist-row" onclick="openHistDetail(${h.id})">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-sky-100 flex items-center justify-center text-xs font-bold text-sky-700 flex-shrink-0">${h.name[0]}</div>
-        <div>
-          <div class="flex items-center gap-1.5 flex-wrap">
-            <span class="text-sm font-bold text-slate-800">${h.name}</span>
-            <span class="doc-chip ${typeChip[h.type]||'doc-employ'}">${h.type}</span>
-            <span class="text-xs font-bold px-2 py-0.5 rounded-full ${h.status==='발급'?'status-issued':'status-canceled'}">${h.status}</span>
-          </div>
-          <p class="text-xs text-slate-500 mt-0.5">제출처: ${h.purpose} · 담당: ${h.issuer}</p>
-        </div>
-      </div>
-      <p class="text-xs text-slate-400 flex-shrink-0">${h.issuedAt}</p>
-    </div>
-  `).join('');
-}
+    fetch(`${CM_BASE}/list?${params}`).then(r => r.json()).then(d => {
+      document.getElementById('cm-total').textContent = d.totalCount;
+      const tbody = document.getElementById('cm-tbody');
+      if (!d.items.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-slate-400 text-sm">발급 이력이 없습니다.</td></tr>';
+        renderCmPagination(0);
+        return;
+      }
+      tbody.innerHTML = d.items.map(c => {
+        const printed = c.prnYn === 'Y';
+        const badge = printed
+          ? '<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">출력완료</span>'
+          : '<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">미출력</span>';
+        return `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="py-3 px-4 text-xs text-slate-500">${fmtDateTime(c.issueDt)}</td>
+            <td class="py-3 px-4">
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-md bg-violet-100 flex items-center justify-center text-xs font-bold text-violet-700">${(c.userName || '?')[0]}</div>
+                <span class="text-xs font-semibold text-slate-800">${c.userName || '-'}</span>
+              </div>
+            </td>
+            <td class="py-3 px-4 text-xs text-slate-600">${c.deptNm || '-'} / ${c.jbgrNm || '-'}</td>
+            <td class="py-3 px-4"><span class="text-xs font-bold text-slate-800">${c.certTyNm || '-'}</span></td>
+            <td class="py-3 px-4 text-xs text-slate-600">${c.issuePurps || '-'}</td>
+            <td class="py-3 px-4 text-xs text-slate-500 max-w-xs truncate" title="${c.issueRsn || ''}">${c.issueRsn || '-'}</td>
+            <td class="py-3 px-4">${badge}</td>
+          </tr>`;
+      }).join('');
+      renderCmPagination(d.totalCount);
+    });
+  }
 
-function filterEmploy() {
-  const q = document.getElementById('employ-search').value.trim();
-  const m = document.getElementById('employ-month').value;
-  renderEmployList(employHistory.filter(h => (!q || h.name.includes(q)) && (!m || h.issuedAt.startsWith(m))));
-}
-
-/* ─── 탭3: 전체 이력 테이블 ─── */
-const typeChipMap = { '수강료납입증명':'doc-tuition','재직증명서':'doc-employ','경력증명서':'doc-career','급여확인서':'doc-salary' };
-
-function renderHistTable(list) {
-  const body = document.getElementById('hist-table-body');
-  if (!list.length) { body.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-slate-400 text-sm">발급 이력이 없습니다.</td></tr>'; return; }
-  body.innerHTML = list.map(h => `
-    <tr class="hover:bg-slate-50 transition-colors cursor-pointer" onclick="openHistDetail(${h.id})">
-      <td class="py-3 px-4 text-xs text-slate-500">${h.issuedAt}</td>
-      <td class="py-3 px-4">
-        <div class="flex items-center gap-2">
-          <div class="w-6 h-6 rounded-md bg-violet-100 flex items-center justify-center text-xs font-bold text-violet-700">${h.name[0]}</div>
-          <span class="text-xs font-semibold text-slate-800">${h.name}</span>
-        </div>
-      </td>
-      <td class="py-3 px-4 text-xs text-slate-500">${h.who}</td>
-      <td class="py-3 px-4"><span class="doc-chip ${typeChipMap[h.type]||'doc-employ'}">${h.type}</span></td>
-      <td class="py-3 px-4 text-xs text-slate-600">${h.purpose}</td>
-      <td class="py-3 px-4 text-xs text-slate-600">${h.issuer}</td>
-      <td class="py-3 px-4"><span class="text-xs font-bold px-2 py-0.5 rounded-full ${h.status==='발급'?'status-issued':'status-canceled'}">${h.status}</span></td>
-      <td class="py-3 px-4"><button onclick="event.stopPropagation(); openHistDetail(${h.id})" class="text-xs text-violet-600 hover:underline font-semibold">상세</button></td>
-    </tr>
-  `).join('');
-}
-
-function filterHistory() {
-  const q  = document.getElementById('hist-search').value.trim();
-  const tp = document.getElementById('hist-type-filter').value;
-  const m  = document.getElementById('hist-month').value;
-  renderHistTable(allHistory.filter(h =>
-    (!q  || h.name.includes(q)) &&
-    (!tp || h.type === tp) &&
-    (!m  || h.issuedAt.startsWith(m))
-  ));
-}
-
-/* ─── 이력 상세 모달 ─── */
-function openHistDetail(id) {
-  const h = allHistory.find(x => x.id === id);
-  if (!h) return;
-  selectedHistId = id;
-  const rows = [
-    ['발급일시', h.issuedAt], ['신청자', h.name], ['구분', h.who],
-    ['증명서 유형', h.type], ['제출처', h.purpose], ['담당자', h.issuer],
-    ['상태', h.status],
-    ...(h.period !== '-' ? [ ['납부 기간', h.period], ['납부 금액', h.amount] ] : []),
-  ];
-  document.getElementById('hist-detail-body').innerHTML = rows.map(([k,v], i) => `
-    <div class="flex py-2.5 ${i < rows.length-1 ? 'border-b border-slate-100' : ''}">
-      <span class="w-24 text-xs text-slate-500 flex-shrink-0">${k}</span>
-      <span class="text-xs font-semibold text-slate-800">${v}</span>
-    </div>
-  `).join('');
-  openModal('modal-hist-detail');
-}
-
-function reIssueCert() {
-  showHermesToast('재발급 처리되었습니다.', 'success');
-  closeModal('modal-hist-detail');
-}
-
-/* ─── 수강료 납입증명 발급 ─── */
-function fillTuitionStudent() {
-  const id = document.getElementById('tc-student').value;
-  const info = document.getElementById('tc-student-info');
-  if (!id) { info.classList.add('hidden'); return; }
-  const s = students[id];
-  info.classList.remove('hidden');
-  document.getElementById('tc-info-name').textContent   = s.name;
-  document.getElementById('tc-info-parent').textContent = s.parent;
-  document.getElementById('tc-info-birth').textContent  = s.birth;
-  document.getElementById('tc-info-class').textContent  = s.class;
-}
-
-function previewTuition() {
-  const id     = document.getElementById('tc-student').value;
-  const start  = document.getElementById('tc-start').value;
-  const end    = document.getElementById('tc-end').value;
-  const amount = document.getElementById('tc-amount').value;
-  const method = document.getElementById('tc-method').value;
-  const course = document.getElementById('tc-course').value || '-';
-  const purpose = document.getElementById('tc-purpose').value || '제출처 미기입';
-  if (!id || !start || !end || !amount) { showHermesToast('필수 항목을 모두 입력하세요.', 'error'); return; }
-  const s = students[id];
-  document.getElementById('pr-student').textContent = s.name;
-  document.getElementById('pr-birth').textContent   = s.birth;
-  document.getElementById('pr-parent').textContent  = s.parent;
-  document.getElementById('pr-course').textContent  = course;
-  document.getElementById('pr-period').textContent  = start + ' ~ ' + end;
-  document.getElementById('pr-amount').textContent  = amount;
-  document.getElementById('pr-method').textContent  = method;
-  document.getElementById('pr-purpose-line').textContent = `위 금액은 ${purpose} 목적으로 납부하였음을 증명합니다.`;
-  document.getElementById('pr-issue-date').textContent = new Date().toISOString().slice(0,10);
-  closeModal('modal-tuition-cert');
-  switchCtTab('ct-tab-tuition', document.querySelector('.ct-tab-btn[data-tab="ct-tab-tuition"]'));
-  showHermesToast('미리보기가 업데이트되었습니다.', 'success');
-}
-
-function issueTuitionCert() {
-  const id = document.getElementById('tc-student').value;
-  if (!id) { showHermesToast('학생을 선택해주세요.', 'error'); return; }
-  const s = students[id];
-  const amount = document.getElementById('tc-amount').value || '-';
-  const start  = document.getElementById('tc-start').value;
-  const end    = document.getElementById('tc-end').value;
-  const purpose = document.getElementById('tc-purpose').value || '-';
-  const newItem = {
-    id: allHistory.length + 1, issuedAt: new Date().toLocaleString('ko-KR').slice(0,-3),
-    name: s.name, who:'학생', type:'수강료납입증명',
-    period: start + ' ~ ' + end, amount, purpose, issuer:'이수민', status:'발급'
-  };
-  tuitionHistory.unshift(newItem);
-  allHistory.unshift(newItem);
-  previewTuition();
-  showHermesToast(s.name + ' 수강료 납입증명서가 발급되었습니다.', 'success');
-}
-
-/* ─── 재직증명서 발급 ─── */
-function fillEmployeeInfo() {
-  const id = document.getElementById('ec-emp').value;
-  const info = document.getElementById('ec-emp-info');
-  if (!id) { info.classList.add('hidden'); return; }
-  const e = empData[id];
-  info.classList.remove('hidden');
-  document.getElementById('ec-info-name').textContent  = e.name;
-  document.getElementById('ec-info-birth').textContent = e.birth;
-  document.getElementById('ec-info-role').textContent  = e.role;
-  document.getElementById('ec-info-entry').textContent = e.entry;
-}
-
-document.getElementById('ec-type').addEventListener('change', function() {
-  document.getElementById('ec-salary-section').classList.toggle('hidden', this.value !== '급여확인서');
-});
-
-function previewEmploy() {
-  const id  = document.getElementById('ec-emp').value;
-  const type = document.getElementById('ec-type').value;
-  const purpose = document.getElementById('ec-purpose').value || '-';
-  if (!id) { showHermesToast('직원을 선택해주세요.', 'error'); return; }
-  const e = empData[id];
-  document.getElementById('ep-name').textContent  = e.name;
-  document.getElementById('ep-birth').textContent = e.birth;
-  document.getElementById('ep-role').textContent  = e.role;
-  document.getElementById('ep-dept').textContent  = e.dept;
-  document.getElementById('ep-entry').textContent = e.entry;
-  document.getElementById('ep-type').textContent  = e.workType;
-  document.getElementById('ep-purpose').textContent = purpose;
-  document.getElementById('ep-issue-date').textContent = new Date().toISOString().slice(0,10);
-  document.querySelector('.cert-preview .cert-title').textContent =
-    type === '재직증명서' ? '재 직 증 명 서' : type === '경력증명서' ? '경 력 증 명 서' : '급 여 확 인 서';
-  closeModal('modal-employ-cert');
-  switchCtTab('ct-tab-employ', document.querySelector('.ct-tab-btn[data-tab="ct-tab-employ"]'));
-  showHermesToast('미리보기가 업데이트되었습니다.', 'success');
-}
-
-function issueEmployCert() {
-  const id = document.getElementById('ec-emp').value;
-  if (!id) { showHermesToast('직원을 선택해주세요.', 'error'); return; }
-  const e = empData[id];
-  const type = document.getElementById('ec-type').value;
-  const purpose = document.getElementById('ec-purpose').value;
-  if (!purpose) { showHermesToast('제출처를 입력해주세요.', 'error'); return; }
-  const newItem = {
-    id: allHistory.length + 1, issuedAt: new Date().toLocaleString('ko-KR').slice(0,-3),
-    name: e.name, who:'직원', type, period:'-', amount:'-', purpose, issuer:'이수민', status:'발급'
-  };
-  employHistory.unshift(newItem);
-  allHistory.unshift(newItem);
-  previewEmploy();
-  showHermesToast(e.name + ' ' + type + '이 발급되었습니다.', 'success');
-}
-
-/* ─── 인쇄 ─── */
-function printCert(areaId) {
-  const content = document.getElementById(areaId).innerHTML;
-  const w = window.open('', '_blank', 'width=600,height=800');
-  w.document.write(`
-    <html><head><title>증명서 출력</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet" />
-    <style>body{font-family:'Noto Sans KR',sans-serif;padding:40px;font-size:13px;color:#1e293b;line-height:1.8;}
-    table{width:100%;border-collapse:collapse;}td{padding:5px 8px;vertical-align:top;}
-    .cert-title{font-size:22px;font-weight:900;text-align:center;letter-spacing:.15em;border-bottom:2.5px solid #1e293b;padding-bottom:8px;margin-bottom:16px;}
-    .cert-label{width:100px;color:#475569;font-weight:600;}
-    .cert-seal{width:72px;height:72px;border:2px solid #dc2626;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#dc2626;font-size:11px;font-weight:700;text-align:center;line-height:1.4;}
-    </style></head><body>${content}</body></html>`);
-  w.document.close();
-  w.focus();
-  w.print();
-}
-
-function downloadCert() {
-  showHermesToast('PDF 저장 기능은 서버 연동 후 사용 가능합니다.', 'info');
-}
-
-/* ─── 금액 포맷 ─── */
-function formatAmount(el) {
-  let v = el.value.replace(/[^\d]/g, '');
-  if (v) el.value = parseInt(v).toLocaleString('ko-KR') + '원';
-}
-
-function showEcFileName(input) {
-  const name = input.files[0]?.name || '파일을 첨부하세요';
-  document.getElementById('ec-file-name').textContent = name;
-}
-
-/* ─── 모달 공통 ─── */
-function openModal(id)  { document.getElementById(id).classList.remove('hidden'); }
-function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-document.querySelectorAll('[id^="modal-"]').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); });
-});
-
-/* ─── 초기 렌더링 ─── */
-(function () {
-  const today = new Date().toISOString().slice(0, 7);
-  document.getElementById('tuition-month').value = today;
-  document.getElementById('employ-month').value  = today;
-  document.getElementById('hist-month').value    = today;
-
-  renderTuitionList(tuitionHistory);
-  renderEmployList(employHistory);
-  renderHistTable(allHistory);
-
-  const firstBtn = document.querySelector('.ct-tab-btn[data-tab="ct-tab-tuition"]');
-  if (firstBtn) switchCtTab('ct-tab-tuition', firstBtn);
-})();
+  document.addEventListener('DOMContentLoaded', () => loadCerts(1));
 </script>
-
-</body>
-</html>
