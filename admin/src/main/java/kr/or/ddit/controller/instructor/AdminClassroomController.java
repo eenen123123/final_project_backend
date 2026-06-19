@@ -63,14 +63,26 @@ public class AdminClassroomController {
         return "admin:/instructor/classroomList";
     }
 
+    private ClassroomDetailResponse getOwnedClassroom(Long classSn, String userId) {
+        try {
+            ClassroomDetailResponse classroom = classroomService.retrieveClassroomDetail(classSn);
+            return userId.equals(classroom.getInstrUserId()) ? classroom : null;
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     // 클래스룸 홈 — 진도율·마감과제·최근제출·캘린더 등 대시보드
     @GetMapping("/detail/{classSn}")
-    public String classroomDetail(@PathVariable Long classSn, Model model) {
+    public String classroomDetail(@PathVariable Long classSn, Model model,
+            Authentication authentication) {
+        ClassroomDetailResponse ownedClassroom = getOwnedClassroom(classSn, authentication.getName());
+        if (ownedClassroom == null) return "redirect:/classroom/list";
         LocalDate now = LocalDate.now();
         int year = now.getYear();
         int month = now.getMonthValue();
 
-        model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
+        model.addAttribute("classroom", ownedClassroom);
         model.addAttribute("weeklyData", classroomService.retrieveWeeklyData(classSn));
         model.addAttribute("weeklyCompareText",
                 classroomService.retrieveWeeklyCompareText(classSn));
@@ -136,16 +148,20 @@ public class AdminClassroomController {
 
     // 강의 목록 + 수강생별 진도 현황
     @GetMapping("/detail/{classSn}/lectures")
-    public String lectureList(@PathVariable Long classSn, Model model) {
-        model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
+    public String lectureList(@PathVariable Long classSn, Model model, Authentication authentication) {
+        ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
+        if (classroom == null) return "redirect:/classroom/list";
+        model.addAttribute("classroom", classroom);
         model.addAttribute("lectureList", classroomService.retrieveLecturesWithProgress(classSn));
         return "classroom/list-classroom-lectures";
     }
 
     // 강의 상세 + 수강생 개인별 진도율 (강좌 소속 검증 포함)
     @GetMapping("/detail/{classSn}/lectures/{lectureSn}")
-    public String lectureDetail(@PathVariable Long classSn, @PathVariable Long lectureSn, Model model) {
-        ClassroomDetailResponse classroom = classroomService.retrieveClassroomDetail(classSn);
+    public String lectureDetail(@PathVariable Long classSn, @PathVariable Long lectureSn, Model model,
+            Authentication authentication) {
+        ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
+        if (classroom == null) return "redirect:/classroom/list";
         kr.or.ddit.finalProject.dto.lecture.LectureDto lecture = lectureService.retrieveLectureBySn(lectureSn);
         if (lecture == null || !lecture.getCourseSn().equals(classroom.getCourseSn())) {
             return "redirect:/classroom/detail/" + classSn + "/lectures";
@@ -162,7 +178,8 @@ public class AdminClassroomController {
     @ResponseBody
     public ResponseEntity<String> toggleOpnn(@PathVariable Long classSn, @PathVariable Long lectureSn,
             Authentication authentication) {
-        ClassroomDetailResponse classroom = classroomService.retrieveClassroomDetail(classSn);
+        ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
+        if (classroom == null) return ResponseEntity.status(403).body("forbidden");
         kr.or.ddit.finalProject.dto.lecture.LectureDto lecture = lectureService.retrieveLectureBySn(lectureSn);
         if (lecture == null || !lecture.getCourseSn().equals(classroom.getCourseSn())) {
             return ResponseEntity.badRequest().body("invalid");
@@ -176,7 +193,8 @@ public class AdminClassroomController {
     @ResponseBody
     public ResponseEntity<String> toggleLock(@PathVariable Long classSn, @PathVariable Long lectureSn,
             Authentication authentication) {
-        ClassroomDetailResponse classroom = classroomService.retrieveClassroomDetail(classSn);
+        ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
+        if (classroom == null) return ResponseEntity.status(403).body("forbidden");
         kr.or.ddit.finalProject.dto.lecture.LectureDto lecture = lectureService.retrieveLectureBySn(lectureSn);
         if (lecture == null || !lecture.getCourseSn().equals(classroom.getCourseSn())) {
             return ResponseEntity.badRequest().body("invalid");
@@ -189,8 +207,10 @@ public class AdminClassroomController {
 
     // 수강생별 성적 목록
     @GetMapping("/detail/{classSn}/grades")
-    public String gradeList(@PathVariable Long classSn, Model model) {
-        model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
+    public String gradeList(@PathVariable Long classSn, Model model, Authentication authentication) {
+        ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
+        if (classroom == null) return "redirect:/classroom/list";
+        model.addAttribute("classroom", classroom);
         model.addAttribute("gradeList", classroomService.retrieveGradeList(classSn));
         return "classroom/list-classroom-grades";
     }
@@ -199,8 +219,10 @@ public class AdminClassroomController {
 
     // 수강생 목록
     @GetMapping("/detail/{classSn}/members")
-    public String memberList(@PathVariable Long classSn, Model model) {
-        model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
+    public String memberList(@PathVariable Long classSn, Model model, Authentication authentication) {
+        ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
+        if (classroom == null) return "redirect:/classroom/list";
+        model.addAttribute("classroom", classroom);
         return "classroom/list-classroom-members";
     }
 }

@@ -68,8 +68,11 @@ public class AdminClassroomAssignmentController {
 
     // 과제 목록 + 제출 현황 집계
     @GetMapping("/detail/{classSn}/assignments")
-    public String assignmentList(@PathVariable Long classSn, Model model) {
-        model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
+    public String assignmentList(@PathVariable Long classSn, Model model,
+            Authentication authentication) {
+        ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
+        if (classroom == null) return "redirect:/classroom/list";
+        model.addAttribute("classroom", classroom);
         model.addAttribute("assignmentList", assignmentBoardService.getAssignmentList(classSn));
         return "classroom/list-classroom-assignments";
     }
@@ -99,11 +102,13 @@ public class AdminClassroomAssignmentController {
     // 과제 상세 + 수강생 제출 목록 (타 클래스 과제 접근 차단)
     @GetMapping("/detail/{classSn}/assignments/{asgmtSn}")
     public String assignmentDetail(@PathVariable Long classSn, @PathVariable Long asgmtSn,
-            Model model) {
+            Model model, Authentication authentication) {
+        ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
+        if (classroom == null) return "redirect:/classroom/list";
         AssignmentBoardDto assignment = assignmentBoardService.getAssignmentDetail(asgmtSn);
         if (assignment == null || !classSn.equals(assignment.getClassSn()))
             return "redirect:/classroom/detail/" + classSn + "/assignments";
-        model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
+        model.addAttribute("classroom", classroom);
         model.addAttribute("assignment", assignment);
         model.addAttribute("submitList", assignmentBoardService.getSubmitList(asgmtSn, classSn));
         model.addAttribute("now", LocalDateTime.now());
@@ -157,6 +162,8 @@ public class AdminClassroomAssignmentController {
             Authentication authentication) {
         if (getOwnedClassroom(classSn, authentication.getName()) == null)
             return "redirect:/classroom/list";
+        if (score == null || score.compareTo(BigDecimal.ZERO) < 0 || score.compareTo(new BigDecimal(100)) > 0)
+            return "redirect:/classroom/detail/" + classSn + "/assignments/" + asgmtSn + "?error=invalidScore";
         AssignmentBoardDto assignment = assignmentBoardService.getAssignmentDetail(asgmtSn);
         if (assignment == null || !classSn.equals(assignment.getClassSn()))
             return "redirect:/classroom/detail/" + classSn + "/assignments";

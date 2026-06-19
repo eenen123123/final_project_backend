@@ -36,10 +36,21 @@ public class AdminClassroomQnaController {
         }
     }
 
+    private kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse getOwnedClassroom(Long classSn, String userId) {
+        try {
+            kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse classroom = classroomService.retrieveClassroomDetail(classSn);
+            return userId.equals(classroom.getInstrUserId()) ? classroom : null;
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     // Q&A 목록
     @GetMapping("/detail/{classSn}/qna")
-    public String qnaList(@PathVariable Long classSn, Model model) {
-        model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
+    public String qnaList(@PathVariable Long classSn, Model model, Authentication authentication) {
+        kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
+        if (classroom == null) return "redirect:/classroom/list";
+        model.addAttribute("classroom", classroom);
         model.addAttribute("qnaList", instructorBoardService.getClassroomQnaList(classSn));
         return "classroom/list-classroom-qna";
     }
@@ -47,8 +58,11 @@ public class AdminClassroomQnaController {
     // Q&A 상세 (editAnswer=true면 답변 수정 모드)
     @GetMapping("/detail/{classSn}/qna/{postSn}")
     public String qnaDetail(@PathVariable Long classSn, @PathVariable Long postSn,
-            @RequestParam(required = false) boolean editAnswer, Model model) {
-        model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
+            @RequestParam(required = false) boolean editAnswer, Model model,
+            Authentication authentication) {
+        kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
+        if (classroom == null) return "redirect:/classroom/list";
+        model.addAttribute("classroom", classroom);
         model.addAttribute("qna", instructorBoardService.getClassroomQnaDetail(postSn, classSn));
         model.addAttribute("editAnswer", editAnswer);
         return "classroom/detail-classroom-qna";
@@ -58,6 +72,7 @@ public class AdminClassroomQnaController {
     @PostMapping("/detail/{classSn}/qna/{postSn}/answer")
     public String qnaAnswer(@PathVariable Long classSn, @PathVariable Long postSn,
             @RequestParam String answCn, Authentication authentication) {
+        if (getOwnedClassroom(classSn, authentication.getName()) == null) return "redirect:/classroom/list";
         instructorBoardService.answerClassroomQna(postSn, authentication.getName(), answCn);
         return "redirect:/classroom/detail/" + classSn + "/qna/" + postSn;
     }

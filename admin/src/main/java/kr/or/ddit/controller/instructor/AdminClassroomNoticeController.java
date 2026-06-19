@@ -45,18 +45,33 @@ public class AdminClassroomNoticeController {
         }
     }
 
+    private kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse getOwnedClassroom(Long classSn, String userId) {
+        try {
+            kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse classroom = classroomService.retrieveClassroomDetail(classSn);
+            return userId.equals(classroom.getInstrUserId()) ? classroom : null;
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     // 공지사항 목록
     @GetMapping("/detail/{classSn}/notice")
-    public String noticeList(@PathVariable Long classSn, Model model) {
-        model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
+    public String noticeList(@PathVariable Long classSn, Model model,
+            Authentication authentication) {
+        kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
+        if (classroom == null) return "redirect:/classroom/list";
+        model.addAttribute("classroom", classroom);
         model.addAttribute("noticeList", instructorBoardService.getClassroomNoticeList(classSn));
         return "classroom/list-classroom-notices";
     }
 
     // 공지사항 상세 (첨부파일 포함)
     @GetMapping("/detail/{classSn}/notice/{postSn}")
-    public String noticeDetail(@PathVariable Long classSn, @PathVariable Long postSn, Model model) {
-        model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
+    public String noticeDetail(@PathVariable Long classSn, @PathVariable Long postSn, Model model,
+            Authentication authentication) {
+        kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
+        if (classroom == null) return "redirect:/classroom/list";
+        model.addAttribute("classroom", classroom);
         InstructorBoardDto notice = instructorBoardService.getClassroomNoticeDetail(postSn, classSn);
         model.addAttribute("notice", notice);
         if (notice != null && notice.getAtchFileId() != null) {
@@ -70,8 +85,11 @@ public class AdminClassroomNoticeController {
 
     // 공지사항 작성 폼
     @GetMapping("/detail/{classSn}/notice/write")
-    public String noticeWriteForm(@PathVariable Long classSn, Model model) {
-        model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
+    public String noticeWriteForm(@PathVariable Long classSn, Model model,
+            Authentication authentication) {
+        kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
+        if (classroom == null) return "redirect:/classroom/list";
+        model.addAttribute("classroom", classroom);
         return "classroom/form-classroom-notice";
     }
 
@@ -81,6 +99,7 @@ public class AdminClassroomNoticeController {
             @RequestParam(required = false) List<MultipartFile> attachFiles,
             Authentication authentication) {
         String userId = authentication.getName();
+        if (getOwnedClassroom(classSn, userId) == null) return "redirect:/classroom/list";
         dto.setClassSn(classSn);
         dto.setInstrUserId(userId);
         dto.setWrtrUserId(userId);
@@ -111,8 +130,11 @@ public class AdminClassroomNoticeController {
 
     // 공지사항 수정 폼 (기존 첨부파일 목록 포함)
     @GetMapping("/detail/{classSn}/notice/{postSn}/edit")
-    public String noticeEditForm(@PathVariable Long classSn, @PathVariable Long postSn, Model model) {
-        model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
+    public String noticeEditForm(@PathVariable Long classSn, @PathVariable Long postSn, Model model,
+            Authentication authentication) {
+        kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
+        if (classroom == null) return "redirect:/classroom/list";
+        model.addAttribute("classroom", classroom);
         InstructorBoardDto editNotice = instructorBoardService.getClassroomNoticeDetail(postSn, classSn);
         model.addAttribute("editNotice", editNotice);
         if (editNotice != null && editNotice.getAtchFileId() != null) {
@@ -131,6 +153,7 @@ public class AdminClassroomNoticeController {
             @RequestParam(required = false) List<MultipartFile> attachFiles,
             Authentication authentication) {
         String userId = authentication.getName();
+        if (getOwnedClassroom(classSn, userId) == null) return "redirect:/classroom/list";
         dto.setPostSn(postSn);
         dto.setClassSn(classSn);
         dto.setWrtrUserId(userId);
@@ -215,7 +238,9 @@ public class AdminClassroomNoticeController {
 
     // 공지사항 삭제
     @PostMapping("/detail/{classSn}/notice/{postSn}/delete")
-    public String noticeDelete(@PathVariable Long classSn, @PathVariable Long postSn) {
+    public String noticeDelete(@PathVariable Long classSn, @PathVariable Long postSn,
+            Authentication authentication) {
+        if (getOwnedClassroom(classSn, authentication.getName()) == null) return "redirect:/classroom/list";
         instructorBoardService.deleteClassroomNotice(postSn, classSn);
         return "redirect:/classroom/detail/" + classSn + "/notice";
     }
