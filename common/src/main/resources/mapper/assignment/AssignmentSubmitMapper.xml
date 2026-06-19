@@ -15,6 +15,7 @@
     <result property="grddYn"       column="GRDD_YN"/>
     <result property="grddDt"       column="GRDD_DT"/>
     <result property="sbmtDt"       column="SBMT_DT"/>
+    <result property="asgmtSj"      column="ASGMT_SJ"/>
   </resultMap>
 
   <!-- 클래스룸 수강생 전원 기준 제출 현황 (미제출자 포함) -->
@@ -44,6 +45,27 @@
          INNER JOIN ASSIGNMENT_BOARD ab ON ab.ASGMT_SN = s.ASGMT_SN
     WHERE ab.CLASS_SN = #{classSn}
       AND s.GRDD_YN   = 'N'
+  </select>
+
+  <!-- 클래스룸 전체 최근 제출 N건 (ASSIGNMENT_BOARD, MEMBER 조인) -->
+  <select id="selectRecentSubmitsByClass" resultMap="assignmentSubmitMap">
+    SELECT *
+    FROM (
+        SELECT
+            s.SBMT_SN,
+            s.ASGMT_SN,
+            s.SBMT_USER_ID,
+            m.USER_NAME,
+            s.GRDD_YN,
+            s.SBMT_DT,
+            ab.ASGMT_SJ
+        FROM ASSIGNMENT_SUBMIT s
+        JOIN ASSIGNMENT_BOARD ab ON ab.ASGMT_SN = s.ASGMT_SN
+        JOIN MEMBER m ON m.USER_ID = s.SBMT_USER_ID
+        WHERE ab.CLASS_SN = #{classSn}
+        ORDER BY s.SBMT_DT DESC
+    )
+    WHERE ROWNUM &lt;= #{limit}
   </select>
 
   <update id="updateGrade">

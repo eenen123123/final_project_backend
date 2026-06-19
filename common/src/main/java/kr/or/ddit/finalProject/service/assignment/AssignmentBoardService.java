@@ -19,4 +19,7 @@ public interface AssignmentBoardService {
     int gradeSubmit(Long sbmtSn, BigDecimal score, String grddUserId);
 
     int getPendingGradeCount(Long classSn);
+
+    /** 클래스룸 전체 최근 제출 최대 N건 */
+    List<AssignmentSubmitDto> getRecentSubmits(Long classSn, int limit);
 }

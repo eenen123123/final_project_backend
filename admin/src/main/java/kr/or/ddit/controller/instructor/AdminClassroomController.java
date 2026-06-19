@@ -2,8 +2,12 @@ package kr.or.ddit.controller.instructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -17,7 +21,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import kr.or.ddit.finalProject.dto.assignment.AssignmentBoardDto;
+import kr.or.ddit.finalProject.dto.assignment.AssignmentSubmitDto;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomListResponse;
+import kr.or.ddit.finalProject.dto.lecture.ClassroomLectureResponse;
 import kr.or.ddit.finalProject.dto.file.FileCtxType;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +51,17 @@ public class AdminClassroomController {
     private final AssignmentBoardService assignmentBoardService;
     private final FileUploadService fileUploadService;
 
+    /** 클래스룸 상세 탭 nav 뱃지 — classSn이 있는 모든 요청에 자동 주입 */
+    @ModelAttribute
+    public void addTabBadges(@PathVariable(required = false) Long classSn, Model model) {
+        if (classSn != null) {
+            model.addAttribute("assignmentCount",
+                    classroomService.retrieveUpcomingAssignmentCount(classSn));
+            model.addAttribute("unansweredQnaCount",
+                    instructorBoardService.getUnansweredQnaCount(classSn));
+        }
+    }
+
     @GetMapping("/list")
     public String classroomList(Model model, Authentication authentication) {
         String instrUserId = authentication.getName();
@@ -65,11 +82,7 @@ public class AdminClassroomController {
         model.addAttribute("weeklyCompareText",
                 classroomService.retrieveWeeklyCompareText(classSn));
         model.addAttribute("achievements", classroomService.retrieveAchievements(classSn));
-        model.addAttribute("assignmentCount",
-                classroomService.retrieveUpcomingAssignmentCount(classSn));
         model.addAttribute("todayQuestion", classroomService.retrieveTodayQuestion(classSn));
-        model.addAttribute("unansweredQnaCount",
-                instructorBoardService.getUnansweredQnaCount(classSn));
         model.addAttribute("pendingGradeCount",
                 assignmentBoardService.getPendingGradeCount(classSn));
         model.addAttribute("inactiveStudentCount",
@@ -84,6 +97,44 @@ public class AdminClassroomController {
         List<kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto> notices =
                 instructorBoardService.getClassroomNoticeList(classSn);
         model.addAttribute("recentNotice", notices.isEmpty() ? null : notices.get(0));
+
+        // 강좌 진도율 요약
+        List<ClassroomLectureResponse> lectures = classroomService.retrieveLecturesWithProgress(classSn);
+        int totalLectures = lectures.size();
+        int avgCompletionPct = 0;
+        if (totalLectures > 0) {
+            long validCount = lectures.stream().filter(l -> l.getTotMemberCnt() > 0).count();
+            if (validCount > 0) {
+                avgCompletionPct = (int) lectures.stream()
+                        .filter(l -> l.getTotMemberCnt() > 0)
+                        .mapToLong(l -> (long) l.getCmplCnt() * 100 / l.getTotMemberCnt())
+                        .average()
+                        .orElse(0);
+            }
+        }
+        model.addAttribute("totalLectures", totalLectures);
+        model.addAttribute("avgCompletionPct", avgCompletionPct);
+
+        // 마감 임박 과제 (오늘~모레) — getAssignmentList 한 번 호출로 count와 필터 모두 처리
+        List<AssignmentBoardDto> allAssignments = assignmentBoardService.getAssignmentList(classSn);
+        LocalDateTime nowDt = LocalDateTime.now();
+        LocalDateTime threshold = now.plusDays(2).atTime(23, 59, 59);
+        List<AssignmentBoardDto> deadlineSoonList = allAssignments.stream()
+                .filter(a -> a.getSbmtDdlnDt() != null)
+                .filter(a -> !a.getSbmtDdlnDt().isBefore(nowDt))
+                .filter(a -> !a.getSbmtDdlnDt().isAfter(threshold))
+                .sorted(Comparator.comparing(AssignmentBoardDto::getSbmtDdlnDt))
+                .map(a -> {
+                    a.setDaysUntil((int) ChronoUnit.DAYS.between(now, a.getSbmtDdlnDt().toLocalDate()));
+                    return a;
+                })
+                .collect(Collectors.toList());
+        model.addAttribute("totalAssignmentCount", allAssignments.size());
+        model.addAttribute("deadlineSoonList", deadlineSoonList);
+
+        // 최근 제출된 과제 (최대 5건)
+        List<AssignmentSubmitDto> recentSubmits = assignmentBoardService.getRecentSubmits(classSn, 5);
+        model.addAttribute("recentSubmits", recentSubmits);
 
         return "classroom/home-classroom";
     }
@@ -337,8 +388,12 @@ public class AdminClassroomController {
     @GetMapping("/detail/{classSn}/assignments/{asgmtSn}")
     public String assignmentDetail(@PathVariable Long classSn, @PathVariable Long asgmtSn,
             Model model) {
+        AssignmentBoardDto assignment = assignmentBoardService.getAssignmentDetail(asgmtSn);
+        if (assignment == null || !classSn.equals(assignment.getClassSn())) {
+            return "redirect:/classroom/detail/" + classSn + "/assignments";
+        }
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
-        model.addAttribute("assignment", assignmentBoardService.getAssignmentDetail(asgmtSn));
+        model.addAttribute("assignment", assignment);
         model.addAttribute("submitList", assignmentBoardService.getSubmitList(asgmtSn, classSn));
         return "classroom/assignment-detail";
     }

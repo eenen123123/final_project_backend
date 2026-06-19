@@ -29,4 +29,7 @@ public class AssignmentSubmitDto implements Serializable {
 
     // MEMBER 조인용
     private String userName;
+
+    // 홈 대시보드용 (ASSIGNMENT_BOARD 조인)
+    private String asgmtSj;
 }

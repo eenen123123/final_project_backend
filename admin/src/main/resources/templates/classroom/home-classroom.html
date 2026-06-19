@@ -116,6 +116,126 @@
       </div>
     </div>
 
+    <!-- 강좌 진도율 요약 + 마감 임박 과제 + 최근 제출 -->
+    <div class="grid grid-cols-3 gap-5">
+
+      <!-- 강좌 진도율 요약 -->
+      <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100">
+          <h3 class="text-sm font-bold text-slate-800">강좌 진도율 요약</h3>
+          <p class="text-sm text-slate-400 mt-1">전체 강의 평균 완료율</p>
+        </div>
+        <!-- 강의 없음 -->
+        <div th:if="${totalLectures == 0}"
+             class="p-8 flex flex-col items-center justify-center text-center gap-3">
+          <i class="fa-solid fa-play-circle text-3xl text-slate-200"></i>
+          <p class="text-sm font-medium text-slate-400">등록된 강의가 없습니다.</p>
+        </div>
+        <!-- 강의 있음 -->
+        <div th:unless="${totalLectures == 0}" class="p-6 flex flex-col gap-4">
+          <div class="flex items-end justify-between">
+            <span class="text-4xl font-black text-slate-800"
+                  th:text="${avgCompletionPct} + '%'">0%</span>
+            <span class="text-sm font-semibold text-slate-400"
+                  th:text="'전체 ' + ${totalLectures} + '개 강의'">전체 0개 강의</span>
+          </div>
+          <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-full bg-blue-500 rounded-full transition-all duration-700"
+                 th:style="'width:' + ${avgCompletionPct} + '%'"></div>
+          </div>
+          <p th:if="${avgCompletionPct == 0}"
+             class="text-xs text-slate-400">아직 강의를 완료한 수강생이 없습니다.</p>
+          <p th:if="${avgCompletionPct == 100}"
+             class="text-xs font-semibold text-emerald-500">모든 수강생이 강의를 완료했습니다! 🎉</p>
+        </div>
+      </div>
+
+      <!-- 마감 임박 과제 -->
+      <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800">마감 임박 과제</h3>
+            <p class="text-sm text-slate-400 mt-1">오늘 ~ 2일 이내 마감</p>
+          </div>
+          <a th:href="@{/classroom/detail/{sn}/assignments(sn=${classroom.classSn})}"
+             class="text-sm font-semibold text-blue-500 hover:underline flex-shrink-0">전체 과제</a>
+        </div>
+        <!-- 과제 자체 없음 -->
+        <div th:if="${totalAssignmentCount == 0}"
+             class="p-8 flex flex-col items-center justify-center text-center gap-3">
+          <i class="fa-solid fa-clipboard text-3xl text-slate-200"></i>
+          <p class="text-sm font-medium text-slate-400">등록된 과제가 없습니다.</p>
+        </div>
+        <!-- 과제 있으나 임박한 것 없음 -->
+        <div th:if="${totalAssignmentCount > 0 and #lists.isEmpty(deadlineSoonList)}"
+             class="p-8 flex flex-col items-center justify-center text-center gap-3">
+          <i class="fa-solid fa-circle-check text-3xl text-emerald-200"></i>
+          <p class="text-sm font-medium text-slate-400">임박한 마감이 없습니다.</p>
+        </div>
+        <!-- 임박 과제 목록 -->
+        <ul th:unless="${#lists.isEmpty(deadlineSoonList)}" class="divide-y divide-slate-50">
+          <li th:each="a : ${deadlineSoonList}"
+              class="px-6 py-4 flex items-center gap-3 hover:bg-slate-50 transition-colors">
+            <!-- D-day 배지 -->
+            <span th:if="${a.daysUntil == 0}"
+                  class="text-xs font-black text-red-500 bg-red-50 border border-red-100 px-2 py-1 rounded-lg flex-shrink-0">D-DAY</span>
+            <span th:if="${a.daysUntil == 1}"
+                  class="text-xs font-black text-amber-500 bg-amber-50 border border-amber-100 px-2 py-1 rounded-lg flex-shrink-0">D-1</span>
+            <span th:if="${a.daysUntil == 2}"
+                  class="text-xs font-black text-blue-500 bg-blue-50 border border-blue-100 px-2 py-1 rounded-lg flex-shrink-0">D-2</span>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-slate-800 truncate" th:text="${a.asgmtSj}">과제 제목</p>
+              <p class="text-xs text-slate-400 mt-0.5"
+                 th:text="${#temporals.format(a.sbmtDdlnDt, 'MM/dd HH:mm')} + ' 마감'">마감일</p>
+            </div>
+            <a th:href="@{/classroom/detail/{sn}/assignments(sn=${classroom.classSn})}"
+               class="text-slate-300 hover:text-slate-500 transition-colors flex-shrink-0">
+              <i class="fa-solid fa-chevron-right text-xs"></i>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- 최근 제출된 과제 -->
+      <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800">최근 제출된 과제</h3>
+            <p class="text-sm text-slate-400 mt-1">최근 5건</p>
+          </div>
+          <a th:href="@{/classroom/detail/{sn}/assignments(sn=${classroom.classSn})}"
+             class="text-sm font-semibold text-blue-500 hover:underline flex-shrink-0">채점하기</a>
+        </div>
+        <!-- 제출 없음 -->
+        <div th:if="${#lists.isEmpty(recentSubmits)}"
+             class="p-8 flex flex-col items-center justify-center text-center gap-3">
+          <i class="fa-solid fa-inbox text-3xl text-slate-200"></i>
+          <p class="text-sm font-medium text-slate-400">아직 제출된 과제가 없습니다.</p>
+        </div>
+        <!-- 제출 목록 -->
+        <ul th:unless="${#lists.isEmpty(recentSubmits)}" class="divide-y divide-slate-50">
+          <li th:each="s : ${recentSubmits}"
+              class="px-6 py-3 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xs font-bold flex-shrink-0"
+                 th:text="${#strings.substring(s.userName, 0, 1)}">홍</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-slate-800 truncate" th:text="${s.userName}">홍길동</p>
+              <p class="text-xs text-slate-400 truncate" th:text="${s.asgmtSj}">과제 제목</p>
+            </div>
+            <div class="flex flex-col items-end gap-1 flex-shrink-0">
+              <span th:if="${s.grddYn == 'Y'}"
+                    class="text-xs font-semibold text-emerald-500 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-lg">채점완료</span>
+              <span th:unless="${s.grddYn == 'Y'}"
+                    class="text-xs font-semibold text-amber-500 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-lg">미채점</span>
+              <span class="text-xs text-slate-300 font-mono"
+                    th:text="${s.sbmtDt != null ? #temporals.format(s.sbmtDt, 'MM/dd HH:mm') : '-'}">00/00</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+
     <!-- 캘린더 + 최근 공지사항 -->
     <div class="grid grid-cols-3 gap-5">
 
