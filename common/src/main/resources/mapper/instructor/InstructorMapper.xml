@@ -5,32 +5,26 @@
 
 <mapper namespace="kr.or.ddit.finalProject.mapper.instructor.InstructorMapper">
 
-  <resultMap id="instructorListResponseMap" type="kr.or.ddit.finalProject.dto.instructor.profile.InstructorListResponse">
-    <result property="subjectClId"     column="SUBJ_CL_ID" />
-    <result property="subjectClNm"     column="SUBJ_CL_NM" />
-    <result property="instrUuid"       column="INSTR_UUID" />
-    <result property="userName"        column="USER_NAME" />
-    <result property="instrProfileImg" column="INSTR_PROFILE_IMG" />
-  </resultMap>
+    <resultMap id="instructorListResponseMap" type="kr.or.ddit.finalProject.dto.instructor.profile.InstructorListResponse">
+        <result property="subjectClId" column="SUBJ_CL_ID" />
+        <result property="subjectClNm" column="SUBJ_CL_NM" />
+        <result property="instrUuid" column="INSTR_UUID" />
+        <result property="userName" column="USER_NAME" />
+        <result property="instrProfileImg" column="INSTR_PROFILE_IMG" />
+    </resultMap>
 
-  <resultMap id="instructorDetailResponseMap" type="kr.or.ddit.finalProject.dto.instructor.profile.InstructorDetailResponse">
-    <result property="instrUuid"       column="INSTR_UUID" />
-    <result property="userName"        column="USER_NAME" />
-    <result property="instrIntro"      column="INSTR_INTRO" />
-    <result property="instrProfileImg" column="INSTR_PROFILE_IMG" />
-    <result property="subject"         column="SUBJECT" />
-    <result property="lectureCount"    column="LECTURE_COUNT" />
-    <collection property="careers"
-                ofType="kr.or.ddit.finalProject.dto.instructor.profile.InstructorCareerDto"
-                column="INSTR_USER_ID"
-                select="selectCareersByUserId" />
-    <collection property="books"
-                ofType="kr.or.ddit.finalProject.dto.instructor.profile.InstructorCareerDto"
-                column="INSTR_USER_ID"
-                select="selectBooksByUserId" />
-  </resultMap>
+    <resultMap id="instructorDetailResponseMap" type="kr.or.ddit.finalProject.dto.instructor.profile.InstructorDetailResponse">
+        <result property="instrUuid" column="INSTR_UUID" />
+        <result property="userName" column="USER_NAME" />
+        <result property="instrIntro" column="INSTR_INTRO" />
+        <result property="instrProfileImg" column="INSTR_PROFILE_IMG" />
+        <result property="subject" column="SUBJECT" />
+        <result property="lectureCount" column="LECTURE_COUNT" />
+        <collection property="careers" ofType="kr.or.ddit.finalProject.dto.instructor.profile.InstructorCareerDto" column="INSTR_USER_ID" select="selectCareersByUserId" />
+        <collection property="books" ofType="kr.or.ddit.finalProject.dto.instructor.profile.InstructorCareerDto" column="INSTR_USER_ID" select="selectBooksByUserId" />
+    </resultMap>
 
-  <select id="selectInstructors" parameterType="java.lang.Long" resultMap="instructorListResponseMap">
+    <select id="selectInstructors" parameterType="java.lang.Long" resultMap="instructorListResponseMap">
     SELECT DISTINCT
         sc.SUBJ_CL_ID,
         sc.SUBJ_CL_NM,
@@ -44,13 +38,13 @@
     JOIN MEMBER m     ON m.USER_ID       = i.INSTR_USER_ID
     WHERE sc.USE_YN = 'Y'
       AND m.ENABLE = 'Y'
-    <if test="subjClId != null">
+        <if test="subjClId != null">
       AND sc.SUBJ_CL_ID = #{subjClId}
-    </if>
+        </if>
     ORDER BY sc.SUBJ_CL_ID, m.USER_NAME
-  </select>
+    </select>
 
-  <select id="selectInstructorByUuid" resultMap="instructorDetailResponseMap">
+    <select id="selectInstructorByUuid" resultMap="instructorDetailResponseMap">
     SELECT
         i.INSTR_USER_ID,
         i.INSTR_UUID,
@@ -68,11 +62,9 @@
     JOIN MEMBER m ON m.USER_ID = i.INSTR_USER_ID
     WHERE i.INSTR_UUID = #{instrUuid}
       AND m.ENABLE = 'Y'
-  </select>
+    </select>
 
-  <select id="selectCareersByUserId"
-          parameterType="string"
-          resultType="kr.or.ddit.finalProject.dto.instructor.profile.InstructorCareerDto">
+    <select id="selectCareersByUserId" parameterType="string" resultType="kr.or.ddit.finalProject.dto.instructor.profile.InstructorCareerDto">
     SELECT
         CAREER_SN      AS careerSn,
         INSTR_USER_ID  AS instrUserId,
@@ -86,11 +78,9 @@
       AND CAREER_TYPE_CD = '01'
       AND DEL_YN = 'N'
     ORDER BY SORT_ORD
-  </select>
+    </select>
 
-  <select id="selectBooksByUserId"
-          parameterType="string"
-          resultType="kr.or.ddit.finalProject.dto.instructor.profile.InstructorCareerDto">
+    <select id="selectBooksByUserId" parameterType="string" resultType="kr.or.ddit.finalProject.dto.instructor.profile.InstructorCareerDto">
     SELECT
         CAREER_SN      AS careerSn,
         INSTR_USER_ID  AS instrUserId,
@@ -104,6 +94,11 @@
       AND CAREER_TYPE_CD = '02'
       AND DEL_YN = 'N'
     ORDER BY SORT_ORD
-  </select>
+    </select>
 
+    <!-- selectAllInstructor -->
+
+    <select id="selectAllInstructor">
+    select * from instructor
+    </select>
 </mapper>
