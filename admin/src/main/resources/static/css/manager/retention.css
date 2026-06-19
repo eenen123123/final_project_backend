@@ -1,0 +1,35 @@
+/* ============================================================
+   퇴원 방어 및 유지 관리 (manager/retention.html) 전용 스타일
+============================================================ */
+
+/* 탭 버튼 */
+.ret-tab-btn {
+  color: #64748b;
+  border-bottom-color: transparent;
+}
+.ret-tab-btn:hover { color: #7c3aed; }
+.ret-tab-btn.is-active {
+  color: #7c3aed;
+  border-bottom-color: #8b5cf6;
+  background-color: rgba(245, 243, 255, 0.6);
+}
+
+/* 근태 카운트 게이지 */
+.att-gauge-track {
+  flex: 1 1 auto;
+  height: 0.375rem;
+  background: #f1f5f9;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+.att-gauge-fill { height: 100%; border-radius: 9999px; }
+
+/* 최근 특이사항 한 줄 말줄임 */
+.ret-note {
+  max-width: 20rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 캘린더 스타일은 calendar-shared.css 로 분리(공용) */

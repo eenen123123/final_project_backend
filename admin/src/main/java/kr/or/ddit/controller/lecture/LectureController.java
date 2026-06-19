@@ -88,6 +88,7 @@ public class LectureController {
         return "admin:/lecture/view-lecture";
     }
 
-
+    // TODO: /admin/lectures/edit 구현 시 course.instrUserId == currentUser 소유권 체크 필수
+    // TODO: /admin/lectures/delete 구현 시 동일한 소유권 체크 필수
 
 }

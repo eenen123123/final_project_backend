@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.coupon.PointMapper">
+
+    <resultMap id="pointGrantResultMap" type="kr.or.ddit.finalProject.dto.coupon.MemberCouponPointDto">
+        <id property="mcpntSn"      column="MCPNT_SN"/>
+        <result property="userId"    column="USER_ID"/>
+        <result property="assetType" column="ASSET_TYPE"/>
+        <result property="couponSn"  column="COUPON_SN"/>
+        <result property="couponNm"  column="COUPON_NM"/>
+        <result property="pointAmt"  column="POINT_AMT"/>
+        <result property="issueDt"   column="ISSUE_DT"/>
+        <result property="expiryDt"  column="EXPIRY_DT"/>
+        <result property="useYn"     column="USE_YN"/>
+        <result property="issuedBy"  column="ISSUED_BY"/>
+        <result property="regDt"     column="REG_DT"/>
+        <result property="userName"  column="USER_NAME"/>
+    </resultMap>
+
+    <resultMap id="pointHistResultMap" type="kr.or.ddit.finalProject.dto.coupon.PointHistDto">
+        <id property="pointHistSn"  column="POINT_HIST_SN"/>
+        <result property="mcpntSn"  column="MCPNT_SN"/>
+        <result property="userId"   column="USER_ID"/>
+        <result property="histType" column="HIST_TYPE"/>
+        <result property="changeAmt" column="CHANGE_AMT"/>
+        <result property="ordSn"    column="ORD_SN"/>
+        <result property="memo"     column="MEMO"/>
+        <result property="regDt"    column="REG_DT"/>
+        <result property="expiryDt" column="EXPIRY_DT"/>
+    </resultMap>
+
+    <!-- 포인트 지급건 삽입 -->
+    <insert id="insertPointGrant" parameterType="kr.or.ddit.finalProject.dto.coupon.MemberCouponPointDto"
+            useGeneratedKeys="true" keyProperty="mcpntSn" keyColumn="MCPNT_SN">
+        INSERT INTO MEMBER_COUPONPOINT (USER_ID, ASSET_TYPE, POINT_AMT, EXPIRY_DT, USE_YN, ISSUED_BY)
+        VALUES (
+            #{userId},
+            #{assetType},
+            #{pointAmt},
+            #{expiryDt},
+            #{useYn},
+            #{issuedBy}
+        )
+    </insert>
+
+    <!-- 포인트 이력 삽입 -->
+    <insert id="insertPointHist" parameterType="kr.or.ddit.finalProject.dto.coupon.PointHistDto"
+            useGeneratedKeys="true" keyProperty="pointHistSn" keyColumn="POINT_HIST_SN">
+        INSERT INTO POINT_HIST (MCPNT_SN, USER_ID, HIST_TYPE, CHANGE_AMT, ORD_SN, MEMO)
+        VALUES (
+            #{mcpntSn},
+            #{userId},
+            #{histType},
+            #{changeAmt},
+            #{ordSn},
+            #{memo}
+        )
+    </insert>
+
+    <!-- 포인트 잔액 조회 (POINT_HIST 합산) -->
+    <select id="selectPointBalance" resultType="java.lang.Long">
+        SELECT NVL(SUM(ph.CHANGE_AMT), 0)
+        FROM POINT_HIST ph
+        JOIN MEMBER_COUPONPOINT mcp ON ph.MCPNT_SN = mcp.MCPNT_SN
+        WHERE ph.USER_ID = #{userId}
+          AND mcp.ASSET_TYPE = #{assetType}
+    </select>
+
+    <!-- 포인트 이력 조회 (사용자) -->
+    <select id="selectPointHistByUserId" resultMap="pointHistResultMap">
+        SELECT ph.POINT_HIST_SN, ph.MCPNT_SN, ph.USER_ID, ph.HIST_TYPE,
+               ph.CHANGE_AMT, ph.ORD_SN, ph.MEMO, ph.REG_DT,
+               mcp.EXPIRY_DT
+        FROM POINT_HIST ph
+        JOIN MEMBER_COUPONPOINT mcp ON ph.MCPNT_SN = mcp.MCPNT_SN
+        WHERE ph.USER_ID = #{userId}
+        ORDER BY ph.REG_DT DESC
+    </select>
+
+    <!-- 소멸 예정 포인트 조회 - 다음달 만료분 -->
+    <select id="selectExpiringPoints" resultMap="pointGrantResultMap">
+        SELECT MCPNT_SN, USER_ID, ASSET_TYPE, POINT_AMT, ISSUE_DT, EXPIRY_DT, USE_YN, ISSUED_BY, REG_DT
+        FROM MEMBER_COUPONPOINT
+        WHERE USER_ID = #{userId}
+          AND ASSET_TYPE != 'COUPON'
+          AND USE_YN = 'N'
+          AND EXPIRY_DT >= TRUNC(ADD_MONTHS(SYSDATE, 1), 'MM')
+          AND EXPIRY_DT  &lt; TRUNC(ADD_MONTHS(SYSDATE, 2), 'MM')
+        ORDER BY EXPIRY_DT ASC
+    </select>
+
+    <!-- 전체 포인트 지급 내역 조회 (관리자) -->
+    <select id="selectAllPointGrants" resultMap="pointGrantResultMap">
+        SELECT mcp.MCPNT_SN, mcp.USER_ID, mcp.ASSET_TYPE, mcp.COUPON_SN, mcp.COUPON_NM,
+               mcp.POINT_AMT, mcp.ISSUE_DT, mcp.EXPIRY_DT, mcp.USE_YN, mcp.ISSUED_BY, mcp.REG_DT,
+               m.USER_NAME
+        FROM MEMBER_COUPONPOINT mcp
+        LEFT JOIN MEMBER m ON mcp.USER_ID = m.USER_ID
+        WHERE mcp.ASSET_TYPE != 'COUPON'
+        ORDER BY mcp.ISSUE_DT DESC
+    </select>
+
+    <!-- 스터디포인트 지급 내역 검색 (userId or userName) -->
+    <select id="searchStudyGrants" resultMap="pointGrantResultMap">
+        SELECT mcp.MCPNT_SN, mcp.USER_ID, mcp.ASSET_TYPE, mcp.POINT_AMT,
+               mcp.ISSUE_DT, mcp.EXPIRY_DT, mcp.USE_YN, mcp.ISSUED_BY, mcp.REG_DT,
+               m.USER_NAME
+        FROM MEMBER_COUPONPOINT mcp
+        LEFT JOIN MEMBER m ON mcp.USER_ID = m.USER_ID
+        WHERE mcp.ASSET_TYPE = 'STUDY_POINT'
+        <if test="q != null and q != ''">
+            AND (LOWER(mcp.USER_ID) LIKE '%' || LOWER(#{q}) || '%'
+              OR LOWER(m.USER_NAME) LIKE '%' || LOWER(#{q}) || '%')
+        </if>
+        ORDER BY mcp.ISSUE_DT DESC
+    </select>
+
+    <!-- 포인트 이력 공통 조건 -->
+    <sql id="pointHistCondition">
+        WHERE ph.USER_ID = #{userId}
+          AND mcp.ASSET_TYPE = #{assetType}
+        <if test="startDate != null and startDate != ''">
+            AND TRUNC(ph.REG_DT) &gt;= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND TRUNC(ph.REG_DT) &lt;= TO_DATE(#{endDate}, 'YYYY-MM-DD')
+        </if>
+    </sql>
+
+    <!-- 특정 유저의 포인트 이력 조회 (타입별, 날짜 범위, 페이징) -->
+    <select id="selectPointHistByUserAndType" resultMap="pointHistResultMap">
+        SELECT ph.POINT_HIST_SN, ph.MCPNT_SN, ph.USER_ID, ph.HIST_TYPE,
+               ph.CHANGE_AMT, ph.ORD_SN, ph.MEMO, ph.REG_DT,
+               mcp.EXPIRY_DT
+        FROM POINT_HIST ph
+        JOIN MEMBER_COUPONPOINT mcp ON ph.MCPNT_SN = mcp.MCPNT_SN
+        <include refid="pointHistCondition"/>
+        ORDER BY ph.REG_DT DESC
+        OFFSET #{paginationInfo.offset} ROWS FETCH NEXT #{paginationInfo.screenSize} ROWS ONLY
+    </select>
+
+    <!-- 특정 유저의 포인트 이력 전체 조회 (관리자용, 페이징 없음) -->
+    <select id="selectAllPointHistByUserAndType" resultMap="pointHistResultMap">
+        SELECT ph.POINT_HIST_SN, ph.MCPNT_SN, ph.USER_ID, ph.HIST_TYPE,
+               ph.CHANGE_AMT, ph.ORD_SN, ph.MEMO, ph.REG_DT,
+               mcp.EXPIRY_DT
+        FROM POINT_HIST ph
+        JOIN MEMBER_COUPONPOINT mcp ON ph.MCPNT_SN = mcp.MCPNT_SN
+        WHERE ph.USER_ID = #{userId}
+          AND mcp.ASSET_TYPE = #{assetType}
+        ORDER BY ph.REG_DT DESC
+    </select>
+
+    <!-- 포인트 이력 전체 건수 -->
+    <select id="selectPointHistCountByUserAndType" resultType="int">
+        SELECT COUNT(*)
+        FROM POINT_HIST ph
+        JOIN MEMBER_COUPONPOINT mcp ON ph.MCPNT_SN = mcp.MCPNT_SN
+        <include refid="pointHistCondition"/>
+    </select>
+
+    <!-- 유저 이름 조회 -->
+    <select id="selectUserNameById" resultType="String">
+        SELECT USER_NAME FROM MEMBER WHERE USER_ID = #{userId}
+    </select>
+
+    <!-- 유저 목록 + 포인트 잔액 조회 (관리자) -->
+    <select id="searchUsersWithBalance" resultType="java.util.HashMap">
+        SELECT * FROM (
+            SELECT m.USER_ID    AS "userId",
+                   m.USER_NAME  AS "userName",
+                   m.USER_ROLE  AS "userRole",
+                   NVL((SELECT SUM(ph.CHANGE_AMT)
+                        FROM POINT_HIST ph
+                        JOIN MEMBER_COUPONPOINT mcp ON ph.MCPNT_SN = mcp.MCPNT_SN
+                        WHERE ph.USER_ID = m.USER_ID
+                          AND mcp.ASSET_TYPE = #{assetType}), 0) AS "balance"
+            FROM MEMBER m
+            WHERE m.USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
+              AND m.ENABLE = 'Y'
+            <if test="q != null and q != ''">
+                AND (UPPER(m.USER_ID)   LIKE '%' || UPPER(#{q}) || '%'
+                  OR UPPER(m.USER_NAME) LIKE '%' || UPPER(#{q}) || '%')
+            </if>
+            <if test="role != null and role != 'all'">
+                AND m.USER_ROLE = #{role}
+            </if>
+        ) ORDER BY "balance" DESC, "userId"
+    </select>
+
+</mapper>

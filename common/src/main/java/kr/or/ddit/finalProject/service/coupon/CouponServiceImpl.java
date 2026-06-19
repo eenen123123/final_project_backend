@@ -11,10 +11,17 @@ import org.springframework.transaction.annotation.Transactional;
 import kr.or.ddit.finalProject.dto.coupon.CouponDto;
 import kr.or.ddit.finalProject.dto.coupon.CouponUseStatus;
 import kr.or.ddit.finalProject.dto.coupon.DiscType;
-import kr.or.ddit.finalProject.dto.coupon.UserCouponDto;
+import kr.or.ddit.finalProject.dto.coupon.AssetType;
+import kr.or.ddit.finalProject.dto.coupon.MemberCouponPointDto;
+import kr.or.ddit.finalProject.dto.coupon.PointHistDto;
+import kr.or.ddit.finalProject.dto.coupon.PointHistType;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
+import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.mapper.MemberMapper;
 import kr.or.ddit.finalProject.mapper.coupon.CouponMapper;
+import kr.or.ddit.finalProject.mapper.coupon.PointMapper;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,6 +44,8 @@ public class CouponServiceImpl implements CouponService {
     }
 
     private final CouponMapper couponMapper;
+    private final PointMapper pointMapper;
+    private final MemberMapper memberMapper;
 
     @Override
     @Transactional
@@ -86,11 +95,14 @@ public class CouponServiceImpl implements CouponService {
 
     @Override
     @Transactional
-    public UserCouponDto issueCoupon(Long couponSn, String userId, String adminId) {
+    public MemberCouponPointDto issueCoupon(Long couponSn, String userId, String adminId) {
         // 발급 대상 userId 검증
         if (userId == null || userId.isBlank()) {
             throw new FinalProjectException(ErrorCode.COUPON_ISSUE_TARGET_REQUIRED);
         }
+        // 대상 회원 존재 여부 확인
+        memberMapper.findByUserId(userId)
+                .orElseThrow(() -> new FinalProjectException(ErrorCode.POINT_ISSUE_USER_NOT_FOUND));
 
         // 쿠폰 존재 여부 및 활성 여부 서버에서 재조회 (클라이언트 값 사용 X)
         CouponDto coupon = couponMapper.selectCouponBySn(couponSn);
@@ -104,8 +116,9 @@ public class CouponServiceImpl implements CouponService {
         // 만료일은 서버에서 계산 (클라이언트 값 사용 X)
         LocalDate expiryDt = LocalDate.now().plusDays(coupon.getValidDays());
 
-        UserCouponDto userCoupon = UserCouponDto.builder()
+        MemberCouponPointDto userCoupon = MemberCouponPointDto.builder()
                 .userId(userId)
+                .assetType(AssetType.COUPON)
                 .couponSn(couponSn)
                 .couponNm(coupon.getCouponNm())  // 발급 시점 스냅샷
                 .expiryDt(expiryDt)
@@ -114,29 +127,32 @@ public class CouponServiceImpl implements CouponService {
                 .build();
 
         couponMapper.insertUserCoupon(userCoupon);
-        log.info("쿠폰 발급: userCouponSn={}, userId={}, couponNm={}, expiryDt={}",
-                userCoupon.getUserCouponSn(), userId, coupon.getCouponNm(), expiryDt);
+        log.info("쿠폰 발급: mcpntSn={}, userId={}, couponNm={}, expiryDt={}",
+                userCoupon.getMcpntSn(), userId, coupon.getCouponNm(), expiryDt);
         return userCoupon;
     }
 
     @Override
-    public List<UserCouponDto> getMyCoupons(String userId) {
-        return couponMapper.selectUserCouponsByUserId(userId);
+    public PageResponse<MemberCouponPointDto> getMyCoupons(String userId, String startDate, String endDate, int page) {
+        PaginationInfo<?> paginationInfo = new PaginationInfo<>(10, page);
+        List<MemberCouponPointDto> items = couponMapper.selectUserCouponsByUserId(userId, startDate, endDate, paginationInfo);
+        int totalCount = couponMapper.selectUserCouponCountByUserId(userId, startDate, endDate);
+        return new PageResponse<>(items, totalCount);
     }
 
     @Override
-    public List<UserCouponDto> getExpiringCoupons(String userId) {
+    public List<MemberCouponPointDto> getExpiringCoupons(String userId) {
         return couponMapper.selectExpiringCoupons(userId);
     }
 
     @Override
-    public List<UserCouponDto> getAllIssuedCoupons() {
+    public List<MemberCouponPointDto> getAllIssuedCoupons() {
         return couponMapper.selectAllUserCoupons();
     }
 
     @Override
     @Transactional
-    public UserCouponDto redeemCoupon(String couponCode, String userId) {
+    public MemberCouponPointDto redeemCoupon(String couponCode, String userId) {
         // 코드로 쿠폰 조회
         CouponDto coupon = couponMapper.selectCouponByCode(couponCode);
         if (coupon == null) {
@@ -152,8 +168,9 @@ public class CouponServiceImpl implements CouponService {
         }
 
         LocalDate expiryDt = LocalDate.now().plusDays(coupon.getValidDays());
-        UserCouponDto userCoupon = UserCouponDto.builder()
+        MemberCouponPointDto userCoupon = MemberCouponPointDto.builder()
                 .userId(userId)
+                .assetType(AssetType.COUPON)
                 .couponSn(coupon.getCouponSn())
                 .couponNm(coupon.getCouponNm())
                 .expiryDt(expiryDt)
@@ -226,10 +243,19 @@ public class CouponServiceImpl implements CouponService {
 
     @Override
     @Transactional
-    public List<UserCouponDto> bulkIssueCoupon(Long couponSn, List<String> userIds, String adminId) {
+    public List<MemberCouponPointDto> bulkIssueCoupon(Long couponSn, List<String> userIds, String adminId) {
         // 발급 대상 목록이 비어있는지
         if (userIds == null || userIds.isEmpty()) {
             throw new FinalProjectException(ErrorCode.COUPON_ISSUE_TARGET_REQUIRED);
+        }
+        // 대상 회원 전체 존재 여부 확인
+        List<String> validIds = userIds.stream()
+                .filter(id -> id != null && !id.isBlank())
+                .distinct()
+                .toList();
+        int existCount = memberMapper.isAllExistUsers(validIds);
+        if (existCount != validIds.size()) {
+            throw new FinalProjectException(ErrorCode.POINT_ISSUE_USER_NOT_FOUND);
         }
         // 쿠폰 존재 여부 + 활성 여부 (DB 재조회, 클라이언트 값 신뢰 X)
         CouponDto coupon = couponMapper.selectCouponBySn(couponSn);
@@ -241,11 +267,12 @@ public class CouponServiceImpl implements CouponService {
         }
         // 만료일 서버 계산, 루프마다 빈 userId 스킵
         LocalDate expiryDt = LocalDate.now().plusDays(coupon.getValidDays());
-        List<UserCouponDto> issued = new ArrayList<>();
+        List<MemberCouponPointDto> issued = new ArrayList<>();
         for (String userId : userIds) {
             if (userId == null || userId.isBlank()) continue;
-            UserCouponDto userCoupon = UserCouponDto.builder()
+            MemberCouponPointDto userCoupon = MemberCouponPointDto.builder()
                     .userId(userId)
+                    .assetType(AssetType.COUPON)
                     .couponSn(couponSn)
                     .couponNm(coupon.getCouponNm())
                     .expiryDt(expiryDt)
@@ -257,6 +284,145 @@ public class CouponServiceImpl implements CouponService {
         }
         log.info("쿠폰 일괄 발급: couponSn={}, 대상 {}명, adminId={}", couponSn, issued.size(), adminId);
         return issued;
+    }
+
+    // ===================== 스터디포인트 정의 =====================
+
+    @Override
+    @Transactional
+    public CouponDto createStudyPointDef(CouponDto couponDto, String adminId) {
+        if (couponDto.getCouponNm() == null || couponDto.getCouponNm().isBlank()) {
+            throw new FinalProjectException(ErrorCode.BAD_REQUEST);
+        }
+        if (couponDto.getDiscAmt() == null || couponDto.getDiscAmt() <= 0) {
+            throw new FinalProjectException(ErrorCode.BAD_REQUEST);
+        }
+        couponDto.setUseYn(ACTIVE);
+        couponDto.setRegUserId(adminId);
+        couponMapper.insertStudyPointDef(couponDto);
+        log.info("스터디포인트 정의 등록: couponSn={}, name={}", couponDto.getCouponSn(), couponDto.getCouponNm());
+        return couponDto;
+    }
+
+    @Override
+    public List<CouponDto> getAllStudyPointDefs() {
+        return couponMapper.selectAllStudyPointDefs();
+    }
+
+    @Override
+    @Transactional
+    public CouponDto updateStudyPointDef(CouponDto couponDto) {
+        if (couponDto.getCouponSn() == null) {
+            throw new FinalProjectException(ErrorCode.BAD_REQUEST);
+        }
+        CouponDto existing = couponMapper.selectStudyPointDefBySn(couponDto.getCouponSn());
+        if (existing == null) {
+            throw new FinalProjectException(ErrorCode.COUPON_NOT_FOUND);
+        }
+        if (couponDto.getUseYn() == null) {
+            couponDto.setUseYn(existing.getUseYn());
+        }
+        couponMapper.updateStudyPointDef(couponDto);
+        return couponMapper.selectStudyPointDefBySn(couponDto.getCouponSn());
+    }
+
+    @Override
+    @Transactional
+    public void deleteStudyPointDef(Long couponSn) {
+        if (couponMapper.selectStudyPointDefBySn(couponSn) == null) {
+            throw new FinalProjectException(ErrorCode.COUPON_NOT_FOUND);
+        }
+        int deleted = couponMapper.deleteStudyPointDef(couponSn);
+        if (deleted == 0) {
+            throw new FinalProjectException(ErrorCode.COUPON_DELETE_FAILED);
+        }
+    }
+
+    @Override
+    @Transactional
+    public MemberCouponPointDto issueStudyPoint(Long couponSn, String userId, String adminId) {
+        if (userId == null || userId.isBlank()) {
+            throw new FinalProjectException(ErrorCode.COUPON_ISSUE_TARGET_REQUIRED);
+        }
+        // 대상 회원 존재 여부 확인
+        memberMapper.findByUserId(userId)
+                .orElseThrow(() -> new FinalProjectException(ErrorCode.POINT_ISSUE_USER_NOT_FOUND));
+
+        CouponDto def = couponMapper.selectStudyPointDefBySn(couponSn);
+        if (def == null) throw new FinalProjectException(ErrorCode.COUPON_NOT_FOUND);
+        if (!ACTIVE.equals(def.getUseYn())) throw new FinalProjectException(ErrorCode.COUPON_INACTIVE);
+
+        MemberCouponPointDto grant = MemberCouponPointDto.builder()
+                .userId(userId)
+                .assetType(AssetType.STUDY_POINT)
+                .couponSn(couponSn)
+                .couponNm(def.getCouponNm())
+                .pointAmt(def.getDiscAmt())
+                .expiryDt(LocalDate.now().plusYears(1))
+                .useYn(CouponUseStatus.N)
+                .issuedBy(adminId)
+                .build();
+        couponMapper.insertUserCoupon(grant);
+        pointMapper.insertPointHist(PointHistDto.builder()
+                .mcpntSn(grant.getMcpntSn())
+                .userId(userId)
+                .histType(PointHistType.EARN)
+                .changeAmt(def.getDiscAmt())
+                .memo(def.getCouponNm())
+                .build());
+        log.info("스터디포인트 발급: userId={}, defName={}, amt={}", userId, def.getCouponNm(), def.getDiscAmt());
+        return grant;
+    }
+
+    @Override
+    @Transactional
+    public List<MemberCouponPointDto> bulkIssueStudyPoint(Long couponSn, List<String> userIds, String adminId) {
+        if (userIds == null || userIds.isEmpty()) {
+            throw new FinalProjectException(ErrorCode.COUPON_ISSUE_TARGET_REQUIRED);
+        }
+        // 대상 회원 전체 존재 여부 확인
+        List<String> validIds = userIds.stream()
+                .filter(id -> id != null && !id.isBlank())
+                .distinct()
+                .toList();
+        int existCount = memberMapper.isAllExistUsers(validIds);
+        if (existCount != validIds.size()) {
+            throw new FinalProjectException(ErrorCode.POINT_ISSUE_USER_NOT_FOUND);
+        }
+        CouponDto def = couponMapper.selectStudyPointDefBySn(couponSn);
+        if (def == null) throw new FinalProjectException(ErrorCode.COUPON_NOT_FOUND);
+        if (!ACTIVE.equals(def.getUseYn())) throw new FinalProjectException(ErrorCode.COUPON_INACTIVE);
+
+        List<MemberCouponPointDto> issued = new ArrayList<>();
+        for (String userId : userIds) {
+            if (userId == null || userId.isBlank()) continue;
+            MemberCouponPointDto grant = MemberCouponPointDto.builder()
+                    .userId(userId)
+                    .assetType(AssetType.STUDY_POINT)
+                    .couponSn(couponSn)
+                    .couponNm(def.getCouponNm())
+                    .pointAmt(def.getDiscAmt())
+                    .expiryDt(LocalDate.now().plusYears(1))
+                    .useYn(CouponUseStatus.N)
+                    .issuedBy(adminId)
+                    .build();
+            couponMapper.insertUserCoupon(grant);
+            pointMapper.insertPointHist(PointHistDto.builder()
+                    .mcpntSn(grant.getMcpntSn())
+                    .userId(userId)
+                    .histType(PointHistType.EARN)
+                    .changeAmt(def.getDiscAmt())
+                    .memo(def.getCouponNm())
+                    .build());
+            issued.add(grant);
+        }
+        log.info("스터디포인트 일괄 발급: defSn={}, 대상 {}명", couponSn, issued.size());
+        return issued;
+    }
+
+    @Override
+    public List<MemberCouponPointDto> getAllStudyPointGrants(Long couponSn) {
+        return couponMapper.selectAllStudyPointGrants(couponSn);
     }
 
 }

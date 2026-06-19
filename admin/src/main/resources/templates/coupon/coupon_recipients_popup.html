@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>쿠폰 수신 내역</title>
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>body { font-family: 'Noto Sans KR', sans-serif; }</style>
+</head>
+<body class="bg-white text-slate-800 flex flex-col h-screen overflow-hidden">
+
+  <!-- 헤더 -->
+  <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 bg-white shrink-0">
+    <div>
+      <p class="text-xs text-slate-400 mb-0.5">수신 회원 목록</p>
+      <h1 id="couponNmTitle" class="text-sm font-bold text-slate-800">-</h1>
+    </div>
+    <button type="button" onclick="window.close()" class="text-slate-400 hover:text-slate-600 text-lg">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+
+  <!-- 검색 + 필터 -->
+  <div class="px-5 py-3 border-b border-slate-100 bg-slate-50/60 shrink-0 flex items-center gap-3">
+    <div class="relative flex-1">
+      <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
+      <input type="text" id="searchInput" class="w-full pl-8 pr-3 py-2 text-xs border border-slate-200 rounded-lg bg-white focus:outline-none focus:border-slate-400"
+        placeholder="ID 또는 이름으로 검색" oninput="applyFilter()" />
+    </div>
+    <div class="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium shrink-0">
+      <button type="button" id="fAll" onclick="setUseYnFilter('all')"
+        class="px-3 py-2 bg-slate-700 text-white transition-colors cursor-pointer">전체</button>
+      <button type="button" id="fN" onclick="setUseYnFilter('N')"
+        class="px-3 py-2 text-slate-500 bg-white hover:bg-slate-50 border-l border-slate-200 transition-colors cursor-pointer">미사용</button>
+      <button type="button" id="fY" onclick="setUseYnFilter('Y')"
+        class="px-3 py-2 text-slate-500 bg-white hover:bg-slate-50 border-l border-slate-200 transition-colors cursor-pointer">사용</button>
+    </div>
+    <span class="text-xs text-slate-400 shrink-0">
+      총 <span id="totalCount" class="font-bold text-slate-700">0</span>명
+    </span>
+  </div>
+
+  <!-- 테이블 -->
+  <div class="flex-1 overflow-y-auto">
+    <table class="w-full text-sm">
+      <thead class="sticky top-0 bg-slate-50 border-b border-slate-100">
+        <tr class="text-xs font-bold text-slate-500 tracking-wider">
+          <th class="px-5 py-3 text-left">수신 ID</th>
+          <th class="px-4 py-3 text-left">이름</th>
+          <th class="px-4 py-3 text-left">발급일</th>
+          <th class="px-4 py-3 text-left">만료일</th>
+          <th class="px-4 py-3 text-center">사용여부</th>
+        </tr>
+      </thead>
+      <tbody id="recipientsBody" class="divide-y divide-slate-100 text-sm text-slate-700"></tbody>
+    </table>
+    <div id="emptyMsg" class="hidden py-12 text-center text-sm text-slate-400">
+      <i class="fa-solid fa-ticket text-2xl text-slate-200 mb-2 block"></i>
+      발급 내역이 없습니다.
+    </div>
+  </div>
+
+  <!-- 페이징 -->
+  <div id="pagingArea" class="shrink-0 px-5 py-2.5 border-t border-slate-100 bg-white flex items-center justify-center gap-1.5"></div>
+
+  <script>
+    var params   = new URLSearchParams(location.search);
+    var couponSn = parseInt(params.get('couponSn'));
+    var couponNm = decodeURIComponent(params.get('couponNm') || '');
+    document.getElementById('couponNmTitle').textContent = couponNm;
+
+    var allData = [];
+    var filteredData = [];
+    var currentPage = 1;
+    var PAGE_SIZE = 10;
+    var activeUseYn = 'all';
+
+    try {
+      allData = (window.opener.issuedCouponsData || []).filter(function(d) {
+        return d.couponSn === couponSn;
+      });
+    } catch(e) {}
+
+    var useYnLabel = { N: '미사용', Y: '사용완료', E: '소멸' };
+    var useYnCls   = { N: 'bg-blue-50 text-blue-600', Y: 'bg-emerald-50 text-emerald-600', E: 'bg-slate-100 text-slate-400' };
+
+    function setUseYnFilter(val) {
+      activeUseYn = val;
+      ['All','N','Y'].forEach(function(k) {
+        var id = 'f' + k;
+        var keyVal = k === 'All' ? 'all' : k;
+        var match = keyVal === val;
+        document.getElementById(id).className = 'px-3 py-2 transition-colors cursor-pointer '
+          + (match ? 'bg-slate-700 text-white' : 'text-slate-500 bg-white hover:bg-slate-50 border-l border-slate-200');
+      });
+      applyFilter();
+    }
+
+    function applyFilter() {
+      var q = document.getElementById('searchInput').value.trim().toLowerCase();
+      filteredData = allData.filter(function(d) {
+        var matchQ  = !q || (d.userId || '').toLowerCase().includes(q) || (d.userName || '').toLowerCase().includes(q);
+        var matchYn = activeUseYn === 'all' || d.useYn === activeUseYn;
+        return matchQ && matchYn;
+      });
+      currentPage = 1;
+      document.getElementById('totalCount').textContent = filteredData.length;
+      renderPage();
+    }
+
+    function renderPage() {
+      var start    = (currentPage - 1) * PAGE_SIZE;
+      var pageData = filteredData.slice(start, start + PAGE_SIZE);
+      renderTable(pageData);
+      renderPaging();
+    }
+
+    function renderPaging() {
+      var totalPages = Math.ceil(filteredData.length / PAGE_SIZE) || 1;
+      var area = document.getElementById('pagingArea');
+      if (totalPages <= 1) { area.innerHTML = ''; return; }
+      var GROUP = 5;
+      var group = Math.ceil(currentPage / GROUP);
+      var start = (group - 1) * GROUP + 1;
+      var end   = Math.min(group * GROUP, totalPages);
+      var cls   = 'w-7 h-7 flex items-center justify-center rounded text-xs font-medium transition-colors border border-slate-200 cursor-pointer ';
+      var html  = '';
+      if (group > 1) {
+        html += '<button onclick="goToPage(' + ((group - 1) * GROUP) + ')" class="' + cls + 'text-slate-500 hover:bg-slate-50">&lt;</button>';
+      }
+      for (var p = start; p <= end; p++) {
+        html += '<button onclick="goToPage(' + p + ')" class="' + cls + (p === currentPage ? 'bg-slate-800 text-white border-slate-800' : 'text-slate-500 hover:bg-slate-50') + '">' + p + '</button>';
+      }
+      if (end < totalPages) {
+        html += '<button onclick="goToPage(' + (end + 1) + ')" class="' + cls + 'text-slate-500 hover:bg-slate-50">&gt;</button>';
+      }
+      area.innerHTML = html;
+    }
+
+    function goToPage(p) { currentPage = p; renderPage(); }
+
+    function renderTable(data) {
+      var tbody = document.getElementById('recipientsBody');
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '';
+        document.getElementById('emptyMsg').classList.remove('hidden');
+        return;
+      }
+      document.getElementById('emptyMsg').classList.add('hidden');
+      tbody.innerHTML = data.map(function(d) {
+        var badge = '<span class="text-xs font-bold px-2 py-0.5 rounded-md ' + (useYnCls[d.useYn] || '') + '">' + (useYnLabel[d.useYn] || d.useYn) + '</span>';
+        var issueDt  = d.issueDt  ? d.issueDt.substring(0,10).replace(/-/g,'.')  : '-';
+        var expiryDt = d.expiryDt ? d.expiryDt.substring(0,10).replace(/-/g,'.') : '-';
+        return '<tr class="hover:bg-slate-50 transition-colors">'
+          + '<td class="px-5 py-3 font-mono text-slate-700">'  + (d.userId   || '-') + '</td>'
+          + '<td class="px-4 py-3 font-medium text-slate-800">' + (d.userName || '-') + '</td>'
+          + '<td class="px-4 py-3 text-xs text-slate-500">'    + issueDt  + '</td>'
+          + '<td class="px-4 py-3 text-xs text-slate-500">'    + expiryDt + '</td>'
+          + '<td class="px-4 py-3 text-center">'               + badge    + '</td>'
+          + '</tr>';
+      }).join('');
+    }
+
+    filteredData = allData;
+    document.getElementById('totalCount').textContent = filteredData.length;
+    renderPage();
+  </script>
+</body>
+</html>
