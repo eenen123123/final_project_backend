@@ -62,6 +62,7 @@ public class AdminClassroomController {
         }
     }
 
+    // 내 클래스룸 목록 조회
     @GetMapping("/list")
     public String classroomList(Model model, Authentication authentication) {
         String instrUserId = authentication.getName();
@@ -71,6 +72,7 @@ public class AdminClassroomController {
         return "admin:/instructor/classroomList";
     }
 
+    // 클래스룸 홈 — 진도율·마감과제·최근제출·캘린더 등 대시보드
     @GetMapping("/detail/{classSn}")
     public String classroomDetail(@PathVariable Long classSn, Model model) {
         LocalDate now = LocalDate.now();
@@ -141,6 +143,7 @@ public class AdminClassroomController {
 
     // ── 온라인 강의 ──────────────────────────────────────────────
 
+    // 강의 목록 + 수강생별 진도 현황
     @GetMapping("/detail/{classSn}/lectures")
     public String lectureList(@PathVariable Long classSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
@@ -148,6 +151,7 @@ public class AdminClassroomController {
         return "classroom/list-classroom-lectures";
     }
 
+    // 강의 상세 + 수강생 개인별 진도율 (강좌 소속 검증 포함)
     @GetMapping("/detail/{classSn}/lectures/{lectureSn}")
     public String lectureDetail(@PathVariable Long classSn, @PathVariable Long lectureSn, Model model) {
         ClassroomDetailResponse classroom = classroomService.retrieveClassroomDetail(classSn);
@@ -162,6 +166,7 @@ public class AdminClassroomController {
         return "classroom/detail-classroom-lecture";
     }
 
+    // 강의 공개/비공개 토글
     @PostMapping("/detail/{classSn}/lectures/{lectureSn}/toggle-opnn")
     @ResponseBody
     public ResponseEntity<String> toggleOpnn(@PathVariable Long classSn, @PathVariable Long lectureSn,
@@ -175,6 +180,7 @@ public class AdminClassroomController {
         return ResponseEntity.ok("ok");
     }
 
+    // 강의 잠금/잠금해제 토글
     @PostMapping("/detail/{classSn}/lectures/{lectureSn}/toggle-lock")
     @ResponseBody
     public ResponseEntity<String> toggleLock(@PathVariable Long classSn, @PathVariable Long lectureSn,
@@ -190,6 +196,7 @@ public class AdminClassroomController {
 
     // ── 공지사항 ──────────────────────────────────────────────────
 
+    // 공지사항 목록
     @GetMapping("/detail/{classSn}/notice")
     public String noticeList(@PathVariable Long classSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
@@ -197,6 +204,7 @@ public class AdminClassroomController {
         return "classroom/list-classroom-notices";
     }
 
+    // 공지사항 상세 (첨부파일 포함)
     @GetMapping("/detail/{classSn}/notice/{postSn}")
     public String noticeDetail(@PathVariable Long classSn, @PathVariable Long postSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
@@ -211,12 +219,14 @@ public class AdminClassroomController {
         return "classroom/detail-classroom-notice";
     }
 
+    // 공지사항 작성 폼
     @GetMapping("/detail/{classSn}/notice/write")
     public String noticeWriteForm(@PathVariable Long classSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
         return "classroom/form-classroom-notice";
     }
 
+    // 공지사항 등록 (파일 업로드 실패 시 공지 롤백)
     @PostMapping("/detail/{classSn}/notice/write")
     public String noticeWrite(@PathVariable Long classSn, @ModelAttribute InstructorBoardDto dto,
             @RequestParam(required = false) List<MultipartFile> attachFiles,
@@ -250,6 +260,7 @@ public class AdminClassroomController {
         return "redirect:/classroom/detail/" + classSn + "/notice/" + dto.getPostSn();
     }
 
+    // 공지사항 수정 폼 (기존 첨부파일 목록 포함)
     @GetMapping("/detail/{classSn}/notice/{postSn}/edit")
     public String noticeEditForm(@PathVariable Long classSn, @PathVariable Long postSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
@@ -264,6 +275,7 @@ public class AdminClassroomController {
         return "classroom/form-classroom-notice";
     }
 
+    // 공지사항 수정 저장 (파일 추가·그룹 신규 생성 모두 처리, 실패 시 신규 파일 롤백)
     @PostMapping("/detail/{classSn}/notice/{postSn}/edit")
     public String noticeEdit(@PathVariable Long classSn, @PathVariable Long postSn,
             @ModelAttribute InstructorBoardDto dto,
@@ -343,6 +355,7 @@ public class AdminClassroomController {
         }
     }
 
+    // 공지사항 첨부파일 단건 삭제 (공지 소유권 검증 후 제거)
     @PostMapping("/detail/{classSn}/notice/{postSn}/file/{fileDtlSn}/delete")
     public String noticeFileDelete(@PathVariable Long classSn, @PathVariable Long postSn,
             @PathVariable Integer fileDtlSn, Authentication authentication) {
@@ -361,6 +374,7 @@ public class AdminClassroomController {
         return editUrl;
     }
 
+    // 공지사항 삭제
     @PostMapping("/detail/{classSn}/notice/{postSn}/delete")
     public String noticeDelete(@PathVariable Long classSn, @PathVariable Long postSn) {
         instructorBoardService.deleteClassroomNotice(postSn, classSn);
@@ -369,6 +383,7 @@ public class AdminClassroomController {
 
     // ── 과제 제출 ────────────────────────────────────────────────
 
+    // 과제 목록 + 제출 현황 집계
     @GetMapping("/detail/{classSn}/assignments")
     public String assignmentList(@PathVariable Long classSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
@@ -376,6 +391,7 @@ public class AdminClassroomController {
         return "classroom/list-classroom-assignments";
     }
 
+    // 과제 등록
     @PostMapping("/detail/{classSn}/assignments/write")
     public String assignmentWrite(@PathVariable Long classSn,
             @ModelAttribute AssignmentBoardDto dto, Authentication authentication) {
@@ -385,6 +401,7 @@ public class AdminClassroomController {
         return "redirect:/classroom/detail/" + classSn + "/assignments";
     }
 
+    // 과제 상세 + 수강생 제출 목록 (타 클래스 과제 접근 차단)
     @GetMapping("/detail/{classSn}/assignments/{asgmtSn}")
     public String assignmentDetail(@PathVariable Long classSn, @PathVariable Long asgmtSn,
             Model model) {
@@ -398,6 +415,7 @@ public class AdminClassroomController {
         return "classroom/assignment-detail";
     }
 
+    // 과제 채점 (점수 저장)
     @PostMapping("/detail/{classSn}/assignments/{asgmtSn}/grade/{sbmtSn}")
     public String assignmentGrade(@PathVariable Long classSn, @PathVariable Long asgmtSn,
             @PathVariable Long sbmtSn, @RequestParam BigDecimal score,
@@ -408,6 +426,7 @@ public class AdminClassroomController {
 
     // ── 성적 관리 ────────────────────────────────────────────────
 
+    // 수강생별 성적 목록
     @GetMapping("/detail/{classSn}/grades")
     public String gradeList(@PathVariable Long classSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
@@ -417,6 +436,7 @@ public class AdminClassroomController {
 
     // ── 수강생 목록 ──────────────────────────────────────────────
 
+    // 수강생 목록
     @GetMapping("/detail/{classSn}/members")
     public String memberList(@PathVariable Long classSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
@@ -425,6 +445,7 @@ public class AdminClassroomController {
 
     // ── Q&A ──────────────────────────────────────────────────────
 
+    // Q&A 목록
     @GetMapping("/detail/{classSn}/qna")
     public String qnaList(@PathVariable Long classSn, Model model) {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
@@ -432,6 +453,7 @@ public class AdminClassroomController {
         return "classroom/list-classroom-qna";
     }
 
+    // Q&A 상세 (editAnswer=true면 답변 수정 모드)
     @GetMapping("/detail/{classSn}/qna/{postSn}")
     public String qnaDetail(@PathVariable Long classSn, @PathVariable Long postSn,
             @RequestParam(required = false) boolean editAnswer, Model model) {
@@ -445,6 +467,7 @@ public class AdminClassroomController {
         return files != null && files.stream().anyMatch(f -> !f.isEmpty());
     }
 
+    // Q&A 답변 등록/수정
     @PostMapping("/detail/{classSn}/qna/{postSn}/answer")
     public String qnaAnswer(@PathVariable Long classSn, @PathVariable Long postSn,
             @RequestParam String answCn, Authentication authentication) {
