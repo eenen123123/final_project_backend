@@ -17,6 +17,7 @@
     <result property="lastMdfrId"   column="LAST_MDFR_ID"/>
     <result property="sbmtCnt"      column="SBMT_CNT"/>
     <result property="totMemberCnt" column="TOT_MEMBER_CNT"/>
+    <result property="grddCnt"      column="GRDD_CNT"/>
   </resultMap>
 
   <select id="selectAssignmentList" resultMap="assignmentBoardMap">
@@ -29,6 +30,7 @@
         ab.ASGMT_STAT_CD,
         ab.REG_DT,
         (SELECT COUNT(*) FROM ASSIGNMENT_SUBMIT s WHERE s.ASGMT_SN = ab.ASGMT_SN) AS SBMT_CNT,
+        (SELECT COUNT(*) FROM ASSIGNMENT_SUBMIT s WHERE s.ASGMT_SN = ab.ASGMT_SN AND s.GRDD_YN = 'Y') AS GRDD_CNT,
         (SELECT COUNT(*) FROM CLASSROOM_MEMBER cm WHERE cm.CLASS_SN = ab.CLASS_SN AND cm.ENRL_STAT_CD = 'ENROLLED') AS TOT_MEMBER_CNT
     FROM ASSIGNMENT_BOARD ab
     WHERE ab.CLASS_SN = #{classSn}

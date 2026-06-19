@@ -39,7 +39,7 @@ public class AdminClassroomAssignmentController {
     public void addTabBadges(@PathVariable(required = false) Long classSn, Model model) {
         if (classSn != null) {
             model.addAttribute("assignmentCount",
-                    classroomService.retrieveUpcomingAssignmentCount(classSn));
+                    assignmentBoardService.getPendingGradeCount(classSn));
             model.addAttribute("unansweredQnaCount",
                     instructorBoardService.getUnansweredQnaCount(classSn));
         }
@@ -106,6 +106,7 @@ public class AdminClassroomAssignmentController {
         model.addAttribute("classroom", classroomService.retrieveClassroomDetail(classSn));
         model.addAttribute("assignment", assignment);
         model.addAttribute("submitList", assignmentBoardService.getSubmitList(asgmtSn, classSn));
+        model.addAttribute("now", LocalDateTime.now());
         return "classroom/detail-classroom-assignment";
     }
 

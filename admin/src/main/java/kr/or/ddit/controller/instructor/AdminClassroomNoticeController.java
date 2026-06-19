@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import kr.or.ddit.finalProject.dto.file.FileCtxType;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
+import kr.or.ddit.finalProject.service.assignment.AssignmentBoardService;
 import kr.or.ddit.finalProject.service.classroom.ClassroomService;
 import kr.or.ddit.finalProject.service.file.FileUploadService;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
@@ -32,12 +33,13 @@ public class AdminClassroomNoticeController {
     private final ClassroomService classroomService;
     private final InstructorBoardService instructorBoardService;
     private final FileUploadService fileUploadService;
+    private final AssignmentBoardService assignmentBoardService;
 
     @ModelAttribute
     public void addTabBadges(@PathVariable(required = false) Long classSn, Model model) {
         if (classSn != null) {
             model.addAttribute("assignmentCount",
-                    classroomService.retrieveUpcomingAssignmentCount(classSn));
+                    assignmentBoardService.getPendingGradeCount(classSn));
             model.addAttribute("unansweredQnaCount",
                     instructorBoardService.getUnansweredQnaCount(classSn));
         }

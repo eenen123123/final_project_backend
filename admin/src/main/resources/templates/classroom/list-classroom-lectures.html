@@ -27,19 +27,19 @@
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="border-b border-slate-100 text-sm font-semibold text-slate-400">
-            <th class="py-4 px-7 w-14 font-medium">순서</th>
+            <th class="py-4 px-7 w-14 font-medium whitespace-nowrap">순서</th>
             <th class="py-4 px-7 font-medium">강의명</th>
-            <th class="py-4 px-7 w-28 text-center font-medium">재생 시간</th>
-            <th class="py-4 px-7 w-40 text-center font-medium">완료 현황</th>
-            <th class="py-4 px-7 w-44 font-medium">완료율</th>
-            <th class="py-4 px-7 w-28 text-center font-medium">공개/잠금</th>
+            <th class="py-4 px-7 w-28 text-center font-medium whitespace-nowrap">재생 시간</th>
+            <th class="py-4 px-7 w-40 text-center font-medium whitespace-nowrap">완료 현황</th>
+            <th class="py-4 px-7 w-44 font-medium whitespace-nowrap">완료율</th>
+            <th class="py-4 px-7 w-28 text-center font-medium whitespace-nowrap">공개/잠금</th>
           </tr>
         </thead>
         <tbody class="text-slate-700">
           <tr th:each="lec, stat : ${lectureList}"
               th:onclick="|location.href='@{/classroom/detail/{classSn}/lectures/{lectureSn}(classSn=${classroom.classSn},lectureSn=${lec.lectureSn})}'|"
               class="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer">
-            <td class="py-4 px-7 text-sm text-slate-300 font-mono" th:text="${stat.count}">1</td>
+            <td class="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap" th:text="${stat.count}">1</td>
             <td class="py-4 px-7">
               <div class="flex items-center gap-3">
                 <span class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-blue-400 text-sm flex-shrink-0">
@@ -48,10 +48,10 @@
                 <span class="font-semibold text-slate-800 text-sm" th:text="${lec.lectureNm}">강의명</span>
               </div>
             </td>
-            <td class="py-4 px-7 text-center text-sm text-slate-400 font-mono"
+            <td class="py-4 px-7 text-center text-sm text-slate-400 font-mono whitespace-nowrap"
                 th:with="dur=${lec.lectureDuration}"
                 th:text="${dur != null ? (dur / 60) + ':' + (dur % 60 < 10 ? '0' + (dur % 60) : '' + (dur % 60)) : '-'}">-</td>
-            <td class="py-4 px-7 text-center">
+            <td class="py-4 px-7 text-center whitespace-nowrap">
               <span class="text-sm font-semibold text-slate-700"
                     th:text="${lec.cmplCnt + ' / ' + lec.totMemberCnt + '명'}">0 / 0명</span>
             </td>
@@ -93,7 +93,7 @@
       </table>
     </div>
 
-    <div th:unless="${#lists.isEmpty(lectureList)}" class="px-7 py-4 border-t border-slate-100">
+    <div class="px-7 py-4 border-t border-slate-100">
       <p class="text-sm text-slate-400">
         전체 <span class="font-semibold text-slate-600" th:text="${#lists.size(lectureList)}">0</span>개 강의
       </p>

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import kr.or.ddit.finalProject.service.assignment.AssignmentBoardService;
 import kr.or.ddit.finalProject.service.classroom.ClassroomService;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
 import lombok.RequiredArgsConstructor;
@@ -23,12 +24,13 @@ public class AdminClassroomQnaController {
 
     private final ClassroomService classroomService;
     private final InstructorBoardService instructorBoardService;
+    private final AssignmentBoardService assignmentBoardService;
 
     @ModelAttribute
     public void addTabBadges(@PathVariable(required = false) Long classSn, Model model) {
         if (classSn != null) {
             model.addAttribute("assignmentCount",
-                    classroomService.retrieveUpcomingAssignmentCount(classSn));
+                    assignmentBoardService.getPendingGradeCount(classSn));
             model.addAttribute("unansweredQnaCount",
                     instructorBoardService.getUnansweredQnaCount(classSn));
         }

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html th:replace="~{classroom/layout-classroom :: layout(
-    ${classroom.classNm} + ' | 과제 제출',
+    ${classroom.classNm} + ' | 과제 관리',
     ${classroom},
     'assignments',
     ~{:: #content}
@@ -33,29 +33,44 @@
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="border-b border-slate-100 text-sm text-slate-400">
-            <th class="py-4 px-7 w-14 font-medium">번호</th>
+            <th class="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
             <th class="py-4 px-7 font-medium">제목</th>
-            <th class="py-4 px-7 w-36 text-center font-medium">제출 현황</th>
-            <th class="py-4 px-7 w-44 font-medium">마감일</th>
-            <th class="py-4 px-7 w-36 font-medium">등록일</th>
+            <th class="py-4 px-7 w-36 text-center font-medium whitespace-nowrap">제출 현황</th>
+            <th class="py-4 px-7 w-36 text-center font-medium whitespace-nowrap">채점 현황</th>
+            <th class="py-4 px-7 w-44 font-medium whitespace-nowrap">마감일</th>
+            <th class="py-4 px-7 w-36 font-medium whitespace-nowrap">등록일</th>
           </tr>
         </thead>
         <tbody class="text-slate-700">
           <tr th:each="asgmt, stat : ${assignmentList}" class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-            <td class="py-4 px-7 text-sm text-slate-300 font-mono"
+            <td class="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap"
                 th:text="${assignmentList.size() - stat.index}">1</td>
             <td class="py-4 px-7">
               <a th:href="@{/classroom/detail/{sn}/assignments/{asgmtSn}(sn=${classroom.classSn},asgmtSn=${asgmt.asgmtSn})}"
                  class="font-semibold text-slate-800 hover:text-blue-600 transition-colors text-sm"
                  th:text="${asgmt.asgmtSj}">과제 제목</a>
             </td>
-            <td class="py-4 px-7 text-center">
+            <td class="py-4 px-7 text-center whitespace-nowrap">
               <span class="text-sm font-semibold text-slate-700"
                     th:text="${asgmt.sbmtCnt + ' / ' + asgmt.totMemberCnt + '명'}">0 / 0명</span>
             </td>
-            <td class="py-4 px-7 text-sm text-slate-400 font-mono"
-                th:text="${asgmt.sbmtDdlnDt != null ? #temporals.format(asgmt.sbmtDdlnDt, 'yyyy-MM-dd HH:mm') : '-'}">-</td>
-            <td class="py-4 px-7 text-sm text-slate-400 font-mono"
+            <td class="py-4 px-7 text-center whitespace-nowrap">
+              <span th:if="${asgmt.sbmtCnt == 0}" class="text-sm text-slate-300">-</span>
+              <span th:if="${asgmt.sbmtCnt > 0 and asgmt.grddCnt < asgmt.sbmtCnt}"
+                    class="text-sm font-semibold text-amber-500"
+                    th:text="${asgmt.grddCnt + ' / ' + asgmt.sbmtCnt + '명'}">0 / 0명</span>
+              <span th:if="${asgmt.sbmtCnt > 0 and asgmt.grddCnt == asgmt.sbmtCnt}"
+                    class="text-sm font-semibold text-emerald-500"
+                    th:text="${asgmt.grddCnt + ' / ' + asgmt.sbmtCnt + '명'}">0 / 0명</span>
+            </td>
+            <td class="py-4 px-7 text-sm font-mono whitespace-nowrap"
+                th:if="${asgmt.sbmtDdlnDt == null}" th:text="'-'">-</td>
+            <td th:if="${asgmt.sbmtDdlnDt != null}"
+                th:class="${asgmt.sbmtDdlnDt.isBefore(#temporals.createNow())}
+                           ? 'py-4 px-7 text-sm font-mono text-slate-300 whitespace-nowrap'
+                           : 'py-4 px-7 text-sm font-mono text-slate-400 whitespace-nowrap'"
+                th:text="${#temporals.format(asgmt.sbmtDdlnDt, 'yyyy-MM-dd HH:mm')}">-</td>
+            <td class="py-4 px-7 text-sm text-slate-400 font-mono whitespace-nowrap"
                 th:text="${asgmt.regDt != null ? #temporals.format(asgmt.regDt, 'yyyy-MM-dd') : '-'}">-</td>
           </tr>
         </tbody>

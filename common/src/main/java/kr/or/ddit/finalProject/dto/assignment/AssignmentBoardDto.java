@@ -33,6 +33,7 @@ public class AssignmentBoardDto implements Serializable {
     // 목록 조회용 집계 (SQL에서 세팅)
     private int sbmtCnt;
     private int totMemberCnt;
+    private int grddCnt;
 
     // 홈 대시보드용 계산값 (서비스에서 세팅, DB 컬럼 아님)
     private int daysUntil;

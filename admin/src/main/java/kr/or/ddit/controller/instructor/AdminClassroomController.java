@@ -47,7 +47,7 @@ public class AdminClassroomController {
     public void addTabBadges(@PathVariable(required = false) Long classSn, Model model) {
         if (classSn != null) {
             model.addAttribute("assignmentCount",
-                    classroomService.retrieveUpcomingAssignmentCount(classSn));
+                    assignmentBoardService.getPendingGradeCount(classSn));
             model.addAttribute("unansweredQnaCount",
                     instructorBoardService.getUnansweredQnaCount(classSn));
         }
