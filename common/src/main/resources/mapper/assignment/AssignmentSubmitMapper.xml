@@ -58,6 +58,7 @@
             s.ASGMT_SN,
             s.SBMT_USER_ID,
             m.USER_NAME,
+            s.SCORE,
             s.GRDD_YN,
             s.GRDD_USER_ID,
             s.SBMT_DT,
