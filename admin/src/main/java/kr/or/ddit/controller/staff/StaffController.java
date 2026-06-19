@@ -4,10 +4,12 @@ package kr.or.ddit.controller.staff;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import kr.or.ddit.finalProject.service.staff.StaffService;
+import kr.or.ddit.service.CommonCodeService;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -19,9 +21,12 @@ public class StaffController {
 
     @Autowired
     PasswordEncoder passwordEncoder;
-    
+
     @Autowired
     StaffService staffService;
+
+    @Autowired
+    CommonCodeService commonCodeService;
 
     /**
      * 지출 및 영수증 관리
@@ -52,10 +57,11 @@ public class StaffController {
     }
 
 
-    /** 증명서 발급 관리 */
+    /** 증명서 관리 (행정직원 모니터링 · 전 직원 발급 현황 조회) */
     @GetMapping("/certificates")
-    public String getCertificates() {
+    public String getCertificates(Model model) {
         log.info("getCertificates()");
+        model.addAttribute("certTypes", commonCodeService.getAllCodes("228"));
         return "admin:/staff/certificates";
     }
 

@@ -171,6 +171,7 @@ public class CommonCodeController {
             });
 
         Map<String, Object> afterDto = new LinkedHashMap<>();
+        afterDto.put("clCode",     dto.getClCode()); // 승인 실행 시 WHERE CL_CODE 매칭에 필요
         afterDto.put("comCd",      dto.getComCd());
         afterDto.put("comCdNm",    dto.getComCdNm());
         afterDto.put("comCdExpln", dto.getComCdExpln());
