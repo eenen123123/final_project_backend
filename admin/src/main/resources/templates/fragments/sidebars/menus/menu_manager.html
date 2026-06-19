@@ -26,21 +26,5 @@
         <span class="sidebar-link-text">퇴원 방어 및 유지</span>
       </a>
     </li>
-
-    <!-- 3 그룹: 결재 요청 및 하위 권한 운영 -->
-    <li>
-      <a href="/admin/approval/request" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/admin/approval/request')} ? 'active'">
-        <i class="fa-solid fa-paper-plane sidebar-icon"></i>
-        <span class="sidebar-link-text">원장 승인 요청 관리</span>
-      </a>
-    </li>
-    <li>
-      <a href="/admin/settings/manager-permissions" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/admin/settings/manager-permissions')} ? 'active'">
-        <i class="fa-solid fa-user-gear sidebar-icon"></i>
-        <span class="sidebar-link-text">관리자 권한 운영</span>
-      </a>
-    </li>
   </ul>
 </div>
