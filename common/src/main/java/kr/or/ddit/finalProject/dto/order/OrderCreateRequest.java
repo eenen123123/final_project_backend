@@ -19,4 +19,7 @@ public class OrderCreateRequest {
     /** 배송지 정보 (교재 포함 주문 시 필수 · 강좌만이면 null 허용) */
     private OrderShippingDto shipping;
 
+    /** 배송지를 주소록에 저장 여부 (교재 포함 주문에만 유효) */
+    private boolean saveToAddressBook = false;
+
 }

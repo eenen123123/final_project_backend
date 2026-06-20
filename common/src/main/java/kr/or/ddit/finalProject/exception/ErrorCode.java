@@ -168,6 +168,7 @@ public enum ErrorCode {
     ADDRESS_ACCESS_DENIED(HttpStatus.FORBIDDEN, "본인의 배송지만 수정·삭제할 수 있습니다."),
     ADDRESS_RECEIVER_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "수령인 이름을 입력해주세요."),
     ADDRESS_RECEIVER_TEL_REQUIRED(HttpStatus.BAD_REQUEST, "수령인 연락처를 입력해주세요."),
+    ADDRESS_NAME_TOO_LONG(HttpStatus.BAD_REQUEST, "배송지명은 10자 이내로 입력해주세요."),
     // 쿠폰 관련
     COUPON_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 쿠폰입니다."),
     COUPON_INACTIVE(HttpStatus.BAD_REQUEST, "비활성화된 쿠폰입니다."),
