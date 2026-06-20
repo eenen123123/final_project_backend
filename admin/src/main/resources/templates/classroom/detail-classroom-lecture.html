@@ -21,24 +21,35 @@
             재생 시간</p>
         </div>
         <div class="flex items-center gap-2">
-          <span
-            th:classappend="${lecture.opnnYn == 'Y' ? 'text-blue-500 border-blue-100' : 'text-slate-400 border-slate-100'}"
-            class="inline-flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-lg border">
+          <button id="btn-opnn"
+            th:data-lecture-sn="${lecture.lectureSn}"
+            th:data-class-sn="${classroom.classSn}"
+            th:data-current="${lecture.opnnYn}"
+            onclick="toggleDetail(this, 'opnn')"
+            th:classappend="${lecture.opnnYn == 'Y' ? 'text-blue-500 border-blue-100 hover:bg-blue-50' : 'text-slate-400 border-slate-100 hover:bg-slate-50'}"
+            class="inline-flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-lg border transition-colors">
             <i class="fa-solid fa-eye text-xs"></i>
             <span th:text="${lecture.opnnYn == 'Y' ? '공개' : '비공개'}">공개</span>
-          </span>
-          <span
-            th:classappend="${lecture.lockYn == 'Y' ? 'text-amber-500 border-amber-100' : 'text-slate-400 border-slate-100'}"
-            class="inline-flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-lg border">
+          </button>
+          <button id="btn-lock"
+            th:data-lecture-sn="${lecture.lectureSn}"
+            th:data-class-sn="${classroom.classSn}"
+            th:data-current="${lecture.lockYn}"
+            onclick="toggleDetail(this, 'lock')"
+            th:classappend="${lecture.lockYn == 'Y' ? 'text-amber-500 border-amber-100 hover:bg-amber-50' : 'text-slate-400 border-slate-100 hover:bg-slate-50'}"
+            class="inline-flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-lg border transition-colors">
             <i class="fa-solid fa-lock text-xs"></i>
             <span th:text="${lecture.lockYn == 'Y' ? '잠김' : '잠금 해제'}">잠금 해제</span>
-          </span>
+          </button>
           <a th:href="@{/classroom/detail/{classSn}/lectures(classSn=${classroom.classSn})}"
             class="text-sm text-slate-400 hover:text-slate-600 transition-colors ml-3 flex items-center gap-1.5">
             <i class="fa-solid fa-arrow-left text-xs"></i>목록으로
           </a>
         </div>
       </div>
+      <div th:if="${lecture.lectureExplnCn != null and !#strings.isEmpty(lecture.lectureExplnCn)}"
+           class="px-7 py-5 text-sm text-slate-600 leading-relaxed whitespace-pre-wrap border-b border-slate-50"
+           th:text="${lecture.lectureExplnCn}"></div>
     </div>
 
   <!-- 강의 영상 -->
@@ -108,6 +119,40 @@
         </p>
       </div>
     </div>
+
+  <script>
+function toggleDetail(btn, type) {
+  const lectureSn = btn.dataset.lectureSn;
+  const classSn   = btn.dataset.classSn;
+  fetch(`/classroom/detail/${classSn}/lectures/${lectureSn}/toggle-${type}`, { method: 'POST' })
+    .then(r => {
+      if (!r.ok) throw new Error();
+      const isActive = btn.dataset.current === 'Y';
+      btn.dataset.current = isActive ? 'N' : 'Y';
+      const label = btn.querySelector('span');
+      if (type === 'opnn') {
+        btn.classList.toggle('text-blue-500', !isActive);
+        btn.classList.toggle('border-blue-100', !isActive);
+        btn.classList.toggle('hover:bg-blue-50', !isActive);
+        btn.classList.toggle('text-slate-400', isActive);
+        btn.classList.toggle('border-slate-100', isActive);
+        btn.classList.toggle('hover:bg-slate-50', isActive);
+        label.textContent = !isActive ? '공개' : '비공개';
+        showHermesToast(isActive ? '강의를 비공개로 전환했습니다.' : '강의를 공개로 전환했습니다.');
+      } else {
+        btn.classList.toggle('text-amber-500', !isActive);
+        btn.classList.toggle('border-amber-100', !isActive);
+        btn.classList.toggle('hover:bg-amber-50', !isActive);
+        btn.classList.toggle('text-slate-400', isActive);
+        btn.classList.toggle('border-slate-100', isActive);
+        btn.classList.toggle('hover:bg-slate-50', isActive);
+        label.textContent = !isActive ? '잠김' : '잠금 해제';
+        showHermesToast(isActive ? '강의를 잠금 처리했습니다.' : '강의 잠금을 해제했습니다.');
+      }
+    })
+    .catch(() => showHermesToast('처리 중 오류가 발생했습니다.', 'error'));
+}
+  </script>
 
   </div>
 </body>

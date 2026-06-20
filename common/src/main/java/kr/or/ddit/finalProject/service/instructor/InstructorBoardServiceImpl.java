@@ -153,6 +153,35 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
         return instructorBoardMapper.deleteClassroomNotice(postSn, classSn);
     }
 
+    // ── 클래스룸 자료실 ──────────────────────────────────────────────
+
+    @Override
+    public List<InstructorBoardDto> getClassroomDataroomList(Long classSn) {
+        return instructorBoardMapper.selectClassroomDataroomList(classSn);
+    }
+
+    @Override
+    public InstructorBoardDto getClassroomDataroomDetail(Long postSn, Long classSn) {
+        return instructorBoardMapper.selectClassroomDataroomDetail(postSn, classSn);
+    }
+
+    @Override
+    public int insertClassroomDataroom(InstructorBoardDto dto) {
+        dto.setBoardTypeCd("DATAROOM");
+        return instructorBoardMapper.insertClassroomDataroom(dto);
+    }
+
+    @Override
+    @Transactional
+    public int updateClassroomDataroom(InstructorBoardDto dto) {
+        return instructorBoardMapper.updateClassroomDataroom(dto);
+    }
+
+    @Override
+    public int deleteClassroomDataroom(Long postSn, Long classSn) {
+        return instructorBoardMapper.deleteClassroomDataroom(postSn, classSn);
+    }
+
     // ── 클래스룸 Q&A ──────────────────────────────────────────────
     @Override
     public List<kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto> getClassroomQnaList(Long classSn) {

@@ -59,7 +59,7 @@
               <div th:if="${lec.totMemberCnt > 0}" class="flex items-center gap-3">
                 <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                   <div class="h-full bg-blue-500 rounded-full"
-                       th:style="'width: ' + ${(lec.cmplCnt * 100 / lec.totMemberCnt)} + '%'"></div>
+                       th:style="'width: ' + ${lec.cmplCnt * 100 / lec.totMemberCnt} + '%'"></div>
                 </div>
                 <span class="text-sm font-semibold text-slate-500 w-9 text-right"
                       th:text="${lec.cmplCnt * 100 / lec.totMemberCnt} + '%'">0%</span>
