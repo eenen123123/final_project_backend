@@ -191,6 +191,34 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public int getTotalOrderCount() {
+        return orderMapper.countTotalOrders();
+    }
+
+    @Override
+    public PageResponse<OrderDto> getAllOrders(PaginationInfo<OrderSearchCondition> paginationInfo) {
+        List<OrderDto> list = orderMapper.selectAllOrders(paginationInfo);
+        int totalCount = orderMapper.countAllOrders(paginationInfo);
+        return new PageResponse<>(list, totalCount);
+    }
+
+    @Override
+    public List<OrderDto> getCancelRequestList() {
+        return orderMapper.selectCancelRequestList();
+    }
+
+    @Override
+    public OrderDto getCancelDetailByOrdSn(Long ordSn) {
+        OrderDto order = orderMapper.selectOrderByOrdSnForAdmin(ordSn);
+        if (order == null) {
+            throw new FinalProjectException(ErrorCode.ORDER_NOT_FOUND);
+        }
+        List<OrderItemDto> items = orderMapper.selectOrderItemsByOrdSn(order.getOrdSn());
+        order.setItems(items);
+        return order;
+    }
+
+    @Override
     public OrderDto getOrderByOrderSn(Long ordSn, String userId) {
         OrderDto order = orderMapper.selectOrderByOrdSn(ordSn, userId);
         log.info("주문 상세 조회: ordSn={}, userId={}, order={}", ordSn, userId, order);

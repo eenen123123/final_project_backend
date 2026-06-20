@@ -155,6 +155,11 @@ public enum ErrorCode {
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다."),
     ORDER_ALREADY_PAID(HttpStatus.CONFLICT, "이미 처리된 주문입니다."),
     ORDER_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "주문 금액이 일치하지 않습니다."),
+    ORDER_CANNOT_CANCEL(HttpStatus.BAD_REQUEST, "결제 완료 상태의 주문만 취소 요청할 수 있습니다."),
+    ORDER_CANCEL_ALREADY_APPROVED(HttpStatus.CONFLICT, "이미 처리된 취소 요청입니다."),
+    // 취소/환불 관련
+    CANCEL_REASON_REQUIRED(HttpStatus.BAD_REQUEST, "취소 사유를 선택해주세요."),
+    CANCEL_REASON_TOO_LONG(HttpStatus.BAD_REQUEST, "상세 사유는 500자 이내로 입력해주세요."),
     // 배송 관련
     SHIPPING_NOT_FOUND(HttpStatus.NOT_FOUND, "배송 정보를 찾을 수 없습니다."),
     SHIPPING_ALREADY_IN_PROGRESS(HttpStatus.CONFLICT, "이미 배송이 시작되어 주소를 변경할 수 없습니다."),

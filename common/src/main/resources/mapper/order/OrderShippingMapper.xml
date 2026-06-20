@@ -43,7 +43,11 @@
           FROM ORDER_SHIPPING os
           JOIN ORDERS o ON os.ORD_SN = o.ORD_SN
         <include refid="shippingSearchWhere"/>
-        ORDER BY os.REG_DT DESC
+        ORDER BY os.REG_DT
+        <choose>
+          <when test="orderDirection == 'ASC'">ASC</when>
+          <otherwise>DESC</otherwise>
+        </choose>
         OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
     </select>
 

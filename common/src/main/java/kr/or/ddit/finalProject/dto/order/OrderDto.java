@@ -29,6 +29,10 @@ public class OrderDto {
 
     private boolean hasTextbook;       // 교재 포함 여부 (배송 정보 표시용)
 
+    private CancelReason cancelRsnCd;  // 취소 사유 코드
+    private String cancelRsnDtl;       // 취소 상세 사유
+    private java.time.LocalDateTime cancelReqDt; // 취소 요청 일시
+
     private List<OrderItemDto> items; // 주문 상품 목록
 
 }
