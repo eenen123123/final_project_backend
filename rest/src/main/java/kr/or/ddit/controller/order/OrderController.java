@@ -2,8 +2,6 @@ package kr.or.ddit.controller.order;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.order.OrderCreateRequest;
 import kr.or.ddit.finalProject.dto.order.OrderDto;
-import kr.or.ddit.finalProject.dto.order.OrderItemDto;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.service.order.OrderService;
@@ -44,7 +41,8 @@ public class OrderController {
                 request.getItems(),
                 request.getPointAmt(),
                 request.getPointType(),
-                request.getShipping()));
+                request.getShipping(),
+                request.isSaveToAddressBook()));
     }
 
     @GetMapping("/my")

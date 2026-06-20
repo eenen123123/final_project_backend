@@ -11,7 +11,7 @@ import kr.or.ddit.finalProject.dto.order.OrderShippingDto;
 
 public interface OrderService {
 
-    OrderDto createOrder(String userId, List<OrderItemDto> items, long pointAmt, AssetType pointType, OrderShippingDto shipping);
+    OrderDto createOrder(String userId, List<OrderItemDto> items, long pointAmt, AssetType pointType, OrderShippingDto shipping, boolean saveToAddressBook);
 
     PageResponse<OrderDto> getOrdersByUserId(String userId, int page, LocalDateTime from, LocalDateTime to);
 
