@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import kr.or.ddit.finalProject.dto.order.CancelReason;
 import kr.or.ddit.finalProject.dto.order.OrderDto;
 import kr.or.ddit.finalProject.dto.order.OrderItemDto;
 import kr.or.ddit.finalProject.dto.order.OrderSearchCondition;
@@ -41,4 +42,26 @@ public interface OrderMapper {
     List<OrderItemDto> selectOrderItemsByOrderSn(@Param("ordSn") Long ordSn, @Param("userId") String userId);
 
     OrderDto selectOrderByOrdSn(@Param("ordSn") Long ordSn, @Param("userId") String userId);
+
+    // 관리자용 전체 주문 조회
+    List<OrderDto> selectAllOrders(@Param("paginationInfo") PaginationInfo<OrderSearchCondition> paginationInfo);
+
+    int countAllOrders(@Param("paginationInfo") PaginationInfo<OrderSearchCondition> paginationInfo);
+
+    int countTotalOrders();
+
+    // 취소/환불 요청 (PAID → CANCEL_REQUESTED)
+    int requestCancel(@Param("ordSn") Long ordSn,
+                      @Param("userId") String userId,
+                      @Param("cancelRsnCd") CancelReason cancelRsnCd,
+                      @Param("cancelRsnDtl") String cancelRsnDtl);
+
+    // 취소 승인 (CANCEL_REQUESTED → CANCELED) - 관리자
+    int approveCancel(@Param("ordSn") Long ordSn);
+
+    // 관리자용 주문 단건 조회 (userId 없음)
+    OrderDto selectOrderByOrdSnForAdmin(@Param("ordSn") Long ordSn);
+
+    // 취소 요청 목록 조회 - 관리자
+    List<OrderDto> selectCancelRequestList();
 }

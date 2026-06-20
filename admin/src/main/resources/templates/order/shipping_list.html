@@ -2,62 +2,85 @@
 
 <div class="space-y-6">
 
-  <!-- ① 페이지 헤더 -->
-  <div>
-    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">배송 관리</h1>
-    <p class="text-sm text-slate-500 mt-1">교재 포함 주문의 배송 현황을 조회하고 송장번호를 등록합니다.</p>
-  </div>
-
-  <!-- ② 요약 카드 -->
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-    <a th:href="@{/admin/shipping}"
-       th:classappend="${param.dlvryStatCd == null or param.dlvryStatCd == ''} ? 'border-blue-300 bg-blue-50' : 'border-slate-100 bg-white hover:border-blue-200'"
-       class="rounded-2xl border shadow-sm p-5 transition-all block cursor-pointer">
+  <!-- 네비게이션 카드 -->
+  <div class="grid grid-cols-3 gap-4">
+    <a href="/admin/orders" class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:border-slate-300 hover:shadow-md transition-all block">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center text-lg shrink-0">
+          <i class="fa-solid fa-receipt"></i>
+        </div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">전체 주문</p>
+      </div>
+      <p class="text-2xl font-bold text-slate-800">-</p>
+    </a>
+    <a href="/admin/shipping" class="bg-white rounded-2xl border-2 border-slate-800 shadow-sm p-5 block">
       <div class="flex items-center gap-3 mb-3">
         <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center text-lg shrink-0">
           <i class="fa-solid fa-truck"></i>
         </div>
-        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">전체 배송</p>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">배송 관리</p>
       </div>
       <p class="text-2xl font-bold text-slate-800" th:text="${totalCount + '건'}">0건</p>
     </a>
-    <a th:href="@{/admin/shipping(dlvryStatCd='READY')}"
-       th:classappend="${param.dlvryStatCd == 'READY'} ? 'border-amber-300 bg-amber-50' : 'border-slate-100 bg-white hover:border-amber-200'"
-       class="rounded-2xl border shadow-sm p-5 transition-all block cursor-pointer">
+    <a href="/admin/cancel" class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:border-rose-200 hover:shadow-md transition-all block">
       <div class="flex items-center gap-3 mb-3">
-        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-lg shrink-0">
-          <i class="fa-solid fa-box"></i>
+        <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center text-lg shrink-0">
+          <i class="fa-solid fa-rotate-left"></i>
         </div>
-        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">준비중</p>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">환불/취소 관리</p>
       </div>
-      <p class="text-2xl font-bold text-amber-500" th:text="${(statusSummary['READY_COUNT'] ?: 0) + '건'}">0건</p>
+      <p class="text-2xl font-bold text-slate-800">-</p>
     </a>
-    <a th:href="@{/admin/shipping(dlvryStatCd='SHIPPING')}"
-       th:classappend="${param.dlvryStatCd == 'SHIPPING'} ? 'border-blue-300 bg-blue-50' : 'border-slate-100 bg-white hover:border-blue-200'"
-       class="rounded-2xl border shadow-sm p-5 transition-all block cursor-pointer">
-      <div class="flex items-center gap-3 mb-3">
-        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center text-lg shrink-0">
-          <i class="fa-solid fa-truck-fast"></i>
-        </div>
-        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">배송중</p>
-      </div>
-      <p class="text-2xl font-bold text-blue-500" th:text="${(statusSummary['SHIPPING_COUNT'] ?: 0) + '건'}">0건</p>
-    </a>
-    <a th:href="@{/admin/shipping(dlvryStatCd='DELIVERED')}"
-       th:classappend="${param.dlvryStatCd == 'DELIVERED'} ? 'border-emerald-300 bg-emerald-50' : 'border-slate-100 bg-white hover:border-emerald-200'"
-       class="rounded-2xl border shadow-sm p-5 transition-all block cursor-pointer">
-      <div class="flex items-center gap-3 mb-3">
-        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-lg shrink-0">
-          <i class="fa-solid fa-circle-check"></i>
-        </div>
-        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">배송완료</p>
-      </div>
-      <p class="text-2xl font-bold text-emerald-500" th:text="${(statusSummary['DELIVERED_COUNT'] ?: 0) + '건'}">0건</p>
-    </a>
+  </div>
+
+  <!-- ② 배송 현황 통계 바 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+    <div class="grid grid-cols-4 divide-x divide-slate-100">
+      <a th:href="@{/admin/shipping}"
+         th:classappend="${param.dlvryStatCd == null or param.dlvryStatCd == ''} ? 'bg-slate-50' : 'hover:bg-slate-50'"
+         class="flex items-center justify-between px-5 py-4 transition-colors cursor-pointer">
+        <span class="text-sm font-semibold text-slate-600">전체</span>
+        <span class="text-lg font-bold text-slate-800" th:text="${totalCount + '건'}">0건</span>
+      </a>
+      <a th:href="@{/admin/shipping(dlvryStatCd='READY')}"
+         th:classappend="${param.dlvryStatCd == 'READY'} ? 'bg-amber-50' : 'hover:bg-slate-50'"
+         class="flex items-center justify-between px-5 py-4 transition-colors cursor-pointer">
+        <span class="text-sm font-semibold text-amber-600"><i class="fa-solid fa-box mr-1.5"></i>준비중</span>
+        <span class="text-lg font-bold text-amber-600" th:text="${(statusSummary['READY_COUNT'] ?: 0) + '건'}">0건</span>
+      </a>
+      <a th:href="@{/admin/shipping(dlvryStatCd='SHIPPING')}"
+         th:classappend="${param.dlvryStatCd == 'SHIPPING'} ? 'bg-blue-50' : 'hover:bg-slate-50'"
+         class="flex items-center justify-between px-5 py-4 transition-colors cursor-pointer">
+        <span class="text-sm font-semibold text-blue-600"><i class="fa-solid fa-truck-fast mr-1.5"></i>배송중</span>
+        <span class="text-lg font-bold text-blue-600" th:text="${(statusSummary['SHIPPING_COUNT'] ?: 0) + '건'}">0건</span>
+      </a>
+      <a th:href="@{/admin/shipping(dlvryStatCd='DELIVERED')}"
+         th:classappend="${param.dlvryStatCd == 'DELIVERED'} ? 'bg-emerald-50' : 'hover:bg-slate-50'"
+         class="flex items-center justify-between px-5 py-4 transition-colors cursor-pointer">
+        <span class="text-sm font-semibold text-emerald-600"><i class="fa-solid fa-circle-check mr-1.5"></i>배송완료</span>
+        <span class="text-lg font-bold text-emerald-600" th:text="${(statusSummary['DELIVERED_COUNT'] ?: 0) + '건'}">0건</span>
+      </a>
+    </div>
   </div>
 
   <!-- ③ 검색 + 테이블 -->
   <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+
+    <!-- 탭 -->
+    <div class="flex border-b border-slate-100">
+      <a href="/admin/orders"
+        class="px-6 py-3.5 text-sm font-semibold text-slate-500 hover:bg-slate-50 border-r border-slate-100 whitespace-nowrap cursor-pointer transition-colors">
+        전체 주문
+      </a>
+      <a href="/admin/shipping"
+        class="px-6 py-3.5 text-sm font-bold text-white bg-slate-800 border-r border-slate-700 whitespace-nowrap cursor-pointer">
+        배송 관리
+      </a>
+      <a href="/admin/cancel"
+        class="px-6 py-3.5 text-sm font-semibold text-slate-500 hover:bg-slate-50 whitespace-nowrap cursor-pointer transition-colors">
+        환불/취소 관리
+      </a>
+    </div>
 
     <!-- 검색바 -->
     <div class="flex items-center gap-4 px-5 py-4 border-b border-slate-100">

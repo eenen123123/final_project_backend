@@ -28,4 +28,12 @@
         )
     </insert>
 
+    <select id="selectPayHistByOrdSn" resultType="kr.or.ddit.finalProject.dto.pay.PayHistDto">
+        SELECT PAY_HIST_SN, USER_ID, PAY_DIV_CD, TOSS_PAYMENT_KEY,
+               ORD_SN, PTNR_ORD_ID, ITEM_NM, ITEM_QTY,
+               PAY_STAT_CD, TOT_AMT, POINT_AMT
+          FROM PAY_HIST
+         WHERE ORD_SN = #{ordSn}
+    </select>
+
 </mapper>

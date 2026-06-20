@@ -93,11 +93,12 @@
         <span class="sidebar-link-text">교재 관리</span>
       </a>
     </li>
+
     <li>
-      <a href="/admin/shipping" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/admin/shipping')} ? 'active'">
-        <i class="fa-solid fa-truck sidebar-icon"></i>
-        <span class="sidebar-link-text">배송 관리</span>
+      <a href="/admin/orders" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/orders')} ? 'active'">
+        <i class="fa-solid fa-receipt sidebar-icon"></i>
+        <span class="sidebar-link-text">주문 관리</span>
       </a>
     </li>
     <!-- <li>
