@@ -50,13 +50,13 @@
           <h2 class="text-base font-bold text-slate-800">제출 현황</h2>
           <p class="text-sm text-slate-400 mt-1">수강생의 과제 제출 및 채점 현황입니다.</p>
         </div>
-        <div th:with="pendingCnt=${submitList.stream().filter(s -> s.sbmtSn != null and s.grddYn != 'Y').count()}">
+        <div>
           <div th:if="${pendingCnt > 0}"
                class="text-sm font-semibold text-amber-500 flex items-center gap-1.5">
             <i class="fa-solid fa-circle-exclamation text-xs"></i>
             미채점 <span th:text="${pendingCnt}">0</span>건
           </div>
-          <div th:if="${pendingCnt == 0 and !#lists.isEmpty(submitList)}"
+          <div th:if="${pendingCnt == 0 and submittedCnt > 0}"
                class="text-sm font-semibold text-emerald-500 flex items-center gap-1.5">
             <i class="fa-solid fa-circle-check text-xs"></i>
             채점 완료
@@ -66,25 +66,25 @@
 
       <div th:if="${#lists.isEmpty(submitList)}"
            class="p-16 flex flex-col items-center gap-4 text-center">
-        <p class="text-base text-slate-400">등록된 수강생이 없습니다.</p>
+        <p class="text-base font-medium text-slate-400">등록된 수강생이 없습니다.</p>
       </div>
 
       <div th:unless="${#lists.isEmpty(submitList)}" class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="border-b border-slate-100 text-sm text-slate-400">
-              <th class="py-4 px-7 w-14 font-medium">번호</th>
+              <th class="py-4 px-4 w-14 text-center font-medium whitespace-nowrap">번호</th>
               <th class="py-4 px-7 font-medium">학생</th>
-              <th class="py-4 px-7 w-24 text-center font-medium">제출</th>
-              <th class="py-4 px-7 w-40 font-medium">제출일</th>
-              <th class="py-4 px-7 w-24 text-center font-medium">점수</th>
-              <th class="py-4 px-7 w-56 font-medium">채점</th>
+              <th class="py-4 px-7 w-32 text-center font-medium whitespace-nowrap">제출</th>
+              <th class="py-4 px-7 w-40 font-medium whitespace-nowrap">제출일</th>
+              <th class="py-4 px-7 w-24 text-center font-medium whitespace-nowrap">점수</th>
+              <th class="py-4 px-7 w-56 font-medium whitespace-nowrap">채점</th>
             </tr>
           </thead>
           <tbody class="text-slate-700">
             <tr th:each="sub, stat : ${submitList}"
                 class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-              <td class="py-4 px-7 text-sm text-slate-300 font-mono" th:text="${stat.count}">1</td>
+              <td class="py-4 px-4 text-sm text-center text-slate-300 font-mono" th:text="${stat.count}">1</td>
               <td class="py-4 px-7">
                 <div class="flex items-center gap-2">
                   <span class="font-semibold text-slate-800 text-sm" th:text="${sub.userName}">홍길동</span>
@@ -145,7 +145,6 @@
     <p class="text-base font-medium text-slate-400">존재하지 않는 과제입니다.</p>
   </div>
 
-</div>
 <script>
 function toggleContent(btn, idx) {
     const el = document.getElementById('content-' + idx);
@@ -153,5 +152,7 @@ function toggleContent(btn, idx) {
     btn.textContent = hidden ? '내용보기' : '내용닫기';
 }
 </script>
+
+</div>
 </body>
 </html>

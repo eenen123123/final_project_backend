@@ -377,6 +377,7 @@
             ORDER BY CAF.ATCH_FILE_DTL_SN ASC
       </select>
 
+      <!-- 수강생이 공지/Q&A를 열람할 때 호출. 강사 관리 화면(클래스룸)에서는 호출 금지. -->
       <update id="incrementViewCount">
             UPDATE INSTRUCTOR_BOARD
             SET INQ_CNT = INQ_CNT + 1

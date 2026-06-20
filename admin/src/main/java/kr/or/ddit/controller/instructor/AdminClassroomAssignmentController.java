@@ -4,6 +4,7 @@ import java.beans.PropertyEditorSupport;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -110,7 +111,17 @@ public class AdminClassroomAssignmentController {
             return "redirect:/classroom/detail/" + classSn + "/assignments";
         model.addAttribute("classroom", classroom);
         model.addAttribute("assignment", assignment);
-        model.addAttribute("submitList", assignmentBoardService.getSubmitList(asgmtSn, classSn));
+        List<kr.or.ddit.finalProject.dto.assignment.AssignmentSubmitDto> submitList =
+                assignmentBoardService.getSubmitList(asgmtSn, classSn);
+        long pendingCnt = submitList.stream()
+                .filter(s -> s.getSbmtSn() != null && !"Y".equals(s.getGrddYn()))
+                .count();
+        long submittedCnt = submitList.stream()
+                .filter(s -> s.getSbmtSn() != null)
+                .count();
+        model.addAttribute("submitList", submitList);
+        model.addAttribute("pendingCnt", pendingCnt);
+        model.addAttribute("submittedCnt", submittedCnt);
         model.addAttribute("now", LocalDateTime.now());
         return "classroom/detail-classroom-assignment";
     }
