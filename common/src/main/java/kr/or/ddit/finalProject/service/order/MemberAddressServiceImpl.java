@@ -97,6 +97,9 @@ public class MemberAddressServiceImpl implements MemberAddressService {
     }
 
     private void validateRequiredFields(MemberAddressDto dto) {
+        if (dto.getAddressNm() != null && dto.getAddressNm().length() > 10) {
+            throw new FinalProjectException(ErrorCode.ADDRESS_NAME_TOO_LONG);
+        }
         if (dto.getReceiverNm() == null || dto.getReceiverNm().isBlank()) {
             throw new FinalProjectException(ErrorCode.ADDRESS_RECEIVER_NAME_REQUIRED);
         }

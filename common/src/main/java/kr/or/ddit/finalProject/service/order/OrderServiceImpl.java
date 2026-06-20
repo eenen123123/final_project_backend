@@ -14,6 +14,7 @@ import kr.or.ddit.finalProject.dto.coupon.AssetType;
 import kr.or.ddit.finalProject.dto.order.OrderDto;
 import kr.or.ddit.finalProject.dto.order.OrderItemDto;
 import kr.or.ddit.finalProject.dto.order.OrderSearchCondition;
+import kr.or.ddit.finalProject.dto.order.MemberAddressDto;
 import kr.or.ddit.finalProject.dto.order.OrderShippingDto;
 import kr.or.ddit.finalProject.dto.order.OrderStatus;
 import kr.or.ddit.finalProject.exception.ErrorCode;
@@ -34,10 +35,11 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
     private final PointService pointService;
     private final OrderShippingService orderShippingService;
+    private final MemberAddressService memberAddressService;
 
     @Override
     @Transactional
-    public OrderDto createOrder(String userId, List<OrderItemDto> items, long pointAmt, AssetType pointType, OrderShippingDto shipping) {
+    public OrderDto createOrder(String userId, List<OrderItemDto> items, long pointAmt, AssetType pointType, OrderShippingDto shipping, boolean saveToAddressBook) {
         if (items == null || items.isEmpty()) {
             throw new FinalProjectException(ErrorCode.BAD_REQUEST);
         }
@@ -114,6 +116,23 @@ public class OrderServiceImpl implements OrderService {
             shipping.setOrdSn(order.getOrdSn());
             shipping.setRgtrId(userId);
             orderShippingService.registerOrderShipping(shipping);
+
+            if (saveToAddressBook) {
+                MemberAddressDto addressDto = MemberAddressDto.builder()
+                        .userId(userId)
+                        .addressNm("기본 배송지")
+                        .receiverNm(shipping.getReceiverNm())
+                        .receiverTel(shipping.getReceiverTel())
+                        .zipCd(shipping.getZipCd())
+                        .addrRoad(shipping.getAddrRoad())
+                        .addrJibun(shipping.getAddrJibun())
+                        .addrDtl(shipping.getAddrDtl())
+                        .deliveryMsg(shipping.getDeliveryMsg())
+                        .defaultYn("N")
+                        .build();
+                memberAddressService.registerAddress(addressDto);
+                log.info("주소록 저장 - userId: {}", userId);
+            }
         }
 
         order.setItems(orderItems);
