@@ -15,6 +15,7 @@
         <result property="pointType" column="POINT_TYPE"/>
         <result property="regDt" column="REG_DT"/>
         <result property="mdfcnDt" column="MDFCN_DT"/>
+        <result property="hasTextbook" column="HAS_TEXTBOOK"/>
     </resultMap>
 
     <resultMap id="orderItemResultMap" type="kr.or.ddit.finalProject.dto.order.OrderItemDto">
@@ -99,22 +100,26 @@
 
     <sql id="orderSearchCondition">
        <trim prefix="WHERE" prefixOverrides="AND">
-            user_id = #{userId}
+            o.USER_ID = #{userId}
             <if test="paginationInfo.detailCondition.from != null">
-                AND REG_DT &gt;= #{paginationInfo.detailCondition.from}
+                AND o.REG_DT &gt;= #{paginationInfo.detailCondition.from}
             </if>
             <if test="paginationInfo.detailCondition.to != null">
-                AND REG_DT &lt; #{paginationInfo.detailCondition.to} + INTERVAL '1' DAY
+                AND o.REG_DT &lt; #{paginationInfo.detailCondition.to} + INTERVAL '1' DAY
             </if>
         </trim>
-
     </sql>
 
     <!-- selectOrdersByUserId --> 
 
     <select id="selectOrdersByUserId">
-        SELECT ORD_SN, ORD_ID, USER_ID, ORD_NM, TOT_AMT, ORD_STAT_CD, REG_DT, MDFCN_DT
-        FROM ORDERS
+        SELECT ORD_SN, ORD_ID, USER_ID, ORD_NM, TOT_AMT, ORD_STAT_CD, REG_DT, MDFCN_DT,
+               CASE WHEN EXISTS (
+                   SELECT 1 FROM ORDER_ITEM oi
+                    WHERE oi.ORD_SN = o.ORD_SN
+                      AND oi.PROD_DIV_CD = 'TEXTBOOK'
+               ) THEN 1 ELSE 0 END AS HAS_TEXTBOOK
+          FROM ORDERS o
         <include refid="orderSearchCondition"/>
         ORDER BY REG_DT DESC
         OFFSET #{paginationInfo.offset} ROWS FETCH NEXT #{paginationInfo.screenSize} ROWS ONLY
@@ -124,7 +129,7 @@
 
     <select id="selectOrderTotalCountByUserId">
         SELECT COUNT(*)
-        FROM ORDERS
+          FROM ORDERS o
         <include refid="orderSearchCondition"/>
     </select>
 
