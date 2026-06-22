@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html th:replace="~{classroom/layout-classroom :: layout(
-    ${editNotice != null} ? (${classroom.classNm} + ' | 공지 수정') : (${classroom.classNm} + ' | 공지 작성'),
+    ${editDataroom != null} ? (${classroom.classNm} + ' | 자료 수정') : (${classroom.classNm} + ' | 자료 등록'),
     ${classroom},
-    'notice',
+    'dataroom',
     ~{:: #content}
 )}" lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head></head>
@@ -12,7 +12,8 @@
   <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
     <div class="px-7 py-5 border-b border-slate-100">
       <h2 class="text-base font-bold text-slate-800"
-          th:text="${editNotice != null} ? '공지 수정' : '공지 작성'">공지 작성</h2>
+          th:text="${editDataroom != null} ? '자료 수정' : '자료 등록'">자료 등록</h2>
+      <p class="text-sm text-slate-400 mt-1">수강생에게 제공할 자료를 등록하세요.</p>
     </div>
 
     <div th:if="${param.error != null}"
@@ -21,23 +22,23 @@
       파일 업로드에 실패했습니다. 다시 시도해주세요.
     </div>
 
-    <form th:action="${editNotice != null}
-                      ? @{/classroom/detail/{sn}/notice/{postSn}/edit(sn=${classroom.classSn},postSn=${editNotice.postSn})}
-                      : @{/classroom/detail/{sn}/notice/write(sn=${classroom.classSn})}"
+    <form th:action="${editDataroom != null}
+                      ? @{/classroom/detail/{sn}/dataroom/{postSn}/edit(sn=${classroom.classSn},postSn=${editDataroom.postSn})}
+                      : @{/classroom/detail/{sn}/dataroom/write(sn=${classroom.classSn})}"
           method="post"
           enctype="multipart/form-data"
           class="p-7 flex flex-col gap-5">
 
       <input type="hidden" name="postCn" id="postCnHidden" />
       <input type="hidden" name="atchFileId"
-             th:if="${editNotice != null and editNotice.atchFileId != null}"
-             th:value="${editNotice.atchFileId}" />
+             th:if="${editDataroom != null and editDataroom.atchFileId != null}"
+             th:value="${editDataroom.atchFileId}" />
 
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-semibold text-slate-600">제목</label>
+        <label class="text-sm font-semibold text-slate-600">제목 <span class="text-rose-400">*</span></label>
         <input type="text" name="postSj"
-               th:value="${editNotice != null} ? ${editNotice.postSj} : ''"
-               placeholder="제목을 입력하세요"
+               th:value="${editDataroom != null} ? ${editDataroom.postSj} : ''"
+               placeholder="자료 제목을 입력하세요"
                class="w-full text-sm px-4 py-3 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 transition-colors"
                required />
       </div>
@@ -57,7 +58,7 @@
             <span th:text="${f.orgnFileNm}" class="flex-1 truncate"></span>
             <span class="text-slate-400 text-sm"
                   th:text="${#numbers.formatDecimal(f.fileSizeCnt / 1024.0, 1, 1) + ' KB'}"></span>
-            <form th:action="@{/classroom/detail/{sn}/notice/{postSn}/file/{fileDtlSn}/delete(sn=${classroom.classSn},postSn=${editNotice.postSn},fileDtlSn=${f.atchFileDtlSn})}"
+            <form th:action="@{/classroom/detail/{sn}/dataroom/{postSn}/file/{fileDtlSn}/delete(sn=${classroom.classSn},postSn=${editDataroom.postSn},fileDtlSn=${f.atchFileDtlSn})}"
                   method="post"
                   onsubmit="return confirm('파일을 삭제하시겠습니까?')">
               <button type="submit" class="text-slate-400 hover:text-rose-500 transition-colors">
@@ -76,13 +77,13 @@
       </div>
 
       <div class="flex justify-end gap-3 pt-2">
-        <a th:href="${editNotice != null}
-                     ? @{/classroom/detail/{sn}/notice/{postSn}(sn=${classroom.classSn},postSn=${editNotice.postSn})}
-                     : @{/classroom/detail/{sn}/notice(sn=${classroom.classSn})}"
+        <a th:href="${editDataroom != null}
+                     ? @{/classroom/detail/{sn}/dataroom/{postSn}(sn=${classroom.classSn},postSn=${editDataroom.postSn})}
+                     : @{/classroom/detail/{sn}/dataroom(sn=${classroom.classSn})}"
            class="text-sm font-semibold px-5 py-2.5 text-slate-500 hover:text-slate-700 border border-slate-100 rounded-lg transition-colors">취소</a>
         <button type="submit"
                 class="text-sm font-semibold px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                th:text="${editNotice != null} ? '수정' : '등록'">등록</button>
+                th:text="${editDataroom != null} ? '수정' : '등록'">등록</button>
       </div>
     </form>
   </div>
@@ -110,7 +111,7 @@
 <script defer th:src="@{/js/tiptap/tiptap-editor.iife.js}"></script>
 <script th:inline="javascript">
   document.addEventListener('DOMContentLoaded', function () {
-    const savedContent = /*[[${editNotice?.postCn}]]*/ null;
+    const savedContent = /*[[${editDataroom?.postCn}]]*/ null;
     let initialForMount = '';
     let htmlToRestore = null;
     if (savedContent) {

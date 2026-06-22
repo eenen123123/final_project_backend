@@ -41,7 +41,7 @@
           <span class="text-sm text-slate-400"
                 th:text="${qna.answDt != null ? #temporals.format(qna.answDt, 'yyyy-MM-dd HH:mm') : ''}"></span>
           <a th:href="@{/classroom/detail/{sn}/qna/{postSn}(sn=${classroom.classSn},postSn=${qna.postSn},editAnswer=true)}"
-             class="text-sm font-semibold text-slate-400 hover:text-slate-600 transition-colors">수정</a>
+             class="text-sm font-semibold px-4 py-2 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">수정</a>
         </div>
         <div class="px-7 py-7 text-sm text-slate-700 leading-relaxed whitespace-pre-wrap"
              th:text="${qna.answCn}">답변 내용</div>
@@ -53,7 +53,7 @@
                 th:text="${editAnswer} ? '답변 수정' : '답변 작성'">답변 작성</span>
           <a th:if="${editAnswer}"
              th:href="@{/classroom/detail/{sn}/qna/{postSn}(sn=${classroom.classSn},postSn=${qna.postSn})}"
-             class="text-sm font-semibold text-slate-400 hover:text-slate-600 transition-colors">취소</a>
+             class="text-sm font-semibold px-4 py-2 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">취소</a>
         </div>
         <div class="p-7">
           <form th:action="@{/classroom/detail/{sn}/qna/{postSn}/answer(sn=${classroom.classSn},postSn=${qna.postSn})}"

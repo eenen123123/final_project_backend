@@ -13,6 +13,7 @@
     <result property="sbmtCn"       column="SBMT_CN"/>
     <result property="score"        column="SCORE"/>
     <result property="grddYn"       column="GRDD_YN"/>
+    <result property="grddUserId"   column="GRDD_USER_ID"/>
     <result property="grddDt"       column="GRDD_DT"/>
     <result property="sbmtDt"       column="SBMT_DT"/>
     <result property="asgmtSj"      column="ASGMT_SJ"/>
@@ -28,6 +29,7 @@
         s.SBMT_CN,
         s.SCORE,
         s.GRDD_YN,
+        s.GRDD_USER_ID,
         s.GRDD_DT,
         s.SBMT_DT
     FROM CLASSROOM_MEMBER cm
@@ -56,7 +58,9 @@
             s.ASGMT_SN,
             s.SBMT_USER_ID,
             m.USER_NAME,
+            s.SCORE,
             s.GRDD_YN,
+            s.GRDD_USER_ID,
             s.SBMT_DT,
             ab.ASGMT_SJ
         FROM ASSIGNMENT_SUBMIT s
@@ -68,13 +72,19 @@
     WHERE ROWNUM &lt;= #{limit}
   </select>
 
+  <delete id="deleteSubmitsByAsgmtSn">
+    DELETE FROM ASSIGNMENT_SUBMIT WHERE ASGMT_SN = #{asgmtSn}
+  </delete>
+
   <update id="updateGrade">
     UPDATE ASSIGNMENT_SUBMIT
-    SET SCORE    = #{score},
-        GRDD_YN  = 'Y',
-        GRDD_DT  = CURRENT_TIMESTAMP,
-        MDFCN_DT = CURRENT_TIMESTAMP
-    WHERE SBMT_SN = #{sbmtSn}
+    SET SCORE        = #{score},
+        GRDD_YN      = 'Y',
+        GRDD_USER_ID = #{grddUserId},
+        GRDD_DT      = CURRENT_TIMESTAMP,
+        MDFCN_DT     = CURRENT_TIMESTAMP
+    WHERE SBMT_SN  = #{sbmtSn}
+      AND ASGMT_SN = #{asgmtSn}
   </update>
 
 </mapper>

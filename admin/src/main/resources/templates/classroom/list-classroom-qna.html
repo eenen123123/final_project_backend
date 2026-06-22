@@ -27,31 +27,31 @@
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="border-b border-slate-100 text-sm text-slate-400">
-            <th class="py-4 px-7 w-14 font-medium">번호</th>
+            <th class="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
             <th class="py-4 px-7 font-medium">제목</th>
-            <th class="py-4 px-7 w-28 font-medium">작성자</th>
-            <th class="py-4 px-7 w-24 text-center font-medium">답변</th>
-            <th class="py-4 px-7 w-40 font-medium">작성일</th>
+            <th class="py-4 px-7 w-28 font-medium whitespace-nowrap">작성자</th>
+            <th class="py-4 px-7 w-32 text-center font-medium whitespace-nowrap">답변</th>
+            <th class="py-4 px-7 w-40 font-medium whitespace-nowrap">작성일</th>
           </tr>
         </thead>
         <tbody class="text-slate-700">
           <tr th:each="qna, stat : ${qnaList}" class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-            <td class="py-4 px-7 text-sm text-slate-300 font-mono"
+            <td class="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap"
                 th:text="${qnaList.size() - stat.index}">1</td>
             <td class="py-4 px-7">
               <a th:href="@{/classroom/detail/{sn}/qna/{postSn}(sn=${classroom.classSn},postSn=${qna.postSn})}"
                  class="font-semibold text-slate-800 hover:text-blue-600 transition-colors text-sm"
                  th:text="${qna.postSj}">질문 제목</a>
             </td>
-            <td class="py-4 px-7 text-sm text-slate-500"
+            <td class="py-4 px-7 text-sm text-slate-500 whitespace-nowrap"
                 th:text="${qna.memberDto != null ? qna.memberDto.userName : qna.wrtrUserId}">작성자</td>
-            <td class="py-4 px-7 text-center">
+            <td class="py-4 px-7 text-center whitespace-nowrap">
               <span th:if="${qna.answYn == 'Y'}"
                     class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold text-emerald-500 border border-emerald-100">답변완료</span>
               <span th:unless="${qna.answYn == 'Y'}"
                     class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold text-amber-500 border border-amber-100">미답변</span>
             </td>
-            <td class="py-4 px-7 text-sm text-slate-400 font-mono"
+            <td class="py-4 px-7 text-sm text-slate-400 font-mono whitespace-nowrap"
                 th:text="${qna.regDt != null ? #temporals.format(qna.regDt, 'yyyy-MM-dd') : '-'}">2026-06-01</td>
           </tr>
         </tbody>

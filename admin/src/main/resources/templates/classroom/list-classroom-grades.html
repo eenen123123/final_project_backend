@@ -27,40 +27,40 @@
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="border-b border-slate-100 text-sm text-slate-400">
-            <th class="py-4 px-7 w-14 font-medium">번호</th>
+            <th class="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
             <th class="py-4 px-7 font-medium">이름</th>
-            <th class="py-4 px-7 w-28 text-center font-medium">과제 제출</th>
-            <th class="py-4 px-7 w-28 text-center font-medium">채점 완료</th>
-            <th class="py-4 px-7 w-32 text-center font-medium">과제 평균</th>
-            <th class="py-4 px-7 w-28 text-center font-medium">시험 응시</th>
+            <th class="py-4 px-7 w-28 text-center font-medium whitespace-nowrap">과제 제출</th>
+            <th class="py-4 px-7 w-28 text-center font-medium whitespace-nowrap">채점 완료</th>
+            <th class="py-4 px-7 w-32 text-center font-medium whitespace-nowrap">과제 평균</th>
+            <th class="py-4 px-7 w-28 text-center font-medium whitespace-nowrap">시험 응시</th>
           </tr>
         </thead>
         <tbody class="text-slate-700">
           <tr th:each="g, stat : ${gradeList}" class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-            <td class="py-4 px-7 text-sm text-slate-300 font-mono" th:text="${stat.count}">1</td>
+            <td class="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap" th:text="${stat.count}">1</td>
             <td class="py-4 px-7">
               <div class="font-semibold text-slate-800 text-sm" th:text="${g.userName}">홍길동</div>
               <div class="text-sm text-slate-400 font-mono" th:text="${g.userId}">hong123</div>
             </td>
-            <td class="py-4 px-7 text-center">
+            <td class="py-4 px-7 text-center whitespace-nowrap">
               <span class="text-sm font-semibold text-slate-700"
                     th:text="${g.sbmtAsgmtCnt + ' / ' + g.totAsgmtCnt}">0 / 0</span>
             </td>
-            <td class="py-4 px-7 text-center">
+            <td class="py-4 px-7 text-center whitespace-nowrap">
               <span th:if="${g.grddAsgmtCnt > 0}"
                     class="text-sm font-semibold text-emerald-500"
                     th:text="${g.grddAsgmtCnt + '건'}">0건</span>
               <span th:unless="${g.grddAsgmtCnt > 0}"
                     class="text-sm text-slate-300">-</span>
             </td>
-            <td class="py-4 px-7 text-center">
+            <td class="py-4 px-7 text-center whitespace-nowrap">
               <span th:if="${g.avgScore != null}"
                     class="inline-flex items-center justify-center px-3 py-1 rounded-lg text-sm font-semibold text-blue-500 border border-blue-100"
                     th:text="${g.avgScore + '점'}">0점</span>
               <span th:unless="${g.avgScore != null}"
                     class="text-sm text-slate-300">-</span>
             </td>
-            <td class="py-4 px-7 text-center">
+            <td class="py-4 px-7 text-center whitespace-nowrap">
               <span th:if="${g.examCnt > 0}"
                     class="text-sm font-semibold text-indigo-500"
                     th:text="${g.examCnt + '회'}">0회</span>

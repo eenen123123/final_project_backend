@@ -206,6 +206,66 @@
               AND CLASS_SN = #{classSn}
       </update>
 
+      <!-- ── 클래스룸 자료실 ─────────────────────────────────────── -->
+
+      <select id="selectClassroomDataroomList" resultMap="instructorBoardMap">
+            SELECT
+                  IB.POST_SN, IB.INSTR_USER_ID, IB.WRTR_USER_ID,
+                  IB.BOARD_TYPE_CD, IB.POST_SJ, IB.POST_CN,
+                  IB.INQ_CNT, IB.ATCH_FILE_ID, IB.REG_DT, IB.MDFCN_DT, IB.USE_YN,
+                  M.USER_NAME
+            FROM INSTRUCTOR_BOARD IB
+                  INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
+            WHERE IB.CLASS_SN      = #{classSn}
+              AND IB.BOARD_TYPE_CD = 'DATAROOM'
+              AND IB.USE_YN        = 'Y'
+            ORDER BY IB.REG_DT DESC
+      </select>
+
+      <select id="selectClassroomDataroomDetail" resultMap="instructorBoardMap">
+            SELECT
+                  IB.POST_SN, IB.INSTR_USER_ID, IB.WRTR_USER_ID,
+                  IB.BOARD_TYPE_CD, IB.POST_SJ, IB.POST_CN,
+                  IB.INQ_CNT, IB.ATCH_FILE_ID, IB.REG_DT, IB.MDFCN_DT, IB.USE_YN,
+                  M.USER_NAME
+            FROM INSTRUCTOR_BOARD IB
+                  INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
+            WHERE IB.POST_SN  = #{postSn}
+              AND IB.CLASS_SN = #{classSn}
+              AND IB.USE_YN   = 'Y'
+      </select>
+
+      <insert id="insertClassroomDataroom" useGeneratedKeys="true" keyProperty="postSn" keyColumn="POST_SN">
+            INSERT INTO INSTRUCTOR_BOARD (
+                  INSTR_USER_ID, WRTR_USER_ID, BOARD_TYPE_CD,
+                  CLASS_SN, POST_SJ, POST_CN,
+                  INQ_CNT, ATCH_FILE_ID, USE_YN, REG_DT, MDFCN_DT, RGTR_ID, LAST_MDFR_ID
+            ) VALUES (
+                  #{instrUserId}, #{wrtrUserId}, 'DATAROOM',
+                  #{classSn}, #{postSj}, #{postCn, jdbcType=VARCHAR},
+                  0, #{atchFileId, jdbcType=NUMERIC}, 'Y', SYSDATE, SYSDATE, #{wrtrUserId}, #{wrtrUserId}
+            )
+      </insert>
+
+      <update id="updateClassroomDataroom">
+            UPDATE INSTRUCTOR_BOARD
+            SET POST_SJ      = #{postSj},
+                POST_CN      = #{postCn, jdbcType=VARCHAR},
+                ATCH_FILE_ID = #{atchFileId, jdbcType=NUMERIC},
+                MDFCN_DT     = SYSDATE,
+                LAST_MDFR_ID = #{wrtrUserId}
+            WHERE POST_SN  = #{postSn}
+              AND CLASS_SN = #{classSn}
+              AND USE_YN   = 'Y'
+      </update>
+
+      <update id="deleteClassroomDataroom">
+            UPDATE INSTRUCTOR_BOARD
+            SET USE_YN = 'N', MDFCN_DT = SYSDATE
+            WHERE POST_SN  = #{postSn}
+              AND CLASS_SN = #{classSn}
+      </update>
+
       <!-- ── 클래스룸 Q&A ──────────────────────────────────────── -->
 
       <resultMap id="classroomQnaMap" type="kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto"
@@ -377,6 +437,7 @@
             ORDER BY CAF.ATCH_FILE_DTL_SN ASC
       </select>
 
+      <!-- 수강생이 공지/Q&A를 열람할 때 호출. 강사 관리 화면(클래스룸)에서는 호출 금지. -->
       <update id="incrementViewCount">
             UPDATE INSTRUCTOR_BOARD
             SET INQ_CNT = INQ_CNT + 1

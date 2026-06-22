@@ -53,6 +53,18 @@ public interface InstructorBoardService {
 
     int deleteClassroomNotice(Long postSn, Long classSn);
 
+    // ── 클래스룸 자료실 ──────────────────────────────────────────────
+
+    List<InstructorBoardDto> getClassroomDataroomList(Long classSn);
+
+    InstructorBoardDto getClassroomDataroomDetail(Long postSn, Long classSn);
+
+    int insertClassroomDataroom(InstructorBoardDto dto);
+
+    int updateClassroomDataroom(InstructorBoardDto dto);
+
+    int deleteClassroomDataroom(Long postSn, Long classSn);
+
     // ── 클래스룸 Q&A ──────────────────────────────────────────────
 
     List<kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto> getClassroomQnaList(Long classSn);

@@ -15,4 +15,8 @@ public interface AssignmentBoardMapper {
     AssignmentBoardDto selectAssignmentDetail(@Param("asgmtSn") Long asgmtSn);
 
     int insertAssignment(AssignmentBoardDto dto);
+
+    int updateAssignment(AssignmentBoardDto dto);
+
+    int deleteAssignment(@Param("asgmtSn") Long asgmtSn, @Param("classSn") Long classSn);
 }

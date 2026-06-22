@@ -50,6 +50,18 @@ public interface InstructorBoardMapper {
 
     int deleteClassroomNotice(@Param("postSn") Long postSn, @Param("classSn") Long classSn);
 
+    // ── 클래스룸 자료실 ──────────────────────────────────────────────
+
+    List<InstructorBoardDto> selectClassroomDataroomList(@Param("classSn") Long classSn);
+
+    InstructorBoardDto selectClassroomDataroomDetail(@Param("postSn") Long postSn, @Param("classSn") Long classSn);
+
+    int insertClassroomDataroom(InstructorBoardDto dto);
+
+    int updateClassroomDataroom(InstructorBoardDto dto);
+
+    int deleteClassroomDataroom(@Param("postSn") Long postSn, @Param("classSn") Long classSn);
+
     // ── 클래스룸 Q&A ──────────────────────────────────────────────
 
     List<kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto> selectClassroomQnaList(@Param("classSn") Long classSn);
