@@ -1,4 +1,5 @@
-<link rel="stylesheet" th:href="@{/css/instructor/board.css}" />
+<title th:fragment="pageTitle">강사 게시판 관리 | HERMES</title>
+<link rel="stylesheet" th:href="@{/css/instructor/instructor-board.css}" />
 
 <!-- 페이지 헤더 -->
 <div class="flex items-center justify-between mb-6">
@@ -9,7 +10,7 @@
       <p class="text-sm text-slate-500 mt-1">강의 관련 공지, 질문, 자료를 등록합니다.</p>
     </div>
   </div>
-  <a th:href="@{/instructor/board/list(page=${listPage}, keyword=${listKeyword}, boardTypeCd=${listBoardTypeCd})}"
+  <a th:href="@{/instructor/board/list(page=${listPage}, keyword=${listKeyword}, boardTypeCd=${listBoardTypeCd}, searchType=${listSearchType})}"
      class="hm-btn-secondary text-base">
     <i class="fa-solid fa-list"></i>
     목록으로
@@ -34,18 +35,29 @@
   <input type="hidden" name="listPage" th:value="${listPage != null ? listPage : 1}" />
   <input type="hidden" name="listKeyword" th:value="${listKeyword != null ? listKeyword : ''}" />
   <input type="hidden" name="listBoardTypeCd" th:value="${listBoardTypeCd != null ? listBoardTypeCd : ''}" />
+  <input type="hidden" name="listSearchType" th:value="${listSearchType != null ? listSearchType : ''}" />
 
   <div class="divide-y divide-slate-100">
     <!-- 게시판 분류 -->
     <div class="flex items-center px-8 py-5">
       <label for="boardTypeCd" class="w-28 shrink-0 text-sm font-semibold text-slate-600">게시판 분류</label>
-      <select id="boardTypeCd" name="boardTypeCd" class="hm-input hm-input-sky max-w-56 text-base">
+      <!-- 수정 시: 분류 변경 불가 — disabled select + hidden으로 값 전송 -->
+      <th:block th:if="${board?.postSn != null}">
+        <input type="hidden" name="boardTypeCd" th:value="${board.boardTypeCd}" />
+        <select id="boardTypeCd" class="hm-input hm-input-sky max-w-56 text-base" disabled>
+          <option th:each="type : ${boardTypes}"
+                  th:value="${type.comCd}"
+                  th:text="${type.comCdNm}"
+                  th:selected="${type.comCd == board.boardTypeCd}"></option>
+        </select>
+      </th:block>
+      <!-- 작성 시: QNA 제외한 분류 선택 가능 -->
+      <select th:unless="${board?.postSn != null}" id="boardTypeCd" name="boardTypeCd" class="hm-input hm-input-sky max-w-56 text-base">
         <option value="">-- 선택 --</option>
         <option th:each="type : ${boardTypes}"
-                th:if="${board?.postSn != null or type.comCd != 'QNA'}"
+                th:if="${type.comCd != 'QNA'}"
                 th:value="${type.comCd}"
-                th:text="${type.comCdNm}"
-                th:selected="${type.comCd == board?.boardTypeCd}"></option>
+                th:text="${type.comCdNm}"></option>
       </select>
     </div>
 
@@ -92,6 +104,7 @@
               <input type="hidden" name="listPage" th:value="${listPage}" />
               <input type="hidden" name="listKeyword" th:value="${listKeyword}" />
               <input type="hidden" name="listBoardTypeCd" th:value="${listBoardTypeCd}" />
+              <input type="hidden" name="listSearchType" th:value="${listSearchType}" />
               <button type="submit" class="text-rose-400 hover:text-rose-600 transition-colors ml-1">
                 <i class="fa-solid fa-xmark"></i>
               </button>
@@ -112,7 +125,7 @@
 
   <!-- 버튼 영역 -->
   <div class="flex justify-end gap-3 border-t border-slate-100 bg-slate-50 px-8 py-4">
-    <a th:href="@{/instructor/board/list(page=${listPage}, keyword=${listKeyword}, boardTypeCd=${listBoardTypeCd})}"
+    <a th:href="@{/instructor/board/list(page=${listPage}, keyword=${listKeyword}, boardTypeCd=${listBoardTypeCd}, searchType=${listSearchType})}"
        class="hm-btn-secondary bg-slate-200 text-slate-700 text-base hover:bg-slate-300">
       취소
     </a>

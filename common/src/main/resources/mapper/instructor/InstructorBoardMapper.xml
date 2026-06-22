@@ -2,8 +2,18 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
       "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-
+<!--
+  강사 게시판 Mapper XML
+  대상 테이블: INSTRUCTOR_BOARD, INSTRUCTOR_QNA
+  CLASS_SN IS NULL  → 강사 홈페이지 게시판
+  CLASS_SN 값 있음  → 특정 클래스룸 전속 게시판
+-->
 <mapper namespace="kr.or.ddit.finalProject.mapper.instructor.InstructorBoardMapper">
+
+      <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           공통 ResultMap
+           POST_CN(CLOB)은 목록 쿼리에서 제외하고 상세 쿼리에서만 선택한다.
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
       <resultMap id="instructorBoardMap" type="kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto">
             <id property="postSn" column="POST_SN" />
             <result property="instrUserId" column="INSTR_USER_ID"/>
@@ -18,12 +28,21 @@
             <result property="rgtrId" column="RGTR_ID"/>
             <result property="lastMdfrId" column="LAST_MDFR_ID"/>
             <result property="useYn" column="USE_YN"/>
-
+            <result property="answYn" column="ANSW_YN"/>
             <association property="memberDto" javaType="kr.or.ddit.finalProject.dto.member.MemberDto">
                   <result property="userName" column="USER_NAME"/>
             </association>
       </resultMap>
 
+      <!-- 작성자 MEMBER 조인 — 게시글 목록/상세 쿼리 공통 -->
+      <sql id="wrtrMemberJoin">
+            INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
+      </sql>
+
+      <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           공통 WHERE 절 (강사 홈페이지 게시판 목록 / 건수 쿼리 공유)
+           MEMBER 조인이 두 쿼리 모두에 있으므로 M.USER_NAME 참조 가능.
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
       <sql id="boardListWhere">
             WHERE IB.INSTR_USER_ID = #{instrUserId}
                   AND IB.CLASS_SN IS NULL
@@ -31,10 +50,40 @@
                   AND IB.BOARD_TYPE_CD = #{boardTypeCd}
             </if>
             <if test="keyword != null and keyword != ''">
-                  AND UPPER(IB.POST_SJ) LIKE '%' || UPPER(#{keyword}) || '%'
+                <choose>
+                    <!-- 제목 검색: LIKE로 대소문자 무시 -->
+                    <when test="searchType == 'title'">
+                        AND UPPER(IB.POST_SJ) LIKE '%' || UPPER(#{keyword}) || '%'
+                    </when>
+                    <!-- 내용 검색: CLOB은 LIKE 불가 → DBMS_LOB.INSTR 사용 (대소문자 구분) -->
+                    <when test="searchType == 'content'">
+                        AND DBMS_LOB.INSTR(IB.POST_CN, #{keyword}, 1, 1) > 0
+                    </when>
+                    <!-- 제목+내용 복합 검색 -->
+                    <when test="searchType == 'titleContent'">
+                        AND (UPPER(IB.POST_SJ) LIKE '%' || UPPER(#{keyword}) || '%'
+                          OR DBMS_LOB.INSTR(IB.POST_CN, #{keyword}, 1, 1) > 0)
+                    </when>
+                    <!-- 작성자 이름 검색 -->
+                    <when test="searchType == 'writer'">
+                        AND UPPER(M.USER_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
+                    </when>
+                    <!-- 전체(기본값): 제목 OR 내용 OR 작성자 -->
+                    <otherwise>
+                        AND (UPPER(IB.POST_SJ) LIKE '%' || UPPER(#{keyword}) || '%'
+                          OR DBMS_LOB.INSTR(IB.POST_CN, #{keyword}, 1, 1) > 0
+                          OR UPPER(M.USER_NAME) LIKE '%' || UPPER(#{keyword}) || '%')
+                    </otherwise>
+                </choose>
             </if>
       </sql>
 
+      <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           강사 홈페이지 게시판 — 목록 / 건수 / 상세
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+
+      <!-- 목록: POST_CN(CLOB)은 제외하여 대용량 데이터 전송 방지.
+           QNA 답변 여부 표시를 위해 INSTRUCTOR_QNA LEFT JOIN 추가. -->
       <select id="selectInstructorBoardList" resultMap="instructorBoardMap">
             SELECT
                   IB.POST_SN
@@ -50,8 +99,10 @@
                   , IB.LAST_MDFR_ID
                   , IB.USE_YN
                   , M.USER_NAME
+                  , IQ.ANSW_YN
             FROM INSTRUCTOR_BOARD IB
-                  INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
+                  <include refid="wrtrMemberJoin"/>
+                  LEFT JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
             <include refid="boardListWhere"/>
             ORDER BY IB.REG_DT DESC
             OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
@@ -60,9 +111,11 @@
       <select id="selectInstructorBoardCount" resultType="int">
             SELECT COUNT(*)
             FROM INSTRUCTOR_BOARD IB
+                  <include refid="wrtrMemberJoin"/>
             <include refid="boardListWhere"/>
       </select>
 
+      <!-- 상세: POST_CN(CLOB) 포함 -->
       <select id="selectInstructorBoardDetail" resultMap="instructorBoardMap">
             SELECT IB.POST_SN
                   , IB.INSTR_USER_ID
@@ -79,12 +132,17 @@
                   , IB.USE_YN
                   , M.USER_NAME
             FROM INSTRUCTOR_BOARD IB
-                  INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
+                  <include refid="wrtrMemberJoin"/>
             WHERE IB.POST_SN = #{postSn}
                   AND IB.INSTR_USER_ID = #{instrUserId}
                   AND IB.CLASS_SN IS NULL
       </select>
 
+      <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           강사 홈페이지 게시판 — 등록 / 수정 / 삭제 / 복구
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+
+      <!-- POST_SN은 Oracle IDENTITY 컬럼 → useGeneratedKeys로 자동 채워짐 -->
       <insert id="insertInstructorBoard" useGeneratedKeys="true" keyProperty="postSn" keyColumn="POST_SN">
             INSERT INTO INSTRUCTOR_BOARD (
                   INSTR_USER_ID
@@ -119,8 +177,7 @@
       <update id="updateInstructorBoard">
             UPDATE INSTRUCTOR_BOARD
             SET
-                  BOARD_TYPE_CD = #{boardTypeCd}
-                  , POST_SJ = #{postSj}
+                  POST_SJ = #{postSj}
                   , POST_CN = #{postCn}
                   , ATCH_FILE_ID = #{atchFileId, jdbcType=NUMERIC}
                   , MDFCN_DT = SYSDATE
@@ -146,7 +203,51 @@
                   AND CLASS_SN IS NULL
       </update>
 
-      <!-- ── 클래스룸 공지사항 ──────────────────────────────────── -->
+      <delete id="hardDeleteInstructorBoard">
+            DELETE FROM INSTRUCTOR_BOARD
+            WHERE POST_SN = #{postSn}
+                  AND CLASS_SN IS NULL
+      </delete>
+
+      <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           강사 홈페이지 Q&A 답변 (INSTRUCTOR_QNA 테이블)
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+
+      <select id="selectInstructorQnaAnswer"
+              resultType="kr.or.ddit.finalProject.dto.instructor.board.InstructorQnaAnswerDto">
+            SELECT
+                  IQ.ANSW_YN  AS answYn,
+                  IQ.ANSW_CN  AS answCn,
+                  M.USER_NAME AS answrUserNm,
+                  TO_CHAR(IQ.ANSW_DT, 'YYYY-MM-DD HH24:MI:SS') AS answDt
+            FROM INSTRUCTOR_QNA IQ
+            LEFT JOIN MEMBER M ON IQ.ANSWR_USER_ID = M.USER_ID
+            WHERE IQ.POST_SN = #{postSn}
+      </select>
+
+      <!-- 게시글 등록 시 boardTypeCd='QNA'이면 서비스에서 이 INSERT를 추가 호출한다 -->
+      <insert id="insertInstructorQna">
+            INSERT INTO INSTRUCTOR_QNA (POST_SN, ANSW_YN, SECR_YN)
+            VALUES (#{postSn}, 'N', 'N')
+      </insert>
+
+      <!-- child 레코드가 없는 경우(직접 삽입된 데이터 등)에도 안전하게 처리하도록 MERGE로 UPSERT -->
+      <update id="updateInstructorQnaAnswer">
+            MERGE INTO INSTRUCTOR_QNA IQ
+            USING DUAL ON (IQ.POST_SN = #{postSn})
+            WHEN MATCHED THEN
+                UPDATE SET ANSW_CN       = #{answCn},
+                           ANSWR_USER_ID = #{answrUserId},
+                           ANSW_DT       = SYSDATE,
+                           ANSW_YN       = 'Y'
+            WHEN NOT MATCHED THEN
+                INSERT (POST_SN, ANSW_CN, ANSWR_USER_ID, ANSW_DT, ANSW_YN, SECR_YN)
+                VALUES (#{postSn}, #{answCn}, #{answrUserId}, SYSDATE, 'Y', 'N')
+      </update>
+
+      <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           클래스룸 공지사항 (CLASS_SN 값 있음, BOARD_TYPE_CD='NOTICE')
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
 
       <select id="selectClassroomNoticeList" resultMap="instructorBoardMap">
             SELECT
@@ -155,7 +256,7 @@
                   IB.INQ_CNT, IB.REG_DT, IB.MDFCN_DT, IB.USE_YN,
                   M.USER_NAME
             FROM INSTRUCTOR_BOARD IB
-                  INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
+                  <include refid="wrtrMemberJoin"/>
             WHERE IB.CLASS_SN      = #{classSn}
               AND IB.BOARD_TYPE_CD = 'NOTICE'
               AND IB.USE_YN        = 'Y'
@@ -169,7 +270,7 @@
                   IB.INQ_CNT, IB.REG_DT, IB.MDFCN_DT, IB.USE_YN,
                   M.USER_NAME
             FROM INSTRUCTOR_BOARD IB
-                  INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
+                  <include refid="wrtrMemberJoin"/>
             WHERE IB.POST_SN  = #{postSn}
               AND IB.CLASS_SN = #{classSn}
               AND IB.USE_YN   = 'Y'
@@ -206,7 +307,9 @@
               AND CLASS_SN = #{classSn}
       </update>
 
-      <!-- ── 클래스룸 자료실 ─────────────────────────────────────── -->
+      <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           클래스룸 자료실 (CLASS_SN 값 있음, BOARD_TYPE_CD='DATAROOM')
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
 
       <select id="selectClassroomDataroomList" resultMap="instructorBoardMap">
             SELECT
@@ -215,7 +318,7 @@
                   IB.INQ_CNT, IB.ATCH_FILE_ID, IB.REG_DT, IB.MDFCN_DT, IB.USE_YN,
                   M.USER_NAME
             FROM INSTRUCTOR_BOARD IB
-                  INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
+                  <include refid="wrtrMemberJoin"/>
             WHERE IB.CLASS_SN      = #{classSn}
               AND IB.BOARD_TYPE_CD = 'DATAROOM'
               AND IB.USE_YN        = 'Y'
@@ -229,7 +332,7 @@
                   IB.INQ_CNT, IB.ATCH_FILE_ID, IB.REG_DT, IB.MDFCN_DT, IB.USE_YN,
                   M.USER_NAME
             FROM INSTRUCTOR_BOARD IB
-                  INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
+                  <include refid="wrtrMemberJoin"/>
             WHERE IB.POST_SN  = #{postSn}
               AND IB.CLASS_SN = #{classSn}
               AND IB.USE_YN   = 'Y'
@@ -266,7 +369,10 @@
               AND CLASS_SN = #{classSn}
       </update>
 
-      <!-- ── 클래스룸 Q&A ──────────────────────────────────────── -->
+      <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           클래스룸 Q&A (CLASS_SN 값 있음, BOARD_TYPE_CD='QNA')
+           학생이 작성하고 강사가 답변한다. 비밀글(SECR_YN) 기능 포함.
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
 
       <resultMap id="classroomQnaMap" type="kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto"
                  extends="instructorBoardMap">
@@ -286,7 +392,7 @@
                   M.USER_NAME,
                   IQ.ANSW_YN, IQ.SECR_YN
             FROM INSTRUCTOR_BOARD IB
-                  INNER JOIN MEMBER M  ON IB.WRTR_USER_ID = M.USER_ID
+                  <include refid="wrtrMemberJoin"/>
                   LEFT  JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
             WHERE IB.CLASS_SN      = #{classSn}
               AND IB.BOARD_TYPE_CD = 'QNA'
@@ -304,7 +410,7 @@
                   IQ.ANSW_CN, IQ.ANSWR_USER_ID, IQ.ANSW_DT,
                   AM.USER_NAME AS ANSWR_USER_NM
             FROM INSTRUCTOR_BOARD IB
-                  INNER JOIN MEMBER M   ON IB.WRTR_USER_ID  = M.USER_ID
+                  <include refid="wrtrMemberJoin"/>
                   LEFT  JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
                   LEFT  JOIN MEMBER AM  ON IQ.ANSWR_USER_ID = AM.USER_ID
             WHERE IB.POST_SN  = #{postSn}
@@ -324,6 +430,7 @@
             )
       </insert>
 
+      <!-- insertClassroomQnaBoard 직후 반드시 호출하여 child 레코드를 생성한다 -->
       <insert id="insertClassroomQnaChild">
             INSERT INTO INSTRUCTOR_QNA (POST_SN, ANSW_YN, SECR_YN)
             VALUES (#{postSn}, 'N', 'N')
@@ -338,6 +445,22 @@
             WHERE POST_SN = #{postSn}
       </update>
 
+      <!-- 미답변 Q&A 건수: 대시보드 배지 및 알림 표시에 사용 -->
+      <select id="selectUnansweredQnaCount" resultType="int">
+            SELECT COUNT(*)
+            FROM INSTRUCTOR_BOARD IB
+                 INNER JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
+            WHERE IB.CLASS_SN      = #{classSn}
+              AND IB.BOARD_TYPE_CD = 'QNA'
+              AND IB.USE_YN        = 'Y'
+              AND IQ.ANSW_YN       = 'N'
+      </select>
+
+      <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           강사 프로필 — 최근 게시글
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+
+      <!-- ROWNUM 필터를 서브쿼리 외부에서 적용해야 ORDER BY가 먼저 실행된다 -->
       <select id="selectRecentPosts"
               resultType="kr.or.ddit.finalProject.dto.instructor.profile.InstructorRecentPostResponse">
             SELECT *
@@ -358,94 +481,10 @@
             WHERE ROWNUM &lt;= #{size}
       </select>
 
-      <!-- ── 공개 강사 게시판 Q&A 답변 ─────────────────────────────── -->
-
-      <select id="selectInstructorQnaAnswer"
-              resultType="kr.or.ddit.finalProject.dto.instructor.board.InstructorQnaAnswerDto">
-            SELECT
-                  IQ.ANSW_YN  AS answYn,
-                  IQ.ANSW_CN  AS answCn,
-                  M.USER_NAME AS answrUserNm,
-                  TO_CHAR(IQ.ANSW_DT, 'YYYY-MM-DD HH24:MI') AS answDt
-            FROM INSTRUCTOR_QNA IQ
-            LEFT JOIN MEMBER M ON IQ.ANSWR_USER_ID = M.USER_ID
-            WHERE IQ.POST_SN = #{postSn}
-      </select>
-
-      <insert id="insertInstructorQna">
-            INSERT INTO INSTRUCTOR_QNA (POST_SN, ANSW_YN, SECR_YN)
-            VALUES (#{postSn}, 'N', 'N')
-      </insert>
-
-      <update id="updateInstructorQnaAnswer">
-            UPDATE INSTRUCTOR_QNA
-            SET ANSW_CN       = #{answCn},
-                ANSWR_USER_ID = #{answrUserId},
-                ANSW_DT       = SYSDATE,
-                ANSW_YN       = 'Y'
-            WHERE POST_SN = #{postSn}
-      </update>
-
-      <select id="selectUnansweredQnaCount" resultType="int">
-            SELECT COUNT(*)
-            FROM INSTRUCTOR_BOARD IB
-                 INNER JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
-            WHERE IB.CLASS_SN      = #{classSn}
-              AND IB.BOARD_TYPE_CD = 'QNA'
-              AND IB.USE_YN        = 'Y'
-              AND IQ.ANSW_YN       = 'N'
-      </select>
-
-      <select id="selectPrevPost"
-              resultType="kr.or.ddit.finalProject.dto.instructor.board.PostNavItem">
-            SELECT IB.POST_SN AS postSn, IB.POST_SJ AS title
-            FROM INSTRUCTOR_BOARD IB
-                  INNER JOIN INSTRUCTOR I ON IB.INSTR_USER_ID = I.INSTR_USER_ID
-            WHERE I.INSTR_UUID     = #{instrUuid}
-              AND IB.BOARD_TYPE_CD = #{boardTypeCd}
-              AND IB.CLASS_SN      IS NULL
-              AND IB.USE_YN        = 'Y'
-              AND IB.POST_SN       &lt; #{postSn}
-            ORDER BY IB.POST_SN DESC
-            FETCH FIRST 1 ROWS ONLY
-      </select>
-
-      <select id="selectNextPost"
-              resultType="kr.or.ddit.finalProject.dto.instructor.board.PostNavItem">
-            SELECT IB.POST_SN AS postSn, IB.POST_SJ AS title
-            FROM INSTRUCTOR_BOARD IB
-                  INNER JOIN INSTRUCTOR I ON IB.INSTR_USER_ID = I.INSTR_USER_ID
-            WHERE I.INSTR_UUID     = #{instrUuid}
-              AND IB.BOARD_TYPE_CD = #{boardTypeCd}
-              AND IB.CLASS_SN      IS NULL
-              AND IB.USE_YN        = 'Y'
-              AND IB.POST_SN       &gt; #{postSn}
-            ORDER BY IB.POST_SN ASC
-            FETCH FIRST 1 ROWS ONLY
-      </select>
-
-      <select id="selectBoardFiles"
-              resultType="kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardFileItem">
-            SELECT
-                  CAF.ATCH_FILE_DTL_SN AS atchFileDtlSn,
-                  CAF.ORGN_FILE_NM     AS fileName,
-                  CAF.SAVE_PATH_NM     AS fileUrl
-            FROM CMMT_ATCH_FILE_DTL CAF
-                  INNER JOIN INSTRUCTOR_BOARD IB ON IB.ATCH_FILE_ID = CAF.ATCH_FILE_ID
-            WHERE IB.POST_SN  = #{postSn}
-              AND CAF.DEL_YN  = 'N'
-            ORDER BY CAF.ATCH_FILE_DTL_SN ASC
-      </select>
-
-      <!-- 수강생이 공지/Q&A를 열람할 때 호출. 강사 관리 화면(클래스룸)에서는 호출 금지. -->
-      <update id="incrementViewCount">
-            UPDATE INSTRUCTOR_BOARD
-            SET INQ_CNT = INQ_CNT + 1
-            WHERE POST_SN = #{postSn}
-              AND USE_YN  = 'Y'
-      </update>
-
-      <!-- ── 공개 강사 게시판 페이징 목록 / 상세 (React 프론트용) ──────── -->
+      <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           공개 강사 게시판 (React 프론트 전용)
+           instrUuid 기준 조회. QNA는 비밀글(SECR_YN='Y') 제외.
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
 
       <select id="selectPublicBoardCount" resultType="int">
             SELECT COUNT(*)
@@ -514,6 +553,62 @@
               AND IB.CLASS_SN  IS NULL
               AND IB.USE_YN    = 'Y'
               AND (IQ.POST_SN IS NULL OR IQ.SECR_YN = 'N')
+      </select>
+
+      <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           공통 유틸 쿼리
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+
+      <!-- 수강생이 공개 페이지를 열람할 때만 호출. 관리자/클래스룸 화면에서는 호출 금지 -->
+      <update id="incrementViewCount">
+            UPDATE INSTRUCTOR_BOARD
+            SET INQ_CNT = INQ_CNT + 1
+            WHERE POST_SN = #{postSn}
+              AND USE_YN  = 'Y'
+      </update>
+
+      <!-- postSn 기준 바로 아래 게시글 (이전글) -->
+      <select id="selectPrevPost"
+              resultType="kr.or.ddit.finalProject.dto.instructor.board.PostNavItem">
+            SELECT IB.POST_SN AS postSn, IB.POST_SJ AS title
+            FROM INSTRUCTOR_BOARD IB
+                  INNER JOIN INSTRUCTOR I ON IB.INSTR_USER_ID = I.INSTR_USER_ID
+            WHERE I.INSTR_UUID     = #{instrUuid}
+              AND IB.BOARD_TYPE_CD = #{boardTypeCd}
+              AND IB.CLASS_SN      IS NULL
+              AND IB.USE_YN        = 'Y'
+              AND IB.POST_SN       &lt; #{postSn}
+            ORDER BY IB.POST_SN DESC
+            FETCH FIRST 1 ROWS ONLY
+      </select>
+
+      <!-- postSn 기준 바로 위 게시글 (다음글) -->
+      <select id="selectNextPost"
+              resultType="kr.or.ddit.finalProject.dto.instructor.board.PostNavItem">
+            SELECT IB.POST_SN AS postSn, IB.POST_SJ AS title
+            FROM INSTRUCTOR_BOARD IB
+                  INNER JOIN INSTRUCTOR I ON IB.INSTR_USER_ID = I.INSTR_USER_ID
+            WHERE I.INSTR_UUID     = #{instrUuid}
+              AND IB.BOARD_TYPE_CD = #{boardTypeCd}
+              AND IB.CLASS_SN      IS NULL
+              AND IB.USE_YN        = 'Y'
+              AND IB.POST_SN       &gt; #{postSn}
+            ORDER BY IB.POST_SN ASC
+            FETCH FIRST 1 ROWS ONLY
+      </select>
+
+      <!-- 첨부파일 목록: DEL_YN='N' 인 파일만 반환 -->
+      <select id="selectBoardFiles"
+              resultType="kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardFileItem">
+            SELECT
+                  CAF.ATCH_FILE_DTL_SN AS atchFileDtlSn,
+                  CAF.ORGN_FILE_NM     AS fileName,
+                  CAF.SAVE_PATH_NM     AS fileUrl
+            FROM CMMT_ATCH_FILE_DTL CAF
+                  INNER JOIN INSTRUCTOR_BOARD IB ON IB.ATCH_FILE_ID = CAF.ATCH_FILE_ID
+            WHERE IB.POST_SN  = #{postSn}
+              AND CAF.DEL_YN  = 'N'
+            ORDER BY CAF.ATCH_FILE_DTL_SN ASC
       </select>
 
 </mapper>

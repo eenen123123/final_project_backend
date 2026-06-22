@@ -2,91 +2,111 @@ package kr.or.ddit.finalProject.service.instructor;
 
 import java.util.List;
 
+import kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto;
 import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardResponse;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorPublicBoardDetail;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorPublicBoardItem;
 
+/**
+ * 강사 게시판 서비스.
+ * 강사 홈페이지 게시판, 클래스룸 공지/자료실/Q&A, React 프론트용 공개 게시판을 담당한다.
+ */
 public interface InstructorBoardService {
 
+    // ── 강사 홈페이지 게시판 ──────────────────────────────────────────
+
     /**
-     * 강사 게시판 목록 조회 (검색 + 페이징)
+     * 강사 홈페이지 게시판 목록 조회 (검색 + 페이징).
+     * searchType: "" 또는 null=전체, "title"=제목, "content"=내용,
+     *             "titleContent"=제목+내용, "writer"=작성자
      */
     PageResponse<InstructorBoardResponse> getInstructorBoardList(
-            String instrUserId, String keyword, String boardTypeCd, int page, int pageSize);
+            String instrUserId, String keyword, String boardTypeCd, String searchType,
+            int page, int pageSize);
 
-    /**
-     * 강사 게시판 상세 조회
-     */
+    /** 강사 홈페이지 게시글 상세 조회 (본문, Q&A 답변, 첨부파일 포함) */
     InstructorBoardResponse getInstructorBoardDetail(Long postSn, String instrUserId);
 
-    /**
-     * 강사 게시판 등록
-     */
+    /** 강사 홈페이지 게시글 등록 (QNA 타입이면 INSTRUCTOR_QNA child 레코드도 생성) */
     int insertInstructorBoard(InstructorBoardDto instructorBoardDto);
 
-    /**
-     * 강사 게시판 수정
-     */
+    /** 강사 홈페이지 게시글 수정 */
     int updateInstructorBoard(InstructorBoardDto instructorBoardDto);
 
-    /**
-     * 강사 게시판 삭제 (소프트)
-     */
+    /** 강사 홈페이지 게시글 소프트 삭제 (USE_YN = 'N') */
     int deleteInstructorBoard(Long postSn, String instrUserId);
 
-    /**
-     * 강사 게시판 복구
-     */
+    /** 강사 홈페이지 게시글 하드 삭제 (파일 업로드 실패 보상용) */
+    int hardDeleteInstructorBoard(Long postSn);
+
+    /** 강사 홈페이지 게시글 복구 (USE_YN = 'Y') */
     int restoreInstructorBoard(Long postSn, String instrUserId);
 
-    // ── 클래스룸 공지사항 ──────────────────────────────────────────
-
-    List<InstructorBoardDto> getClassroomNoticeList(Long classSn);
-
-    InstructorBoardDto getClassroomNoticeDetail(Long postSn, Long classSn);
-
-    int insertClassroomNotice(InstructorBoardDto dto);
-
-    int updateClassroomNotice(InstructorBoardDto dto);
-
-    int deleteClassroomNotice(Long postSn, Long classSn);
-
-    // ── 클래스룸 자료실 ──────────────────────────────────────────────
-
-    List<InstructorBoardDto> getClassroomDataroomList(Long classSn);
-
-    InstructorBoardDto getClassroomDataroomDetail(Long postSn, Long classSn);
-
-    int insertClassroomDataroom(InstructorBoardDto dto);
-
-    int updateClassroomDataroom(InstructorBoardDto dto);
-
-    int deleteClassroomDataroom(Long postSn, Long classSn);
-
-    // ── 클래스룸 Q&A ──────────────────────────────────────────────
-
-    List<kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto> getClassroomQnaList(Long classSn);
-
-    kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto getClassroomQnaDetail(Long postSn, Long classSn);
-
-    void insertClassroomQna(InstructorBoardDto dto);
-
-    void answerClassroomQna(Long postSn, String answrUserId, String answCn);
-
-    int getUnansweredQnaCount(Long classSn);
-
-    // ── 공개 강사 게시판 Q&A 답변 ──────────────────────────────────
-
+    /** 강사 홈페이지 Q&A 답변 등록 또는 수정 */
     int answerInstructorQna(Long postSn, String answrUserId, String answCn);
 
-    // ── 공개 강사 게시판 (React 프론트용) ──────────────────────────
+    // ── 클래스룸 공지사항 ──────────────────────────────────────────────
 
-    /** 강사 공개 게시판 목록을 페이징하여 반환한다. boardTypeCd: 02=공지, 03=QnA, 04=자료실
-     *  @param pageIndex 0-based 페이지 인덱스 (React 프론트 기준) */
-    PageResponse<InstructorPublicBoardItem> getPublicBoardList(String instrUuid, String boardTypeCd, int pageIndex, int size);
+    /** 클래스룸 공지사항 목록 조회 */
+    List<InstructorBoardDto> getClassroomNoticeList(Long classSn);
 
-    /** 강사 공개 게시판 상세 정보(이전/다음글, 첨부파일 포함)를 반환하고 조회수를 증가시킨다. */
+    /** 클래스룸 공지사항 상세 조회 */
+    InstructorBoardDto getClassroomNoticeDetail(Long postSn, Long classSn);
+
+    /** 클래스룸 공지사항 등록 */
+    int insertClassroomNotice(InstructorBoardDto dto);
+
+    /** 클래스룸 공지사항 수정 */
+    int updateClassroomNotice(InstructorBoardDto dto);
+
+    /** 클래스룸 공지사항 소프트 삭제 */
+    int deleteClassroomNotice(Long postSn, Long classSn);
+
+    // ── 클래스룸 자료실 ───────────────────────────────────────────────
+
+    /** 클래스룸 자료실 목록 조회 */
+    List<InstructorBoardDto> getClassroomDataroomList(Long classSn);
+
+    /** 클래스룸 자료실 상세 조회 */
+    InstructorBoardDto getClassroomDataroomDetail(Long postSn, Long classSn);
+
+    /** 클래스룸 자료실 등록 */
+    int insertClassroomDataroom(InstructorBoardDto dto);
+
+    /** 클래스룸 자료실 수정 */
+    int updateClassroomDataroom(InstructorBoardDto dto);
+
+    /** 클래스룸 자료실 소프트 삭제 */
+    int deleteClassroomDataroom(Long postSn, Long classSn);
+
+    // ── 클래스룸 Q&A ──────────────────────────────────────────────────
+
+    /** 클래스룸 Q&A 목록 조회 */
+    List<ClassroomQnaDto> getClassroomQnaList(Long classSn);
+
+    /** 클래스룸 Q&A 상세 조회 */
+    ClassroomQnaDto getClassroomQnaDetail(Long postSn, Long classSn);
+
+    /** 클래스룸 Q&A 등록 (INSTRUCTOR_BOARD + INSTRUCTOR_QNA child 레코드 동시 생성) */
+    void insertClassroomQna(InstructorBoardDto dto);
+
+    /** 클래스룸 Q&A 답변 등록 또는 수정 */
+    void answerClassroomQna(Long postSn, String answrUserId, String answCn);
+
+    /** 클래스룸 미답변 Q&A 건수 조회 (대시보드 배지 표시용) */
+    int getUnansweredQnaCount(Long classSn);
+
+    // ── 공개 강사 게시판 (React 프론트 전용) ─────────────────────────
+
+    /**
+     * 강사 공개 게시판 목록 조회 (페이징).
+     * @param pageIndex 0-based 페이지 인덱스 (React 프론트 기준)
+     */
+    PageResponse<InstructorPublicBoardItem> getPublicBoardList(
+            String instrUuid, String boardTypeCd, int pageIndex, int size);
+
+    /** 강사 공개 게시판 상세 조회 (이전/다음글, 첨부파일 포함) + 조회수 증가 */
     InstructorPublicBoardDetail getPublicBoardDetail(String instrUuid, Long postSn);
 }
