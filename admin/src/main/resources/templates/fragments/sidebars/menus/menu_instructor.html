@@ -1,14 +1,7 @@
 <div class="sidebar-section" data-section-key="강사 업무" style="--section-color: #0ea5e9;">
   <p class="sidebar-title text-sky-500 sidebar-section-toggle"><i class="fa-solid fa-chalkboard-user sidebar-section-icon"></i>강사 업무<i class="fa-solid fa-chevron-down sidebar-section-arrow"></i></p>
   <ul class="sidebar-list">
-    <!-- 1 그룹: 당일 업무 및 전체 학습 현황 파악 -->
-    <li>
-      <a href="/instructor/learning/overview" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/instructor/learning')} ? 'active'">
-        <i class="fa-solid fa-chart-line sidebar-icon"></i>
-        <span class="sidebar-link-text">전체 학습 현황</span>
-      </a>
-    </li>
+    <!-- 1 그룹: 당일 업무 파악 -->
     <li>
       <a href="/instructor/journals" class="sidebar-link"
          th:classappend="${currentUri.startsWith('/instructor/journals')} ? 'active'">

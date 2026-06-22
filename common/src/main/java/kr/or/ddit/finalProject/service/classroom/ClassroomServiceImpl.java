@@ -88,6 +88,14 @@ public class ClassroomServiceImpl implements ClassroomService {
     }
 
     @Override
+    public Map<String, Double> retrieveProgressRates(Long classSn) {
+        return classroomMemberMapper.selectProgressRatesByClassSn(classSn)
+                .stream().collect(Collectors.toMap(
+                        ClassroomMemberListResponse::getUserId,
+                        ClassroomMemberListResponse::getProgressRate));
+    }
+
+    @Override
     public List<ClassroomLectureResponse> retrieveLecturesWithProgress(Long classSn) {
         return lectureMapper.selectLecturesWithProgress(classSn);
     }

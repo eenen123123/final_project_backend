@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html th:replace="~{classroom/layout-classroom :: layout(
+    ${classroom.classNm} + ' | ' + ${member.userName},
+    ${classroom},
+    'members',
+    ~{:: #content}
+)}" lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div id="content">
+
+  <!-- 헤더 -->
+  <div class="flex items-center justify-between mb-5">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-base"
+           th:text="${#strings.substring(member.userName, 0, 1)}">홍</div>
+      <div>
+        <h2 class="text-base font-bold text-slate-800" th:text="${member.userName}">홍길동</h2>
+        <p class="text-sm text-slate-400 font-mono" th:text="${member.userId}">user123</p>
+      </div>
+      <th:block th:switch="${member.enrlStatCd}">
+        <span th:case="${T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).ENROLLED}"
+              class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold text-blue-500 border border-blue-100">수강중</span>
+        <span th:case="${T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).COMPLETED}"
+              class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold text-emerald-500 border border-emerald-100">수강완료</span>
+        <span th:case="${T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).WITHDRAWN}"
+              class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold text-amber-500 border border-amber-100">중도탈퇴</span>
+        <span th:case="${T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).CANCELLED}"
+              class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold text-slate-400 border border-slate-100">등록취소</span>
+      </th:block>
+    </div>
+    <a th:href="@{/classroom/detail/{sn}/members(sn=${classroom.classSn})}"
+       class="text-sm text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1.5">
+      <i class="fa-solid fa-arrow-left text-xs"></i>목록으로
+    </a>
+  </div>
+
+  <!--
+    진도율 요약 바 — completedCount / totalCount 비율로 너비 계산.
+    100.0을 곱해 부동소수점 나눗셈을 강제한다 (정수 나눗셈 시 항상 0이 되는 버그 방지).
+    totalCount == 0 이면 공개 강의 없음 → 0%로 표시.
+  -->
+  <div class="bg-white border border-slate-100 rounded-xl px-6 py-5 mb-5">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-sm font-bold text-slate-700">강의 진도율</p>
+      <p class="text-sm font-semibold text-slate-500">
+        <span class="text-slate-800 font-black" th:text="${completedCount}">0</span>
+        / <span th:text="${totalCount}">0</span> 강의 완료
+      </p>
+    </div>
+    <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+      <div class="h-full rounded-full transition-all duration-700"
+           th:classappend="${totalCount == 0 ? 'bg-slate-200' : (completedCount * 100.0 / totalCount >= 80 ? 'bg-emerald-400' : (completedCount * 100.0 / totalCount >= 40 ? 'bg-amber-400' : 'bg-blue-400'))}"
+           th:style="${totalCount == 0 ? 'width:0%' : 'width:' + (completedCount * 100.0 / totalCount) + '%'}"></div>
+    </div>
+  </div>
+
+  <!-- 강의별 완료 현황 -->
+  <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
+    <div class="px-7 py-5 border-b border-slate-100">
+      <h2 class="text-base font-bold text-slate-800">강의별 완료 현황</h2>
+      <p class="text-sm text-slate-400 mt-1">공개된 강의 기준입니다.</p>
+    </div>
+
+    <div th:if="${#lists.isEmpty(lectureProgress)}"
+         class="p-16 flex flex-col items-center justify-center text-center gap-3">
+      <i class="fa-solid fa-play-circle text-3xl text-slate-200"></i>
+      <p class="text-sm font-medium text-slate-400">공개된 강의가 없습니다.</p>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(lectureProgress)}" class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-slate-100 text-sm text-slate-400">
+            <th class="py-4 px-7 w-14 font-medium">#</th>
+            <th class="py-4 px-7 font-medium">강의명</th>
+            <th class="py-4 px-7 w-32 text-center font-medium whitespace-nowrap">완료 여부</th>
+            <th class="py-4 px-7 w-48 font-medium whitespace-nowrap">완료일시</th>
+          </tr>
+        </thead>
+        <tbody class="text-slate-700">
+          <tr th:each="lp, stat : ${lectureProgress}"
+              class="border-b border-slate-50">
+            <td class="py-4 px-7 text-sm text-slate-300 font-mono" th:text="${stat.count}">1</td>
+            <td class="py-4 px-7 text-sm font-semibold text-slate-800" th:text="${lp.lectureNm}">강의명</td>
+            <td class="py-4 px-7 text-center">
+              <span th:if="${lp.cmplYn == 'Y'}"
+                    class="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-500 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-lg whitespace-nowrap">
+                <i class="fa-solid fa-check text-xs"></i>완료
+              </span>
+              <span th:unless="${lp.cmplYn == 'Y'}"
+                    class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-400 border border-slate-100 px-3 py-1 rounded-lg whitespace-nowrap">
+                미완료
+              </span>
+            </td>
+            <td class="py-4 px-7 text-sm text-slate-400 font-mono"
+                th:text="${lp.cmplDt != null ? lp.cmplDt : '-'}">-</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(lectureProgress)}" class="px-7 py-4 border-t border-slate-100">
+      <p class="text-sm text-slate-400">
+        전체 <span class="font-semibold text-slate-600" th:text="${totalCount}">0</span>개 강의 중
+        <span class="font-semibold text-emerald-500" th:text="${completedCount}">0</span>개 완료
+      </p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
