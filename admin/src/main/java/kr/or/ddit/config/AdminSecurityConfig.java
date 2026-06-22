@@ -81,13 +81,16 @@ public class AdminSecurityConfig {
                 // 공통코드 관리 — 행정(D100) 메뉴이나 원장(D400)도 접근 가능
                 .requestMatchers("/admin/common-codes/**").hasAnyAuthority("D100", "D400")
 
+                // 알림은 모든 관리자 공통 기능
+                .requestMatchers("/admin/notifications/**").hasRole("ADMIN")
+
                 // 행정 전용 (D100)
                 .requestMatchers(
                         "/admin/attendance/**", "/admin/billing/**", "/admin/blacklist/**",
                         "/admin/certificates/**", "/admin/coupon/**",
                         "/admin/employees/**", "/admin/expenses/**", "/admin/facilities/**",
                         "/admin/featured/**", "/admin/hr/**", "/admin/logistics/**",
-                        "/admin/me/**", "/admin/notifications/**", "/admin/org/**",
+                        "/admin/me/**", "/admin/org/**",
                         "/admin/parent/**", "/admin/salary/**",
                         "/admin/subject/**", "/admin/textbook/**"
                 ).hasAuthority("D100")
