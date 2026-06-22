@@ -54,11 +54,8 @@ public class OrderShippingServiceImpl implements OrderShippingService {
 
     @Override
     public OrderShippingDto getOrderShippingByOrdSn(Long ordSn) {
-        OrderShippingDto dto = orderShippingMapper.selectOrderShippingByOrdSn(ordSn);
-        if (dto == null) {
-            throw new FinalProjectException(ErrorCode.SHIPPING_NOT_FOUND);
-        }
-        return dto;
+        // 관리자용 - 강좌 전용 주문은 배송 정보 없을 수 있으므로 null 반환 허용
+        return orderShippingMapper.selectOrderShippingByOrdSn(ordSn);
     }
 
     @Override

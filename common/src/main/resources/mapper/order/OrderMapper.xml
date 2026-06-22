@@ -15,7 +15,10 @@
         <result property="pointType" column="POINT_TYPE"/>
         <result property="regDt" column="REG_DT"/>
         <result property="mdfcnDt" column="MDFCN_DT"/>
-        <result property="hasTextbook" column="HAS_TEXTBOOK"/>
+        <result property="hasTextbook"   column="HAS_TEXTBOOK"/>
+        <result property="cancelRsnCd"   column="CANCEL_RSN_CD"/>
+        <result property="cancelRsnDtl"  column="CANCEL_RSN_DTL"/>
+        <result property="cancelReqDt"   column="CANCEL_REQ_DT"/>
     </resultMap>
 
     <resultMap id="orderItemResultMap" type="kr.or.ddit.finalProject.dto.order.OrderItemDto">
@@ -57,9 +60,11 @@
     </insert>
 
     <select id="selectOrderByOrdId" resultMap="orderResultMap">
-        SELECT ORD_SN, ORD_ID, USER_ID, ORD_NM, TOT_AMT, ORD_STAT_CD, POINT_AMT, POINT_TYPE, REG_DT, MDFCN_DT
-        FROM ORDERS
-        WHERE ORD_ID = #{ordId}
+        SELECT ORD_SN, ORD_ID, USER_ID, ORD_NM, TOT_AMT, ORD_STAT_CD,
+               POINT_AMT, POINT_TYPE, CANCEL_RSN_CD, CANCEL_RSN_DTL, CANCEL_REQ_DT,
+               REG_DT, MDFCN_DT
+          FROM ORDERS
+         WHERE ORD_ID = #{ordId}
     </select>
 
     <select id="selectOrderItemsByOrdSn" resultMap="orderItemResultMap">
@@ -161,10 +166,96 @@
     <!-- selectOrderByOrdSn --> 
 
     <select id="selectOrderByOrdSn" resultMap="orderResultMap">
-        SELECT ORD_SN, ORD_ID, USER_ID, ORD_NM, TOT_AMT, ORD_STAT_CD, REG_DT, MDFCN_DT
-        FROM ORDERS
-        WHERE ORD_SN = #{ordSn}
-          AND USER_ID = #{userId}
+        SELECT ORD_SN, ORD_ID, USER_ID, ORD_NM, TOT_AMT, ORD_STAT_CD,
+               CANCEL_RSN_CD, CANCEL_RSN_DTL, CANCEL_REQ_DT, REG_DT, MDFCN_DT
+          FROM ORDERS
+         WHERE ORD_SN = #{ordSn}
+           AND USER_ID = #{userId}
+    </select>
+
+    <!-- 관리자 전체 주문 검색 조건 -->
+    <sql id="adminOrderSearchWhere">
+        <trim prefix="WHERE" prefixOverrides="AND">
+            <if test="paginationInfo.detailCondition != null">
+                <if test="paginationInfo.detailCondition.userId != null and paginationInfo.detailCondition.userId != ''">
+                    AND o.USER_ID LIKE '%' || #{paginationInfo.detailCondition.userId} || '%'
+                </if>
+                <if test="paginationInfo.detailCondition.keyword != null and paginationInfo.detailCondition.keyword != ''">
+                    AND UPPER(o.ORD_NM) LIKE '%' || UPPER(#{paginationInfo.detailCondition.keyword}) || '%'
+                </if>
+                <if test="paginationInfo.detailCondition.ordStatCd != null and paginationInfo.detailCondition.ordStatCd != ''">
+                    AND o.ORD_STAT_CD = #{paginationInfo.detailCondition.ordStatCd}
+                </if>
+                <if test="paginationInfo.detailCondition.from != null">
+                    AND o.REG_DT &gt;= #{paginationInfo.detailCondition.from}
+                </if>
+                <if test="paginationInfo.detailCondition.to != null">
+                    AND o.REG_DT &lt; #{paginationInfo.detailCondition.to} + INTERVAL '1' DAY
+                </if>
+            </if>
+        </trim>
+    </sql>
+
+    <select id="countTotalOrders" resultType="int">
+        SELECT COUNT(*) FROM ORDERS o
+    </select>
+
+    <select id="selectAllOrders" resultMap="orderResultMap">
+        SELECT o.ORD_SN, o.ORD_ID, o.USER_ID, o.ORD_NM, o.TOT_AMT, o.ORD_STAT_CD,
+               o.CANCEL_RSN_CD, o.CANCEL_RSN_DTL, o.CANCEL_REQ_DT, o.REG_DT, o.MDFCN_DT
+          FROM ORDERS o
+        <include refid="adminOrderSearchWhere"/>
+        ORDER BY o.REG_DT
+        <choose>
+          <when test="paginationInfo.orderDirection == 'ASC'">ASC</when>
+          <otherwise>DESC</otherwise>
+        </choose>
+        OFFSET #{paginationInfo.offset} ROWS FETCH NEXT #{paginationInfo.screenSize} ROWS ONLY
+    </select>
+
+    <select id="countAllOrders" resultType="int">
+        SELECT COUNT(*)
+          FROM ORDERS o
+        <include refid="adminOrderSearchWhere"/>
+    </select>
+
+    <!-- 관리자용 주문 단건 조회 -->
+    <select id="selectOrderByOrdSnForAdmin" resultMap="orderResultMap">
+        SELECT ORD_SN, ORD_ID, USER_ID, ORD_NM, TOT_AMT, ORD_STAT_CD,
+               CANCEL_RSN_CD, CANCEL_RSN_DTL, CANCEL_REQ_DT, REG_DT, MDFCN_DT
+          FROM ORDERS
+         WHERE ORD_SN = #{ordSn}
+    </select>
+
+    <!-- 취소/환불 요청 (PAID → CANCEL_REQUESTED) -->
+    <update id="requestCancel">
+        UPDATE ORDERS
+           SET ORD_STAT_CD    = 'CANCEL_REQUESTED',
+               CANCEL_RSN_CD  = #{cancelRsnCd},
+               CANCEL_RSN_DTL = #{cancelRsnDtl},
+               CANCEL_REQ_DT  = CURRENT_TIMESTAMP,
+               MDFCN_DT       = CURRENT_TIMESTAMP
+         WHERE ORD_SN   = #{ordSn}
+           AND USER_ID  = #{userId}
+           AND ORD_STAT_CD = 'PAID'
+    </update>
+
+    <!-- 취소 승인 (CANCEL_REQUESTED → CANCELED) - 관리자 -->
+    <update id="approveCancel">
+        UPDATE ORDERS
+           SET ORD_STAT_CD = 'CANCELED',
+               MDFCN_DT   = CURRENT_TIMESTAMP
+         WHERE ORD_SN      = #{ordSn}
+           AND ORD_STAT_CD = 'CANCEL_REQUESTED'
+    </update>
+
+    <!-- 취소 요청 목록 조회 - 관리자 -->
+    <select id="selectCancelRequestList" resultMap="orderResultMap">
+        SELECT ORD_SN, ORD_ID, USER_ID, ORD_NM, TOT_AMT, ORD_STAT_CD,
+               CANCEL_RSN_CD, CANCEL_RSN_DTL, CANCEL_REQ_DT, REG_DT, MDFCN_DT
+          FROM ORDERS
+         WHERE ORD_STAT_CD = 'CANCEL_REQUESTED'
+         ORDER BY CANCEL_REQ_DT DESC
     </select>
 
 </mapper>

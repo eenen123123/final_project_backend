@@ -28,6 +28,29 @@ public class TossPayService {
 
     private final RestTemplate restTemplate;
 
+    public void cancel(String paymentKey, String cancelReason) {
+        try {
+            String encoded = Base64.getEncoder()
+                    .encodeToString((TOSS_PAY_SECRET_KEY + ":").getBytes(StandardCharsets.UTF_8));
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Basic " + encoded);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            java.util.Map<String, String> body = new java.util.HashMap<>();
+            body.put("cancelReason", cancelReason);
+
+            HttpEntity<java.util.Map<String, String>> entity = new HttpEntity<>(body, headers);
+
+            String url = "https://api.tosspayments.com/v1/payments/" + paymentKey + "/cancel";
+            restTemplate.postForObject(url, entity, String.class);
+            log.info("Toss 결제 취소 완료 - paymentKey: {}", paymentKey);
+        } catch (HttpClientErrorException e) {
+            log.error("Toss 결제 취소 실패 [{}]: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new FinalProjectException(ErrorCode.BAD_REQUEST);
+        }
+    }
+
     public TossPaymentResponse confirm(TossPayRequest request) {
 
         try {
