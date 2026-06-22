@@ -14,6 +14,8 @@ public interface ClassroomMemberMapper {
 
     List<ClassroomMemberListResponse> selectMembersByClassSn(@Param("classSn") Long classSn);
 
+    List<ClassroomMemberListResponse> selectProgressRatesByClassSn(@Param("classSn") Long classSn);
+
     List<ClassroomGradeDto> selectGradeList(@Param("classSn") Long classSn);
 
     List<ClassroomListResponse> selectClassroomsByUserId(@Param("userId") String userId);

@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import kr.or.ddit.finalProject.dto.lecture.LectureDto;
 import kr.or.ddit.finalProject.dto.lecture.LectureResponseDto;
+import kr.or.ddit.finalProject.dto.lecture.LectureProgressDetailResponse;
 import kr.or.ddit.finalProject.dto.lecture.StudentLectureProgressResponse;
 import kr.or.ddit.finalProject.mapper.lecture.LectureMapper;
 import lombok.RequiredArgsConstructor;
@@ -99,6 +100,11 @@ public class LectureServiceImpl implements LectureService {
     @Override
     public List<StudentLectureProgressResponse> retrieveStudentProgressByLecture(Long classSn, Long lectureSn) {
         return lectureMapper.selectStudentProgressByLecture(classSn, lectureSn);
+    }
+
+    @Override
+    public List<LectureProgressDetailResponse> retrieveLectureProgressByStudent(Long classSn, String userId) {
+        return lectureMapper.selectLectureProgressByStudent(classSn, userId);
     }
 
 }

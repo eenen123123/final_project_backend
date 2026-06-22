@@ -9,7 +9,8 @@
     <result property="userId"      column="USER_ID" />
     <result property="userName"    column="USER_NAME" />
     <result property="enrlStatCd"  column="ENRL_STAT_CD" />
-    <result property="regDt"       column="REG_DT" />
+    <result property="regDt"          column="REG_DT" />
+    <result property="progressRate"   column="PROGRESS_RATE" />
   </resultMap>
 
   <select id="selectMembersByClassSn" resultMap="classroomMemberListResponseMap">
@@ -24,6 +25,32 @@
     ORDER BY cm.REG_DT ASC
   </select>
 
+
+  <!-- ENRL_STAT_CD 필터 없음: 탈퇴/취소 수강생의 진도율도 조회할 수 있도록 의도적으로 전체 포함 -->
+  <select id="selectProgressRatesByClassSn" resultMap="classroomMemberListResponseMap">
+    SELECT
+        cm.USER_ID,
+        CASE
+            WHEN NVL(lect.TOTAL_LECTURES, 0) = 0 THEN 0
+            ELSE ROUND(NVL(prog.COMPLETED, 0) * 100.0 / lect.TOTAL_LECTURES, 1)
+        END AS PROGRESS_RATE
+    FROM CLASSROOM_MEMBER cm
+    CROSS JOIN (
+        SELECT COUNT(*) AS TOTAL_LECTURES
+        FROM LECTURE l
+        JOIN CLASSROOM cl ON cl.COURSE_SN = l.COURSE_SN
+        WHERE cl.CLASS_SN = #{classSn}
+          AND l.OPNN_YN = 'Y'
+    ) lect
+    LEFT JOIN (
+        SELECT USER_ID, COUNT(*) AS COMPLETED
+        FROM STUDENT_CONTENT_PROGRESS
+        WHERE CLASS_SN = #{classSn}
+          AND CMPL_YN = 'Y'
+        GROUP BY USER_ID
+    ) prog ON cm.USER_ID = prog.USER_ID
+    WHERE cm.CLASS_SN = #{classSn}
+  </select>
 
   <resultMap id="classroomGradeDtoMap" type="kr.or.ddit.finalProject.dto.classroom.ClassroomGradeDto">
     <result property="userId"        column="USER_ID" />

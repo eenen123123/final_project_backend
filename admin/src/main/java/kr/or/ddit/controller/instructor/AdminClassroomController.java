@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
@@ -23,7 +24,9 @@ import kr.or.ddit.finalProject.dto.assignment.AssignmentBoardDto;
 import kr.or.ddit.finalProject.dto.assignment.AssignmentSubmitDto;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomListResponse;
+import kr.or.ddit.finalProject.dto.classroom.ClassroomMemberListResponse;
 import kr.or.ddit.finalProject.dto.lecture.ClassroomLectureResponse;
+import kr.or.ddit.finalProject.dto.lecture.LectureProgressDetailResponse;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
 import kr.or.ddit.finalProject.service.assignment.AssignmentBoardService;
 import kr.or.ddit.finalProject.service.classroom.ClassroomService;
@@ -103,7 +106,9 @@ public class AdminClassroomController {
                 instructorBoardService.getClassroomNoticeList(classSn);
         model.addAttribute("recentNotice", notices.isEmpty() ? null : notices.get(0));
 
-        // 강좌 진도율 요약
+        // 강좌 진도율 요약 — 강의 위젯(home-classroom.html의 "강좌 진도율 요약" 카드)에서 사용
+        // avgCompletionPct: 강의별 완료율의 평균 (강의 중심)
+        // avgProgressRate(아래): 수강생별 진도율의 평균 (수강생 중심) — 요약 카드에서 사용
         List<ClassroomLectureResponse> lectures = classroomService.retrieveLecturesWithProgress(classSn);
         int totalLectures = lectures.size();
         int avgCompletionPct = 0;
@@ -119,6 +124,31 @@ public class AdminClassroomController {
         }
         model.addAttribute("totalLectures", totalLectures);
         model.addAttribute("avgCompletionPct", avgCompletionPct);
+
+        // 수강생 현황 요약 카드
+        List<kr.or.ddit.finalProject.dto.classroom.ClassroomMemberListResponse> members = ownedClassroom.getMembers();
+        long totalStudents = members.stream()
+                .filter(m -> m.getEnrlStatCd() == kr.or.ddit.finalProject.dto.classroom.EnrollStatus.ENROLLED
+                          || m.getEnrlStatCd() == kr.or.ddit.finalProject.dto.classroom.EnrollStatus.COMPLETED)
+                .count();
+        long completedStudents = members.stream()
+                .filter(m -> m.getEnrlStatCd() == kr.or.ddit.finalProject.dto.classroom.EnrollStatus.COMPLETED)
+                .count();
+        int completionRate = totalStudents == 0 ? 0
+                : (int) Math.round(completedStudents * 100.0 / totalStudents);
+        model.addAttribute("totalStudents", totalStudents);
+        model.addAttribute("completedStudents", completedStudents);
+        model.addAttribute("completionRate", completionRate);
+
+        // 평균 진도율 — 수강생별 진도율 맵에서 직접 계산 (ENROLLED+COMPLETED만 대상)
+        Map<String, Double> progressRates = classroomService.retrieveProgressRates(classSn);
+        double avgProgressRate = members.stream()
+                .filter(m -> m.getEnrlStatCd() == kr.or.ddit.finalProject.dto.classroom.EnrollStatus.ENROLLED
+                          || m.getEnrlStatCd() == kr.or.ddit.finalProject.dto.classroom.EnrollStatus.COMPLETED)
+                .mapToDouble(m -> progressRates.getOrDefault(m.getUserId(), 0.0))
+                .average()
+                .orElse(0.0);
+        model.addAttribute("avgProgressRate", (int) Math.round(avgProgressRate));
 
         // 마감 임박 과제 (오늘~모레) — getAssignmentList 한 번 호출로 count와 필터 모두 처리
         List<AssignmentBoardDto> allAssignments = assignmentBoardService.getAssignmentList(classSn);
@@ -222,7 +252,34 @@ public class AdminClassroomController {
     public String memberList(@PathVariable Long classSn, Model model, Authentication authentication) {
         ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
         if (classroom == null) return "redirect:/classroom/list";
+        Map<String, Double> progressRates = classroomService.retrieveProgressRates(classSn);
+        classroom.getMembers().forEach(m -> m.setProgressRate(progressRates.getOrDefault(m.getUserId(), 0.0)));
         model.addAttribute("classroom", classroom);
         return "classroom/list-classroom-members";
+    }
+
+    // 수강생 진도 상세
+    @GetMapping("/detail/{classSn}/members/{userId}")
+    public String memberDetail(@PathVariable Long classSn, @PathVariable String userId,
+            Model model, Authentication authentication) {
+        ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
+        if (classroom == null) return "redirect:/classroom/list";
+
+        ClassroomMemberListResponse member = classroom.getMembers().stream()
+                .filter(m -> m.getUserId().equals(userId))
+                .findFirst()
+                .orElse(null);
+        if (member == null) return "redirect:/classroom/detail/" + classSn + "/members";
+
+        List<LectureProgressDetailResponse> lectureProgress =
+                lectureService.retrieveLectureProgressByStudent(classSn, userId);
+        long completedCount = lectureProgress.stream().filter(l -> "Y".equals(l.getCmplYn())).count();
+
+        model.addAttribute("classroom", classroom);
+        model.addAttribute("member", member);
+        model.addAttribute("lectureProgress", lectureProgress);
+        model.addAttribute("completedCount", completedCount);
+        model.addAttribute("totalCount", lectureProgress.size());
+        return "classroom/detail-classroom-member";
     }
 }

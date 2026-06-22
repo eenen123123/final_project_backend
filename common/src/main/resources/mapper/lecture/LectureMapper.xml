@@ -81,6 +81,28 @@
     ORDER BY m.USER_NAME ASC
     </select>
 
+    <!-- OPNN_YN='Y'만 조회: 비공개 강의는 수강생에게 노출되지 않으므로 진도 대상에서 제외.
+         LOCK_YN 잠금 강의는 공개 상태이므로 포함 -->
+    <select id="selectLectureProgressByStudent"
+            resultType="kr.or.ddit.finalProject.dto.lecture.LectureProgressDetailResponse">
+    SELECT
+        l.LECTURE_SN                                      AS lectureSn,
+        l.LECTURE_NM                                      AS lectureNm,
+        l.SORT_ORD                                        AS sortOrd,
+        l.OPNN_YN                                         AS opnnYn,
+        NVL(p.CMPL_YN, 'N')                              AS cmplYn,
+        TO_CHAR(p.CMPL_DT, 'YYYY-MM-DD HH24:MI')         AS cmplDt
+    FROM LECTURE l
+    JOIN CLASSROOM cl ON cl.COURSE_SN = l.COURSE_SN
+    LEFT JOIN STUDENT_CONTENT_PROGRESS p
+           ON p.LECTURE_SN = l.LECTURE_SN
+          AND p.CLASS_SN   = #{classSn}
+          AND p.USER_ID    = #{userId}
+    WHERE cl.CLASS_SN = #{classSn}
+      AND l.OPNN_YN   = 'Y'
+    ORDER BY l.SORT_ORD ASC, l.LECTURE_SN ASC
+    </select>
+
     <update id="updateOpnnYn">
     UPDATE LECTURE
     SET OPNN_YN     = #{opnnYn},

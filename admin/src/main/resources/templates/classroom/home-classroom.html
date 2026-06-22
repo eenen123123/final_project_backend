@@ -15,6 +15,25 @@
 
   <div class="flex flex-col gap-5">
 
+    <!-- 수강생 현황 요약 카드 -->
+    <div class="grid grid-cols-3 gap-4">
+      <div class="bg-white border border-slate-100 rounded-xl px-6 py-5">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">총 수강생</p>
+        <p class="text-3xl font-black text-slate-800 mt-1" th:text="${totalStudents}">0</p>
+        <p class="text-xs text-slate-300 mt-0.5">수강중 + 이수완료</p>
+      </div>
+      <div class="bg-white border border-slate-100 rounded-xl px-6 py-5">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">이수율</p>
+        <p class="text-3xl font-black text-slate-800 mt-1" th:text="${completionRate} + '%'">0%</p>
+        <p class="text-xs text-slate-300 mt-0.5" th:text="${completedStudents} + '명 이수완료'">0명 이수완료</p>
+      </div>
+      <div class="bg-white border border-slate-100 rounded-xl px-6 py-5">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">평균 진도율</p>
+        <p class="text-3xl font-black text-slate-800 mt-1" th:text="${avgProgressRate} + '%'">0%</p>
+        <p class="text-xs text-slate-300 mt-0.5">수강생 기준 평균</p>
+      </div>
+    </div>
+
     <!-- 오늘의 문제 배너 -->
     <div th:if="${todayQuestion != null}"
          class="border border-slate-100 rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:bg-slate-50 transition-colors">

@@ -1,6 +1,7 @@
 package kr.or.ddit.finalProject.service.classroom;
 
 import java.util.List;
+import java.util.Map;
 
 import kr.or.ddit.finalProject.dto.classroom.AchievementDto;
 import kr.or.ddit.finalProject.dto.classroom.CalendarDayDto;
@@ -51,4 +52,7 @@ public interface ClassroomService {
 
     // 최근 7일간 학습 기록이 없는 비활성 수강생 수
     int retrieveInactiveStudentCount(Long classSn);
+
+    // 클래스 내 전체 수강생의 개인별 진도율 (userId → progressRate)
+    Map<String, Double> retrieveProgressRates(Long classSn);
 }

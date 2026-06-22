@@ -8,6 +8,7 @@ import kr.or.ddit.finalProject.dto.course.CourseDto;
 import kr.or.ddit.finalProject.dto.lecture.LectureDto;
 import kr.or.ddit.finalProject.dto.lecture.ClassroomLectureResponse;
 import kr.or.ddit.finalProject.dto.lecture.LectureResponseDto;
+import kr.or.ddit.finalProject.dto.lecture.LectureProgressDetailResponse;
 import kr.or.ddit.finalProject.dto.lecture.StudentLectureProgressResponse;
 
 @Mapper
@@ -36,6 +37,10 @@ public interface LectureMapper {
     List<StudentLectureProgressResponse> selectStudentProgressByLecture(
             @Param("classSn") Long classSn,
             @Param("lectureSn") Long lectureSn);
+
+    List<LectureProgressDetailResponse> selectLectureProgressByStudent(
+            @Param("classSn") Long classSn,
+            @Param("userId") String userId);
 
     int updateOpnnYn(@Param("lectureSn") Long lectureSn,
                      @Param("opnnYn") String opnnYn,
