@@ -46,6 +46,36 @@
     box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08);
 }
 
+/* ── 탭 ── */
+.board-tabs {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.625rem 1rem 0;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem 0.75rem 0 0;
+    border-bottom: none;
+}
+.board-tab {
+    padding: 0.4rem 1rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-decoration: none;
+    border-radius: 0.5rem 0.5rem 0 0;
+    border: 1px solid transparent;
+    border-bottom: none;
+    transition: color 0.15s, background 0.15s;
+}
+.board-tab:hover { color: #0ea5e9; background: #e0f2fe; }
+.board-tab.active {
+    color: #0369a1;
+    background: #fff;
+    border-color: #e2e8f0;
+    border-bottom-color: #fff;
+    margin-bottom: -1px;
+}
+
 /* ── 필터 패널 ── */
 .board-filter {
     display: flex;
@@ -55,7 +85,7 @@
     padding: 0.75rem 1rem;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 0.75rem 0.75rem 0 0;
+    border-radius: 0;
     border-bottom: none;
 }
 .board-filter-count {
@@ -73,21 +103,11 @@
 }
 .btn-filter-reset:hover { color: #0ea5e9; }
 
-/* 필터 내 컴포넌트 — admin-core 기본값(2.75rem)에서 2.5rem으로 통일
-   input 과 .cs-wrapper 는 반드시 분리해서 타겟팅 (.cs-wrapper는 padding:0 유지) */
+/* 필터 내 컴포넌트 — admin-core 기본값(2.75rem)에서 2.5rem으로 통일 */
 .board-filter input.hm-input {
     min-height: unset;
     height: 2.5rem;
     padding: 0.55rem 0.75rem;
-}
-.board-filter .cs-wrapper {
-    min-height: unset;
-    height: 2.5rem;
-}
-.board-filter .cs-control {
-    min-height: unset;
-    height: 2.5rem;
-    padding: 0.75rem 2rem 0.75rem 0.75rem;
 }
 .board-filter .hm-btn-primary {
     padding: 0.55rem 1rem;

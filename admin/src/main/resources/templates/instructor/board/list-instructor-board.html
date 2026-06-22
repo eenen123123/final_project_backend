@@ -10,30 +10,45 @@
       <p class="text-sm text-slate-500 mt-1">공지사항, 질문, 자료를 관리합니다.</p>
     </div>
   </div>
-  <a th:href="@{/instructor/board/insertForm(page=${currentPage}, keyword=${keyword}, boardTypeCd=${boardTypeCd})}" class="hm-btn-primary hm-btn-sky">
+  <a th:href="@{/instructor/board/insertForm(page=${currentPage}, keyword=${keyword}, boardTypeCd=${boardTypeCd}, searchType=${searchType})}" class="hm-btn-primary hm-btn-sky">
     <i class="fa-solid fa-pen-to-square"></i>글쓰기
   </a>
 </div>
 
-<!-- 필터 + 목록 -->
+<!-- 탭 -->
+<div class="board-tabs">
+  <a th:href="@{/instructor/board/list(keyword=${keyword}, searchType=${searchType})}"
+     th:classappend="${boardTypeCd == ''} ? ' active'" class="board-tab">전체</a>
+  <a th:each="type : ${boardTypes}"
+     th:href="@{/instructor/board/list(boardTypeCd=${type.comCd}, keyword=${keyword}, searchType=${searchType})}"
+     th:classappend="${type.comCd == boardTypeCd} ? ' active'"
+     th:text="${type.comCdNm}"
+     class="board-tab"></a>
+</div>
+
+<!-- 검색 + 건수 -->
 <div class="board-filter">
   <form method="get" action="/instructor/board/list" style="display:contents;">
-    <select name="boardTypeCd" class="hm-input hm-input-sky" style="width:auto; min-width:110px;">
-      <option value="" th:selected="${boardTypeCd == ''}">전체 분류</option>
-      <option th:each="type : ${boardTypes}" th:value="${type.comCd}" th:text="${type.comCdNm}"
-        th:selected="${type.comCd == boardTypeCd}"></option>
+    <input type="hidden" name="boardTypeCd" th:value="${boardTypeCd}" />
+    <select name="searchType" class="hm-input hm-input-sky" style="width:auto; min-width:110px;">
+      <option value=""        th:selected="${searchType == ''}">전체</option>
+      <option value="title"        th:selected="${searchType == 'title'}">제목</option>
+      <option value="content"      th:selected="${searchType == 'content'}">내용</option>
+      <option value="titleContent" th:selected="${searchType == 'titleContent'}">제목+내용</option>
+      <option value="writer"       th:selected="${searchType == 'writer'}">작성자</option>
     </select>
-    <input type="text" name="keyword" th:value="${keyword}" placeholder="제목으로 검색" class="hm-input hm-input-sky"
+    <input type="text" name="keyword" th:value="${keyword}" placeholder="검색어를 입력하세요" class="hm-input hm-input-sky"
       style="width:220px;" />
     <button type="submit" class="hm-btn-primary hm-btn-sky">
       <i class="fa-solid fa-magnifying-glass"></i>검색
     </button>
-    <a th:if="${keyword != '' or boardTypeCd != ''}" href="/instructor/board/list" class="btn-filter-reset">
+    <a th:if="${keyword != ''}"
+       th:href="@{/instructor/board/list(boardTypeCd=${boardTypeCd})}"
+       class="btn-filter-reset">
       <i class="fa-solid fa-xmark mr-0.5"></i>초기화
     </a>
     <span class="board-filter-count">
-      전체 <strong th:text="${totalCount}">0</strong>건<th:block th:if="${keyword != '' or boardTypeCd != ''}"> · 검색 결과
-      </th:block>
+      <strong th:text="${totalCount}">0</strong>건<th:block th:if="${keyword != ''}"> · 검색 결과</th:block>
     </span>
   </form>
 </div>
@@ -51,8 +66,9 @@
   </div>
 
   <!-- 게시글 목록 -->
-  <a th:each="board : ${boardList}" th:href="@{/instructor/board/detail/{sn}(sn=${board.postSn}, page=${currentPage}, keyword=${keyword}, boardTypeCd=${boardTypeCd})}"
-    th:classappend="${board.useYn == 'N'} ? ' deleted'" class="board-item">
+  <a th:each="board : ${boardList}"
+     th:href="@{/instructor/board/detail/{sn}(sn=${board.postSn}, page=${currentPage}, keyword=${keyword}, boardTypeCd=${boardTypeCd}, searchType=${searchType})}"
+     th:classappend="${board.useYn == 'N'} ? ' deleted'" class="board-item">
     <span class="board-item-no" th:text="${board.displayNo}"></span>
     <span>
       <span th:if="${board.boardTypeCd == 'NOTICE'}" class="badge badge-notice" th:text="${board.boardTypeNm}"></span>
@@ -72,7 +88,7 @@
 <!-- 페이지네이션 -->
 <div th:if="${totalPages > 1}" class="board-pagination">
   <a th:if="${currentPage > 1}"
-    th:href="@{/instructor/board/list(page=${currentPage - 1}, keyword=${keyword}, boardTypeCd=${boardTypeCd})}">
+    th:href="@{/instructor/board/list(page=${currentPage - 1}, keyword=${keyword}, boardTypeCd=${boardTypeCd}, searchType=${searchType})}">
     <i class="fa-solid fa-chevron-left text-xs"></i>
   </a>
   <span th:unless="${currentPage > 1}" class="disabled">
@@ -83,14 +99,14 @@
                      endPage=${T(java.lang.Math).min(totalPages, currentPage + 2)}">
     <th:block th:each="p : ${#numbers.sequence(startPage, endPage)}">
       <a th:if="${p != currentPage}"
-        th:href="@{/instructor/board/list(page=${p}, keyword=${keyword}, boardTypeCd=${boardTypeCd})}"
+        th:href="@{/instructor/board/list(page=${p}, keyword=${keyword}, boardTypeCd=${boardTypeCd}, searchType=${searchType})}"
         th:text="${p}"></a>
       <span th:if="${p == currentPage}" class="current" th:text="${p}"></span>
     </th:block>
   </th:block>
 
   <a th:if="${currentPage < totalPages}"
-    th:href="@{/instructor/board/list(page=${currentPage + 1}, keyword=${keyword}, boardTypeCd=${boardTypeCd})}">
+    th:href="@{/instructor/board/list(page=${currentPage + 1}, keyword=${keyword}, boardTypeCd=${boardTypeCd}, searchType=${searchType})}">
     <i class="fa-solid fa-chevron-right text-xs"></i>
   </a>
   <span th:unless="${currentPage < totalPages}" class="disabled">

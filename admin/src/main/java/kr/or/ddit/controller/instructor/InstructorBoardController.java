@@ -55,13 +55,14 @@ public class InstructorBoardController {
     public String getBoardList(
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "") String boardTypeCd,
+            @RequestParam(defaultValue = "") String searchType,
             @RequestParam(defaultValue = "1") int page,
             Model model) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         if (page < 1) {
             page = 1;
         }
-        var result = instructorBoardService.getInstructorBoardList(userId, keyword, boardTypeCd, page, PAGE_SIZE);
+        var result = instructorBoardService.getInstructorBoardList(userId, keyword, boardTypeCd, searchType, page, PAGE_SIZE);
         int totalPages = (int) Math.ceil((double) result.getTotalCount() / PAGE_SIZE);
         model.addAttribute("boardList", result.getItems());
         model.addAttribute("totalCount", result.getTotalCount());
@@ -69,6 +70,7 @@ public class InstructorBoardController {
         model.addAttribute("totalPages", Math.max(totalPages, 1));
         model.addAttribute("keyword", keyword);
         model.addAttribute("boardTypeCd", boardTypeCd);
+        model.addAttribute("searchType", searchType);
         model.addAttribute("boardTypes", boardTypeList());
         return "admin:/instructor/board/list-instructor-board";
     }
@@ -109,6 +111,7 @@ public class InstructorBoardController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "") String boardTypeCd,
+            @RequestParam(defaultValue = "") String searchType,
             Model model) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         InstructorBoardResponse board
@@ -120,6 +123,7 @@ public class InstructorBoardController {
         model.addAttribute("listPage", page);
         model.addAttribute("listKeyword", keyword);
         model.addAttribute("listBoardTypeCd", boardTypeCd);
+        model.addAttribute("listSearchType", searchType);
         return "admin:/instructor/board/detail-instructor-board";
     }
 
@@ -133,11 +137,13 @@ public class InstructorBoardController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "") String boardTypeCd,
+            @RequestParam(defaultValue = "") String searchType,
             Model model) {
         model.addAttribute("boardTypes", boardTypeList());
         model.addAttribute("listPage", page);
         model.addAttribute("listKeyword", keyword);
         model.addAttribute("listBoardTypeCd", boardTypeCd);
+        model.addAttribute("listSearchType", searchType);
         return "admin:/instructor/board/form-instructor-board";
     }
 
@@ -156,6 +162,7 @@ public class InstructorBoardController {
             @RequestParam(defaultValue = "1") int listPage,
             @RequestParam(defaultValue = "") String listKeyword,
             @RequestParam(defaultValue = "") String listBoardTypeCd,
+            @RequestParam(defaultValue = "") String listSearchType,
             RedirectAttributes redirectAttributes) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         instructorBoardDto.setInstrUserId(userId);
@@ -167,19 +174,19 @@ public class InstructorBoardController {
                     .findFirst().orElse("입력값을 확인해주세요.");
             redirectAttributes.addFlashAttribute("board", instructorBoardDto);
             redirectAttributes.addFlashAttribute("errorMessage", errorMsg);
-            return "redirect:" + insertFormUrl(listPage, listKeyword, listBoardTypeCd);
+            return "redirect:" + insertFormUrl(listPage, listKeyword, listBoardTypeCd, listSearchType);
         }
 
         if (isBlankHtml(instructorBoardDto.getPostCn())) {
             redirectAttributes.addFlashAttribute("board", instructorBoardDto);
             redirectAttributes.addFlashAttribute("errorMessage", "내용을 입력해주세요.");
-            return "redirect:" + insertFormUrl(listPage, listKeyword, listBoardTypeCd);
+            return "redirect:" + insertFormUrl(listPage, listKeyword, listBoardTypeCd, listSearchType);
         }
 
         if ("QNA".equals(instructorBoardDto.getBoardTypeCd())) {
             redirectAttributes.addFlashAttribute("board", instructorBoardDto);
             redirectAttributes.addFlashAttribute("errorMessage", "Q&A 게시글은 직접 작성할 수 없습니다.");
-            return "redirect:" + insertFormUrl(listPage, listKeyword, listBoardTypeCd);
+            return "redirect:" + insertFormUrl(listPage, listKeyword, listBoardTypeCd, listSearchType);
         }
 
         // 1. DB INSERT 먼저 — 파일 업로드 전 실패하면 고아 파일 없음
@@ -190,13 +197,13 @@ public class InstructorBoardController {
             log.error("게시글 등록 중 오류 발생", e);
             redirectAttributes.addFlashAttribute("board", instructorBoardDto);
             redirectAttributes.addFlashAttribute("errorMessage", "게시글 등록 중 오류가 발생했습니다. 다시 시도해주세요.");
-            return "redirect:" + insertFormUrl(listPage, listKeyword, listBoardTypeCd);
+            return "redirect:" + insertFormUrl(listPage, listKeyword, listBoardTypeCd, listSearchType);
         }
 
         if (rowcnt <= 0) {
             redirectAttributes.addFlashAttribute("board", instructorBoardDto);
             redirectAttributes.addFlashAttribute("errorMessage", "게시글 등록에 실패했습니다. 다시 시도해주세요.");
-            return "redirect:" + insertFormUrl(listPage, listKeyword, listBoardTypeCd);
+            return "redirect:" + insertFormUrl(listPage, listKeyword, listBoardTypeCd, listSearchType);
         }
 
         // 2. INSERT 성공 후 파일 업로드 → atchFileId UPDATE
@@ -218,11 +225,11 @@ public class InstructorBoardController {
                 cleanupFileGroup(groupId, userId);
                 instructorBoardService.deleteInstructorBoard(instructorBoardDto.getPostSn(), userId);
                 redirectAttributes.addFlashAttribute("errorMessage", "파일 업로드에 실패했습니다. 다시 시도해주세요.");
-                return "redirect:" + insertFormUrl(listPage, listKeyword, listBoardTypeCd);
+                return "redirect:" + insertFormUrl(listPage, listKeyword, listBoardTypeCd, listSearchType);
             }
         }
 
-        return "redirect:" + detailUrl(instructorBoardDto.getPostSn(), listPage, listKeyword, listBoardTypeCd);
+        return "redirect:" + detailUrl(instructorBoardDto.getPostSn(), listPage, listKeyword, listBoardTypeCd, listSearchType);
     }
 
     /**
@@ -237,12 +244,16 @@ public class InstructorBoardController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "") String boardTypeCd,
+            @RequestParam(defaultValue = "") String searchType,
             Model model) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         InstructorBoardResponse responseDto
                 = instructorBoardService.getInstructorBoardDetail(postSn, userId);
         if (responseDto == null) {
             return "redirect:/instructor/board/list";
+        }
+        if ("QNA".equals(responseDto.getBoardTypeCd())) {
+            return "redirect:" + detailUrl(postSn, page, keyword, boardTypeCd, searchType);
         }
         InstructorBoardDto board = InstructorBoardDto.builder().postSn(responseDto.getPostSn())
                 .boardTypeCd(responseDto.getBoardTypeCd()).postSj(responseDto.getTitle())
@@ -252,6 +263,7 @@ public class InstructorBoardController {
         model.addAttribute("listPage", page);
         model.addAttribute("listKeyword", keyword);
         model.addAttribute("listBoardTypeCd", boardTypeCd);
+        model.addAttribute("listSearchType", searchType);
         String atchFileIdStr = responseDto.getAtchFileId();
         if (atchFileIdStr != null && !atchFileIdStr.isBlank()) {
             try {
@@ -281,6 +293,7 @@ public class InstructorBoardController {
             @RequestParam(defaultValue = "1") int listPage,
             @RequestParam(defaultValue = "") String listKeyword,
             @RequestParam(defaultValue = "") String listBoardTypeCd,
+            @RequestParam(defaultValue = "") String listSearchType,
             RedirectAttributes redirectAttributes) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         instructorBoardDto.setInstrUserId(userId);
@@ -292,14 +305,26 @@ public class InstructorBoardController {
                     .findFirst().orElse("입력값을 확인해주세요.");
             redirectAttributes.addFlashAttribute("board", instructorBoardDto);
             redirectAttributes.addFlashAttribute("errorMessage", errorMsg);
-            return "redirect:" + updateFormUrl(instructorBoardDto.getPostSn(), listPage, listKeyword, listBoardTypeCd);
+            return "redirect:" + updateFormUrl(instructorBoardDto.getPostSn(), listPage, listKeyword, listBoardTypeCd, listSearchType);
         }
 
         if (isBlankHtml(instructorBoardDto.getPostCn())) {
             redirectAttributes.addFlashAttribute("board", instructorBoardDto);
             redirectAttributes.addFlashAttribute("errorMessage", "내용을 입력해주세요.");
-            return "redirect:" + updateFormUrl(instructorBoardDto.getPostSn(), listPage, listKeyword, listBoardTypeCd);
+            return "redirect:" + updateFormUrl(instructorBoardDto.getPostSn(), listPage, listKeyword, listBoardTypeCd, listSearchType);
         }
+
+        // DB 원본 조회 — 존재 여부 확인 + boardTypeCd 변경 차단 + Q&A 수정 차단
+        InstructorBoardResponse currentBoard = instructorBoardService.getInstructorBoardDetail(
+                instructorBoardDto.getPostSn(), userId);
+        if (currentBoard == null) {
+            return "redirect:/instructor/board/list";
+        }
+        if ("QNA".equals(currentBoard.getBoardTypeCd())) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Q&A 게시글은 수정할 수 없습니다.");
+            return "redirect:" + detailUrl(instructorBoardDto.getPostSn(), listPage, listKeyword, listBoardTypeCd, listSearchType);
+        }
+        instructorBoardDto.setBoardTypeCd(currentBoard.getBoardTypeCd());
 
         int newGroupId = -1;
         List<Integer> addedFileSns = List.of();
@@ -323,7 +348,7 @@ public class InstructorBoardController {
                             .forEach(sn -> fileUploadService.removeFile(sn, userId));
                     redirectAttributes.addFlashAttribute("board", instructorBoardDto);
                     redirectAttributes.addFlashAttribute("errorMessage", "파일 업로드에 실패했습니다. 다시 시도해주세요.");
-                    return "redirect:" + updateFormUrl(instructorBoardDto.getPostSn(), listPage, listKeyword, listBoardTypeCd);
+                    return "redirect:" + updateFormUrl(instructorBoardDto.getPostSn(), listPage, listKeyword, listBoardTypeCd, listSearchType);
                 }
                 addedFileSns = fileUploadService.retrieveFilesByGroupId(groupId)
                         .stream().map(f -> f.getAtchFileDtlSn())
@@ -342,7 +367,7 @@ public class InstructorBoardController {
                     cleanupFileGroup(newGroupId, userId);
                     redirectAttributes.addFlashAttribute("board", instructorBoardDto);
                     redirectAttributes.addFlashAttribute("errorMessage", "파일 업로드에 실패했습니다. 다시 시도해주세요.");
-                    return "redirect:" + updateFormUrl(instructorBoardDto.getPostSn(), listPage, listKeyword, listBoardTypeCd);
+                    return "redirect:" + updateFormUrl(instructorBoardDto.getPostSn(), listPage, listKeyword, listBoardTypeCd, listSearchType);
                 }
             }
         }
@@ -350,13 +375,13 @@ public class InstructorBoardController {
         try {
             int rowcnt = instructorBoardService.updateInstructorBoard(instructorBoardDto);
             if (rowcnt > 0) {
-                return "redirect:" + detailUrl(instructorBoardDto.getPostSn(), listPage, listKeyword, listBoardTypeCd);
+                return "redirect:" + detailUrl(instructorBoardDto.getPostSn(), listPage, listKeyword, listBoardTypeCd, listSearchType);
             } else {
                 addedFileSns.forEach(sn -> fileUploadService.removeFile(sn, userId));
                 cleanupFileGroup(newGroupId, userId);
                 redirectAttributes.addFlashAttribute("board", instructorBoardDto);
                 redirectAttributes.addFlashAttribute("errorMessage", "게시글 수정에 실패했습니다. 다시 시도해주세요.");
-                return "redirect:" + updateFormUrl(instructorBoardDto.getPostSn(), listPage, listKeyword, listBoardTypeCd);
+                return "redirect:" + updateFormUrl(instructorBoardDto.getPostSn(), listPage, listKeyword, listBoardTypeCd, listSearchType);
             }
         } catch (Exception e) {
             log.error("게시글 수정 중 오류 발생", e);
@@ -364,7 +389,7 @@ public class InstructorBoardController {
             cleanupFileGroup(newGroupId, userId);
             redirectAttributes.addFlashAttribute("board", instructorBoardDto);
             redirectAttributes.addFlashAttribute("errorMessage", "게시글 수정 중 오류가 발생했습니다. 다시 시도해주세요.");
-            return "redirect:" + updateFormUrl(instructorBoardDto.getPostSn(), listPage, listKeyword, listBoardTypeCd);
+            return "redirect:" + updateFormUrl(instructorBoardDto.getPostSn(), listPage, listKeyword, listBoardTypeCd, listSearchType);
         }
     }
 
@@ -373,9 +398,10 @@ public class InstructorBoardController {
             @RequestParam Long postSn,
             @RequestParam(defaultValue = "1") int listPage,
             @RequestParam(defaultValue = "") String listKeyword,
-            @RequestParam(defaultValue = "") String listBoardTypeCd) {
+            @RequestParam(defaultValue = "") String listBoardTypeCd,
+            @RequestParam(defaultValue = "") String listSearchType) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        String updateFormUrl = updateFormUrl(postSn, listPage, listKeyword, listBoardTypeCd);
+        String updateFormUrl = updateFormUrl(postSn, listPage, listKeyword, listBoardTypeCd, listSearchType);
         InstructorBoardResponse board = instructorBoardService.getInstructorBoardDetail(postSn, userId);
         if (board == null || board.getAtchFileId() == null || board.getAtchFileId().isBlank()) {
             return "redirect:" + updateFormUrl;
@@ -398,11 +424,12 @@ public class InstructorBoardController {
             @RequestParam(defaultValue = "1") int listPage,
             @RequestParam(defaultValue = "") String listKeyword,
             @RequestParam(defaultValue = "") String listBoardTypeCd,
+            @RequestParam(defaultValue = "") String listSearchType,
             RedirectAttributes redirectAttributes) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         instructorBoardService.deleteInstructorBoard(postSn, userId);
         redirectAttributes.addFlashAttribute("successMessage", "게시글이 삭제되었습니다.");
-        return "redirect:" + detailUrl(postSn, listPage, listKeyword, listBoardTypeCd);
+        return "redirect:" + detailUrl(postSn, listPage, listKeyword, listBoardTypeCd, listSearchType);
     }
 
     /**
@@ -414,15 +441,16 @@ public class InstructorBoardController {
             @RequestParam(defaultValue = "1") int listPage,
             @RequestParam(defaultValue = "") String listKeyword,
             @RequestParam(defaultValue = "") String listBoardTypeCd,
+            @RequestParam(defaultValue = "") String listSearchType,
             RedirectAttributes redirectAttributes) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         int rows = instructorBoardService.answerInstructorQna(postSn, userId, answCn);
         if (rows == 0) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Q&A 게시글에만 답변을 등록할 수 있습니다.");
+            redirectAttributes.addFlashAttribute("errorMessage", "답변 등록에 실패했습니다. 게시글 상태를 확인해주세요.");
         } else {
             redirectAttributes.addFlashAttribute("successMessage", "답변이 등록되었습니다.");
         }
-        return "redirect:" + detailUrl(postSn, listPage, listKeyword, listBoardTypeCd);
+        return "redirect:" + detailUrl(postSn, listPage, listKeyword, listBoardTypeCd, listSearchType);
     }
 
     /**
@@ -437,35 +465,39 @@ public class InstructorBoardController {
             @RequestParam(defaultValue = "1") int listPage,
             @RequestParam(defaultValue = "") String listKeyword,
             @RequestParam(defaultValue = "") String listBoardTypeCd,
+            @RequestParam(defaultValue = "") String listSearchType,
             RedirectAttributes redirectAttributes) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         instructorBoardService.restoreInstructorBoard(postSn, userId);
         redirectAttributes.addFlashAttribute("successMessage", "게시글이 복구되었습니다.");
-        return "redirect:" + detailUrl(postSn, listPage, listKeyword, listBoardTypeCd);
+        return "redirect:" + detailUrl(postSn, listPage, listKeyword, listBoardTypeCd, listSearchType);
     }
 
-    private String detailUrl(Long postSn, int page, String keyword, String boardTypeCd) {
+    private String detailUrl(Long postSn, int page, String keyword, String boardTypeCd, String searchType) {
         return UriComponentsBuilder.fromPath("/instructor/board/detail/{postSn}")
                 .queryParam("page", page)
                 .queryParam("keyword", keyword)
                 .queryParam("boardTypeCd", boardTypeCd)
+                .queryParam("searchType", searchType)
                 .buildAndExpand(postSn)
                 .toUriString();
     }
 
-    private String insertFormUrl(int page, String keyword, String boardTypeCd) {
+    private String insertFormUrl(int page, String keyword, String boardTypeCd, String searchType) {
         return UriComponentsBuilder.fromPath("/instructor/board/insertForm")
                 .queryParam("page", page)
                 .queryParam("keyword", keyword)
                 .queryParam("boardTypeCd", boardTypeCd)
+                .queryParam("searchType", searchType)
                 .toUriString();
     }
 
-    private String updateFormUrl(Long postSn, int page, String keyword, String boardTypeCd) {
+    private String updateFormUrl(Long postSn, int page, String keyword, String boardTypeCd, String searchType) {
         return UriComponentsBuilder.fromPath("/instructor/board/updateForm/{postSn}")
                 .queryParam("page", page)
                 .queryParam("keyword", keyword)
                 .queryParam("boardTypeCd", boardTypeCd)
+                .queryParam("searchType", searchType)
                 .buildAndExpand(postSn)
                 .toUriString();
     }

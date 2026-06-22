@@ -31,7 +31,26 @@
                   AND IB.BOARD_TYPE_CD = #{boardTypeCd}
             </if>
             <if test="keyword != null and keyword != ''">
-                  AND UPPER(IB.POST_SJ) LIKE '%' || UPPER(#{keyword}) || '%'
+                <choose>
+                    <when test="searchType == 'title'">
+                        AND UPPER(IB.POST_SJ) LIKE '%' || UPPER(#{keyword}) || '%'
+                    </when>
+                    <when test="searchType == 'content'">
+                        AND DBMS_LOB.INSTR(IB.POST_CN, #{keyword}, 1, 1) > 0
+                    </when>
+                    <when test="searchType == 'titleContent'">
+                        AND (UPPER(IB.POST_SJ) LIKE '%' || UPPER(#{keyword}) || '%'
+                          OR DBMS_LOB.INSTR(IB.POST_CN, #{keyword}, 1, 1) > 0)
+                    </when>
+                    <when test="searchType == 'writer'">
+                        AND UPPER(M.USER_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
+                    </when>
+                    <otherwise>
+                        AND (UPPER(IB.POST_SJ) LIKE '%' || UPPER(#{keyword}) || '%'
+                          OR DBMS_LOB.INSTR(IB.POST_CN, #{keyword}, 1, 1) > 0
+                          OR UPPER(M.USER_NAME) LIKE '%' || UPPER(#{keyword}) || '%')
+                    </otherwise>
+                </choose>
             </if>
       </sql>
 
@@ -60,6 +79,7 @@
       <select id="selectInstructorBoardCount" resultType="int">
             SELECT COUNT(*)
             FROM INSTRUCTOR_BOARD IB
+                  INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
             <include refid="boardListWhere"/>
       </select>
 

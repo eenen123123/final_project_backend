@@ -23,35 +23,37 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class InstructorBoardServiceImpl implements InstructorBoardService {
 
+    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter DATETIME_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     private final InstructorBoardMapper instructorBoardMapper;
     private final FileUploadService fileUploadService;
 
     @Override
     public PageResponse<InstructorBoardResponse> getInstructorBoardList(
-            String instrUserId, String keyword, String boardTypeCd, int page, int pageSize) {
+            String instrUserId, String keyword, String boardTypeCd, String searchType, int page, int pageSize) {
         int offset = (page - 1) * pageSize;
-        int totalCount = instructorBoardMapper.selectInstructorBoardCount(instrUserId, keyword, boardTypeCd);
+        int totalCount = instructorBoardMapper.selectInstructorBoardCount(instrUserId, keyword, boardTypeCd, searchType);
         List<InstructorBoardDto> original = instructorBoardMapper.selectInstructorBoardList(
-                instrUserId, keyword, boardTypeCd, offset, pageSize);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                instrUserId, keyword, boardTypeCd, searchType, offset, pageSize);
         List<InstructorBoardResponse> items = java.util.stream.IntStream.range(0, original.size())
                 .mapToObj(i -> {
                     InstructorBoardDto dto = original.get(i);
                     String userName = dto.getMemberDto() != null ? dto.getMemberDto().getUserName() : "";
-                    InstructorBoardResponse responseDto = new InstructorBoardResponse();
-                    responseDto.setPostSn(dto.getPostSn());
-                    responseDto.setDisplayNo(totalCount - offset - i);
-                    responseDto.setUseYn(dto.getUseYn());
-                    responseDto.setBoardTypeCd(dto.getBoardTypeCd());
-                    responseDto.setBoardTypeNm(resolveBoardTypeNm(dto.getBoardTypeCd()));
-                    responseDto.setUserName(userName);
-                    responseDto.setTitle(dto.getPostSj());
-                    responseDto.setContent(dto.getPostCn());
-                    responseDto.setInqCnt(dto.getInqCnt());
-                    responseDto.setRegDt(dto.getRegDt() != null ? dto.getRegDt().format(formatter) : null);
-                    responseDto.setMdfcnDt(dto.getMdfcnDt() != null ? dto.getMdfcnDt().format(formatter) : null);
-                    responseDto.setAtchFileId(dto.getAtchFileId() != null ? dto.getAtchFileId().toString() : null);
-                    return responseDto;
+                    return InstructorBoardResponse.builder()
+                            .postSn(dto.getPostSn())
+                            .displayNo(totalCount - offset - i)
+                            .useYn(dto.getUseYn())
+                            .boardTypeCd(dto.getBoardTypeCd())
+                            .boardTypeNm(resolveBoardTypeNm(dto.getBoardTypeCd()))
+                            .userName(userName)
+                            .title(dto.getPostSj())
+                            .content(dto.getPostCn())
+                            .inqCnt(dto.getInqCnt())
+                            .regDt(dto.getRegDt() != null ? dto.getRegDt().format(DATE_FMT) : null)
+                            .mdfcnDt(dto.getMdfcnDt() != null ? dto.getMdfcnDt().format(DATE_FMT) : null)
+                            .atchFileId(dto.getAtchFileId() != null ? dto.getAtchFileId().toString() : null)
+                            .build();
                 })
                 .toList();
         return new PageResponse<>(items, totalCount);
@@ -63,7 +65,6 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
         if (original == null) {
             return null;
         }
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String userName = original.getMemberDto() != null ? original.getMemberDto().getUserName() : "";
         InstructorBoardResponse response = InstructorBoardResponse.builder()
                 .postSn(original.getPostSn())
@@ -74,8 +75,8 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
                 .title(original.getPostSj())
                 .content(original.getPostCn())
                 .inqCnt(original.getInqCnt())
-                .regDt(original.getRegDt() != null ? original.getRegDt().format(formatter) : null)
-                .mdfcnDt(original.getMdfcnDt() != null ? original.getMdfcnDt().format(formatter) : null)
+                .regDt(original.getRegDt() != null ? original.getRegDt().format(DATETIME_FMT) : null)
+                .mdfcnDt(original.getMdfcnDt() != null ? original.getMdfcnDt().format(DATETIME_FMT) : null)
                 .atchFileId(original.getAtchFileId() != null ? original.getAtchFileId().toString() : null)
                 .build();
 
