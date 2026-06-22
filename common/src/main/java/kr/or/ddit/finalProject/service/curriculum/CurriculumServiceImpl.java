@@ -14,6 +14,10 @@ import kr.or.ddit.finalProject.mapper.curriculum.CurriculumMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * {@link CurriculumService} 구현체.
+ * 강좌 매핑 변경 메서드는 {@link #verifyCurriculumOwner}로 소유자를 먼저 검증한 뒤 처리한다.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -78,9 +82,10 @@ public class CurriculumServiceImpl implements CurriculumService {
 
     // ── 커리큘럼-강좌 매핑 ──────────────────────────────────────────
 
-    /** 커리큘럼에 속한 강좌 목록을 SORT_ORD 오름차순으로 반환 */
+    /** 커리큘럼에 속한 강좌 목록을 SORT_ORD 오름차순으로 반환. 소유자 불일치 시 SecurityException. */
     @Override
-    public List<CourseDto> retrieveMappedCourses(Long curriculumId) {
+    public List<CourseDto> retrieveMappedCourses(Long curriculumId, String currentUserId) {
+        verifyCurriculumOwner(curriculumId, currentUserId);
         return curriculumMapper.selectMappedCourses(curriculumId);
     }
 
@@ -141,7 +146,7 @@ public class CurriculumServiceImpl implements CurriculumService {
                 .map(CourseDto::getCourseSn)
                 .collect(Collectors.toSet());
         Set<Long> requested = new HashSet<>(courseSnList);
-        if (!mapped.equals(requested)) {
+        if (requested.size() != courseSnList.size() || !mapped.equals(requested)) {
             throw new IllegalArgumentException("전달된 강좌 목록이 커리큘럼의 현재 강좌 목록과 일치하지 않습니다.");
         }
 

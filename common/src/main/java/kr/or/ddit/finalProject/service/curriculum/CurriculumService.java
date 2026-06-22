@@ -5,6 +5,12 @@ import java.util.List;
 import kr.or.ddit.finalProject.dto.course.CourseDto;
 import kr.or.ddit.finalProject.dto.curriculum.CurriculumDto;
 
+/**
+ * 커리큘럼 관리 서비스 인터페이스.
+ * 커리큘럼 CRUD 및 강좌 매핑(추가·제거·정렬)을 담당한다.
+ * 등록·수정·삭제는 결재 승인 후 실행 서비스가 호출하고,
+ * 강좌 매핑 작업은 컨트롤러에서 직접 호출한다.
+ */
 public interface CurriculumService {
 
     /** USE_YN = 'Y'인 전체 커리큘럼 목록을 반환한다. */
@@ -33,8 +39,8 @@ public interface CurriculumService {
 
     // ── 커리큘럼-강좌 매핑 ──────────────────────────────────────────
 
-    /** 커리큘럼에 속한 강좌 목록을 SORT_ORD 오름차순으로 반환한다. */
-    List<CourseDto> retrieveMappedCourses(Long curriculumId);
+    /** 커리큘럼에 속한 강좌 목록을 SORT_ORD 오름차순으로 반환한다. 소유자 불일치 시 SecurityException. */
+    List<CourseDto> retrieveMappedCourses(Long curriculumId, String currentUserId);
 
     /** 특정 강사의 강좌 중 아직 커리큘럼에 배정되지 않은 강좌 목록을 반환한다. */
     List<CourseDto> retrieveAvailableCourses(String instrUserId);
