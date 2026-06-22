@@ -34,10 +34,12 @@ public interface LectureMapper {
 
     CourseDto findCourseIdByFileServerId(@Param("fileServerId") long fileServerId);
 
+    /** 특정 강의를 수강한 전체 수강생의 완료 여부 조회 (강의 상세 페이지용) */
     List<StudentLectureProgressResponse> selectStudentProgressByLecture(
             @Param("classSn") Long classSn,
             @Param("lectureSn") Long lectureSn);
 
+    /** 특정 수강생의 클래스 내 전체 공개 강의별 완료 여부 조회 (수강생 진도 상세 페이지용) */
     List<LectureProgressDetailResponse> selectLectureProgressByStudent(
             @Param("classSn") Long classSn,
             @Param("userId") String userId);

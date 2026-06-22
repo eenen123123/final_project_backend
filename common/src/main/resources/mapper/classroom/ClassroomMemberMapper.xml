@@ -26,13 +26,17 @@
   </select>
 
 
-  <!-- ENRL_STAT_CD 필터 없음: 탈퇴/취소 수강생의 진도율도 조회할 수 있도록 의도적으로 전체 포함 -->
+  <!--
+    ENRL_STAT_CD 필터 없음: 탈퇴/취소 수강생의 진도율도 조회할 수 있도록 의도적으로 전체 포함.
+    CROSS JOIN: 클래스 전체 공개 강의 수(TOTAL_LECTURES)를 스칼라 값으로 구한 뒤
+                모든 수강생 행에 동일하게 적용하기 위한 패턴.
+  -->
   <select id="selectProgressRatesByClassSn" resultMap="classroomMemberListResponseMap">
     SELECT
         cm.USER_ID,
         CASE
             WHEN NVL(lect.TOTAL_LECTURES, 0) = 0 THEN 0
-            ELSE ROUND(NVL(prog.COMPLETED, 0) * 100.0 / lect.TOTAL_LECTURES, 1)
+            ELSE ROUND(NVL(prog.COMPLETED, 0) * 100.0 / lect.TOTAL_LECTURES, 0)
         END AS PROGRESS_RATE
     FROM CLASSROOM_MEMBER cm
     CROSS JOIN (

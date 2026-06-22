@@ -89,7 +89,6 @@
         l.LECTURE_SN                                      AS lectureSn,
         l.LECTURE_NM                                      AS lectureNm,
         l.SORT_ORD                                        AS sortOrd,
-        l.OPNN_YN                                         AS opnnYn,
         NVL(p.CMPL_YN, 'N')                              AS cmplYn,
         TO_CHAR(p.CMPL_DT, 'YYYY-MM-DD HH24:MI')         AS cmplDt
     FROM LECTURE l

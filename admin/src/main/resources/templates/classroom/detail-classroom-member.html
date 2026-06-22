@@ -35,7 +35,11 @@
     </a>
   </div>
 
-  <!-- 진도율 요약 -->
+  <!--
+    진도율 요약 바 — completedCount / totalCount 비율로 너비 계산.
+    100.0을 곱해 부동소수점 나눗셈을 강제한다 (정수 나눗셈 시 항상 0이 되는 버그 방지).
+    totalCount == 0 이면 공개 강의 없음 → 0%로 표시.
+  -->
   <div class="bg-white border border-slate-100 rounded-xl px-6 py-5 mb-5">
     <div class="flex items-center justify-between mb-3">
       <p class="text-sm font-bold text-slate-700">강의 진도율</p>

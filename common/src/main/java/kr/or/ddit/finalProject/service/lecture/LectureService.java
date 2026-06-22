@@ -28,7 +28,9 @@ public interface LectureService {
 
     void toggleLockYn(Long lectureSn, String userId);
 
+    // 특정 강의를 수강한 전체 수강생의 완료 여부 조회 (강의 상세 페이지용)
     List<StudentLectureProgressResponse> retrieveStudentProgressByLecture(Long classSn, Long lectureSn);
 
+    // 특정 수강생의 클래스 내 전체 공개 강의별 완료 여부 조회 (수강생 진도 상세 페이지용)
     List<LectureProgressDetailResponse> retrieveLectureProgressByStudent(Long classSn, String userId);
 }

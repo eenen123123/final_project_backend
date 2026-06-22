@@ -53,6 +53,7 @@ public interface ClassroomService {
     // 최근 7일간 학습 기록이 없는 비활성 수강생 수
     int retrieveInactiveStudentCount(Long classSn);
 
-    // 클래스 내 전체 수강생의 개인별 진도율 (userId → progressRate)
+    // 클래스 내 전체 수강생의 개인별 강의 진도율 반환 (userId → progressRate, 탈퇴/취소 수강생 포함)
+    // retrieveClassroomDetail과 분리: 진도율이 필요한 홈·수강생 탭에서만 호출
     Map<String, Double> retrieveProgressRates(Long classSn);
 }
