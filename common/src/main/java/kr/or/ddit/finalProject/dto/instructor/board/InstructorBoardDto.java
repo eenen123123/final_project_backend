@@ -70,4 +70,7 @@ public class InstructorBoardDto implements Serializable {
 
     /** 작성자 이름 — MEMBER 조인 결과, SELECT 전용 */
     private MemberDto memberDto;
+
+    /** Q&A 답변 여부 (Y/N) — INSTRUCTOR_QNA 조인 결과, 목록 조회 전용 */
+    private String answYn;
 }

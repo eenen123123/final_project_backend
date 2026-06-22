@@ -28,6 +28,7 @@
             <result property="rgtrId" column="RGTR_ID"/>
             <result property="lastMdfrId" column="LAST_MDFR_ID"/>
             <result property="useYn" column="USE_YN"/>
+            <result property="answYn" column="ANSW_YN"/>
             <association property="memberDto" javaType="kr.or.ddit.finalProject.dto.member.MemberDto">
                   <result property="userName" column="USER_NAME"/>
             </association>
@@ -81,7 +82,8 @@
            강사 홈페이지 게시판 — 목록 / 건수 / 상세
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
 
-      <!-- 목록: POST_CN(CLOB)은 제외하여 대용량 데이터 전송 방지 -->
+      <!-- 목록: POST_CN(CLOB)은 제외하여 대용량 데이터 전송 방지.
+           QNA 답변 여부 표시를 위해 INSTRUCTOR_QNA LEFT JOIN 추가. -->
       <select id="selectInstructorBoardList" resultMap="instructorBoardMap">
             SELECT
                   IB.POST_SN
@@ -97,8 +99,10 @@
                   , IB.LAST_MDFR_ID
                   , IB.USE_YN
                   , M.USER_NAME
+                  , IQ.ANSW_YN
             FROM INSTRUCTOR_BOARD IB
                   <include refid="wrtrMemberJoin"/>
+                  LEFT JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
             <include refid="boardListWhere"/>
             ORDER BY IB.REG_DT DESC
             OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
@@ -173,8 +177,7 @@
       <update id="updateInstructorBoard">
             UPDATE INSTRUCTOR_BOARD
             SET
-                  BOARD_TYPE_CD = #{boardTypeCd}
-                  , POST_SJ = #{postSj}
+                  POST_SJ = #{postSj}
                   , POST_CN = #{postCn}
                   , ATCH_FILE_ID = #{atchFileId, jdbcType=NUMERIC}
                   , MDFCN_DT = SYSDATE
@@ -200,6 +203,12 @@
                   AND CLASS_SN IS NULL
       </update>
 
+      <delete id="hardDeleteInstructorBoard">
+            DELETE FROM INSTRUCTOR_BOARD
+            WHERE POST_SN = #{postSn}
+                  AND CLASS_SN IS NULL
+      </delete>
+
       <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
            강사 홈페이지 Q&A 답변 (INSTRUCTOR_QNA 테이블)
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
@@ -210,7 +219,7 @@
                   IQ.ANSW_YN  AS answYn,
                   IQ.ANSW_CN  AS answCn,
                   M.USER_NAME AS answrUserNm,
-                  TO_CHAR(IQ.ANSW_DT, 'YYYY-MM-DD HH24:MI') AS answDt
+                  TO_CHAR(IQ.ANSW_DT, 'YYYY-MM-DD HH24:MI:SS') AS answDt
             FROM INSTRUCTOR_QNA IQ
             LEFT JOIN MEMBER M ON IQ.ANSWR_USER_ID = M.USER_ID
             WHERE IQ.POST_SN = #{postSn}
@@ -222,14 +231,18 @@
             VALUES (#{postSn}, 'N', 'N')
       </insert>
 
-      <!-- 답변 등록과 수정을 동일 쿼리로 처리 (UPSERT 불필요 — child 레코드가 항상 존재) -->
+      <!-- child 레코드가 없는 경우(직접 삽입된 데이터 등)에도 안전하게 처리하도록 MERGE로 UPSERT -->
       <update id="updateInstructorQnaAnswer">
-            UPDATE INSTRUCTOR_QNA
-            SET ANSW_CN       = #{answCn},
-                ANSWR_USER_ID = #{answrUserId},
-                ANSW_DT       = SYSDATE,
-                ANSW_YN       = 'Y'
-            WHERE POST_SN = #{postSn}
+            MERGE INTO INSTRUCTOR_QNA IQ
+            USING DUAL ON (IQ.POST_SN = #{postSn})
+            WHEN MATCHED THEN
+                UPDATE SET ANSW_CN       = #{answCn},
+                           ANSWR_USER_ID = #{answrUserId},
+                           ANSW_DT       = SYSDATE,
+                           ANSW_YN       = 'Y'
+            WHEN NOT MATCHED THEN
+                INSERT (POST_SN, ANSW_CN, ANSWR_USER_ID, ANSW_DT, ANSW_YN, SECR_YN)
+                VALUES (#{postSn}, #{answCn}, #{answrUserId}, SYSDATE, 'Y', 'N')
       </update>
 
       <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -38,6 +38,9 @@ public interface InstructorBoardService {
     /** 강사 홈페이지 게시글 소프트 삭제 (USE_YN = 'N') */
     int deleteInstructorBoard(Long postSn, String instrUserId);
 
+    /** 강사 홈페이지 게시글 하드 삭제 (파일 업로드 실패 보상용) */
+    int hardDeleteInstructorBoard(Long postSn);
+
     /** 강사 홈페이지 게시글 복구 (USE_YN = 'Y') */
     int restoreInstructorBoard(Long postSn, String instrUserId);
 

@@ -59,6 +59,9 @@ public class InstructorBoardResponse implements Serializable {
     /** 첨부파일 목록 (상세 조회 시 atchFileId가 있을 때만 채워짐) */
     private List<FileDto> files;
 
+    /** Q&A 답변 여부 (Y: 답변완료, N: 미답변 — boardTypeCd == 'QNA' 일 때만 의미 있음) */
+    private String answYn;
+
     /** Q&A 답변 정보 (boardTypeCd == 'QNA' 일 때만 채워짐, 그 외 null) */
     private InstructorQnaAnswerDto answer;
 }

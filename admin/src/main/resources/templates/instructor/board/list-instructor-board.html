@@ -1,6 +1,5 @@
 <title th:fragment="pageTitle">강사 게시판 관리 | HERMES</title>
-
-<link rel="stylesheet" th:href="@{/css/instructor/board.css}" />
+<link rel="stylesheet" th:href="@{/css/instructor/instructor-board.css}" />
 
 <!-- 페이지 헤더 -->
 <div class="flex items-center justify-between mb-6">
@@ -10,7 +9,8 @@
       <p class="text-sm text-slate-500 mt-1">공지사항, 질문, 자료를 관리합니다.</p>
     </div>
   </div>
-  <a th:href="@{/instructor/board/insertForm(page=${currentPage}, keyword=${keyword}, boardTypeCd=${boardTypeCd}, searchType=${searchType})}" class="hm-btn-primary hm-btn-sky">
+  <a th:href="@{/instructor/board/insertForm(page=${currentPage}, keyword=${keyword}, boardTypeCd=${boardTypeCd}, searchType=${searchType})}"
+    class="hm-btn-primary hm-btn-sky">
     <i class="fa-solid fa-pen-to-square"></i>글쓰기
   </a>
 </div>
@@ -18,12 +18,10 @@
 <!-- 탭 -->
 <div class="board-tabs">
   <a th:href="@{/instructor/board/list(keyword=${keyword}, searchType=${searchType})}"
-     th:classappend="${boardTypeCd == ''} ? ' active'" class="board-tab">전체</a>
+    th:classappend="${boardTypeCd == ''} ? ' active'" class="board-tab">전체</a>
   <a th:each="type : ${boardTypes}"
-     th:href="@{/instructor/board/list(boardTypeCd=${type.comCd}, keyword=${keyword}, searchType=${searchType})}"
-     th:classappend="${type.comCd == boardTypeCd} ? ' active'"
-     th:text="${type.comCdNm}"
-     class="board-tab"></a>
+    th:href="@{/instructor/board/list(boardTypeCd=${type.comCd}, keyword=${keyword}, searchType=${searchType})}"
+    th:classappend="${type.comCd == boardTypeCd} ? ' active'" th:text="${type.comCdNm}" class="board-tab"></a>
 </div>
 
 <!-- 검색 + 건수 -->
@@ -31,20 +29,19 @@
   <form method="get" action="/instructor/board/list" style="display:contents;">
     <input type="hidden" name="boardTypeCd" th:value="${boardTypeCd}" />
     <select name="searchType" class="hm-input hm-input-sky" style="width:auto; min-width:110px;">
-      <option value=""        th:selected="${searchType == ''}">전체</option>
-      <option value="title"        th:selected="${searchType == 'title'}">제목</option>
-      <option value="content"      th:selected="${searchType == 'content'}">내용</option>
+      <option value="" th:selected="${searchType == ''}">전체</option>
+      <option value="title" th:selected="${searchType == 'title'}">제목</option>
+      <option value="content" th:selected="${searchType == 'content'}">내용</option>
       <option value="titleContent" th:selected="${searchType == 'titleContent'}">제목+내용</option>
-      <option value="writer"       th:selected="${searchType == 'writer'}">작성자</option>
+      <option value="writer" th:selected="${searchType == 'writer'}">작성자</option>
     </select>
     <input type="text" name="keyword" th:value="${keyword}" placeholder="검색어를 입력하세요" class="hm-input hm-input-sky"
       style="width:220px;" />
     <button type="submit" class="hm-btn-primary hm-btn-sky">
       <i class="fa-solid fa-magnifying-glass"></i>검색
     </button>
-    <a th:if="${keyword != ''}"
-       th:href="@{/instructor/board/list(boardTypeCd=${boardTypeCd})}"
-       class="btn-filter-reset">
+    <a th:if="${keyword != ''}" th:href="@{/instructor/board/list(boardTypeCd=${boardTypeCd})}"
+      class="btn-filter-reset">
       <i class="fa-solid fa-xmark mr-0.5"></i>초기화
     </a>
     <span class="board-filter-count">
@@ -67,13 +64,24 @@
 
   <!-- 게시글 목록 -->
   <a th:each="board : ${boardList}"
-     th:href="@{/instructor/board/detail/{sn}(sn=${board.postSn}, page=${currentPage}, keyword=${keyword}, boardTypeCd=${boardTypeCd}, searchType=${searchType})}"
-     th:classappend="${board.useYn == 'N'} ? ' deleted'" class="board-item">
+    th:href="@{/instructor/board/detail/{sn}(sn=${board.postSn}, page=${currentPage}, keyword=${keyword}, boardTypeCd=${boardTypeCd}, searchType=${searchType})}"
+    th:classappend="${board.useYn == 'N'} ? ' deleted'" class="board-item">
     <span class="board-item-no" th:text="${board.displayNo}"></span>
     <span>
-      <span th:if="${board.boardTypeCd == 'NOTICE'}" class="badge badge-notice" th:text="${board.boardTypeNm}"></span>
-      <span th:if="${board.boardTypeCd == 'QNA'}" class="badge badge-qna" th:text="${board.boardTypeNm}"></span>
-      <span th:if="${board.boardTypeCd == 'DATAROOM'}" class="badge badge-dataroom" th:text="${board.boardTypeNm}"></span>
+      <span th:if="${board.boardTypeCd == 'NOTICE'}" class="badge badge-notice">
+        <i class="fa-solid fa-bullhorn"></i> <span th:text="${board.boardTypeNm}"></span>
+      </span>
+      <th:block th:if="${board.boardTypeCd == 'QNA'}">
+        <span th:if="${board.answYn == 'Y'}" class="badge badge-qna-answered">
+          <i class="fa-solid fa-circle-check"></i> <span th:text="${board.boardTypeNm}"></span>
+        </span>
+        <span th:unless="${board.answYn == 'Y'}" class="badge badge-qna-unanswered">
+          <i class="fa-solid fa-circle-exclamation"></i> <span th:text="${board.boardTypeNm}"></span>
+        </span>
+      </th:block>
+      <span th:if="${board.boardTypeCd == 'DATAROOM'}" class="badge badge-dataroom">
+        <i class="fa-solid fa-folder-open"></i> <span th:text="${board.boardTypeNm}"></span>
+      </span>
     </span>
     <span class="board-item-title">
       <span th:if="${board.useYn == 'N'}" class="deleted-tag">삭제됨</span>

@@ -64,6 +64,7 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
                     .regDt(dto.getRegDt() != null ? dto.getRegDt().format(DATE_FMT) : null)
                     .mdfcnDt(dto.getMdfcnDt() != null ? dto.getMdfcnDt().format(DATE_FMT) : null)
                     .atchFileId(dto.getAtchFileId() != null ? dto.getAtchFileId().toString() : null)
+                    .answYn(dto.getAnswYn())
                     .build());
         }
         return new PageResponse<>(items, totalCount);
@@ -133,6 +134,11 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     @Override
     public int restoreInstructorBoard(Long postSn, String instrUserId) {
         return instructorBoardMapper.restoreInstructorBoard(postSn, instrUserId);
+    }
+
+    @Override
+    public int hardDeleteInstructorBoard(Long postSn) {
+        return instructorBoardMapper.hardDeleteInstructorBoard(postSn);
     }
 
     @Override

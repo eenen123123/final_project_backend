@@ -62,6 +62,9 @@ public interface InstructorBoardMapper {
             @Param("postSn") Long postSn,
             @Param("instrUserId") String instrUserId);
 
+    /** 강사 홈페이지 게시글 하드 삭제 (파일 업로드 실패 보상용, 실제 행 제거) */
+    int hardDeleteInstructorBoard(@Param("postSn") Long postSn);
+
     /** 강사 홈페이지 게시글 복구 (USE_YN = 'Y') */
     int restoreInstructorBoard(
             @Param("postSn") Long postSn,

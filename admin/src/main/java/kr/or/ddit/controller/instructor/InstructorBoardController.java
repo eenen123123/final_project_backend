@@ -187,7 +187,7 @@ public class InstructorBoardController {
                 log.error("파일 업로드 실패 — 등록된 게시글 보상 삭제 (postSn={}, groupId={})",
                         instructorBoardDto.getPostSn(), groupId, e);
                 cleanupFileGroup(groupId, userId);
-                instructorBoardService.deleteInstructorBoard(instructorBoardDto.getPostSn(), userId);
+                instructorBoardService.hardDeleteInstructorBoard(instructorBoardDto.getPostSn());
                 ra.addFlashAttribute("errorMessage", "파일 업로드에 실패했습니다. 다시 시도해주세요.");
                 return "redirect:" + insertFormUrl(listPage, listKeyword, listBoardTypeCd, listSearchType);
             }
@@ -423,6 +423,11 @@ public class InstructorBoardController {
             @RequestParam(defaultValue = "") String listSearchType,
             RedirectAttributes ra) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        answCn = TipTapSanitizer.clean(answCn);
+        if (isBlankHtml(answCn)) {
+            ra.addFlashAttribute("errorMessage", "답변 내용을 입력해주세요.");
+            return "redirect:" + detailUrl(postSn, listPage, listKeyword, listBoardTypeCd, listSearchType);
+        }
         int rows = instructorBoardService.answerInstructorQna(postSn, userId, answCn);
         if (rows == 0) {
             ra.addFlashAttribute("errorMessage", "답변 등록에 실패했습니다. 게시글 상태를 확인해주세요.");

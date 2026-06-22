@@ -33,6 +33,28 @@
 }
 #editor .tiptap p { margin: 0.25rem 0; }
 
+/* ── TipTap 답변 에디터 (상세 페이지 Q&A 답변 영역) ── */
+.answer-editor {
+    border: 1px solid #fcd34d;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background: #fff;
+    min-height: 8rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.answer-editor:focus-within {
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1);
+}
+.answer-editor .tiptap {
+    padding: 0.75rem 1rem;
+    min-height: 8rem;
+    outline: none;
+    font-size: 0.875rem;
+    color: #334155;
+    line-height: 1.7;
+}
+
 /* ── 게시글 작성/수정 폼 — TipTap 에디터 sky 테마 ── */
 #editor {
     border: 1px solid #e2e8f0;
@@ -169,10 +191,11 @@
 .board-item-date   { font-size: 0.75rem; color: #94a3b8; font-family: monospace; }
 
 /* ── 분류 배지 ── */
-.badge { display: inline-block; border-radius: 999px; padding: 0.15rem 0.55rem; font-size: 0.75rem; font-weight: 700; }
-.badge-notice   { background: #e0f2fe; color: #0369a1; }
-.badge-qna      { background: #fef3c7; color: #92400e; }
-.badge-dataroom { background: #d1fae5; color: #065f46; }
+.badge { display: inline-flex; align-items: center; gap: 0.25rem; border-radius: 999px; padding: 0.15rem 0.55rem; font-size: 0.75rem; font-weight: 700; }
+.badge-notice        { background: #e0f2fe; color: #0369a1; }
+.badge-dataroom      { background: #ede9fe; color: #6d28d9; }
+.badge-qna-answered  { background: #dcfce7; color: #15803d; }
+.badge-qna-unanswered{ background: #fef9c3; color: #854d0e; }
 
 /* ── 빈 목록 ── */
 .board-empty {
