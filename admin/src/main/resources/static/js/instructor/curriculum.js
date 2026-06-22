@@ -78,8 +78,8 @@ async function loadMappedCourses() {
     countEl.textContent = `총 ${courses.length}개`;
 
     const card = document.getElementById("card-" + selectedCurriculumId);
-    const countEl = card?.querySelector(".card-course-count");
-    if (countEl) countEl.textContent = courses.length;
+    const cardCountEl = card?.querySelector(".card-course-count");
+    if (cardCountEl) cardCountEl.textContent = courses.length;
 
     if (courses.length === 0) {
       listEl.innerHTML = "";
@@ -355,8 +355,8 @@ async function submitCreate() {
 
   const params = new URLSearchParams();
   params.append("title", title);
-  params.append("strtDt", document.getElementById("create-strtDt").value);
-  params.append("endDt", document.getElementById("create-endDt").value);
+  if (strtDt) params.append("strtDt", strtDt);
+  if (endDt) params.append("endDt", endDt);
   params.append("explnCn", document.getElementById("create-explnCn").value);
 
   try {
@@ -424,8 +424,8 @@ async function submitEdit(btn) {
 
   const params = new URLSearchParams();
   params.append("title", title);
-  params.append("strtDt", editDiv.querySelector(".edit-strtDt").value);
-  params.append("endDt", editDiv.querySelector(".edit-endDt").value);
+  if (strtDt) params.append("strtDt", strtDt);
+  if (endDt) params.append("endDt", endDt);
   params.append("explnCn", editDiv.querySelector(".edit-explnCn").value);
 
   try {

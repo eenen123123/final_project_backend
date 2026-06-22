@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Param;
 import kr.or.ddit.finalProject.dto.course.CourseDto;
 import kr.or.ddit.finalProject.dto.curriculum.CurriculumDto;
 
+/** CURRICULUM 테이블 및 강좌 매핑(COURSE.CURRICULUM_ID) 관련 MyBatis 매퍼. */
 @Mapper
 public interface CurriculumMapper {
 
