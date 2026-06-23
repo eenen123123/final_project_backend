@@ -194,19 +194,22 @@ public class StaffServiceImpl implements StaffService{
 
             staffMapper.updateEmployeeInfo(employeeInfoDto);
 
-            // 급여 변경 시에만 이력 적립
-            EmployeeSalaryDto currentSalary = staffMapper.selectCurrentSalary(memberDto.getUserId());
-            boolean salaryChanged = currentSalary == null || !employeeSalaryDto.getBaseSalary().equals(currentSalary.getBaseSalary());
+            // 급여 변경 시에만 이력 적립 (baseSalary가 null이면 급여 수정 없음으로 간주)
+            Integer newSalary = employeeSalaryDto.getBaseSalary();
+            if (newSalary != null) {
+                EmployeeSalaryDto currentSalary = staffMapper.selectCurrentSalary(memberDto.getUserId());
+                boolean salaryChanged = currentSalary == null || !newSalary.equals(currentSalary.getBaseSalary());
 
-            if(salaryChanged) {
-                employeeSalaryDto.setUserId(memberDto.getUserId());
-                employeeSalaryDto.setUseYn("Y");
-                employeeSalaryDto.setApplyYmd(java.time.LocalDate.now());
-                employeeSalaryDto.setRgtrId(loginAdminId);
-                employeeSalaryDto.setLastMdfrId(loginAdminId);
+                if (salaryChanged) {
+                    employeeSalaryDto.setUserId(memberDto.getUserId());
+                    employeeSalaryDto.setUseYn("Y");
+                    employeeSalaryDto.setApplyYmd(java.time.LocalDate.now());
+                    employeeSalaryDto.setRgtrId(loginAdminId);
+                    employeeSalaryDto.setLastMdfrId(loginAdminId);
 
-                staffMapper.deactivateCurrentSalary(memberDto.getUserId());
-                staffMapper.insertEmployeeSalary(employeeSalaryDto);
+                    staffMapper.deactivateCurrentSalary(memberDto.getUserId());
+                    staffMapper.insertEmployeeSalary(employeeSalaryDto);
+                }
             }
         } catch (DataAccessException e) {
             log.error("[updateEmployee] DB 수정 실패. userId={}, cause={}", memberDto.getUserId(), e.getMessage());

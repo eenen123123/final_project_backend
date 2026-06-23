@@ -59,7 +59,7 @@
     </select>
 
     <insert id="insertOrderShipping" parameterType="kr.or.ddit.finalProject.dto.order.OrderShippingDto"
-            useGeneratedKeys="true" keyProperty="shippingSn">
+            useGeneratedKeys="true" keyProperty="shippingSn" keyColumn="SHIPPING_SN">
         INSERT INTO ORDER_SHIPPING (
             ORD_SN, BUYER_NM, BUYER_TEL, BUYER_EMAIL,
             RECEIVER_NM, RECEIVER_TEL, RECEIVER_TEL2,

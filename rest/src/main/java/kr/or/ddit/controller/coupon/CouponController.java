@@ -39,6 +39,12 @@ public class CouponController {
         return ResponseEntity.ok(couponService.getExpiringCoupons(authentication.getName()));
     }
 
+    // GET /api/coupons/my/available - 결제 페이지용 사용 가능 쿠폰 목록
+    @GetMapping("/my/available")
+    public ResponseEntity<List<MemberCouponPointDto>> getAvailableCoupons(Authentication authentication) {
+        return ResponseEntity.ok(couponService.getAvailableCouponsForCheckout(authentication.getName()));
+    }
+
     // POST /api/coupons/redeem - 쿠폰 코드 입력으로 발급
     @PostMapping("/redeem")
     public ResponseEntity<MemberCouponPointDto> redeemCoupon(Authentication authentication,

@@ -87,7 +87,6 @@ public class AdminActivityExecutionService {
      *
      * @param aprvlDocSn 결재 마스터 테이블의 고유 식별 번호 (결재 문서 일련번호)
      */
-    @Transactional
     public void execute(Long aprvlDocSn) {
         try {
             // 1. 전자결재 서비스로부터 해당 문서의 상세 마스터 정보를 조회한다.

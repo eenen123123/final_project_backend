@@ -23,6 +23,9 @@ public interface CouponService {
     // 소멸 예정 쿠폰 조회 - 다음달 만료 (사용자)
     List<MemberCouponPointDto> getExpiringCoupons(String userId);
 
+    // 결제 페이지용 사용 가능한 쿠폰 목록 (미사용 + 미만료 + 할인정보 포함)
+    List<MemberCouponPointDto> getAvailableCouponsForCheckout(String userId);
+
     // 여러 유저에게 쿠폰 일괄 발급 (관리자)
     List<MemberCouponPointDto> bulkIssueCoupon(Long couponSn, List<String> userIds, String adminId);
 

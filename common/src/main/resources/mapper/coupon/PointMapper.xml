@@ -28,7 +28,8 @@
         <result property="ordSn"    column="ORD_SN"/>
         <result property="memo"     column="MEMO"/>
         <result property="regDt"    column="REG_DT"/>
-        <result property="expiryDt" column="EXPIRY_DT"/>
+        <result property="expiryDt"  column="EXPIRY_DT"/>
+        <result property="assetType" column="ASSET_TYPE"/>
     </resultMap>
 
     <!-- 포인트 지급건 삽입 -->
@@ -48,39 +49,56 @@
     <!-- 포인트 이력 삽입 -->
     <insert id="insertPointHist" parameterType="kr.or.ddit.finalProject.dto.coupon.PointHistDto"
             useGeneratedKeys="true" keyProperty="pointHistSn" keyColumn="POINT_HIST_SN">
-        INSERT INTO POINT_HIST (MCPNT_SN, USER_ID, HIST_TYPE, CHANGE_AMT, ORD_SN, MEMO)
+        INSERT INTO POINT_HIST (MCPNT_SN, USER_ID, HIST_TYPE, CHANGE_AMT, ORD_SN, MEMO, ASSET_TYPE)
         VALUES (
             #{mcpntSn},
             #{userId},
             #{histType},
             #{changeAmt},
             #{ordSn},
-            #{memo}
+            #{memo},
+            #{assetType}
         )
     </insert>
 
     <!-- 잔액 체크 + 차감 이력 원자적 삽입 (동시성 보호) -->
     <!-- WHERE 절에서 현재 잔액 >= 차감액 검증 → 0건 삽입 시 잔액 부족 -->
     <insert id="insertPointHistIfSufficient">
-        INSERT INTO POINT_HIST (USER_ID, HIST_TYPE, CHANGE_AMT, ORD_SN, MEMO)
-        SELECT #{dto.userId}, #{dto.histType}, #{dto.changeAmt}, #{dto.ordSn}, #{dto.memo}
+        INSERT INTO POINT_HIST (USER_ID, HIST_TYPE, CHANGE_AMT, ORD_SN, MEMO, ASSET_TYPE)
+        SELECT #{dto.userId}, #{dto.histType}, #{dto.changeAmt}, #{dto.ordSn}, #{dto.memo}, #{assetType}
         FROM DUAL
         WHERE (
             SELECT NVL(SUM(ph.CHANGE_AMT), 0)
             FROM POINT_HIST ph
-            JOIN MEMBER_COUPONPOINT mcp ON ph.MCPNT_SN = mcp.MCPNT_SN
             WHERE ph.USER_ID = #{dto.userId}
-              AND mcp.ASSET_TYPE = #{assetType}
+              AND (
+                (ph.MCPNT_SN IS NOT NULL AND EXISTS (
+                    SELECT 1 FROM MEMBER_COUPONPOINT mcp
+                     WHERE mcp.MCPNT_SN = ph.MCPNT_SN
+                       AND mcp.ASSET_TYPE = #{assetType}
+                ))
+                OR
+                (ph.MCPNT_SN IS NULL AND ph.ASSET_TYPE = #{assetType})
+              )
         ) + #{dto.changeAmt} >= 0
     </insert>
 
-    <!-- 포인트 잔액 조회 (POINT_HIST 합산) -->
+    <!-- 포인트 잔액 조회 (적립 + 사용 합산) -->
     <select id="selectPointBalance" resultType="java.lang.Long">
         SELECT NVL(SUM(ph.CHANGE_AMT), 0)
         FROM POINT_HIST ph
-        JOIN MEMBER_COUPONPOINT mcp ON ph.MCPNT_SN = mcp.MCPNT_SN
         WHERE ph.USER_ID = #{userId}
-          AND mcp.ASSET_TYPE = #{assetType}
+          AND (
+            -- 적립/소멸: MCPNT_SN으로 ASSET_TYPE 판별
+            (ph.MCPNT_SN IS NOT NULL AND EXISTS (
+                SELECT 1 FROM MEMBER_COUPONPOINT mcp
+                 WHERE mcp.MCPNT_SN = ph.MCPNT_SN
+                   AND mcp.ASSET_TYPE = #{assetType}
+            ))
+            OR
+            -- 사용: ASSET_TYPE 컬럼으로 판별
+            (ph.MCPNT_SN IS NULL AND ph.ASSET_TYPE = #{assetType})
+          )
     </select>
 
     <!-- 포인트 이력 조회 (사용자) -->
