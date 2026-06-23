@@ -29,3 +29,8 @@ input.hm-input.hm-input-blue[placeholder]:not(:placeholder-shown) { background-c
   border-bottom: none;
 }
 
+/* ── 탭 ── */
+.emp-tab { border-bottom: 2px solid transparent; font-weight: 600; transition: all .15s; }
+.emp-tab.active { border-color: #3b82f6; color: #3b82f6; }
+.emp-tab:not(.active):hover { color: #475569; }
+
