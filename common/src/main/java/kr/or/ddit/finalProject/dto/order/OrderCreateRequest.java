@@ -22,4 +22,12 @@ public class OrderCreateRequest {
     /** 배송지를 주소록에 저장 여부 (교재 포함 주문에만 유효) */
     private boolean saveToAddressBook = false;
 
+    /** 쿠폰 적용 목록 (상품별 쿠폰 선택) */
+    private List<CouponApplication> coupons;
+
+    @Data
+    public static class CouponApplication {
+        private Long mcpntSn;     // 사용자 쿠폰 PK
+        private String prodDivCd; // 적용 상품 유형 (COURSE / TEXTBOOK)
+    }
 }
