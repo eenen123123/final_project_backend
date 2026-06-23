@@ -21,6 +21,7 @@ public interface OrderMapper {
 
     OrderDto selectOrderByOrdId(@Param("ordId") String ordId);
 
+    // 내부 처리용 (결제 승인, 취소 등) - 소유자 검증 없음
     List<OrderItemDto> selectOrderItemsByOrdSn(@Param("ordSn") Long ordSn);
 
     int updateOrderStatus(@Param("ordSn") Long ordSn, @Param("ordStatCd") OrderStatus ordStatCd);
@@ -39,6 +40,7 @@ public interface OrderMapper {
     int selectOrderTotalCountByUserId(@Param("userId") String userId,
             @Param("paginationInfo") PaginationInfo<OrderSearchCondition> paginationInfo);
 
+    // 사용자용 - 소유자 검증 포함
     List<OrderItemDto> selectOrderItemsByOrderSn(@Param("ordSn") Long ordSn, @Param("userId") String userId);
 
     OrderDto selectOrderByOrdSn(@Param("ordSn") Long ordSn, @Param("userId") String userId);

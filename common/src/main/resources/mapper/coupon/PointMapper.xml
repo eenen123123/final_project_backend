@@ -59,6 +59,21 @@
         )
     </insert>
 
+    <!-- 잔액 체크 + 차감 이력 원자적 삽입 (동시성 보호) -->
+    <!-- WHERE 절에서 현재 잔액 >= 차감액 검증 → 0건 삽입 시 잔액 부족 -->
+    <insert id="insertPointHistIfSufficient">
+        INSERT INTO POINT_HIST (USER_ID, HIST_TYPE, CHANGE_AMT, ORD_SN, MEMO)
+        SELECT #{dto.userId}, #{dto.histType}, #{dto.changeAmt}, #{dto.ordSn}, #{dto.memo}
+        FROM DUAL
+        WHERE (
+            SELECT NVL(SUM(ph.CHANGE_AMT), 0)
+            FROM POINT_HIST ph
+            JOIN MEMBER_COUPONPOINT mcp ON ph.MCPNT_SN = mcp.MCPNT_SN
+            WHERE ph.USER_ID = #{dto.userId}
+              AND mcp.ASSET_TYPE = #{assetType}
+        ) + #{dto.changeAmt} >= 0
+    </insert>
+
     <!-- 포인트 잔액 조회 (POINT_HIST 합산) -->
     <select id="selectPointBalance" resultType="java.lang.Long">
         SELECT NVL(SUM(ph.CHANGE_AMT), 0)

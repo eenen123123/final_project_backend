@@ -73,19 +73,20 @@ public class PointServiceImpl implements PointService {
             throw new FinalProjectException(ErrorCode.POINT_MINIMUM_USAGE);
         }
 
-        // 잔액 재조회 (차감 직전 DB 최신값 기준)
-        long balance = getPointBalance(userId, assetType);
-        if (balance < amount) {
+        // 잔액 체크 + 차감을 단일 SQL로 원자적 처리 (동시성 보호)
+        // INSERT 결과가 0이면 잔액 부족 (다른 트랜잭션이 먼저 차감한 경우 포함)
+        int result = pointMapper.insertPointHistIfSufficient(
+                PointHistDto.builder()
+                        .userId(userId)
+                        .histType(PointHistType.USE)
+                        .changeAmt(-amount)
+                        .ordSn(ordSn)
+                        .memo(memo)
+                        .build(),
+                assetType);
+        if (result == 0) {
             throw new FinalProjectException(ErrorCode.POINT_INSUFFICIENT_BALANCE);
         }
-
-        pointMapper.insertPointHist(PointHistDto.builder()
-                .userId(userId)
-                .histType(PointHistType.USE)
-                .changeAmt(-amount)
-                .ordSn(ordSn)
-                .memo(memo)
-                .build());
 
         log.info("포인트 사용: userId={}, assetType={}, amount={}", userId, assetType, amount);
     }
