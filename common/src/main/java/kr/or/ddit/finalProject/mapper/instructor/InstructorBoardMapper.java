@@ -86,8 +86,14 @@ public interface InstructorBoardMapper {
 
     // ── 클래스룸 공지사항 ──────────────────────────────────────────────
 
-    /** 클래스룸 공지사항 목록 조회 (USE_YN='Y', 등록일 내림차순) */
-    List<InstructorBoardDto> selectClassroomNoticeList(@Param("classSn") Long classSn);
+    /** 클래스룸 공지사항 목록 조회 (페이징) */
+    List<InstructorBoardDto> selectClassroomNoticeList(
+            @Param("classSn") Long classSn,
+            @Param("offset") int offset,
+            @Param("pageSize") int pageSize);
+
+    /** 클래스룸 공지사항 총 건수 */
+    int countClassroomNoticeList(@Param("classSn") Long classSn);
 
     /** 클래스룸 공지사항 상세 조회 */
     InstructorBoardDto selectClassroomNoticeDetail(
@@ -107,8 +113,14 @@ public interface InstructorBoardMapper {
 
     // ── 클래스룸 자료실 ───────────────────────────────────────────────
 
-    /** 클래스룸 자료실 목록 조회 (USE_YN='Y', 등록일 내림차순) */
-    List<InstructorBoardDto> selectClassroomDataroomList(@Param("classSn") Long classSn);
+    /** 클래스룸 자료실 목록 조회 (페이징) */
+    List<InstructorBoardDto> selectClassroomDataroomList(
+            @Param("classSn") Long classSn,
+            @Param("offset") int offset,
+            @Param("pageSize") int pageSize);
+
+    /** 클래스룸 자료실 총 건수 */
+    int countClassroomDataroomList(@Param("classSn") Long classSn);
 
     /** 클래스룸 자료실 상세 조회 */
     InstructorBoardDto selectClassroomDataroomDetail(
@@ -128,9 +140,14 @@ public interface InstructorBoardMapper {
 
     // ── 클래스룸 Q&A ──────────────────────────────────────────────────
 
-    /** 클래스룸 Q&A 목록 조회 (비밀글 포함, USE_YN='Y') */
+    /** 클래스룸 Q&A 목록 조회 (페이징) */
     List<kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto> selectClassroomQnaList(
-            @Param("classSn") Long classSn);
+            @Param("classSn") Long classSn,
+            @Param("offset") int offset,
+            @Param("pageSize") int pageSize);
+
+    /** 클래스룸 Q&A 총 건수 */
+    int countClassroomQnaList(@Param("classSn") Long classSn);
 
     /** 클래스룸 Q&A 상세 조회 (답변 정보 포함) */
     kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto selectClassroomQnaDetail(

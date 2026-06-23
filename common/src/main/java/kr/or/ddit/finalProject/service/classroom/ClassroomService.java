@@ -25,8 +25,8 @@ public interface ClassroomService {
     // 클래스룸 단건 상세 (강좌명·강사명·수강생수·운영기간 등 포함)
     ClassroomDetailResponse retrieveClassroomDetail(Long classSn);
 
-    // 수강생별 과제 평균 점수 기반 성적 목록
-    List<ClassroomGradeDto> retrieveGradeList(Long classSn);
+    // 수강생별 과제 평균 점수 기반 성적 목록 (페이징)
+    PageResponse<ClassroomGradeDto> retrieveGradeList(Long classSn, int page, int pageSize);
 
     // 강의 목록 + 각 강의별 수강생 완료 인원수
     List<ClassroomLectureResponse> retrieveLecturesWithProgress(Long classSn);
@@ -58,6 +58,9 @@ public interface ClassroomService {
     // 클래스 내 전체 수강생의 개인별 강의 진도율 반환 (userId → progressRate, 탈퇴/취소 수강생 포함)
     // retrieveClassroomDetail과 분리: 진도율이 필요한 홈·수강생 탭에서만 호출
     Map<String, Double> retrieveProgressRates(Long classSn);
+
+    // 수강생 목록 페이징 (진도율 병합 포함)
+    PageResponse<kr.or.ddit.finalProject.dto.classroom.ClassroomMemberListResponse> retrieveMemberListPaged(Long classSn, int page, int pageSize);
 
     // 클래스룸 등록 (결재 승인 후 실행)
     void createClassroom(ClassroomDto dto);

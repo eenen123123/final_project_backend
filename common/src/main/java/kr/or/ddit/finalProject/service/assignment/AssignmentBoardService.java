@@ -5,10 +5,11 @@ import java.util.List;
 
 import kr.or.ddit.finalProject.dto.assignment.AssignmentBoardDto;
 import kr.or.ddit.finalProject.dto.assignment.AssignmentSubmitDto;
+import kr.or.ddit.finalProject.dto.common.PageResponse;
 
 public interface AssignmentBoardService {
 
-    List<AssignmentBoardDto> getAssignmentList(Long classSn);
+    PageResponse<AssignmentBoardDto> getAssignmentList(Long classSn, int page, int pageSize);
 
     AssignmentBoardDto getAssignmentDetail(Long asgmtSn);
 

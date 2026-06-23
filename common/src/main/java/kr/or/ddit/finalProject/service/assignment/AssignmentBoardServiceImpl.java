@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import kr.or.ddit.finalProject.dto.assignment.AssignmentBoardDto;
 import kr.or.ddit.finalProject.dto.assignment.AssignmentSubmitDto;
+import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.mapper.assignment.AssignmentBoardMapper;
 import kr.or.ddit.finalProject.mapper.assignment.AssignmentSubmitMapper;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +22,11 @@ public class AssignmentBoardServiceImpl implements AssignmentBoardService {
     private final AssignmentSubmitMapper assignmentSubmitMapper;
 
     @Override
-    public List<AssignmentBoardDto> getAssignmentList(Long classSn) {
-        return assignmentBoardMapper.selectAssignmentList(classSn);
+    public PageResponse<AssignmentBoardDto> getAssignmentList(Long classSn, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        List<AssignmentBoardDto> items = assignmentBoardMapper.selectAssignmentList(classSn, offset, pageSize);
+        int totalCount = assignmentBoardMapper.countAssignmentList(classSn);
+        return new PageResponse<>(items, totalCount);
     }
 
     @Override
