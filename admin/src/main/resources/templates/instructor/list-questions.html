@@ -1,0 +1,376 @@
+<!--
+  강사 문항 관리 — 목록
+  Controller: InstructorQuestionController  GET /instructor/questions
+  Model: questions, classifications, currentPage, totalPages, totalCount,
+         selectedSubjId, selectedSubjClId, selectedDiffCd
+-->
+<div class="space-y-5">
+
+  <!-- ── 페이지 헤더 ─────────────────────────────── -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">문항 관리</h1>
+      <p class="text-sm text-slate-500 mt-1">
+        문항을 등록·관리하고 AI로 문항을 생성합니다.
+        <span class="ml-1 text-sky-600 font-semibold" th:text="'총 ' + ${totalCount} + '개'"></span>
+      </p>
+    </div>
+    <button type="button" onclick="openQAddPanel()" class="hm-btn-primary hm-btn-sky shrink-0">
+      <i class="fa-solid fa-plus"></i><span>문항 추가</span>
+    </button>
+  </div>
+
+  <!-- ── 문항 추가 패널 ───────────────────────────── -->
+  <div id="q-add-panel" class="hidden bg-white rounded-2xl border border-sky-200 shadow-sm p-5">
+    <p class="text-xs font-bold text-sky-600 mb-4"><i class="fa-solid fa-plus mr-1.5"></i>새 문항 등록</p>
+    <form id="q-add-form" th:action="@{/instructor/questions}" method="post">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+        <div>
+          <label class="form-label">유형 <span class="required">*</span></label>
+          <select name="qstnTypeCd" id="qa-type" onchange="onQaTypeChange()" class="hm-input hm-input-sky w-full">
+            <option value="MULTIPLE_CHOICE">객관식</option>
+            <option value="SHORT_ANSWER">단답형</option>
+            <option value="ESSAY">서술형</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">대분류</label>
+          <select id="qa-cl" onchange="qaLoadSubjects()" class="hm-input hm-input-sky w-full">
+            <option value="">선택</option>
+            <th:block th:each="cl : ${classifications}">
+              <option th:value="${cl.subjClId}" th:text="${cl.subjClNm}"></option>
+            </th:block>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">과목</label>
+          <select name="subjId" id="qa-subj" class="hm-input hm-input-sky w-full">
+            <option value="">대분류 선택</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">난이도</label>
+          <select name="diffCd" class="hm-input hm-input-sky w-full">
+            <option value="">선택 안 함</option>
+            <option value="EASY">쉬움</option>
+            <option value="MEDIUM">보통</option>
+            <option value="HARD">어려움</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">문제 본문 <span class="required">*</span></label>
+        <textarea name="stem" required placeholder="문제 내용을 입력하세요."
+          class="hm-input hm-input-sky w-full" style="min-height:80px;resize:vertical;font-family:inherit;"></textarea>
+      </div>
+
+      <div id="qa-choices-wrap" class="mb-3">
+        <label class="form-label">선지</label>
+        <div id="qa-choices" class="space-y-2">
+          <div class="qa-choice-row flex gap-2">
+            <input type="text" name="choices" placeholder="A. 보기 내용" class="hm-input hm-input-sky flex-1" />
+            <button type="button" onclick="qaRemoveChoice(this)" class="hm-btn-danger px-3">×</button>
+          </div>
+          <div class="qa-choice-row flex gap-2">
+            <input type="text" name="choices" placeholder="B. 보기 내용" class="hm-input hm-input-sky flex-1" />
+            <button type="button" onclick="qaRemoveChoice(this)" class="hm-btn-danger px-3">×</button>
+          </div>
+        </div>
+        <button type="button" onclick="qaAddChoice()" class="hm-btn-secondary mt-2 text-xs">
+          <i class="fa-solid fa-plus mr-1"></i>선지 추가
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="form-label">정답</label>
+          <input type="text" name="corrAnswCn" placeholder="예: A 또는 광합성"
+            class="hm-input hm-input-sky w-full" />
+        </div>
+        <div>
+          <label class="form-label">배점 (점)</label>
+          <input type="number" name="allocScr" placeholder="1" step="0.5" min="0"
+            class="hm-input hm-input-sky w-full" />
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label">해설 (선택)</label>
+        <input type="text" name="explnCn" placeholder="해설을 입력하세요."
+          class="hm-input hm-input-sky w-full" />
+      </div>
+
+      <div class="flex gap-2">
+        <button type="button" onclick="closeQAddPanel()" class="flex-1 hm-btn-secondary justify-center">취소</button>
+        <button type="submit" class="flex-1 hm-btn-primary hm-btn-sky justify-center">
+          <i class="fa-solid fa-check mr-1"></i>등록
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ── 탭 바 ────────────────────────────────────── -->
+  <div class="flex gap-1 border-b border-slate-200">
+    <button data-tab="tab-list" onclick="switchTab('tab-list', this)"
+      class="q-tab px-5 py-2.5 text-sm font-semibold border-b-2 -mb-px bg-transparent cursor-pointer
+             text-sky-600 border-sky-500">
+      <i class="fa-solid fa-list-ul mr-1.5"></i>문항 목록
+    </button>
+    <button data-tab="tab-ai" onclick="switchTab('tab-ai', this)"
+      class="q-tab px-5 py-2.5 text-sm font-semibold border-b-2 -mb-px bg-transparent cursor-pointer
+             text-slate-500 border-transparent hover:text-violet-600">
+      <span class="inline-flex items-center gap-1.5">
+        <span class="text-xs font-bold px-1.5 py-0.5 rounded-full"
+          style="background:linear-gradient(135deg,#7c3aed,#0ea5e9);color:#fff;">AI</span>
+        문항 생성
+      </span>
+    </button>
+  </div>
+
+  <!-- ── 문항 목록 탭 ─────────────────────────────── -->
+  <div id="tab-list">
+
+    <!-- 필터 바 -->
+    <form method="get" action="/instructor/questions"
+          class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-4">
+      <div class="flex flex-wrap gap-3 items-end">
+        <div>
+          <label class="form-label">대분류</label>
+          <select id="filter-cl" onchange="filterLoadSubjects(); syncClHidden();"
+            class="hm-input hm-input-sky">
+            <option value="">전체</option>
+            <th:block th:each="cl : ${classifications}">
+              <option th:value="${cl.subjClId}" th:text="${cl.subjClNm}"
+                th:selected="${cl.subjClId != null and cl.subjClId == selectedSubjClId}"></option>
+            </th:block>
+          </select>
+          <input type="hidden" name="subjClId" id="filter-cl-hidden"
+            th:value="${selectedSubjClId}" />
+        </div>
+        <div>
+          <label class="form-label">과목</label>
+          <select name="subjId" id="filter-subj" class="hm-input hm-input-sky">
+            <option value="">전체</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">난이도</label>
+          <select name="diffCd" class="hm-input hm-input-sky">
+            <option value="">전체</option>
+            <option value="EASY"   th:selected="${selectedDiffCd == 'EASY'}">쉬움</option>
+            <option value="MEDIUM" th:selected="${selectedDiffCd == 'MEDIUM'}">보통</option>
+            <option value="HARD"   th:selected="${selectedDiffCd == 'HARD'}">어려움</option>
+          </select>
+        </div>
+        <div class="flex gap-2">
+          <button type="submit" class="hm-btn-primary hm-btn-sky">
+            <i class="fa-solid fa-filter mr-1"></i>필터 적용
+          </button>
+          <a href="/instructor/questions" class="hm-btn-secondary">초기화</a>
+        </div>
+      </div>
+    </form>
+
+    <!-- 문항 테이블 -->
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider uppercase">
+              <th class="py-3 px-5 w-12">#</th>
+              <th class="py-3 px-5 w-28">유형</th>
+              <th class="py-3 px-5">문제 본문</th>
+              <th class="py-3 px-5 w-16 text-center">배점</th>
+              <th class="py-3 px-5 w-16 text-center">난이도</th>
+              <th class="py-3 px-5 w-36">등록일시</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+            <tr th:if="${#lists.isEmpty(questions)}">
+              <td colspan="6" class="py-16 text-center text-slate-300">
+                <div class="flex flex-col items-center gap-3">
+                  <i class="fa-solid fa-circle-question text-4xl"></i>
+                  <p class="text-sm">조건에 맞는 문항이 없습니다.</p>
+                </div>
+              </td>
+            </tr>
+            <tr th:each="q,s : ${questions}"
+                class="hover:bg-slate-50/70 transition-colors cursor-pointer"
+                th:onclick="|location.href='/instructor/questions/' + ${q.qstnSn}|">
+              <td class="py-3 px-5 text-slate-400 text-xs"
+                  th:text="${(currentPage - 1) * 10 + s.count}"></td>
+              <td class="py-3 px-5">
+                <span th:if="${q.aiGenYn == 'Y'}"
+                  class="inline-block text-xs font-bold px-1.5 py-0.5 rounded-full mr-1"
+                  style="background:linear-gradient(135deg,#ede9fe,#e0f2fe);color:#6d28d9;">AI</span>
+                <span class="inline-block text-xs font-semibold rounded px-2 py-0.5"
+                  th:classappend="${q.qstnTypeCd?.name() == 'MULTIPLE_CHOICE'} ? 'bg-blue-50 text-blue-700'
+                                 : (${q.qstnTypeCd?.name() == 'SHORT_ANSWER'} ? 'bg-emerald-50 text-emerald-700'
+                                 : 'bg-amber-50 text-amber-700')"
+                  th:text="${q.qstnTypeCd?.name() == 'MULTIPLE_CHOICE'} ? '객관식'
+                           : (${q.qstnTypeCd?.name() == 'SHORT_ANSWER'} ? '단답형' : '서술형')">
+                </span>
+              </td>
+              <td class="py-3 px-5 text-slate-700" th:text="${#strings.abbreviate(q.stem, 60)}"></td>
+              <td class="py-3 px-5 text-center text-slate-500 text-xs"
+                  th:text="${q.allocScr != null} ? ${q.allocScr} + '점' : '-'"></td>
+              <td class="py-3 px-5 text-center">
+                <span th:if="${q.diffCd?.name() == 'EASY'}"
+                  class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700">쉬움</span>
+                <span th:if="${q.diffCd?.name() == 'MEDIUM'}"
+                  class="text-xs font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-700">보통</span>
+                <span th:if="${q.diffCd?.name() == 'HARD'}"
+                  class="text-xs font-semibold px-2 py-0.5 rounded bg-red-50 text-red-700">어려움</span>
+                <span th:if="${q.diffCd == null}" class="text-slate-300 text-xs">-</span>
+              </td>
+              <td class="py-3 px-5 text-slate-400 text-xs" th:text="${q.regDt}"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 페이징 -->
+    <div th:if="${totalPages > 1}"
+         class="flex items-center justify-center gap-1 mt-4">
+
+      <a th:if="${currentPage > 1}"
+         th:href="@{/instructor/questions(page=${currentPage - 1}, subjId=${selectedSubjId}, subjClId=${selectedSubjClId}, diffCd=${selectedDiffCd})}"
+         class="hm-btn-secondary px-3 py-1.5 text-xs">
+        <i class="fa-solid fa-chevron-left"></i>
+      </a>
+      <span th:unless="${currentPage > 1}"
+        class="hm-btn-secondary px-3 py-1.5 text-xs opacity-30 cursor-not-allowed">
+        <i class="fa-solid fa-chevron-left"></i>
+      </span>
+
+      <th:block th:with="startPage=${T(java.lang.Math).max(1, currentPage - 3)},
+                         endPage=${T(java.lang.Math).min(totalPages, currentPage + 3)}">
+        <th:block th:each="p : ${#numbers.sequence(startPage, endPage)}">
+          <a th:if="${p != currentPage}"
+             th:href="@{/instructor/questions(page=${p}, subjId=${selectedSubjId}, subjClId=${selectedSubjClId}, diffCd=${selectedDiffCd})}"
+             th:text="${p}"
+             class="px-3 py-1.5 text-xs rounded-lg border border-slate-200 text-slate-600 hover:border-sky-400 hover:text-sky-600 transition-colors">
+          </a>
+          <span th:if="${p == currentPage}" th:text="${p}"
+            class="px-3 py-1.5 text-xs rounded-lg border border-sky-500 bg-sky-500 text-white font-bold">
+          </span>
+        </th:block>
+      </th:block>
+
+      <a th:if="${currentPage < totalPages}"
+         th:href="@{/instructor/questions(page=${currentPage + 1}, subjId=${selectedSubjId}, subjClId=${selectedSubjClId}, diffCd=${selectedDiffCd})}"
+         class="hm-btn-secondary px-3 py-1.5 text-xs">
+        <i class="fa-solid fa-chevron-right"></i>
+      </a>
+      <span th:unless="${currentPage < totalPages}"
+        class="hm-btn-secondary px-3 py-1.5 text-xs opacity-30 cursor-not-allowed">
+        <i class="fa-solid fa-chevron-right"></i>
+      </span>
+    </div>
+
+  </div>
+
+  <!-- ── AI 문항 생성 탭 ───────────────────────────── -->
+  <div id="tab-ai" class="hidden space-y-4">
+
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+      <p class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+        <span class="text-xs font-bold px-2 py-0.5 rounded-full"
+          style="background:linear-gradient(135deg,#7c3aed,#0ea5e9);color:#fff;">AI</span>
+        생성 설정
+      </p>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+        <div>
+          <label class="form-label">대분류</label>
+          <select id="ai-cl" onchange="aiLoadSubjects()" class="hm-input hm-input-sky w-full">
+            <option value="">선택</option>
+            <th:block th:each="cl : ${classifications}">
+              <option th:value="${cl.subjClId}" th:text="${cl.subjClNm}"></option>
+            </th:block>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">과목 <span class="required">*</span></label>
+          <select id="ai-subj" class="hm-input hm-input-sky w-full">
+            <option value="">대분류 먼저 선택</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">난이도</label>
+          <select id="ai-diff" class="hm-input hm-input-sky w-full">
+            <option value="EASY">쉬움</option>
+            <option value="MEDIUM" selected>보통</option>
+            <option value="HARD">어려움</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button type="button" id="ai-gen-btn" onclick="aiGenerate()" class="hm-btn-primary"
+          style="background:linear-gradient(135deg,#7c3aed,#0ea5e9);">
+          <i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i>문항 생성
+        </button>
+        <span id="ai-spinner" class="hidden text-sm text-slate-400">
+          <i class="fa-solid fa-circle-notch fa-spin mr-1"></i>생성 중...
+        </span>
+      </div>
+    </div>
+
+    <div id="ai-preview-card" class="hidden bg-white rounded-2xl border border-violet-100 shadow-sm p-5 space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <p class="text-sm font-bold text-slate-700">생성된 문항</p>
+          <span class="text-xs font-bold px-2 py-0.5 rounded-full"
+            style="background:linear-gradient(135deg,#7c3aed,#0ea5e9);color:#fff;">AI 생성</span>
+          <span id="ai-diff-badge" class="text-xs font-semibold px-2 py-0.5 rounded"></span>
+        </div>
+        <div class="flex gap-2">
+          <button type="button" onclick="aiReset()" class="hm-btn-secondary text-xs">다시 생성</button>
+          <button type="button" onclick="aiSave()" class="hm-btn-primary hm-btn-emerald text-xs">
+            <i class="fa-solid fa-floppy-disk mr-1"></i>문항 저장
+          </button>
+        </div>
+      </div>
+      <div>
+        <label class="form-label">문제 본문</label>
+        <textarea id="ai-stem" class="hm-input hm-input-sky w-full"
+          style="min-height:80px;resize:vertical;font-family:inherit;"></textarea>
+      </div>
+      <div>
+        <label class="form-label">선지</label>
+        <div id="ai-choices" class="space-y-2"></div>
+        <button type="button" onclick="aiAddChoice()" class="hm-btn-secondary mt-2 text-xs">
+          <i class="fa-solid fa-plus mr-1"></i>선지 추가
+        </button>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="form-label">정답</label>
+          <input type="text" id="ai-answer" class="hm-input hm-input-sky w-full" />
+        </div>
+        <div>
+          <label class="form-label">배점 (점)</label>
+          <input type="number" id="ai-score" value="1" min="0.5" step="0.5"
+            class="hm-input hm-input-sky w-full" />
+        </div>
+      </div>
+      <div>
+        <label class="form-label">풀이 해설</label>
+        <textarea id="ai-expl" class="hm-input hm-input-sky w-full"
+          style="min-height:60px;resize:vertical;font-family:inherit;"></textarea>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- 필터 상태 복원용 -->
+<script th:inline="javascript">
+  window._filterState = {
+    subjClId: /*[[${selectedSubjClId}]]*/ null,
+    subjId:   /*[[${selectedSubjId}]]*/ null
+  };
+</script>
+<script th:src="@{/js/instructor/questions.js}"></script>

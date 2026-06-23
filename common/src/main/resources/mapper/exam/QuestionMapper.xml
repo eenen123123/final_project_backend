@@ -25,6 +25,33 @@
         STAT_CD                                      AS statCd
     </sql>
 
+    <!-- 필터 WHERE 절 재사용 -->
+    <sql id="filterWhere">
+        WHERE RGTR_ID = #{rgtrId}
+          AND STAT_CD != '99'
+          <if test="subjId != null">AND SUBJ_ID = #{subjId}</if>
+          <if test="diffCd != null and diffCd != ''">AND DIFF_CD = #{diffCd}</if>
+    </sql>
+
+    <!-- 필터 + 페이징 문항 목록 (Oracle ROWNUM 페이징) -->
+    <select id="selectQuestionPage"
+            resultType="kr.or.ddit.finalProject.dto.exam.QuestionDto">
+        SELECT * FROM (
+            SELECT q.*, ROWNUM AS rn FROM (
+                SELECT <include refid="questionColumns"/>
+                FROM QUESTION_LIST
+                <include refid="filterWhere"/>
+                ORDER BY REG_DT DESC
+            ) q WHERE ROWNUM &lt;= #{offset} + #{limit}
+        ) WHERE rn &gt; #{offset}
+    </select>
+
+    <!-- 필터 조건 총 건수 -->
+    <select id="countQuestions" resultType="int">
+        SELECT COUNT(*) FROM QUESTION_LIST
+        <include refid="filterWhere"/>
+    </select>
+
     <!-- 특정 강사의 문항 전체 조회 (삭제 제외, 유형 → 등록일 내림차순) -->
     <select id="selectMyQuestions"
             resultType="kr.or.ddit.finalProject.dto.exam.QuestionDto">

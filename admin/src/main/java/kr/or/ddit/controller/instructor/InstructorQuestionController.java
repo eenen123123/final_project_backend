@@ -1,7 +1,5 @@
 package kr.or.ddit.controller.instructor;
 
-import kr.or.ddit.finalProject.dto.exam.ExamDto;
-import kr.or.ddit.finalProject.dto.exam.ExamSaveRequest;
 import kr.or.ddit.finalProject.dto.exam.GeminiQuestionRequest;
 import kr.or.ddit.finalProject.dto.exam.QuestionDto;
 import kr.or.ddit.finalProject.dto.exam.QuestionSaveRequest;
@@ -9,8 +7,8 @@ import kr.or.ddit.finalProject.dto.exam.WeakPointDto;
 import kr.or.ddit.finalProject.dto.subject.SubjectClassificationDto;
 import kr.or.ddit.finalProject.dto.subject.SubjectDto;
 import kr.or.ddit.finalProject.mapper.subject.SubjectMapper;
-import kr.or.ddit.finalProject.service.exam.ExamService;
 import kr.or.ddit.finalProject.service.exam.GeminiQuestionService;
+import kr.or.ddit.finalProject.service.exam.QuestionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -22,119 +20,112 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 강사 문항·시험 관리 컨트롤러
+ * 강사 문항 관리 컨트롤러 (시험 관리는 클래스룸으로 분리됨)
  *
  * [URL 구조]
- *   GET  /instructor/exams                             → 문항·시험 통합 관리 페이지
- *   POST /instructor/exams/questions                   → 문항 등록
- *   POST /instructor/exams/questions/{sn}/update       → 문항 수정
- *   POST /instructor/exams/questions/{sn}/delete       → 문항 논리 삭제
- *   POST /instructor/exams/create                      → 시험 등록
- *   POST /instructor/exams/{examSn}/update             → 시험 수정
- *   POST /instructor/exams/{examSn}/delete             → 시험 논리 삭제
+ *   GET  /instructor/questions                      → 문항 목록 (필터 + 페이징)
+ *   GET  /instructor/questions/{sn}                 → 문항 상세 페이지
+ *   POST /instructor/questions                      → 문항 등록
+ *   POST /instructor/questions/{sn}/edit            → 문항 수정
+ *   POST /instructor/questions/{sn}/delete          → 문항 논리 삭제
  *
- *   [AI 문항 생성 REST — exam.html AI 탭에서 사용]
- *   GET  /instructor/exams/ai/subjects                 → 과목 목록 (대분류 기준)
- *   GET  /instructor/exams/ai/weak-points              → 약점 과목 목록
- *   POST /instructor/exams/ai/generate                 → AI 문항 생성
- *
- * [접근 제어]
- *   instrUserId는 항상 Authentication에서 추출하며, 요청 파라미터로 받지 않습니다.
+ *   [AI 문항 생성 REST — questions.html AI 탭에서 사용]
+ *   GET  /instructor/questions/ai/subjects          → 과목 목록 (대분류 기준)
+ *   GET  /instructor/questions/ai/weak-points       → 약점 과목 목록
+ *   POST /instructor/questions/ai/generate          → AI 문항 생성
+ *   POST /instructor/questions/ai/save              → AI 생성 문항 저장
  */
 @Controller
-@RequestMapping("/instructor/exams")
+@RequestMapping("/instructor/questions")
 @RequiredArgsConstructor
-public class InstructorExamController {
+public class InstructorQuestionController {
 
-    private final ExamService examService;
+    private static final int PAGE_SIZE = 10;
+
+    private final QuestionService questionService;
     private final GeminiQuestionService geminiQuestionService;
     private final SubjectMapper subjectMapper;
 
     // ──────────────────────────────────────────────
-    // 문항·시험 통합 관리 페이지
+    // 문항 목록 (필터 + 페이징)
     // ──────────────────────────────────────────────
 
     @GetMapping
-    public String examPage(Model model, Authentication auth) {
+    public String questionsPage(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(required = false) Long subjId,
+            @RequestParam(required = false) Long subjClId,
+            @RequestParam(required = false) String diffCd,
+            Model model, Authentication auth) {
+
         String instrUserId = auth.getName();
 
-        List<QuestionDto> questions = examService.retrieveMyQuestions(instrUserId);
-        List<ExamDto> exams = examService.retrieveMyExams(instrUserId);
+        List<QuestionDto> questions =
+                questionService.retrieveQuestionPage(instrUserId, subjId, diffCd, page, PAGE_SIZE);
+        int totalCount = questionService.countQuestions(instrUserId, subjId, diffCd);
+        int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
+
         List<SubjectClassificationDto> classifications = subjectMapper.selectClassificationList();
 
         model.addAttribute("questions", questions);
-        model.addAttribute("exams", exams);
         model.addAttribute("classifications", classifications);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalCount", totalCount);
+        model.addAttribute("selectedSubjId", subjId);
+        model.addAttribute("selectedSubjClId", subjClId);
+        model.addAttribute("selectedDiffCd", diffCd);
 
-        return "admin:/instructor/exam";
+        return "admin:/instructor/list-questions";
+    }
+
+    // ──────────────────────────────────────────────
+    // 문항 상세 페이지
+    // ──────────────────────────────────────────────
+
+    @GetMapping("/{qstnSn}")
+    public String questionDetail(@PathVariable Long qstnSn, Model model, Authentication auth) {
+        QuestionDto question = questionService.retrieveQuestion(qstnSn, auth.getName());
+        List<SubjectClassificationDto> classifications = subjectMapper.selectClassificationList();
+        model.addAttribute("question", question);
+        model.addAttribute("classifications", classifications);
+        return "admin:/instructor/detail-question";
     }
 
     // ──────────────────────────────────────────────
     // 문항 등록
     // ──────────────────────────────────────────────
 
-    @PostMapping("/questions")
+    @PostMapping
     public String addQuestion(QuestionSaveRequest request, Authentication auth) {
-        examService.addQuestion(auth.getName(), request);
-        return "redirect:/instructor/exams";
+        questionService.addQuestion(auth.getName(), request);
+        return "redirect:/instructor/questions";
     }
 
     // ──────────────────────────────────────────────
     // 문항 수정
     // ──────────────────────────────────────────────
 
-    @PostMapping("/questions/{qstnSn}/update")
+    @PostMapping("/{qstnSn}/edit")
     public String updateQuestion(@PathVariable Long qstnSn,
                                  QuestionSaveRequest request,
                                  Authentication auth) {
-        examService.modifyQuestion(qstnSn, auth.getName(), request);
-        return "redirect:/instructor/exams";
+        questionService.modifyQuestion(qstnSn, auth.getName(), request);
+        return "redirect:/instructor/questions/" + qstnSn;
     }
 
     // ──────────────────────────────────────────────
     // 문항 논리 삭제
     // ──────────────────────────────────────────────
 
-    @PostMapping("/questions/{qstnSn}/delete")
+    @PostMapping("/{qstnSn}/delete")
     public String deleteQuestion(@PathVariable Long qstnSn, Authentication auth) {
-        examService.removeQuestion(qstnSn, auth.getName());
-        return "redirect:/instructor/exams";
+        questionService.removeQuestion(qstnSn, auth.getName());
+        return "redirect:/instructor/questions";
     }
 
     // ──────────────────────────────────────────────
-    // 시험 등록
-    // ──────────────────────────────────────────────
-
-    @PostMapping("/create")
-    public String createExam(ExamSaveRequest request, Authentication auth) {
-        examService.addExam(auth.getName(), request);
-        return "redirect:/instructor/exams";
-    }
-
-    // ──────────────────────────────────────────────
-    // 시험 수정
-    // ──────────────────────────────────────────────
-
-    @PostMapping("/{examSn}/update")
-    public String updateExam(@PathVariable Long examSn,
-                             ExamSaveRequest request,
-                             Authentication auth) {
-        examService.modifyExam(examSn, auth.getName(), request);
-        return "redirect:/instructor/exams";
-    }
-
-    // ──────────────────────────────────────────────
-    // 시험 논리 삭제
-    // ──────────────────────────────────────────────
-
-    @PostMapping("/{examSn}/delete")
-    public String deleteExam(@PathVariable Long examSn, Authentication auth) {
-        examService.removeExam(examSn, auth.getName());
-        return "redirect:/instructor/exams";
-    }
-
-    // ──────────────────────────────────────────────
-    // AI 문항 생성 — REST (exam.html AI 탭)
+    // AI 문항 생성 REST
     // ──────────────────────────────────────────────
 
     @GetMapping("/ai/subjects")
@@ -162,7 +153,7 @@ public class InstructorExamController {
     public ResponseEntity<Map<String, String>> saveAiQuestion(
             @RequestBody QuestionSaveRequest request,
             Authentication auth) {
-        examService.addQuestion(auth.getName(), request);
+        questionService.addQuestion(auth.getName(), request);
         return ResponseEntity.ok(Map.of("result", "success"));
     }
 }
