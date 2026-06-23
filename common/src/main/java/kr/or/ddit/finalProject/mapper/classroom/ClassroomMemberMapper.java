@@ -12,13 +12,24 @@ import kr.or.ddit.finalProject.dto.classroom.ClassroomMemberListResponse;
 @Mapper
 public interface ClassroomMemberMapper {
 
-    /** 클래스에 등록된 전체 수강생 목록 조회 (모든 수강 상태 포함, 등록일 오름차순) */
-    List<ClassroomMemberListResponse> selectMembersByClassSn(@Param("classSn") Long classSn);
+    /** 클래스에 등록된 수강생 목록 조회 - 페이징 */
+    List<ClassroomMemberListResponse> selectMembersByClassSn(
+            @Param("classSn") Long classSn,
+            @Param("offset") int offset,
+            @Param("pageSize") int pageSize);
+
+    /** 클래스 수강생 총 인원 */
+    int countMembersByClassSn(@Param("classSn") Long classSn);
 
     /** 클래스 내 전체 수강생의 개인별 강의 진도율 조회 (탈퇴/취소 수강생 포함) */
     List<ClassroomMemberListResponse> selectProgressRatesByClassSn(@Param("classSn") Long classSn);
 
-    List<ClassroomGradeDto> selectGradeList(@Param("classSn") Long classSn);
+    List<ClassroomGradeDto> selectGradeList(
+            @Param("classSn") Long classSn,
+            @Param("offset") int offset,
+            @Param("pageSize") int pageSize);
+
+    int countGradeList(@Param("classSn") Long classSn);
 
     List<ClassroomListResponse> selectClassroomsByUserId(@Param("userId") String userId);
 

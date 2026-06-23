@@ -261,6 +261,15 @@
               AND IB.BOARD_TYPE_CD = 'NOTICE'
               AND IB.USE_YN        = 'Y'
             ORDER BY IB.REG_DT DESC
+            OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+      </select>
+
+      <select id="countClassroomNoticeList" resultType="int">
+            SELECT COUNT(*)
+            FROM INSTRUCTOR_BOARD
+            WHERE CLASS_SN      = #{classSn}
+              AND BOARD_TYPE_CD = 'NOTICE'
+              AND USE_YN        = 'Y'
       </select>
 
       <select id="selectClassroomNoticeDetail" resultMap="instructorBoardMap">
@@ -323,6 +332,15 @@
               AND IB.BOARD_TYPE_CD = 'DATAROOM'
               AND IB.USE_YN        = 'Y'
             ORDER BY IB.REG_DT DESC
+            OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+      </select>
+
+      <select id="countClassroomDataroomList" resultType="int">
+            SELECT COUNT(*)
+            FROM INSTRUCTOR_BOARD
+            WHERE CLASS_SN      = #{classSn}
+              AND BOARD_TYPE_CD = 'DATAROOM'
+              AND USE_YN        = 'Y'
       </select>
 
       <select id="selectClassroomDataroomDetail" resultMap="instructorBoardMap">
@@ -398,6 +416,15 @@
               AND IB.BOARD_TYPE_CD = 'QNA'
               AND IB.USE_YN        = 'Y'
             ORDER BY IB.REG_DT DESC
+            OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+      </select>
+
+      <select id="countClassroomQnaList" resultType="int">
+            SELECT COUNT(*)
+            FROM INSTRUCTOR_BOARD
+            WHERE CLASS_SN      = #{classSn}
+              AND BOARD_TYPE_CD = 'QNA'
+              AND USE_YN        = 'Y'
       </select>
 
       <select id="selectClassroomQnaDetail" resultMap="classroomQnaMap">

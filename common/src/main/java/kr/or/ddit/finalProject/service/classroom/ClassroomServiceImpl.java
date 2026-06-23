@@ -65,7 +65,7 @@ public class ClassroomServiceImpl implements ClassroomService {
             detail.setEnrlEndYmd(formatYmd(detail.getEnrlEndYmd()));
         }
 
-        List<ClassroomMemberListResponse> members = classroomMemberMapper.selectMembersByClassSn(classSn);
+        List<ClassroomMemberListResponse> members = classroomMemberMapper.selectMembersByClassSn(classSn, 0, 9999);
         members.forEach(m -> m.setFormattedRegDt(m.getRegDt().format(REG_DT_FORMAT)));
         detail.setMembers(members);
 
@@ -85,8 +85,22 @@ public class ClassroomServiceImpl implements ClassroomService {
     }
 
     @Override
-    public List<ClassroomGradeDto> retrieveGradeList(Long classSn) {
-        return classroomMemberMapper.selectGradeList(classSn);
+    public PageResponse<ClassroomGradeDto> retrieveGradeList(Long classSn, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        List<ClassroomGradeDto> items = classroomMemberMapper.selectGradeList(classSn, offset, pageSize);
+        int totalCount = classroomMemberMapper.countGradeList(classSn);
+        return new PageResponse<>(items, totalCount);
+    }
+
+    @Override
+    public PageResponse<kr.or.ddit.finalProject.dto.classroom.ClassroomMemberListResponse> retrieveMemberListPaged(Long classSn, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        List<kr.or.ddit.finalProject.dto.classroom.ClassroomMemberListResponse> items =
+                classroomMemberMapper.selectMembersByClassSn(classSn, offset, pageSize);
+        Map<String, Double> progressRates = retrieveProgressRates(classSn);
+        items.forEach(m -> m.setProgressRate(progressRates.getOrDefault(m.getUserId(), 0.0)));
+        int totalCount = classroomMemberMapper.countMembersByClassSn(classSn);
+        return new PageResponse<>(items, totalCount);
     }
 
     @Override

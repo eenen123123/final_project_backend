@@ -30,6 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class AdminClassroomDataroomController {
 
+    private static final int PAGE_SIZE = 10;
+
     private final ClassroomService classroomService;
     private final InstructorBoardService instructorBoardService;
     private final FileUploadService fileUploadService;
@@ -56,12 +58,18 @@ public class AdminClassroomDataroomController {
 
     // 자료실 목록
     @GetMapping("/detail/{classSn}/dataroom")
-    public String dataroomList(@PathVariable Long classSn, Model model,
-            Authentication authentication) {
+    public String dataroomList(@PathVariable Long classSn,
+            @RequestParam(defaultValue = "1") int page,
+            Model model, Authentication authentication) {
         ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
         if (classroom == null) return "redirect:/classroom/list";
+        kr.or.ddit.finalProject.dto.common.PageResponse<InstructorBoardDto> dataroomPage =
+                instructorBoardService.getClassroomDataroomList(classSn, page, PAGE_SIZE);
         model.addAttribute("classroom", classroom);
-        model.addAttribute("dataroomList", instructorBoardService.getClassroomDataroomList(classSn));
+        model.addAttribute("dataroomPage", dataroomPage);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("pageSize", PAGE_SIZE);
+        model.addAttribute("totalPages", (int) Math.ceil((double) dataroomPage.getTotalCount() / PAGE_SIZE));
         return "classroom/list-classroom-dataroom";
     }
 

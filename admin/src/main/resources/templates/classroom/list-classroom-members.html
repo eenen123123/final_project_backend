@@ -15,7 +15,7 @@
       <p class="text-sm text-slate-400 mt-1">이 클래스에 등록된 수강생 목록입니다.</p>
     </div>
 
-    <div th:if="${#lists.isEmpty(classroom.members)}"
+    <div th:if="${#lists.isEmpty(memberPage.items)}"
          class="p-20 flex flex-col items-center justify-center text-center gap-4">
       <div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 text-3xl">
         <i class="fa-solid fa-users"></i>
@@ -23,7 +23,7 @@
       <p class="text-base font-medium text-slate-400">등록된 수강생이 없습니다.</p>
     </div>
 
-    <div th:unless="${#lists.isEmpty(classroom.members)}" class="overflow-x-auto">
+    <div th:unless="${#lists.isEmpty(memberPage.items)}" class="overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="border-b border-slate-100 text-sm text-slate-400">
@@ -36,16 +36,12 @@
           </tr>
         </thead>
         <tbody class="text-slate-700">
-          <!--
-            행 클릭 시 수강생 진도 상세 페이지로 이동.
-            th:onclick 내부에서는 @{} URL 표현식이 처리되지 않으므로,
-            th:data-url로 URL을 먼저 렌더링한 뒤 onclick에서 dataset.url로 참조한다.
-          -->
-          <tr th:each="member, stat : ${classroom.members}"
+          <tr th:each="member, stat : ${memberPage.items}"
               th:data-url="@{/classroom/detail/{sn}/members/{uid}(sn=${classroom.classSn},uid=${member.userId})}"
               onclick="location.href=this.dataset.url"
               class="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer">
-            <td class="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap" th:text="${stat.count}">1</td>
+            <td class="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap"
+                th:text="${memberPage.totalCount - (currentPage - 1) * pageSize - stat.index}">1</td>
             <td class="py-4 px-7 font-semibold text-slate-800 text-sm" th:text="${member.userName}">홍길동</td>
             <td class="py-4 px-7 text-sm text-slate-500 font-mono whitespace-nowrap" th:text="${member.userId}">user123</td>
             <td class="py-4 px-7 text-center whitespace-nowrap">
@@ -61,7 +57,6 @@
               </th:block>
             </td>
             <td class="py-4 px-7 text-sm text-slate-400 font-mono whitespace-nowrap" th:text="${member.formattedRegDt}">2026-01-01</td>
-            <!-- 진도율 바 — 80% 이상: 초록, 40~79%: 주황, 40% 미만: 회색 -->
             <td class="py-4 px-7 whitespace-nowrap">
               <div class="flex items-center gap-2">
                 <div class="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -78,10 +73,28 @@
       </table>
     </div>
 
-    <div class="px-7 py-4 border-t border-slate-100">
+    <div class="px-7 py-4 border-t border-slate-100 flex items-center justify-between">
       <p class="text-sm text-slate-400">
-        전체 <span class="font-semibold text-slate-600" th:text="${#lists.size(classroom.members)}">0</span>명
+        전체 <span class="font-semibold text-slate-600" th:text="${memberPage.totalCount}">0</span>명
       </p>
+      <div th:if="${totalPages > 1}" class="flex items-center gap-1">
+        <a th:if="${currentPage > 1}"
+           th:href="@{/classroom/detail/{sn}/members(sn=${classroom.classSn},page=${currentPage - 1})}"
+           class="px-3 py-1.5 text-sm text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
+          <i class="fa-solid fa-chevron-left text-xs"></i>
+        </a>
+        <th:block th:each="p : ${#numbers.sequence(1, totalPages)}">
+          <a th:href="@{/classroom/detail/{sn}/members(sn=${classroom.classSn},page=${p})}"
+             th:text="${p}"
+             th:classappend="${p == currentPage} ? 'bg-blue-600 text-white' : 'text-slate-500 hover:bg-slate-100'"
+             class="px-3 py-1.5 text-sm rounded-lg transition-colors font-medium">1</a>
+        </th:block>
+        <a th:if="${currentPage < totalPages}"
+           th:href="@{/classroom/detail/{sn}/members(sn=${classroom.classSn},page=${currentPage + 1})}"
+           class="px-3 py-1.5 text-sm text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
+          <i class="fa-solid fa-chevron-right text-xs"></i>
+        </a>
+      </div>
     </div>
   </div>
 

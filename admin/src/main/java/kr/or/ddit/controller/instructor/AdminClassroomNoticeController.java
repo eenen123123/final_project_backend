@@ -30,6 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class AdminClassroomNoticeController {
 
+    private static final int PAGE_SIZE = 10;
+
     private final ClassroomService classroomService;
     private final InstructorBoardService instructorBoardService;
     private final FileUploadService fileUploadService;
@@ -56,12 +58,18 @@ public class AdminClassroomNoticeController {
 
     // 공지사항 목록
     @GetMapping("/detail/{classSn}/notice")
-    public String noticeList(@PathVariable Long classSn, Model model,
-            Authentication authentication) {
+    public String noticeList(@PathVariable Long classSn,
+            @RequestParam(defaultValue = "1") int page,
+            Model model, Authentication authentication) {
         kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
         if (classroom == null) return "redirect:/classroom/list";
+        kr.or.ddit.finalProject.dto.common.PageResponse<kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto> noticePage =
+                instructorBoardService.getClassroomNoticeList(classSn, page, PAGE_SIZE);
         model.addAttribute("classroom", classroom);
-        model.addAttribute("noticeList", instructorBoardService.getClassroomNoticeList(classSn));
+        model.addAttribute("noticePage", noticePage);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("pageSize", PAGE_SIZE);
+        model.addAttribute("totalPages", (int) Math.ceil((double) noticePage.getTotalCount() / PAGE_SIZE));
         return "classroom/list-classroom-notices";
     }
 

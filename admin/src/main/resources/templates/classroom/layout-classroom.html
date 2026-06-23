@@ -7,10 +7,18 @@
   <title th:text="${pageTitle}">클래스룸</title>
   <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: 16px;
+    }
+    #editor, #answerEditor {
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    #editor:focus-within, #answerEditor:focus-within {
+      border-color: #93c5fd;
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
     }
   </style>
 </head>
@@ -128,6 +136,11 @@
   </main>
 
   <script th:src="@{/js/admin-core.js}"></script>
+  <th:block th:if="${activeTab == 'qna'}">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+            onload="renderMathInElement(document.body, {delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+  </th:block>
 </body>
 
 </html>

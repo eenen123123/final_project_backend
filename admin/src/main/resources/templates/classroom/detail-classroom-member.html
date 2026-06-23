@@ -9,9 +9,13 @@
 <body>
 <div id="content">
 
+  <a th:href="@{/classroom/detail/{sn}/members(sn=${classroom.classSn})}"
+     class="text-sm font-semibold text-slate-400 hover:text-slate-600 flex items-center gap-2 transition-colors w-fit mb-5">
+    <i class="fa-solid fa-arrow-left text-xs"></i> 목록으로
+  </a>
+
   <!-- 헤더 -->
-  <div class="flex items-center justify-between mb-5">
-    <div class="flex items-center gap-3">
+  <div class="flex items-center gap-3 mb-5">
       <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-base"
            th:text="${#strings.substring(member.userName, 0, 1)}">홍</div>
       <div>
@@ -28,11 +32,6 @@
         <span th:case="${T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).CANCELLED}"
               class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold text-slate-400 border border-slate-100">등록취소</span>
       </th:block>
-    </div>
-    <a th:href="@{/classroom/detail/{sn}/members(sn=${classroom.classSn})}"
-       class="text-sm text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1.5">
-      <i class="fa-solid fa-arrow-left text-xs"></i>목록으로
-    </a>
   </div>
 
   <!--
