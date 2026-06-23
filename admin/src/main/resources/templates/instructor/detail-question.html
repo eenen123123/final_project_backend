@@ -1,0 +1,216 @@
+<!--
+  강사 문항 관리 — 상세 / 수정
+  Controller: InstructorQuestionController  GET /instructor/questions/{sn}
+  Model: question, classifications
+-->
+
+<!-- question 데이터 직렬화 (수정 폼 초기값용) -->
+<script th:inline="javascript">
+  window._question = /*[[${question}]]*/ {};
+  window._subjectState = {
+    subjClId: /*[[${currentSubjClId}]]*/ null,
+    subjId:   /*[[${question.subjId}]]*/ null
+  };
+</script>
+
+<div class="space-y-5 max-w-3xl mx-auto">
+
+  <!-- ── 헤더 ──────────────────────────────────────── -->
+  <div class="flex items-center justify-between">
+    <a href="/instructor/questions"
+       class="hm-btn-secondary text-xs px-3 py-1.5">
+      <i class="fa-solid fa-chevron-left mr-1"></i>목록으로
+    </a>
+    <div class="flex gap-2" id="view-actions">
+      <button type="button" onclick="showEdit()"
+        class="hm-btn-primary hm-btn-sky text-xs px-4">
+        <i class="fa-solid fa-pen mr-1"></i>수정
+      </button>
+      <form th:action="@{'/instructor/questions/' + ${question.qstnSn} + '/delete'}"
+            method="post"
+            onsubmit="return confirm('문항을 삭제하시겠습니까?')">
+        <button type="submit" class="hm-btn-danger text-xs px-4">삭제</button>
+      </form>
+    </div>
+    <div class="hidden gap-2" id="edit-actions">
+      <button type="button" onclick="showView()" class="hm-btn-secondary text-xs px-4">취소</button>
+      <button type="button" onclick="document.getElementById('edit-form').submit()"
+        class="hm-btn-primary hm-btn-sky text-xs px-4">
+        <i class="fa-solid fa-floppy-disk mr-1"></i>저장
+      </button>
+    </div>
+  </div>
+
+  <!-- ── 뷰 모드 ───────────────────────────────────── -->
+  <div id="view-mode" class="space-y-4">
+
+    <!-- 메타 정보 카드 -->
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+        <div>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">유형</p>
+          <div class="flex items-center gap-1.5">
+            <span th:if="${question.aiGenYn == 'Y'}"
+              class="inline-block text-xs font-bold px-1.5 py-0.5 rounded-full"
+              style="background:linear-gradient(135deg,#ede9fe,#e0f2fe);color:#6d28d9;">AI</span>
+            <span class="inline-block text-xs font-semibold rounded px-2 py-0.5"
+              th:classappend="${question.qstnTypeCd?.name() == 'MULTIPLE_CHOICE'} ? 'bg-blue-50 text-blue-700'
+                             : (${question.qstnTypeCd?.name() == 'SHORT_ANSWER'} ? 'bg-emerald-50 text-emerald-700'
+                             : 'bg-amber-50 text-amber-700')"
+              th:text="${question.qstnTypeCd?.name() == 'MULTIPLE_CHOICE'} ? '객관식'
+                       : (${question.qstnTypeCd?.name() == 'SHORT_ANSWER'} ? '단답형' : '서술형')">
+            </span>
+          </div>
+        </div>
+        <div>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">난이도</p>
+          <span th:if="${question.diffCd?.name() == 'EASY'}"
+            class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700">쉬움</span>
+          <span th:if="${question.diffCd?.name() == 'MEDIUM'}"
+            class="text-xs font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-700">보통</span>
+          <span th:if="${question.diffCd?.name() == 'HARD'}"
+            class="text-xs font-semibold px-2 py-0.5 rounded bg-red-50 text-red-700">어려움</span>
+          <span th:if="${question.diffCd == null}" class="text-slate-300 text-xs">-</span>
+        </div>
+        <div>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">배점</p>
+          <p class="text-slate-700"
+            th:text="${question.allocScr != null} ? ${question.allocScr} + '점' : '-'"></p>
+        </div>
+        <div>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">마지막 작업일시</p>
+          <p class="text-slate-400 text-xs" th:text="${question.mdfcnDt}"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 문제 본문 카드 -->
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+      <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">문제 본문</p>
+      <p class="text-slate-800 whitespace-pre-wrap leading-relaxed text-sm"
+         th:text="${question.stem}"></p>
+    </div>
+
+    <!-- 선지 카드 (객관식만) -->
+    <div th:if="${question.qstnTypeCd?.name() == 'MULTIPLE_CHOICE' and not #lists.isEmpty(question.choices)}"
+         class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+      <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">선지</p>
+      <ul class="space-y-1.5 text-sm text-slate-700">
+        <li th:each="c : ${question.choices}" th:text="${c}"></li>
+      </ul>
+    </div>
+
+    <!-- 정답 / 해설 카드 -->
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-3">
+      <div>
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">정답</p>
+        <p class="text-slate-800 font-semibold text-sm"
+           th:text="${question.corrAnswCn != null} ? ${question.corrAnswCn} : '-'"></p>
+      </div>
+      <div th:if="${question.explnCn != null}">
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">해설</p>
+        <p class="text-slate-700 text-sm whitespace-pre-wrap bg-sky-50 border-l-2 border-sky-300 rounded-r p-3"
+           th:text="${question.explnCn}"></p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── 수정 모드 (기본 hidden) ───────────────────── -->
+  <div id="edit-mode" class="hidden space-y-4">
+
+    <form id="edit-form" method="post"
+          th:action="@{'/instructor/questions/' + ${question.qstnSn} + '/edit'}">
+
+      <div class="bg-white rounded-2xl border border-sky-100 shadow-sm p-5 space-y-4">
+        <p class="text-xs font-bold text-sky-600">문항 수정</p>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div>
+            <label class="form-label">유형</label>
+            <select name="qstnTypeCd" id="edit-type" onchange="onEditTypeChange()"
+              class="hm-input hm-input-sky w-full">
+              <option value="MULTIPLE_CHOICE"
+                th:selected="${question.qstnTypeCd?.name() == 'MULTIPLE_CHOICE'}">객관식</option>
+              <option value="SHORT_ANSWER"
+                th:selected="${question.qstnTypeCd?.name() == 'SHORT_ANSWER'}">단답형</option>
+              <option value="ESSAY"
+                th:selected="${question.qstnTypeCd?.name() == 'ESSAY'}">서술형</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">대분류</label>
+            <select id="edit-cl" onchange="editLoadSubjects()" class="hm-input hm-input-sky w-full">
+              <option value="">선택</option>
+              <th:block th:each="cl : ${classifications}">
+                <option th:value="${cl.subjClId}" th:text="${cl.subjClNm}"
+                        th:selected="${cl.subjClId == currentSubjClId}"></option>
+              </th:block>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">과목</label>
+            <select name="subjId" id="edit-subj" class="hm-input hm-input-sky w-full">
+              <option value="">대분류 선택</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">난이도</label>
+            <select name="diffCd" id="edit-diff" class="hm-input hm-input-sky w-full">
+              <option value="">선택 안 함</option>
+              <option value="EASY"   th:selected="${question.diffCd?.name() == 'EASY'}">쉬움</option>
+              <option value="MEDIUM" th:selected="${question.diffCd?.name() == 'MEDIUM'}">보통</option>
+              <option value="HARD"   th:selected="${question.diffCd?.name() == 'HARD'}">어려움</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="form-label">문제 본문 <span class="required">*</span></label>
+          <textarea name="stem" id="edit-stem" required
+            class="hm-input hm-input-sky w-full"
+            style="min-height:100px;resize:vertical;font-family:inherit;"
+            th:text="${question.stem}"></textarea>
+        </div>
+
+        <!-- 객관식 선지 (onEditTypeChange로 show/hide) -->
+        <div id="edit-choices-wrap"
+             th:classappend="${question.qstnTypeCd?.name() != 'MULTIPLE_CHOICE'} ? 'hidden' : ''">
+          <label class="form-label">선지</label>
+          <div id="edit-choices" class="space-y-2">
+            <!-- JS가 window._question.choices로 채웁니다 -->
+          </div>
+          <button type="button" onclick="editAddChoice()" class="hm-btn-secondary mt-2 text-xs">
+            <i class="fa-solid fa-plus mr-1"></i>선지 추가
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="form-label">정답</label>
+            <input type="text" name="corrAnswCn" id="edit-answer"
+              class="hm-input hm-input-sky w-full"
+              th:value="${question.corrAnswCn}" />
+          </div>
+          <div>
+            <label class="form-label">배점 (점)</label>
+            <input type="number" name="allocScr" id="edit-score" step="0.5" min="0"
+              class="hm-input hm-input-sky w-full"
+              th:value="${question.allocScr}" />
+          </div>
+        </div>
+
+        <div>
+          <label class="form-label">해설 (선택)</label>
+          <input type="text" name="explnCn" id="edit-expl"
+            class="hm-input hm-input-sky w-full"
+            th:value="${question.explnCn}" />
+        </div>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+
+<script th:src="@{/js/instructor/questions.js}"></script>
