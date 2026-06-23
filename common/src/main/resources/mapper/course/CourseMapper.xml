@@ -360,8 +360,9 @@
         inner join member m on c.INSTR_USER_ID = m.USER_ID
         inner join instructor i on c.INSTR_USER_ID = i.INSTR_USER_ID
         inner join textbook t on c.COURSE_SN = t.COURSE_SN
-        <include refid="courseListSearch"/>
-    </select>
+    <include refid="courseListSearch"/>
+    offset #{paginationInfo.offset} rows fetch next #{paginationInfo.screenSize} rows only
+  </select>
 
     <select id="selectCourseListCountForMain" resultType="int">
         select count(*)
