@@ -1,8 +1,5 @@
 package kr.or.ddit.controller;
 
-import java.io.IOException;
-import java.util.Map;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -30,8 +27,6 @@ import kr.or.ddit.finalProject.service.board.dataroom.DataRoomService;
 import kr.or.ddit.finalProject.service.board.faq.FaqService;
 import kr.or.ddit.finalProject.service.board.notice.NoticeService;
 import kr.or.ddit.finalProject.service.board.qna.QnaService;
-import kr.or.ddit.finalProject.service.file.CloudinaryUploadService;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,7 +40,6 @@ public class CustomerServiceController {
     private final NoticeService noticeService;
     private final QnaService qnaService;
     private final DataRoomService dataRoomService;
-    private final CloudinaryUploadService cloudinaryUploadService;
 
     @GetMapping("/customer-service")
     public String customerService(Model model) {
@@ -121,15 +115,6 @@ public class CustomerServiceController {
         model.addAttribute("pageTitle", "자료실 상세 | HERMES");
         model.addAttribute("dataRoom", dataRoomService.getById(postSn, null));
         return "admin:/board/dataroom/dataroom_detail";
-    }
-
-    // ── 에디터 이미지 업로드 ──────────────────────────────
-    @ResponseBody
-    @PostMapping("/upload/editor-image")
-    public ResponseEntity<Map<String, String>> uploadEditorImage(@RequestParam MultipartFile image)
-            throws IOException {
-        String url = cloudinaryUploadService.uploadFileToCloudinary(image);
-        return ResponseEntity.ok(Map.of("url", url));
     }
 
     // ── FAQ ──────────────────────────────

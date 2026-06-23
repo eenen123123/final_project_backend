@@ -1,29 +1,4 @@
 <div>
-  <!-- Toast UI Editor CSS -->
-  <link rel="stylesheet" th:href="@{/css/vendor/toast-ui/toastui-editor.min.css}" />
-  <link rel="stylesheet" th:href="@{/css/vendor/toast-ui/tui-color-picker.min.css}" />
-  <link rel="stylesheet" th:href="@{/css/vendor/toast-ui/toastui-editor-plugin-color-syntax.min.css}" />
-  <link rel="stylesheet" th:href="@{/css/vendor/toast-ui/toastui-editor-plugin-code-syntax-highlight.min.css}" />
-  <link rel="stylesheet" th:href="@{/css/vendor/toast-ui/toastui-editor-plugin-table-merged-cell.min.css}" />
-  <link rel="stylesheet" th:href="@{/css/vendor/toast-ui/toastui-chart.min.css}" />
-
-  <style>
-    .toastui-editor-defaultUI {
-      border: 1px solid #0ea5e9;
-      border-radius: 0.75rem;
-      overflow: hidden;
-      transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-        box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .toastui-editor-defaultUI:focus-within {
-      border-color: #0ea5e9;
-      box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08);
-    }
-    .toastui-editor-toolbar { border-radius: 0.75rem 0.75rem 0 0; }
-    .toastui-editor-contents, .toastui-editor .ProseMirror {
-      font-family: "Noto Sans KR", sans-serif;
-    }
-  </style>
 
   <!-- 페이지 헤더 -->
   <div class="flex items-center justify-between mb-6">
@@ -117,15 +92,7 @@
     </form>
   </div>
 
-  <!-- Toast UI Editor JS -->
-  <script defer th:src="@{/js/vendor/toast-ui/toastui-editor-all.min.js}"></script>
-  <script defer th:src="@{/js/vendor/toast-ui/ko-kr.min.js}"></script>
-  <script defer th:src="@{/js/vendor/toast-ui/tui-color-picker.min.js}"></script>
-  <script defer th:src="@{/js/vendor/toast-ui/toastui-editor-plugin-color-syntax.min.js}"></script>
-  <script defer th:src="@{/js/vendor/toast-ui/toastui-editor-plugin-code-syntax-highlight-all.min.js}"></script>
-  <script defer th:src="@{/js/vendor/toast-ui/toastui-editor-plugin-table-merged-cell.min.js}"></script>
-  <script defer th:src="@{/js/vendor/toast-ui/toastui-chart.min.js}"></script>
-  <script defer th:src="@{/js/vendor/toast-ui/toastui-editor-plugin-chart.min.js}"></script>
+  <script defer th:src="@{/js/tiptap/tiptap-editor.iife.js}"></script>
 
   <!-- 중분류 초기화: 에디터와 분리해서 별도 실행 -->
   <script>
@@ -155,33 +122,16 @@
     });
   </script>
 
-  <!-- 에디터 초기화: Toast UI 스크립트 로딩 후 실행 -->
-  <script th:inline="javascript">
-    document.addEventListener("DOMContentLoaded", function () {
-      const { Editor } = toastui;
-      const { colorSyntax, codeSyntaxHighlight, tableMergedCell, chart } = Editor.plugin;
-
-      const editor = new Editor({
-        el: document.querySelector("#editor"),
-        height: "500px",
-        initialEditType: "wysiwyg",
-        previewStyle: "tab",
-        language: "ko-KR",
-        usageStatistics: false,
-        plugins: [colorSyntax, codeSyntaxHighlight, tableMergedCell, chart].filter(Boolean),
-        hooks: {
-          addImageBlobHook: async (blob, callback) => {
-            const formData = new FormData();
-            formData.append('image', blob);
-            const res = await fetch('/admin/board/upload/editor-image', { method: 'POST', body: formData });
-            const { url } = await res.json();
-            callback(url, '이미지');
-          }
-        },
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      TipTapEditor.mount('editor', {
+        editable: true,
+        outputInputId: 'postCnHidden',
+        imageUrlResolver: (fileId) => `/admin/files/${fileId}/view`,
       });
-
-      document.querySelector("form").addEventListener("submit", function () {
-        document.getElementById("postCnHidden").value = editor.getHTML();
+      document.querySelector('form').addEventListener('submit', function () {
+        const el = document.querySelector('#editor .tiptap');
+        if (el && el.editor) document.getElementById('postCnHidden').value = el.editor.getHTML();
       });
     });
   </script>

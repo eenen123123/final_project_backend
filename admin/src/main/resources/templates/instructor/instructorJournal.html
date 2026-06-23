@@ -1,7 +1,7 @@
 <title th:fragment="pageTitle">업무 일지 관리 | HERMES</title>
 
 <div class="journal-container">
-    <link rel="stylesheet" th:href="@{/css/instructor/journal.css}" />
+    <link rel="stylesheet" th:href="@{/css/instructor/instructorJournal.css}" />
 
     <!-- 페이지 헤더 -->
     <div class="flex items-center justify-between mb-5">
@@ -246,5 +246,5 @@
     <th:block th:if="${mode == 'new' or mode == 'edit'}">
         <script defer th:src="@{/js/tiptap/tiptap-editor.iife.js}"></script>
     </th:block>
-    <script defer th:src="@{/js/instructor/journal.js}"></script>
+    <script defer th:src="@{/js/instructor/instructorJournal.js}"></script>
 </th:block>

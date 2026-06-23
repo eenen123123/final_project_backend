@@ -1,27 +1,5 @@
 <title th:fragment="pageTitle">영상 관련 공지 연동 | HERMES</title>
 
-<!-- Toast UI Editor CSS -->
-<link rel="stylesheet" th:href="@{/css/vendor/toast-ui/toastui-editor.min.css}" />
-<link rel="stylesheet" th:href="@{/css/vendor/toast-ui/tui-color-picker.min.css}" />
-<link rel="stylesheet" th:href="@{/css/vendor/toast-ui/toastui-editor-plugin-color-syntax.min.css}" />
-
-<style>
-  .toastui-editor-defaultUI {
-    border: 1px solid #f97316;
-    border-radius: 0.75rem;
-    overflow: hidden;
-    transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-      box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .toastui-editor-defaultUI:focus-within {
-    border-color: #f97316;
-    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.08);
-  }
-  .toastui-editor-toolbar { border-radius: 0.75rem 0.75rem 0 0; }
-  .toastui-editor-contents, .toastui-editor .ProseMirror {
-    font-family: "Noto Sans KR", sans-serif;
-  }
-</style>
 
 <div class="space-y-6">
 
@@ -299,11 +277,7 @@
   </div>
 </div>
 
-<!-- ===== Toast UI Editor JS ===== -->
-<script defer th:src="@{/js/vendor/toast-ui/toastui-editor-all.min.js}"></script>
-<script defer th:src="@{/js/vendor/toast-ui/ko-kr.min.js}"></script>
-<script defer th:src="@{/js/vendor/toast-ui/tui-color-picker.min.js}"></script>
-<script defer th:src="@{/js/vendor/toast-ui/toastui-editor-plugin-color-syntax.min.js}"></script>
+<script defer th:src="@{/js/tiptap/tiptap-editor.iife.js}"></script>
 
 <!-- ===== 페이지 스크립트 ===== -->
 <script>
@@ -317,8 +291,16 @@
   ];
   let nextId = 6;
   let currentDetailId = null;
-  let editor = null;
   let displayData = [...noticeData];
+
+  function editorSetHTML(html) {
+    const el = document.querySelector('#editor .tiptap');
+    if (el && el.editor) el.editor.commands.setContent(html || '');
+  }
+  function editorGetHTML() {
+    const el = document.querySelector('#editor .tiptap');
+    return (el && el.editor) ? el.editor.getHTML() : '';
+  }
 
   /* ── 유형 배지 ── */
   function typeBadge(type) {
@@ -439,7 +421,7 @@
     document.getElementById('formTitle').value = n.title;
     document.getElementById(n.popup === 'Y' ? 'popupY' : 'popupN').checked = true;
     document.getElementById('submitBtnText').textContent = '공지 수정';
-    if (editor) editor.setHTML(n.content || '');
+    editorSetHTML(n.content || '');
     switchTab('tab-write', document.querySelector('.mn-tab-btn[data-tab=tab-write]'));
   }
 
@@ -450,7 +432,7 @@
     document.getElementById('formTitle').value = '';
     document.getElementById('popupN').checked = true;
     document.getElementById('submitBtnText').textContent = '공지 등록';
-    if (editor) editor.setHTML('');
+    editorSetHTML('');
   }
 
   /* ── 폼 제출 ── */
@@ -459,7 +441,7 @@
     const type  = document.getElementById('formType').value;
     const title = document.getElementById('formTitle').value.trim();
     const popup = document.querySelector('input[name="formPopup"]:checked').value;
-    const content = editor ? editor.getHTML() : '';
+    const content = editorGetHTML();
 
     if (!type)  { showHermesToast('공지 유형을 선택해 주세요.', 'error'); return; }
     if (!title) { showHermesToast('제목을 입력해 주세요.', 'error'); return; }
@@ -513,26 +495,10 @@
     updateStats();
     renderTable(noticeData);
 
-    /* Toast UI Editor 초기화 */
-    if (typeof toastui !== 'undefined') {
-      editor = new toastui.Editor({
-        el: document.querySelector('#editor'),
-        height: '400px',
-        initialEditType: 'wysiwyg',
-        previewStyle: 'tab',
-        language: 'ko-KR',
-        usageStatistics: false,
-        plugins: [toastui.Editor.plugin.colorSyntax].filter(Boolean),
-        hooks: {
-          addImageBlobHook: async (blob, callback) => {
-            const formData = new FormData();
-            formData.append('image', blob);
-            const res = await fetch('/admin/board/upload/editor-image', { method: 'POST', body: formData });
-            const { url } = await res.json();
-            callback(url, '이미지');
-          }
-        },
-      });
-    }
+    /* TipTap 에디터 초기화 */
+    TipTapEditor.mount('editor', {
+      editable: true,
+      imageUrlResolver: (fileId) => `/admin/files/${fileId}/view`,
+    });
   });
 </script>
