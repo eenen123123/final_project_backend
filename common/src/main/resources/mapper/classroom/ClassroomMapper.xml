@@ -257,4 +257,64 @@
     FETCH FIRST 1 ROWS ONLY
   </select>
 
+  <select id="selectClassroomListByInstructorPaged" resultMap="classroomListResponseMap">
+    SELECT
+        cl.CLASS_SN,
+        cl.CLASS_NM,
+        c.COURSE_NM,
+        cl.CLASS_STAT_CD,
+        cl.REG_DT,
+        (
+            SELECT COUNT(*)
+            FROM CLASSROOM_MEMBER cm
+            WHERE cm.CLASS_SN = cl.CLASS_SN
+              AND cm.ENRL_STAT_CD = 'ENROLLED'
+        ) AS STUDENT_COUNT
+    FROM CLASSROOM cl
+    JOIN COURSE c ON cl.COURSE_SN = c.COURSE_SN
+    WHERE c.INSTR_USER_ID = #{instrUserId}
+    ORDER BY cl.REG_DT DESC
+    OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+  </select>
+
+  <select id="countClassroomListByInstructor" resultType="int">
+    SELECT COUNT(*)
+    FROM CLASSROOM cl
+    JOIN COURSE c ON cl.COURSE_SN = c.COURSE_SN
+    WHERE c.INSTR_USER_ID = #{instrUserId}
+  </select>
+
+  <!--
+    클래스룸 상태 변경.
+    EXISTS 서브쿼리로 COURSE.INSTR_USER_ID = instrUserId 를 함께 검증하므로,
+    타 강사의 클래스룸은 WHERE 조건 불일치로 0건 UPDATE 된다.
+  -->
+  <update id="updateClassroomStatus">
+    UPDATE CLASSROOM cl
+    SET
+        cl.CLASS_STAT_CD = #{classStatCd},
+        cl.LAST_MDFR_ID  = #{lastMdfrId},
+        cl.MDFCN_DT      = CURRENT_TIMESTAMP
+    WHERE cl.CLASS_SN = #{classSn}
+      AND EXISTS (
+          SELECT 1
+          FROM COURSE c
+          WHERE c.COURSE_SN      = cl.COURSE_SN
+            AND c.INSTR_USER_ID  = #{instrUserId}
+      )
+  </update>
+
+  <insert id="insertClassroom" parameterType="kr.or.ddit.finalProject.dto.classroom.ClassroomDto"
+          useGeneratedKeys="true" keyProperty="classSn" keyColumn="CLASS_SN">
+    INSERT INTO CLASSROOM (
+        OPNR_USER_ID, COURSE_SN, CLASS_NM,
+        ENRL_STRT_YMD, ENRL_END_YMD, CLASS_STAT_CD,
+        RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
+    ) VALUES (
+        #{opnrUserId}, #{courseSn}, #{classNm},
+        #{enrlStrtYmd}, #{enrlEndYmd}, 'RECRUITING',
+        #{rgtrId}, #{rgtrId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+    )
+  </insert>
+
 </mapper>

@@ -1,0 +1,122 @@
+<div class="space-y-6">
+  <!-- 페이지 헤더 -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">담당 클래스 관리</h1>
+      <p class="text-sm text-slate-500 mt-1">담당 클래스룸 목록과 수강 현황을 확인합니다.</p>
+    </div>
+    <button type="button" onclick="openCreateForm()" class="hm-btn-primary hm-btn-sky shrink-0">
+      <i class="fa-solid fa-plus"></i>
+      <span>클래스룸 등록</span>
+    </button>
+  </div>
+
+  <!-- 등록 폼 (기본 숨김) -->
+  <div id="create-form-card" class="hidden bg-white rounded-2xl border border-sky-200 shadow-sm p-5 space-y-4">
+    <p class="text-xs font-bold text-sky-600"><i class="fa-solid fa-plus mr-1.5"></i>새 클래스룸 등록</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label class="form-label">클래스룸명 <span class="required">*</span></label>
+        <input type="text" id="create-classNm" class="hm-input hm-input-sky w-full" placeholder="클래스룸명을 입력하세요"
+          maxlength="200" />
+      </div>
+      <div>
+        <label class="form-label">강좌 <span class="required">*</span></label>
+        <select id="create-courseSn" class="hm-input hm-input-sky w-full">
+          <option value="">강좌를 선택하세요</option>
+          <option th:each="c : ${courseList}" th:value="${c.courseSn}" th:text="${c.courseNm}"></option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">수강 시작일</label>
+        <input type="date" id="create-enrlStrtYmd" class="hm-input hm-input-sky w-full" />
+      </div>
+      <div>
+        <label class="form-label">수강 종료일</label>
+        <input type="date" id="create-enrlEndYmd" class="hm-input hm-input-sky w-full" />
+      </div>
+    </div>
+    <div id="create-error" class="hidden text-xs text-red-500 bg-red-50 rounded-lg px-3 py-2"></div>
+    <div class="flex gap-2 pt-1">
+      <button type="button" onclick="closeCreateForm()" class="flex-1 hm-btn-secondary justify-center">취소</button>
+      <button type="button" onclick="submitCreate()" id="create-submit-btn"
+        class="flex-1 hm-btn-primary hm-btn-sky justify-center">
+        <i class="fa-solid fa-check mr-1"></i>등록 요청
+      </button>
+    </div>
+  </div>
+
+  <!--
+    상태 변경 카드 (기본 숨김).
+    openStatusForm() 호출 시 대상 클래스룸의 이름·현재 상태가 채워진 뒤 표시된다.
+    로직은 list-classroom.js 에 있음.
+  -->
+  <div id="status-form-card" class="hidden bg-white rounded-2xl border border-amber-200 shadow-sm p-5 space-y-4">
+    <!-- 타이틀: JS가 클래스룸명으로 채움 -->
+    <p id="status-form-title" class="text-xs font-bold text-amber-600">
+      <i class="fa-solid fa-pen-to-square mr-1.5"></i>상태 변경
+    </p>
+
+    <!-- 4개 상태를 버튼 그룹으로 표시. JS가 현재 상태 버튼에 hm-btn-sky 를 추가 -->
+    <div class="flex flex-wrap gap-2">
+      <button type="button" onclick="selectStatus('WAITING')" id="stat-btn-WAITING"
+        class="hm-btn-secondary">
+        <i class="fa-solid fa-clock mr-1"></i>대기
+      </button>
+      <button type="button" onclick="selectStatus('RECRUITING')" id="stat-btn-RECRUITING"
+        class="hm-btn-secondary">
+        <i class="fa-solid fa-circle-dot mr-1"></i>모집중
+      </button>
+      <button type="button" onclick="selectStatus('ACTIVE')" id="stat-btn-ACTIVE"
+        class="hm-btn-secondary">
+        <i class="fa-solid fa-play mr-1"></i>운영중
+      </button>
+      <button type="button" onclick="selectStatus('CLOSED')" id="stat-btn-CLOSED"
+        class="hm-btn-secondary">
+        <i class="fa-solid fa-circle mr-1"></i>종료
+      </button>
+    </div>
+
+    <div id="status-error" class="hidden text-xs text-red-500 bg-red-50 rounded-lg px-3 py-2"></div>
+
+    <div class="flex gap-2 pt-1">
+      <button type="button" onclick="closeStatusForm()" class="flex-1 hm-btn-secondary justify-center">취소</button>
+      <button type="button" onclick="submitStatus()" id="status-submit-btn"
+        class="flex-1 hm-btn-primary hm-btn-sky justify-center">
+        <i class="fa-solid fa-check mr-1"></i>변경
+      </button>
+    </div>
+  </div>
+
+  <!-- 클래스룸 목록 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider uppercase">
+            <th class="py-4 px-6 pl-20">클래스룸</th>
+            <th class="py-4 px-6">상태</th>
+            <th class="py-4 px-6">수강중 학생</th>
+            <th class="py-4 px-6">생성일</th>
+            <!-- 상태 변경 액션 열 -->
+            <th class="py-4 px-6">관리</th>
+          </tr>
+        </thead>
+        <tbody id="classroom-tbody" class="divide-y divide-slate-50 text-sm text-slate-700">
+          <!-- JS로 렌더링 (list-classroom.js) -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 목록 하단: 건수 + 페이징 -->
+    <div class="border-t border-slate-100 px-6 py-3 bg-slate-50/50 flex items-center justify-between">
+      <p class="text-xs text-slate-400">
+        전체 <span id="classroom-total" class="font-semibold text-slate-600">0</span>개 클래스룸
+      </p>
+      <div id="classroom-paging" class="flex items-center gap-1"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 페이지 전용 JS -->
+<script th:src="@{/js/list-classroom.js}"></script>

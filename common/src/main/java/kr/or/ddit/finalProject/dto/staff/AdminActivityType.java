@@ -39,7 +39,10 @@ public enum AdminActivityType {
     // 커리큘럼 관리
     CURRICULUM_CREATE("커리큘럼 등록", "CURRICULUM_MGMT"),
     CURRICULUM_UPDATE("커리큘럼 수정", "CURRICULUM_MGMT"),
-    CURRICULUM_DELETE("커리큘럼 삭제", "CURRICULUM_MGMT");
+    CURRICULUM_DELETE("커리큘럼 삭제", "CURRICULUM_MGMT"),
+
+    // 클래스룸 관리
+    CLASSROOM_CREATE("클래스룸 등록", "CURRICULUM_MGMT");
 
     private final String label;
     private final String tmplCd;
