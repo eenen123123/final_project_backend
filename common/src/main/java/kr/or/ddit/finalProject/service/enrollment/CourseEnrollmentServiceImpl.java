@@ -33,6 +33,11 @@ public class CourseEnrollmentServiceImpl implements CourseEnrollmentService {
     }
 
     @Override
+    public void revokeByOrdSn(Long ordSn) {
+        enrollmentMapper.revokeByOrdSn(ordSn);
+    }
+
+    @Override
     public List<CourseEnrollmentDto> getMyEnrolledCourses(String userId) {
         return enrollmentMapper.selectListByUserId(userId);
     }

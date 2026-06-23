@@ -75,6 +75,14 @@
         ORDER BY e.ACCS_STRT_DT DESC
     </select>
 
+    <update id="revokeByOrdSn">
+        UPDATE COURSE_ENROLLMENT
+           SET ENRL_STAT_CD = 'REVOKED',
+               MDFCN_DT    = CURRENT_TIMESTAMP
+         WHERE ORD_SN = #{ordSn}
+           AND ENRL_STAT_CD = 'ACTIVE'
+    </update>
+
     <select id="countActiveAccess" resultType="int">
         SELECT COUNT(*)
         FROM COURSE_ENROLLMENT
