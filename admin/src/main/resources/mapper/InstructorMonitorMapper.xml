@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.mapper.InstructorMonitorMapper">
+
+    <!-- ① T001 강사 카드 목록 (팀 이번달 일지 건수 포함) -->
+    <select id="selectInstructorCards"
+            resultType="kr.or.ddit.finalProject.dto.monitoring.InstructorMonitorCardDto">
+        SELECT
+            m.USER_ID   AS userId,
+            m.USER_NAME AS userName,
+            e.JBGR_CD   AS jbgrCd,
+            (
+                SELECT COUNT(*)
+                FROM INSTRUCTOR_JOURNAL j
+                WHERE j.DEL_YN = 'N'
+                  AND TRUNC(j.JRNL_DT, 'MM') = TRUNC(SYSDATE, 'MM')
+                  AND j.INSTR_USER_ID IN (
+                      SELECT e2.USER_ID FROM EMPLOYEE_INFO e2
+                      WHERE e2.USER_ID = e.USER_ID
+                      UNION ALL
+                      SELECT e3.USER_ID FROM EMPLOYEE_INFO e3
+                      START WITH e3.MNT_USER_ID = e.USER_ID
+                      CONNECT BY NOCYCLE PRIOR e3.USER_ID = e3.MNT_USER_ID
+                  )
+            ) AS thisMonthCnt
+        FROM MEMBER m
+        JOIN EMPLOYEE_INFO e ON e.USER_ID = m.USER_ID
+        WHERE e.JBGR_CD = 'T001'
+        ORDER BY m.USER_NAME
+    </select>
+
+    <!-- ② 운영중 강좌 수 -->
+    <select id="selectActiveClassCount" resultType="int">
+        SELECT COUNT(*) FROM CLASSROOM WHERE CLASS_STAT_CD = 'ACTIVE'
+    </select>
+
+    <!-- ③ 전체 수강생 수 (현재 ENROLLED 상태) -->
+    <select id="selectTotalStudentCount" resultType="int">
+        SELECT COUNT(*) FROM CLASSROOM_MEMBER WHERE ENRL_STAT_CD = 'ENROLLED'
+    </select>
+
+    <!-- ④ 이번달 업무 일지 총 건수 -->
+    <select id="selectThisMonthJournalCount" resultType="int">
+        SELECT COUNT(*)
+        FROM INSTRUCTOR_JOURNAL
+        WHERE DEL_YN = 'N'
+          AND TRUNC(JRNL_DT, 'MM') = TRUNC(SYSDATE, 'MM')
+    </select>
+
+    <!-- ⑤ 운영중 강좌 목록 (강좌명, 담당 강사 userId/name, 수강생 수)
+         CLASSROOM → COURSE → MEMBER (강사는 COURSE 테이블에 있음) -->
+    <select id="selectActiveClassrooms"
+            resultType="kr.or.ddit.finalProject.dto.monitoring.ClassroomOverviewDto">
+        SELECT
+            c.CLASS_NM        AS classNm,
+            co.INSTR_USER_ID  AS instrUserId,
+            m.USER_NAME       AS instrUserNm,
+            (
+                SELECT COUNT(*)
+                FROM CLASSROOM_MEMBER cm
+                WHERE cm.CLASS_SN = c.CLASS_SN
+                  AND cm.ENRL_STAT_CD = 'ENROLLED'
+            ) AS studentCnt
+        FROM CLASSROOM c
+        JOIN COURSE co ON co.COURSE_SN = c.COURSE_SN
+        JOIN MEMBER m  ON m.USER_ID    = co.INSTR_USER_ID
+        WHERE c.CLASS_STAT_CD = 'ACTIVE'
+        ORDER BY c.CLASS_NM
+    </select>
+
+</mapper>

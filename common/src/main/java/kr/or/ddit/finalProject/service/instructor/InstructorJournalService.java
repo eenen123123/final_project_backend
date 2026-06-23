@@ -17,7 +17,7 @@ import kr.or.ddit.finalProject.dto.instructor.journal.InstructorJournalDto;
  */
 public interface InstructorJournalService {
 
-    int PAGE_SIZE = 15;
+    int PAGE_SIZE = 10;
 
     /**
      * 일지 목록 조회 (검색 필터 + 페이지네이션)
