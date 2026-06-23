@@ -90,7 +90,7 @@ public class AdminSecurityConfig {
                         "/admin/certificates/**", "/admin/coupon/**",
                         "/admin/employees/**", "/admin/expenses/**", "/admin/facilities/**",
                         "/admin/featured/**", "/admin/hr/**", "/admin/logistics/**",
-                        "/admin/me/**", "/admin/org/**",
+                          "/admin/org/**",
                         "/admin/parent/**", "/admin/salary/**",
                         "/admin/subject/**", "/admin/textbook/**"
                 ).hasAuthority("D100")
