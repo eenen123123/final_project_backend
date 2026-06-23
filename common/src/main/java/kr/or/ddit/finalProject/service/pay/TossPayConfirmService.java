@@ -17,6 +17,7 @@ import kr.or.ddit.finalProject.dto.pay.toss.TossPaymentResponse;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.mapper.cart.CartMapper;
+import kr.or.ddit.finalProject.mapper.coupon.CouponMapper;
 import kr.or.ddit.finalProject.mapper.order.OrderMapper;
 import kr.or.ddit.finalProject.mapper.pay.PayHistMapper;
 import kr.or.ddit.finalProject.dto.coupon.AssetType;
@@ -39,6 +40,7 @@ public class TossPayConfirmService {
     private final CartMapper cartMapper;
     private final CourseEnrollmentService enrollmentService;
     private final PointService pointService;
+    private final CouponMapper couponMapper;
 
     /**
      * 토스 결제 승인 + 결제/주문 확정 처리.
@@ -60,36 +62,44 @@ public class TossPayConfirmService {
             throw new FinalProjectException(ErrorCode.ORDER_AMOUNT_MISMATCH);
         }
 
-        // 승인 성공 시 TossPayService가 응답 전체(paymentKey 포함)를 로그로 남기므로
-        // 이후 DB 저장이 실패해도 로그 기준으로 수동 복구 가능
         TossPaymentResponse response = tossPayService.confirm(request);
 
-        List<OrderItemDto> items = orderMapper.selectOrderItemsByOrdSn(order.getOrdSn());
-        payHistMapper.insertPayHist(toPayHist(userId, order, items, response));
-        orderMapper.updateOrderStatus(order.getOrdSn(), OrderStatus.PAID);
+        try {
+            List<OrderItemDto> items = orderMapper.selectOrderItemsByOrdSn(order.getOrdSn());
+            payHistMapper.insertPayHist(toPayHist(userId, order, items, response));
+            orderMapper.updateOrderStatus(order.getOrdSn(), OrderStatus.PAID);
 
-        for (OrderItemDto item : items) {
-            cartMapper.deleteCartByUserAndProd(userId, item.getProdDivCd(), item.getProdSn());
-            if (item.getProdDivCd() == ProductType.COURSE) {
-                // 강좌만 수강권한 부여/연장 (결제일 + 1년)
-                enrollmentService.grantOrExtend(userId, item.getProdSn(), order.getOrdSn());
+            for (OrderItemDto item : items) {
+                cartMapper.deleteCartByUserAndProd(userId, item.getProdDivCd(), item.getProdSn());
+                if (item.getProdDivCd() == ProductType.COURSE) {
+                    enrollmentService.grantOrExtend(userId, item.getProdSn(), order.getOrdSn());
+                }
             }
-        }
 
-        // 포인트 차감 (주문 생성 시 검증 완료, 결제 승인 후 실제 차감)
-        if (order.getPointAmt() != null && order.getPointAmt() > 0) {
-            pointService.usePoint(
-                    userId,
-                    order.getPointType(),
-                    order.getPointAmt(),
-                    order.getOrdSn(),
-                    "주문 결제 사용 - " + order.getOrdNm());
-        }
+            if (order.getPointAmt() != null && order.getPointAmt() > 0) {
+                pointService.usePoint(userId, order.getPointType(), order.getPointAmt(),
+                        order.getOrdSn(), "주문 결제 사용 - " + order.getOrdNm());
+            }
 
-        // HM 포인트 적립 (실제 현금 결제액의 1%, 0이면 스킵)
-        long earnAmt = order.getTotAmt() / 100;
-        if (earnAmt > 0) {
-            pointService.earnPoint(userId, AssetType.HM_POINT, earnAmt, order.getOrdSn(), order.getOrdNm());
+            long earnAmt = order.getTotAmt() / 100;
+            if (earnAmt > 0) {
+                pointService.earnPoint(userId, AssetType.HM_POINT, earnAmt, order.getOrdSn(), order.getOrdNm());
+            }
+
+            // 쿠폰 사용 확정 (예약된 쿠폰 USE_YN = 'Y')
+            couponMapper.confirmCoupons(order.getOrdSn());
+
+        } catch (Exception e) {
+            // DB 처리 실패 시 토스 결제 자동 취소
+            log.error("결제 DB 처리 실패 - 토스 자동 취소 시도. paymentKey={}", response.getPaymentKey(), e);
+            try {
+                tossPayService.cancel(response.getPaymentKey(), "결제 처리 오류로 인한 자동 취소");
+                log.info("토스 자동 취소 완료 - paymentKey={}", response.getPaymentKey());
+            } catch (Exception cancelEx) {
+                log.error("토스 자동 취소 실패 - 수동 처리 필요. paymentKey={}", response.getPaymentKey(), cancelEx);
+            }
+            throw new FinalProjectException(ErrorCode.INTERNAL_SERVER_ERROR,
+                    "결제 처리 중 오류가 발생하여 결제가 취소되었습니다. 잠시 후 다시 시도해주세요.");
         }
 
         return response;

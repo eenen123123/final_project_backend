@@ -48,6 +48,9 @@ public interface LectureMapper {
                      @Param("opnnYn") String opnnYn,
                      @Param("userId") String userId);
 
+    // 과목 분류별 시청 시간 집계 (수강 리포트 레이더 차트용)
+    List<java.util.Map<String, Object>> selectSubjectProgress(@Param("userId") String userId);
+
     int updateLockYn(@Param("lectureSn") Long lectureSn,
                      @Param("lockYn") String lockYn,
                      @Param("userId") String userId);

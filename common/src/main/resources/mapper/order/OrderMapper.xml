@@ -42,7 +42,7 @@
             #{ordNm},
             #{totAmt},
             #{ordStatCd},
-            #{pointAmt},
+            NVL(#{pointAmt}, 0),
             #{pointType}
         )
     </insert>

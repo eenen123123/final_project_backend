@@ -27,7 +27,11 @@
         <result property="couponNm"  column="COUPON_NM"/>
         <result property="pointAmt"  column="POINT_AMT"/>
         <result property="issueDt"   column="ISSUE_DT"/>
-        <result property="expiryDt"  column="EXPIRY_DT"/>
+        <result property="expiryDt"   column="EXPIRY_DT"/>
+        <result property="discType"   column="DISC_TYPE"/>
+        <result property="discAmt"    column="DISC_AMT"/>
+        <result property="discRate"   column="DISC_RATE"/>
+        <result property="useLimitCd" column="USE_LIMIT_CD"/>
         <result property="useYn"     column="USE_YN"/>
         <result property="useDt"     column="USE_DT"/>
         <result property="orderSn"   column="ORDER_SN"/>
@@ -152,6 +156,46 @@
         SELECT COUNT(*)
         FROM MEMBER_COUPONPOINT
         <include refid="userCouponCondition"/>
+    </select>
+
+    <!-- 쿠폰 주문 예약 -->
+    <update id="reserveCoupon">
+        UPDATE MEMBER_COUPONPOINT
+           SET ORDER_SN = #{ordSn}
+         WHERE MCPNT_SN = #{mcpntSn}
+           AND USE_YN   = 'N'
+    </update>
+
+    <!-- 쿠폰 사용 확정 (결제 완료) -->
+    <update id="confirmCoupons">
+        UPDATE MEMBER_COUPONPOINT
+           SET USE_YN  = 'Y',
+               USE_DT  = CURRENT_TIMESTAMP
+         WHERE ORDER_SN = #{ordSn}
+           AND USE_YN   = 'N'
+    </update>
+
+    <!-- 쿠폰 복원 (취소/환불) -->
+    <update id="restoreCoupons">
+        UPDATE MEMBER_COUPONPOINT
+           SET USE_YN   = 'N',
+               ORDER_SN = NULL,
+               USE_DT   = NULL
+         WHERE ORDER_SN = #{ordSn}
+    </update>
+
+    <!-- 결제 페이지용 사용 가능한 쿠폰 목록 (미사용 + 미만료 + 할인정보 포함) -->
+    <select id="selectAvailableCouponsForCheckout" resultMap="memberCouponPointResultMap">
+        SELECT uc.MCPNT_SN, uc.USER_ID, uc.COUPON_SN, uc.COUPON_NM,
+               uc.ISSUE_DT, uc.EXPIRY_DT, uc.USE_YN,
+               c.DISC_TYPE, c.DISC_AMT, c.DISC_RATE, c.USE_LIMIT_CD
+          FROM MEMBER_COUPONPOINT uc
+          JOIN COUPON c ON uc.COUPON_SN = c.COUPON_SN
+         WHERE uc.USER_ID = #{userId}
+           AND uc.ASSET_TYPE = 'COUPON'
+           AND uc.USE_YN = 'N'
+           AND (uc.EXPIRY_DT IS NULL OR uc.EXPIRY_DT >= TRUNC(SYSDATE))
+         ORDER BY uc.EXPIRY_DT ASC
     </select>
 
     <!-- 전체 발급내역 조회 (관리자) - 수신 유저 이름 포함 -->
