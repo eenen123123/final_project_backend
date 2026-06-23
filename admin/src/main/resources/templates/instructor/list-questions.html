@@ -132,7 +132,7 @@
   <div id="tab-list">
 
     <!-- 필터 바 -->
-    <form method="get" action="/instructor/questions"
+    <form method="get" action="/instructor/questions" onsubmit="filterBeforeSubmit()"
           class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-4">
       <div class="flex flex-wrap gap-3 items-end">
         <div>
@@ -199,7 +199,7 @@
                 class="hover:bg-slate-50/70 transition-colors cursor-pointer"
                 th:onclick="|location.href='/instructor/questions/' + ${q.qstnSn}|">
               <td class="py-3 px-5 text-slate-400 text-xs"
-                  th:text="${(currentPage - 1) * 10 + s.count}"></td>
+                  th:text="${(currentPage - 1) * pageSize + s.count}"></td>
               <td class="py-3 px-5">
                 <span th:if="${q.aiGenYn == 'Y'}"
                   class="inline-block text-xs font-bold px-1.5 py-0.5 rounded-full mr-1"

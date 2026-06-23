@@ -103,6 +103,14 @@ function syncClHidden() {
   if (hidden) hidden.value = document.getElementById('filter-cl').value;
 }
 
+/** 빈 값인 select/hidden을 form에서 제외해 빈 문자열 → Long 변환 오류 방지 */
+function filterBeforeSubmit() {
+  ['filter-subj', 'filter-cl-hidden'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el && !el.value) el.removeAttribute('name');
+  });
+}
+
 // ──────────────────────────────────────────────
 // 수정 모드 전환 (detail-question.html)
 // ──────────────────────────────────────────────
@@ -124,6 +132,16 @@ function showEdit() {
     if (typeName === 'MULTIPLE_CHOICE') {
       var choices = (q.choices && q.choices.length > 0) ? q.choices : ['A. ', 'B. '];
       choices.forEach(function(c) { container.appendChild(editMakeChoiceRow(c)); });
+    }
+  }
+
+  // 대분류 → 과목 드롭다운 복원
+  var ss = window._subjectState;
+  if (ss && ss.subjClId) {
+    var clSel = document.getElementById('edit-cl');
+    if (clSel) {
+      clSel.value = ss.subjClId;
+      _loadSubjects(ss.subjClId, 'edit-subj', ss.subjId);
     }
   }
 }

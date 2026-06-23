@@ -7,6 +7,10 @@
 <!-- question 데이터 직렬화 (수정 폼 초기값용) -->
 <script th:inline="javascript">
   window._question = /*[[${question}]]*/ {};
+  window._subjectState = {
+    subjClId: /*[[${currentSubjClId}]]*/ null,
+    subjId:   /*[[${question.subjId}]]*/ null
+  };
 </script>
 
 <div class="space-y-5 max-w-3xl mx-auto">
@@ -74,8 +78,8 @@
             th:text="${question.allocScr != null} ? ${question.allocScr} + '점' : '-'"></p>
         </div>
         <div>
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">등록일시</p>
-          <p class="text-slate-400 text-xs" th:text="${question.regDt}"></p>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">마지막 작업일시</p>
+          <p class="text-slate-400 text-xs" th:text="${question.mdfcnDt}"></p>
         </div>
       </div>
     </div>
@@ -125,8 +129,7 @@
           <div>
             <label class="form-label">유형</label>
             <select name="qstnTypeCd" id="edit-type" onchange="onEditTypeChange()"
-              class="hm-input hm-input-sky w-full"
-              th:value="${question.qstnTypeCd}">
+              class="hm-input hm-input-sky w-full">
               <option value="MULTIPLE_CHOICE"
                 th:selected="${question.qstnTypeCd?.name() == 'MULTIPLE_CHOICE'}">객관식</option>
               <option value="SHORT_ANSWER"
@@ -140,7 +143,8 @@
             <select id="edit-cl" onchange="editLoadSubjects()" class="hm-input hm-input-sky w-full">
               <option value="">선택</option>
               <th:block th:each="cl : ${classifications}">
-                <option th:value="${cl.subjClId}" th:text="${cl.subjClNm}"></option>
+                <option th:value="${cl.subjClId}" th:text="${cl.subjClNm}"
+                        th:selected="${cl.subjClId == currentSubjClId}"></option>
               </th:block>
             </select>
           </div>

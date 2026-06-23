@@ -6,7 +6,6 @@
 
     <!--
         공통 SELECT 컬럼 절
-        FIELD5 = 수정일시(MDFCN_DT 추정, 컬럼명 그대로 유지)
         QSTN_CN(CLOB)은 서비스에서 JSON 파싱 후 stem/topic/choices/chartData 필드로 분리합니다.
     -->
     <sql id="questionColumns">
@@ -14,7 +13,8 @@
         SUBJ_ID                                      AS subjId,
         RGTR_ID                                      AS rgtrId,
         LAST_MDFR_ID                                 AS lastMdfrId,
-        TO_CHAR(REG_DT, 'YYYY-MM-DD HH24:MI')        AS regDt,
+        TO_CHAR(REG_DT,     'YYYY-MM-DD HH24:MI')   AS regDt,
+        TO_CHAR(MDFCN_DT,   'YYYY-MM-DD HH24:MI')   AS mdfcnDt,
         QSTN_TYPE_CD                                 AS qstnTypeCd,
         DIFF_CD                                      AS diffCd,
         AI_GEN_YN                                    AS aiGenYn,
@@ -80,6 +80,7 @@
             SUBJ_ID,
             RGTR_ID,
             REG_DT,
+            MDFCN_DT,
             QSTN_TYPE_CD,
             DIFF_CD,
             AI_GEN_YN,
@@ -92,6 +93,7 @@
             #{subjId,       jdbcType=NUMERIC},
             #{rgtrId},
             CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP,
             #{qstnTypeCd},
             #{diffCd,       jdbcType=VARCHAR},
             #{aiGenYn},
@@ -103,7 +105,7 @@
         )
     </insert>
 
-    <!-- 문항 수정 (LAST_MDFR_ID / FIELD5(수정일시) 갱신) -->
+    <!-- 문항 수정 -->
     <update id="updateQuestion"
             parameterType="kr.or.ddit.finalProject.dto.exam.QuestionDto">
         UPDATE QUESTION_LIST
@@ -116,7 +118,7 @@
             QSTN_CN      = #{qstnCn,      jdbcType=CLOB},
             EXPLN_CN     = #{explnCn,     jdbcType=VARCHAR},
             LAST_MDFR_ID = #{lastMdfrId},
-            FIELD5       = CURRENT_TIMESTAMP
+            MDFCN_DT     = CURRENT_TIMESTAMP
         WHERE QSTN_SN = #{qstnSn}
           AND STAT_CD != '99'
     </update>

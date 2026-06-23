@@ -72,6 +72,7 @@ public class InstructorQuestionController {
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("totalCount", totalCount);
+        model.addAttribute("pageSize", PAGE_SIZE);
         model.addAttribute("selectedSubjId", subjId);
         model.addAttribute("selectedSubjClId", subjClId);
         model.addAttribute("selectedDiffCd", diffCd);
@@ -87,8 +88,16 @@ public class InstructorQuestionController {
     public String questionDetail(@PathVariable Long qstnSn, Model model, Authentication auth) {
         QuestionDto question = questionService.retrieveQuestion(qstnSn, auth.getName());
         List<SubjectClassificationDto> classifications = subjectMapper.selectClassificationList();
+
+        Long currentSubjClId = null;
+        if (question.getSubjId() != null) {
+            SubjectDto subject = subjectMapper.selectSubjectBySn(question.getSubjId());
+            if (subject != null) currentSubjClId = subject.getSubjClId();
+        }
+
         model.addAttribute("question", question);
         model.addAttribute("classifications", classifications);
+        model.addAttribute("currentSubjClId", currentSubjClId);
         return "admin:/instructor/detail-question";
     }
 

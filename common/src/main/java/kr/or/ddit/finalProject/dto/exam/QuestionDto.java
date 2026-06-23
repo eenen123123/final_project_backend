@@ -43,6 +43,9 @@ public class QuestionDto {
     /** 등록 일시 */
     private String regDt;
 
+    /** 최종 수정 일시 */
+    private String mdfcnDt;
+
     /** 문항 유형 (QuestionType enum) */
     private QuestionType qstnTypeCd;
 
