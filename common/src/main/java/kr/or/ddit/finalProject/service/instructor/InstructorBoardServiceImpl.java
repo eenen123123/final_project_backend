@@ -150,8 +150,11 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     // ── 클래스룸 공지사항 ──────────────────────────────────────────────
 
     @Override
-    public List<InstructorBoardDto> getClassroomNoticeList(Long classSn) {
-        return instructorBoardMapper.selectClassroomNoticeList(classSn);
+    public PageResponse<InstructorBoardDto> getClassroomNoticeList(Long classSn, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        List<InstructorBoardDto> items = instructorBoardMapper.selectClassroomNoticeList(classSn, offset, pageSize);
+        int totalCount = instructorBoardMapper.countClassroomNoticeList(classSn);
+        return new PageResponse<>(items, totalCount);
     }
 
     @Override
@@ -179,8 +182,11 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     // ── 클래스룸 자료실 ───────────────────────────────────────────────
 
     @Override
-    public List<InstructorBoardDto> getClassroomDataroomList(Long classSn) {
-        return instructorBoardMapper.selectClassroomDataroomList(classSn);
+    public PageResponse<InstructorBoardDto> getClassroomDataroomList(Long classSn, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        List<InstructorBoardDto> items = instructorBoardMapper.selectClassroomDataroomList(classSn, offset, pageSize);
+        int totalCount = instructorBoardMapper.countClassroomDataroomList(classSn);
+        return new PageResponse<>(items, totalCount);
     }
 
     @Override
@@ -208,8 +214,11 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     // ── 클래스룸 Q&A ──────────────────────────────────────────────────
 
     @Override
-    public List<ClassroomQnaDto> getClassroomQnaList(Long classSn) {
-        return instructorBoardMapper.selectClassroomQnaList(classSn);
+    public PageResponse<ClassroomQnaDto> getClassroomQnaList(Long classSn, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        List<ClassroomQnaDto> items = instructorBoardMapper.selectClassroomQnaList(classSn, offset, pageSize);
+        int totalCount = instructorBoardMapper.countClassroomQnaList(classSn);
+        return new PageResponse<>(items, totalCount);
     }
 
     @Override

@@ -23,6 +23,11 @@
     JOIN MEMBER m ON cm.USER_ID = m.USER_ID
     WHERE cm.CLASS_SN = #{classSn}
     ORDER BY cm.REG_DT ASC
+    OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+  </select>
+
+  <select id="countMembersByClassSn" resultType="int">
+    SELECT COUNT(*) FROM CLASSROOM_MEMBER WHERE CLASS_SN = #{classSn}
   </select>
 
 
@@ -89,6 +94,14 @@
       AND cm.ENRL_STAT_CD = 'ENROLLED'
     GROUP BY cm.USER_ID, m.USER_NAME
     ORDER BY m.USER_NAME ASC
+    OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+  </select>
+
+  <select id="countGradeList" resultType="int">
+    SELECT COUNT(*)
+    FROM CLASSROOM_MEMBER
+    WHERE CLASS_SN = #{classSn}
+      AND ENRL_STAT_CD = 'ENROLLED'
   </select>
 
 

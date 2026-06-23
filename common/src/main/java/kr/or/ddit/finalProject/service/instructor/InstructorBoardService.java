@@ -49,8 +49,8 @@ public interface InstructorBoardService {
 
     // ── 클래스룸 공지사항 ──────────────────────────────────────────────
 
-    /** 클래스룸 공지사항 목록 조회 */
-    List<InstructorBoardDto> getClassroomNoticeList(Long classSn);
+    /** 클래스룸 공지사항 목록 조회 (페이징) */
+    PageResponse<InstructorBoardDto> getClassroomNoticeList(Long classSn, int page, int pageSize);
 
     /** 클래스룸 공지사항 상세 조회 */
     InstructorBoardDto getClassroomNoticeDetail(Long postSn, Long classSn);
@@ -66,8 +66,8 @@ public interface InstructorBoardService {
 
     // ── 클래스룸 자료실 ───────────────────────────────────────────────
 
-    /** 클래스룸 자료실 목록 조회 */
-    List<InstructorBoardDto> getClassroomDataroomList(Long classSn);
+    /** 클래스룸 자료실 목록 조회 (페이징) */
+    PageResponse<InstructorBoardDto> getClassroomDataroomList(Long classSn, int page, int pageSize);
 
     /** 클래스룸 자료실 상세 조회 */
     InstructorBoardDto getClassroomDataroomDetail(Long postSn, Long classSn);
@@ -83,8 +83,8 @@ public interface InstructorBoardService {
 
     // ── 클래스룸 Q&A ──────────────────────────────────────────────────
 
-    /** 클래스룸 Q&A 목록 조회 */
-    List<ClassroomQnaDto> getClassroomQnaList(Long classSn);
+    /** 클래스룸 Q&A 목록 조회 (페이징) */
+    PageResponse<ClassroomQnaDto> getClassroomQnaList(Long classSn, int page, int pageSize);
 
     /** 클래스룸 Q&A 상세 조회 */
     ClassroomQnaDto getClassroomQnaDetail(Long postSn, Long classSn);

@@ -46,6 +46,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class AdminClassroomController {
 
+    private static final int PAGE_SIZE = 10;
+
     private final ClassroomService classroomService;
     private final LectureService lectureService;
     private final InstructorBoardService instructorBoardService;
@@ -194,7 +196,7 @@ public class AdminClassroomController {
                 classroomService.retrieveCalendarDays(classSn, year, month));
 
         List<InstructorBoardDto> notices
-                = instructorBoardService.getClassroomNoticeList(classSn);
+                = instructorBoardService.getClassroomNoticeList(classSn, 1, 1).getItems();
         model.addAttribute("recentNotice", notices.isEmpty() ? null : notices.get(0));
 
         // 강좌 진도율 요약 — 강의 위젯(home-classroom.html의 "강좌 진도율 요약" 카드)에서 사용
@@ -241,8 +243,8 @@ public class AdminClassroomController {
                 .orElse(0.0);
         model.addAttribute("avgProgressRate", (int) Math.round(avgProgressRate));
 
-        // 마감 임박 과제 (오늘~모레) — getAssignmentList 한 번 호출로 count와 필터 모두 처리
-        List<AssignmentBoardDto> allAssignments = assignmentBoardService.getAssignmentList(classSn);
+        // 마감 임박 과제 (오늘~모레) — 전체 과제 조회 후 필터
+        List<AssignmentBoardDto> allAssignments = assignmentBoardService.getAssignmentList(classSn, 1, 9999).getItems();
         LocalDateTime nowDt = LocalDateTime.now();
         LocalDateTime threshold = now.plusDays(2).atTime(23, 59, 59);
         List<AssignmentBoardDto> deadlineSoonList = allAssignments.stream()
@@ -334,29 +336,39 @@ public class AdminClassroomController {
     // ── 성적 관리 ────────────────────────────────────────────────
     // 수강생별 성적 목록
     @GetMapping("/detail/{classSn}/grades")
-    public String gradeList(@PathVariable Long classSn, Model model, Authentication authentication) {
+    public String gradeList(@PathVariable Long classSn,
+            @RequestParam(defaultValue = "1") int page,
+            Model model, Authentication authentication) {
         ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
         if (classroom == null) {
             return "redirect:/classroom/list";
         }
+        kr.or.ddit.finalProject.dto.common.PageResponse<kr.or.ddit.finalProject.dto.classroom.ClassroomGradeDto> gradePage =
+                classroomService.retrieveGradeList(classSn, page, PAGE_SIZE);
         model.addAttribute("classroom", classroom);
-        model.addAttribute("gradeList", classroomService.retrieveGradeList(classSn));
+        model.addAttribute("gradePage", gradePage);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("pageSize", PAGE_SIZE);
+        model.addAttribute("totalPages", (int) Math.ceil((double) gradePage.getTotalCount() / PAGE_SIZE));
         return "classroom/list-classroom-grades";
     }
 
     // ── 수강생 목록 ──────────────────────────────────────────────
-    // 수강생 목록 — 진도율 컬럼 표시를 위해 진도율 별도 조회 후 각 수강생 객체에 병합
-    // (진도율은 retrieveClassroomDetail에 포함하지 않음 — 다른 탭 진입 시 불필요한 쿼리 방지)
     @GetMapping("/detail/{classSn}/members")
-    public String memberList(@PathVariable Long classSn, Model model, Authentication authentication) {
+    public String memberList(@PathVariable Long classSn,
+            @RequestParam(defaultValue = "1") int page,
+            Model model, Authentication authentication) {
         ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
         if (classroom == null) {
             return "redirect:/classroom/list";
         }
-        Map<String, Double> progressRates = classroomService.retrieveProgressRates(classSn);
-        // 진도율 맵(userId → rate)을 수강생 목록에 일괄 병합
-        classroom.getMembers().forEach(m -> m.setProgressRate(progressRates.getOrDefault(m.getUserId(), 0.0)));
+        kr.or.ddit.finalProject.dto.common.PageResponse<ClassroomMemberListResponse> memberPage =
+                classroomService.retrieveMemberListPaged(classSn, page, PAGE_SIZE);
         model.addAttribute("classroom", classroom);
+        model.addAttribute("memberPage", memberPage);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("pageSize", PAGE_SIZE);
+        model.addAttribute("totalPages", (int) Math.ceil((double) memberPage.getTotalCount() / PAGE_SIZE));
         return "classroom/list-classroom-members";
     }
 

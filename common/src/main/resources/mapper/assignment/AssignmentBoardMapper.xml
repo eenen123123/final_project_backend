@@ -35,6 +35,11 @@
     FROM ASSIGNMENT_BOARD ab
     WHERE ab.CLASS_SN = #{classSn}
     ORDER BY ab.REG_DT DESC
+    OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+  </select>
+
+  <select id="countAssignmentList" resultType="int">
+    SELECT COUNT(*) FROM ASSIGNMENT_BOARD WHERE CLASS_SN = #{classSn}
   </select>
 
   <select id="selectAssignmentDetail" resultMap="assignmentBoardMap">

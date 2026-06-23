@@ -22,6 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class AdminClassroomQnaController {
 
+    private static final int PAGE_SIZE = 10;
+
     private final ClassroomService classroomService;
     private final InstructorBoardService instructorBoardService;
     private final AssignmentBoardService assignmentBoardService;
@@ -47,11 +49,18 @@ public class AdminClassroomQnaController {
 
     // Q&A 목록
     @GetMapping("/detail/{classSn}/qna")
-    public String qnaList(@PathVariable Long classSn, Model model, Authentication authentication) {
+    public String qnaList(@PathVariable Long classSn,
+            @RequestParam(defaultValue = "1") int page,
+            Model model, Authentication authentication) {
         kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
         if (classroom == null) return "redirect:/classroom/list";
+        kr.or.ddit.finalProject.dto.common.PageResponse<kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto> qnaPage =
+                instructorBoardService.getClassroomQnaList(classSn, page, PAGE_SIZE);
         model.addAttribute("classroom", classroom);
-        model.addAttribute("qnaList", instructorBoardService.getClassroomQnaList(classSn));
+        model.addAttribute("qnaPage", qnaPage);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("pageSize", PAGE_SIZE);
+        model.addAttribute("totalPages", (int) Math.ceil((double) qnaPage.getTotalCount() / PAGE_SIZE));
         return "classroom/list-classroom-qna";
     }
 

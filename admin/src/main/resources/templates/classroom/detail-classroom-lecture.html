@@ -11,6 +11,11 @@
 <body>
   <div id="content">
 
+    <a th:href="@{/classroom/detail/{classSn}/lectures(classSn=${classroom.classSn})}"
+       class="text-sm font-semibold text-slate-400 hover:text-slate-600 flex items-center gap-2 transition-colors w-fit mb-5">
+      <i class="fa-solid fa-arrow-left text-xs"></i> 목록으로
+    </a>
+
     <!-- 강의 기본 정보 -->
     <div class="bg-white border border-slate-100 rounded-xl overflow-hidden mb-5">
       <div class="px-7 py-5 border-b border-slate-100 flex items-center justify-between">
@@ -41,10 +46,6 @@
             <i class="fa-solid fa-lock text-xs"></i>
             <span th:text="${lecture.lockYn == 'Y' ? '잠김' : '잠금 해제'}">잠금 해제</span>
           </button>
-          <a th:href="@{/classroom/detail/{classSn}/lectures(classSn=${classroom.classSn})}"
-            class="text-sm text-slate-400 hover:text-slate-600 transition-colors ml-3 flex items-center gap-1.5">
-            <i class="fa-solid fa-arrow-left text-xs"></i>목록으로
-          </a>
         </div>
       </div>
       <div th:if="${lecture.lectureExplnCn != null and !#strings.isEmpty(lecture.lectureExplnCn)}"

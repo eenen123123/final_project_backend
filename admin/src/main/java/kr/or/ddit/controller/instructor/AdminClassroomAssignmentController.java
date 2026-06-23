@@ -32,6 +32,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class AdminClassroomAssignmentController {
 
+    private static final int PAGE_SIZE = 10;
+
     private final ClassroomService classroomService;
     private final AssignmentBoardService assignmentBoardService;
     private final InstructorBoardService instructorBoardService;
@@ -69,12 +71,18 @@ public class AdminClassroomAssignmentController {
 
     // 과제 목록 + 제출 현황 집계
     @GetMapping("/detail/{classSn}/assignments")
-    public String assignmentList(@PathVariable Long classSn, Model model,
-            Authentication authentication) {
+    public String assignmentList(@PathVariable Long classSn,
+            @RequestParam(defaultValue = "1") int page,
+            Model model, Authentication authentication) {
         ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
         if (classroom == null) return "redirect:/classroom/list";
+        kr.or.ddit.finalProject.dto.common.PageResponse<AssignmentBoardDto> assignmentPage =
+                assignmentBoardService.getAssignmentList(classSn, page, PAGE_SIZE);
         model.addAttribute("classroom", classroom);
-        model.addAttribute("assignmentList", assignmentBoardService.getAssignmentList(classSn));
+        model.addAttribute("assignmentPage", assignmentPage);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("pageSize", PAGE_SIZE);
+        model.addAttribute("totalPages", (int) Math.ceil((double) assignmentPage.getTotalCount() / PAGE_SIZE));
         return "classroom/list-classroom-assignments";
     }
 
