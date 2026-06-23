@@ -189,10 +189,10 @@
     </div>
     <div class="divide-y divide-slate-50">
       <div th:each="q : ${overdueList}"
-           class="flex items-start gap-4 px-6 py-4 hover:bg-slate-50/40 transition-colors">
+           class="flex items-center gap-4 px-6 py-4 hover:bg-slate-50/40 transition-colors">
         <div th:with="firstChar=${#strings.substring(q.instrUserNm, 0, 1)}"
              th:classappend="${q.elapsedHours > 48} ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'"
-             class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 mt-0.5"
+             class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0"
              th:text="${firstChar}">강</div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 flex-wrap">
@@ -208,6 +208,11 @@
             <span th:text="${#temporals.format(q.regDt, 'yyyy-MM-dd HH:mm')}">날짜</span>
           </p>
         </div>
+        <button th:attr="onclick='openNotePopup(\'' + ${q.instrUserId} + '\', \'' + ${q.instrUserNm} + '\')'"
+                class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-violet-600 hover:bg-violet-700 transition-colors">
+          <i class="fa-solid fa-paper-plane text-[10px]"></i>
+          메시지 전송
+        </button>
       </div>
     </div>
   </div>
@@ -222,53 +227,10 @@
 </div>
 
 
-<!-- ===== 스크립트 ===== -->
+<!-- 서버 데이터 주입 (Thymeleaf 처리 필요) -->
 <script th:inline="javascript">
   /*<![CDATA[*/
-  function filterTable(instrUserId) {
-    document.querySelectorAll('tbody tr[data-instructor-id]').forEach(tr => {
-      tr.style.display = (!instrUserId || tr.dataset.instructorId === instrUserId) ? '' : 'none';
-    });
-  }
-
-  const stats      = /*[[${stats}]]*/ [];
-  const labels     = stats.map(s => s.instrUserNm);
-  const answered   = stats.map(s => s.answeredCnt);
-  const unanswered = stats.map(s => s.unansweredCnt);
-
-  new Chart(document.getElementById('qaRateChart').getContext('2d'), {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: '답변 완료',
-          data: answered,
-          backgroundColor: 'rgba(124,58,237,0.85)',
-          borderRadius: 5,
-          borderSkipped: false,
-        },
-        {
-          label: '미처리',
-          data: unanswered,
-          backgroundColor: 'rgba(251,113,133,0.75)',
-          borderRadius: 5,
-          borderSkipped: false,
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12 } },
-        tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}건` } }
-      },
-      scales: {
-        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 12 } } },
-        y: { stacked: true, grid: { color: 'rgba(148,163,184,0.1)' }, ticks: { font: { size: 11 }, callback: v => v + '건' } }
-      }
-    }
-  });
+  window.qaStatsData = /*[[${stats}]]*/ [];
   /*]]>*/
 </script>
+<script src="/js/principal/quality.js"></script>
