@@ -237,6 +237,7 @@
       editEditor = TipTapEditor.mount('answerEditEditor', {
         editable: true,
         outputInputId: 'answCnEdit',
+        imageUrlResolver: (fileId) => `/admin/files/${fileId}/view`,
       });
       // 기존 답변 내용 복원 (HTML 또는 plain text)
       if (existingAnswerContent) {
@@ -256,6 +257,7 @@
       newEditor = TipTapEditor.mount('answerNewEditor', {
         editable: true,
         outputInputId: 'answCnNew',
+        imageUrlResolver: (fileId) => `/admin/files/${fileId}/view`,
       });
     }
   });

@@ -1,29 +1,4 @@
 <div>
-  <!-- Toast UI Editor CSS -->
-  <link rel="stylesheet" th:href="@{/css/vendor/toast-ui/toastui-editor.min.css}" />
-  <link rel="stylesheet" th:href="@{/css/vendor/toast-ui/tui-color-picker.min.css}" />
-  <link rel="stylesheet" th:href="@{/css/vendor/toast-ui/toastui-editor-plugin-color-syntax.min.css}" />
-  <link rel="stylesheet" th:href="@{/css/vendor/toast-ui/toastui-editor-plugin-code-syntax-highlight.min.css}" />
-  <link rel="stylesheet" th:href="@{/css/vendor/toast-ui/toastui-editor-plugin-table-merged-cell.min.css}" />
-  <link rel="stylesheet" th:href="@{/css/vendor/toast-ui/toastui-chart.min.css}" />
-
-  <style>
-    .toastui-editor-defaultUI {
-      border: 1px solid #0ea5e9;
-      border-radius: 0.75rem;
-      overflow: hidden;
-      transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-        box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .toastui-editor-defaultUI:focus-within {
-      border-color: #0ea5e9;
-      box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08);
-    }
-    .toastui-editor-toolbar { border-radius: 0.75rem 0.75rem 0 0; }
-    .toastui-editor-contents, .toastui-editor .ProseMirror {
-      font-family: "Noto Sans KR", sans-serif;
-    }
-  </style>
 
   <!-- 페이지 헤더 -->
   <div class="flex items-center justify-between mb-6">
@@ -110,36 +85,32 @@
     </form>
   </div>
 
-  <!-- Toast UI Editor JS -->
-  <script defer th:src="@{/js/vendor/toast-ui/toastui-editor-all.min.js}"></script>
-  <script defer th:src="@{/js/vendor/toast-ui/ko-kr.min.js}"></script>
-  <script defer th:src="@{/js/vendor/toast-ui/tui-color-picker.min.js}"></script>
-  <script defer th:src="@{/js/vendor/toast-ui/toastui-editor-plugin-color-syntax.min.js}"></script>
-  <script defer th:src="@{/js/vendor/toast-ui/toastui-editor-plugin-code-syntax-highlight-all.min.js}"></script>
-  <script defer th:src="@{/js/vendor/toast-ui/toastui-editor-plugin-table-merged-cell.min.js}"></script>
-  <script defer th:src="@{/js/vendor/toast-ui/toastui-chart.min.js}"></script>
-  <script defer th:src="@{/js/vendor/toast-ui/toastui-editor-plugin-chart.min.js}"></script>
-
+  <script defer th:src="@{/js/tiptap/tiptap-editor.iife.js}"></script>
   <script th:inline="javascript">
-    document.addEventListener("DOMContentLoaded", function () {
-      const { Editor } = toastui;
-      const { colorSyntax, codeSyntaxHighlight, tableMergedCell, chart } = Editor.plugin;
-
-      const editor = new Editor({
-        el: document.querySelector("#editor"),
-        height: "500px",
-        initialEditType: "wysiwyg",
-        previewStyle: "tab",
-        language: "ko-KR",
-        usageStatistics: false,
-        plugins: [colorSyntax, codeSyntaxHighlight, tableMergedCell, chart].filter(Boolean),
+    document.addEventListener('DOMContentLoaded', function () {
+      const savedContent = /*[[${notice.postCn}]]*/ null;
+      let initialForMount = '';
+      let htmlToRestore = null;
+      if (savedContent) {
+        try { JSON.parse(savedContent); initialForMount = savedContent; }
+        catch { htmlToRestore = savedContent; }
+      }
+      TipTapEditor.mount('editor', {
+        editable: true,
+        outputInputId: 'postCnHidden',
+        initialContent: initialForMount,
+        imageUrlResolver: (fileId) => `/admin/files/${fileId}/view`,
       });
-
-      const savedContent = /*[[${notice.postCn}]]*/ '';
-      if (savedContent) editor.setHTML(savedContent);
-
-      document.querySelector("form").addEventListener("submit", function () {
-        document.getElementById("postCnHidden").value = editor.getHTML();
+      if (htmlToRestore) {
+        const t = setInterval(() => {
+          const el = document.querySelector('#editor .tiptap');
+          if (el && el.editor) { el.editor.commands.setContent(htmlToRestore); clearInterval(t); }
+        }, 50);
+        setTimeout(() => clearInterval(t), 3000);
+      }
+      document.querySelector('form').addEventListener('submit', function () {
+        const el = document.querySelector('#editor .tiptap');
+        if (el && el.editor) document.getElementById('postCnHidden').value = el.editor.getHTML();
       });
     });
   </script>
