@@ -23,4 +23,5 @@ public class PointHistDto {
     private String memo;               // 변동 사유
     private LocalDateTime regDt;       // 등록일시
     private LocalDate expiryDt;        // 만료일 (JOIN from MEMBER_COUPONPOINT)
+    private AssetType assetType;       // HM_POINT / STUDY_POINT / HM_MONEY (USE 이력 타입 구분용)
 }

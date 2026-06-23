@@ -42,7 +42,8 @@ public class OrderController {
                 request.getPointAmt(),
                 request.getPointType(),
                 request.getShipping(),
-                request.isSaveToAddressBook()));
+                request.isSaveToAddressBook(),
+                request.getCoupons()));
     }
 
     @GetMapping("/my")

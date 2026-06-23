@@ -82,6 +82,7 @@ public class PointServiceImpl implements PointService {
                         .changeAmt(-amount)
                         .ordSn(ordSn)
                         .memo(memo)
+                        .assetType(assetType)
                         .build(),
                 assetType);
         if (result == 0) {

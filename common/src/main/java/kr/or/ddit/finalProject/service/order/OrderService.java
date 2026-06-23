@@ -8,12 +8,13 @@ import kr.or.ddit.finalProject.dto.coupon.AssetType;
 import kr.or.ddit.finalProject.dto.order.OrderDto;
 import kr.or.ddit.finalProject.dto.order.OrderItemDto;
 import kr.or.ddit.finalProject.dto.order.OrderSearchCondition;
+import kr.or.ddit.finalProject.dto.order.OrderCreateRequest;
 import kr.or.ddit.finalProject.dto.order.OrderShippingDto;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
 
 public interface OrderService {
 
-    OrderDto createOrder(String userId, List<OrderItemDto> items, long pointAmt, AssetType pointType, OrderShippingDto shipping, boolean saveToAddressBook);
+    OrderDto createOrder(String userId, List<OrderItemDto> items, long pointAmt, AssetType pointType, OrderShippingDto shipping, boolean saveToAddressBook, List<OrderCreateRequest.CouponApplication> coupons);
 
     PageResponse<OrderDto> getOrdersByUserId(String userId, int page, LocalDateTime from, LocalDateTime to);
 

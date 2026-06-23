@@ -34,4 +34,10 @@ public class MemberCouponPointDto {
     private LocalDateTime regDt;       // 등록일시
 
     private String userName;           // JOIN 조회용
+
+    // 결제 페이지 쿠폰 선택용 (COUPON 테이블 JOIN)
+    private DiscType discType;         // FIXED:정액 / RATE:정률
+    private Long discAmt;             // 정액 할인금액
+    private Integer discRate;          // 정률 할인율(%)
+    private String useLimitCd;         // COURSE / TEXTBOOK / ALL
 }
