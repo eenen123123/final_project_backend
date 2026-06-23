@@ -28,4 +28,7 @@ public interface CourseEnrollmentMapper {
         // 내 수강 목록: COURSE_ENROLLMENT JOIN COURSE (수강중 강좌 페이지용)
         List<CourseEnrollmentDto> selectListByUserId(@Param("userId") String userId);
 
+        // 수강 회수: 주문 취소 시 해당 주문으로 부여된 수강권을 REVOKED 처리
+        int revokeByOrdSn(@Param("ordSn") Long ordSn);
+
 }

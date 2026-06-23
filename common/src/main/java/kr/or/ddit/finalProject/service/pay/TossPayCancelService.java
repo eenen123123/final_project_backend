@@ -12,6 +12,7 @@ import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.mapper.coupon.CouponMapper;
 import kr.or.ddit.finalProject.mapper.order.OrderMapper;
+import kr.or.ddit.finalProject.service.enrollment.CourseEnrollmentService;
 import kr.or.ddit.finalProject.mapper.order.OrderShippingMapper;
 import kr.or.ddit.finalProject.mapper.pay.PayHistMapper;
 import kr.or.ddit.finalProject.service.coupon.PointService;
@@ -29,6 +30,7 @@ public class TossPayCancelService {
     private final PayHistMapper payHistMapper;
     private final PointService pointService;
     private final CouponMapper couponMapper;
+    private final CourseEnrollmentService enrollmentService;
 
     /**
      * 취소/환불 요청 (사용자) PAID → CANCEL_REQUESTED
@@ -89,6 +91,9 @@ public class TossPayCancelService {
         } catch (Exception e) {
             log.debug("배송 정보 없음 (강좌 전용 주문) - ordSn: {}", ordSn);
         }
+
+        // 수강 회수 (강좌 포함 주문 취소 시 REVOKED 처리)
+        enrollmentService.revokeByOrdSn(ordSn);
 
         // 쿠폰 복원 (사용된 쿠폰 USE_YN = 'N' 초기화)
         couponMapper.restoreCoupons(ordSn);

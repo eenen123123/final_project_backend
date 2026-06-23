@@ -9,7 +9,8 @@
         <result property="ordId" column="ORD_ID"/>
         <result property="userId" column="USER_ID"/>
         <result property="ordNm" column="ORD_NM"/>
-        <result property="totAmt" column="TOT_AMT"/>
+        <result property="totAmt"  column="TOT_AMT"/>
+        <result property="origAmt" column="ORIG_AMT"/>
         <result property="ordStatCd" column="ORD_STAT_CD"/>
         <result property="pointAmt"  column="POINT_AMT"/>
         <result property="pointType" column="POINT_TYPE"/>
@@ -19,6 +20,7 @@
         <result property="cancelRsnCd"   column="CANCEL_RSN_CD"/>
         <result property="cancelRsnDtl"  column="CANCEL_RSN_DTL"/>
         <result property="cancelReqDt"   column="CANCEL_REQ_DT"/>
+        <result property="couponNm"      column="COUPON_NM"/>
     </resultMap>
 
     <resultMap id="orderItemResultMap" type="kr.or.ddit.finalProject.dto.order.OrderItemDto">
@@ -31,7 +33,8 @@
         <result property="itemQty" column="ITEM_QTY"/>
         <result property="regDt" column="REG_DT"/>
 
-            <result property="prodImg" column="PROD_IMG"/>
+            <result property="prodImg"      column="PROD_IMG"/>
+        <result property="instrUserId"  column="INSTR_USER_ID"/>
     </resultMap>
 
     <insert id="insertOrder" parameterType="kr.or.ddit.finalProject.dto.order.OrderDto" useGeneratedKeys="true" keyProperty="ordSn" keyColumn="ORD_SN">
@@ -106,6 +109,8 @@
     <sql id="orderSearchCondition">
        <trim prefix="WHERE" prefixOverrides="AND">
             o.USER_ID = #{userId}
+            AND o.ORD_STAT_CD != 'EXPIRED'
+            AND o.ORD_STAT_CD != 'PENDING'
             <if test="paginationInfo.detailCondition.from != null">
                 AND o.REG_DT &gt;= #{paginationInfo.detailCondition.from}
             </if>
@@ -118,12 +123,18 @@
     <!-- selectOrdersByUserId --> 
 
     <select id="selectOrdersByUserId">
-        SELECT ORD_SN, ORD_ID, USER_ID, ORD_NM, TOT_AMT, ORD_STAT_CD, REG_DT, MDFCN_DT,
+        SELECT ORD_SN, ORD_ID, USER_ID, ORD_NM, TOT_AMT, ORD_STAT_CD, POINT_AMT, POINT_TYPE, REG_DT, MDFCN_DT,
                CASE WHEN EXISTS (
                    SELECT 1 FROM ORDER_ITEM oi
                     WHERE oi.ORD_SN = o.ORD_SN
                       AND oi.PROD_DIV_CD = 'TEXTBOOK'
-               ) THEN 1 ELSE 0 END AS HAS_TEXTBOOK
+               ) THEN 1 ELSE 0 END AS HAS_TEXTBOOK,
+               (SELECT NVL(SUM(oi.PROD_PRICE * oi.ITEM_QTY), 0)
+                  FROM ORDER_ITEM oi WHERE oi.ORD_SN = o.ORD_SN)
+               + CASE WHEN EXISTS (
+                   SELECT 1 FROM ORDER_ITEM oi2
+                    WHERE oi2.ORD_SN = o.ORD_SN AND oi2.PROD_DIV_CD = 'TEXTBOOK'
+               ) THEN 3000 ELSE 0 END AS ORIG_AMT
           FROM ORDERS o
         <include refid="orderSearchCondition"/>
         ORDER BY REG_DT DESC
@@ -141,24 +152,18 @@
     <!-- selectOrderItemsByOrderSn --> 
 
     <select id="selectOrderItemsByOrderSn" resultMap="orderItemResultMap">
-        SELECT 
-            oi.ORD_ITEM_SN
-           , oi.ORD_SN
-           , oi.PROD_DIV_CD
-           , oi.PROD_SN
-           , oi.PROD_NM
-           , oi.PROD_PRICE
-           , oi.ITEM_QTY
-           , oi.REG_DT
-           , 
-            case 
-                when oi.PROD_DIV_CD = 'COURSE' then (select THMB_IMG from COURSE where COURSE_SN = oi.PROD_SN)
-                when oi.PROD_DIV_CD = 'TEXTBOOK' then (select THMB_IMG from TEXTBOOK where TEXTBOOK_SN = oi.PROD_SN)
-                else null
-            end as PROD_IMG
-             
+        SELECT
+            oi.ORD_ITEM_SN, oi.ORD_SN, oi.PROD_DIV_CD, oi.PROD_SN,
+            oi.PROD_NM, oi.PROD_PRICE, oi.ITEM_QTY, oi.REG_DT,
+            CASE
+                WHEN oi.PROD_DIV_CD = 'COURSE'   THEN (SELECT THMB_IMG FROM COURSE   WHERE COURSE_SN   = oi.PROD_SN)
+                WHEN oi.PROD_DIV_CD = 'TEXTBOOK' THEN (SELECT THMB_IMG FROM TEXTBOOK WHERE TEXTBOOK_SN  = oi.PROD_SN)
+            END AS PROD_IMG,
+            CASE
+                WHEN oi.PROD_DIV_CD = 'COURSE' THEN (SELECT INSTR_USER_ID FROM COURSE WHERE COURSE_SN = oi.PROD_SN)
+            END AS INSTR_USER_ID
         FROM ORDER_ITEM oi
-        inner join ORDERS os on oi.ORD_SN = os.ORD_SN
+        JOIN ORDERS os ON oi.ORD_SN = os.ORD_SN
         WHERE oi.ORD_SN = #{ordSn}
           AND os.USER_ID = #{userId}
     </select>
@@ -166,11 +171,21 @@
     <!-- selectOrderByOrdSn --> 
 
     <select id="selectOrderByOrdSn" resultMap="orderResultMap">
-        SELECT ORD_SN, ORD_ID, USER_ID, ORD_NM, TOT_AMT, ORD_STAT_CD,
-               CANCEL_RSN_CD, CANCEL_RSN_DTL, CANCEL_REQ_DT, REG_DT, MDFCN_DT
-          FROM ORDERS
-         WHERE ORD_SN = #{ordSn}
-           AND USER_ID = #{userId}
+        SELECT o.ORD_SN, o.ORD_ID, o.USER_ID, o.ORD_NM, o.TOT_AMT, o.ORD_STAT_CD,
+               o.POINT_AMT, o.POINT_TYPE,
+               o.CANCEL_RSN_CD, o.CANCEL_RSN_DTL, o.CANCEL_REQ_DT, o.REG_DT, o.MDFCN_DT,
+               (SELECT NVL(SUM(oi.PROD_PRICE * oi.ITEM_QTY), 0)
+                  FROM ORDER_ITEM oi WHERE oi.ORD_SN = o.ORD_SN)
+               + CASE WHEN EXISTS (
+                   SELECT 1 FROM ORDER_ITEM oi2
+                    WHERE oi2.ORD_SN = o.ORD_SN AND oi2.PROD_DIV_CD = 'TEXTBOOK'
+               ) THEN 3000 ELSE 0 END AS ORIG_AMT,
+               (SELECT LISTAGG(mcp.COUPON_NM, ', ') WITHIN GROUP (ORDER BY mcp.MCPNT_SN)
+                  FROM MEMBER_COUPONPOINT mcp
+                 WHERE mcp.ORDER_SN = o.ORD_SN AND mcp.USE_YN = 'Y') AS COUPON_NM
+          FROM ORDERS o
+         WHERE o.ORD_SN = #{ordSn}
+           AND o.USER_ID = #{userId}
     </select>
 
     <!-- 관리자 전체 주문 검색 조건 -->

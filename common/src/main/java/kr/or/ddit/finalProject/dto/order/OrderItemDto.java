@@ -23,6 +23,7 @@ public class OrderItemDto {
     private Integer itemQty; // 수량 (기본 1)
     private LocalDateTime regDt; // 등록일시
 
-    private String prodImg; // 상품 이미지
+    private String prodImg;      // 상품 이미지
+    private String instrUserId;  // 강좌 강사 ID (COURSE만, 상세 링크용)
 
 }
