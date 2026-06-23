@@ -1,9 +1,13 @@
 package kr.or.ddit.controller.principal;
 
+import java.util.List;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import kr.or.ddit.finalProject.dto.monitoring.ClassroomOverviewDto;
+import kr.or.ddit.service.MonitoringService;
 import kr.or.ddit.service.QualityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class PrincipalController {
 
     private final QualityService qualityService;
+    private final MonitoringService monitoringService;
     
 
     /**
@@ -52,11 +57,20 @@ public class PrincipalController {
 
     /**
      * 학사 운영 모니터링
-     * @return
      */
     @GetMapping("/monitoring")
-    public String getMonitoring() {
+    public String getMonitoring(Model model) {
         log.info("getMonitoring()");
+        List<ClassroomOverviewDto> classrooms = monitoringService.getClassroomOverview();
+        long avgProgress = Math.round(
+            classrooms.stream()
+                .mapToDouble(ClassroomOverviewDto::getAvgProgressRate)
+                .average()
+                .orElse(0)
+        );
+        model.addAttribute("classrooms", classrooms);
+        model.addAttribute("classroomCnt", classrooms.size());
+        model.addAttribute("avgProgress", avgProgress);
         return "admin:/principal/monitoring";
     }
 

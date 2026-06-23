@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.MonitoringMapper">
+
+  <!--
+    강좌 개설 현황 목록 조회.
+    - 강의(LECTURE)가 하나도 없는 강좌는 INNER JOIN으로 제외
+    - 진도율 = 완료된 (학생×강의) 쌍 / 전체 (학생×강의) 쌍 × 100
+  -->
+  <select id="selectClassroomOverview"
+          resultType="kr.or.ddit.finalProject.dto.monitoring.ClassroomOverviewDto">
+    SELECT
+        CL.CLASS_SN,
+        CL.CLASS_NM,
+        CL.CLASS_STAT_CD,
+        CL.ENRL_STRT_YMD,
+        CL.ENRL_END_YMD,
+        CO.COURSE_NM,
+        CO.INSTR_USER_ID,
+        M.USER_NAME AS INSTR_USER_NM,
+        NVL(SC.STUDENT_CNT, 0) AS STUDENT_CNT,
+        LC.LECTURE_CNT,
+        CASE
+            WHEN NVL(SC.STUDENT_CNT, 0) = 0 OR LC.LECTURE_CNT = 0 THEN 0
+            ELSE ROUND(
+                NVL(LP_DONE.DONE_CNT, 0) * 100.0
+                / (SC.STUDENT_CNT * LC.LECTURE_CNT)
+            , 1)
+        END AS AVG_PROGRESS_RATE
+    FROM CLASSROOM CL
+    INNER JOIN COURSE CO ON CO.COURSE_SN = CL.COURSE_SN
+    INNER JOIN MEMBER M ON M.USER_ID = CO.INSTR_USER_ID
+    INNER JOIN (
+        SELECT COURSE_SN, COUNT(*) AS LECTURE_CNT
+        FROM LECTURE
+        GROUP BY COURSE_SN
+    ) LC ON LC.COURSE_SN = CO.COURSE_SN
+    LEFT JOIN (
+        SELECT CLASS_SN, COUNT(*) AS STUDENT_CNT
+        FROM CLASSROOM_MEMBER
+        WHERE ENRL_STAT_CD = 'ENROLLED'
+        GROUP BY CLASS_SN
+    ) SC ON SC.CLASS_SN = CL.CLASS_SN
+    LEFT JOIN (
+        SELECT LP.COURSE_SN, CM.CLASS_SN, COUNT(*) AS DONE_CNT
+        FROM LECTURE_PROGRESS LP
+        INNER JOIN CLASSROOM_MEMBER CM
+            ON CM.USER_ID = LP.USER_ID
+            AND CM.ENRL_STAT_CD = 'ENROLLED'
+        WHERE LP.SECONDS_WATCHED > 0
+        GROUP BY LP.COURSE_SN, CM.CLASS_SN
+    ) LP_DONE
+        ON LP_DONE.COURSE_SN = CO.COURSE_SN
+        AND LP_DONE.CLASS_SN = CL.CLASS_SN
+    ORDER BY CL.CLASS_SN
+  </select>
+
+</mapper>
