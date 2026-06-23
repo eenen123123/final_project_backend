@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.exam.WeakPointMapper">
+
+    <!--
+        클래스 수강생의 과목별 평균 득점률 조회
+        - ANSWER_SUBMIT.SCORE IS NOT NULL: 미채점 제외
+        - HAVING COUNT(*) >= 5: 데이터 부족 과목 제외
+        - 객관식(MULTIPLE_CHOICE)만 포함: 서술형/단답형은 부분채점 편차 커서 제외
+        - ORDER BY AVG_SCORE_RATE ASC: 낮을수록 약점
+    -->
+    <select id="selectWeakPointsByClassSn"
+            resultType="kr.or.ddit.finalProject.dto.exam.WeakPointDto">
+        SELECT
+            s.SUBJ_ID                                                     AS subjId,
+            s.SUBJ_NM                                                     AS subjNm,
+            ROUND(AVG(a.SCORE / q.ALLOC_SCR) * 100, 0)                   AS avgScoreRate
+        FROM ANSWER_SUBMIT a
+        JOIN QUESTION_LIST q  ON a.QSTN_SN     = q.QSTN_SN
+        JOIN SUBJECT s        ON q.SUBJ_ID      = s.SUBJ_ID
+        JOIN CLASSROOM_MEMBER cm ON a.STD_USER_ID = cm.USER_ID
+                                AND cm.CLASS_SN   = #{classSn}
+        WHERE a.SCORE IS NOT NULL
+          AND q.QSTN_TYPE_CD = 'MULTIPLE_CHOICE'
+        GROUP BY s.SUBJ_ID, s.SUBJ_NM
+        HAVING COUNT(*) >= 5
+        ORDER BY avgScoreRate ASC
+    </select>
+
+</mapper>

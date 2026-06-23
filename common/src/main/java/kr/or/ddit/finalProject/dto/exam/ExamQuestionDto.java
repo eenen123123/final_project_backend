@@ -24,11 +24,8 @@ public class ExamQuestionDto {
 
     // ── QUESTION_LIST 조인 컬럼 ─────────────────────────────────────────────
 
-    /**
-     * 문항 유형 코드
-     * 01: 객관식 / 02: 주관식 / 03: 서술형
-     */
-    private String qstnTypeCd;
+    /** 문항 유형 (QuestionType enum) */
+    private QuestionType qstnTypeCd;
 
     /**
      * 문항 본문 (QSTN_CN JSON의 "stem" 값, 서비스에서 파싱)

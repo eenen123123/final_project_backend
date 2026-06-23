@@ -123,6 +123,10 @@ public enum ErrorCode {
     // 시험 관련
     EXAM_NOT_FOUND(HttpStatus.NOT_FOUND, "시험을 찾을 수 없습니다."),
     EXAM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "본인이 등록한 시험만 수정·삭제할 수 있습니다."),
+    // Gemini AI 관련
+    GEMINI_API_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "AI 문항 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."),
+    GEMINI_EMPTY_RESPONSE(HttpStatus.SERVICE_UNAVAILABLE, "AI가 빈 응답을 반환했습니다. 다시 시도해주세요."),
+    GEMINI_PARSE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "AI 응답 파싱에 실패했습니다."),
     // 회원 관련
     MEMBER_ID_GENETATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "회원 ID 생성에 실패했습니다."),
     MEMBER_REGISTER_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "회원 등록에 실패했습니다."),

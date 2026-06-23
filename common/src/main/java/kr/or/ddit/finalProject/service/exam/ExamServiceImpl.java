@@ -8,6 +8,7 @@ import kr.or.ddit.finalProject.dto.exam.ExamQuestionDto;
 import kr.or.ddit.finalProject.dto.exam.ExamSaveRequest;
 import kr.or.ddit.finalProject.dto.exam.QuestionDto;
 import kr.or.ddit.finalProject.dto.exam.QuestionSaveRequest;
+import kr.or.ddit.finalProject.dto.exam.QuestionType;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.mapper.exam.ExamMapper;
@@ -53,12 +54,13 @@ public class ExamServiceImpl implements ExamService {
 
         QuestionDto dto = new QuestionDto();
         dto.setRgtrId(instrUserId);
+        dto.setSubjId(request.getSubjId());
         dto.setQstnTypeCd(request.getQstnTypeCd());
+        dto.setDiffCd(request.getDiffCd());
+        dto.setAiGenYn("Y".equals(request.getAiGenYn()) ? "Y" : "N");
         dto.setAllocScr(request.getAllocScr());
         dto.setCorrAnswCn(trimOrNull(request.getCorrAnswCn()));
         dto.setExplnCn(trimOrNull(request.getExplnCn()));
-        dto.setSubjDtclCd(trimOrNull(request.getSubjDtclCd()));
-        // stem + choices → JSON 직렬화
         dto.setQstnCn(buildQstnCn(request));
 
         questionMapper.insertQuestion(dto);
@@ -85,7 +87,9 @@ public class ExamServiceImpl implements ExamService {
         QuestionDto dto = new QuestionDto();
         dto.setQstnSn(qstnSn);
         dto.setLastMdfrId(instrUserId);
+        dto.setSubjId(request.getSubjId());
         dto.setQstnTypeCd(request.getQstnTypeCd());
+        dto.setDiffCd(request.getDiffCd());
         dto.setAllocScr(request.getAllocScr());
         dto.setCorrAnswCn(trimOrNull(request.getCorrAnswCn()));
         dto.setExplnCn(trimOrNull(request.getExplnCn()));
@@ -236,8 +240,7 @@ public class ExamServiceImpl implements ExamService {
      * @throws FinalProjectException BAD_REQUEST — 형식이 잘못된 경우
      */
     private void validateQuestionRequest(QuestionSaveRequest request) {
-        if (request.getQstnTypeCd() == null ||
-                !List.of("01", "02", "03").contains(request.getQstnTypeCd())) {
+        if (request.getQstnTypeCd() == null) {
             throw new FinalProjectException(ErrorCode.BAD_REQUEST);
         }
         if (request.getStem() == null || request.getStem().isBlank()) {
@@ -259,32 +262,30 @@ public class ExamServiceImpl implements ExamService {
     /**
      * QuestionSaveRequest를 유형에 맞는 QSTN_CN JSON 문자열로 직렬화합니다.
      *
-     * 객관식(01): {"stem":"...","choices":["보기1",...]}
-     * 주관식(02): {"stem":"...","maxLength":N}         ← maxLength 없으면 생략
-     * 서술형(03): {"stem":"...","scoringCriteria":"..."} ← scoringCriteria 없으면 생략
+     * MULTIPLE_CHOICE: {"stem":"...","topic":"...","choices":["A. ...","B. ..."],"chartData":null}
+     * SHORT_ANSWER:    {"stem":"...","topic":"...","maxLength":N}         ← maxLength 없으면 생략
+     * ESSAY:           {"stem":"...","topic":"...","scoringCriteria":"..."} ← scoringCriteria 없으면 생략
      */
     private String buildQstnCn(QuestionSaveRequest request) {
         try {
             Map<String, Object> json = new LinkedHashMap<>();
             json.put("stem", request.getStem());
+            json.put("topic", trimOrNull(request.getTopic()));
 
-            if ("01".equals(request.getQstnTypeCd())) {
-                // 객관식: 비어있지 않은 보기만 수집
-                List<String> choices = new ArrayList<>();
-                if (request.getChoice1() != null && !request.getChoice1().isBlank()) choices.add(request.getChoice1());
-                if (request.getChoice2() != null && !request.getChoice2().isBlank()) choices.add(request.getChoice2());
-                if (request.getChoice3() != null && !request.getChoice3().isBlank()) choices.add(request.getChoice3());
-                if (request.getChoice4() != null && !request.getChoice4().isBlank()) choices.add(request.getChoice4());
-                if (!choices.isEmpty()) json.put("choices", choices);
+            if (QuestionType.MULTIPLE_CHOICE == request.getQstnTypeCd()) {
+                List<String> choices = request.getChoices() == null ? new ArrayList<>()
+                        : request.getChoices().stream()
+                                .filter(c -> c != null && !c.isBlank())
+                                .collect(java.util.stream.Collectors.toList());
+                json.put("choices", choices);
+                json.put("chartData", null);
 
-            } else if ("02".equals(request.getQstnTypeCd())) {
-                // 주관식(단답형): 최대 글자 수가 설정된 경우에만 저장
+            } else if (QuestionType.SHORT_ANSWER == request.getQstnTypeCd()) {
                 if (request.getMaxLength() != null && request.getMaxLength() > 0) {
                     json.put("maxLength", request.getMaxLength());
                 }
 
-            } else if ("03".equals(request.getQstnTypeCd())) {
-                // 서술형(장문형): 채점 기준이 입력된 경우에만 저장
+            } else if (QuestionType.ESSAY == request.getQstnTypeCd()) {
                 if (request.getScoringCriteria() != null && !request.getScoringCriteria().isBlank()) {
                     json.put("scoringCriteria", request.getScoringCriteria());
                 }
@@ -300,9 +301,9 @@ public class ExamServiceImpl implements ExamService {
      * QuestionDto의 qstnCn JSON을 각 필드로 파싱합니다.
      * 파싱 실패 시 stem = "(파싱 오류)"로 설정합니다 (서비스 중단 방지).
      *
-     * 객관식(01) → stem, choices
-     * 주관식(02) → stem, maxLength
-     * 서술형(03) → stem, scoringCriteria
+     * MULTIPLE_CHOICE → stem, topic, choices, chartData
+     * SHORT_ANSWER    → stem, topic, maxLength
+     * ESSAY           → stem, topic, scoringCriteria
      */
     private void parseQstnCn(QuestionDto dto) {
         String json = dto.getQstnCn();
@@ -314,20 +315,23 @@ public class ExamServiceImpl implements ExamService {
             Map<String, Object> parsed = objectMapper.readValue(
                     json, new TypeReference<Map<String, Object>>() {});
             dto.setStem((String) parsed.getOrDefault("stem", ""));
+            dto.setTopic((String) parsed.get("topic"));
+            dto.setChartData(parsed.get("chartData") != null
+                    ? objectMapper.writeValueAsString(parsed.get("chartData")) : null);
 
-            if ("01".equals(dto.getQstnTypeCd())) {
-                @SuppressWarnings("unchecked")
-                List<String> choices = (List<String>) parsed.get("choices");
-                dto.setChoices(choices);
-
-            } else if ("02".equals(dto.getQstnTypeCd())) {
-                Object maxLen = parsed.get("maxLength");
-                if (maxLen instanceof Number) {
-                    dto.setMaxLength(((Number) maxLen).intValue());
+            if (dto.getQstnTypeCd() != null) {
+                switch (dto.getQstnTypeCd()) {
+                    case MULTIPLE_CHOICE -> {
+                        @SuppressWarnings("unchecked")
+                        List<String> choices = (List<String>) parsed.get("choices");
+                        dto.setChoices(choices);
+                    }
+                    case SHORT_ANSWER -> {
+                        Object maxLen = parsed.get("maxLength");
+                        if (maxLen instanceof Number n) dto.setMaxLength(n.intValue());
+                    }
+                    case ESSAY -> dto.setScoringCriteria((String) parsed.get("scoringCriteria"));
                 }
-
-            } else if ("03".equals(dto.getQstnTypeCd())) {
-                dto.setScoringCriteria((String) parsed.get("scoringCriteria"));
             }
 
         } catch (JsonProcessingException e) {

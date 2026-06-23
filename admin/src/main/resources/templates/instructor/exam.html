@@ -1,420 +1,614 @@
-<div>
-<style>
-.exam-wrap { font-size: .85rem; color: #334155; }
-.tab-bar { display: flex; border-bottom: 2px solid #e2e8f0; margin-bottom: 1.5rem; }
-.tab-btn { font-size: .85rem; font-weight: 600; color: #64748b; background: none; border: none;
-           padding: .55rem 1.3rem; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; }
-.tab-btn.on { color: #0ea5e9; border-bottom-color: #0ea5e9; }
-.tab-pane { display: none; }
-.tab-pane.on { display: block; }
-.card { background: #fff; border: 1px solid #e2e8f0; border-radius: .75rem; padding: 1.5rem; margin-bottom: 1.5rem; }
-.card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-.card-title { font-weight: 700; color: #1e293b; }
-.add-form { display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: .5rem; padding: 1rem; margin-top: 1rem; }
-.add-form.open { display: block; }
-.field { margin-bottom: .75rem; }
-.field label { display: block; font-size: .74rem; font-weight: 600; color: #475569; margin-bottom: .25rem; }
-.field input, .field select, .field textarea { width: 100%; padding: .4rem .7rem; border: 1px solid #e2e8f0;
-  border-radius: .4rem; font-size: .83rem; color: #334155; box-sizing: border-box; }
-.field textarea { resize: vertical; min-height: 72px; font-family: inherit; }
-.row { display: flex; gap: .75rem; flex-wrap: wrap; }
-.row .field { flex: 1; min-width: 140px; }
-.btn-row { display: flex; gap: .5rem; justify-content: flex-end; margin-top: .75rem; }
-.btn-p { font-size: .8rem; font-weight: 600; background: #0ea5e9; color: #fff; border: none;
-         border-radius: .4rem; padding: .38rem 1rem; cursor: pointer; }
-.btn-s { font-size: .78rem; font-weight: 600; background: #f1f5f9; color: #475569;
-         border: 1px solid #e2e8f0; border-radius: .4rem; padding: .28rem .7rem; cursor: pointer; }
-.btn-d { font-size: .78rem; font-weight: 600; background: #fee2e2; color: #dc2626;
-         border: 1px solid #fecaca; border-radius: .4rem; padding: .28rem .7rem; cursor: pointer; }
-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
-table th { background: #f8fafc; padding: .45rem .7rem; text-align: left; border-bottom: 1px solid #e2e8f0;
-           font-weight: 700; color: #475569; }
-table td { padding: .48rem .7rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
-table tbody tr { cursor: pointer; }
-table tbody tr:hover td { background: #f0f9ff; }
-.empty td { text-align: center; color: #94a3b8; padding: 2rem; cursor: default; }
-.badge { display: inline-block; font-size: .68rem; font-weight: 700; border-radius: .3rem; padding: .1rem .4rem; }
-.b-obj { background: #dbeafe; color: #1d4ed8; }
-.b-sub { background: #dcfce7; color: #15803d; }
-.b-ess { background: #fef9c3; color: #854d0e; }
-.mdrop { position: fixed; inset: 0; background: rgba(15,23,42,.45); z-index: 900; display: none; align-items: center; justify-content: center; }
-.mdrop.on { display: flex; }
-.mbox { background: #fff; border-radius: .875rem; width: 540px; max-width: 94vw; max-height: 88vh; overflow-y: auto;
-        box-shadow: 0 20px 60px rgba(0,0,0,.2); }
-.mhead { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.4rem .8rem;
-         border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; background: #fff; }
-.mhead span { font-size: .95rem; font-weight: 700; }
-.mhead button { background: none; border: none; font-size: 1.1rem; color: #94a3b8; cursor: pointer; }
-.mbody { padding: 1.1rem 1.4rem; }
-.mfoot { display: flex; gap: .5rem; justify-content: flex-end; padding: .85rem 1.4rem;
-         border-top: 1px solid #e2e8f0; position: sticky; bottom: 0; background: #fff; }
-.dl { font-size: .71rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .2rem; }
-.dv { font-size: .88rem; color: #1e293b; margin-bottom: .85rem; }
-.dhr { border: none; border-top: 1px solid #f1f5f9; margin: .85rem 0; }
-.dgrid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
-</style>
+<!--
+  문항 / 시험 관리 + AI 문항 생성
+  Controller: InstructorExamController (GET /instructor/exams)
+  Model: questions, exams, classifications
+-->
 
-<div class="exam-wrap">
-  <!-- 페이지 헤더 -->
-  <div class="flex items-center gap-2 mb-5">
+<!-- 문항/시험 데이터를 JS에서 사용할 수 있도록 JSON으로 직렬화 -->
+<script th:inline="javascript">
+  window._questions = /*[[${questions}]]*/ [];
+  window._exams     = /*[[${exams}]]*/ [];
+</script>
+
+<div class="space-y-6">
+
+  <!-- ── 페이지 헤더 ─────────────────────────────── -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
     <div>
       <h1 class="text-2xl font-bold text-slate-900 tracking-tight">문항 / 시험 관리</h1>
       <p class="text-sm text-slate-500 mt-1">문항을 등록·관리하고 시험을 출제하여 운영합니다.</p>
     </div>
-  </div>
-
-  <!-- 탭 -->
-  <div class="tab-bar">
-    <button class="tab-btn on" onclick="switchTab('pq',this)">문항 관리</button>
-    <button class="tab-btn" onclick="switchTab('pe',this)">시험 관리</button>
-  </div>
-
-  <!-- ===== 문항 탭 ===== -->
-  <div id="pq" class="tab-pane on">
-    <div class="card">
-      <div class="card-head">
-        <span class="card-title">내 문항 목록</span>
-        <button class="btn-p" onclick="toggleForm('qform',this)" data-o="− 닫기" data-c="+ 문항 추가">+ 문항 추가</button>
-      </div>
-
-      <!-- 문항 등록 폼 -->
-      <div id="qform" class="add-form">
-        <form th:action="@{/instructor/exams/questions}" method="post">
-          <div class="row">
-            <div class="field" style="max-width:160px;">
-              <label>유형 *</label>
-              <select name="qstnTypeCd">
-                <option value="01">객관식</option>
-                <option value="02">주관식</option>
-                <option value="03">서술형</option>
-              </select>
-            </div>
-            <div class="field" style="max-width:100px;">
-              <label>배점</label>
-              <input type="number" name="allocScr" placeholder="5" step="0.5" min="0"/>
-            </div>
-          </div>
-          <div class="field">
-            <label>문제 본문 *</label>
-            <textarea name="stem" required placeholder="문제 내용을 입력하세요."></textarea>
-          </div>
-          <div class="field">
-            <label>정답 (객관식: 번호, 주관식/서술형: 키워드/모범답안)</label>
-            <input type="text" name="corrAnswCn" placeholder="예: 2 또는 광합성"/>
-          </div>
-          <div class="field">
-            <label>해설 (선택)</label>
-            <input type="text" name="explnCn" placeholder="해설을 입력하세요."/>
-          </div>
-          <div class="btn-row">
-            <button type="button" class="btn-s" onclick="toggleForm('qform',document.querySelector('[onclick*=qform]'))">취소</button>
-            <button type="submit" class="btn-p">등록</button>
-          </div>
-        </form>
-      </div>
-
-      <!-- 문항 목록 -->
-      <table style="margin-top:1rem;">
-        <thead>
-          <tr>
-            <th style="width:38px;">No.</th>
-            <th style="width:80px;">유형</th>
-            <th>문제 본문</th>
-            <th style="width:50px;">배점</th>
-            <th style="width:86px;">등록일시</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr th:if="${#lists.isEmpty(questions)}" class="empty">
-            <td colspan="5">등록된 문항이 없습니다.</td>
-          </tr>
-          <tr th:each="q,s : ${questions}" th:onclick="|openQModal(${q.qstnSn})|">
-            <td th:text="${s.count}"></td>
-            <td>
-              <span class="badge"
-                th:classappend="${q.qstnTypeCd=='01'}?'b-obj':(${q.qstnTypeCd=='02'}?'b-sub':'b-ess')"
-                th:text="${q.qstnTypeCd=='01'}?'객관식':(${q.qstnTypeCd=='02'}?'주관식':'서술형')"></span>
-            </td>
-            <td th:text="${#strings.abbreviate(q.stem,60)}"></td>
-            <td th:text="${q.allocScr!=null}?${q.allocScr}+'점':'-'"></td>
-            <td th:text="${q.regDt}"></td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="flex gap-2 shrink-0">
+      <button type="button" onclick="openQAddPanel()" class="hm-btn-primary hm-btn-sky">
+        <i class="fa-solid fa-plus"></i><span>문항 추가</span>
+      </button>
+      <button type="button" onclick="openEAddPanel()" class="hm-btn-primary hm-btn-emerald">
+        <i class="fa-solid fa-file-pen"></i><span>시험 등록</span>
+      </button>
     </div>
   </div>
 
-  <!-- ===== 시험 탭 ===== -->
-  <div id="pe" class="tab-pane">
-    <div class="card">
-      <div class="card-head">
-        <span class="card-title">내 시험 목록</span>
-        <button class="btn-p" onclick="toggleForm('eform',this)" data-o="− 닫기" data-c="+ 시험 등록">+ 시험 등록</button>
+  <!-- ── 문항 추가 패널 ───────────────────────────── -->
+  <div id="q-add-panel" class="hidden bg-white rounded-2xl border border-sky-200 shadow-sm p-5">
+    <p class="text-xs font-bold text-sky-600 mb-4"><i class="fa-solid fa-plus mr-1.5"></i>새 문항 등록</p>
+    <form id="q-add-form" th:action="@{/instructor/exams/questions}" method="post">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+        <div>
+          <label class="form-label">유형 <span class="required">*</span></label>
+          <select name="qstnTypeCd" id="qa-type" onchange="onQaTypeChange()" class="hm-input hm-input-sky w-full">
+            <option value="MULTIPLE_CHOICE">객관식</option>
+            <option value="SHORT_ANSWER">단답형</option>
+            <option value="ESSAY">서술형</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">대분류</label>
+          <select id="qa-cl" onchange="qaLoadSubjects()" class="hm-input hm-input-sky w-full">
+            <option value="">선택</option>
+            <th:block th:each="cl : ${classifications}">
+              <option th:value="${cl.subjClId}" th:text="${cl.subjClNm}"></option>
+            </th:block>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">과목</label>
+          <select name="subjId" id="qa-subj" class="hm-input hm-input-sky w-full">
+            <option value="">대분류 선택</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">난이도</label>
+          <select name="diffCd" class="hm-input hm-input-sky w-full">
+            <option value="">선택 안 함</option>
+            <option value="EASY">쉬움</option>
+            <option value="MEDIUM">보통</option>
+            <option value="HARD">어려움</option>
+          </select>
+        </div>
       </div>
 
-      <!-- 시험 등록 폼 -->
-      <div id="eform" class="add-form">
-        <form th:action="@{/instructor/exams/create}" method="post">
-          <div class="field">
-            <label>시험명 *</label>
-            <input type="text" name="examRegNm" required placeholder="시험명을 입력하세요."/>
+      <div class="mb-3">
+        <label class="form-label">문제 본문 <span class="required">*</span></label>
+        <textarea name="stem" required placeholder="문제 내용을 입력하세요."
+          class="hm-input hm-input-sky w-full" style="min-height:80px;resize:vertical;font-family:inherit;"></textarea>
+      </div>
+
+      <!-- 객관식 전용 선지 -->
+      <div id="qa-choices-wrap" class="mb-3">
+        <label class="form-label">선지</label>
+        <div id="qa-choices" class="space-y-2">
+          <div class="qa-choice-row flex gap-2">
+            <input type="text" name="choices" placeholder="A. 보기 내용" class="hm-input hm-input-sky flex-1" />
+            <button type="button" onclick="qaRemoveChoice(this)" class="hm-btn-danger px-3">×</button>
           </div>
-          <div class="row">
-            <div class="field">
-              <label>시험 시작일시</label>
-              <input type="datetime-local" name="examStrtDt"/>
-            </div>
-            <div class="field">
-              <label>시험 종료일시</label>
-              <input type="datetime-local" name="examEndDt"/>
-            </div>
+          <div class="qa-choice-row flex gap-2">
+            <input type="text" name="choices" placeholder="B. 보기 내용" class="hm-input hm-input-sky flex-1" />
+            <button type="button" onclick="qaRemoveChoice(this)" class="hm-btn-danger px-3">×</button>
           </div>
-          <div class="field">
-            <label>포함할 문항 (문항 번호를 쉼표로 구분 입력 — 나중에 수정 가능)</label>
-            <input type="text" id="qstn-input" placeholder="예: 1,3,5 (문항 목록 탭의 No. 기준이 아닌 문항 SN)"/>
-            <div id="qstn-hidden"></div>
+        </div>
+        <button type="button" onclick="qaAddChoice()" class="hm-btn-secondary mt-2 text-xs">
+          <i class="fa-solid fa-plus mr-1"></i>선지 추가
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="form-label">정답</label>
+          <input type="text" name="corrAnswCn" placeholder="예: A 또는 광합성"
+            class="hm-input hm-input-sky w-full" />
+        </div>
+        <div>
+          <label class="form-label">배점 (점)</label>
+          <input type="number" name="allocScr" placeholder="1" step="0.5" min="0"
+            class="hm-input hm-input-sky w-full" />
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label">해설 (선택)</label>
+        <input type="text" name="explnCn" placeholder="해설을 입력하세요."
+          class="hm-input hm-input-sky w-full" />
+      </div>
+
+      <div class="flex gap-2">
+        <button type="button" onclick="closeQAddPanel()" class="flex-1 hm-btn-secondary justify-center">취소</button>
+        <button type="submit" class="flex-1 hm-btn-primary hm-btn-sky justify-center">
+          <i class="fa-solid fa-check mr-1"></i>등록
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ── 시험 등록 패널 ───────────────────────────── -->
+  <div id="e-add-panel" class="hidden bg-white rounded-2xl border border-emerald-200 shadow-sm p-5">
+    <p class="text-xs font-bold text-emerald-600 mb-4"><i class="fa-solid fa-file-pen mr-1.5"></i>새 시험 등록</p>
+    <form id="e-add-form" th:action="@{/instructor/exams/create}" method="post"
+          onsubmit="buildEaQstnInputs()">
+      <div class="mb-3">
+        <label class="form-label">시험명 <span class="required">*</span></label>
+        <input type="text" name="examRegNm" required placeholder="시험명을 입력하세요."
+          class="hm-input hm-input-emerald w-full" />
+      </div>
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="form-label">시험 시작일시</label>
+          <input type="datetime-local" name="examStrtDt" class="hm-input hm-input-emerald w-full" />
+        </div>
+        <div>
+          <label class="form-label">시험 종료일시</label>
+          <input type="datetime-local" name="examEndDt" class="hm-input hm-input-emerald w-full" />
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label">포함할 문항 SN <span class="text-slate-400 font-normal">(쉼표 구분, 나중에 수정 가능)</span></label>
+        <input type="text" id="ea-qstn-input" placeholder="예: 101, 102, 105"
+          class="hm-input hm-input-emerald w-full" />
+        <div id="ea-qstn-hidden"></div>
+      </div>
+      <div class="flex gap-2">
+        <button type="button" onclick="closeEAddPanel()" class="flex-1 hm-btn-secondary justify-center">취소</button>
+        <button type="submit" class="flex-1 hm-btn-primary hm-btn-emerald justify-center">
+          <i class="fa-solid fa-check mr-1"></i>등록
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ── 탭 바 ────────────────────────────────────── -->
+  <div class="flex gap-1 border-b border-slate-200">
+    <button data-tab="tab-q" onclick="switchTab('tab-q', this)"
+      class="exam-tab px-5 py-2.5 text-sm font-semibold border-b-2 -mb-px bg-transparent cursor-pointer
+             text-sky-600 border-sky-500">
+      <i class="fa-solid fa-list-ul mr-1.5"></i>문항 관리
+    </button>
+    <button data-tab="tab-e" onclick="switchTab('tab-e', this)"
+      class="exam-tab px-5 py-2.5 text-sm font-semibold border-b-2 -mb-px bg-transparent cursor-pointer
+             text-slate-500 border-transparent hover:text-slate-700">
+      <i class="fa-solid fa-file-lines mr-1.5"></i>시험 관리
+    </button>
+    <button data-tab="tab-ai" onclick="switchTab('tab-ai', this)"
+      class="exam-tab px-5 py-2.5 text-sm font-semibold border-b-2 -mb-px bg-transparent cursor-pointer
+             text-slate-500 border-transparent hover:text-violet-600">
+      <span class="inline-flex items-center gap-1.5">
+        <span class="text-xs font-bold px-1.5 py-0.5 rounded-full"
+          style="background:linear-gradient(135deg,#7c3aed,#0ea5e9);color:#fff;">AI</span>
+        문항 생성
+      </span>
+    </button>
+  </div>
+
+  <!-- ── 문항 관리 탭 ─────────────────────────────── -->
+  <div id="tab-q">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider uppercase">
+              <th class="py-3 px-5 w-12">#</th>
+              <th class="py-3 px-5 w-28">유형</th>
+              <th class="py-3 px-5">문제 본문</th>
+              <th class="py-3 px-5 w-20">배점</th>
+              <th class="py-3 px-5 w-36">등록일시</th>
+              <th class="py-3 px-5 w-20 text-center">관리</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+            <tr th:if="${#lists.isEmpty(questions)}">
+              <td colspan="6" class="py-16 text-center text-slate-300">
+                <div class="flex flex-col items-center gap-3">
+                  <i class="fa-solid fa-circle-question text-4xl"></i>
+                  <p class="text-sm">등록된 문항이 없습니다.</p>
+                </div>
+              </td>
+            </tr>
+            <tr th:each="q,s : ${questions}"
+                class="hover:bg-slate-50/70 transition-colors cursor-pointer"
+                th:onclick="|openQDetail(${q.qstnSn})|">
+              <td class="py-3 px-5 text-slate-400 text-xs" th:text="${s.count}"></td>
+              <td class="py-3 px-5">
+                <span th:if="${q.aiGenYn == 'Y'}"
+                  class="inline-block text-xs font-bold px-1.5 py-0.5 rounded-full mr-1"
+                  style="background:linear-gradient(135deg,#ede9fe,#e0f2fe);color:#6d28d9;">AI</span>
+                <span class="inline-block text-xs font-semibold rounded px-2 py-0.5"
+                  th:classappend="${q.qstnTypeCd?.name() == 'MULTIPLE_CHOICE'} ? 'bg-blue-50 text-blue-700'
+                                 : (${q.qstnTypeCd?.name() == 'SHORT_ANSWER'} ? 'bg-emerald-50 text-emerald-700'
+                                 : 'bg-amber-50 text-amber-700')"
+                  th:text="${q.qstnTypeCd?.name() == 'MULTIPLE_CHOICE'} ? '객관식'
+                           : (${q.qstnTypeCd?.name() == 'SHORT_ANSWER'} ? '단답형' : '서술형')">
+                </span>
+              </td>
+              <td class="py-3 px-5 text-slate-700" th:text="${#strings.abbreviate(q.stem, 60)}"></td>
+              <td class="py-3 px-5 text-slate-500 text-xs"
+                  th:text="${q.allocScr != null} ? ${q.allocScr} + '점' : '-'"></td>
+              <td class="py-3 px-5 text-slate-400 text-xs" th:text="${q.regDt}"></td>
+              <td class="py-3 px-5 text-center">
+                <button type="button" class="hm-btn-secondary text-xs px-3 py-1"
+                  th:onclick="|event.stopPropagation(); openQDetail(${q.qstnSn})|">
+                  상세
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 시험 관리 탭 ─────────────────────────────── -->
+  <div id="tab-e" class="hidden">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider uppercase">
+              <th class="py-3 px-5 w-12">#</th>
+              <th class="py-3 px-5">시험명</th>
+              <th class="py-3 px-5 w-16 text-center">문항 수</th>
+              <th class="py-3 px-5 w-36">시작일시</th>
+              <th class="py-3 px-5 w-36">종료일시</th>
+              <th class="py-3 px-5 w-36">등록일시</th>
+              <th class="py-3 px-5 w-20 text-center">관리</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+            <tr th:if="${#lists.isEmpty(exams)}">
+              <td colspan="7" class="py-16 text-center text-slate-300">
+                <div class="flex flex-col items-center gap-3">
+                  <i class="fa-solid fa-file-lines text-4xl"></i>
+                  <p class="text-sm">등록된 시험이 없습니다.</p>
+                </div>
+              </td>
+            </tr>
+            <tr th:each="e,s : ${exams}"
+                class="hover:bg-slate-50/70 transition-colors cursor-pointer"
+                th:onclick="|openEDetail(${e.examSn})|">
+              <td class="py-3 px-5 text-slate-400 text-xs" th:text="${s.count}"></td>
+              <td class="py-3 px-5 font-medium text-slate-800" th:text="${e.examRegNm}"></td>
+              <td class="py-3 px-5 text-center text-slate-500 text-xs"
+                  th:text="${e.qstnCnt != null} ? ${e.qstnCnt} + '개' : '0개'"></td>
+              <td class="py-3 px-5 text-slate-400 text-xs"
+                  th:text="${e.examStrtDt != null} ? ${e.examStrtDt} : '-'"></td>
+              <td class="py-3 px-5 text-slate-400 text-xs"
+                  th:text="${e.examEndDt != null} ? ${e.examEndDt} : '-'"></td>
+              <td class="py-3 px-5 text-slate-400 text-xs" th:text="${e.examRegDt}"></td>
+              <td class="py-3 px-5 text-center">
+                <button type="button" class="hm-btn-secondary text-xs px-3 py-1"
+                  th:onclick="|event.stopPropagation(); openEDetail(${e.examSn})|">
+                  상세
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── AI 문항 생성 탭 ───────────────────────────── -->
+  <div id="tab-ai" class="hidden space-y-4">
+
+    <!-- 설정 카드 -->
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+      <p class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+        <span class="text-xs font-bold px-2 py-0.5 rounded-full"
+          style="background:linear-gradient(135deg,#7c3aed,#0ea5e9);color:#fff;">AI</span>
+        생성 설정
+      </p>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+        <div>
+          <label class="form-label">대분류</label>
+          <select id="ai-cl" onchange="aiLoadSubjects()" class="hm-input hm-input-sky w-full">
+            <option value="">선택</option>
+            <th:block th:each="cl : ${classifications}">
+              <option th:value="${cl.subjClId}" th:text="${cl.subjClNm}"></option>
+            </th:block>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">과목 <span class="required">*</span></label>
+          <select id="ai-subj" class="hm-input hm-input-sky w-full">
+            <option value="">대분류 먼저 선택</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">난이도</label>
+          <select id="ai-diff" class="hm-input hm-input-sky w-full">
+            <option value="EASY">쉬움</option>
+            <option value="MEDIUM" selected>보통</option>
+            <option value="HARD">어려움</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button type="button" id="ai-gen-btn" onclick="aiGenerate()" class="hm-btn-primary"
+          style="background:linear-gradient(135deg,#7c3aed,#0ea5e9);">
+          <i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i>문항 생성
+        </button>
+        <span id="ai-spinner" class="hidden text-sm text-slate-400">
+          <i class="fa-solid fa-circle-notch fa-spin mr-1"></i>생성 중...
+        </span>
+      </div>
+    </div>
+
+    <!-- 미리보기 + 수정 카드 -->
+    <div id="ai-preview-card" class="hidden bg-white rounded-2xl border border-violet-100 shadow-sm p-5 space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <p class="text-sm font-bold text-slate-700">생성된 문항</p>
+          <span class="text-xs font-bold px-2 py-0.5 rounded-full"
+            style="background:linear-gradient(135deg,#7c3aed,#0ea5e9);color:#fff;">AI 생성</span>
+          <span id="ai-diff-badge" class="text-xs font-semibold px-2 py-0.5 rounded"></span>
+        </div>
+        <div class="flex gap-2">
+          <button type="button" onclick="aiReset()" class="hm-btn-secondary text-xs">다시 생성</button>
+          <button type="button" onclick="aiSave()" class="hm-btn-primary hm-btn-emerald text-xs">
+            <i class="fa-solid fa-floppy-disk mr-1"></i>문항 저장
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label class="form-label">문제 본문</label>
+        <textarea id="ai-stem" class="hm-input hm-input-sky w-full"
+          style="min-height:80px;resize:vertical;font-family:inherit;"></textarea>
+      </div>
+
+      <div>
+        <label class="form-label">선지</label>
+        <div id="ai-choices" class="space-y-2"></div>
+        <button type="button" onclick="aiAddChoice()" class="hm-btn-secondary mt-2 text-xs">
+          <i class="fa-solid fa-plus mr-1"></i>선지 추가
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="form-label">정답</label>
+          <input type="text" id="ai-answer" placeholder="예: A. 보기 내용"
+            class="hm-input hm-input-sky w-full" />
+        </div>
+        <div>
+          <label class="form-label">배점 (점)</label>
+          <input type="number" id="ai-score" value="1" min="0.5" step="0.5"
+            class="hm-input hm-input-sky w-full" />
+        </div>
+      </div>
+
+      <div>
+        <label class="form-label">풀이 해설</label>
+        <textarea id="ai-expl" class="hm-input hm-input-sky w-full"
+          style="min-height:60px;resize:vertical;font-family:inherit;"></textarea>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════
+     문항 상세 모달
+══════════════════════════════════════════ -->
+<div id="modal-q-detail" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/50"
+     onclick="if(event.target===this) closeModal('modal-q-detail', true)">
+  <div class="hm-modal-inner w-full max-w-lg mx-4">
+    <div class="hm-modal-scroll">
+      <div class="hm-modal-header">
+        <h2 class="text-base">문항 상세</h2>
+        <button onclick="closeModal('modal-q-detail', true)"
+          class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+      </div>
+
+      <div class="p-6 space-y-4 text-sm">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">유형</p>
+            <div id="qd-type"></div>
           </div>
-          <div class="btn-row">
-            <button type="button" class="btn-s" onclick="toggleForm('eform',document.querySelector('[onclick*=eform]'))">취소</button>
-            <button type="submit" class="btn-p" onclick="buildQstnInputs()">등록</button>
+          <div>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">배점</p>
+            <p id="qd-score" class="text-slate-700"></p>
           </div>
+          <div>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">난이도</p>
+            <p id="qd-diff" class="text-slate-700"></p>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">등록일시</p>
+            <p id="qd-date" class="text-slate-700"></p>
+          </div>
+        </div>
+        <div>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">문제 본문</p>
+          <p id="qd-stem"
+            class="text-slate-700 whitespace-pre-wrap leading-relaxed bg-slate-50 rounded-lg p-3 text-sm"></p>
+        </div>
+        <div id="qd-choices-wrap" class="hidden">
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">선지</p>
+          <ul id="qd-choices" class="space-y-1 text-slate-600 text-sm"></ul>
+        </div>
+        <div>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">정답</p>
+          <p id="qd-answer" class="text-slate-700"></p>
+        </div>
+        <div id="qd-expl-wrap" class="hidden">
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">해설</p>
+          <p id="qd-expl"
+            class="text-slate-700 whitespace-pre-wrap text-sm bg-sky-50 border-l-2 border-sky-300 rounded-r p-3"></p>
+        </div>
+      </div>
+
+      <div class="hm-modal-footer">
+        <form id="qd-delete-form" method="post" onsubmit="return confirm('문항을 삭제하시겠습니까?')">
+          <button type="submit" class="hm-btn-danger text-xs px-4">삭제</button>
         </form>
+        <button onclick="closeModal('modal-q-detail', true)"
+          class="hm-btn-secondary text-xs px-4">닫기</button>
+        <button onclick="openQEdit()"
+          class="hm-btn-primary hm-btn-sky text-xs px-4">수정</button>
       </div>
-
-      <!-- 시험 목록 -->
-      <table style="margin-top:1rem;">
-        <thead>
-          <tr>
-            <th style="width:38px;">No.</th>
-            <th>시험명</th>
-            <th style="width:55px;text-align:center;">문항 수</th>
-            <th style="width:120px;">시작일시</th>
-            <th style="width:120px;">종료일시</th>
-            <th style="width:86px;">등록일시</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr th:if="${#lists.isEmpty(exams)}" class="empty">
-            <td colspan="6">등록된 시험이 없습니다.</td>
-          </tr>
-          <tr th:each="e,s : ${exams}" th:onclick="|openEModal(${e.examSn})|">
-            <td th:text="${s.count}"></td>
-            <td th:text="${e.examRegNm}"></td>
-            <td style="text-align:center;" th:text="${e.qstnCnt!=null}?${e.qstnCnt}+'개':'0개'"></td>
-            <td th:text="${e.examStrtDt!=null}?${e.examStrtDt}:'-'"></td>
-            <td th:text="${e.examEndDt!=null}?${e.examEndDt}:'-'"></td>
-            <td th:text="${e.examRegDt}"></td>
-          </tr>
-        </tbody>
-      </table>
     </div>
   </div>
 </div>
 
-<!-- ===== 모달 backdrop ===== -->
-<div id="mdrop" class="mdrop" onclick="if(event.target.id==='mdrop')closeModal()">
-
-  <!-- 문항 모달 -->
-  <div th:each="q : ${questions}" th:id="'qm-'+${q.qstnSn}" class="mbox" style="display:none;" onclick="event.stopPropagation()">
-    <div class="mhead">
-      <span>문항 상세</span>
-      <button onclick="closeModal()">✕</button>
-    </div>
-    <div class="mbody">
-      <div class="dgrid">
-        <div>
-          <div class="dl">유형</div>
-          <div class="dv">
-            <span class="badge"
-              th:classappend="${q.qstnTypeCd=='01'}?'b-obj':(${q.qstnTypeCd=='02'}?'b-sub':'b-ess')"
-              th:text="${q.qstnTypeCd=='01'}?'객관식':(${q.qstnTypeCd=='02'}?'주관식':'서술형')"></span>
-          </div>
-        </div>
-        <div>
-          <div class="dl">배점</div>
-          <div class="dv" th:text="${q.allocScr!=null}?${q.allocScr}+'점':'미설정'"></div>
-        </div>
+<!-- ══════════════════════════════════════════
+     문항 수정 모달
+══════════════════════════════════════════ -->
+<div id="modal-q-edit" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/50"
+     onclick="if(event.target===this) closeModal('modal-q-edit', true)">
+  <div class="hm-modal-inner w-full max-w-lg mx-4">
+    <div class="hm-modal-scroll">
+      <div class="hm-modal-header">
+        <h2 class="text-base">문항 수정</h2>
+        <button onclick="closeModal('modal-q-edit', true)"
+          class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
       </div>
-      <div class="dl">문제 본문</div>
-      <div class="dv" th:text="${q.stem}"></div>
-      <div class="dl">정답</div>
-      <div class="dv" th:text="${q.corrAnswCn!=null}?${q.corrAnswCn}:'미등록'"></div>
-      <div th:if="${q.explnCn!=null}">
-        <div class="dl">해설</div>
-        <div class="dv" th:text="${q.explnCn}"></div>
-      </div>
-      <div class="dl">등록일시</div>
-      <div class="dv" th:text="${q.regDt}"></div>
-    </div>
-    <div class="mfoot">
-      <form th:action="@{/instructor/exams/questions/{sn}/delete(sn=${q.qstnSn})}" method="post" style="margin:0;"
-            onsubmit="return confirm('삭제하시겠습니까?')">
-        <button type="submit" class="btn-d">삭제</button>
-      </form>
-      <button class="btn-s" onclick="closeModal()">닫기</button>
-      <button class="btn-p" th:onclick="|showEdit('qedit-${q.qstnSn}')|">수정</button>
-    </div>
-  </div>
 
-  <!-- 문항 수정 모달 -->
-  <div th:each="q : ${questions}" th:id="'qedit-'+${q.qstnSn}" class="mbox" style="display:none;" onclick="event.stopPropagation()">
-    <div class="mhead">
-      <span>문항 수정</span>
-      <button onclick="closeModal()">✕</button>
-    </div>
-    <div class="mbody">
-      <form th:id="'qef-'+${q.qstnSn}"
-            th:action="@{/instructor/exams/questions/{sn}/update(sn=${q.qstnSn})}" method="post">
-        <div class="row">
-          <div class="field" style="max-width:160px;">
-            <label>유형</label>
-            <select name="qstnTypeCd">
-              <option value="01" th:selected="${q.qstnTypeCd=='01'}">객관식</option>
-              <option value="02" th:selected="${q.qstnTypeCd=='02'}">주관식</option>
-              <option value="03" th:selected="${q.qstnTypeCd=='03'}">서술형</option>
+      <form id="qe-form" method="post" class="p-6 space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="form-label">유형</label>
+            <select name="qstnTypeCd" id="qe-type" onchange="onQeTypeChange()"
+              class="hm-input hm-input-sky w-full">
+              <option value="MULTIPLE_CHOICE">객관식</option>
+              <option value="SHORT_ANSWER">단답형</option>
+              <option value="ESSAY">서술형</option>
             </select>
           </div>
-          <div class="field" style="max-width:100px;">
-            <label>배점</label>
-            <input type="number" name="allocScr" th:value="${q.allocScr}" step="0.5" min="0"/>
+          <div>
+            <label class="form-label">배점 (점)</label>
+            <input type="number" name="allocScr" id="qe-score" step="0.5" min="0"
+              class="hm-input hm-input-sky w-full" />
           </div>
         </div>
-        <div class="field">
-          <label>문제 본문 *</label>
-          <textarea name="stem" required th:text="${q.stem}"></textarea>
+        <div>
+          <label class="form-label">문제 본문 <span class="required">*</span></label>
+          <textarea name="stem" id="qe-stem" required
+            class="hm-input hm-input-sky w-full"
+            style="min-height:80px;resize:vertical;font-family:inherit;"></textarea>
         </div>
-        <div class="field">
-          <label>정답</label>
-          <input type="text" name="corrAnswCn" th:value="${q.corrAnswCn}"/>
+
+        <!-- 객관식 전용 선지 (JS가 채우고 show/hide) -->
+        <div id="qe-choices-wrap" class="hidden">
+          <label class="form-label">선지</label>
+          <div id="qe-choices" class="space-y-2"></div>
+          <button type="button" onclick="qeAddChoice()" class="hm-btn-secondary mt-2 text-xs">
+            <i class="fa-solid fa-plus mr-1"></i>선지 추가
+          </button>
         </div>
-        <div class="field">
-          <label>해설 (선택)</label>
-          <input type="text" name="explnCn" th:value="${q.explnCn}"/>
+
+        <div>
+          <label class="form-label">정답</label>
+          <input type="text" name="corrAnswCn" id="qe-answer"
+            class="hm-input hm-input-sky w-full" />
+        </div>
+        <div>
+          <label class="form-label">해설 (선택)</label>
+          <input type="text" name="explnCn" id="qe-expl"
+            class="hm-input hm-input-sky w-full" />
         </div>
       </form>
-    </div>
-    <div class="mfoot">
-      <button class="btn-s" th:onclick="|showEdit('qm-${q.qstnSn}')|">← 돌아가기</button>
-      <button class="btn-p" th:onclick="|document.getElementById('qef-${q.qstnSn}').submit()|">저장</button>
+
+      <div class="hm-modal-footer">
+        <button onclick="closeModal('modal-q-edit', true); openModal('modal-q-detail', true)"
+          class="hm-btn-secondary text-xs px-4">← 돌아가기</button>
+        <button onclick="document.getElementById('qe-form').submit()"
+          class="hm-btn-primary hm-btn-sky text-xs px-4">저장</button>
+      </div>
     </div>
   </div>
+</div>
 
-  <!-- 시험 모달 -->
-  <div th:each="e : ${exams}" th:id="'em-'+${e.examSn}" class="mbox" style="display:none;" onclick="event.stopPropagation()">
-    <div class="mhead">
-      <span>시험 상세</span>
-      <button onclick="closeModal()">✕</button>
-    </div>
-    <div class="mbody">
-      <div class="dl">시험명</div>
-      <div class="dv" th:text="${e.examRegNm}"></div>
-      <div class="dgrid">
+<!-- ══════════════════════════════════════════
+     시험 상세 모달
+══════════════════════════════════════════ -->
+<div id="modal-e-detail" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/50"
+     onclick="if(event.target===this) closeModal('modal-e-detail', true)">
+  <div class="hm-modal-inner w-full max-w-lg mx-4">
+    <div class="hm-modal-scroll">
+      <div class="hm-modal-header">
+        <h2 class="text-base">시험 상세</h2>
+        <button onclick="closeModal('modal-e-detail', true)"
+          class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+      </div>
+
+      <div class="p-6 space-y-4 text-sm">
         <div>
-          <div class="dl">시작일시</div>
-          <div class="dv" th:text="${e.examStrtDt!=null}?${e.examStrtDt}:'미설정'"></div>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">시험명</p>
+          <p id="ed-name" class="text-slate-800 font-semibold text-base"></p>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">시작일시</p>
+            <p id="ed-start" class="text-slate-700"></p>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">종료일시</p>
+            <p id="ed-end" class="text-slate-700"></p>
+          </div>
         </div>
         <div>
-          <div class="dl">종료일시</div>
-          <div class="dv" th:text="${e.examEndDt!=null}?${e.examEndDt}:'미설정'"></div>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">포함 문항 수</p>
+          <p id="ed-cnt" class="text-slate-700"></p>
+        </div>
+        <div>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">등록일시</p>
+          <p id="ed-date" class="text-slate-400 text-xs"></p>
         </div>
       </div>
-      <div class="dl">문항 수</div>
-      <div class="dv" th:text="${e.qstnCnt!=null}?${e.qstnCnt}+'개':'0개'"></div>
-      <div class="dl">등록일시</div>
-      <div class="dv" th:text="${e.examRegDt}"></div>
-    </div>
-    <div class="mfoot">
-      <form th:action="@{/instructor/exams/{sn}/delete(sn=${e.examSn})}" method="post" style="margin:0;"
-            onsubmit="return confirm('삭제하시겠습니까?')">
-        <button type="submit" class="btn-d">삭제</button>
-      </form>
-      <button class="btn-s" onclick="closeModal()">닫기</button>
-      <button class="btn-p" th:onclick="|showEdit('eedit-${e.examSn}')|">수정</button>
+
+      <div class="hm-modal-footer">
+        <form id="ed-delete-form" method="post" onsubmit="return confirm('시험을 삭제하시겠습니까?')">
+          <button type="submit" class="hm-btn-danger text-xs px-4">삭제</button>
+        </form>
+        <button onclick="closeModal('modal-e-detail', true)"
+          class="hm-btn-secondary text-xs px-4">닫기</button>
+        <button onclick="openEEdit()"
+          class="hm-btn-primary hm-btn-emerald text-xs px-4">수정</button>
+      </div>
     </div>
   </div>
-
-  <!-- 시험 수정 모달 -->
-  <div th:each="e : ${exams}" th:id="'eedit-'+${e.examSn}" class="mbox" style="display:none;" onclick="event.stopPropagation()">
-    <div class="mhead">
-      <span>시험 수정</span>
-      <button onclick="closeModal()">✕</button>
-    </div>
-    <div class="mbody">
-      <form th:id="'eef-'+${e.examSn}"
-            th:action="@{/instructor/exams/{sn}/update(sn=${e.examSn})}" method="post">
-        <div class="field">
-          <label>시험명 *</label>
-          <input type="text" name="examRegNm" th:value="${e.examRegNm}" required/>
-        </div>
-        <div class="row">
-          <div class="field">
-            <label>시작일시</label>
-            <input type="datetime-local" name="examStrtDt"
-                   th:value="${e.examStrtDt!=null}?${#strings.replace(e.examStrtDt,' ','T')}:''"/>
-          </div>
-          <div class="field">
-            <label>종료일시</label>
-            <input type="datetime-local" name="examEndDt"
-                   th:value="${e.examEndDt!=null}?${#strings.replace(e.examEndDt,' ','T')}:''"/>
-          </div>
-        </div>
-      </form>
-    </div>
-    <div class="mfoot">
-      <button class="btn-s" th:onclick="|showEdit('em-${e.examSn}')|">← 돌아가기</button>
-      <button class="btn-p" th:onclick="|document.getElementById('eef-${e.examSn}').submit()|">저장</button>
-    </div>
-  </div>
-
-</div><!-- /mdrop -->
-
-<script>
-function switchTab(id, btn) {
-  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('on'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('on'));
-  document.getElementById(id).classList.add('on');
-  btn.classList.add('on');
-}
-
-function toggleForm(id, btn) {
-  const f = document.getElementById(id);
-  const open = f.classList.toggle('open');
-  btn.textContent = open ? btn.dataset.o : btn.dataset.c;
-}
-
-function openQModal(sn) {
-  showEdit('qm-' + sn);
-}
-function openEModal(sn) {
-  showEdit('em-' + sn);
-}
-
-function showEdit(id) {
-  document.querySelectorAll('.mbox').forEach(m => m.style.display = 'none');
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.style.display = 'block';
-  document.getElementById('mdrop').classList.add('on');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeModal() {
-  document.getElementById('mdrop').classList.remove('on');
-  document.querySelectorAll('.mbox').forEach(m => m.style.display = 'none');
-  document.body.style.overflow = '';
-}
-
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-
-function buildQstnInputs() {
-  const wrap = document.getElementById('qstn-hidden');
-  wrap.innerHTML = '';
-  const val = document.getElementById('qstn-input').value;
-  val.split(',').map(s => s.trim()).filter(s => s).forEach(sn => {
-    const inp = document.createElement('input');
-    inp.type = 'hidden'; inp.name = 'qstnSnList'; inp.value = sn;
-    wrap.appendChild(inp);
-  });
-}
-</script>
 </div>
+
+<!-- ══════════════════════════════════════════
+     시험 수정 모달
+══════════════════════════════════════════ -->
+<div id="modal-e-edit" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/50"
+     onclick="if(event.target===this) closeModal('modal-e-edit', true)">
+  <div class="hm-modal-inner w-full max-w-lg mx-4">
+    <div class="hm-modal-scroll">
+      <div class="hm-modal-header">
+        <h2 class="text-base">시험 수정</h2>
+        <button onclick="closeModal('modal-e-edit', true)"
+          class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+      </div>
+
+      <form id="ee-form" method="post" class="p-6 space-y-3">
+        <div>
+          <label class="form-label">시험명 <span class="required">*</span></label>
+          <input type="text" name="examRegNm" id="ee-name" required
+            class="hm-input hm-input-emerald w-full" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="form-label">시작일시</label>
+            <input type="datetime-local" name="examStrtDt" id="ee-start"
+              class="hm-input hm-input-emerald w-full" />
+          </div>
+          <div>
+            <label class="form-label">종료일시</label>
+            <input type="datetime-local" name="examEndDt" id="ee-end"
+              class="hm-input hm-input-emerald w-full" />
+          </div>
+        </div>
+      </form>
+
+      <div class="hm-modal-footer">
+        <button onclick="closeModal('modal-e-edit', true); openModal('modal-e-detail', true)"
+          class="hm-btn-secondary text-xs px-4">← 돌아가기</button>
+        <button onclick="document.getElementById('ee-form').submit()"
+          class="hm-btn-primary hm-btn-emerald text-xs px-4">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script th:src="@{/js/instructor/exam.js}"></script>
