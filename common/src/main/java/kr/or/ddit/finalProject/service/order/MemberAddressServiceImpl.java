@@ -25,6 +25,12 @@ public class MemberAddressServiceImpl implements MemberAddressService {
     public void registerAddress(MemberAddressDto dto) {
         validateRequiredFields(dto);
 
+        // 첫 번째 주소 등록 시 자동으로 기본 배송지 설정
+        List<MemberAddressDto> existing = memberAddressMapper.selectAddressListByUserId(dto.getUserId());
+        if (existing.isEmpty()) {
+            dto.setDefaultYn("Y");
+        }
+
         if ("Y".equals(dto.getDefaultYn())) {
             memberAddressMapper.updateResetDefaultAddress(dto.getUserId());
         }
