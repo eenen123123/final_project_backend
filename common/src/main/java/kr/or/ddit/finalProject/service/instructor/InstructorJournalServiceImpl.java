@@ -21,24 +21,26 @@ public class InstructorJournalServiceImpl implements InstructorJournalService {
 
     @Override
     public List<InstructorJournalDto> retrieveJournalList(
-            String userId, boolean isViewer, String selectedInstrId,
+            String userId, boolean isViewer, String mgrUserId, String selectedInstrId,
             String keyword, String fromDt, String toDt, int page) {
         String instrUserId = resolveInstrUserId(userId, isViewer, selectedInstrId);
+        String effectiveMgrUserId = isViewer ? mgrUserId : null;
         int offset = (page - 1) * PAGE_SIZE;
-        return journalMapper.selectJournalList(instrUserId, keyword, fromDt, toDt, offset, PAGE_SIZE);
+        return journalMapper.selectJournalList(effectiveMgrUserId, instrUserId, keyword, fromDt, toDt, offset, PAGE_SIZE);
     }
 
     @Override
     public int retrieveJournalCount(
-            String userId, boolean isViewer, String selectedInstrId,
+            String userId, boolean isViewer, String mgrUserId, String selectedInstrId,
             String keyword, String fromDt, String toDt) {
         String instrUserId = resolveInstrUserId(userId, isViewer, selectedInstrId);
-        return journalMapper.selectJournalCount(instrUserId, keyword, fromDt, toDt);
+        String effectiveMgrUserId = isViewer ? mgrUserId : null;
+        return journalMapper.selectJournalCount(effectiveMgrUserId, instrUserId, keyword, fromDt, toDt);
     }
 
     @Override
-    public List<InstructorJournalDto> retrieveJournalInstructors() {
-        return journalMapper.selectJournalInstructors();
+    public List<InstructorJournalDto> retrieveJournalInstructors(String mgrUserId) {
+        return journalMapper.selectJournalInstructors(mgrUserId);
     }
 
     /**

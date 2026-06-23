@@ -27,6 +27,7 @@ public interface InstructorJournalMapper {
      * @param pageSize    페이지당 조회 건수
      */
     List<InstructorJournalDto> selectJournalList(
+            @Param("mgrUserId")   String mgrUserId,
             @Param("instrUserId") String instrUserId,
             @Param("keyword")     String keyword,
             @Param("fromDt")      String fromDt,
@@ -38,6 +39,7 @@ public interface InstructorJournalMapper {
      * 일지 전체 건수 조회 (페이지네이션 총 페이지 계산용)
      */
     int selectJournalCount(
+            @Param("mgrUserId")   String mgrUserId,
             @Param("instrUserId") String instrUserId,
             @Param("keyword")     String keyword,
             @Param("fromDt")      String fromDt,
@@ -46,8 +48,12 @@ public interface InstructorJournalMapper {
     /**
      * 일지를 한 건 이상 작성한 강사 목록 조회 (뷰어 강사 필터 드롭다운용)
      * instrUserId / instrUserNm 필드만 채워서 반환합니다.
+     *
+     * @param mgrUserId 열람자의 USER_ID — EMPLOYEE_INFO.MNT_USER_ID 계층 기준으로
+     *                  자신의 팀원(직·간접 하위) 강사만 반환.
+     *                  null 이면 전체 강사 반환 (원장 등 최상위 뷰어용).
      */
-    List<InstructorJournalDto> selectJournalInstructors();
+    List<InstructorJournalDto> selectJournalInstructors(@Param("mgrUserId") String mgrUserId);
 
     /**
      * 일지 단건 상세 조회
