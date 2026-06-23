@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import kr.or.ddit.finalProject.dto.classroom.AchievementDto;
+import kr.or.ddit.finalProject.dto.classroom.ClassroomDto;
+import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.classroom.CalendarDayDto;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomGradeDto;
@@ -222,5 +224,37 @@ public class ClassroomServiceImpl implements ClassroomService {
 
     private double offset(int pct) {
         return Math.round(CIRCUMFERENCE * (1.0 - pct / 100.0) * 100) / 100.0;
+    }
+
+    @Override
+    @Transactional
+    public void createClassroom(ClassroomDto dto) {
+        classroomMapper.insertClassroom(dto);
+    }
+
+    /**
+     * 클래스룸 상태 즉시 변경.
+     * Mapper의 updateClassroomStatus 가 반환하는 업데이트 행 수로 성공 여부를 판단한다.
+     * 0건이면 classSn 이 존재하지 않거나 instrUserId 가 담당자가 아닌 경우이다.
+     */
+    @Override
+    @Transactional
+    public boolean updateClassroomStatus(Long classSn, String classStatCd, String instrUserId) {
+        int updated = classroomMapper.updateClassroomStatus(classSn, classStatCd, instrUserId, instrUserId);
+        return updated > 0;
+    }
+
+    @Override
+    public PageResponse<ClassroomListResponse> retrieveClassroomListPaged(String instrUserId, int page, int screenSize) {
+        int offset = (page - 1) * screenSize;
+        List<ClassroomListResponse> items = classroomMapper.selectClassroomListByInstructorPaged(instrUserId, offset, screenSize);
+        // regDt 가 null 인 레거시 행 방어
+        items.forEach(item -> {
+            if (item.getRegDt() != null) {
+                item.setFormattedRegDt(item.getRegDt().format(REG_DT_FORMAT));
+            }
+        });
+        int totalCount = classroomMapper.countClassroomListByInstructor(instrUserId);
+        return new PageResponse<>(items, totalCount);
     }
 }

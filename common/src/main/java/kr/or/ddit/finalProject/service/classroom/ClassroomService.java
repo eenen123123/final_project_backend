@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 import kr.or.ddit.finalProject.dto.classroom.AchievementDto;
+import kr.or.ddit.finalProject.dto.classroom.ClassroomDto;
+import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.classroom.CalendarDayDto;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomGradeDto;
@@ -56,4 +58,21 @@ public interface ClassroomService {
     // 클래스 내 전체 수강생의 개인별 강의 진도율 반환 (userId → progressRate, 탈퇴/취소 수강생 포함)
     // retrieveClassroomDetail과 분리: 진도율이 필요한 홈·수강생 탭에서만 호출
     Map<String, Double> retrieveProgressRates(Long classSn);
+
+    // 클래스룸 등록 (결재 승인 후 실행)
+    void createClassroom(ClassroomDto dto);
+
+    /**
+     * 클래스룸 상태 즉시 변경 (결재 없음).
+     * 소유권 검증은 Mapper SQL 내 EXISTS 절에서 처리한다.
+     *
+     * @param classSn     변경 대상 클래스룸 PK
+     * @param classStatCd 변경할 상태 코드 (ClassStatus.name())
+     * @param instrUserId 요청 강사 ID (소유권 검증용)
+     * @return true = 변경 성공, false = 대상 없음 또는 권한 없음
+     */
+    boolean updateClassroomStatus(Long classSn, String classStatCd, String instrUserId);
+
+    // 페이징 목록 (AJAX용)
+    PageResponse<ClassroomListResponse> retrieveClassroomListPaged(String instrUserId, int page, int screenSize);
 }

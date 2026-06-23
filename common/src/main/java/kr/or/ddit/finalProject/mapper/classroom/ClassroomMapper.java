@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse;
+import kr.or.ddit.finalProject.dto.classroom.ClassroomDto;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomListResponse;
 
 @Mapper
@@ -56,4 +57,29 @@ public interface ClassroomMapper {
             @Param("classSn") Long classSn,
             @Param("weekStart") String weekStart,
             @Param("weekEnd") String weekEnd);
+
+    // 클래스룸 신규 등록
+    void insertClassroom(ClassroomDto dto);
+
+    /**
+     * 클래스룸 상태 변경.
+     * WHERE 절에 EXISTS(COURSE.INSTR_USER_ID)를 포함해 소유권을 함께 검증한다.
+     * 본인 클래스룸이 아니면 UPDATE 0건 → 반환값 0으로 구분.
+     *
+     * @return 실제로 업데이트된 행 수 (1 = 성공, 0 = 권한 없음 또는 존재하지 않음)
+     */
+    int updateClassroomStatus(
+            @Param("classSn")     Long   classSn,
+            @Param("classStatCd") String classStatCd,
+            @Param("instrUserId") String instrUserId,
+            @Param("lastMdfrId")  String lastMdfrId);
+
+    // 페이징 목록
+    List<ClassroomListResponse> selectClassroomListByInstructorPaged(
+            @Param("instrUserId") String instrUserId,
+            @Param("offset") int offset,
+            @Param("screenSize") int screenSize);
+
+    // 전체 건수 (페이지 계산용)
+    int countClassroomListByInstructor(@Param("instrUserId") String instrUserId);
 }

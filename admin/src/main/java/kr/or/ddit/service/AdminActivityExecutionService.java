@@ -12,9 +12,11 @@ import kr.or.ddit.finalProject.dto.employee.JobGradeDto;
 import kr.or.ddit.finalProject.dto.leave.AnnualLeaveHistoryDto;
 import kr.or.ddit.finalProject.dto.member.MemberCreateLogDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
+import kr.or.ddit.finalProject.dto.classroom.ClassroomDto;
 import kr.or.ddit.finalProject.dto.curriculum.CurriculumDto;
 import kr.or.ddit.finalProject.dto.subject.SubjectClassificationDto;
 import kr.or.ddit.finalProject.dto.subject.SubjectDto;
+import kr.or.ddit.finalProject.service.classroom.ClassroomService;
 import kr.or.ddit.finalProject.service.curriculum.CurriculumService;
 import kr.or.ddit.finalProject.service.file.CloudinaryUploadService;
 import kr.or.ddit.finalProject.service.staff.StaffService;
@@ -71,6 +73,7 @@ public class AdminActivityExecutionService {
     private final CloudinaryUploadService cloudinaryUploadService;
     private final SubjectService subjectService;
     private final CurriculumService curriculumService;
+    private final ClassroomService classroomService;
     private final ObjectMapper objectMapper;
 
     /**
@@ -139,6 +142,7 @@ public class AdminActivityExecutionService {
                 case "CURRICULUM_CREATE" -> executeCurriculumCreate(data, actorUserId);
                 case "CURRICULUM_UPDATE" -> executeCurriculumUpdate(data, actorUserId);
                 case "CURRICULUM_DELETE" -> executeCurriculumDelete(data, actorUserId);
+                case "CLASSROOM_CREATE"  -> executeClassroomCreate(data, actorUserId);
                 default -> log.warn("[AdminExecution] 알 수 없는 actionType: {}", actionType);
             }
             log.info("[AdminExecution] 결재 승인 후 실행 완료: docSn={}, type={}", aprvlDocSn, actionType);
@@ -434,6 +438,16 @@ public class AdminActivityExecutionService {
         Long subjId   = Long.valueOf(String.valueOf(data.get("subjId")));
         Long subjClId = Long.valueOf(String.valueOf(data.get("subjClId")));
         subjectService.removeSubject(subjId, subjClId, actorUserId);
+    }
+
+    /* ── 클래스룸 관리 집행 함수군 ── */
+
+    private void executeClassroomCreate(Map<String, Object> data, String actorUserId) {
+        // 다른 execute* 메서드와 동일하게 actorUserId(최종 결재자)를 rgtrId 로 기록.
+        // 신청 강사 정보는 OPNR_USER_ID 에 보존된다.
+        ClassroomDto dto = objectMapper.convertValue(data.get("classroomDto"), ClassroomDto.class);
+        dto.setRgtrId(actorUserId);
+        classroomService.createClassroom(dto);
     }
 
     /* ── 커리큘럼 관리 집행 함수군 ── */
