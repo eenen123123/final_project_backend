@@ -11,3 +11,4 @@ sample_videos/
 .venv/
 __pycache__/
 *.pyc
+.temp/
