@@ -13,8 +13,10 @@
     <result property="sbmtCn"       column="SBMT_CN"/>
     <result property="score"        column="SCORE"/>
     <result property="grddYn"       column="GRDD_YN"/>
+    <result property="grddUserId"   column="GRDD_USER_ID"/>
     <result property="grddDt"       column="GRDD_DT"/>
     <result property="sbmtDt"       column="SBMT_DT"/>
+    <result property="asgmtSj"      column="ASGMT_SJ"/>
   </resultMap>
 
   <!-- 클래스룸 수강생 전원 기준 제출 현황 (미제출자 포함) -->
@@ -27,6 +29,7 @@
         s.SBMT_CN,
         s.SCORE,
         s.GRDD_YN,
+        s.GRDD_USER_ID,
         s.GRDD_DT,
         s.SBMT_DT
     FROM CLASSROOM_MEMBER cm
@@ -34,7 +37,7 @@
     LEFT JOIN ASSIGNMENT_SUBMIT s
            ON s.ASGMT_SN = #{asgmtSn} AND s.SBMT_USER_ID = cm.USER_ID
     WHERE cm.CLASS_SN    = #{classSn}
-      AND cm.ENRL_STAT_CD = '01'
+      AND cm.ENRL_STAT_CD = 'ENROLLED'
     ORDER BY cm.REG_DT ASC
   </select>
 
@@ -46,13 +49,42 @@
       AND s.GRDD_YN   = 'N'
   </select>
 
+  <!-- 클래스룸 전체 최근 제출 N건 (ASSIGNMENT_BOARD, MEMBER 조인) -->
+  <select id="selectRecentSubmitsByClass" resultMap="assignmentSubmitMap">
+    SELECT *
+    FROM (
+        SELECT
+            s.SBMT_SN,
+            s.ASGMT_SN,
+            s.SBMT_USER_ID,
+            m.USER_NAME,
+            s.SCORE,
+            s.GRDD_YN,
+            s.GRDD_USER_ID,
+            s.SBMT_DT,
+            ab.ASGMT_SJ
+        FROM ASSIGNMENT_SUBMIT s
+        JOIN ASSIGNMENT_BOARD ab ON ab.ASGMT_SN = s.ASGMT_SN
+        JOIN MEMBER m ON m.USER_ID = s.SBMT_USER_ID
+        WHERE ab.CLASS_SN = #{classSn}
+        ORDER BY s.SBMT_DT DESC
+    )
+    WHERE ROWNUM &lt;= #{limit}
+  </select>
+
+  <delete id="deleteSubmitsByAsgmtSn">
+    DELETE FROM ASSIGNMENT_SUBMIT WHERE ASGMT_SN = #{asgmtSn}
+  </delete>
+
   <update id="updateGrade">
     UPDATE ASSIGNMENT_SUBMIT
-    SET SCORE    = #{score},
-        GRDD_YN  = 'Y',
-        GRDD_DT  = CURRENT_TIMESTAMP,
-        MDFCN_DT = CURRENT_TIMESTAMP
-    WHERE SBMT_SN = #{sbmtSn}
+    SET SCORE        = #{score},
+        GRDD_YN      = 'Y',
+        GRDD_USER_ID = #{grddUserId},
+        GRDD_DT      = CURRENT_TIMESTAMP,
+        MDFCN_DT     = CURRENT_TIMESTAMP
+    WHERE SBMT_SN  = #{sbmtSn}
+      AND ASGMT_SN = #{asgmtSn}
   </update>
 
 </mapper>

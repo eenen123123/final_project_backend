@@ -28,6 +28,12 @@ import kr.or.ddit.service.AdminActivityApprovalService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 강사 전용 커리큘럼 관리 컨트롤러 ({@code /instructor/curriculum}).
+ * 목록 페이지 렌더링, 강좌 매핑 AJAX를 처리한다.
+ * 커리큘럼 등록·수정·삭제는 결재 흐름({@link AdminActivityApprovalService})으로 위임하며
+ * 실제 DB 반영은 결재 승인 후 실행 서비스가 담당한다.
+ */
 @Slf4j
 @Controller
 @RequestMapping("/instructor/curriculum")
@@ -37,6 +43,7 @@ public class InstructorCurriculumController {
     private final CurriculumService curriculumService;
     private final AdminActivityApprovalService adminActivityApprovalService;
 
+    /** 종료일이 시작일보다 앞서면 오류 메시지를 반환한다. 문제 없으면 null. */
     private String validateDates(CurriculumDto dto) {
         if (dto.getStrtDt() != null && dto.getEndDt() != null
                 && dto.getEndDt().isBefore(dto.getStrtDt())) {
@@ -52,7 +59,7 @@ public class InstructorCurriculumController {
     public String list(Model model, Authentication authentication) {
         String userId = authentication.getName();
         model.addAttribute("curriculumList", curriculumService.retrieveList(userId));
-        return "admin:/instructor/curriculum-list";
+        return "admin:/instructor/list-curriculum";
     }
 
     // ── 커리큘럼 CRUD (AJAX) ─────────────────────────────────────────
@@ -161,11 +168,11 @@ public class InstructorCurriculumController {
     public ResponseEntity<List<CourseDto>> mappedCourses(
             @PathVariable Long curriculumId,
             Authentication authentication) {
-        CurriculumDto curriculum = curriculumService.retrieveById(curriculumId);
-        if (curriculum == null || !curriculum.getInstructorId().equals(authentication.getName())) {
+        try {
+            return ResponseEntity.ok(curriculumService.retrieveMappedCourses(curriculumId, authentication.getName()));
+        } catch (IllegalArgumentException | SecurityException e) {
             return ResponseEntity.status(403).build();
         }
-        return ResponseEntity.ok(curriculumService.retrieveMappedCourses(curriculumId));
     }
 
     /** 로그인한 강사의 강좌 중 아직 커리큘럼에 배정되지 않은 강좌 목록을 반환한다. */

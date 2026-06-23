@@ -14,9 +14,16 @@ public interface AssignmentBoardService {
 
     int insertAssignment(AssignmentBoardDto dto);
 
+    int updateAssignment(AssignmentBoardDto dto);
+
+    int deleteAssignment(Long asgmtSn, Long classSn);
+
     List<AssignmentSubmitDto> getSubmitList(Long asgmtSn, Long classSn);
 
-    int gradeSubmit(Long sbmtSn, BigDecimal score, String grddUserId);
+    int gradeSubmit(Long sbmtSn, Long asgmtSn, BigDecimal score, String grddUserId);
 
     int getPendingGradeCount(Long classSn);
+
+    /** 클래스룸 전체 최근 제출 최대 N건 */
+    List<AssignmentSubmitDto> getRecentSubmits(Long classSn, int limit);
 }

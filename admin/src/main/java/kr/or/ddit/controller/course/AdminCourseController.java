@@ -37,7 +37,7 @@ public class AdminCourseController {
     public String insertForm(Model model, Authentication authentication) {
         model.addAttribute("curriculumList", curriculumService.retrieveList(authentication.getName()));
         model.addAttribute("subjClList", courseService.retrieveSubjectClassificationList());
-        return "admin:/course/insert-course";
+        return "admin:/course/form-course";
     }
 
     /**
@@ -101,7 +101,7 @@ public class AdminCourseController {
         }
         model.addAttribute("curriculumList", curriculumService.retrieveList(authentication.getName()));
         model.addAttribute("subjClList", courseService.retrieveSubjectClassificationList());
-        return "admin:/course/insert-course";
+        return "admin:/course/form-course";
     }
 
     /**

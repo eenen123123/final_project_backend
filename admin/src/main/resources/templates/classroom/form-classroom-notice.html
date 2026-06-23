@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html th:replace="~{classroom/layout-classroom :: layout(
+    ${editNotice != null} ? (${classroom.classNm} + ' | 공지 수정') : (${classroom.classNm} + ' | 공지 작성'),
+    ${classroom},
+    'notice',
+    ~{:: #content}
+)}" lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div id="content">
+
+  <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
+    <div class="px-7 py-5 border-b border-slate-100">
+      <h2 class="text-base font-bold text-slate-800"
+          th:text="${editNotice != null} ? '공지 수정' : '공지 작성'">공지 작성</h2>
+    </div>
+
+    <div th:if="${param.error != null}"
+         class="mx-7 mt-5 rounded-xl border border-rose-100 px-5 py-4 text-sm text-rose-500">
+      <i class="fa-solid fa-circle-exclamation mr-2"></i>
+      파일 업로드에 실패했습니다. 다시 시도해주세요.
+    </div>
+
+    <form th:action="${editNotice != null}
+                      ? @{/classroom/detail/{sn}/notice/{postSn}/edit(sn=${classroom.classSn},postSn=${editNotice.postSn})}
+                      : @{/classroom/detail/{sn}/notice/write(sn=${classroom.classSn})}"
+          method="post"
+          enctype="multipart/form-data"
+          class="p-7 flex flex-col gap-5">
+
+      <input type="hidden" name="postCn" id="postCnHidden" />
+      <input type="hidden" name="atchFileId"
+             th:if="${editNotice != null and editNotice.atchFileId != null}"
+             th:value="${editNotice.atchFileId}" />
+
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-semibold text-slate-600">제목</label>
+        <input type="text" name="postSj"
+               th:value="${editNotice != null} ? ${editNotice.postSj} : ''"
+               placeholder="제목을 입력하세요"
+               class="w-full text-sm px-4 py-3 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 transition-colors"
+               required />
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-semibold text-slate-600">내용</label>
+        <div id="editor" class="border border-slate-100 rounded-xl overflow-hidden min-h-[260px]"></div>
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <label class="text-sm font-semibold text-slate-600">첨부파일</label>
+
+        <div th:if="${not #lists.isEmpty(existingFiles)}" class="space-y-2">
+          <div th:each="f : ${existingFiles}"
+               class="flex items-center gap-3 rounded-xl border border-slate-100 px-4 py-3 text-sm text-slate-600">
+            <i class="fa-solid fa-paperclip text-slate-300"></i>
+            <span th:text="${f.orgnFileNm}" class="flex-1 truncate"></span>
+            <span class="text-slate-400 text-sm"
+                  th:text="${#numbers.formatDecimal(f.fileSizeCnt / 1024.0, 1, 1) + ' KB'}"></span>
+            <form th:action="@{/classroom/detail/{sn}/notice/{postSn}/file/{fileDtlSn}/delete(sn=${classroom.classSn},postSn=${editNotice.postSn},fileDtlSn=${f.atchFileDtlSn})}"
+                  method="post"
+                  onsubmit="return confirm('파일을 삭제하시겠습니까?')">
+              <button type="submit" class="text-slate-400 hover:text-rose-500 transition-colors">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-slate-200 px-5 py-4 text-sm text-slate-400 hover:border-blue-300 hover:text-blue-500 transition-colors">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <span>파일 선택 (여러 개 가능)</span>
+          <input type="file" name="attachFiles" multiple class="hidden" onchange="showSelectedFiles(this)" />
+        </label>
+        <ul id="selectedFileList" class="space-y-2 text-sm text-slate-600"></ul>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-2">
+        <a th:href="${editNotice != null}
+                     ? @{/classroom/detail/{sn}/notice/{postSn}(sn=${classroom.classSn},postSn=${editNotice.postSn})}
+                     : @{/classroom/detail/{sn}/notice(sn=${classroom.classSn})}"
+           class="text-sm font-semibold px-5 py-2.5 text-slate-500 hover:text-slate-700 border border-slate-100 rounded-lg transition-colors">취소</a>
+        <button type="submit"
+                class="text-sm font-semibold px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                th:text="${editNotice != null} ? '수정' : '등록'">등록</button>
+      </div>
+    </form>
+  </div>
+
+<script>
+  function showSelectedFiles(input) {
+    const list = document.getElementById('selectedFileList');
+    list.innerHTML = '';
+    Array.from(input.files).forEach(function(f) {
+      const li = document.createElement('li');
+      li.className = 'flex items-center gap-3 rounded-xl border border-slate-100 px-4 py-3';
+      const icon = document.createElement('i');
+      icon.className = 'fa-solid fa-paperclip text-slate-300';
+      const name = document.createElement('span');
+      name.className = 'flex-1 truncate text-sm';
+      name.textContent = f.name;
+      const size = document.createElement('span');
+      size.className = 'text-sm text-slate-400';
+      size.textContent = (f.size / 1024).toFixed(1) + ' KB';
+      li.append(icon, name, size);
+      list.appendChild(li);
+    });
+  }
+</script>
+<script defer th:src="@{/js/tiptap/tiptap-editor.iife.js}"></script>
+<script th:inline="javascript">
+  document.addEventListener('DOMContentLoaded', function () {
+    const savedContent = /*[[${editNotice?.postCn}]]*/ null;
+    let initialForMount = '';
+    let htmlToRestore = null;
+    if (savedContent) {
+      try { JSON.parse(savedContent); initialForMount = savedContent; }
+      catch { htmlToRestore = savedContent; }
+    }
+    TipTapEditor.mount('editor', {
+      editable: true,
+      outputInputId: 'postCnHidden',
+      initialContent: initialForMount,
+      imageUrlResolver: (fileId) => `/admin/files/${fileId}/view`,
+    });
+    if (htmlToRestore) {
+      const t = setInterval(() => {
+        const el = document.querySelector('#editor .tiptap');
+        if (el && el.editor) { el.editor.commands.setContent(htmlToRestore); clearInterval(t); }
+      }, 50);
+      setTimeout(() => clearInterval(t), 3000);
+    }
+    document.querySelector('form').addEventListener('submit', function () {
+      const el = document.querySelector('#editor .tiptap');
+      if (el && el.editor) document.getElementById('postCnHidden').value = el.editor.getHTML();
+    });
+  });
+</script>
+
+</div>
+</body>
+</html>

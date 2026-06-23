@@ -14,8 +14,10 @@
     <result property="sbmtDdlnDt"   column="SBMT_DDLN_DT"/>
     <result property="asgmtStatCd"  column="ASGMT_STAT_CD"/>
     <result property="regDt"        column="REG_DT"/>
+    <result property="lastMdfrId"   column="LAST_MDFR_ID"/>
     <result property="sbmtCnt"      column="SBMT_CNT"/>
     <result property="totMemberCnt" column="TOT_MEMBER_CNT"/>
+    <result property="grddCnt"      column="GRDD_CNT"/>
   </resultMap>
 
   <select id="selectAssignmentList" resultMap="assignmentBoardMap">
@@ -28,7 +30,8 @@
         ab.ASGMT_STAT_CD,
         ab.REG_DT,
         (SELECT COUNT(*) FROM ASSIGNMENT_SUBMIT s WHERE s.ASGMT_SN = ab.ASGMT_SN) AS SBMT_CNT,
-        (SELECT COUNT(*) FROM CLASSROOM_MEMBER cm WHERE cm.CLASS_SN = ab.CLASS_SN AND cm.ENRL_STAT_CD = '01') AS TOT_MEMBER_CNT
+        (SELECT COUNT(*) FROM ASSIGNMENT_SUBMIT s WHERE s.ASGMT_SN = ab.ASGMT_SN AND s.GRDD_YN = 'Y') AS GRDD_CNT,
+        (SELECT COUNT(*) FROM CLASSROOM_MEMBER cm WHERE cm.CLASS_SN = ab.CLASS_SN AND cm.ENRL_STAT_CD = 'ENROLLED') AS TOT_MEMBER_CNT
     FROM ASSIGNMENT_BOARD ab
     WHERE ab.CLASS_SN = #{classSn}
     ORDER BY ab.REG_DT DESC
@@ -43,12 +46,28 @@
         ab.ASGMT_CN,
         ab.SBMT_DDLN_DT,
         ab.ASGMT_STAT_CD,
+        ab.LAST_MDFR_ID,
         ab.REG_DT,
         (SELECT COUNT(*) FROM ASSIGNMENT_SUBMIT s WHERE s.ASGMT_SN = ab.ASGMT_SN) AS SBMT_CNT,
-        (SELECT COUNT(*) FROM CLASSROOM_MEMBER cm WHERE cm.CLASS_SN = ab.CLASS_SN AND cm.ENRL_STAT_CD = '01') AS TOT_MEMBER_CNT
+        (SELECT COUNT(*) FROM CLASSROOM_MEMBER cm WHERE cm.CLASS_SN = ab.CLASS_SN AND cm.ENRL_STAT_CD = 'ENROLLED') AS TOT_MEMBER_CNT
     FROM ASSIGNMENT_BOARD ab
     WHERE ab.ASGMT_SN = #{asgmtSn}
   </select>
+
+  <update id="updateAssignment">
+    UPDATE ASSIGNMENT_BOARD
+    SET ASGMT_SJ     = #{asgmtSj},
+        ASGMT_CN     = #{asgmtCn},
+        SBMT_DDLN_DT = #{sbmtDdlnDt},
+        MDFCN_DT     = CURRENT_TIMESTAMP,
+        LAST_MDFR_ID = #{lastMdfrId}
+    WHERE ASGMT_SN = #{asgmtSn}
+      AND CLASS_SN  = #{classSn}
+  </update>
+
+  <delete id="deleteAssignment">
+    DELETE FROM ASSIGNMENT_BOARD WHERE ASGMT_SN = #{asgmtSn} AND CLASS_SN = #{classSn}
+  </delete>
 
   <insert id="insertAssignment" useGeneratedKeys="true" keyProperty="asgmtSn" keyColumn="ASGMT_SN">
     INSERT INTO ASSIGNMENT_BOARD (

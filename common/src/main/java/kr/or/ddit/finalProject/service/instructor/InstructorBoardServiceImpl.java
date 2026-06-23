@@ -1,116 +1,127 @@
 package kr.or.ddit.finalProject.service.instructor;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
-
 import org.springframework.transaction.annotation.Transactional;
 
+import kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto;
 import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.instructor.board.BoardType;
-import kr.or.ddit.finalProject.service.file.FileUploadService;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardResponse;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorPublicBoardDetail;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorPublicBoardItem;
 import kr.or.ddit.finalProject.mapper.instructor.InstructorBoardMapper;
+import kr.or.ddit.finalProject.service.file.FileUploadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 강사 게시판 서비스 구현체.
+ * 매퍼 호출 결과를 뷰에 맞는 응답 DTO로 변환하고 파일 조회를 병합한다.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class InstructorBoardServiceImpl implements InstructorBoardService {
 
+    /** 목록용 날짜 포맷 (yyyy-MM-dd) */
+    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    /** 상세용 날짜+시각 포맷 (yyyy-MM-dd HH:mm:ss) */
+    private static final DateTimeFormatter DATETIME_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     private final InstructorBoardMapper instructorBoardMapper;
     private final FileUploadService fileUploadService;
 
+    // ── 강사 홈페이지 게시판 ──────────────────────────────────────────
+
     @Override
     public PageResponse<InstructorBoardResponse> getInstructorBoardList(
-            String instrUserId, String keyword, String boardTypeCd, int page, int pageSize) {
+            String instrUserId, String keyword, String boardTypeCd, String searchType,
+            int page, int pageSize) {
         int offset = (page - 1) * pageSize;
-        int totalCount = instructorBoardMapper.selectInstructorBoardCount(instrUserId, keyword, boardTypeCd);
-        List<InstructorBoardDto> original = instructorBoardMapper.selectInstructorBoardList(
-                instrUserId, keyword, boardTypeCd, offset, pageSize);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        List<InstructorBoardResponse> items = java.util.stream.IntStream.range(0, original.size())
-                .mapToObj(i -> {
-                    InstructorBoardDto dto = original.get(i);
-                    String userName = dto.getMemberDto() != null ? dto.getMemberDto().getUserName() : "";
-                    InstructorBoardResponse responseDto = new InstructorBoardResponse();
-                    responseDto.setPostSn(dto.getPostSn());
-                    responseDto.setDisplayNo(totalCount - offset - i);
-                    responseDto.setUseYn(dto.getUseYn());
-                    responseDto.setBoardTypeCd(dto.getBoardTypeCd());
-                    responseDto.setBoardTypeNm(resolveBoardTypeNm(dto.getBoardTypeCd()));
-                    responseDto.setUserName(userName);
-                    responseDto.setTitle(dto.getPostSj());
-                    responseDto.setContent(dto.getPostCn());
-                    responseDto.setInqCnt(dto.getInqCnt());
-                    responseDto.setRegDt(dto.getRegDt() != null ? dto.getRegDt().format(formatter) : null);
-                    responseDto.setMdfcnDt(dto.getMdfcnDt() != null ? dto.getMdfcnDt().format(formatter) : null);
-                    responseDto.setAtchFileId(dto.getAtchFileId() != null ? dto.getAtchFileId().toString() : null);
-                    return responseDto;
-                })
-                .toList();
+        int totalCount = instructorBoardMapper.selectInstructorBoardCount(instrUserId, keyword, boardTypeCd, searchType);
+        List<InstructorBoardDto> rows = instructorBoardMapper.selectInstructorBoardList(
+                instrUserId, keyword, boardTypeCd, searchType, offset, pageSize);
+
+        List<InstructorBoardResponse> items = new ArrayList<>(rows.size());
+        for (int i = 0; i < rows.size(); i++) {
+            InstructorBoardDto dto = rows.get(i);
+            String userName = dto.getMemberDto() != null ? dto.getMemberDto().getUserName() : "";
+            items.add(InstructorBoardResponse.builder()
+                    .postSn(dto.getPostSn())
+                    .displayNo(totalCount - offset - i)
+                    .useYn(dto.getUseYn())
+                    .boardTypeCd(dto.getBoardTypeCd())
+                    .boardTypeNm(resolveBoardTypeNm(dto.getBoardTypeCd()))
+                    .userName(userName)
+                    .title(dto.getPostSj())
+                    .inqCnt(dto.getInqCnt())
+                    .regDt(dto.getRegDt() != null ? dto.getRegDt().format(DATE_FMT) : null)
+                    .mdfcnDt(dto.getMdfcnDt() != null ? dto.getMdfcnDt().format(DATE_FMT) : null)
+                    .atchFileId(dto.getAtchFileId() != null ? dto.getAtchFileId().toString() : null)
+                    .answYn(dto.getAnswYn())
+                    .build());
+        }
         return new PageResponse<>(items, totalCount);
     }
 
     @Override
     public InstructorBoardResponse getInstructorBoardDetail(Long postSn, String instrUserId) {
-        InstructorBoardDto original = instructorBoardMapper.selectInstructorBoardDetail(postSn, instrUserId);
-        if (original == null) {
+        InstructorBoardDto dto = instructorBoardMapper.selectInstructorBoardDetail(postSn, instrUserId);
+        if (dto == null) {
             return null;
         }
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        String userName = original.getMemberDto() != null ? original.getMemberDto().getUserName() : "";
+        String userName = dto.getMemberDto() != null ? dto.getMemberDto().getUserName() : "";
         InstructorBoardResponse response = InstructorBoardResponse.builder()
-                .postSn(original.getPostSn())
-                .useYn(original.getUseYn())
-                .boardTypeCd(original.getBoardTypeCd())
-                .boardTypeNm(resolveBoardTypeNm(original.getBoardTypeCd()))
+                .postSn(dto.getPostSn())
+                .useYn(dto.getUseYn())
+                .boardTypeCd(dto.getBoardTypeCd())
+                .boardTypeNm(resolveBoardTypeNm(dto.getBoardTypeCd()))
                 .userName(userName)
-                .title(original.getPostSj())
-                .content(original.getPostCn())
-                .inqCnt(original.getInqCnt())
-                .regDt(original.getRegDt() != null ? original.getRegDt().format(formatter) : null)
-                .mdfcnDt(original.getMdfcnDt() != null ? original.getMdfcnDt().format(formatter) : null)
-                .atchFileId(original.getAtchFileId() != null ? original.getAtchFileId().toString() : null)
+                .title(dto.getPostSj())
+                .content(dto.getPostCn())
+                .inqCnt(dto.getInqCnt())
+                .regDt(dto.getRegDt() != null ? dto.getRegDt().format(DATETIME_FMT) : null)
+                .mdfcnDt(dto.getMdfcnDt() != null ? dto.getMdfcnDt().format(DATETIME_FMT) : null)
+                .atchFileId(dto.getAtchFileId() != null ? dto.getAtchFileId().toString() : null)
                 .build();
 
-        if ("QNA".equals(original.getBoardTypeCd())) {
-            response.setAnswer(instructorBoardMapper.selectInstructorQnaAnswer(original.getPostSn()));
+        if ("QNA".equals(dto.getBoardTypeCd())) {
+            response.setAnswer(instructorBoardMapper.selectInstructorQnaAnswer(dto.getPostSn()));
         }
-        if (original.getAtchFileId() != null) {
-            response.setFiles(fileUploadService.retrieveFilesByGroupId(original.getAtchFileId().intValue()));
+        if (dto.getAtchFileId() != null) {
+            response.setFiles(fileUploadService.retrieveFilesByGroupId(dto.getAtchFileId().intValue()));
         }
-
         return response;
     }
 
     @Override
     @Transactional
-    public int insertInstructorBoard(InstructorBoardDto instructorBoardDto) {
-        int rowcnt = instructorBoardMapper.insertInstructorBoard(instructorBoardDto);
+    public int insertInstructorBoard(InstructorBoardDto dto) {
+        int rowcnt = instructorBoardMapper.insertInstructorBoard(dto);
         if (rowcnt > 0) {
-            if ("QNA".equals(instructorBoardDto.getBoardTypeCd())) {
-                instructorBoardMapper.insertInstructorQna(instructorBoardDto.getPostSn());
+            if ("QNA".equals(dto.getBoardTypeCd())) {
+                instructorBoardMapper.insertInstructorQna(dto.getPostSn());
             }
-            log.info("게시글 등록 성공 : {}", instructorBoardDto);
+            log.info("게시글 등록 성공 : {}", dto);
         } else {
-            log.warn("게시글 등록 실패 : {}", instructorBoardDto);
+            log.warn("게시글 등록 실패 : {}", dto);
         }
         return rowcnt;
     }
 
     @Override
-    public int updateInstructorBoard(InstructorBoardDto instructorBoardDto) {
-        int rowcnt = instructorBoardMapper.updateInstructorBoard(instructorBoardDto);
+    public int updateInstructorBoard(InstructorBoardDto dto) {
+        int rowcnt = instructorBoardMapper.updateInstructorBoard(dto);
         if (rowcnt > 0) {
-            log.info("게시글 수정 성공 : {}", instructorBoardDto);
+            log.info("게시글 수정 성공 : {}", dto);
         } else {
-            log.warn("게시글 수정 실패 : {}", instructorBoardDto);
+            log.warn("게시글 수정 실패 : {}", dto);
         }
         return rowcnt;
     }
@@ -125,7 +136,19 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
         return instructorBoardMapper.restoreInstructorBoard(postSn, instrUserId);
     }
 
-    // ── 클래스룸 공지사항 ──────────────────────────────────────────
+    @Override
+    public int hardDeleteInstructorBoard(Long postSn) {
+        return instructorBoardMapper.hardDeleteInstructorBoard(postSn);
+    }
+
+    @Override
+    @Transactional
+    public int answerInstructorQna(Long postSn, String answrUserId, String answCn) {
+        return instructorBoardMapper.updateInstructorQnaAnswer(postSn, answrUserId, answCn);
+    }
+
+    // ── 클래스룸 공지사항 ──────────────────────────────────────────────
+
     @Override
     public List<InstructorBoardDto> getClassroomNoticeList(Long classSn) {
         return instructorBoardMapper.selectClassroomNoticeList(classSn);
@@ -143,22 +166,59 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     }
 
     @Override
+    @Transactional
+    public int updateClassroomNotice(InstructorBoardDto dto) {
+        return instructorBoardMapper.updateClassroomNotice(dto);
+    }
+
+    @Override
     public int deleteClassroomNotice(Long postSn, Long classSn) {
         return instructorBoardMapper.deleteClassroomNotice(postSn, classSn);
     }
 
-    // ── 클래스룸 Q&A ──────────────────────────────────────────────
+    // ── 클래스룸 자료실 ───────────────────────────────────────────────
+
     @Override
-    public List<kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto> getClassroomQnaList(Long classSn) {
+    public List<InstructorBoardDto> getClassroomDataroomList(Long classSn) {
+        return instructorBoardMapper.selectClassroomDataroomList(classSn);
+    }
+
+    @Override
+    public InstructorBoardDto getClassroomDataroomDetail(Long postSn, Long classSn) {
+        return instructorBoardMapper.selectClassroomDataroomDetail(postSn, classSn);
+    }
+
+    @Override
+    public int insertClassroomDataroom(InstructorBoardDto dto) {
+        dto.setBoardTypeCd("DATAROOM");
+        return instructorBoardMapper.insertClassroomDataroom(dto);
+    }
+
+    @Override
+    @Transactional
+    public int updateClassroomDataroom(InstructorBoardDto dto) {
+        return instructorBoardMapper.updateClassroomDataroom(dto);
+    }
+
+    @Override
+    public int deleteClassroomDataroom(Long postSn, Long classSn) {
+        return instructorBoardMapper.deleteClassroomDataroom(postSn, classSn);
+    }
+
+    // ── 클래스룸 Q&A ──────────────────────────────────────────────────
+
+    @Override
+    public List<ClassroomQnaDto> getClassroomQnaList(Long classSn) {
         return instructorBoardMapper.selectClassroomQnaList(classSn);
     }
 
     @Override
-    public kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto getClassroomQnaDetail(Long postSn, Long classSn) {
+    public ClassroomQnaDto getClassroomQnaDetail(Long postSn, Long classSn) {
         return instructorBoardMapper.selectClassroomQnaDetail(postSn, classSn);
     }
 
     @Override
+    @Transactional
     public void insertClassroomQna(InstructorBoardDto dto) {
         dto.setBoardTypeCd("QNA");
         instructorBoardMapper.insertClassroomQnaBoard(dto);
@@ -175,34 +235,23 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
         return instructorBoardMapper.selectUnansweredQnaCount(classSn);
     }
 
-    // ── 공개 강사 게시판 Q&A 답변 ──────────────────────────────────
-    @Override
-    @Transactional
-    public int answerInstructorQna(Long postSn, String answrUserId, String answCn) {
-        return instructorBoardMapper.updateInstructorQnaAnswer(postSn, answrUserId, answCn);
-    }
+    // ── 공개 강사 게시판 (React 프론트 전용) ─────────────────────────
 
-    // ── 공개 강사 게시판 (React 프론트용) ──────────────────────────
     @Override
     public PageResponse<InstructorPublicBoardItem> getPublicBoardList(
             String instrUuid, String boardTypeCd, int pageIndex, int size) {
         int offset = pageIndex * size;
         int total = instructorBoardMapper.selectPublicBoardCount(instrUuid, boardTypeCd);
-        List<InstructorPublicBoardItem> items
-                = instructorBoardMapper.selectPublicBoardList(instrUuid, boardTypeCd, offset, size);
+        List<InstructorPublicBoardItem> items =
+                instructorBoardMapper.selectPublicBoardList(instrUuid, boardTypeCd, offset, size);
         return new PageResponse<>(items, total);
-    }
-
-    private static String resolveBoardTypeNm(String boardTypeCd) {
-        if (boardTypeCd == null) return "";
-        try { return BoardType.valueOf(boardTypeCd).getLabel(); } catch (IllegalArgumentException e) { return boardTypeCd; }
     }
 
     @Override
     @Transactional
     public InstructorPublicBoardDetail getPublicBoardDetail(String instrUuid, Long postSn) {
-        InstructorPublicBoardDetail detail
-                = instructorBoardMapper.selectPublicBoardDetail(instrUuid, postSn);
+        InstructorPublicBoardDetail detail =
+                instructorBoardMapper.selectPublicBoardDetail(instrUuid, postSn);
         if (detail == null) {
             return null;
         }
@@ -215,4 +264,15 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
         return detail;
     }
 
+    // ── 내부 유틸 ─────────────────────────────────────────────────────
+
+    /** BoardType enum에서 한글 레이블을 반환한다. 알 수 없는 코드면 코드 그대로 반환. */
+    private static String resolveBoardTypeNm(String boardTypeCd) {
+        if (boardTypeCd == null) return "";
+        try {
+            return BoardType.valueOf(boardTypeCd).getLabel();
+        } catch (IllegalArgumentException e) {
+            return boardTypeCd;
+        }
+    }
 }

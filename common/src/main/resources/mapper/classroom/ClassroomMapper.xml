@@ -23,6 +23,7 @@
     <result property="enrlStrtYmd"  column="ENRL_STRT_YMD" />
     <result property="enrlEndYmd"   column="ENRL_END_YMD" />
     <result property="instrNm"      column="INSTR_NM" />
+    <result property="instrUserId"  column="INSTR_USER_ID" />
     <result property="memberCount"  column="MEMBER_COUNT" />
     <result property="instrUuid"    column="INSTR_UUID"/>
   </resultMap>
@@ -38,7 +39,7 @@
             SELECT COUNT(*)
             FROM CLASSROOM_MEMBER cm
             WHERE cm.CLASS_SN = cl.CLASS_SN
-              AND cm.ENRL_STAT_CD = '01'
+              AND cm.ENRL_STAT_CD = 'ENROLLED'
         ) AS STUDENT_COUNT
     FROM CLASSROOM cl
     JOIN COURSE c ON cl.COURSE_SN = c.COURSE_SN
@@ -55,13 +56,14 @@
         cl.CLASS_STAT_CD,
         cl.ENRL_STRT_YMD,
         cl.ENRL_END_YMD,
+        c.INSTR_USER_ID,
         m.USER_NAME AS INSTR_NM,
-            i.instr_uuid,
+        i.instr_uuid,
         (
             SELECT COUNT(*)
             FROM CLASSROOM_MEMBER cm
             WHERE cm.CLASS_SN = cl.CLASS_SN
-              AND cm.ENRL_STAT_CD = '01'
+              AND cm.ENRL_STAT_CD = 'ENROLLED'
         ) AS MEMBER_COUNT
     FROM CLASSROOM cl
     JOIN COURSE c   ON cl.COURSE_SN = c.COURSE_SN
@@ -70,5 +72,189 @@
     WHERE cl.CLASS_SN = #{classSn}
   </select>
 
+  <select id="selectWeeklyCompletions" resultType="map">
+    SELECT
+        TO_CHAR(TRUNC(CMPL_DT), 'YYYYMMDD') AS DAY_DATE,
+        COUNT(*)                              AS CNT
+    FROM STUDENT_CONTENT_PROGRESS
+    WHERE CLASS_SN = #{classSn}
+      AND CMPL_YN  = 'Y'
+      AND CMPL_DT >= TO_DATE(#{weekStart}, 'YYYYMMDD')
+      AND CMPL_DT  &lt; TO_DATE(#{weekEnd},   'YYYYMMDD') + 1
+    GROUP BY TRUNC(CMPL_DT)
+    ORDER BY TRUNC(CMPL_DT)
+  </select>
+
+  <select id="selectTotalCompletionsInRange" resultType="int">
+    SELECT COUNT(*)
+    FROM STUDENT_CONTENT_PROGRESS
+    WHERE CLASS_SN = #{classSn}
+      AND CMPL_YN  = 'Y'
+      AND CMPL_DT >= TO_DATE(#{rangeStart}, 'YYYYMMDD')
+      AND CMPL_DT  &lt; TO_DATE(#{rangeEnd}, 'YYYYMMDD') + 1
+  </select>
+
+  <select id="selectAvgProgressRate" resultType="java.lang.Double">
+    SELECT
+        CASE
+            WHEN NVL(s.TOTAL_STUDENTS, 0) = 0
+              OR NVL(lect.TOTAL_LECTURES, 0) = 0 THEN 0
+            ELSE ROUND(
+                NVL(prog.TOTAL_COMPLETED, 0) * 100.0
+                / (s.TOTAL_STUDENTS * lect.TOTAL_LECTURES),
+                1
+            )
+        END
+    FROM DUAL
+    LEFT JOIN (
+        SELECT COUNT(*) AS TOTAL_STUDENTS
+        FROM CLASSROOM_MEMBER
+        WHERE CLASS_SN = #{classSn}
+          AND ENRL_STAT_CD IN ('ENROLLED', 'COMPLETED')
+    ) s ON 1 = 1
+    LEFT JOIN (
+        SELECT COUNT(*) AS TOTAL_LECTURES
+        FROM LECTURE
+        WHERE COURSE_SN = (
+            SELECT COURSE_SN FROM CLASSROOM WHERE CLASS_SN = #{classSn}
+        )
+          AND OPNN_YN = 'Y'
+    ) lect ON 1 = 1
+    LEFT JOIN (
+        SELECT COUNT(*) AS TOTAL_COMPLETED
+        FROM STUDENT_CONTENT_PROGRESS scp
+        JOIN CLASSROOM_MEMBER cm
+          ON scp.CLASS_SN = cm.CLASS_SN
+         AND scp.USER_ID  = cm.USER_ID
+         AND cm.ENRL_STAT_CD IN ('ENROLLED', 'COMPLETED')
+        WHERE scp.CMPL_YN = 'Y'
+          AND scp.CLASS_SN = #{classSn}
+    ) prog ON 1 = 1
+  </select>
+
+  <select id="selectAssignmentSubmitRate" resultType="java.lang.Double">
+    SELECT
+        CASE
+            WHEN NVL(a.TOTAL_ASGMT, 0) = 0
+              OR NVL(s.ACTIVE_CNT, 0) = 0 THEN 0
+            ELSE ROUND(
+                NVL(sub.SUBMIT_CNT, 0) * 100.0
+                / (a.TOTAL_ASGMT * s.ACTIVE_CNT),
+                1
+            )
+        END
+    FROM DUAL
+    LEFT JOIN (
+        SELECT COUNT(*) AS TOTAL_ASGMT
+        FROM ASSIGNMENT_BOARD
+        WHERE CLASS_SN = #{classSn}
+    ) a ON 1 = 1
+    LEFT JOIN (
+        SELECT COUNT(*) AS ACTIVE_CNT
+        FROM CLASSROOM_MEMBER
+        WHERE CLASS_SN = #{classSn}
+          AND ENRL_STAT_CD = 'ENROLLED'
+    ) s ON 1 = 1
+    LEFT JOIN (
+        SELECT COUNT(*) AS SUBMIT_CNT
+        FROM ASSIGNMENT_SUBMIT asub
+        JOIN ASSIGNMENT_BOARD ab ON asub.ASGMT_SN = ab.ASGMT_SN
+        WHERE ab.CLASS_SN = #{classSn}
+    ) sub ON 1 = 1
+  </select>
+
+  <select id="selectExamTakerRate" resultType="java.lang.Double">
+    SELECT
+        CASE
+            WHEN (
+                SELECT COUNT(*)
+                FROM CLASSROOM_MEMBER
+                WHERE CLASS_SN = #{classSn}
+                  AND ENRL_STAT_CD = 'ENROLLED'
+            ) = 0
+              OR (
+                SELECT COUNT(*)
+                FROM EXAM
+                WHERE CLASS_SN = #{classSn}
+                  AND EXAM_STAT_CD != '99'
+            ) = 0
+            THEN 0
+            ELSE ROUND(
+                (
+                    SELECT COUNT(*)
+                    FROM EXAM_TAKER
+                    WHERE EXAM_SN = (
+                        SELECT EXAM_SN
+                        FROM EXAM
+                        WHERE CLASS_SN = #{classSn}
+                          AND EXAM_STAT_CD != '99'
+                        ORDER BY EXAM_REG_DT DESC
+                        FETCH FIRST 1 ROWS ONLY
+                    )
+                ) * 100.0
+                / (
+                    SELECT COUNT(*)
+                    FROM CLASSROOM_MEMBER
+                    WHERE CLASS_SN = #{classSn}
+                      AND ENRL_STAT_CD = 'ENROLLED'
+                ),
+                1
+            )
+        END
+    FROM DUAL
+  </select>
+
+  <select id="selectEventDatesThisMonth" resultType="String">
+    SELECT DISTINCT EVENT_DATE FROM (
+        SELECT TO_CHAR(TRUNC(EXAM_STRT_DT), 'YYYYMMDD') AS EVENT_DATE
+        FROM EXAM
+        WHERE CLASS_SN     = #{classSn}
+          AND EXAM_STAT_CD != '99'
+          AND TO_CHAR(EXAM_STRT_DT, 'YYYYMM') = LPAD(#{year}, 4, '0') || LPAD(#{month}, 2, '0')
+        UNION
+        SELECT TO_CHAR(TRUNC(SBMT_DDLN_DT), 'YYYYMMDD')
+        FROM ASSIGNMENT_BOARD
+        WHERE CLASS_SN = #{classSn}
+          AND SBMT_DDLN_DT IS NOT NULL
+          AND TO_CHAR(SBMT_DDLN_DT, 'YYYYMM') = LPAD(#{year}, 4, '0') || LPAD(#{month}, 2, '0')
+    )
+  </select>
+
+  <select id="selectInactiveStudentCount" resultType="int">
+    SELECT COUNT(*)
+    FROM CLASSROOM_MEMBER cm
+    WHERE cm.CLASS_SN     = #{classSn}
+      AND cm.ENRL_STAT_CD = 'ENROLLED'
+      AND cm.USER_ID NOT IN (
+          SELECT DISTINCT USER_ID
+          FROM STUDENT_CONTENT_PROGRESS
+          WHERE CLASS_SN = #{classSn}
+            AND CMPL_YN  = 'Y'
+            AND CMPL_DT >= TO_DATE(#{weekStart}, 'YYYYMMDD')
+            AND CMPL_DT  &lt; TO_DATE(#{weekEnd}, 'YYYYMMDD') + 1
+      )
+  </select>
+
+  <select id="selectUpcomingAssignmentCount" resultType="int">
+    SELECT COUNT(*)
+    FROM ASSIGNMENT_BOARD
+    WHERE CLASS_SN     = #{classSn}
+      AND SBMT_DDLN_DT > SYSDATE
+  </select>
+
+  <select id="selectTodayExam" resultType="map">
+    SELECT
+        E.EXAM_SN      AS examSn,
+        E.EXAM_REG_NM  AS examRegNm,
+        C.COURSE_NM    AS courseNm
+    FROM EXAM E
+    JOIN CLASSROOM  CL ON CL.CLASS_SN  = E.CLASS_SN
+    JOIN COURSE     C  ON C.COURSE_SN  = CL.COURSE_SN
+    WHERE E.CLASS_SN     = #{classSn}
+      AND E.EXAM_STAT_CD != '99'
+      AND TRUNC(SYSDATE) BETWEEN TRUNC(E.EXAM_STRT_DT) AND TRUNC(E.EXAM_END_DT)
+    ORDER BY E.EXAM_REG_DT DESC
+    FETCH FIRST 1 ROWS ONLY
+  </select>
 
 </mapper>

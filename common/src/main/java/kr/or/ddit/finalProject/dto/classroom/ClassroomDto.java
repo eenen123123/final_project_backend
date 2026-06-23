@@ -20,7 +20,7 @@ public class ClassroomDto implements Serializable {
     private String classNm;
     private String enrlStrtYmd; // 표현형식 YYYYMMDD (CHAR 8)
     private String enrlEndYmd;  // 표현형식 YYYYMMDD (CHAR 8), NULL = 무기한
-    private String classStatCd; // 01=모집중, 02=운영중, 03=종료, 04=대기
+    private ClassStatus classStatCd;
     private LocalDateTime regDt;
     private LocalDateTime mdfcnDt;
     private String rgtrId;

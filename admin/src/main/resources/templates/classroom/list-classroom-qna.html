@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html th:replace="~{classroom/layout-classroom :: layout(
+    ${classroom.classNm} + ' | Q&A',
+    ${classroom},
+    'qna',
+    ~{:: #content}
+)}" lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div id="content">
+
+  <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
+    <div class="px-7 py-5 border-b border-slate-100">
+      <h2 class="text-base font-bold text-slate-800">Q&amp;A</h2>
+      <p class="text-sm text-slate-400 mt-1">수강생의 질문 목록입니다.</p>
+    </div>
+
+    <div th:if="${#lists.isEmpty(qnaList)}"
+         class="p-20 flex flex-col items-center justify-center text-center gap-4">
+      <div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 text-3xl">
+        <i class="fa-solid fa-comments"></i>
+      </div>
+      <p class="text-base font-medium text-slate-400">등록된 질문이 없습니다.</p>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(qnaList)}" class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-slate-100 text-sm text-slate-400">
+            <th class="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
+            <th class="py-4 px-7 font-medium">제목</th>
+            <th class="py-4 px-7 w-28 font-medium whitespace-nowrap">작성자</th>
+            <th class="py-4 px-7 w-32 text-center font-medium whitespace-nowrap">답변</th>
+            <th class="py-4 px-7 w-40 font-medium whitespace-nowrap">작성일</th>
+          </tr>
+        </thead>
+        <tbody class="text-slate-700">
+          <tr th:each="qna, stat : ${qnaList}" class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+            <td class="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap"
+                th:text="${qnaList.size() - stat.index}">1</td>
+            <td class="py-4 px-7">
+              <a th:href="@{/classroom/detail/{sn}/qna/{postSn}(sn=${classroom.classSn},postSn=${qna.postSn})}"
+                 class="font-semibold text-slate-800 hover:text-blue-600 transition-colors text-sm"
+                 th:text="${qna.postSj}">질문 제목</a>
+            </td>
+            <td class="py-4 px-7 text-sm text-slate-500 whitespace-nowrap"
+                th:text="${qna.memberDto != null ? qna.memberDto.userName : qna.wrtrUserId}">작성자</td>
+            <td class="py-4 px-7 text-center whitespace-nowrap">
+              <span th:if="${qna.answYn == 'Y'}"
+                    class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold text-emerald-500 border border-emerald-100">답변완료</span>
+              <span th:unless="${qna.answYn == 'Y'}"
+                    class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold text-amber-500 border border-amber-100">미답변</span>
+            </td>
+            <td class="py-4 px-7 text-sm text-slate-400 font-mono whitespace-nowrap"
+                th:text="${qna.regDt != null ? #temporals.format(qna.regDt, 'yyyy-MM-dd') : '-'}">2026-06-01</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="px-7 py-4 border-t border-slate-100">
+      <p class="text-sm text-slate-400">
+        전체 <span class="font-semibold text-slate-600" th:text="${#lists.size(qnaList)}">0</span>건
+      </p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

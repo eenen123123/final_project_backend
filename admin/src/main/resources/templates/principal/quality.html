@@ -2,27 +2,31 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-<div class="space-y-6">
+<div class="space-y-6" xmlns:th="http://www.thymeleaf.org">
 
-  <!-- ① 페이지 헤더 -->
+  <!-- ① 페이지 헤더 + 기간 필터 -->
   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
     <div>
       <h1 class="text-2xl font-bold text-slate-900 tracking-tight">서비스 품질 관리</h1>
       <p class="text-sm text-slate-500 mt-1">강사별 Q&amp;A 답변 소요 시간과 처리율을 모니터링하여 학생 응대 품질을 관리합니다.</p>
     </div>
-    <div class="flex items-center gap-3">
-      <div class="w-40">
-        <select class="hm-input" id="periodSelect">
-          <option>최근 30일</option>
-          <option>최근 7일</option>
-          <option>이번 달</option>
-          <option>지난 달</option>
-        </select>
+    <!-- 기간 선택 -->
+    <div class="flex items-center gap-2 shrink-0">
+      <span class="text-xs text-slate-400 font-medium">조회 기간</span>
+      <div class="flex rounded-xl border border-slate-200 overflow-hidden text-xs font-semibold">
+        <a th:href="@{/admin/quality(period='7d')}"
+           th:classappend="${period == '7d'} ? 'bg-violet-600 text-white' : 'bg-white text-slate-500 hover:bg-slate-50'"
+           class="px-3 py-1.5 transition-colors">최근 7일</a>
+        <a th:href="@{/admin/quality(period='30d')}"
+           th:classappend="${period == '30d' or period == null} ? 'bg-violet-600 text-white' : 'bg-white text-slate-500 hover:bg-slate-50'"
+           class="px-3 py-1.5 border-x border-slate-200 transition-colors">최근 30일</a>
+        <a th:href="@{/admin/quality(period='this_month')}"
+           th:classappend="${period == 'this_month'} ? 'bg-violet-600 text-white' : 'bg-white text-slate-500 hover:bg-slate-50'"
+           class="px-3 py-1.5 border-r border-slate-200 transition-colors">이번 달</a>
+        <a th:href="@{/admin/quality(period='last_month')}"
+           th:classappend="${period == 'last_month'} ? 'bg-violet-600 text-white' : 'bg-white text-slate-500 hover:bg-slate-50'"
+           class="px-3 py-1.5 transition-colors">지난 달</a>
       </div>
-      <button class="hm-btn-primary" onclick="showHermesToast('품질 리포트를 내보내기합니다.', 'success')">
-        <i class="fa-solid fa-file-arrow-down"></i>
-        <span>리포트 내보내기</span>
-      </button>
     </div>
   </div>
 
@@ -34,7 +38,8 @@
       </div>
       <div>
         <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">전체 Q&amp;A</p>
-        <p class="text-2xl font-bold text-slate-800 mt-0.5">312건</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5"
+           th:text="${summary != null ? summary['TOTAL_CNT'] + '건' : '0건'}">0건</p>
       </div>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
@@ -43,7 +48,8 @@
       </div>
       <div>
         <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">전체 처리율</p>
-        <p class="text-2xl font-bold text-slate-800 mt-0.5">91.3%</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5"
+           th:text="${summary != null and summary['ANSWER_RATE'] != null ? summary['ANSWER_RATE'] + '%' : '-'}">-</p>
       </div>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
@@ -52,7 +58,8 @@
       </div>
       <div>
         <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">평균 응답 시간</p>
-        <p class="text-2xl font-bold text-slate-800 mt-0.5">4.2h</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5"
+           th:text="${summary != null and summary['AVG_RESPONSE_HOURS'] != null ? summary['AVG_RESPONSE_HOURS'] + 'h' : '-'}">-</p>
       </div>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
@@ -61,53 +68,41 @@
       </div>
       <div>
         <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">미처리 (24h+)</p>
-        <p class="text-2xl font-bold text-slate-800 mt-0.5">8건</p>
+        <p class="text-2xl font-bold text-slate-800 mt-0.5"
+           th:text="${summary != null ? summary['OVERDUE_CNT'] + '건' : '0건'}">0건</p>
       </div>
     </div>
   </div>
 
-  <!-- ③ 강사별 성과 카드 + 차트 -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-
-    <!-- 강사별 Q&A 처리율 차트 -->
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 lg:col-span-2">
-      <h2 class="text-sm font-bold text-slate-700 mb-4">강사별 Q&amp;A 처리율 비교</h2>
-      <div class="h-56">
-        <canvas id="qaRateChart"></canvas>
-      </div>
+  <!-- ③ 강사별 처리율 차트 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+    <h2 class="text-sm font-bold text-slate-700 mb-4">강사별 Q&amp;A 처리율 비교</h2>
+    <div class="h-56">
+      <canvas id="qaRateChart"></canvas>
     </div>
-
-    <!-- 응답 시간 분포 -->
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-      <h2 class="text-sm font-bold text-slate-700 mb-4">응답 시간 분포</h2>
-      <div class="h-56">
-        <canvas id="responseTimeChart"></canvas>
-      </div>
-    </div>
-
   </div>
 
   <!-- ④ 강사별 상세 테이블 -->
   <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
     <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
       <h2 class="text-sm font-bold text-slate-700">강사별 Q&amp;A 처리 현황 상세</h2>
-      <div class="flex items-center gap-3">
-        <div class="w-44">
-          <select class="hm-input !py-1.5 !text-xs">
-            <option value="">전체 강사</option>
-            <option>수학 강사</option>
-            <option>영어 강사</option>
-          </select>
-        </div>
-        <div class="flex items-center gap-2 text-xs text-slate-400">
-          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>우수
-          <span class="w-2 h-2 rounded-full bg-amber-400 ml-2"></span>보통
-          <span class="w-2 h-2 rounded-full bg-rose-400 ml-2"></span>미흡
-        </div>
-      </div>
+      <select id="instructorFilter" class="hm-input !py-1.5 !text-xs w-44"
+              onchange="filterTable(this.value)">
+        <option value="">전체 강사</option>
+        <option th:each="s : ${stats}"
+                th:value="${s.instrUserId}"
+                th:text="${s.instrUserNm}">강사명</option>
+      </select>
     </div>
 
-    <div class="overflow-x-auto">
+    <!-- 데이터 없을 때 -->
+    <div th:if="${stats == null or #lists.isEmpty(stats)}"
+         class="px-6 py-16 text-center text-sm text-slate-400">
+      <i class="fa-solid fa-inbox text-2xl mb-2 block"></i>
+      해당 기간에 Q&amp;A 데이터가 없습니다.
+    </div>
+
+    <div th:unless="${stats == null or #lists.isEmpty(stats)}" class="overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
@@ -117,281 +112,145 @@
             <th class="py-4 px-6 text-right">미처리</th>
             <th class="py-4 px-6">처리율</th>
             <th class="py-4 px-6 text-right">평균 응답 시간</th>
-            <th class="py-4 px-6 text-right">최장 응답</th>
-            <th class="py-4 px-6 text-center">등급</th>
+            <th class="py-4 px-6 text-center">조치 필요 여부</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
-
-          <!-- 강사 1 - 우수 -->
-          <tr class="hover:bg-slate-50/50 transition-colors">
+          <tr th:each="s : ${stats}"
+              th:attr="data-instructor-id=${s.instrUserId}"
+              th:classappend="${s.answerRate < 70} ? 'bg-rose-50/40 hover:bg-rose-50/60' : 'hover:bg-slate-50/50'"
+              class="transition-colors">
             <td class="py-4 px-6">
               <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center font-bold text-sm shrink-0">홍</div>
-                <div>
-                  <p class="font-bold text-slate-800">홍길동</p>
-                  <p class="text-xs text-slate-400">수학 · 원장</p>
-                </div>
+                <div th:with="firstChar=${#strings.substring(s.instrUserNm, 0, 1)}"
+                     th:classappend="${s.answerRate >= 90} ? 'bg-violet-100 text-violet-700' : (${s.answerRate >= 70} ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700')"
+                     class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0"
+                     th:text="${firstChar}">이</div>
+                <p class="font-bold text-slate-800" th:text="${s.instrUserNm}">강사명</p>
               </div>
             </td>
-            <td class="py-4 px-6 text-right font-mono">74건</td>
-            <td class="py-4 px-6 text-right font-mono text-emerald-600 font-semibold">74건</td>
-            <td class="py-4 px-6 text-right font-mono text-slate-400">0건</td>
+            <td class="py-4 px-6 text-right font-mono" th:text="${s.totalCnt + '건'}">0건</td>
+            <td class="py-4 px-6 text-right font-mono text-emerald-600 font-semibold" th:text="${s.answeredCnt + '건'}">0건</td>
+            <td class="py-4 px-6 text-right font-mono"
+                th:classappend="${s.unansweredCnt == 0} ? 'text-slate-400' : (${s.answerRate >= 70} ? 'text-amber-500 font-semibold' : 'text-rose-500 font-bold')"
+                th:text="${s.unansweredCnt + '건'}">0건</td>
             <td class="py-4 px-6">
               <div class="flex items-center gap-2">
                 <div class="w-24 h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                  <div class="h-full bg-emerald-500 rounded-full" style="width: 100%"></div>
+                  <div class="h-full rounded-full"
+                       th:classappend="${s.answerRate >= 90} ? 'bg-emerald-500' : (${s.answerRate >= 70} ? 'bg-amber-400' : 'bg-rose-400')"
+                       th:style="'width: ' + ${s.answerRate} + '%'"></div>
                 </div>
-                <span class="text-xs font-bold text-emerald-600">100%</span>
+                <span class="text-xs font-bold"
+                      th:classappend="${s.answerRate >= 90} ? 'text-emerald-600' : (${s.answerRate >= 70} ? 'text-amber-500' : 'text-rose-500')"
+                      th:text="${s.answerRate + '%'}">0%</span>
               </div>
             </td>
-            <td class="py-4 px-6 text-right font-mono text-sm">1.8h</td>
-            <td class="py-4 px-6 text-right font-mono text-sm text-slate-500">6.2h</td>
+            <td class="py-4 px-6 text-right font-mono text-sm"
+                th:classappend="${s.avgResponseHours != null and s.avgResponseHours > 12} ? 'text-amber-500 font-semibold' : 'text-slate-600'"
+                th:text="${s.avgResponseHours != null ? s.avgResponseHours + 'h' : '-'}">-</td>
+            <!-- 조치 필요 여부: 미처리 건수 기반 -->
             <td class="py-4 px-6 text-center">
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700">
-                <i class="fa-solid fa-star text-[10px]"></i> S
+              <!-- 미처리 0건: 정상 -->
+              <span th:if="${s.unansweredCnt == 0}"
+                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
+                <i class="fa-solid fa-circle-check text-[10px]"></i> 정상
+              </span>
+              <!-- 미처리 있고 처리율 70% 이상: 관찰 필요 -->
+              <span th:if="${s.unansweredCnt > 0 and s.answerRate >= 70}"
+                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700">
+                <i class="fa-solid fa-eye text-[10px]"></i> 관찰 필요
+                <span class="ml-0.5 font-bold" th:text="'(' + ${s.unansweredCnt} + '건)'"></span>
+              </span>
+              <!-- 처리율 70% 미만: 즉시 조치 -->
+              <span th:if="${s.answerRate < 70}"
+                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700">
+                <i class="fa-solid fa-circle-exclamation text-[10px]"></i> 즉시 조치
+                <span class="ml-0.5 font-bold" th:text="'(' + ${s.unansweredCnt} + '건)'"></span>
               </span>
             </td>
           </tr>
-
-          <!-- 강사 2 - 우수 -->
-          <tr class="hover:bg-slate-50/50 transition-colors">
-            <td class="py-4 px-6">
-              <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-sm shrink-0">이</div>
-                <div>
-                  <p class="font-bold text-slate-800">이수진</p>
-                  <p class="text-xs text-slate-400">수학 · 강사</p>
-                </div>
-              </div>
-            </td>
-            <td class="py-4 px-6 text-right font-mono">68건</td>
-            <td class="py-4 px-6 text-right font-mono text-emerald-600 font-semibold">65건</td>
-            <td class="py-4 px-6 text-right font-mono text-amber-500">3건</td>
-            <td class="py-4 px-6">
-              <div class="flex items-center gap-2">
-                <div class="w-24 h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                  <div class="h-full bg-emerald-500 rounded-full" style="width: 95.6%"></div>
-                </div>
-                <span class="text-xs font-bold text-emerald-600">95.6%</span>
-              </div>
-            </td>
-            <td class="py-4 px-6 text-right font-mono text-sm">2.4h</td>
-            <td class="py-4 px-6 text-right font-mono text-sm text-slate-500">9.1h</td>
-            <td class="py-4 px-6 text-center">
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700">
-                <i class="fa-solid fa-star text-[10px]"></i> A
-              </span>
-            </td>
-          </tr>
-
-          <!-- 강사 3 - 우수 -->
-          <tr class="hover:bg-slate-50/50 transition-colors">
-            <td class="py-4 px-6">
-              <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-sm shrink-0">김</div>
-                <div>
-                  <p class="font-bold text-slate-800">김민준</p>
-                  <p class="text-xs text-slate-400">영어 · 팀장</p>
-                </div>
-              </div>
-            </td>
-            <td class="py-4 px-6 text-right font-mono">82건</td>
-            <td class="py-4 px-6 text-right font-mono text-emerald-600 font-semibold">78건</td>
-            <td class="py-4 px-6 text-right font-mono text-amber-500">4건</td>
-            <td class="py-4 px-6">
-              <div class="flex items-center gap-2">
-                <div class="w-24 h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                  <div class="h-full bg-emerald-500 rounded-full" style="width: 95.1%"></div>
-                </div>
-                <span class="text-xs font-bold text-emerald-600">95.1%</span>
-              </div>
-            </td>
-            <td class="py-4 px-6 text-right font-mono text-sm">3.1h</td>
-            <td class="py-4 px-6 text-right font-mono text-sm text-slate-500">11.5h</td>
-            <td class="py-4 px-6 text-center">
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700">
-                <i class="fa-solid fa-star text-[10px]"></i> A
-              </span>
-            </td>
-          </tr>
-
-          <!-- 강사 4 - 보통 -->
-          <tr class="hover:bg-slate-50/50 transition-colors">
-            <td class="py-4 px-6">
-              <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm shrink-0">박</div>
-                <div>
-                  <p class="font-bold text-slate-800">박지성</p>
-                  <p class="text-xs text-slate-400">수학 · 강사</p>
-                </div>
-              </div>
-            </td>
-            <td class="py-4 px-6 text-right font-mono">55건</td>
-            <td class="py-4 px-6 text-right font-mono text-slate-700 font-semibold">48건</td>
-            <td class="py-4 px-6 text-right font-mono text-amber-500 font-semibold">7건</td>
-            <td class="py-4 px-6">
-              <div class="flex items-center gap-2">
-                <div class="w-24 h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                  <div class="h-full bg-amber-400 rounded-full" style="width: 87.3%"></div>
-                </div>
-                <span class="text-xs font-bold text-amber-500">87.3%</span>
-              </div>
-            </td>
-            <td class="py-4 px-6 text-right font-mono text-sm">5.8h</td>
-            <td class="py-4 px-6 text-right font-mono text-sm text-amber-500 font-semibold">22.4h</td>
-            <td class="py-4 px-6 text-center">
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-600">
-                <i class="fa-solid fa-minus text-[10px]"></i> B
-              </span>
-            </td>
-          </tr>
-
-          <!-- 강사 5 - 미흡 -->
-          <tr class="hover:bg-rose-50/30 transition-colors">
-            <td class="py-4 px-6">
-              <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-sm shrink-0">최</div>
-                <div>
-                  <p class="font-bold text-slate-800">최지원</p>
-                  <p class="text-xs text-slate-400">영어 · 강사</p>
-                </div>
-              </div>
-            </td>
-            <td class="py-4 px-6 text-right font-mono">33건</td>
-            <td class="py-4 px-6 text-right font-mono text-slate-700 font-semibold">24건</td>
-            <td class="py-4 px-6 text-right font-mono text-rose-500 font-bold">9건</td>
-            <td class="py-4 px-6">
-              <div class="flex items-center gap-2">
-                <div class="w-24 h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                  <div class="h-full bg-rose-400 rounded-full" style="width: 72.7%"></div>
-                </div>
-                <span class="text-xs font-bold text-rose-500">72.7%</span>
-              </div>
-            </td>
-            <td class="py-4 px-6 text-right font-mono text-sm text-rose-500 font-semibold">9.6h</td>
-            <td class="py-4 px-6 text-right font-mono text-sm text-rose-600 font-bold">31.2h</td>
-            <td class="py-4 px-6 text-center">
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-600">
-                <i class="fa-solid fa-arrow-down text-[10px]"></i> C
-              </span>
-            </td>
-          </tr>
-
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- ⑤ 미처리 Q&A 목록 (긴급) -->
-  <div class="bg-white rounded-2xl border border-amber-100 shadow-sm overflow-hidden">
+  <!-- ⑤ 24시간 초과 미처리 Q&A -->
+  <div class="bg-white rounded-2xl border border-amber-100 shadow-sm overflow-hidden"
+       th:if="${overdueList != null and not #lists.isEmpty(overdueList)}">
     <div class="flex items-center justify-between px-6 py-4 border-b border-amber-100 bg-amber-50/50">
       <div class="flex items-center gap-2">
         <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
-        <h2 class="text-sm font-bold text-amber-700">24시간 초과 미처리 Q&amp;A <span class="text-amber-500">(8건)</span></h2>
+        <h2 class="text-sm font-bold text-amber-700">
+          24시간 초과 미처리 Q&amp;A
+          <span class="text-amber-500" th:text="'(' + ${#lists.size(overdueList)} + '건)'"></span>
+        </h2>
       </div>
-      <button class="text-xs font-semibold text-amber-600 hover:text-amber-800 transition-colors"
-        onclick="showHermesToast('담당 강사에게 일괄 알림을 발송했습니다.', 'success')">
-        <i class="fa-solid fa-bell mr-1"></i>일괄 알림 발송
-      </button>
     </div>
-
     <div class="divide-y divide-slate-50">
-
-      <div class="flex items-start gap-4 px-6 py-4 hover:bg-slate-50/40 transition-colors">
-        <div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-sm shrink-0 mt-0.5">최</div>
+      <div th:each="q : ${overdueList}"
+           class="flex items-start gap-4 px-6 py-4 hover:bg-slate-50/40 transition-colors">
+        <div th:with="firstChar=${#strings.substring(q.instrUserNm, 0, 1)}"
+             th:classappend="${q.elapsedHours > 48} ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'"
+             class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 mt-0.5"
+             th:text="${firstChar}">강</div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 flex-wrap">
-            <p class="text-sm font-bold text-slate-800">최지원 강사</p>
-            <span class="text-[10px] font-bold text-rose-600 bg-rose-100 px-1.5 py-0.5 rounded-full">31시간 경과</span>
+            <p class="text-sm font-bold text-slate-800" th:text="${q.instrUserNm + ' 강사'}">강사명</p>
+            <span th:classappend="${q.elapsedHours > 48} ? 'text-rose-600 bg-rose-100' : 'text-amber-600 bg-amber-100'"
+                  class="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                  th:text="${q.elapsedHours + '시간 경과'}">0시간 경과</span>
           </div>
-          <p class="text-xs text-slate-600 mt-1 truncate">Q. 수능 영어 빈칸 추론 유형에서 자주 틀리는 패턴이 있나요? 공략법을 알고 싶습니다.</p>
-          <p class="text-[11px] text-slate-400 mt-1">질문자: 김지훈 (고등 영어반) &nbsp;·&nbsp; 2026-05-25 09:12</p>
+          <p class="text-xs text-slate-600 mt-1 truncate" th:text="'Q. ' + ${q.postSj}">질문 제목</p>
+          <p class="text-[11px] text-slate-400 mt-1">
+            질문자: <span th:text="${q.wrtrUserNm}">학생명</span>
+            &nbsp;·&nbsp;
+            <span th:text="${#temporals.format(q.regDt, 'yyyy-MM-dd HH:mm')}">날짜</span>
+          </p>
         </div>
-        <button class="text-xs font-semibold text-violet-600 hover:text-violet-800 shrink-0 mt-1 transition-colors"
-          onclick="showHermesToast('최지원 강사에게 알림을 발송했습니다.', 'success')">
-          <i class="fa-solid fa-paper-plane mr-1"></i>알림
-        </button>
       </div>
-
-      <div class="flex items-start gap-4 px-6 py-4 hover:bg-slate-50/40 transition-colors">
-        <div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-sm shrink-0 mt-0.5">최</div>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 flex-wrap">
-            <p class="text-sm font-bold text-slate-800">최지원 강사</p>
-            <span class="text-[10px] font-bold text-rose-600 bg-rose-100 px-1.5 py-0.5 rounded-full">28시간 경과</span>
-          </div>
-          <p class="text-xs text-slate-600 mt-1 truncate">Q. 관계대명사 which와 that의 차이를 자세히 설명해주실 수 있나요?</p>
-          <p class="text-[11px] text-slate-400 mt-1">질문자: 박서준 (고등 영어반) &nbsp;·&nbsp; 2026-05-25 12:40</p>
-        </div>
-        <button class="text-xs font-semibold text-violet-600 hover:text-violet-800 shrink-0 mt-1 transition-colors"
-          onclick="showHermesToast('최지원 강사에게 알림을 발송했습니다.', 'success')">
-          <i class="fa-solid fa-paper-plane mr-1"></i>알림
-        </button>
-      </div>
-
-      <div class="flex items-start gap-4 px-6 py-4 hover:bg-slate-50/40 transition-colors">
-        <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm shrink-0 mt-0.5">박</div>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 flex-wrap">
-            <p class="text-sm font-bold text-slate-800">박지성 강사</p>
-            <span class="text-[10px] font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded-full">26시간 경과</span>
-          </div>
-          <p class="text-xs text-slate-600 mt-1 truncate">Q. 함수의 연속 조건 문제에서 극한값이 서로 같아야 하는 이유를 모르겠어요.</p>
-          <p class="text-[11px] text-slate-400 mt-1">질문자: 이하은 (중등 수학 A반) &nbsp;·&nbsp; 2026-05-25 14:18</p>
-        </div>
-        <button class="text-xs font-semibold text-violet-600 hover:text-violet-800 shrink-0 mt-1 transition-colors"
-          onclick="showHermesToast('박지성 강사에게 알림을 발송했습니다.', 'success')">
-          <i class="fa-solid fa-paper-plane mr-1"></i>알림
-        </button>
-      </div>
-
-      <div class="flex items-start gap-4 px-6 py-4 hover:bg-slate-50/40 transition-colors">
-        <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm shrink-0 mt-0.5">박</div>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 flex-wrap">
-            <p class="text-sm font-bold text-slate-800">박지성 강사</p>
-            <span class="text-[10px] font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded-full">24시간 경과</span>
-          </div>
-          <p class="text-xs text-slate-600 mt-1 truncate">Q. 적분에서 치환적분법을 쓰는 기준이 궁금합니다. 언제 사용하나요?</p>
-          <p class="text-[11px] text-slate-400 mt-1">질문자: 최수아 (중등 수학 B반) &nbsp;·&nbsp; 2026-05-25 16:05</p>
-        </div>
-        <button class="text-xs font-semibold text-violet-600 hover:text-violet-800 shrink-0 mt-1 transition-colors"
-          onclick="showHermesToast('박지성 강사에게 알림을 발송했습니다.', 'success')">
-          <i class="fa-solid fa-paper-plane mr-1"></i>알림
-        </button>
-      </div>
-
-      <div class="px-6 py-3 text-center">
-        <button class="text-xs text-slate-400 hover:text-violet-600 font-semibold transition-colors">
-          나머지 4건 더 보기 <i class="fa-solid fa-chevron-down ml-1 text-[10px]"></i>
-        </button>
-      </div>
-
     </div>
+  </div>
+
+  <!-- 미처리 없을 때 -->
+  <div th:if="${overdueList == null or #lists.isEmpty(overdueList)}"
+       class="bg-white rounded-2xl border border-slate-100 shadow-sm px-6 py-8 text-center text-sm text-emerald-600">
+    <i class="fa-solid fa-circle-check text-xl mb-1 block"></i>
+    24시간 초과 미처리 Q&amp;A가 없습니다.
   </div>
 
 </div>
 
 
-<!-- ===== 페이지 스크립트 ===== -->
-<script>
-  /* 강사별 처리율 수평 Bar */
+<!-- ===== 스크립트 ===== -->
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  function filterTable(instrUserId) {
+    document.querySelectorAll('tbody tr[data-instructor-id]').forEach(tr => {
+      tr.style.display = (!instrUserId || tr.dataset.instructorId === instrUserId) ? '' : 'none';
+    });
+  }
+
+  const stats      = /*[[${stats}]]*/ [];
+  const labels     = stats.map(s => s.instrUserNm);
+  const answered   = stats.map(s => s.answeredCnt);
+  const unanswered = stats.map(s => s.unansweredCnt);
+
   new Chart(document.getElementById('qaRateChart').getContext('2d'), {
     type: 'bar',
     data: {
-      labels: ['홍길동', '이수진', '김민준', '박지성', '최지원'],
+      labels,
       datasets: [
         {
           label: '답변 완료',
-          data: [74, 65, 78, 48, 24],
+          data: answered,
           backgroundColor: 'rgba(124,58,237,0.85)',
           borderRadius: 5,
           borderSkipped: false,
         },
         {
           label: '미처리',
-          data: [0, 3, 4, 7, 9],
+          data: unanswered,
           backgroundColor: 'rgba(251,113,133,0.75)',
           borderRadius: 5,
           borderSkipped: false,
@@ -399,7 +258,8 @@
       ]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
+      responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12 } },
         tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}건` } }
@@ -410,31 +270,5 @@
       }
     }
   });
-
-  /* 응답 시간 분포 도넛 */
-  new Chart(document.getElementById('responseTimeChart').getContext('2d'), {
-    type: 'doughnut',
-    data: {
-      labels: ['1시간 이내', '1~3시간', '3~6시간', '6~24시간', '24시간 초과'],
-      datasets: [{
-        data: [88, 104, 72, 40, 8],
-        backgroundColor: [
-          'rgba(52,211,153,0.85)',
-          'rgba(124,58,237,0.85)',
-          'rgba(56,189,248,0.85)',
-          'rgba(251,191,36,0.85)',
-          'rgba(251,113,133,0.85)'
-        ],
-        borderWidth: 0,
-        hoverOffset: 8
-      }]
-    },
-    options: {
-      responsive: true, cutout: '65%',
-      plugins: {
-        legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10, padding: 8 } },
-        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}건` } }
-      }
-    }
-  });
+  /*]]>*/
 </script>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html th:replace="~{classroom/layout-classroom :: layout(
+    ${classroom.classNm} + ' | 과제 상세',
+    ${classroom},
+    'assignments',
+    ~{:: #content}
+)}" lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div id="content">
+
+  <div th:if="${assignment != null}" class="flex flex-col gap-5">
+
+    <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
+      <div class="px-7 py-5 border-b border-slate-100 flex items-start justify-between gap-4">
+        <div>
+          <h1 class="text-base font-bold text-slate-800" th:text="${assignment.asgmtSj}">과제 제목</h1>
+          <div class="flex items-center gap-3 mt-2 text-sm text-slate-400">
+            <span th:if="${assignment.sbmtDdlnDt != null}">
+              마감
+              <span th:if="${assignment.sbmtDdlnDt.isAfter(now)}"
+                    class="font-semibold text-rose-500"
+                    th:text="${#temporals.format(assignment.sbmtDdlnDt, 'yyyy-MM-dd HH:mm')}"></span>
+              <span th:unless="${assignment.sbmtDdlnDt.isAfter(now)}"
+                    class="font-semibold text-slate-400"
+                    th:text="${#temporals.format(assignment.sbmtDdlnDt, 'yyyy-MM-dd HH:mm')} + ' (마감)'"></span>
+            </span>
+            <span class="w-px h-3 bg-slate-200" th:if="${assignment.sbmtDdlnDt != null}"></span>
+            <span th:text="${assignment.sbmtCnt + ' / ' + assignment.totMemberCnt + '명 제출'}">0 / 0명 제출</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <a th:href="@{/classroom/detail/{sn}/assignments/{asgmtSn}/edit(sn=${classroom.classSn},asgmtSn=${assignment.asgmtSn})}"
+             class="text-sm font-semibold px-4 py-2 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">수정</a>
+          <form th:action="@{/classroom/detail/{sn}/assignments/{asgmtSn}/delete(sn=${classroom.classSn},asgmtSn=${assignment.asgmtSn})}"
+                method="post"
+                onsubmit="return confirm('과제를 삭제하면 제출 내역도 함께 삭제됩니다. 삭제하시겠습니까?')">
+            <button type="submit"
+                    class="text-sm font-semibold px-4 py-2 border border-rose-100 text-rose-500 rounded-lg hover:bg-rose-50 transition-colors">삭제</button>
+          </form>
+        </div>
+      </div>
+      <div class="px-7 py-7 text-sm text-slate-700 leading-relaxed whitespace-pre-wrap min-h-[80px]"
+           th:text="${assignment.asgmtCn}">과제 내용</div>
+    </div>
+
+    <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
+      <div class="px-7 py-5 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <h2 class="text-base font-bold text-slate-800">제출 현황</h2>
+          <p class="text-sm text-slate-400 mt-1">수강생의 과제 제출 및 채점 현황입니다.</p>
+        </div>
+        <div>
+          <div th:if="${pendingCnt > 0}"
+               class="text-sm font-semibold text-amber-500 flex items-center gap-1.5">
+            <i class="fa-solid fa-circle-exclamation text-xs"></i>
+            미채점 <span th:text="${pendingCnt}">0</span>건
+          </div>
+          <div th:if="${pendingCnt == 0 and submittedCnt > 0}"
+               class="text-sm font-semibold text-emerald-500 flex items-center gap-1.5">
+            <i class="fa-solid fa-circle-check text-xs"></i>
+            채점 완료
+          </div>
+        </div>
+      </div>
+
+      <div th:if="${#lists.isEmpty(submitList)}"
+           class="p-16 flex flex-col items-center gap-4 text-center">
+        <p class="text-base font-medium text-slate-400">등록된 수강생이 없습니다.</p>
+      </div>
+
+      <div th:unless="${#lists.isEmpty(submitList)}" class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-slate-100 text-sm text-slate-400">
+              <th class="py-4 px-4 w-14 text-center font-medium whitespace-nowrap">번호</th>
+              <th class="py-4 px-7 font-medium">학생</th>
+              <th class="py-4 px-7 w-32 text-center font-medium whitespace-nowrap">제출</th>
+              <th class="py-4 px-7 w-40 font-medium whitespace-nowrap">제출일</th>
+              <th class="py-4 px-7 w-24 text-center font-medium whitespace-nowrap">점수</th>
+              <th class="py-4 px-7 w-56 font-medium whitespace-nowrap">채점</th>
+            </tr>
+          </thead>
+          <tbody class="text-slate-700">
+            <tr th:each="sub, stat : ${submitList}"
+                class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+              <td class="py-4 px-4 text-sm text-center text-slate-300 font-mono" th:text="${stat.count}">1</td>
+              <td class="py-4 px-7">
+                <div class="flex items-center gap-2">
+                  <span class="font-semibold text-slate-800 text-sm" th:text="${sub.userName}">홍길동</span>
+                  <button th:if="${sub.sbmtCn != null}"
+                          type="button"
+                          th:onclick="'toggleContent(this, \'' + ${stat.index} + '\')'"
+                          class="text-xs text-blue-400 hover:text-blue-600 underline underline-offset-2 transition-colors">내용보기</button>
+                </div>
+                <div th:if="${sub.sbmtCn != null}"
+                     th:id="'content-' + ${stat.index}"
+                     class="hidden mt-2 text-sm text-slate-600 bg-slate-50 rounded-lg px-3 py-2 whitespace-pre-wrap max-h-32 overflow-y-auto"
+                     th:text="${sub.sbmtCn}"></div>
+              </td>
+              <td class="py-4 px-7 text-center">
+                <span th:if="${sub.sbmtSn != null}"
+                      class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold text-emerald-500 border border-emerald-100">제출</span>
+                <span th:unless="${sub.sbmtSn != null}"
+                      class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold text-slate-400 border border-slate-100">미제출</span>
+              </td>
+              <td class="py-4 px-7 text-sm text-slate-400 font-mono"
+                  th:text="${sub.sbmtDt != null ? #temporals.format(sub.sbmtDt, 'yyyy-MM-dd HH:mm') : '-'}">-</td>
+              <td class="py-4 px-7 text-center">
+                <span th:if="${sub.grddYn == 'Y'}"
+                      class="text-sm font-bold text-slate-700" th:text="${sub.score}">100</span>
+                <span th:unless="${sub.grddYn == 'Y'}"
+                      class="text-sm text-slate-300">-</span>
+              </td>
+              <td class="py-4 px-7">
+                <span th:if="${sub.sbmtSn == null}" class="text-sm text-slate-300">-</span>
+                <form th:if="${sub.sbmtSn != null}"
+                      th:action="@{/classroom/detail/{sn}/assignments/{asgmtSn}/grade/{sbmtSn}(sn=${classroom.classSn},asgmtSn=${assignment.asgmtSn},sbmtSn=${sub.sbmtSn})}"
+                      method="post" class="flex items-center gap-2">
+                  <input type="number" name="score"
+                         th:value="${sub.grddYn == 'Y' ? sub.score : ''}"
+                         min="0" max="100" step="0.01" placeholder="점수"
+                         class="w-24 text-sm px-3 py-2 border border-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 transition-colors" required />
+                  <button type="submit"
+                          th:class="${sub.grddYn == 'Y'}
+                            ? 'text-sm font-semibold px-4 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors'
+                            : 'text-sm font-semibold px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'"
+                          th:text="${sub.grddYn == 'Y'} ? '수정' : '채점'">채점</button>
+                </form>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <a th:href="@{/classroom/detail/{sn}/assignments(sn=${classroom.classSn})}"
+       class="text-sm font-semibold text-slate-400 hover:text-slate-600 flex items-center gap-2 transition-colors w-fit">
+      <i class="fa-solid fa-arrow-left text-xs"></i> 목록으로
+    </a>
+  </div>
+
+  <div th:unless="${assignment != null}"
+       class="bg-white border border-slate-100 rounded-xl p-20 flex flex-col items-center gap-4 text-center">
+    <p class="text-base font-medium text-slate-400">존재하지 않는 과제입니다.</p>
+  </div>
+
+<script>
+function toggleContent(btn, idx) {
+    const el = document.getElementById('content-' + idx);
+    const hidden = el.classList.toggle('hidden');
+    btn.textContent = hidden ? '내용보기' : '내용닫기';
+}
+</script>
+
+</div>
+</body>
+</html>
