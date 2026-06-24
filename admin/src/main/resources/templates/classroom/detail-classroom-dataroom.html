@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html th:replace="~{classroom/layout-classroom :: layout(
+    ${classroom.classNm} + ' | 자료 상세',
+    ${classroom},
+    'dataroom',
+    ~{:: #content}
+)}" lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div id="content">
+
+  <a th:href="@{/classroom/detail/{sn}/dataroom(sn=${classroom.classSn})}"
+     class="text-sm font-semibold text-slate-400 hover:text-slate-600 flex items-center gap-2 transition-colors w-fit mb-5">
+    <i class="fa-solid fa-arrow-left text-xs"></i> 목록으로
+  </a>
+
+  <div th:if="${dataroom != null}" class="bg-white border border-slate-100 rounded-xl overflow-hidden">
+    <div class="px-7 py-5 border-b border-slate-100">
+      <h1 class="text-base font-bold text-slate-800" th:text="${dataroom.postSj}">자료 제목</h1>
+      <div class="flex items-center gap-3 mt-2 text-sm text-slate-400">
+        <span th:text="${dataroom.memberDto != null ? dataroom.memberDto.userName : dataroom.wrtrUserId}">작성자</span>
+        <span class="w-px h-3 bg-slate-200"></span>
+        <span th:text="${dataroom.regDt != null ? #temporals.format(dataroom.regDt, 'yyyy-MM-dd HH:mm') : '-'}">2026-06-01 09:00</span>
+      </div>
+    </div>
+
+    <div th:if="${dataroom.postCn != null and !#strings.isEmpty(dataroom.postCn)}"
+         class="px-7 py-7 text-sm text-slate-700 leading-relaxed min-h-[140px]"
+         th:utext="${dataroom.postCn}">자료 설명</div>
+
+    <div th:if="${not #lists.isEmpty(attachedFiles)}"
+         class="px-7 py-5 border-t border-slate-100 flex flex-col gap-2">
+      <p class="text-sm font-semibold text-slate-600 mb-2">
+        <i class="fa-solid fa-paperclip mr-1.5 text-slate-400"></i>
+        첨부파일 <span class="font-normal text-slate-400" th:text="'(' + ${#lists.size(attachedFiles)} + '개)'"></span>
+      </p>
+      <div th:each="f : ${attachedFiles}"
+           class="flex items-center gap-3 rounded-lg border border-slate-100 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+        <i class="fa-solid fa-file text-slate-300"></i>
+        <span th:text="${f.orgnFileNm}" class="flex-1 truncate"></span>
+        <span class="text-slate-400 whitespace-nowrap"
+              th:text="${#numbers.formatDecimal(f.fileSizeCnt / 1024.0, 1, 1) + ' KB'}"></span>
+        <a th:href="@{/admin/files/{id}/download(id=${f.fileServerId})}"
+           class="text-blue-500 hover:text-blue-700 transition-colors flex items-center gap-1 font-semibold whitespace-nowrap">
+          <i class="fa-solid fa-download text-xs"></i> 다운로드
+        </a>
+      </div>
+    </div>
+
+    <div th:if="${#lists.isEmpty(attachedFiles)}"
+         class="px-7 py-5 border-t border-slate-100">
+      <p class="text-sm text-slate-300 italic">첨부파일이 없습니다.</p>
+    </div>
+
+    <div class="px-7 py-4 border-t border-slate-100 flex justify-end items-center">
+      <div class="flex items-center gap-2">
+        <a th:href="@{/classroom/detail/{sn}/dataroom/{postSn}/edit(sn=${classroom.classSn},postSn=${dataroom.postSn})}"
+           class="text-sm font-semibold px-4 py-2 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">수정</a>
+        <form th:action="@{/classroom/detail/{sn}/dataroom/{postSn}/delete(sn=${classroom.classSn},postSn=${dataroom.postSn})}"
+              method="post"
+              onsubmit="return confirm('자료를 삭제하시겠습니까?')">
+          <button type="submit"
+                  class="text-sm font-semibold px-4 py-2 border border-rose-100 text-rose-500 rounded-lg hover:bg-rose-50 transition-colors">삭제</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div th:unless="${dataroom != null}"
+       class="bg-white border border-slate-100 rounded-xl p-20 flex flex-col items-center justify-center text-center gap-4">
+    <div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 text-3xl">
+      <i class="fa-solid fa-circle-exclamation"></i>
+    </div>
+    <p class="text-base font-medium text-slate-400">존재하지 않는 자료입니다.</p>
+    <a th:href="@{/classroom/detail/{sn}/dataroom(sn=${classroom.classSn})}"
+       class="text-sm font-semibold text-blue-500 hover:text-blue-700 transition-colors">목록으로 돌아가기</a>
+  </div>
+
+</div>
+</body>
+</html>

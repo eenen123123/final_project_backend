@@ -14,26 +14,26 @@
       <div class="grid grid-cols-2 gap-6 mb-6">
         <div>
           <label class="text-xs font-semibold text-slate-600 mb-1.5 block">유형</label>
-          <input type="text" class="hm-input bg-slate-50" th:value="${notice.noticeTypeNm}" readonly />
+          <input type="text" class="hm-input hm-input-blue bg-slate-50" th:value="${notice.noticeTypeNm}" readonly />
         </div>
         <div>
           <label class="text-xs font-semibold text-slate-600 mb-1.5 block">팝업 노출</label>
-          <input type="text" class="hm-input bg-slate-50" th:value="${notice.popupExpsYn == 'Y' ? '예' : '아니오'}" readonly />
+          <input type="text" class="hm-input hm-input-blue bg-slate-50" th:value="${notice.popupExpsYn == 'Y' ? '예' : '아니오'}" readonly />
         </div>
       </div>
       <div class="grid grid-cols-2 gap-6 mb-6">
         <div>
           <label class="text-xs font-semibold text-slate-600 mb-1.5 block">등록자</label>
-          <input type="text" class="hm-input bg-slate-50" th:value="${notice.wrtrUserId}" readonly />
+          <input type="text" class="hm-input hm-input-blue bg-slate-50" th:value="${notice.wrtrUserId}" readonly />
         </div>
         <div>
           <label class="text-xs font-semibold text-slate-600 mb-1.5 block">등록일</label>
-          <input type="text" class="hm-input bg-slate-50" th:value="${#temporals.format(notice.regDt, 'yyyy-MM-dd')}" readonly />
+          <input type="text" class="hm-input hm-input-blue bg-slate-50" th:value="${#temporals.format(notice.regDt, 'yyyy-MM-dd')}" readonly />
         </div>
       </div>
       <div>
         <label class="text-xs font-semibold text-slate-600 mb-1.5 block">제목</label>
-        <input type="text" class="hm-input bg-slate-50" th:value="${notice.postSj}" readonly />
+        <input type="text" class="hm-input hm-input-blue bg-slate-50" th:value="${notice.postSj}" readonly />
       </div>
     </div>
 
@@ -48,7 +48,7 @@
         목록
       </a>
       <a th:href="@{/admin/board/notice/edit/{postSn}(postSn=${notice.postSn})}"
-        class="px-6 py-2.5 border border-violet-200 rounded-xl text-sm font-semibold text-violet-600 hover:bg-violet-50 transition-colors">
+        class="px-6 py-2.5 border border-blue-200 rounded-xl text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors">
         수정
       </a>
       <form th:action="@{/admin/board/notice/delete/{postSn}(postSn=${notice.postSn})}" method="post"

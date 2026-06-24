@@ -420,15 +420,6 @@ function saveDetailEdit() {
     type:  row.dataset.type                       || '-',
   };
 
-  row.dataset.name       = document.getElementById("edit-name").value.trim();
-  row.dataset.phone      = document.getElementById("edit-phone").value.replace(/-/g, "");
-  row.dataset.email      = document.getElementById("edit-email").value.trim();
-  row.dataset.zip        = document.getElementById("edit-zipcode").value;
-  row.dataset.addrBase   = addrBase;
-  row.dataset.addrDetail = addrDetail;
-  row.dataset.addr       = (addrBase + (addrDetail ? " " + addrDetail : "")).trim();
-  row.dataset.type       = document.getElementById("edit-stu-type").value;
-
   const formData = new FormData();
   formData.append("userId",        selectedEmpId);
   formData.append("userName",      document.getElementById("edit-name").value.trim());
@@ -457,32 +448,9 @@ function saveDetailEdit() {
         .then((res) => res.json())
         .then((data) => {
           if (data.result === "success") {
-            const newProfileUrl = data.profileUrl || "";
-            row.dataset.profile = newProfileUrl;
-
-            const avatarWrap = row.querySelector("td:first-child .flex");
-            if (avatarWrap) {
-              let img = avatarWrap.querySelector("img");
-              const textDiv = avatarWrap.querySelector(".bg-blue-100");
-              if (newProfileUrl.startsWith("http")) {
-                if (!img) {
-                  img = document.createElement("img");
-                  img.className = "w-7 h-7 rounded-lg object-cover";
-                  img.alt = "프로필";
-                  avatarWrap.prepend(img);
-                }
-                img.src = newProfileUrl;
-                if (textDiv) textDiv.style.display = "none";
-              } else {
-                if (img) img.remove();
-                if (textDiv) textDiv.style.display = "";
-              }
-            }
-
-            syncRowCells(row);
+            // 결재 요청 성공 — DOM은 현재 DB 값 그대로 유지 (승인 후 반영)
             toggleDetailEdit();
-            openDetail(selectedEmpId);
-            showHermesToast("결재 요청이 완료되었습니다. 승인 후 처리됩니다.", "success");
+            showHermesToast("결재 요청이 완료되었습니다. 승인 후 반영됩니다.", "info");
           } else {
             showHermesToast("수정 실패: " + (data.message || "서버 오류"), "error");
           }

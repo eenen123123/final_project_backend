@@ -14,26 +14,26 @@
       <div class="grid grid-cols-2 gap-6 mb-6">
         <div>
           <label class="text-xs font-semibold text-slate-600 mb-1.5 block">카테고리</label>
-          <input type="text" class="hm-input bg-slate-50" th:value="${dataRoom.dataCtgNm}" readonly />
+          <input type="text" class="hm-input hm-input-blue bg-slate-50" th:value="${dataRoom.dataCtgNm}" readonly />
         </div>
         <div>
           <label class="text-xs font-semibold text-slate-600 mb-1.5 block">접근권한</label>
-          <input type="text" class="hm-input bg-slate-50" th:value="${dataRoom.accsLmtNm}" readonly />
+          <input type="text" class="hm-input hm-input-blue bg-slate-50" th:value="${dataRoom.accsLmtNm}" readonly />
         </div>
       </div>
       <div class="grid grid-cols-2 gap-6 mb-6">
         <div>
           <label class="text-xs font-semibold text-slate-600 mb-1.5 block">등록자</label>
-          <input type="text" class="hm-input bg-slate-50" th:value="${dataRoom.wrtrUserId}" readonly />
+          <input type="text" class="hm-input hm-input-blue bg-slate-50" th:value="${dataRoom.wrtrUserId}" readonly />
         </div>
         <div>
           <label class="text-xs font-semibold text-slate-600 mb-1.5 block">등록일</label>
-          <input type="text" class="hm-input bg-slate-50" th:value="${#temporals.format(dataRoom.regDt, 'yyyy-MM-dd')}" readonly />
+          <input type="text" class="hm-input hm-input-blue bg-slate-50" th:value="${#temporals.format(dataRoom.regDt, 'yyyy-MM-dd')}" readonly />
         </div>
       </div>
       <div class="mb-6">
         <label class="text-xs font-semibold text-slate-600 mb-1.5 block">제목</label>
-        <input type="text" class="hm-input bg-slate-50" th:value="${dataRoom.postSj}" readonly />
+        <input type="text" class="hm-input hm-input-blue bg-slate-50" th:value="${dataRoom.postSj}" readonly />
       </div>
       <div th:if="${dataRoom.orgnFileNm != null}">
         <label class="text-xs font-semibold text-slate-600 mb-1.5 block">첨부파일</label>
@@ -43,7 +43,7 @@
             <span class="text-sm text-slate-600 font-medium" th:text="${dataRoom.orgnFileNm}"></span>
           </div>
           <a th:href="${dataRoom.savePathNm}" target="_blank"
-            class="text-xs font-semibold text-violet-600 border border-violet-200 rounded-xl px-3 py-1.5 hover:bg-violet-50 transition-colors">
+            class="text-xs font-semibold text-blue-600 border border-blue-200 rounded-xl px-3 py-1.5 hover:bg-blue-50 transition-colors">
             <i class="fa-solid fa-download mr-1"></i>다운로드
           </a>
         </div>
@@ -61,7 +61,7 @@
         목록
       </a>
       <a th:href="@{/admin/board/dataroom/edit/{postSn}(postSn=${dataRoom.postSn})}"
-        class="px-6 py-2.5 border border-violet-200 rounded-xl text-sm font-semibold text-violet-600 hover:bg-violet-50 transition-colors">
+        class="px-6 py-2.5 border border-blue-200 rounded-xl text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors">
         수정
       </a>
       <form th:action="@{/admin/board/dataroom/delete/{postSn}(postSn=${dataRoom.postSn})}" method="post"

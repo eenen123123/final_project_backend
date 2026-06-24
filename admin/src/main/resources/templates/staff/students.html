@@ -19,7 +19,7 @@
   <div class="flex items-center justify-between mb-6">
     <div>
       <h1 class="text-xl font-bold text-slate-800">학생 정보 및 계정 관리</h1>
-      <p class="text-sm text-slate-500 mt-0.5">학생 기록 조회, 계정 생성, 탈퇴 처리를 관리합니다.</p>
+      <p class="text-sm text-slate-500 mt-1">학생 기록 조회, 계정 생성, 탈퇴 처리를 관리합니다.</p>
     </div>
     <button onclick="openModal('modal-new-student'); autoGenStudentId()" class="hm-btn-primary hm-btn-blue">
       <i class="fa-solid fa-user-plus"></i> 신규 학생 등록
@@ -62,11 +62,11 @@
   <!-- ───────────────── 탭 네비게이션 ───────────────── -->
   <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
     <div class="flex border-b border-slate-100 px-6">
-      <button class="emp-tab-btn py-3.5 px-4 text-sm text-slate-500 -mb-px flex items-center"
+      <button class="emp-tab-btn stu-tab py-3.5 px-4 text-sm text-slate-500 -mb-px flex items-center"
         onclick="navigateToEmployees(this)">
         <i class="fa-solid fa-id-badge mr-1.5"></i>인사 기록
       </button>
-      <button class="emp-tab-btn active py-3.5 px-4 text-sm -mb-px" data-tab="stu-tab-list"
+      <button class="emp-tab-btn stu-tab active py-3.5 px-4 text-sm -mb-px" data-tab="stu-tab-list"
         onclick="switchEmpTab('stu-tab-list', this)">
         <i class="fa-solid fa-graduation-cap mr-1.5"></i>학생 기록
       </button>

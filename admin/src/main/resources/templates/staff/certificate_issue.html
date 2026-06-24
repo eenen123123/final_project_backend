@@ -1,0 +1,87 @@
+<title th:fragment="pageTitle">증명서 발급 | HERMES</title>
+
+<div class="space-y-6">
+
+  <!-- ① 페이지 헤더 -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">증명서 발급</h1>
+      <p class="text-sm text-slate-500 mt-0.5">본인 재직/경력증명서를 직접 신청하고 출력합니다. (발급 후 1회만 출력 가능)</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 xl:grid-cols-5 gap-6">
+
+    <!-- ② 신청 카드 -->
+    <div class="xl:col-span-2">
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <p class="text-sm font-bold text-slate-700 mb-4"><i class="fa-solid fa-file-circle-plus mr-2 text-violet-500"></i>증명서 신청</p>
+
+        <div class="space-y-4">
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">증명서 종류 <span class="text-red-400">*</span></label>
+            <select class="hm-input" id="ci-type">
+              <option value="">선택</option>
+              <option th:each="t : ${certTypes}" th:value="${t.comCd}" th:text="${t.comCdNm}"></option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">필요 사유</label>
+            <textarea class="hm-input resize-none" id="ci-reason" rows="2" placeholder="예: 은행 대출 심사 제출용"></textarea>
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">제출처(사용처)</label>
+            <input type="text" class="hm-input" id="ci-purpose" placeholder="예: OO은행, 정부기관, 보험사" />
+          </div>
+          <button onclick="issueCertificate()" class="hm-btn-primary w-full justify-center py-2.5">
+            <i class="fa-solid fa-paper-plane mr-1.5"></i>신청 후 발급
+          </button>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            <i class="fa-solid fa-circle-info mr-1"></i>신청 즉시 자동 발급됩니다. 아래 발급 내역에서 <b>출력</b>을 누르면
+            본인 정보가 자동으로 채워진 증명서를 출력할 수 있으며, <b>출력은 1회만</b> 가능합니다.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ③ 내 발급 내역 -->
+    <div class="xl:col-span-3">
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+        <div class="flex items-center justify-between p-5 border-b border-slate-100">
+          <p class="text-sm font-bold text-slate-700">내 발급 내역 <span class="text-slate-400 font-normal">(<span id="ci-total">0</span>건)</span></p>
+          <div class="flex gap-2">
+            <select class="hm-input w-32 text-xs" id="ci-filter-type" onchange="loadMyCerts(1)">
+              <option value="">전체 종류</option>
+              <option th:each="t : ${certTypes}" th:value="${t.comCd}" th:text="${t.comCdNm}"></option>
+            </select>
+            <select class="hm-input w-28 text-xs" id="ci-filter-prn" onchange="loadMyCerts(1)">
+              <option value="">전체 상태</option>
+              <option value="N">미출력</option>
+              <option value="Y">출력완료</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-slate-50 text-slate-500 text-xs">
+                <th class="text-left py-3 px-4 font-semibold">발급일시</th>
+                <th class="text-left py-3 px-4 font-semibold">증명서 종류</th>
+                <th class="text-left py-3 px-4 font-semibold">제출처</th>
+                <th class="text-left py-3 px-4 font-semibold">상태</th>
+                <th class="text-right py-3 px-4 font-semibold">출력</th>
+              </tr>
+            </thead>
+            <tbody id="ci-tbody" class="divide-y divide-slate-50"></tbody>
+          </table>
+        </div>
+        <div id="ci-paging" class="flex justify-center gap-1.5 p-4"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<th:block th:fragment="pageJs">
+  <script th:src="@{/js/staff/certificate_issue.js}"></script>
+</th:block>

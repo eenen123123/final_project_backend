@@ -19,6 +19,11 @@ public interface PointMapper {
     // POINT_HIST에 이력 삽입
     int insertPointHist(PointHistDto dto);
 
+    // 잔액 체크 + 차감 이력 원자적 삽입 (동시성 보호)
+    int insertPointHistIfSufficient(
+            @Param("dto") PointHistDto dto,
+            @Param("assetType") AssetType assetType);
+
     // 포인트 잔액 조회 (POINT_HIST CHANGE_AMT 합산)
     Long selectPointBalance(@Param("userId") String userId, @Param("assetType") AssetType assetType);
 

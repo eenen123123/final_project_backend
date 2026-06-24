@@ -3,3 +3,8 @@
 /* 신규 등록 폼에서 값이 채워진 blue input 배경 */
 input.hm-input.hm-input-blue[placeholder]:not(:placeholder-shown) { background-color: #eff6ff; }
 .hm-input.hm-input-blue.filled { background-color: #eff6ff; }
+
+/* ── 탭 ── */
+.stu-tab { border-bottom: 2px solid transparent; font-weight: 600; transition: all .15s; }
+.stu-tab.active { border-color: #3b82f6; color: #3b82f6; }
+.stu-tab:not(.active):hover { color: #475569; }

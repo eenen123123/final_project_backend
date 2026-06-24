@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.mapper.FinanceMapper">
+
+    <!--
+      수입원 두 갈래를 카테고리(cat)·금액(amt)·날짜(dt)로 정규화한 통합 소스.
+      · 원비    : TUITION_PAYMENT 완료(PAY_STAT_CD='01')  · 항목 222 (01원비/02교재/03입회/04기타)
+      · 온라인  : ORDERS 결제완료(ORD_STAT_CD='PAID') · ORDER_ITEM (COURSE 강의 / TEXTBOOK 교재)
+      카테고리: TUITION(원비) / COURSE(강의) / TEXTBOOK(교재) / ETC(기타)
+    -->
+    <sql id="salesSource">
+        SELECT CASE TRIM(tp.PAY_ITEM_CD)
+                    WHEN '01' THEN 'TUITION'
+                    WHEN '02' THEN 'TEXTBOOK'
+                    ELSE 'ETC'
+               END AS cat,
+               tp.PAY_AMT AS amt,
+               tp.PAY_DT  AS dt
+        FROM   TUITION_PAYMENT tp
+        WHERE  TRIM(tp.PAY_STAT_CD) = '01'
+        UNION ALL
+        SELECT CASE oi.PROD_DIV_CD
+                    WHEN 'COURSE'   THEN 'COURSE'
+                    WHEN 'TEXTBOOK' THEN 'TEXTBOOK'
+                    ELSE 'ETC'
+               END AS cat,
+               (oi.PROD_PRICE * oi.ITEM_QTY) AS amt,
+               o.REG_DT AS dt
+        FROM   ORDERS o
+        JOIN   ORDER_ITEM oi ON o.ORD_SN = oi.ORD_SN
+        WHERE  o.ORD_STAT_CD = 'PAID'
+    </sql>
+
+    <sql id="catPivot">
+        NVL(SUM(CASE WHEN cat = 'TUITION'  THEN amt END), 0) AS tuition,
+        NVL(SUM(CASE WHEN cat = 'COURSE'   THEN amt END), 0) AS course,
+        NVL(SUM(CASE WHEN cat = 'TEXTBOOK' THEN amt END), 0) AS textbook,
+        NVL(SUM(CASE WHEN cat = 'ETC'      THEN amt END), 0) AS etc,
+        NVL(SUM(amt), 0)                                     AS total
+    </sql>
+
+    <!-- ── 특정 월 요약 ───────────────────────────────── -->
+    <select id="selectMonthSummary" resultType="kr.or.ddit.finalProject.dto.finance.MonthlySalesDto">
+        SELECT <include refid="catPivot"/>
+        FROM ( <include refid="salesSource"/> )
+        WHERE TO_CHAR(dt, 'YYYY-MM') = #{ym}
+    </select>
+
+    <!-- ── 연도별 12개월 추이 ─────────────────────────── -->
+    <select id="selectMonthlySales" resultType="kr.or.ddit.finalProject.dto.finance.MonthlySalesDto">
+        SELECT TO_CHAR(dt, 'MM') AS mm,
+               <include refid="catPivot"/>
+        FROM ( <include refid="salesSource"/> )
+        WHERE TO_CHAR(dt, 'YYYY') = #{year}
+        GROUP BY TO_CHAR(dt, 'MM')
+        ORDER BY mm
+    </select>
+
+    <!--
+      수입 거래 내역 (원비 수납 + 온라인 결제 통합)
+      · 원비   : 학생명 + 항목명(222) + 결제수단(223)
+      · 온라인 : 주문명(ORD_NM) · 결제수단은 '온라인' 통칭
+    -->
+    <sql id="txnSource">
+        SELECT tp.PAY_DT AS tx_dt,
+               '원비수납' AS source,
+               NVL(ci.COM_CD_NM, '원비') AS category,
+               m.USER_NAME AS purchaser,
+               NVL(cm.COM_CD_NM, '-') AS pay_method,
+               TRIM(tp.PAY_MTHD_CD) AS pay_mthd_cd,
+               tp.PAY_AMT AS amount
+        FROM   TUITION_PAYMENT tp
+        JOIN   MEMBER m  ON tp.USER_ID = m.USER_ID
+        LEFT JOIN COM_CD ci ON TRIM(ci.CL_CODE) = '222' AND TRIM(ci.COM_CD) = TRIM(tp.PAY_ITEM_CD)
+        LEFT JOIN COM_CD cm ON TRIM(cm.CL_CODE) = '223' AND TRIM(cm.COM_CD) = TRIM(tp.PAY_MTHD_CD)
+        WHERE  TRIM(tp.PAY_STAT_CD) = '01'
+        UNION ALL
+        SELECT o.REG_DT AS tx_dt,
+               '온라인결제' AS source,
+               '온라인 판매' AS category,
+               mo.USER_NAME AS purchaser,
+               '온라인' AS pay_method,
+               CAST(NULL AS VARCHAR2(10)) AS pay_mthd_cd,
+               o.TOT_AMT AS amount
+        FROM   ORDERS o
+        JOIN   MEMBER mo ON o.USER_ID = mo.USER_ID
+        WHERE  o.ORD_STAT_CD = 'PAID'
+    </sql>
+
+    <sql id="txnWhere">
+        <where>
+            <if test="detailCondition.ym != null and detailCondition.ym != ''">
+                AND TO_CHAR(t.tx_dt, 'YYYY-MM') = #{detailCondition.ym}
+            </if>
+            <if test="detailCondition.payMthdCd != null and detailCondition.payMthdCd != ''">
+                AND t.pay_mthd_cd = #{detailCondition.payMthdCd}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectTransactions" resultType="kr.or.ddit.finalProject.dto.finance.FinanceTxnDto">
+        SELECT t.tx_dt, t.source, t.category, t.purchaser, t.pay_method, t.amount
+        FROM ( <include refid="txnSource"/> ) t
+        <include refid="txnWhere"/>
+        ORDER BY t.tx_dt DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <select id="countTransactions" resultType="int">
+        SELECT COUNT(*)
+        FROM ( <include refid="txnSource"/> ) t
+        <include refid="txnWhere"/>
+    </select>
+
+</mapper>

@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.order.OrderShippingMapper">
+
+    <select id="selectShippingStatusSummary" resultType="java.util.HashMap">
+        SELECT
+            COUNT(CASE WHEN DLVRY_STAT_CD = 'READY'     THEN 1 END) AS READY_COUNT,
+            COUNT(CASE WHEN DLVRY_STAT_CD = 'SHIPPING'  THEN 1 END) AS SHIPPING_COUNT,
+            COUNT(CASE WHEN DLVRY_STAT_CD = 'DELIVERED' THEN 1 END) AS DELIVERED_COUNT,
+            COUNT(CASE WHEN DLVRY_STAT_CD = 'CANCELED'  THEN 1 END) AS CANCELED_COUNT
+          FROM ORDER_SHIPPING
+    </select>
+
+    <sql id="shippingSearchWhere">
+        <trim prefix="WHERE" prefixOverrides="AND">
+            <if test="detailCondition != null">
+                <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
+                    AND (instr(os.BUYER_NM, #{detailCondition.keyword}) &gt; 0
+                      OR instr(os.RECEIVER_NM, #{detailCondition.keyword}) &gt; 0)
+                </if>
+                <if test="detailCondition.dlvryStatCd != null">
+                    AND os.DLVRY_STAT_CD = #{detailCondition.dlvryStatCd}
+                </if>
+                <if test="detailCondition.from != null">
+                    AND os.REG_DT &gt;= #{detailCondition.from}
+                </if>
+                <if test="detailCondition.to != null">
+                    AND os.REG_DT &lt; #{detailCondition.to} + INTERVAL '1' DAY
+                </if>
+            </if>
+        </trim>
+    </sql>
+
+    <select id="selectShippingList" resultMap="orderShippingResultMap">
+        SELECT os.SHIPPING_SN, os.ORD_SN, o.ORD_ID, o.ORD_NM,
+               os.BUYER_NM, os.BUYER_TEL, os.BUYER_EMAIL,
+               os.RECEIVER_NM, os.RECEIVER_TEL, os.RECEIVER_TEL2,
+               os.ZIP_CD, os.ADDR_ROAD, os.ADDR_JIBUN, os.ADDR_DTL,
+               os.DELIVERY_MSG, os.DLVRY_STAT_CD, os.INVOICE_NO,
+               os.RGTR_ID, os.REG_DT, os.LAST_MDFR_ID, os.MDFCN_DT
+          FROM ORDER_SHIPPING os
+          JOIN ORDERS o ON os.ORD_SN = o.ORD_SN
+        <include refid="shippingSearchWhere"/>
+        ORDER BY os.REG_DT
+        <choose>
+          <when test="orderDirection == 'ASC'">ASC</when>
+          <otherwise>DESC</otherwise>
+        </choose>
+        OFFSET #{offset} ROWS FETCH NEXT #{screenSize} ROWS ONLY
+    </select>
+
+    <select id="countShippingList" resultType="int">
+        SELECT COUNT(*)
+          FROM ORDER_SHIPPING os
+          JOIN ORDERS o ON os.ORD_SN = o.ORD_SN
+        <include refid="shippingSearchWhere"/>
+    </select>
+
+    <insert id="insertOrderShipping" parameterType="kr.or.ddit.finalProject.dto.order.OrderShippingDto"
+            useGeneratedKeys="true" keyProperty="shippingSn" keyColumn="SHIPPING_SN">
+        INSERT INTO ORDER_SHIPPING (
+            ORD_SN, BUYER_NM, BUYER_TEL, BUYER_EMAIL,
+            RECEIVER_NM, RECEIVER_TEL, RECEIVER_TEL2,
+            ZIP_CD, ADDR_ROAD, ADDR_JIBUN, ADDR_DTL,
+            DELIVERY_MSG, DLVRY_STAT_CD, RGTR_ID, LAST_MDFR_ID
+        ) VALUES (
+            #{ordSn}, #{buyerNm}, #{buyerTel}, #{buyerEmail},
+            #{receiverNm}, #{receiverTel}, #{receiverTel2},
+            #{zipCd}, #{addrRoad}, #{addrJibun}, #{addrDtl},
+            #{deliveryMsg}, 
+            COALESCE(#{dlvryStatCd}, 'READY'), #{rgtrId}, #{rgtrId}
+        )
+    </insert>
+
+    <resultMap id="orderShippingResultMap" type="kr.or.ddit.finalProject.dto.order.OrderShippingDto">
+        <id  property="shippingSn"   column="SHIPPING_SN"/>
+        <result property="ordSn"       column="ORD_SN"/>
+        <result property="ordId"       column="ORD_ID"/>
+        <result property="ordNm"       column="ORD_NM"/>
+        <result property="buyerNm"     column="BUYER_NM"/>
+        <result property="buyerTel"    column="BUYER_TEL"/>
+        <result property="buyerEmail"  column="BUYER_EMAIL"/>
+        <result property="receiverNm"  column="RECEIVER_NM"/>
+        <result property="receiverTel" column="RECEIVER_TEL"/>
+        <result property="receiverTel2" column="RECEIVER_TEL2"/>
+        <result property="zipCd"       column="ZIP_CD"/>
+        <result property="addrRoad"    column="ADDR_ROAD"/>
+        <result property="addrJibun"   column="ADDR_JIBUN"/>
+        <result property="addrDtl"     column="ADDR_DTL"/>
+        <result property="deliveryMsg" column="DELIVERY_MSG"/>
+        <result property="dlvryStatCd" column="DLVRY_STAT_CD"/>
+        <result property="invoiceNo"   column="INVOICE_NO"/>
+        <result property="rgtrId"      column="RGTR_ID"/>
+        <result property="regDt"       column="REG_DT"/>
+        <result property="lastMdfrId"  column="LAST_MDFR_ID"/>
+        <result property="mdfcnDt"     column="MDFCN_DT"/>
+    </resultMap>
+
+    <select id="selectOrderShippingByOrdSn" parameterType="long" resultMap="orderShippingResultMap">
+        SELECT os.SHIPPING_SN, os.ORD_SN, os.BUYER_NM, os.BUYER_TEL, os.BUYER_EMAIL,
+               os.RECEIVER_NM, os.RECEIVER_TEL, os.RECEIVER_TEL2,
+               os.ZIP_CD, os.ADDR_ROAD, os.ADDR_JIBUN, os.ADDR_DTL,
+               os.DELIVERY_MSG, os.DLVRY_STAT_CD, os.INVOICE_NO,
+               os.RGTR_ID, os.REG_DT, os.LAST_MDFR_ID, os.MDFCN_DT
+          FROM ORDER_SHIPPING os
+         WHERE os.ORD_SN = #{ordSn}
+    </select>
+
+    <select id="selectMyOrderShipping" resultMap="orderShippingResultMap">
+        SELECT os.SHIPPING_SN, os.ORD_SN, os.BUYER_NM, os.BUYER_TEL, os.BUYER_EMAIL,
+               os.RECEIVER_NM, os.RECEIVER_TEL, os.RECEIVER_TEL2,
+               os.ZIP_CD, os.ADDR_ROAD, os.ADDR_JIBUN, os.ADDR_DTL,
+               os.DELIVERY_MSG, os.DLVRY_STAT_CD, os.INVOICE_NO,
+               os.RGTR_ID, os.REG_DT, os.LAST_MDFR_ID, os.MDFCN_DT
+          FROM ORDER_SHIPPING os
+          JOIN ORDERS o ON os.ORD_SN = o.ORD_SN
+         WHERE os.ORD_SN = #{ordSn}
+           AND o.USER_ID = #{userId}
+    </select>
+
+    <update id="updateOrderShipping" parameterType="kr.or.ddit.finalProject.dto.order.OrderShippingDto">
+        UPDATE ORDER_SHIPPING
+           SET 
+              RECEIVER_NM   = #{receiverNm},
+              RECEIVER_TEL  = #{receiverTel},
+              RECEIVER_TEL2 = #{receiverTel2},
+              ZIP_CD        = #{zipCd},
+              ADDR_ROAD     = #{addrRoad},
+              ADDR_JIBUN    = #{addrJibun},
+              ADDR_DTL      = #{addrDtl},
+              DELIVERY_MSG  = #{deliveryMsg},
+              LAST_MDFR_ID  = #{lastMdfrId},
+              MDFCN_DT      = CURRENT_TIMESTAMP
+        WHERE ORD_SN = #{ordSn}
+          AND DLVRY_STAT_CD = 'READY' </update>
+
+    <update id="updateDeliveryStatus">
+        UPDATE ORDER_SHIPPING
+           SET 
+              DLVRY_STAT_CD = #{dlvryStatCd},
+              INVOICE_NO    = #{invoiceNo},
+              LAST_MDFR_ID  = #{lastMdfrId},
+              MDFCN_DT      = CURRENT_TIMESTAMP
+        WHERE ORD_SN = #{ordSn}
+    </update>
+
+</mapper>

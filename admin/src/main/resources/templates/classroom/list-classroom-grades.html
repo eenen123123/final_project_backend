@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html th:replace="~{classroom/layout-classroom :: layout(
+    ${classroom.classNm} + ' | 성적 관리',
+    ${classroom},
+    'grades',
+    ~{:: #content}
+)}" lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div id="content">
+
+  <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
+    <div class="px-7 py-5 border-b border-slate-100">
+      <h2 class="text-base font-bold text-slate-800">수강생 성적 현황</h2>
+      <p class="text-sm text-slate-400 mt-1">수강 중인 학생의 과제 및 시험 성적 요약입니다.</p>
+    </div>
+
+    <div th:if="${#lists.isEmpty(gradePage.items)}"
+         class="p-20 flex flex-col items-center justify-center text-center gap-4">
+      <div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 text-3xl">
+        <i class="fa-solid fa-chart-bar"></i>
+      </div>
+      <p class="text-base font-medium text-slate-400">수강 중인 학생이 없습니다.</p>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(gradePage.items)}" class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-slate-100 text-sm text-slate-400">
+            <th class="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
+            <th class="py-4 px-7 font-medium">이름</th>
+            <th class="py-4 px-7 w-28 text-center font-medium whitespace-nowrap">과제 제출</th>
+            <th class="py-4 px-7 w-28 text-center font-medium whitespace-nowrap">채점 완료</th>
+            <th class="py-4 px-7 w-32 text-center font-medium whitespace-nowrap">과제 평균</th>
+            <th class="py-4 px-7 w-28 text-center font-medium whitespace-nowrap">시험 응시</th>
+          </tr>
+        </thead>
+        <tbody class="text-slate-700">
+          <tr th:each="g, stat : ${gradePage.items}" class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+            <td class="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap"
+                th:text="${gradePage.totalCount - (currentPage - 1) * pageSize - stat.index}">1</td>
+            <td class="py-4 px-7">
+              <div class="font-semibold text-slate-800 text-sm" th:text="${g.userName}">홍길동</div>
+              <div class="text-sm text-slate-400 font-mono" th:text="${g.userId}">hong123</div>
+            </td>
+            <td class="py-4 px-7 text-center whitespace-nowrap">
+              <span class="text-sm font-semibold text-slate-700"
+                    th:text="${g.sbmtAsgmtCnt + ' / ' + g.totAsgmtCnt}">0 / 0</span>
+            </td>
+            <td class="py-4 px-7 text-center whitespace-nowrap">
+              <span th:if="${g.grddAsgmtCnt > 0}"
+                    class="text-sm font-semibold text-emerald-500"
+                    th:text="${g.grddAsgmtCnt + '건'}">0건</span>
+              <span th:unless="${g.grddAsgmtCnt > 0}"
+                    class="text-sm text-slate-300">-</span>
+            </td>
+            <td class="py-4 px-7 text-center whitespace-nowrap">
+              <span th:if="${g.avgScore != null}"
+                    class="inline-flex items-center justify-center px-3 py-1 rounded-lg text-sm font-semibold text-blue-500 border border-blue-100"
+                    th:text="${g.avgScore + '점'}">0점</span>
+              <span th:unless="${g.avgScore != null}"
+                    class="text-sm text-slate-300">-</span>
+            </td>
+            <td class="py-4 px-7 text-center whitespace-nowrap">
+              <span th:if="${g.examCnt > 0}"
+                    class="text-sm font-semibold text-indigo-500"
+                    th:text="${g.examCnt + '회'}">0회</span>
+              <span th:unless="${g.examCnt > 0}"
+                    class="text-sm text-slate-300">-</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="px-7 py-4 border-t border-slate-100 flex items-center justify-between">
+      <p class="text-sm text-slate-400">
+        전체 <span class="font-semibold text-slate-600" th:text="${gradePage.totalCount}">0</span>명
+      </p>
+      <div th:if="${totalPages > 1}" class="flex items-center gap-1">
+        <a th:if="${currentPage > 1}"
+           th:href="@{/classroom/detail/{sn}/grades(sn=${classroom.classSn},page=${currentPage - 1})}"
+           class="px-3 py-1.5 text-sm text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
+          <i class="fa-solid fa-chevron-left text-xs"></i>
+        </a>
+        <th:block th:each="p : ${#numbers.sequence(1, totalPages)}">
+          <a th:href="@{/classroom/detail/{sn}/grades(sn=${classroom.classSn},page=${p})}"
+             th:text="${p}"
+             th:classappend="${p == currentPage} ? 'bg-blue-600 text-white' : 'text-slate-500 hover:bg-slate-100'"
+             class="px-3 py-1.5 text-sm rounded-lg transition-colors font-medium">1</a>
+        </th:block>
+        <a th:if="${currentPage < totalPages}"
+           th:href="@{/classroom/detail/{sn}/grades(sn=${classroom.classSn},page=${currentPage + 1})}"
+           class="px-3 py-1.5 text-sm text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
+          <i class="fa-solid fa-chevron-right text-xs"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

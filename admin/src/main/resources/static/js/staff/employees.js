@@ -695,35 +695,6 @@ function saveDetailEdit() {
     contractEnd: row.dataset.contractEnd                   || '-',
   };
 
-  row.dataset.name = document.getElementById("edit-name").value.trim();
-  row.dataset.dept = deptVal;
-  row.dataset.deptNm = deptOpt ? deptOpt.text : row.dataset.deptNm;
-  row.dataset.gradeCd = gradeVal;
-  row.dataset.grade = gradeOpt ? gradeOpt.text : row.dataset.grade;
-  row.dataset.join = document.getElementById("edit-entry-date").value;
-  row.dataset.status = document.getElementById("edit-status").value;
-  row.dataset.type = document.getElementById("edit-work-type").value;
-  row.dataset.contractEnd = document.getElementById("edit-contract-end").value;
-  const addrBase = document.getElementById("edit-addr").value.trim();
-  row.dataset.phone = document
-    .getElementById("edit-phone")
-    .value.replace(/-/g, "");
-  row.dataset.zip = document.getElementById("edit-zipcode").value;
-  row.dataset.addrBase = addrBase;
-  row.dataset.addrDetail = addrDetail;
-  row.dataset.addr = (addrBase + (addrDetail ? " " + addrDetail : "")).trim();
-  row.dataset.duty = document.getElementById("edit-duty").value;
-  row.dataset.salary = document.getElementById("edit-salary").value;
-
-  // 카드가 DOM에 있으면 type/status도 동기화 (openDetail에서 stale 값 참조 방지)
-  const card = document.querySelector(
-    '.emp-card[data-id="' + selectedEmpId + '"]',
-  );
-  if (card) {
-    card.dataset.emplTypeCd = row.dataset.type;
-    card.dataset.emplStatCd = row.dataset.status;
-  }
-
   const formData = new FormData();
   formData.append("userId", selectedEmpId);
   formData.append("userName", document.getElementById("edit-name").value.trim());
@@ -770,32 +741,9 @@ function saveDetailEdit() {
         .then((res) => res.json())
         .then((data) => {
           if (data.result === "success") {
-            const newProfileUrl = data.profileUrl || "";
-            row.dataset.profile = newProfileUrl;
-
-            const avatarWrap = row.querySelector("td:first-child .flex");
-            if (avatarWrap) {
-              let img = avatarWrap.querySelector("img");
-              const textDiv = avatarWrap.querySelector(".bg-blue-100");
-              if (newProfileUrl.startsWith("http")) {
-                if (!img) {
-                  img = document.createElement("img");
-                  img.className = "w-7 h-7 rounded-lg object-cover";
-                  img.alt = "프로필";
-                  avatarWrap.prepend(img);
-                }
-                img.src = newProfileUrl;
-                if (textDiv) textDiv.style.display = "none";
-              } else {
-                if (img) img.remove();
-                if (textDiv) textDiv.style.display = "";
-              }
-            }
-
-            syncRowCells(row);
+            // 결재 요청 성공 — DOM은 현재 DB 값 그대로 유지 (승인 후 반영)
             toggleDetailEdit();
-            openDetail(selectedEmpId);
-            showHermesToast("결재 요청이 완료되었습니다. 승인 후 처리됩니다.", "success");
+            showHermesToast("결재 요청이 완료되었습니다. 승인 후 반영됩니다.", "info");
           } else {
             showHermesToast("수정 실패: " + (data.message || "서버 오류"), "error");
           }

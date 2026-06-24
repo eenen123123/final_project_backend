@@ -1,0 +1,98 @@
+<!--
+  강사 문항 관리 — 상세
+  Controller: InstructorQuestionController  GET /instructor/questions/{sn}
+  Model: question
+-->
+<title th:fragment="pageTitle">문항 관리 | HERMES</title>
+
+<!-- 페이지 헤더 -->
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">문항 상세</h1>
+    <p class="text-sm text-slate-500 mt-1">문항 내용을 확인하고 관리합니다.</p>
+  </div>
+  <div class="flex gap-2">
+    <a th:href="@{'/instructor/questions/' + ${question.qstnSn} + '/edit'}"
+       class="hm-btn-primary hm-btn-sky text-base">
+      <i class="fa-solid fa-pen"></i>수정
+    </a>
+    <form th:action="@{'/instructor/questions/' + ${question.qstnSn} + '/delete'}"
+          method="post"
+          onsubmit="return confirm('문항을 삭제하시겠습니까?')">
+      <button type="submit" class="hm-btn-danger text-base">
+        <i class="fa-solid fa-trash"></i>삭제
+      </button>
+    </form>
+    <a href="/instructor/questions" class="hm-btn-secondary text-base">
+      <i class="fa-solid fa-list"></i>목록으로
+    </a>
+  </div>
+</div>
+
+<!-- 메타 정보 + 본문 카드 -->
+<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+  <!-- 메타 영역 -->
+  <div class="border-b border-slate-100 px-8 py-4">
+    <div class="flex items-center gap-2 mb-2">
+      <span th:if="${question.aiGenYn == 'Y'}"
+        class="inline-block text-xs font-bold px-1.5 py-0.5 rounded-full"
+        style="background:linear-gradient(135deg,#ede9fe,#e0f2fe);color:#6d28d9;">AI</span>
+      <span class="inline-block text-xs font-semibold rounded px-2 py-0.5"
+        th:classappend="${question.qstnTypeCd?.name() == 'MULTIPLE_CHOICE'} ? 'bg-blue-50 text-blue-700'
+                       : (${question.qstnTypeCd?.name() == 'SHORT_ANSWER'} ? 'bg-emerald-50 text-emerald-700'
+                       : 'bg-amber-50 text-amber-700')"
+        th:text="${question.qstnTypeCd?.name() == 'MULTIPLE_CHOICE'} ? '객관식'
+                 : (${question.qstnTypeCd?.name() == 'SHORT_ANSWER'} ? '단답형' : '서술형')">
+      </span>
+      <span th:if="${question.diffCd?.name() == 'EASY'}"
+        class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700">쉬움</span>
+      <span th:if="${question.diffCd?.name() == 'MEDIUM'}"
+        class="text-xs font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-700">보통</span>
+      <span th:if="${question.diffCd?.name() == 'HARD'}"
+        class="text-xs font-semibold px-2 py-0.5 rounded bg-red-50 text-red-700">어려움</span>
+    </div>
+    <div class="flex items-center gap-4 text-sm text-slate-400">
+      <span th:if="${question.allocScr != null}">
+        <i class="fa-solid fa-star mr-1 text-amber-400"></i><span th:text="${question.allocScr} + '점'"></span>
+      </span>
+      <span th:if="${question.mdfcnDt != null}">
+        <i class="fa-regular fa-calendar mr-1"></i><span th:text="${question.mdfcnDt}"></span>
+      </span>
+    </div>
+  </div>
+
+  <!-- 문제 본문 -->
+  <div class="border-b border-slate-100 px-8 py-4">
+    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">문제 본문</p>
+    <p class="text-slate-800 whitespace-pre-wrap leading-relaxed text-sm"
+       th:text="${question.stem}"></p>
+  </div>
+
+  <!-- 선지 (객관식만) -->
+  <div th:if="${question.qstnTypeCd?.name() == 'MULTIPLE_CHOICE' and not #lists.isEmpty(question.choices)}"
+       class="border-b border-slate-100 px-8 py-4">
+    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">선지</p>
+    <ul class="space-y-1.5 text-sm text-slate-700">
+      <li th:each="c : ${question.choices}" class="flex items-start gap-2">
+        <i class="fa-regular fa-circle-dot mt-0.5 text-slate-300 shrink-0"></i>
+        <span th:text="${c}"></span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- 정답 -->
+  <div class="border-b border-slate-100 px-8 py-4">
+    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">정답</p>
+    <p class="text-slate-800 font-semibold text-sm"
+       th:text="${question.corrAnswCn != null} ? ${question.corrAnswCn} : '-'"></p>
+  </div>
+
+  <!-- 해설 -->
+  <div th:if="${question.explnCn != null}" class="px-8 py-4">
+    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">해설</p>
+    <p class="text-slate-700 text-sm whitespace-pre-wrap bg-sky-50 border-l-4 border-sky-300 rounded-r-xl px-4 py-3"
+       th:text="${question.explnCn}"></p>
+  </div>
+
+</div>

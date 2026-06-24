@@ -7,21 +7,28 @@ import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.coupon.AssetType;
 import kr.or.ddit.finalProject.dto.order.OrderDto;
 import kr.or.ddit.finalProject.dto.order.OrderItemDto;
+import kr.or.ddit.finalProject.dto.order.OrderSearchCondition;
+import kr.or.ddit.finalProject.dto.order.OrderCreateRequest;
+import kr.or.ddit.finalProject.dto.order.OrderShippingDto;
+import kr.or.ddit.finalProject.paging.PaginationInfo;
 
 public interface OrderService {
 
-    /**
-     * 결제 전 주문 선생성. 상품명/가격은 서버가 DB에서 재조회해 채운다 (금액 위변조 방지).
-     *
-     * @param userId    주문자
-     * @param items     prodDivCd, prodSn, itemQty만 사용
-     * @param pointAmt  사용할 포인트량 (0이면 미사용) — [포인트 시스템 추가]
-     * @param pointType 사용할 포인트 유형 (HM_POINT / STUDY_POINT, pointAmt=0이면 null) — [포인트 시스템 추가]
-     * @return 생성된 주문 (ordId, totAmt를 토스 결제창 호출에 사용)
-     */
-    OrderDto createOrder(String userId, List<OrderItemDto> items, long pointAmt, AssetType pointType);
+    OrderDto createOrder(String userId, List<OrderItemDto> items, long pointAmt, AssetType pointType, OrderShippingDto shipping, boolean saveToAddressBook, List<OrderCreateRequest.CouponApplication> coupons);
 
     PageResponse<OrderDto> getOrdersByUserId(String userId, int page, LocalDateTime from, LocalDateTime to);
 
     OrderDto getOrderByOrderSn(Long ordSn, String userId);
+
+    // 전체 주문 조회 (관리자)
+    PageResponse<OrderDto> getAllOrders(PaginationInfo<OrderSearchCondition> paginationInfo);
+
+    // 전체 주문 건수 (관리자 카드용)
+    int getTotalOrderCount();
+
+    // 취소 요청 목록 조회 (관리자)
+    List<OrderDto> getCancelRequestList();
+
+    // 취소 상세 조회 (관리자 - 모달용, 아이템 포함)
+    OrderDto getCancelDetailByOrdSn(Long ordSn);
 }

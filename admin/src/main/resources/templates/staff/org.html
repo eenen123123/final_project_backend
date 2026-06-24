@@ -10,20 +10,20 @@
 <div class="flex items-center justify-between mb-6">
   <div>
     <h1 class="text-xl font-bold text-slate-800">조직 관리</h1>
-    <p class="text-sm text-slate-500 mt-0.5">부서·직급 구조 관리 및 사수-부하 직원 계층 배정</p>
+    <p class="text-sm text-slate-500 mt-1">부서·직급 구조 관리 및 사수-부하 직원 계층 배정</p>
   </div>
 </div>
 
 <!-- ───────── 탭 ───────── -->
 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
   <div class="flex items-center border-b border-slate-100 px-6">
-    <button class="emp-tab-btn active org-tab active py-3.5 px-4 text-sm -mb-px" onclick="switchTab('tab-dept',this)">
+    <button class="org-tab active py-3.5 px-4 text-sm -mb-px" onclick="switchTab('tab-dept',this)">
       <i class="fa-solid fa-building mr-1.5"></i>부서 관리
     </button>
-    <button class="emp-tab-btn org-tab py-3.5 px-4 text-sm text-slate-500 -mb-px" onclick="switchTab('tab-grade',this)">
+    <button class="org-tab py-3.5 px-4 text-sm text-slate-500 -mb-px" onclick="switchTab('tab-grade',this)">
       <i class="fa-solid fa-layer-group mr-1.5"></i>직급 관리
     </button>
-    <button class="emp-tab-btn org-tab py-3.5 px-4 text-sm text-slate-500 -mb-px" onclick="switchTab('tab-mapping',this)">
+    <button class="org-tab py-3.5 px-4 text-sm text-slate-500 -mb-px" onclick="switchTab('tab-mapping',this)">
       <i class="fa-solid fa-sitemap mr-1.5"></i>사수 배정
     </button>
     <!-- 사수 배정 일괄 등록 (탭 헤더 우측 고정) -->
@@ -125,7 +125,10 @@
         </tbody>
       </table>
     </div>
-    <div id="grade-pagination" class="flex justify-center gap-1 mt-4"></div>
+    <div class="flex items-center justify-between px-1 py-4 border-t border-slate-100 bg-slate-50/50 mt-2">
+      <p class="text-xs text-slate-400" id="grade-pagination-info"></p>
+      <div id="grade-pagination" class="flex items-center gap-1"></div>
+    </div>
   </div>
 
   <!-- ══════ 탭3: 사수 배정 ══════ -->
@@ -159,8 +162,8 @@
           </p>
           <div class="flex flex-col gap-2">
             <input type="text" id="mnt-search" placeholder="이름 또는 ID 검색..."
-                   class="hm-input" style="font-size:.78rem" oninput="renderUnassigned()">
-            <select id="mnt-grade-filter" class="hm-input" style="font-size:.78rem" onchange="renderUnassigned()">
+                   class="hm-input hm-input-blue" style="font-size:.78rem" oninput="renderUnassigned()">
+            <select id="mnt-grade-filter" class="hm-input hm-input-blue" style="font-size:.78rem" onchange="renderUnassigned()">
               <option value="">전체 직급</option>
               <option th:each="g : ${jobGradeList}"
                       th:value="${g.jbgrNm}"
@@ -168,7 +171,7 @@
                       th:data-dept="${g.deptCd}"
                       th:data-sort-ord="${g.sortOrd}"></option>
             </select>
-            <select id="mnt-stat-filter" class="hm-input" style="font-size:.78rem" onchange="renderUnassigned()" data-cs-defer>
+            <select id="mnt-stat-filter" class="hm-input hm-input-blue" style="font-size:.78rem" onchange="renderUnassigned()" data-cs-defer>
             </select>
           </div>
         </div>
@@ -217,7 +220,7 @@
     </div>
     <div class="p-5 space-y-3">
       <p class="text-sm text-slate-500">팀을 이끌 사수(팀장)를 선택하면<br>빈 팀 열이 생성됩니다. 이후 왼쪽에서 팀원을 드래그하여 배정하세요.</p>
-      <select id="add-team-select" class="hm-input w-full"></select>
+      <select id="add-team-select" class="hm-input hm-input-blue w-full"></select>
     </div>
     <div class="px-5 py-4 border-t border-slate-100 flex justify-end gap-3">
       <button onclick="closeAddTeamModal()" class="hm-btn-secondary px-4 py-2 text-sm">취소</button>
@@ -237,20 +240,20 @@
       <input type="hidden" id="dept-edit-cd">
       <div>
         <label class="form-label">부서 코드 <span class="required">*</span></label>
-        <input type="text" id="dept-cd" class="hm-input" placeholder="D100" maxlength="10">
+        <input type="text" id="dept-cd" class="hm-input hm-input-blue" placeholder="D100" maxlength="10">
         <p class="text-xs text-slate-400 mt-1">수정 시 변경 불가</p>
       </div>
       <div>
         <label class="form-label">부서명 <span class="required">*</span></label>
-        <input type="text" id="dept-nm" class="hm-input" placeholder="행정팀">
+        <input type="text" id="dept-nm" class="hm-input hm-input-blue" placeholder="행정팀">
       </div>
       <div>
         <label class="form-label">상위 부서 코드</label>
-        <input type="text" id="dept-prnt" class="hm-input" placeholder="없으면 비워두세요">
+        <input type="text" id="dept-prnt" class="hm-input hm-input-blue" placeholder="없으면 비워두세요">
       </div>
       <div>
         <label class="form-label">사무실 번호</label>
-        <input type="text" id="dept-tel" class="hm-input" placeholder="02-1234-5678">
+        <input type="text" id="dept-tel" class="hm-input hm-input-blue" placeholder="02-1234-5678">
       </div>
     </div>
     <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
@@ -272,23 +275,23 @@
       <div class="grid grid-cols-2 gap-3">
         <div>
           <label class="form-label">직급 코드 <span class="required">*</span></label>
-          <input type="text" id="grade-cd" class="hm-input" placeholder="P001" maxlength="10">
+          <input type="text" id="grade-cd" class="hm-input hm-input-blue" placeholder="P001" maxlength="10">
         </div>
         <div>
           <label class="form-label">직급명 <span class="required">*</span></label>
-          <input type="text" id="grade-nm" class="hm-input" placeholder="팀장">
+          <input type="text" id="grade-nm" class="hm-input hm-input-blue" placeholder="팀장">
         </div>
         <div>
           <label class="form-label">소속 부서 코드</label>
-          <input type="text" id="grade-dept" class="hm-input" placeholder="D100">
+          <input type="text" id="grade-dept" class="hm-input hm-input-blue" placeholder="D100">
         </div>
         <div>
           <label class="form-label">정렬 순서</label>
-          <input type="number" id="grade-ord" class="hm-input" placeholder="1">
+          <input type="number" id="grade-ord" class="hm-input hm-input-blue" placeholder="1">
         </div>
         <div>
           <label class="form-label">연차 부여 일수</label>
-          <input type="number" id="grade-days" class="hm-input" placeholder="15">
+          <input type="number" id="grade-days" class="hm-input hm-input-blue" placeholder="15">
         </div>
       </div>
     </div>

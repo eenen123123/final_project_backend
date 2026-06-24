@@ -1,0 +1,137 @@
+<!--
+  강사 문항 관리 — 목록
+  Controller: InstructorQuestionController  GET /instructor/questions
+  Model: questions, classifications, currentPage, totalPages, totalCount,
+         pageSize, selectedSubjId, selectedSubjClId, selectedDiffCd
+-->
+<title th:fragment="pageTitle">문항 관리 | HERMES</title>
+<link rel="stylesheet" th:href="@{/css/instructor/instructor-board.css}" />
+
+<!-- 페이지 헤더 -->
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">문항 관리</h1>
+    <p class="text-sm text-slate-500 mt-1">등록된 문항을 조회하고 관리합니다.</p>
+  </div>
+  <a href="/instructor/questions/new" class="hm-btn-primary hm-btn-sky">
+    <i class="fa-solid fa-pen-to-square"></i>문항 추가
+  </a>
+</div>
+
+<!-- 필터 -->
+<form method="get" action="/instructor/questions" onsubmit="filterBeforeSubmit()"
+      class="board-filter" style="border-radius:0.75rem 0.75rem 0 0;margin-bottom:0;">
+  <select id="filter-cl" onchange="filterLoadSubjects(); syncClHidden();"
+          class="hm-input hm-input-sky" style="width:auto;min-width:120px;">
+    <option value="">대분류 전체</option>
+    <th:block th:each="cl : ${classifications}">
+      <option th:value="${cl.subjClId}" th:text="${cl.subjClNm}"
+        th:selected="${cl.subjClId != null and cl.subjClId == selectedSubjClId}"></option>
+    </th:block>
+  </select>
+  <input type="hidden" name="subjClId" id="filter-cl-hidden" th:value="${selectedSubjClId}" />
+  <select name="subjId" id="filter-subj" class="hm-input hm-input-sky" style="width:auto;min-width:120px;">
+    <option value="">과목 전체</option>
+  </select>
+  <select name="diffCd" class="hm-input hm-input-sky" style="width:auto;min-width:100px;">
+    <option value="">난이도 전체</option>
+    <option value="EASY"   th:selected="${selectedDiffCd == 'EASY'}">쉬움</option>
+    <option value="MEDIUM" th:selected="${selectedDiffCd == 'MEDIUM'}">보통</option>
+    <option value="HARD"   th:selected="${selectedDiffCd == 'HARD'}">어려움</option>
+  </select>
+  <button type="submit" class="hm-btn-primary hm-btn-sky">
+    <i class="fa-solid fa-magnifying-glass"></i>검색
+  </button>
+  <a th:if="${selectedSubjClId != null or selectedDiffCd != null}"
+     href="/instructor/questions" class="btn-filter-reset">
+    <i class="fa-solid fa-xmark mr-0.5"></i>초기화
+  </a>
+  <span class="board-filter-count">
+    <strong th:text="${totalCount}">0</strong>건
+  </span>
+</form>
+
+<!-- 문항 목록 -->
+<div class="board-list" style="border-top:none;">
+  <div class="board-list-header">
+    <span>#</span>
+    <span>유형</span>
+    <span>문제 본문</span>
+    <span>배점</span>
+    <span>난이도</span>
+    <span>등록일시</span>
+  </div>
+
+  <div th:if="${#lists.isEmpty(questions)}" class="board-empty">
+    <i class="fa-solid fa-circle-question"></i>
+    <p>조건에 맞는 문항이 없습니다.</p>
+  </div>
+
+  <a th:each="q,s : ${questions}"
+     th:href="@{'/instructor/questions/' + ${q.qstnSn}}"
+     class="board-item">
+    <span class="board-item-no" th:text="${(currentPage - 1) * pageSize + s.count}"></span>
+    <span>
+      <span th:if="${q.aiGenYn == 'Y'}"
+        class="inline-block text-xs font-bold px-1.5 py-0.5 rounded-full mr-1"
+        style="background:linear-gradient(135deg,#ede9fe,#e0f2fe);color:#6d28d9;">AI</span>
+      <span class="inline-block text-xs font-semibold rounded px-2 py-0.5"
+        th:classappend="${q.qstnTypeCd?.name() == 'MULTIPLE_CHOICE'} ? 'bg-blue-50 text-blue-700'
+                       : (${q.qstnTypeCd?.name() == 'SHORT_ANSWER'} ? 'bg-emerald-50 text-emerald-700'
+                       : 'bg-amber-50 text-amber-700')"
+        th:text="${q.qstnTypeCd?.name() == 'MULTIPLE_CHOICE'} ? '객관식'
+                 : (${q.qstnTypeCd?.name() == 'SHORT_ANSWER'} ? '단답형' : '서술형')">
+      </span>
+    </span>
+    <span class="board-item-title" th:text="${#strings.abbreviate(q.stem, 60)}"></span>
+    <span class="board-item-no" th:text="${q.allocScr != null} ? ${q.allocScr} + '점' : '-'"></span>
+    <span>
+      <span th:if="${q.diffCd?.name() == 'EASY'}"
+        class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700">쉬움</span>
+      <span th:if="${q.diffCd?.name() == 'MEDIUM'}"
+        class="text-xs font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-700">보통</span>
+      <span th:if="${q.diffCd?.name() == 'HARD'}"
+        class="text-xs font-semibold px-2 py-0.5 rounded bg-red-50 text-red-700">어려움</span>
+      <span th:if="${q.diffCd == null}" class="text-slate-300 text-xs">-</span>
+    </span>
+    <span class="board-item-date" th:text="${q.regDt}"></span>
+  </a>
+</div>
+
+<!-- 페이지네이션 -->
+<div th:if="${totalPages > 1}" class="board-pagination">
+  <a th:if="${currentPage > 1}"
+     th:href="@{/instructor/questions(page=${currentPage - 1}, subjId=${selectedSubjId}, subjClId=${selectedSubjClId}, diffCd=${selectedDiffCd})}">
+    <i class="fa-solid fa-chevron-left text-xs"></i>
+  </a>
+  <span th:unless="${currentPage > 1}" class="disabled">
+    <i class="fa-solid fa-chevron-left text-xs"></i>
+  </span>
+
+  <th:block th:with="startPage=${T(java.lang.Math).max(1, currentPage - 2)},
+                     endPage=${T(java.lang.Math).min(totalPages, currentPage + 2)}">
+    <th:block th:each="p : ${#numbers.sequence(startPage, endPage)}">
+      <a th:if="${p != currentPage}"
+         th:href="@{/instructor/questions(page=${p}, subjId=${selectedSubjId}, subjClId=${selectedSubjClId}, diffCd=${selectedDiffCd})}"
+         th:text="${p}"></a>
+      <span th:if="${p == currentPage}" class="current" th:text="${p}"></span>
+    </th:block>
+  </th:block>
+
+  <a th:if="${currentPage < totalPages}"
+     th:href="@{/instructor/questions(page=${currentPage + 1}, subjId=${selectedSubjId}, subjClId=${selectedSubjClId}, diffCd=${selectedDiffCd})}">
+    <i class="fa-solid fa-chevron-right text-xs"></i>
+  </a>
+  <span th:unless="${currentPage < totalPages}" class="disabled">
+    <i class="fa-solid fa-chevron-right text-xs"></i>
+  </span>
+</div>
+
+<!-- 필터 상태 복원용 -->
+<script th:inline="javascript">
+  window._filterState = {
+    subjClId: /*[[${selectedSubjClId}]]*/ null,
+    subjId:   /*[[${selectedSubjId}]]*/ null
+  };
+</script>
+<script th:src="@{/js/instructor/list-questions.js}"></script>

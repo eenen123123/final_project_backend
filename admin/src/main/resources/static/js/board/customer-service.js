@@ -26,28 +26,36 @@ function loadTabData(tabId, page) {
 function renderPagination(containerId, totalCount, currentPage, size, loadFn) {
   const totalPages = Math.ceil(totalCount / size);
   const container = document.getElementById(containerId);
-  if (!container || totalPages <= 1) { if (container) container.innerHTML = ''; return; }
+  if (!container) return;
+
+  const start = totalCount === 0 ? 0 : (currentPage - 1) * size + 1;
+  const end   = Math.min(currentPage * size, totalCount);
+  const infoText = totalCount === 0
+    ? '데이터가 없습니다.'
+    : `전체 ${totalCount}건 중 ${start} – ${end} 표시`;
 
   const blockSize = 5;
-  const endPage = Math.ceil(currentPage / blockSize) * blockSize;
-  const startPage = endPage - blockSize + 1;
+  const endPage   = Math.min(Math.ceil(currentPage / blockSize) * blockSize, totalPages);
+  const startPage = Math.max(endPage - blockSize + 1, 1);
 
-  let html = '<div class="flex items-center justify-center gap-1 mt-4">';
-  if (startPage > 1) {
-    html += `<button onclick="${loadFn}(${startPage - 1})" class="px-2.5 py-1.5 text-xs text-slate-500 hover:text-violet-600 rounded-lg hover:bg-violet-50 transition-colors">&lt;</button>`;
-  }
-  for (let p = startPage; p <= Math.min(endPage, totalPages); p++) {
-    if (p === currentPage) {
-      html += `<button class="px-2.5 py-1.5 text-xs font-bold text-white bg-violet-600 rounded-lg">${p}</button>`;
-    } else {
-      html += `<button onclick="${loadFn}(${p})" class="px-2.5 py-1.5 text-xs text-slate-500 hover:text-violet-600 rounded-lg hover:bg-violet-50 transition-colors">${p}</button>`;
+  const BASE = 'w-8 h-8 rounded-lg text-xs flex items-center justify-center';
+  let btns = '';
+  if (totalPages > 1) {
+    if (startPage > 1)
+      btns += `<button onclick="${loadFn}(${startPage - 1})" class="${BASE} text-slate-400 hover:bg-slate-100">‹</button>`;
+    for (let p = startPage; p <= endPage; p++) {
+      const cls = p === currentPage ? 'bg-blue-600 text-white font-bold' : 'text-slate-400 hover:bg-slate-100';
+      btns += `<button onclick="${loadFn}(${p})" class="${BASE} ${cls}">${p}</button>`;
     }
+    if (endPage < totalPages)
+      btns += `<button onclick="${loadFn}(${endPage + 1})" class="${BASE} text-slate-400 hover:bg-slate-100">›</button>`;
   }
-  if (endPage < totalPages) {
-    html += `<button onclick="${loadFn}(${endPage + 1})" class="px-2.5 py-1.5 text-xs text-slate-500 hover:text-violet-600 rounded-lg hover:bg-violet-50 transition-colors">&gt;</button>`;
-  }
-  html += '</div>';
-  container.innerHTML = html;
+
+  container.innerHTML = `
+    <div class="flex items-center justify-between px-1 py-4 border-t border-slate-100 mt-2">
+      <p class="text-xs text-slate-400">${infoText}</p>
+      <div class="flex items-center gap-1">${btns}</div>
+    </div>`;
 }
 
 function showSkeleton(tbodyId, cols) {
@@ -107,7 +115,7 @@ function renderFaqTable(items) {
       </td>
       <td class="py-3 px-4 text-center text-xs text-slate-500">${faq.faqSubCtgNm || ''}</td>
       <td class="py-3 px-4 text-slate-800 font-medium">
-        <a href="/admin/board/faq/${faq.postSn}" class="hover:text-violet-600 transition-colors">${faq.postSj}</a>
+        <a href="/admin/board/faq/${faq.postSn}" class="hover:text-blue-600 transition-colors">${faq.postSj}</a>
       </td>
       <td class="py-3 px-4 text-center">
         ${faq.topFixYn === 'Y'
@@ -117,7 +125,7 @@ function renderFaqTable(items) {
       <td class="py-3 px-4 text-center text-xs text-slate-400">${(faq.regDt || '').slice(0, 10)}</td>
       <td class="py-3 px-4 text-center">
         <div class="flex items-center justify-center gap-2">
-          <a href="/admin/board/faq/edit/${faq.postSn}" class="text-xs text-violet-600 font-semibold hover:underline">수정</a>
+          <a href="/admin/board/faq/edit/${faq.postSn}" class="text-xs text-blue-600 font-semibold hover:underline">수정</a>
           <span class="text-slate-300 text-xs">|</span>
           <form action="/admin/board/faq/delete/${faq.postSn}" method="post" onsubmit="return confirm('삭제하시겠습니까?')" class="m-0 p-0 flex">
             <button type="submit" class="text-xs text-red-500 font-semibold hover:underline cursor-pointer">삭제</button>
@@ -174,17 +182,17 @@ function renderNoticeTable(items) {
           <span class="text-xs bg-${color}-50 text-${color}-600 font-semibold px-2 py-0.5 rounded-full">${label}</span>
         </td>
         <td class="py-3 px-4 text-slate-800 font-medium">
-          <a href="/admin/board/notice/${notice.postSn}" class="hover:text-violet-600 transition-colors">${notice.postSj}</a>
+          <a href="/admin/board/notice/${notice.postSn}" class="hover:text-blue-600 transition-colors">${notice.postSj}</a>
         </td>
         <td class="py-3 px-4 text-center">
           ${notice.popupExpsYn === 'Y'
-            ? '<span class="text-xs bg-violet-50 text-violet-600 font-semibold px-2 py-0.5 rounded-full">Y</span>'
+            ? '<span class="text-xs bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded-full">Y</span>'
             : '<span class="text-xs text-slate-300">-</span>'}
         </td>
         <td class="py-3 px-4 text-center text-xs text-slate-400">${(notice.regDt || '').slice(0, 10)}</td>
         <td class="py-3 px-4 text-center">
           <div class="flex items-center justify-center gap-2">
-            <a href="/admin/board/notice/edit/${notice.postSn}" class="text-xs text-violet-600 font-semibold hover:underline">수정</a>
+            <a href="/admin/board/notice/edit/${notice.postSn}" class="text-xs text-blue-600 font-semibold hover:underline">수정</a>
             <span class="text-slate-300 text-xs">|</span>
             <form action="/admin/board/notice/delete/${notice.postSn}" method="post" onsubmit="return confirm('삭제하시겠습니까?')" class="m-0 p-0 flex">
               <button type="submit" class="text-xs text-red-500 font-semibold hover:underline cursor-pointer">삭제</button>
@@ -241,7 +249,7 @@ function renderQnaTable(items) {
         <span class="text-xs bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded-full">${qna.qnaCtgNm || ''}</span>
       </td>
       <td class="py-3 px-4 text-slate-800 font-medium">
-        <a href="/admin/board/qna/${qna.postSn}" class="hover:text-violet-600 transition-colors">${qna.postSj}</a>
+        <a href="/admin/board/qna/${qna.postSn}" class="hover:text-blue-600 transition-colors">${qna.postSj}</a>
       </td>
       <td class="py-3 px-4 text-center">
         ${qna.secrYn === 'Y'
@@ -301,7 +309,7 @@ function renderDataRoomTable(items) {
         <span class="text-xs bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded-full">${dr.dataCtgNm || ''}</span>
       </td>
       <td class="py-3 px-4 text-slate-800 font-medium">
-        <a href="/admin/board/dataroom/${dr.postSn}" class="hover:text-violet-600 transition-colors">${dr.postSj}</a>
+        <a href="/admin/board/dataroom/${dr.postSn}" class="hover:text-blue-600 transition-colors">${dr.postSj}</a>
       </td>
       <td class="py-3 px-4 text-center">
         ${dr.accsLmtCd === '01'
@@ -316,7 +324,7 @@ function renderDataRoomTable(items) {
       <td class="py-3 px-4 text-center text-xs text-slate-400">${(dr.regDt || '').slice(0, 10)}</td>
       <td class="py-3 px-4 text-center">
         <div class="flex items-center justify-center gap-2">
-          <a href="/admin/board/dataroom/edit/${dr.postSn}" class="text-xs text-violet-600 font-semibold hover:underline">수정</a>
+          <a href="/admin/board/dataroom/edit/${dr.postSn}" class="text-xs text-blue-600 font-semibold hover:underline">수정</a>
           <span class="text-slate-300 text-xs">|</span>
           <form action="/admin/board/dataroom/delete/${dr.postSn}" method="post" onsubmit="return confirm('삭제하시겠습니까?')" class="m-0 p-0 flex">
             <button type="submit" class="text-xs text-red-500 font-semibold hover:underline cursor-pointer">삭제</button>

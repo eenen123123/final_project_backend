@@ -2,13 +2,13 @@
   <p class="sidebar-title text-blue-500 sidebar-section-toggle"><i class="fa-solid fa-building-user sidebar-section-icon"></i>행정 업무<i class="fa-solid fa-chevron-down sidebar-section-arrow"></i></p>
   <ul class="sidebar-list">
     <!-- 1 그룹: 통합 운영 및 소통 -->
-    <li>
+    <!-- <li>
       <a href="/admin/calendar" class="sidebar-link"
          th:classappend="${currentUri.startsWith('/admin/calendar')} ? 'active'">
         <i class="fa-solid fa-calendar-days sidebar-icon"></i>
         <span class="sidebar-link-text">통합 일정 관리</span>
       </a>
-    </li>
+    </li> -->
     <!-- <li>
       <a href="/admin/notifications/parent" class="sidebar-link">
         <i class="fa-solid fa-bell sidebar-icon"></i>
@@ -91,6 +91,14 @@
          th:classappend="${currentUri.startsWith('/admin/textbook')} ? 'active'">
         <i class="fa-solid fa-book sidebar-icon"></i>
         <span class="sidebar-link-text">교재 관리</span>
+      </a>
+    </li>
+
+    <li>
+      <a href="/admin/orders" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/admin/orders')} ? 'active'">
+        <i class="fa-solid fa-receipt sidebar-icon"></i>
+        <span class="sidebar-link-text">주문 관리</span>
       </a>
     </li>
     <!-- <li>

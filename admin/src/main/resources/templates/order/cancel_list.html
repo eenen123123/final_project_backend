@@ -1,0 +1,267 @@
+<title th:fragment="pageTitle">환불/취소 관리 | HERMES</title>
+
+<div class="space-y-6">
+
+  <!-- 네비게이션 카드 -->
+  <div class="grid grid-cols-3 gap-4">
+    <a href="/admin/orders" class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:border-slate-300 hover:shadow-md transition-all block">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center text-lg shrink-0">
+          <i class="fa-solid fa-receipt"></i>
+        </div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">전체 주문</p>
+      </div>
+      <p class="text-2xl font-bold text-slate-800">-</p>
+    </a>
+    <a href="/admin/shipping" class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:border-blue-200 hover:shadow-md transition-all block">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center text-lg shrink-0">
+          <i class="fa-solid fa-truck"></i>
+        </div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">배송 관리</p>
+      </div>
+      <p class="text-2xl font-bold text-slate-800">-</p>
+    </a>
+    <a href="/admin/cancel" class="bg-white rounded-2xl border-2 border-slate-800 shadow-sm p-5 block">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center text-lg shrink-0">
+          <i class="fa-solid fa-rotate-left"></i>
+        </div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider leading-tight">환불/취소 관리</p>
+      </div>
+      <p class="text-2xl font-bold text-rose-500" th:text="${totalCount + '건'}">0건</p>
+    </a>
+  </div>
+
+
+  <!-- ③ 테이블 -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <!-- 탭 -->
+    <div class="flex border-b border-slate-100">
+      <a href="/admin/orders"
+        class="px-6 py-3.5 text-sm font-semibold text-slate-500 hover:bg-slate-50 border-r border-slate-100 whitespace-nowrap cursor-pointer transition-colors">
+        전체 주문
+      </a>
+      <a href="/admin/shipping"
+        class="px-6 py-3.5 text-sm font-semibold text-slate-500 hover:bg-slate-50 border-r border-slate-100 whitespace-nowrap cursor-pointer transition-colors">
+        배송 관리
+      </a>
+      <a href="/admin/cancel"
+        class="px-6 py-3.5 text-sm font-bold text-white bg-slate-800 border-r border-slate-700 whitespace-nowrap cursor-pointer">
+        환불/취소 관리
+      </a>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table style="width:100%; table-layout:fixed; border-collapse:collapse; text-align:left;">
+        <colgroup>
+          <col style="width:22%" />
+          <col style="width:12%" />
+          <col style="width:22%" />
+          <col style="width:12%" />
+          <col style="width:14%" />
+          <col style="width:12%" />
+          <col style="width:6%" />
+        </colgroup>
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider">
+            <th style="padding:1rem 1.25rem;">주문번호</th>
+            <th style="padding:1rem 1.25rem;">주문자</th>
+            <th style="padding:1rem 1.25rem;">주문명</th>
+            <th style="padding:1rem 1.25rem; text-align:right;">결제금액</th>
+            <th style="padding:1rem 1.25rem;">취소사유</th>
+            <th style="padding:1rem 1.25rem; text-align:center;">요청일</th>
+            <th style="padding:1rem 1.25rem; text-align:center;">처리</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
+
+          <tr th:if="${#lists.isEmpty(cancelList)}">
+            <td colspan="7" class="py-20 text-center text-slate-400 text-sm">
+              <i class="fa-solid fa-check-circle text-2xl text-slate-200 mb-3 block"></i>
+              처리 대기 중인 환불/취소 요청이 없습니다.
+            </td>
+          </tr>
+
+          <tr th:each="o : ${cancelList}"
+              th:data-ord-sn="${o.ordSn}"
+              th:data-ord-id="${o.ordId}"
+              th:data-ord-nm="${o.ordNm}"
+              th:data-user-id="${o.userId}"
+              th:data-tot-amt="${o.totAmt}"
+              th:data-cancel-rsn-cd="${o.cancelRsnCd}"
+              th:data-cancel-rsn-dtl="${o.cancelRsnDtl}"
+              th:data-cancel-req-dt="${o.cancelReqDt}"
+              class="hover:bg-slate-50/50 transition-colors cursor-pointer"
+              onclick="openDetailModal(this)">
+            <td style="padding:1rem 1.25rem; max-width:0;">
+              <span class="text-xs font-mono text-slate-500 block truncate" th:text="${o.ordId}" th:title="${o.ordId}">-</span>
+            </td>
+            <td style="padding:1rem 1.25rem;">
+              <span class="text-slate-700" th:text="${o.userId}">-</span>
+            </td>
+            <td style="padding:1rem 1.25rem;">
+              <span class="text-slate-800 font-medium truncate block" th:text="${o.ordNm}">-</span>
+            </td>
+            <td style="padding:1rem 1.25rem; text-align:right;">
+              <span class="font-bold text-slate-800" th:text="${#numbers.formatInteger(o.totAmt, 1, 'COMMA') + '원'}">0원</span>
+            </td>
+            <td style="padding:1rem 1.25rem;">
+              <span th:switch="${o.cancelRsnCd?.name()}">
+                <span th:case="'CHANGE_OF_MIND'"  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600">단순 변심</span>
+                <span th:case="'DELIVERY_DELAY'"  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-600">배송 지연</span>
+                <span th:case="'WRONG_ORDER'"     class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600">주문 실수</span>
+                <span th:case="'DUPLICATE_ORDER'" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-50 text-purple-600">중복 주문</span>
+                <span th:case="'OTHER'"           class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">기타</span>
+                <span th:case="*"                 class="text-slate-400">-</span>
+              </span>
+            </td>
+            <td style="padding:1rem 1.25rem; text-align:center;">
+              <span class="text-xs text-slate-500" th:text="${#temporals.format(o.cancelReqDt, 'yyyy.MM.dd')}">-</span>
+            </td>
+            <td style="padding:1rem 1.25rem; text-align:center;">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-rose-50 text-rose-600">대기중</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== 환불/취소 상세 모달 ===== -->
+<div id="cancelModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 flex flex-col max-h-[92vh]">
+
+    <div class="flex items-center justify-between px-7 py-4 border-b border-slate-100 shrink-0">
+      <div>
+        <h3 class="text-base font-bold text-slate-800">환불/취소 요청 상세</h3>
+        <p class="text-xs text-slate-400 mt-0.5 font-mono" id="mOrdId">-</p>
+      </div>
+      <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <div class="overflow-y-auto p-7 space-y-5 flex-1">
+      <input type="hidden" id="mOrdSn" />
+
+      <!-- 주문 정보 -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-slate-50 rounded-xl p-4 space-y-2 text-sm">
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">주문 정보</p>
+          <div class="flex gap-2"><span class="w-16 text-slate-400 shrink-0">주문자</span><span id="mUserId" class="text-slate-800">-</span></div>
+          <div class="flex gap-2"><span class="w-16 text-slate-400 shrink-0">주문명</span><span id="mOrdNm" class="text-slate-800 font-medium">-</span></div>
+          <div class="flex gap-2"><span class="w-16 text-slate-400 shrink-0">결제금액</span><span id="mTotAmt" class="text-slate-800 font-bold">-</span></div>
+          <div class="flex gap-2"><span class="w-16 text-slate-400 shrink-0">요청일시</span><span id="mCancelReqDt" class="text-slate-600 text-xs">-</span></div>
+        </div>
+
+        <div class="bg-rose-50/50 rounded-xl p-4 space-y-2 text-sm border border-rose-100">
+          <p class="text-xs font-bold text-rose-400 uppercase tracking-wider mb-2">취소 사유</p>
+          <div class="flex gap-2"><span class="w-16 text-slate-400 shrink-0">사유</span><span id="mCancelRsnCd" class="font-semibold text-rose-700">-</span></div>
+          <div>
+            <p class="text-slate-400 text-xs mb-1">상세 내용</p>
+            <p id="mCancelRsnDtl" class="text-slate-700 text-xs leading-relaxed bg-white rounded-lg p-2.5 border border-rose-100">-</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 주문 상품 -->
+      <div>
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">주문 상품</p>
+        <div id="mItems" class="space-y-2 text-sm text-slate-600">
+          <p class="text-slate-400">불러오는 중...</p>
+        </div>
+      </div>
+
+      <!-- 환불 안내 -->
+      <div class="bg-amber-50 border border-amber-100 rounded-xl p-4">
+        <p class="text-xs font-bold text-amber-700 mb-2"><i class="fa-solid fa-triangle-exclamation mr-1"></i>환불 처리 안내</p>
+        <ul class="text-xs text-amber-600 space-y-1">
+          <li>· 승인 시 토스 결제 취소 API가 즉시 호출됩니다.</li>
+          <li>· 포인트 사용 내역이 있는 경우 자동 복원됩니다.</li>
+          <li>· 교재 포함 주문은 배송 상태가 '취소'로 변경됩니다.</li>
+          <li>· 승인 후 되돌릴 수 없습니다.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="flex gap-3 px-7 py-4 border-t border-slate-100 shrink-0">
+      <button class="flex-1 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+        onclick="closeModal()">닫기</button>
+      <button class="flex-1 py-2.5 text-sm font-bold text-white bg-rose-500 hover:bg-rose-600 rounded-xl transition-colors cursor-pointer"
+        onclick="approveCancel()">
+        <i class="fa-solid fa-check mr-1"></i>환불 승인
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  const CANCEL_RSN_MAP = {
+    CHANGE_OF_MIND:  '단순 변심',
+    DELIVERY_DELAY:  '배송 지연',
+    WRONG_ORDER:     '주문 실수',
+    DUPLICATE_ORDER: '중복 주문',
+    OTHER:           '기타',
+  };
+
+  function openDetailModal(row) {
+    const d = row.dataset;
+    document.getElementById('mOrdSn').value          = d.ordSn;
+    document.getElementById('mOrdId').textContent    = d.ordId || '-';
+    document.getElementById('mUserId').textContent   = d.userId || '-';
+    document.getElementById('mOrdNm').textContent    = d.ordNm || '-';
+    document.getElementById('mTotAmt').textContent   = Number(d.totAmt).toLocaleString() + '원';
+    document.getElementById('mCancelReqDt').textContent = d.cancelReqDt ? d.cancelReqDt.slice(0, 16) : '-';
+    document.getElementById('mCancelRsnCd').textContent = CANCEL_RSN_MAP[d.cancelRsnCd] || d.cancelRsnCd || '-';
+    document.getElementById('mCancelRsnDtl').textContent = d.cancelRsnDtl || '(상세 사유 없음)';
+
+    // 상품 목록 AJAX 조회
+    document.getElementById('mItems').innerHTML = '<p class="text-slate-400 text-xs">불러오는 중...</p>';
+    fetch(`/admin/cancel/api/${d.ordSn}`)
+      .then(r => r.json())
+      .then(order => {
+        if (!order.items || order.items.length === 0) {
+          document.getElementById('mItems').innerHTML = '<p class="text-slate-400 text-xs">상품 정보 없음</p>';
+          return;
+        }
+        document.getElementById('mItems').innerHTML = order.items.map(item => `
+          <div class="flex items-center justify-between bg-slate-50 rounded-lg px-4 py-2.5">
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] px-1.5 py-0.5 rounded font-bold ${item.prodDivCd === 'COURSE' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600'}">
+                ${item.prodDivCd === 'COURSE' ? '강좌' : '교재'}
+              </span>
+              <span class="text-slate-800">${item.prodNm}</span>
+            </div>
+            <span class="font-bold text-slate-700">${(item.prodPrice * item.itemQty).toLocaleString()}원</span>
+          </div>
+        `).join('');
+      })
+      .catch(() => {
+        document.getElementById('mItems').innerHTML = '<p class="text-rose-400 text-xs">상품 정보를 불러오지 못했습니다.</p>';
+      });
+
+    document.getElementById('cancelModal').classList.remove('hidden');
+  }
+
+  function closeModal() {
+    document.getElementById('cancelModal').classList.add('hidden');
+  }
+
+  function approveCancel() {
+    const ordSn = document.getElementById('mOrdSn').value;
+    if (!confirm('환불을 승인하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+
+    fetch(`/admin/cancel/api/${ordSn}/approve`, { method: 'POST' })
+      .then(res => {
+        if (!res.ok) return res.text().then(t => { throw new Error(t); });
+        closeModal();
+        location.reload();
+      })
+      .catch(err => alert('환불 처리에 실패했습니다.\n' + err.message));
+  }
+</script>

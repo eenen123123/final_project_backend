@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.mapper.QualityMapper">
+
+    <!-- 기간 필터 공통 조건 -->
+    <sql id="periodWhere">
+        AND IB.BOARD_TYPE_CD = 'QNA'
+        AND IB.USE_YN = 'Y'
+        <if test="startDate != null">
+            AND CAST(IB.REG_DT AS DATE) >= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND CAST(IB.REG_DT AS DATE) &lt;= #{endDate}
+        </if>
+    </sql>
+
+    <select id="selectInstructorQnaStats"
+            resultType="kr.or.ddit.finalProject.dto.instructor.InstructorQnaStatsDto">
+        SELECT
+            IB.INSTR_USER_ID                                                        AS INSTR_USER_ID,
+            M.USER_NAME                                                             AS INSTR_USER_NM,
+            COUNT(*)                                                                AS TOTAL_CNT,
+            SUM(CASE WHEN IQ.ANSW_YN = 'Y' THEN 1 ELSE 0 END)                     AS ANSWERED_CNT,
+            SUM(CASE WHEN NVL(IQ.ANSW_YN, 'N') = 'N' THEN 1 ELSE 0 END)           AS UNANSWERED_CNT,
+            ROUND(
+                SUM(CASE WHEN IQ.ANSW_YN = 'Y' THEN 1 ELSE 0 END) * 100.0
+                / NULLIF(COUNT(*), 0)
+            , 1)                                                                    AS ANSWER_RATE,
+            ROUND(
+                AVG(CASE WHEN IQ.ANSW_YN = 'Y'
+                    THEN (CAST(IQ.ANSW_DT AS DATE) - CAST(IB.REG_DT AS DATE)) * 24
+                    ELSE NULL END)
+            , 1)                                                                    AS AVG_RESPONSE_HOURS
+        FROM INSTRUCTOR_BOARD IB
+            LEFT  JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
+            INNER JOIN MEMBER M          ON IB.INSTR_USER_ID = M.USER_ID
+        WHERE 1=1
+        <include refid="periodWhere"/>
+        GROUP BY IB.INSTR_USER_ID, M.USER_NAME
+        ORDER BY ANSWER_RATE DESC
+    </select>
+
+    <select id="selectQnaSummary" resultType="java.util.HashMap">
+        SELECT
+            COUNT(*)                                                                AS TOTAL_CNT,
+            SUM(CASE WHEN IQ.ANSW_YN = 'Y' THEN 1 ELSE 0 END)                     AS ANSWERED_CNT,
+            ROUND(
+                SUM(CASE WHEN IQ.ANSW_YN = 'Y' THEN 1 ELSE 0 END) * 100.0
+                / NULLIF(COUNT(*), 0)
+            , 1)                                                                    AS ANSWER_RATE,
+            ROUND(
+                AVG(CASE WHEN IQ.ANSW_YN = 'Y'
+                    THEN (CAST(IQ.ANSW_DT AS DATE) - CAST(IB.REG_DT AS DATE)) * 24
+                    ELSE NULL END)
+            , 1)                                                                    AS AVG_RESPONSE_HOURS,
+            SUM(CASE
+                    WHEN NVL(IQ.ANSW_YN, 'N') = 'N'
+                     AND (SYSDATE - CAST(IB.REG_DT AS DATE)) * 24 > 24
+                    THEN 1 ELSE 0
+                END)                                                                AS OVERDUE_CNT
+        FROM INSTRUCTOR_BOARD IB
+            LEFT JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
+        WHERE 1=1
+        <include refid="periodWhere"/>
+    </select>
+
+    <select id="selectOverdueQnaList"
+            resultType="kr.or.ddit.finalProject.dto.instructor.OverdueQnaDto">
+        SELECT
+            IB.POST_SN                                              AS POST_SN,
+            IB.POST_SJ                                              AS POST_SJ,
+            IB.REG_DT                                               AS REG_DT,
+            IB.INSTR_USER_ID                                        AS INSTR_USER_ID,
+            IM.USER_NAME                                            AS INSTR_USER_NM,
+            IB.WRTR_USER_ID                                         AS WRTR_USER_ID,
+            WM.USER_NAME                                            AS WRTR_USER_NM,
+            ROUND((SYSDATE - CAST(IB.REG_DT AS DATE)) * 24, 0)     AS ELAPSED_HOURS
+        FROM INSTRUCTOR_BOARD IB
+            INNER JOIN MEMBER IM ON IB.INSTR_USER_ID = IM.USER_ID
+            INNER JOIN MEMBER WM ON IB.WRTR_USER_ID  = WM.USER_ID
+            LEFT  JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
+        WHERE IB.BOARD_TYPE_CD = 'QNA'
+          AND IB.USE_YN = 'Y'
+          AND NVL(IQ.ANSW_YN, 'N') = 'N'
+          AND (SYSDATE - CAST(IB.REG_DT AS DATE)) * 24 > 24
+        ORDER BY IB.REG_DT ASC
+    </select>
+
+</mapper>

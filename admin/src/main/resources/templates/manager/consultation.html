@@ -14,7 +14,7 @@
       <p class="text-sm text-slate-500 mt-1">학생별 상담 이력을 기록하고 학부모 상담 내용을 관리합니다.</p>
     </div>
     <!-- <div class="flex items-center gap-3">
-      <button class="hm-btn-primary" onclick="goWriteTab()">
+      <button class="hm-btn-primary hm-btn-emerald" onclick="goWriteTab()">
         <i class="fa-solid fa-pen-to-square"></i>
         <span>상담 작성</span>
       </button>
@@ -88,16 +88,16 @@
       <!-- 검색 필터 (서버사이드) -->
       <div class="flex flex-wrap gap-3 mb-4">
         <div class="w-56">
-          <input type="text" id="historyKeyword" class="hm-input" placeholder="학생명 / 학부모명 검색..."
+          <input type="text" id="historyKeyword" class="hm-input hm-input-emerald" placeholder="학생명 / 학부모명 검색..."
                  onkeydown="if(event.key==='Enter') loadHistory(1)">
         </div>
         <div class="w-36">
-          <select id="historyStat" class="hm-input" onchange="loadHistory(1)"></select>
+          <select id="historyStat" class="hm-input hm-input-emerald" onchange="loadHistory(1)"></select>
         </div>
         <div class="w-36">
-          <select id="historyType" class="hm-input" onchange="loadHistory(1)"></select>
+          <select id="historyType" class="hm-input hm-input-emerald" onchange="loadHistory(1)"></select>
         </div>
-        <button class="hm-btn-primary" onclick="loadHistory(1)">
+        <button class="hm-btn-primary hm-btn-emerald" onclick="loadHistory(1)">
           <i class="fa-solid fa-magnifying-glass"></i><span>검색</span>
         </button>
       </div>
@@ -131,7 +131,7 @@
     <!-- ───────── 탭 2: 학생별 조회 (모달 검색) ───────── -->
     <div id="tab-student" class="con-tab-panel hidden p-5">
       <div class="flex items-center gap-3 mb-4">
-        <button class="hm-btn-primary" onclick="openStudentSearch('student')">
+        <button class="hm-btn-primary hm-btn-emerald" onclick="openStudentSearch('student')">
           <i class="fa-solid fa-magnifying-glass"></i><span>학생 검색</span>
         </button>
         <p class="text-xs text-slate-400">학생을 검색·선택하면 해당 학생의 상담 이력이 표시됩니다.</p>
@@ -145,16 +145,16 @@
       <div id="studentDetailPanel" class="hidden">
         <!-- 학생 정보 헤더 -->
         <div class="flex items-center gap-4 mb-4 p-4 bg-slate-50 rounded-xl">
-          <div class="w-12 h-12 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center font-bold text-lg" id="detailStudentAvatar">-</div>
+          <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg" id="detailStudentAvatar">-</div>
           <div>
             <p class="font-bold text-slate-800" id="detailStudentName">-</p>
             <p class="text-xs text-slate-500" id="detailStudentSub">-</p>
           </div>
           <div class="ml-auto flex gap-2">
             <span class="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs text-slate-600">
-              총 <span id="detailTotalCount" class="font-bold text-violet-600">0</span>회 상담
+              총 <span id="detailTotalCount" class="font-bold text-emerald-600">0</span>회 상담
             </span>
-            <button class="hm-btn-primary text-xs py-1.5 px-3" onclick="writeForStudent()">
+            <button class="hm-btn-primary hm-btn-emerald text-xs py-1.5 px-3" onclick="writeForStudent()">
               <i class="fa-solid fa-pen"></i> 상담 작성
             </button>
           </div>
@@ -189,7 +189,7 @@
               <label class="block text-xs font-medium text-slate-500 mb-1.5">학생 선택 <span class="text-red-400">*</span></label>
               <input type="hidden" id="writeStudentId">
               <div class="flex gap-2">
-                <input type="text" class="hm-input bg-slate-50" id="writeStudentNm" placeholder="재원생을 검색하세요" readonly>
+                <input type="text" class="hm-input hm-input-emerald bg-slate-50" id="writeStudentNm" placeholder="재원생을 검색하세요" readonly>
                 <button type="button" class="px-3 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 shrink-0"
                         onclick="openStudentSearch('write')">
                   <i class="fa-solid fa-magnifying-glass"></i>
@@ -198,7 +198,7 @@
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-500 mb-1.5">학부모명 (자동 매칭)</label>
-              <input type="text" class="hm-input bg-slate-50" id="writeParentNm" placeholder="학생 선택 시 자동 표시" readonly>
+              <input type="text" class="hm-input hm-input-emerald bg-slate-50" id="writeParentNm" placeholder="학생 선택 시 자동 표시" readonly>
             </div>
           </div>
 
@@ -206,43 +206,43 @@
           <div id="prospectBlock" class="grid grid-cols-2 gap-4 hidden">
             <div>
               <label class="block text-xs font-medium text-slate-500 mb-1.5">문의자 이름 <span class="text-red-400">*</span></label>
-              <input type="text" class="hm-input" id="writeCnslNm" placeholder="신규 문의자 성함">
+              <input type="text" class="hm-input hm-input-emerald" id="writeCnslNm" placeholder="신규 문의자 성함">
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-500 mb-1.5">연락처</label>
-              <input type="text" class="hm-input" id="writeCnslTelno" placeholder="010-0000-0000">
+              <input type="text" class="hm-input hm-input-emerald" id="writeCnslTelno" placeholder="010-0000-0000">
             </div>
           </div>
 
           <div class="grid grid-cols-3 gap-4">
             <div>
               <label class="block text-xs font-medium text-slate-500 mb-1.5">상담 일시 <span class="text-red-400">*</span></label>
-              <input type="datetime-local" class="hm-input" id="writeDatetime">
+              <input type="datetime-local" class="hm-input hm-input-emerald" id="writeDatetime">
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-500 mb-1.5">상담 유형</label>
-              <select class="hm-input" id="writeType"></select>
+              <select class="hm-input hm-input-emerald" id="writeType"></select>
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-500 mb-1.5">상태</label>
-              <select class="hm-input" id="writeStatus"></select>
+              <select class="hm-input hm-input-emerald" id="writeStatus"></select>
             </div>
           </div>
 
           <!-- 작성 순서: 상담 내용 → 상담 요약 → 후속 조치 -->
           <div>
             <label class="block text-xs font-medium text-slate-500 mb-1.5">상담 내용 <span class="text-red-400">*</span></label>
-            <textarea class="hm-input resize-none" id="writeContent" rows="5"
+            <textarea class="hm-input hm-input-emerald resize-none" id="writeContent" rows="5"
               placeholder="상담 내용을 자세히 기록하세요. (학생의 학습 태도, 학부모 요청 사항, 특이 사항 등)"></textarea>
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-500 mb-1.5">상담 요약</label>
-            <textarea class="hm-input resize-none" id="writeSummary" rows="2"
+            <textarea class="hm-input hm-input-emerald resize-none" id="writeSummary" rows="2"
               placeholder="이력 목록에 표시될 한 줄 요약을 입력하세요."></textarea>
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-500 mb-1.5">후속 조치 사항</label>
-            <textarea class="hm-input resize-none" id="writeFollowup" rows="2"
+            <textarea class="hm-input hm-input-emerald resize-none" id="writeFollowup" rows="2"
               placeholder="다음 상담까지 필요한 조치나 확인 사항을 입력하세요. (선택)"></textarea>
           </div>
 
@@ -250,7 +250,7 @@
             <button class="px-5 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors" onclick="resetWriteForm()">
               초기화
             </button>
-            <button class="hm-btn-primary" onclick="saveConsultRecord()">
+            <button class="hm-btn-primary hm-btn-emerald" onclick="saveConsultRecord()">
               <i class="fa-solid fa-floppy-disk"></i>
               <span>상담 기록 저장</span>
             </button>
@@ -273,9 +273,9 @@
       </button>
     </div>
     <div class="flex gap-2 mb-3">
-      <input type="text" id="stuSearchKeyword" class="hm-input" placeholder="학생명 / 학부모명 검색..."
+      <input type="text" id="stuSearchKeyword" class="hm-input hm-input-emerald" placeholder="학생명 / 학부모명 검색..."
              onkeydown="if(event.key==='Enter') loadStudentSearch(1)">
-      <button class="hm-btn-primary shrink-0" onclick="loadStudentSearch(1)">
+      <button class="hm-btn-primary hm-btn-emerald shrink-0" onclick="loadStudentSearch(1)">
         <i class="fa-solid fa-magnifying-glass"></i>
       </button>
     </div>

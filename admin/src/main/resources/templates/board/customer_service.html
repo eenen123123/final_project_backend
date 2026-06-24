@@ -2,8 +2,8 @@
   <!-- 페이지 헤더 -->
   <div class="flex items-center justify-between mb-6">
     <div>
-      <h1 class="text-xl font-bold text-slate-800">고객센터 관리</h1>
-      <p class="text-sm text-slate-500 mt-0.5">FAQ, 공지사항, QnA, 자료실을 통합 관리합니다.</p>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">고객센터 관리</h1>
+      <p class="text-sm text-slate-500 mt-1">FAQ, 공지사항, QnA, 자료실을 통합 관리합니다.</p>
     </div>
   </div>
 
@@ -28,7 +28,7 @@
     <div id="tab-faq" class="cs-tab-panel active p-6">
       <div class="flex justify-between items-center mb-4">
         <div class="flex gap-3">
-          <select id="faq-filter-ctg" onchange="loadFaq(1, true)" class="hm-input" style="width: 130px;">
+          <select id="faq-filter-ctg" onchange="loadFaq(1, true)" class="hm-input hm-input-blue" style="width: 130px;">
             <option value="">전체 대분류</option>
             <option value="01">강의/교재</option>
             <option value="02">결제</option>
@@ -37,15 +37,15 @@
             <option value="05">도서</option>
           </select>
           <div class="relative">
-            <input type="text" id="faq-search" placeholder="제목 검색..." class="hm-input pr-9" style="width: 300px;"
+            <input type="text" id="faq-search" placeholder="제목 검색..." class="hm-input hm-input-blue pr-9" style="width: 300px;"
               onkeydown="if(event.key==='Enter') loadFaq(1, true)" />
             <button onclick="loadFaq(1, true)"
-              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 transition-colors cursor-pointer">
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition-colors cursor-pointer">
               <i class="fa-solid fa-magnifying-glass text-sm"></i>
             </button>
           </div>
         </div>
-        <a href="/admin/board/faq/write" class="hm-btn-primary text-sm">
+        <a href="/admin/board/faq/write" class="hm-btn-primary hm-btn-blue text-sm">
           <i class="fa-solid fa-plus mr-1"></i>FAQ 등록
         </a>
       </div>
@@ -72,22 +72,22 @@
     <div id="tab-notice" class="cs-tab-panel p-6">
       <div class="flex justify-between items-center mb-4">
         <div class="flex gap-3">
-          <select id="notice-filter-type" onchange="loadNotice(1, true)" class="hm-input w-36">
+          <select id="notice-filter-type" onchange="loadNotice(1, true)" class="hm-input hm-input-blue w-36">
             <option value="">전체 유형</option>
             <option value="01">일반공지</option>
             <option value="02">이벤트</option>
             <option value="03">점검</option>
           </select>
           <div class="relative">
-            <input type="text" id="notice-search" placeholder="제목 검색..." class="hm-input pr-9" style="width: 300px;"
+            <input type="text" id="notice-search" placeholder="제목 검색..." class="hm-input hm-input-blue pr-9" style="width: 300px;"
               onkeydown="if(event.key==='Enter') loadNotice(1, true)" />
             <button onclick="loadNotice(1, true)"
-              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 transition-colors cursor-pointer">
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition-colors cursor-pointer">
               <i class="fa-solid fa-magnifying-glass text-sm"></i>
             </button>
           </div>
         </div>
-        <a href="/admin/board/notice/write" class="hm-btn-primary text-sm">
+        <a href="/admin/board/notice/write" class="hm-btn-primary hm-btn-blue text-sm">
           <i class="fa-solid fa-plus mr-1"></i>공지사항 등록
         </a>
       </div>
@@ -112,22 +112,22 @@
     <!-- ══ QnA 탭 ══ -->
     <div id="tab-qna" class="cs-tab-panel p-6">
       <div class="flex gap-3 mb-4">
-        <select id="qna-filter-stat" onchange="loadQna(1, true)" class="hm-input" style="width: 130px;">
+        <select id="qna-filter-stat" onchange="loadQna(1, true)" class="hm-input hm-input-blue" style="width: 130px;">
           <option value="">전체 상태</option>
           <option value="01">답변대기</option>
           <option value="02">답변완료</option>
         </select>
-        <select id="qna-filter-ctg" onchange="loadQna(1, true)" class="hm-input" style="width: 130px;">
+        <select id="qna-filter-ctg" onchange="loadQna(1, true)" class="hm-input hm-input-blue" style="width: 130px;">
           <option value="">전체 카테고리</option>
           <option value="01">수강문의</option>
           <option value="02">결제문의</option>
           <option value="03">기타</option>
         </select>
         <div class="relative">
-          <input type="text" id="qna-search" placeholder="제목 검색..." class="hm-input pr-9" style="width: 300px;"
+          <input type="text" id="qna-search" placeholder="제목 검색..." class="hm-input hm-input-blue pr-9" style="width: 300px;"
             onkeydown="if(event.key==='Enter') loadQna(1, true)" />
           <button onclick="loadQna(1, true)"
-            class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 transition-colors cursor-pointer">
+            class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition-colors cursor-pointer">
             <i class="fa-solid fa-magnifying-glass text-sm"></i>
           </button>
         </div>
@@ -154,7 +154,7 @@
     <div id="tab-dataroom" class="cs-tab-panel p-6">
       <div class="flex justify-between items-center mb-4">
         <div class="flex gap-3">
-          <select id="dataroom-filter-ctg" onchange="loadDataRoom(1, true)" class="hm-input" style="width: 130px;">
+          <select id="dataroom-filter-ctg" onchange="loadDataRoom(1, true)" class="hm-input hm-input-blue" style="width: 130px;">
             <option value="">전체 카테고리</option>
             <option value="01">공지/안내자료</option>
             <option value="02">입시정보</option>
@@ -162,15 +162,15 @@
             <option value="04">기타</option>
           </select>
           <div class="relative">
-            <input type="text" id="dataroom-search" placeholder="제목 검색..." class="hm-input pr-9" style="width: 300px;"
+            <input type="text" id="dataroom-search" placeholder="제목 검색..." class="hm-input hm-input-blue pr-9" style="width: 300px;"
               onkeydown="if(event.key==='Enter') loadDataRoom(1, true)" />
             <button onclick="loadDataRoom(1, true)"
-              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 transition-colors cursor-pointer">
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition-colors cursor-pointer">
               <i class="fa-solid fa-magnifying-glass text-sm"></i>
             </button>
           </div>
         </div>
-        <a href="/admin/board/dataroom/write" class="hm-btn-primary text-sm">
+        <a href="/admin/board/dataroom/write" class="hm-btn-primary hm-btn-blue text-sm">
           <i class="fa-solid fa-plus mr-1"></i>자료실 등록
         </a>
       </div>
@@ -202,8 +202,8 @@
   }
 
   .cs-tab-btn.active {
-    color: #7c3aed;
-    border-bottom: 2px solid #7c3aed;
+    color: #2563eb;
+    border-bottom: 2px solid #2563eb;
     font-weight: 700;
   }
 

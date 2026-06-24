@@ -81,6 +81,13 @@
     ORDER BY REG_DT ASC
   </select>
 
+  <select id="selectSubjectBySn" resultMap="subjectMap">
+    SELECT SUBJ_ID, SUBJ_CL_ID, SUBJ_NM, USE_YN, SUBJ_EXPLN_CN,
+           RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT
+    FROM SUBJECT
+    WHERE SUBJ_ID = #{subjId}
+  </select>
+
   <select id="selectSubjectById" resultMap="subjectMap">
     SELECT SUBJ_ID, SUBJ_CL_ID, SUBJ_NM, USE_YN, SUBJ_EXPLN_CN,
            RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT

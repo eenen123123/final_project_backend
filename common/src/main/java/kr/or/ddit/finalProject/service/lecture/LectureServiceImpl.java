@@ -7,6 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import kr.or.ddit.finalProject.dto.lecture.LectureDto;
 import kr.or.ddit.finalProject.dto.lecture.LectureResponseDto;
+import kr.or.ddit.finalProject.dto.lecture.LectureProgressDetailResponse;
+import kr.or.ddit.finalProject.dto.lecture.StudentLectureProgressResponse;
 import kr.or.ddit.finalProject.mapper.lecture.LectureMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -72,9 +74,37 @@ public class LectureServiceImpl implements LectureService {
 
     @Override
     public List<LectureResponseDto> retrieveLectureListByCourseSn(Long courseSn, String userId) {
-        var result = lectureMapper.selectLectureListByCourseSn(courseSn,userId);
-            log.info("result : {}", result.size());
-        return  result;
+        var result = lectureMapper.selectLectureListByCourseSn(courseSn, userId);
+        log.info("result : {}", result.size());
+        return result;
+    }
+
+    @Override
+    @Transactional
+    public void toggleOpnnYn(Long lectureSn, String userId) {
+        LectureDto lecture = lectureMapper.selectLectureBySn(lectureSn);
+        if (lecture == null) throw new IllegalArgumentException("존재하지 않는 강의입니다.");
+        String toggled = "Y".equals(lecture.getOpnnYn()) ? "N" : "Y";
+        lectureMapper.updateOpnnYn(lectureSn, toggled, userId);
+    }
+
+    @Override
+    @Transactional
+    public void toggleLockYn(Long lectureSn, String userId) {
+        LectureDto lecture = lectureMapper.selectLectureBySn(lectureSn);
+        if (lecture == null) throw new IllegalArgumentException("존재하지 않는 강의입니다.");
+        String toggled = "Y".equals(lecture.getLockYn()) ? "N" : "Y";
+        lectureMapper.updateLockYn(lectureSn, toggled, userId);
+    }
+
+    @Override
+    public List<StudentLectureProgressResponse> retrieveStudentProgressByLecture(Long classSn, Long lectureSn) {
+        return lectureMapper.selectStudentProgressByLecture(classSn, lectureSn);
+    }
+
+    @Override
+    public List<LectureProgressDetailResponse> retrieveLectureProgressByStudent(Long classSn, String userId) {
+        return lectureMapper.selectLectureProgressByStudent(classSn, userId);
     }
 
 }

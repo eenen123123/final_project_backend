@@ -30,6 +30,32 @@ public interface QuestionMapper {
     List<QuestionDto> selectMyQuestions(@Param("rgtrId") String rgtrId);
 
     /**
+     * 필터 조건 + 페이징 적용 문항 목록 조회
+     *
+     * @param rgtrId  강사 ID
+     * @param subjId  과목 ID (null = 전체)
+     * @param diffCd  난이도 코드 (null = 전체)
+     * @param offset  건너뛸 행 수 (0-based)
+     * @param limit   조회할 최대 행 수
+     */
+    List<QuestionDto> selectQuestionPage(@Param("rgtrId") String rgtrId,
+                                         @Param("subjId") Long subjId,
+                                         @Param("diffCd") String diffCd,
+                                         @Param("offset") int offset,
+                                         @Param("limit") int limit);
+
+    /**
+     * 필터 조건 적용 문항 총 건수 (페이징 계산용)
+     *
+     * @param rgtrId  강사 ID
+     * @param subjId  과목 ID (null = 전체)
+     * @param diffCd  난이도 코드 (null = 전체)
+     */
+    int countQuestions(@Param("rgtrId") String rgtrId,
+                       @Param("subjId") Long subjId,
+                       @Param("diffCd") String diffCd);
+
+    /**
      * 문항 단건 조회
      * 소유권 확인 및 수정/삭제 전 존재 여부 체크에 사용합니다.
      * 논리 삭제된 항목(STAT_CD='99')도 조회됩니다 (서비스에서 판단).
@@ -49,7 +75,7 @@ public interface QuestionMapper {
 
     /**
      * 문항 수정 (내용·유형·배점·정답·해설 변경 가능)
-     * LAST_MDFR_ID(수정자)와 FIELD5(수정일시, MDFCN_DT 추정)를 함께 갱신합니다.
+     * LAST_MDFR_ID(수정자)와 MDFCN_DT(수정일시)를 함께 갱신합니다.
      * 소유권 확인은 서비스에서 합니다.
      *
      * @param dto 수정할 내용 (qstnSn, lastMdfrId 포함 필수)

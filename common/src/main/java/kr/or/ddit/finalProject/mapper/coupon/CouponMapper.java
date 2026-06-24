@@ -40,6 +40,18 @@ public interface CouponMapper {
     // 소멸 예정 쿠폰 조회 - 다음달 만료 (사용자)
     List<MemberCouponPointDto> selectExpiringCoupons(@Param("userId") String userId);
 
+    // 결제 페이지용 사용 가능한 쿠폰 목록 (미사용 + 미만료 + 할인정보 포함)
+    List<MemberCouponPointDto> selectAvailableCouponsForCheckout(@Param("userId") String userId);
+
+    // 쿠폰 주문 예약 (결제 전 ordSn 세팅)
+    int reserveCoupon(@Param("mcpntSn") Long mcpntSn, @Param("ordSn") Long ordSn);
+
+    // 쿠폰 사용 확정 (결제 완료 후 USE_YN = 'Y')
+    int confirmCoupons(@Param("ordSn") Long ordSn);
+
+    // 쿠폰 사용 복원 (취소 시 USE_YN = 'N', ORDER_SN = null)
+    int restoreCoupons(@Param("ordSn") Long ordSn);
+
     // 쿠폰 수정 (관리자)
     int updateCoupon(CouponDto couponDto);
 

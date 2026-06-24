@@ -47,11 +47,35 @@ public class InstructorJournalController {
     // 역할 판별 헬퍼
     // ──────────────────────────────────────────────
 
-    /** 원장(Z001) 또는 수석 강사(T001)이면 읽기 전용 뷰어로 처리 */
+    /** 원장(Z001) 또는 팀 매니저(T001/T002/T003)이면 읽기 전용 뷰어로 처리 */
     private boolean isViewer(Authentication auth) {
         return auth.getAuthorities().stream()
-                .anyMatch(a -> "Z001".equals(a.getAuthority())
-                            || "T001".equals(a.getAuthority()));
+                .anyMatch(a -> {
+                    String role = a.getAuthority();
+                    return "Z001".equals(role)
+                        || "T001".equals(role)
+                        || "T002".equals(role)
+                        || "T003".equals(role);
+                });
+    }
+
+    /**
+     * 팀 필터 적용 여부 결정.
+     * - 원장(Z001): null 반환 → 전체 강사 조회
+     * - 팀 매니저(T001/T002/T003): 본인 USER_ID 반환 → CONNECT BY로 팀원만 조회
+     * - 일반 강사: null 반환 (isViewer=false이므로 서비스에서 본인 ID로 고정)
+     */
+    private String resolveMgrUserId(Authentication auth) {
+        boolean isPrincipal = auth.getAuthorities().stream()
+                .anyMatch(a -> "Z001".equals(a.getAuthority()));
+        if (isPrincipal) return null;
+
+        boolean isTeamMgr = auth.getAuthorities().stream()
+                .anyMatch(a -> {
+                    String role = a.getAuthority();
+                    return "T001".equals(role) || "T002".equals(role) || "T003".equals(role);
+                });
+        return isTeamMgr ? auth.getName() : null;
     }
 
     // ──────────────────────────────────────────────
@@ -73,11 +97,12 @@ public class InstructorJournalController {
 
         String userId    = auth.getName();
         boolean isViewer = isViewer(auth);
+        String mgrUserId = resolveMgrUserId(auth);
 
         // 좌측 패널: 역할 + 필터 + 페이지에 따라 목록 조회
         List<InstructorJournalDto> journalList =
-                journalService.retrieveJournalList(userId, isViewer, selectedInstrId, keyword, fromDt, toDt, page);
-        int totalCount  = journalService.retrieveJournalCount(userId, isViewer, selectedInstrId, keyword, fromDt, toDt);
+                journalService.retrieveJournalList(userId, isViewer, mgrUserId, selectedInstrId, keyword, fromDt, toDt, page);
+        int totalCount  = journalService.retrieveJournalCount(userId, isViewer, mgrUserId, selectedInstrId, keyword, fromDt, toDt);
         int totalPages  = (int) Math.ceil((double) totalCount / InstructorJournalService.PAGE_SIZE);
         if (totalPages < 1) totalPages = 1;
 
@@ -90,9 +115,9 @@ public class InstructorJournalController {
         model.addAttribute("toDt",            toDt            != null ? toDt            : "");
         model.addAttribute("selectedInstrId", selectedInstrId != null ? selectedInstrId : "");
 
-        // 뷰어 전용: 강사 선택 드롭다운용 목록
+        // 뷰어 전용: 강사 선택 드롭다운용 목록 (팀 필터 적용)
         if (isViewer) {
-            model.addAttribute("journalInstructors", journalService.retrieveJournalInstructors());
+            model.addAttribute("journalInstructors", journalService.retrieveJournalInstructors(mgrUserId));
         }
 
         // 페이지네이션 정보

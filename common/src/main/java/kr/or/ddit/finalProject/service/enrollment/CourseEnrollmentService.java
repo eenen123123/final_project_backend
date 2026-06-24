@@ -21,4 +21,9 @@ public interface CourseEnrollmentService {
      * 내 수강 중 강좌 목록 조회 (ACTIVE 상태만).
      */
     List<CourseEnrollmentDto> getMyEnrolledCourses(String userId);
+
+    /**
+     * 수강 회수: 취소/환불 승인 시 해당 주문으로 부여된 수강권을 REVOKED 처리.
+     */
+    void revokeByOrdSn(Long ordSn);
 }

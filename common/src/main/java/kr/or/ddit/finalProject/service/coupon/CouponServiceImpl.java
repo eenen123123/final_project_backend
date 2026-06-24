@@ -146,6 +146,11 @@ public class CouponServiceImpl implements CouponService {
     }
 
     @Override
+    public List<MemberCouponPointDto> getAvailableCouponsForCheckout(String userId) {
+        return couponMapper.selectAvailableCouponsForCheckout(userId);
+    }
+
+    @Override
     public List<MemberCouponPointDto> getAllIssuedCoupons() {
         return couponMapper.selectAllUserCoupons();
     }

@@ -123,6 +123,10 @@ public enum ErrorCode {
     // 시험 관련
     EXAM_NOT_FOUND(HttpStatus.NOT_FOUND, "시험을 찾을 수 없습니다."),
     EXAM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "본인이 등록한 시험만 수정·삭제할 수 있습니다."),
+    // Gemini AI 관련
+    GEMINI_API_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "AI 문항 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."),
+    GEMINI_EMPTY_RESPONSE(HttpStatus.SERVICE_UNAVAILABLE, "AI가 빈 응답을 반환했습니다. 다시 시도해주세요."),
+    GEMINI_PARSE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "AI 응답 파싱에 실패했습니다."),
     // 회원 관련
     MEMBER_ID_GENETATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "회원 ID 생성에 실패했습니다."),
     MEMBER_REGISTER_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "회원 등록에 실패했습니다."),
@@ -155,6 +159,25 @@ public enum ErrorCode {
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다."),
     ORDER_ALREADY_PAID(HttpStatus.CONFLICT, "이미 처리된 주문입니다."),
     ORDER_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "주문 금액이 일치하지 않습니다."),
+    ORDER_CANNOT_CANCEL(HttpStatus.BAD_REQUEST, "결제 완료 상태의 주문만 취소 요청할 수 있습니다."),
+    ORDER_CANCEL_ALREADY_APPROVED(HttpStatus.CONFLICT, "이미 처리된 취소 요청입니다."),
+    // 취소/환불 관련
+    CANCEL_REASON_REQUIRED(HttpStatus.BAD_REQUEST, "취소 사유를 선택해주세요."),
+    CANCEL_REASON_TOO_LONG(HttpStatus.BAD_REQUEST, "상세 사유는 500자 이내로 입력해주세요."),
+    // 배송 관련
+    SHIPPING_NOT_FOUND(HttpStatus.NOT_FOUND, "배송 정보를 찾을 수 없습니다."),
+    SHIPPING_ALREADY_IN_PROGRESS(HttpStatus.CONFLICT, "이미 배송이 시작되어 주소를 변경할 수 없습니다."),
+    SHIPPING_STATUS_REQUIRED(HttpStatus.BAD_REQUEST, "배송 상태를 입력해주세요."),
+    SHIPPING_INVOICE_REQUIRED(HttpStatus.BAD_REQUEST, "배송중 상태로 변경 시 송장번호는 필수입니다."),
+    SHIPPING_BUYER_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "구매자 이름을 입력해주세요."),
+    SHIPPING_BUYER_TEL_REQUIRED(HttpStatus.BAD_REQUEST, "구매자 연락처를 입력해주세요."),
+    SHIPPING_ORD_SN_REQUIRED(HttpStatus.BAD_REQUEST, "주문 번호가 필요합니다."),
+    // 배송지 관련
+    ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "배송지를 찾을 수 없습니다."),
+    ADDRESS_ACCESS_DENIED(HttpStatus.FORBIDDEN, "본인의 배송지만 수정·삭제할 수 있습니다."),
+    ADDRESS_RECEIVER_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "수령인 이름을 입력해주세요."),
+    ADDRESS_RECEIVER_TEL_REQUIRED(HttpStatus.BAD_REQUEST, "수령인 연락처를 입력해주세요."),
+    ADDRESS_NAME_TOO_LONG(HttpStatus.BAD_REQUEST, "배송지명은 10자 이내로 입력해주세요."),
     // 쿠폰 관련
     COUPON_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 쿠폰입니다."),
     COUPON_INACTIVE(HttpStatus.BAD_REQUEST, "비활성화된 쿠폰입니다."),

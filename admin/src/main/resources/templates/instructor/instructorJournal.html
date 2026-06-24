@@ -1,21 +1,15 @@
 <title th:fragment="pageTitle">업무 일지 관리 | HERMES</title>
 
 <div class="journal-container">
-    <link rel="stylesheet" th:href="@{/css/instructor/journal.css}" />
+    <link rel="stylesheet" th:href="@{/css/instructor/instructorJournal.css}" />
 
     <!-- 페이지 헤더 -->
     <div class="flex items-center justify-between mb-5">
         <div class="flex items-center gap-2">
-            <div class="w-1 h-7 rounded-full bg-sky-500"></div>
             <div>
-                <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
-                    <span class="text-sky-500 font-medium">업무 일지</span>
-                </div>
-                <h1 class="text-2xl font-bold text-slate-800">업무 일지
-                    <span th:if="${isViewer}"
-                        class="text-xs font-semibold text-sky-600 bg-sky-50 border border-sky-200 rounded-full px-2 py-0.5 ml-2">읽기 전용</span>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">업무 일지
                 </h1>
-                <p class="text-sm text-slate-500 mt-0.5">업무 기록을 작성하고 관리합니다.</p>
+                <p class="text-sm text-slate-500 mt-1">업무 기록을 작성하고 관리합니다.</p>
             </div>
         </div>
     </div>
@@ -252,5 +246,5 @@
     <th:block th:if="${mode == 'new' or mode == 'edit'}">
         <script defer th:src="@{/js/tiptap/tiptap-editor.iife.js}"></script>
     </th:block>
-    <script defer th:src="@{/js/instructor/journal.js}"></script>
+    <script defer th:src="@{/js/instructor/instructorJournal.js}"></script>
 </th:block>
