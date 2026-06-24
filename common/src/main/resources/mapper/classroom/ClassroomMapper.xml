@@ -26,6 +26,7 @@
     <result property="instrUserId"  column="INSTR_USER_ID" />
     <result property="memberCount"  column="MEMBER_COUNT" />
     <result property="instrUuid"    column="INSTR_UUID"/>
+    <result property="subjId"       column="SUBJ_ID"/>
   </resultMap>
 
   <select id="selectClassroomListByInstructor" resultMap="classroomListResponseMap">
@@ -53,6 +54,7 @@
         cl.CLASS_NM,
         c.COURSE_NM,
         c.COURSE_SN,
+        c.SUBJ_ID,
         cl.CLASS_STAT_CD,
         cl.ENRL_STRT_YMD,
         cl.ENRL_END_YMD,

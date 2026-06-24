@@ -29,6 +29,8 @@ public interface QuestionMapper {
      */
     List<QuestionDto> selectMyQuestions(@Param("rgtrId") String rgtrId);
 
+    List<QuestionDto> selectMyQuestionsBySubjId(@Param("rgtrId") String rgtrId, @Param("subjId") Long subjId);
+
     /**
      * 필터 조건 + 페이징 적용 문항 목록 조회
      *

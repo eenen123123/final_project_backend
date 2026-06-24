@@ -62,6 +62,15 @@
         ORDER BY QSTN_TYPE_CD ASC, REG_DT DESC
     </select>
 
+    <!-- 특정 강사의 문항 중 과목 필터 조회 (filterWhere 재사용) -->
+    <select id="selectMyQuestionsBySubjId"
+            resultType="kr.or.ddit.finalProject.dto.exam.QuestionDto">
+        SELECT <include refid="questionColumns"/>
+        FROM QUESTION_LIST
+        <include refid="filterWhere"/>
+        ORDER BY QSTN_TYPE_CD ASC, REG_DT DESC
+    </select>
+
     <!-- 문항 단건 조회 (삭제된 항목도 포함, 서비스에서 STAT_CD 판단) -->
     <select id="selectQuestionBySn"
             resultType="kr.or.ddit.finalProject.dto.exam.QuestionDto">

@@ -15,4 +15,5 @@ public class ExamTakerDto implements Serializable {
 
     private String stdUserId;
     private Long examSn;
+    private String stdNm;
 }

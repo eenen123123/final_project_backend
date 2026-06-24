@@ -90,4 +90,21 @@ public interface ExamMapper {
      * @param examSn 초기화할 시험 일련번호
      */
     void deleteExamQuestions(@Param("examSn") Long examSn);
+
+    /**
+     * 특정 클래스룸의 시험 목록 조회 (EXAM_STAT_CD != '99')
+     * 등록일시 내림차순 정렬.
+     *
+     * @param classSn 클래스룸 일련번호
+     */
+    List<ExamDto> selectExamsByClassSn(@Param("classSn") Long classSn);
+
+    /**
+     * 특정 시험의 응시자 목록 조회 (EXAM_TAKER JOIN MEMBER)
+     *
+     * @param examSn 시험 일련번호
+     */
+    List<kr.or.ddit.finalProject.dto.exam.ExamTakerDto> selectTakersByExamSn(@Param("examSn") Long examSn);
+
+    void deleteExamTakers(@Param("examSn") Long examSn);
 }

@@ -113,6 +113,12 @@
              : 'flex items-center gap-2 px-5 py-3 text-sm font-medium text-slate-500 hover:text-slate-700 border-b-2 border-transparent -mb-px transition-colors'">
         <i class="fa-solid fa-folder-open text-xs"></i> 자료실
       </a>
+      <a th:href="@{/classroom/detail/{sn}/exams(sn=${classroom.classSn})}"
+        th:class="${activeTab == 'exams'}
+             ? 'flex items-center gap-2 px-5 py-3 text-sm font-semibold text-blue-600 border-b-2 border-blue-600 -mb-px'
+             : 'flex items-center gap-2 px-5 py-3 text-sm font-medium text-slate-500 hover:text-slate-700 border-b-2 border-transparent -mb-px transition-colors'">
+        <i class="fa-solid fa-clipboard-question text-xs"></i> 시험 관리
+      </a>
       <a th:href="@{/classroom/detail/{sn}/grades(sn=${classroom.classSn})}"
         th:class="${activeTab == 'grades'}
              ? 'flex items-center gap-2 px-5 py-3 text-sm font-semibold text-blue-600 border-b-2 border-blue-600 -mb-px'

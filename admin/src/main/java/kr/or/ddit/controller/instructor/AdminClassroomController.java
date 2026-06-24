@@ -37,32 +37,29 @@ import kr.or.ddit.finalProject.service.course.CourseService;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
 import kr.or.ddit.finalProject.service.lecture.LectureService;
 import kr.or.ddit.service.AdminActivityApprovalService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Controller
 @RequestMapping("/classroom")
-@RequiredArgsConstructor
-public class AdminClassroomController {
+public class AdminClassroomController extends AbstractClassroomController {
 
     private static final int PAGE_SIZE = 10;
 
-    private final ClassroomService classroomService;
     private final LectureService lectureService;
-    private final InstructorBoardService instructorBoardService;
-    private final AssignmentBoardService assignmentBoardService;
     private final CourseService courseService;
     private final AdminActivityApprovalService adminActivityApprovalService;
 
-    @ModelAttribute
-    public void addTabBadges(@PathVariable(required = false) Long classSn, Model model) {
-        if (classSn != null) {
-            model.addAttribute("assignmentCount",
-                    assignmentBoardService.getPendingGradeCount(classSn));
-            model.addAttribute("unansweredQnaCount",
-                    instructorBoardService.getUnansweredQnaCount(classSn));
-        }
+    public AdminClassroomController(ClassroomService classroomService,
+                                    AssignmentBoardService assignmentBoardService,
+                                    InstructorBoardService instructorBoardService,
+                                    LectureService lectureService,
+                                    CourseService courseService,
+                                    AdminActivityApprovalService adminActivityApprovalService) {
+        super(classroomService, assignmentBoardService, instructorBoardService);
+        this.lectureService = lectureService;
+        this.courseService = courseService;
+        this.adminActivityApprovalService = adminActivityApprovalService;
     }
 
     // 클래스룸 목록 페이지 렌더링 (데이터는 AJAX로 별도 로드)
@@ -151,19 +148,6 @@ public class AdminClassroomController {
             return ResponseEntity.ok(Map.of("success", false, "message", "상태 변경 권한이 없거나 존재하지 않는 클래스룸입니다."));
         }
         return ResponseEntity.ok(Map.of("success", true));
-    }
-
-    /**
-     * 클래스룸 상세를 조회하되 요청 강사가 담당자인지 검증한다. 존재하지 않거나 본인 클래스가 아니면 null 반환 — 호출부에서 목록
-     * 페이지로 리다이렉트 처리.
-     */
-    private ClassroomDetailResponse getOwnedClassroom(Long classSn, String userId) {
-        try {
-            ClassroomDetailResponse classroom = classroomService.retrieveClassroomDetail(classSn);
-            return userId.equals(classroom.getInstrUserId()) ? classroom : null;
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
     }
 
     // 클래스룸 홈 — 진도율·마감과제·최근제출·캘린더 등 대시보드

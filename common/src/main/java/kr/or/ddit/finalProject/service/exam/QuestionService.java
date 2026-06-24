@@ -20,6 +20,12 @@ public interface QuestionService {
     List<QuestionDto> retrieveMyQuestions(String instrUserId);
 
     /**
+     * 내 문항 목록 중 특정 과목만 조회
+     * subjId가 null이면 전체 조회 위임.
+     */
+    List<QuestionDto> retrieveMyQuestionsBySubjId(String instrUserId, Long subjId);
+
+    /**
      * 필터 + 페이징 적용 문항 목록 조회
      *
      * @param instrUserId 강사 ID

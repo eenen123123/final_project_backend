@@ -4,7 +4,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,38 +12,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 import kr.or.ddit.finalProject.service.assignment.AssignmentBoardService;
 import kr.or.ddit.finalProject.service.classroom.ClassroomService;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Controller
 @RequestMapping("/classroom")
-@RequiredArgsConstructor
-public class AdminClassroomQnaController {
+public class AdminClassroomQnaController extends AbstractClassroomController {
 
     private static final int PAGE_SIZE = 10;
 
-    private final ClassroomService classroomService;
-    private final InstructorBoardService instructorBoardService;
-    private final AssignmentBoardService assignmentBoardService;
-
-    @ModelAttribute
-    public void addTabBadges(@PathVariable(required = false) Long classSn, Model model) {
-        if (classSn != null) {
-            model.addAttribute("assignmentCount",
-                    assignmentBoardService.getPendingGradeCount(classSn));
-            model.addAttribute("unansweredQnaCount",
-                    instructorBoardService.getUnansweredQnaCount(classSn));
-        }
-    }
-
-    private kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse getOwnedClassroom(Long classSn, String userId) {
-        try {
-            kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse classroom = classroomService.retrieveClassroomDetail(classSn);
-            return userId.equals(classroom.getInstrUserId()) ? classroom : null;
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+    public AdminClassroomQnaController(ClassroomService classroomService,
+                                       AssignmentBoardService assignmentBoardService,
+                                       InstructorBoardService instructorBoardService) {
+        super(classroomService, assignmentBoardService, instructorBoardService);
     }
 
     // Q&A 목록

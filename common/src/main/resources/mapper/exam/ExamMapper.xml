@@ -184,4 +184,51 @@
         WHERE EXAM_SN = #{examSn}
     </delete>
 
+    <!-- ──────────────────────────────────────────── -->
+    <!-- 특정 클래스룸의 시험 목록 조회               -->
+    <!-- ──────────────────────────────────────────── -->
+    <select id="selectExamsByClassSn"
+            resultType="kr.or.ddit.finalProject.dto.exam.ExamDto">
+        SELECT
+            E.EXAM_SN                                          AS examSn,
+            E.EXAM_TYPE_CD                                     AS examTypeCd,
+            E.EXAM_CHRG_USER_ID                                AS examChrgUserId,
+            E.EXAM_REG_NM                                      AS examRegNm,
+            TO_CHAR(E.EXAM_REG_DT,  'YYYY-MM-DD HH24:MI')     AS examRegDt,
+            TO_CHAR(E.EXAM_STRT_DT, 'YYYY-MM-DD HH24:MI')     AS examStrtDt,
+            TO_CHAR(E.EXAM_END_DT,  'YYYY-MM-DD HH24:MI')     AS examEndDt,
+            E.EXAM_STAT_CD                                     AS examStatCd,
+            E.CLASS_SN                                         AS classSn,
+            (SELECT COUNT(*)
+             FROM EXAM_QUESTION EQ
+             WHERE EQ.EXAM_SN = E.EXAM_SN)                    AS qstnCnt
+        FROM EXAM E
+        WHERE E.CLASS_SN = #{classSn}
+          AND E.EXAM_STAT_CD != '99'
+        ORDER BY E.EXAM_REG_DT DESC
+    </select>
+
+    <!-- ──────────────────────────────────────────── -->
+    <!-- 시험 삭제 시 EXAM_TAKER 전체 제거            -->
+    <!-- ──────────────────────────────────────────── -->
+    <delete id="deleteExamTakers">
+        DELETE FROM EXAM_TAKER
+        WHERE EXAM_SN = #{examSn}
+    </delete>
+
+    <!-- ──────────────────────────────────────────── -->
+    <!-- 특정 시험의 응시자 목록 조회                 -->
+    <!-- ──────────────────────────────────────────── -->
+    <select id="selectTakersByExamSn"
+            resultType="kr.or.ddit.finalProject.dto.exam.ExamTakerDto">
+        SELECT
+            ET.STD_USER_ID  AS stdUserId,
+            ET.EXAM_SN      AS examSn,
+            M.USER_NAME     AS stdNm
+        FROM EXAM_TAKER ET
+        JOIN MEMBER M ON M.USER_ID = ET.STD_USER_ID
+        WHERE ET.EXAM_SN = #{examSn}
+        ORDER BY M.USER_NAME ASC
+    </select>
+
 </mapper>

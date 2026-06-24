@@ -39,6 +39,14 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
+    public List<QuestionDto> retrieveMyQuestionsBySubjId(String instrUserId, Long subjId) {
+        if (subjId == null) return retrieveMyQuestions(instrUserId);
+        List<QuestionDto> list = questionMapper.selectMyQuestionsBySubjId(instrUserId, subjId);
+        list.forEach(this::parseQstnCn);
+        return list;
+    }
+
+    @Override
     public List<QuestionDto> retrieveQuestionPage(String instrUserId, Long subjId, String diffCd,
                                                    int page, int pageSize) {
         int offset = (page - 1) * pageSize;
