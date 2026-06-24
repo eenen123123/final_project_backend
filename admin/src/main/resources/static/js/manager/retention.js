@@ -25,7 +25,7 @@ function riskBadge(level) {
   return `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${map[level] || "bg-slate-100 text-slate-500"}">${esc(level)}</span>`;
 }
 function resultBadge(name) {
-  const map = { 유지: "bg-emerald-50 text-emerald-700", 진행중: "bg-violet-50 text-violet-700", 퇴원: "bg-slate-100 text-slate-500" };
+  const map = { 유지: "bg-emerald-50 text-emerald-700", 진행중: "bg-emerald-50 text-emerald-700", 퇴원: "bg-slate-100 text-slate-500" };
   return name ? `<span class="px-2 py-0.5 rounded-full text-xs font-semibold ${map[name] || "bg-slate-100 text-slate-500"}">${esc(name)}</span>` : "-";
 }
 function attGauge(count, max, color) {
@@ -46,7 +46,7 @@ function renderPaging(containerId, total, page, screenSize, onMove) {
   const btn = (label, p, disabled, active) =>
     `<button ${disabled ? "disabled" : ""} onclick="${onMove}(${p})"
       class="w-8 h-8 rounded-lg text-xs flex items-center justify-center ${
-        active ? "bg-violet-600 text-white font-bold" : "border border-slate-200 text-slate-400 hover:bg-slate-50"
+        active ? "bg-emerald-600 text-white font-bold" : "border border-slate-200 text-slate-400 hover:bg-slate-50"
       } ${disabled ? "opacity-40 cursor-not-allowed" : ""}">${label}</button>`;
   let html = btn('<i class="fa-solid fa-chevron-left"></i>', page - 1, page <= 1, false);
   for (let p = start; p <= end; p++) html += btn(p, p, false, p === page);
@@ -105,9 +105,9 @@ function loadAnomalies(page) {
             <td class="py-3 px-3">${riskBadge(r.riskLevel)}</td>
             <td class="py-3 px-3 whitespace-nowrap">
               <button onclick='openProcessModal(${JSON.stringify({ stdUserId: r.stdUserId, studentNm: r.studentNm }).replace(/'/g, "&#39;")})'
-                class="text-violet-500 hover:text-violet-700 text-xs font-semibold mr-2"><i class="fa-solid fa-comments"></i> 상담</button>
+                class="text-emerald-500 hover:text-emerald-700 text-xs font-semibold mr-2"><i class="fa-solid fa-comments"></i> 상담</button>
               <button onclick="openCoursesModal('${esc(r.stdUserId)}', '${esc(r.studentNm)}')"
-                class="text-slate-400 hover:text-violet-600 text-xs font-semibold"><i class="fa-solid fa-book"></i> 보기</button>
+                class="text-slate-400 hover:text-emerald-600 text-xs font-semibold"><i class="fa-solid fa-book"></i> 보기</button>
             </td>
           </tr>`,
           )
@@ -141,7 +141,7 @@ function loadProcesses(page) {
             <td class="py-3 px-3 font-medium text-slate-800">${esc(r.studentNm)}</td>
             <td class="py-3 px-3 text-xs text-slate-500">${esc(r.className) || "-"}</td>
             <td class="py-3 px-3 text-sm text-slate-600">${esc(r.wdrwRsnNm) || "-"}</td>
-            <td class="py-3 px-3 text-center"><span class="px-2.5 py-0.5 bg-violet-50 text-violet-700 rounded-full text-xs font-bold">${r.cnslCnt}회</span></td>
+            <td class="py-3 px-3 text-center"><span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold">${r.cnslCnt}회</span></td>
             <td class="py-3 px-3 text-sm text-slate-500">${fmtD(r.lastDt)}</td>
             <td class="py-3 px-3 text-sm text-slate-600">${esc(r.chrgNm) || "-"}</td>
             <td class="py-3 px-3">${resultBadge(r.rtnpRsltNm)}</td>
@@ -235,11 +235,11 @@ function loadStudentSearch(page) {
         tbody.innerHTML = d.items
           .map(
             (s) => `
-          <tr class="border-t border-slate-50 hover:bg-violet-50/40 transition-colors">
+          <tr class="border-t border-slate-50 hover:bg-emerald-50/40 transition-colors">
             <td class="py-2.5 px-3 font-medium text-slate-800">${esc(s.studentNm)}</td>
             <td class="py-2.5 px-3 text-slate-500 text-xs">${esc(s.className) || "-"}</td>
             <td class="py-2.5 px-3 text-right">
-              <button class="text-xs font-semibold text-violet-600 hover:text-violet-800"
+              <button class="text-xs font-semibold text-emerald-600 hover:text-emerald-800"
                 onclick="pickStudent('${esc(s.stdUserId)}', '${esc(s.studentNm)}')">선택</button>
             </td>
           </tr>`,
