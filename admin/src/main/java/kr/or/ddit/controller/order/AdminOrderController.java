@@ -63,6 +63,7 @@ public class AdminOrderController {
             paginationInfo.setDetailCondition(condition);
 
             PageResponse<OrderShippingDto> result = orderShippingService.getShippingList(paginationInfo);
+            paginationInfo.setTotalCount(result.getTotalCount());
             model.addAttribute("shippingList", result.getItems());
             model.addAttribute("paginationInfo", paginationInfo);
             model.addAttribute("statusSummary", statusSummary);
@@ -81,6 +82,7 @@ public class AdminOrderController {
             paginationInfo.setDetailCondition(condition);
 
             PageResponse<OrderDto> result = orderService.getAllOrders(paginationInfo);
+            paginationInfo.setTotalCount(result.getTotalCount());
             model.addAttribute("orderList", result.getItems());
             model.addAttribute("paginationInfo", paginationInfo);
         }
