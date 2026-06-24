@@ -26,28 +26,36 @@ function loadTabData(tabId, page) {
 function renderPagination(containerId, totalCount, currentPage, size, loadFn) {
   const totalPages = Math.ceil(totalCount / size);
   const container = document.getElementById(containerId);
-  if (!container || totalPages <= 1) { if (container) container.innerHTML = ''; return; }
+  if (!container) return;
+
+  const start = totalCount === 0 ? 0 : (currentPage - 1) * size + 1;
+  const end   = Math.min(currentPage * size, totalCount);
+  const infoText = totalCount === 0
+    ? '데이터가 없습니다.'
+    : `전체 ${totalCount}건 중 ${start} – ${end} 표시`;
 
   const blockSize = 5;
-  const endPage = Math.ceil(currentPage / blockSize) * blockSize;
-  const startPage = endPage - blockSize + 1;
+  const endPage   = Math.min(Math.ceil(currentPage / blockSize) * blockSize, totalPages);
+  const startPage = Math.max(endPage - blockSize + 1, 1);
 
-  let html = '<div class="flex items-center justify-center gap-1 mt-4">';
-  if (startPage > 1) {
-    html += `<button onclick="${loadFn}(${startPage - 1})" class="px-2.5 py-1.5 text-xs text-slate-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors">&lt;</button>`;
-  }
-  for (let p = startPage; p <= Math.min(endPage, totalPages); p++) {
-    if (p === currentPage) {
-      html += `<button class="px-2.5 py-1.5 text-xs font-bold text-white bg-blue-600 rounded-lg">${p}</button>`;
-    } else {
-      html += `<button onclick="${loadFn}(${p})" class="px-2.5 py-1.5 text-xs text-slate-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors">${p}</button>`;
+  const BASE = 'w-8 h-8 rounded-lg text-xs flex items-center justify-center';
+  let btns = '';
+  if (totalPages > 1) {
+    if (startPage > 1)
+      btns += `<button onclick="${loadFn}(${startPage - 1})" class="${BASE} text-slate-400 hover:bg-slate-100">‹</button>`;
+    for (let p = startPage; p <= endPage; p++) {
+      const cls = p === currentPage ? 'bg-blue-600 text-white font-bold' : 'text-slate-400 hover:bg-slate-100';
+      btns += `<button onclick="${loadFn}(${p})" class="${BASE} ${cls}">${p}</button>`;
     }
+    if (endPage < totalPages)
+      btns += `<button onclick="${loadFn}(${endPage + 1})" class="${BASE} text-slate-400 hover:bg-slate-100">›</button>`;
   }
-  if (endPage < totalPages) {
-    html += `<button onclick="${loadFn}(${endPage + 1})" class="px-2.5 py-1.5 text-xs text-slate-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors">&gt;</button>`;
-  }
-  html += '</div>';
-  container.innerHTML = html;
+
+  container.innerHTML = `
+    <div class="flex items-center justify-between px-1 py-4 border-t border-slate-100 mt-2">
+      <p class="text-xs text-slate-400">${infoText}</p>
+      <div class="flex items-center gap-1">${btns}</div>
+    </div>`;
 }
 
 function showSkeleton(tbodyId, cols) {
