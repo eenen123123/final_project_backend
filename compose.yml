@@ -1,0 +1,28 @@
+# rest + admin 두 컨테이너를 같은 이미지(ddit-backend:latest)에서 기동.
+# 이미지는 rest 서비스에서 한 번만 빌드, admin 은 그 이미지를 재사용.
+services:
+  rest:
+    build: .
+    image: ddit-backend:latest
+    environment:
+      - APP_JAR=rest.jar
+    volumes:
+      # 앱(DotEnvConfig)이 /app/.env 파일을 직접 읽음. :z → SELinux 공유 라벨(두 컨테이너 공용)
+      - ./.env:/app/.env:ro,z
+    ports:
+      - "8081:8081"
+    mem_limit: 2g
+    restart: unless-stopped
+
+  admin:
+    image: ddit-backend:latest   # rest 가 빌드한 이미지를 그대로 사용 (재빌드 X)
+    depends_on:
+      - rest
+    environment:
+      - APP_JAR=admin.jar
+    volumes:
+      - ./.env:/app/.env:ro,z
+    ports:
+      - "8080:8080"
+    mem_limit: 2g
+    restart: unless-stopped

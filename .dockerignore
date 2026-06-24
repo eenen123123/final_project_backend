@@ -1,0 +1,14 @@
+# 빌드 컨텍스트 최소화 — 용량 큰/불필요 디렉터리 제외
+.git
+.venv
+.temp
+.understand-anything
+.settings
+.vscode
+data
+sample_videos
+sample_images
+sample_courses
+**/target
+*.md
+.env
