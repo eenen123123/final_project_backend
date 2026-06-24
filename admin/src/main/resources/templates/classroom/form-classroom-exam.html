@@ -81,10 +81,7 @@
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="border-b border-slate-100 text-sm text-slate-400">
-                  <th class="py-3 px-7 w-10">
-                    <input type="checkbox" id="checkAll"
-                      class="w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer" />
-                  </th>
+                  <th class="py-3 px-7 w-16 text-center font-medium whitespace-nowrap">순서</th>
                   <th class="py-3 px-4 font-medium">문항 내용</th>
                   <th class="py-3 px-4 w-24 text-center font-medium whitespace-nowrap">유형</th>
                   <th class="py-3 px-4 w-24 text-center font-medium whitespace-nowrap">난이도</th>
@@ -95,10 +92,8 @@
                 <tr th:each="q : ${myQuestions}"
                   class="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer"
                   th:data-qstn-sn="${q.qstnSn}" onclick="toggleRow(this)">
-                  <td class="py-3 px-7" onclick="event.stopPropagation()">
-                    <input type="checkbox" name="qstnSnList" th:value="${q.qstnSn}"
-                      th:checked="${selectedQstnSns != null and selectedQstnSns.contains(q.qstnSn)}"
-                      onchange="updateCount()" class="w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer" />
+                  <td class="py-3 px-7 text-center">
+                    <span class="order-badge inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold border-2 border-slate-200 text-slate-300 transition-all"></span>
                   </td>
                   <td class="py-3 px-4 text-sm text-slate-700 max-w-xs truncate" th:text="${q.stem}">문항 내용</td>
                   <td class="py-3 px-4 text-center">
@@ -133,36 +128,63 @@
       </form>
     </div>
 
-    <script>
-      function validateForm() {
-        const checked = document.querySelectorAll('input[name="qstnSnList"]:checked').length;
-        if (checked === 0) {
-          alert('문항을 1개 이상 선택해주세요.');
-          return false;
-        }
-        return true;
-      }
+    <script th:inline="javascript">
+      // 수정 폼일 때 서버에서 내려온 순서 배열, 신규 등록이면 빈 배열
+      const _initOrder = /*[[${orderedQstnSns}]]*/ [];
 
-      function updateCount() {
-        const checked = document.querySelectorAll('input[name="qstnSnList"]:checked').length;
-        document.getElementById('selectedCount').textContent = checked + '개 선택됨';
+      // 클릭 순서대로 qstnSn을 담는 배열
+      let checkOrder = _initOrder ? [..._initOrder] : [];
+
+      function renderBadges() {
+        document.querySelectorAll('tr[data-qstn-sn]').forEach(row => {
+          const sn = Number(row.dataset.qstnSn);
+          const badge = row.querySelector('.order-badge');
+          const idx = checkOrder.indexOf(sn);
+          if (idx === -1) {
+            badge.textContent = '';
+            badge.classList.remove('bg-blue-600', 'text-white', 'border-blue-600');
+            badge.classList.add('border-slate-200', 'text-slate-300');
+            row.classList.remove('bg-blue-50/40');
+          } else {
+            badge.textContent = idx + 1;
+            badge.classList.add('bg-blue-600', 'text-white', 'border-blue-600');
+            badge.classList.remove('border-slate-200', 'text-slate-300');
+            row.classList.add('bg-blue-50/40');
+          }
+        });
+        document.getElementById('selectedCount').textContent = checkOrder.length + '개 선택됨';
       }
 
       function toggleRow(row) {
-        const cb = row.querySelector('input[type="checkbox"]');
-        cb.checked = !cb.checked;
-        updateCount();
+        const sn = Number(row.dataset.qstnSn);
+        const idx = checkOrder.indexOf(sn);
+        if (idx === -1) {
+          checkOrder.push(sn);
+        } else {
+          checkOrder.splice(idx, 1);
+        }
+        renderBadges();
       }
 
-      const checkAllEl = document.getElementById('checkAll');
-      if (checkAllEl) {
-        checkAllEl.addEventListener('change', function () {
-          document.querySelectorAll('input[name="qstnSnList"]').forEach(cb => cb.checked = this.checked);
-          updateCount();
+      function validateForm() {
+        if (checkOrder.length === 0) {
+          alert('문항을 1개 이상 선택해주세요.');
+          return false;
+        }
+        // 체크된 기존 checkbox는 제출에서 제외하고, 순서대로 hidden input 주입
+        const form = document.getElementById('examForm');
+        checkOrder.forEach(sn => {
+          const h = document.createElement('input');
+          h.type = 'hidden';
+          h.name = 'qstnSnList';
+          h.value = sn;
+          form.appendChild(h);
         });
+        return true;
       }
 
-      updateCount();
+      // 페이지 로드 시 수정 모드 초기 뱃지 렌더링
+      renderBadges();
     </script>
 
   </div>

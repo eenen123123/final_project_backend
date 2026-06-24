@@ -17,7 +17,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Controller
@@ -108,13 +107,13 @@ public class AdminClassroomExamController extends AbstractClassroomController {
         if (!classSn.equals(exam.getClassSn()))
             return "redirect:/classroom/detail/" + classSn + "/exams";
         List<QuestionDto> myQuestions = questionService.retrieveMyQuestionsBySubjId(auth.getName(), classroom.getSubjId());
-        Set<Long> selectedQstnSns = exam.getQuestions().stream()
+        List<Long> orderedQstnSns = exam.getQuestions().stream()
                 .map(kr.or.ddit.finalProject.dto.exam.ExamQuestionDto::getQstnSn)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
         model.addAttribute("classroom", classroom);
         model.addAttribute("exam", exam);
         model.addAttribute("myQuestions", myQuestions);
-        model.addAttribute("selectedQstnSns", selectedQstnSns);
+        model.addAttribute("orderedQstnSns", orderedQstnSns);
         return "classroom/form-classroom-exam";
     }
 

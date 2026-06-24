@@ -40,9 +40,8 @@
     <button type="submit" class="hm-btn-primary hm-btn-sky">
       <i class="fa-solid fa-magnifying-glass"></i>검색
     </button>
-    <a th:if="${keyword != ''}" th:href="@{/instructor/board/list(boardTypeCd=${boardTypeCd})}"
-      class="btn-filter-reset">
-      <i class="fa-solid fa-xmark mr-0.5"></i>초기화
+    <a th:href="@{/instructor/board/list(boardTypeCd=${boardTypeCd})}" class="btn-filter-reset">
+      <i class="fa-solid fa-rotate-left"></i>초기화
     </a>
     <span class="board-filter-count">
       <strong th:text="${totalCount}">0</strong>건<th:block th:if="${keyword != ''}"> · 검색 결과</th:block>

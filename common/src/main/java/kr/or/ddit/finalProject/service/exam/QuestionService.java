@@ -35,12 +35,12 @@ public interface QuestionService {
      * @param pageSize    페이지 당 건수
      */
     List<QuestionDto> retrieveQuestionPage(String instrUserId, Long subjId, String diffCd,
-                                            int page, int pageSize);
+                                            boolean showDeleted, int page, int pageSize);
 
     /**
      * 필터 조건 총 문항 건수 (페이징 계산용)
      */
-    int countQuestions(String instrUserId, Long subjId, String diffCd);
+    int countQuestions(String instrUserId, Long subjId, String diffCd, boolean showDeleted);
 
     /**
      * 문항 단건 조회 (소유권 확인 포함)

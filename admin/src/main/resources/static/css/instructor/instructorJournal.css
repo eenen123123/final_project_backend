@@ -25,8 +25,8 @@
 .filter-date-row span   { font-size: 0.7rem; color: #94a3b8; align-self: center; flex-shrink: 0; }
 .btn-filter       { width: 100%; font-size: 0.72rem; font-weight: 600; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 0.375rem; padding: 0.3rem 0; cursor: pointer; }
 .btn-filter:hover { background: #e2e8f0; }
-.btn-filter-reset       { font-size: 0.65rem; color: #94a3b8; text-decoration: none; display: block; text-align: right; margin-top: 0.2rem; }
-.btn-filter-reset:hover { color: #64748b; }
+.btn-filter-reset       { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; font-weight: 500; color: #64748b; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.3rem 0.75rem; text-decoration: none; white-space: nowrap; transition: background 0.15s, color 0.15s; }
+.btn-filter-reset:hover { background: #e2e8f0; color: #334155; }
 
 /* ── 페이지네이션 ── */
 .pagination { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.75rem; border-top: 1px solid #f1f5f9; flex-shrink: 0; }
