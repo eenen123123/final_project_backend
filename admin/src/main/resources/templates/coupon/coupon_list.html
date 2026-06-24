@@ -11,7 +11,7 @@
   <!-- 쿠폰/포인트 탭 -->
   <div class="flex border-b border-slate-200">
     <button type="button" id="tabCoupon" onclick="switchTab('coupon')"
-      class="px-6 py-3 text-sm font-semibold border-b-2 border-slate-900 text-slate-900 transition-colors">
+      class="px-6 py-3 text-sm font-semibold border-b-2 border-blue-600 text-blue-600 transition-colors">
       쿠폰
     </button>
     <button type="button" id="tabPoint" onclick="switchTab('point')"
@@ -121,116 +121,18 @@
               <th class="py-4 px-6 text-center">관리</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
-
-            <tr th:if="${#lists.isEmpty(coupons)}">
-              <td colspan="8" class="py-20 text-center text-slate-400 text-sm">
-                <i class="fa-solid fa-ticket text-3xl text-slate-200 mb-3 block"></i>
-                등록된 쿠폰이 없습니다.
-              </td>
-            </tr>
-
-            <tr th:each="coupon : ${coupons}"
-                th:data-use-yn="${coupon.useYn}"
-                th:data-disc-type="${coupon.discType.name()}"
-                class="coupon-row hover:bg-slate-50/50 transition-colors">
-
-              <!-- 쿠폰명 (클릭 → 수정 모달) -->
-              <td class="py-4 px-6">
-                <button type="button" onclick="openEditModal(this)"
-                  th:data-sn="${coupon.couponSn}"
-                  th:data-nm="${coupon.couponNm}"
-                  th:data-disc-type="${coupon.discType.name()}"
-                  th:data-disc-amt="${coupon.discAmt}"
-                  th:data-disc-rate="${coupon.discRate}"
-                  th:data-use-limit="${coupon.useLimitCd}"
-                  th:data-valid-days="${coupon.validDays}"
-                  th:data-use-yn="${coupon.useYn}"
-                  th:data-coupon-code="${coupon.couponCode}"
-                  class="text-left group">
-                  <p class="font-semibold text-slate-800 truncate group-hover:text-blue-600 transition-colors"
-                     th:text="${coupon.couponNm}">-</p>
-                  <p th:if="${coupon.couponCode != null}"
-                     class="text-xs font-mono text-slate-400 mt-0.5"
-                     th:text="${coupon.couponCode.substring(0,5) + '-' + coupon.couponCode.substring(5,10) + '-' + coupon.couponCode.substring(10,15)}">-</p>
-                </button>
-              </td>
-
-              <!-- 할인방식 -->
-              <td class="py-4 px-6 text-center">
-                <span th:if="${coupon.discType.name() == 'FIXED'}"
-                  class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-600">정액</span>
-                <span th:if="${coupon.discType.name() == 'RATE'}"
-                  class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-600">정률</span>
-              </td>
-
-              <!-- 할인값 -->
-              <td class="py-4 px-6 text-center font-mono text-sm">
-                <span th:if="${coupon.discType.name() == 'FIXED'}"
-                  th:text="${#numbers.formatInteger(coupon.discAmt, 0, 'COMMA') + '원'}">-</span>
-                <span th:if="${coupon.discType.name() == 'RATE'}"
-                  th:text="${coupon.discRate + '%'}">-</span>
-              </td>
-
-              <!-- 사용범위 -->
-              <td class="py-4 px-6 text-center">
-                <span th:switch="${coupon.useLimitCd}">
-                  <span th:case="'COURSE'" class="text-xs text-indigo-500 font-medium">강좌</span>
-                  <span th:case="'TEXTBOOK'" class="text-xs text-emerald-500 font-medium">교재</span>
-                  <span th:case="*" class="text-xs text-slate-500 font-medium">전체</span>
-                </span>
-              </td>
-
-              <!-- 유효일수 -->
-              <td class="py-4 px-6 text-center font-mono text-sm" th:text="${coupon.validDays + '일'}">-</td>
-
-              <!-- 상태 -->
-              <td class="py-4 px-6 text-center">
-                <span th:if="${coupon.useYn == 'Y'}"
-                  class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-600">활성</span>
-                <span th:if="${coupon.useYn != 'Y'}"
-                  class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-500">비활성</span>
-              </td>
-
-              <!-- 등록일 -->
-              <td class="py-4 px-6 text-center">
-                <span class="text-xs text-slate-500"
-                  th:text="${coupon.regDt != null ? #temporals.format(coupon.regDt, 'yyyy.MM.dd') : '-'}">-</span>
-              </td>
-
-              <!-- 관리 -->
-              <td class="py-4 px-6 text-center">
-                <div class="flex items-center justify-center gap-3">
-                  <button type="button"
-                    th:if="${coupon.useYn == 'Y'}"
-                    onclick="openIssuePopup(this)"
-                    th:data-sn="${coupon.couponSn}"
-                    th:data-nm="${coupon.couponNm}"
-                    class="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors">
-                    발급
-                  </button>
-                  <button type="button"
-                    th:if="${coupon.useYn != 'Y'}"
-                    onclick="deleteArchivedCoupon(this)"
-                    th:data-sn="${coupon.couponSn}"
-                    th:data-nm="${coupon.couponNm}"
-                    class="archive-delete-btn hidden text-xs font-bold text-rose-500 hover:text-rose-700 transition-colors">
-                    삭제
-                  </button>
-                  <span th:if="${coupon.useYn == 'Y'}" class="text-slate-200">|</span>
-                  <button type="button"
-                    onclick="openRecipientsPopup(this)"
-                    th:data-sn="${coupon.couponSn}"
-                    th:data-nm="${coupon.couponNm}"
-                    class="text-xs font-bold text-violet-600 hover:text-violet-800 transition-colors">
-                    내역
-                  </button>
-                </div>
-              </td>
-
-            </tr>
+          <tbody id="coupon-table-body" class="divide-y divide-slate-50 text-sm text-slate-700">
+            <tr><td colspan="8" class="py-20 text-center text-slate-400 text-sm">
+              <i class="fa-solid fa-spinner fa-spin text-2xl text-slate-200 mb-3 block"></i>불러오는 중...
+            </td></tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- 페이지네이션 -->
+      <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100">
+        <p class="text-xs text-slate-400" id="coupon-paging-info"></p>
+        <div class="flex items-center gap-1" id="coupon-pagination"></div>
       </div>
 
     </div>
@@ -243,7 +145,7 @@
     <!-- 포인트 서브탭 -->
     <div class="flex border-b border-slate-200 mb-6">
       <button type="button" id="ptabStudy" onclick="switchPointTab('study')"
-        class="px-5 py-2.5 text-sm font-semibold border-b-2 border-slate-900 text-slate-900 transition-colors">
+        class="px-5 py-2.5 text-sm font-semibold border-b-2 border-blue-600 text-blue-600 transition-colors">
         스터디포인트
       </button>
       <button type="button" id="ptabHm" onclick="switchPointTab('hm')"
@@ -263,7 +165,7 @@
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4 cursor-pointer hover:shadow-md transition-shadow"
              onclick="showStudyDefList()">
-          <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-500 flex items-center justify-center text-xl shrink-0">
+          <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center text-xl shrink-0">
             <i class="fa-solid fa-star"></i>
           </div>
           <div>
@@ -348,7 +250,7 @@
                     th:data-amt="${def.discAmt}"
                     th:data-use-yn="${def.useYn}"
                     class="text-left group">
-                    <p class="font-semibold text-slate-800 group-hover:text-violet-600 transition-colors"
+                    <p class="font-semibold text-slate-800 group-hover:text-blue-600 transition-colors"
                        th:text="${def.couponNm}">-</p>
                   </button>
                 </td>
@@ -379,7 +281,7 @@
                       onclick="openStudyRecipientsPopup(this)"
                       th:data-sn="${def.couponSn}"
                       th:data-nm="${def.couponNm}"
-                      class="text-xs font-bold text-violet-600 hover:text-violet-800 transition-colors">
+                      class="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors">
                       내역
                     </button>
                   </div>
