@@ -7,11 +7,11 @@
   color: #64748b;
   border-bottom-color: transparent;
 }
-.ret-tab-btn:hover { color: #7c3aed; }
+.ret-tab-btn:hover { color: #059669; }
 .ret-tab-btn.is-active {
-  color: #7c3aed;
-  border-bottom-color: #8b5cf6;
-  background-color: rgba(245, 243, 255, 0.6);
+  color: #059669;
+  border-bottom-color: #10b981;
+  background-color: rgba(240, 253, 244, 0.6);
 }
 
 /* 근태 카운트 게이지 */
