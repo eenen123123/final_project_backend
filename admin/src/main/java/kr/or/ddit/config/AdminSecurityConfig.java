@@ -56,6 +56,10 @@ public class AdminSecurityConfig {
 
                 .requestMatchers(HttpMethod.GET, "/admin/approval/template/view").permitAll()
 
+                // 드롭다운 데이터 조회 API — 관리자 전체 허용 (읽기 전용)
+                .requestMatchers(HttpMethod.GET, "/instructor/questions/ai/subjects",
+                                               "/instructor/questions/ai/weak-points").hasRole("ADMIN")
+
                 // 강사 전용 (D300)
                 .requestMatchers("/instructor/**", "/classroom/**").hasAuthority("D300")
 

@@ -75,7 +75,7 @@ public interface QuestionMapper {
 
     /**
      * 문항 수정 (내용·유형·배점·정답·해설 변경 가능)
-     * LAST_MDFR_ID(수정자)와 FIELD5(수정일시, MDFCN_DT 추정)를 함께 갱신합니다.
+     * LAST_MDFR_ID(수정자)와 MDFCN_DT(수정일시)를 함께 갱신합니다.
      * 소유권 확인은 서비스에서 합니다.
      *
      * @param dto 수정할 내용 (qstnSn, lastMdfrId 포함 필수)

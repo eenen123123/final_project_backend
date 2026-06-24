@@ -4,7 +4,6 @@ import kr.or.ddit.finalProject.dto.exam.GeminiQuestionRequest;
 import kr.or.ddit.finalProject.dto.exam.QuestionDto;
 import kr.or.ddit.finalProject.dto.exam.QuestionSaveRequest;
 import kr.or.ddit.finalProject.dto.exam.WeakPointDto;
-import kr.or.ddit.finalProject.dto.subject.SubjectClassificationDto;
 import kr.or.ddit.finalProject.dto.subject.SubjectDto;
 import kr.or.ddit.finalProject.mapper.subject.SubjectMapper;
 import kr.or.ddit.finalProject.service.exam.GeminiQuestionService;
@@ -17,23 +16,21 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 /**
- * 강사 문항 관리 컨트롤러 (시험 관리는 클래스룸으로 분리됨)
+ * 강사 문항 관리 컨트롤러
  *
- * [URL 구조]
- *   GET  /instructor/questions                      → 문항 목록 (필터 + 페이징)
- *   GET  /instructor/questions/{sn}                 → 문항 상세 페이지
- *   POST /instructor/questions                      → 문항 등록
- *   POST /instructor/questions/{sn}/edit            → 문항 수정
- *   POST /instructor/questions/{sn}/delete          → 문항 논리 삭제
+ * GET  /instructor/questions                  → 문항 목록 (필터 + 페이징)
+ * GET  /instructor/questions/new              → 문항 등록 폼
+ * GET  /instructor/questions/{sn}             → 문항 상세
+ * GET  /instructor/questions/{sn}/edit        → 문항 수정 폼
+ * POST /instructor/questions                  → 문항 등록 처리
+ * POST /instructor/questions/{sn}/edit        → 문항 수정 처리
+ * POST /instructor/questions/{sn}/delete      → 문항 논리 삭제
  *
- *   [AI 문항 생성 REST — questions.html AI 탭에서 사용]
- *   GET  /instructor/questions/ai/subjects          → 과목 목록 (대분류 기준)
- *   GET  /instructor/questions/ai/weak-points       → 약점 과목 목록
- *   POST /instructor/questions/ai/generate          → AI 문항 생성
- *   POST /instructor/questions/ai/save              → AI 생성 문항 저장
+ * GET  /instructor/questions/ai/subjects      → 과목 목록 REST
+ * GET  /instructor/questions/ai/weak-points   → 약점 과목 목록 REST
+ * POST /instructor/questions/ai/generate      → AI 문항 생성 REST
  */
 @Controller
 @RequestMapping("/instructor/questions")
@@ -47,7 +44,7 @@ public class InstructorQuestionController {
     private final SubjectMapper subjectMapper;
 
     // ──────────────────────────────────────────────
-    // 문항 목록 (필터 + 페이징)
+    // 문항 목록
     // ──────────────────────────────────────────────
 
     @GetMapping
@@ -65,10 +62,8 @@ public class InstructorQuestionController {
         int totalCount = questionService.countQuestions(instrUserId, subjId, diffCd);
         int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
 
-        List<SubjectClassificationDto> classifications = subjectMapper.selectClassificationList();
-
         model.addAttribute("questions", questions);
-        model.addAttribute("classifications", classifications);
+        model.addAttribute("classifications", subjectMapper.selectClassificationList());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("totalCount", totalCount);
@@ -81,13 +76,32 @@ public class InstructorQuestionController {
     }
 
     // ──────────────────────────────────────────────
-    // 문항 상세 페이지
+    // 문항 등록 폼
+    // ──────────────────────────────────────────────
+
+    @GetMapping("/new")
+    public String newQuestionForm(Model model) {
+        model.addAttribute("classifications", subjectMapper.selectClassificationList());
+        return "admin:/instructor/form-question";
+    }
+
+    // ──────────────────────────────────────────────
+    // 문항 상세
     // ──────────────────────────────────────────────
 
     @GetMapping("/{qstnSn}")
     public String questionDetail(@PathVariable Long qstnSn, Model model, Authentication auth) {
+        model.addAttribute("question", questionService.retrieveQuestion(qstnSn, auth.getName()));
+        return "admin:/instructor/detail-question";
+    }
+
+    // ──────────────────────────────────────────────
+    // 문항 수정 폼
+    // ──────────────────────────────────────────────
+
+    @GetMapping("/{qstnSn}/edit")
+    public String editQuestionForm(@PathVariable Long qstnSn, Model model, Authentication auth) {
         QuestionDto question = questionService.retrieveQuestion(qstnSn, auth.getName());
-        List<SubjectClassificationDto> classifications = subjectMapper.selectClassificationList();
 
         Long currentSubjClId = null;
         if (question.getSubjId() != null) {
@@ -96,13 +110,13 @@ public class InstructorQuestionController {
         }
 
         model.addAttribute("question", question);
-        model.addAttribute("classifications", classifications);
         model.addAttribute("currentSubjClId", currentSubjClId);
-        return "admin:/instructor/detail-question";
+        model.addAttribute("classifications", subjectMapper.selectClassificationList());
+        return "admin:/instructor/form-question";
     }
 
     // ──────────────────────────────────────────────
-    // 문항 등록
+    // 문항 등록 처리
     // ──────────────────────────────────────────────
 
     @PostMapping
@@ -112,7 +126,7 @@ public class InstructorQuestionController {
     }
 
     // ──────────────────────────────────────────────
-    // 문항 수정
+    // 문항 수정 처리
     // ──────────────────────────────────────────────
 
     @PostMapping("/{qstnSn}/edit")
@@ -155,14 +169,5 @@ public class InstructorQuestionController {
     public ResponseEntity<QuestionDto> generateQuestion(
             @RequestBody GeminiQuestionRequest request) {
         return ResponseEntity.ok(geminiQuestionService.generateQuestion(request));
-    }
-
-    @PostMapping("/ai/save")
-    @ResponseBody
-    public ResponseEntity<Map<String, String>> saveAiQuestion(
-            @RequestBody QuestionSaveRequest request,
-            Authentication auth) {
-        questionService.addQuestion(auth.getName(), request);
-        return ResponseEntity.ok(Map.of("result", "success"));
     }
 }

@@ -1,0 +1,167 @@
+<!--
+  강사 문항 관리 — 등록 / 수정 폼
+  Controller: InstructorQuestionController
+    GET /instructor/questions/new          → 등록 (question = null)
+    GET /instructor/questions/{sn}/edit    → 수정 (question = 기존 데이터)
+  Model: classifications, question(수정 시), currentSubjClId(수정 시)
+-->
+<title th:fragment="pageTitle">문항 관리 | HERMES</title>
+<script th:inline="javascript">
+  window._question    = /*[[${question}]]*/ null;
+  window._subjectState = {
+    subjClId: /*[[${currentSubjClId}]]*/ null,
+    subjId:   /*[[${question?.subjId}]]*/ null
+  };
+</script>
+
+<!-- 페이지 헤더 -->
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-slate-900 tracking-tight"
+        th:text="${question != null} ? '문항 수정' : '새 문항 등록'">새 문항 등록</h1>
+    <p class="text-sm text-slate-500 mt-1"
+       th:text="${question != null} ? '기존 문항을 수정합니다.' : '강의 관련 문항을 등록합니다.'"></p>
+  </div>
+  <a th:href="${question != null} ? @{'/instructor/questions/' + ${question.qstnSn}} : @{/instructor/questions}"
+     class="hm-btn-secondary text-base">
+    <i class="fa-solid fa-list"></i>
+    <span th:text="${question != null} ? '상세로' : '목록으로'">목록으로</span>
+  </a>
+</div>
+
+<!-- 문항 폼 -->
+<form id="q-form" method="post"
+      th:action="${question != null}
+                 ? @{'/instructor/questions/' + ${question.qstnSn} + '/edit'}
+                 : @{/instructor/questions}"
+      class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+  <div class="divide-y divide-slate-100">
+
+    <!-- 유형 -->
+    <div class="flex items-center px-8 py-3">
+      <label class="w-28 shrink-0 text-sm font-semibold text-slate-600">
+        유형 <span class="text-red-400">*</span>
+      </label>
+      <select name="qstnTypeCd" id="fq-type" onchange="fqOnTypeChange()"
+              class="hm-input hm-input-sky max-w-56">
+        <option value="MULTIPLE_CHOICE"
+          th:selected="${question?.qstnTypeCd?.name() == 'MULTIPLE_CHOICE'}">객관식</option>
+        <option value="SHORT_ANSWER"
+          th:selected="${question?.qstnTypeCd?.name() == 'SHORT_ANSWER'}">단답형</option>
+        <option value="ESSAY"
+          th:selected="${question?.qstnTypeCd?.name() == 'ESSAY'}">서술형</option>
+      </select>
+    </div>
+
+    <!-- 대분류 -->
+    <div class="flex items-center px-8 py-3">
+      <label class="w-28 shrink-0 text-sm font-semibold text-slate-600">대분류</label>
+      <select id="fq-cl" onchange="fqLoadSubjects()" class="hm-input hm-input-sky max-w-56">
+        <option value="">선택</option>
+        <th:block th:each="cl : ${classifications}">
+          <option th:value="${cl.subjClId}" th:text="${cl.subjClNm}"
+                  th:selected="${cl.subjClId == currentSubjClId}"></option>
+        </th:block>
+      </select>
+    </div>
+
+    <!-- 과목 -->
+    <div class="flex items-center px-8 py-3">
+      <label class="w-28 shrink-0 text-sm font-semibold text-slate-600">과목</label>
+      <select name="subjId" id="fq-subj" class="hm-input hm-input-sky max-w-56">
+        <option value="">대분류 먼저 선택</option>
+      </select>
+    </div>
+
+    <!-- 난이도 -->
+    <div class="flex items-center px-8 py-3">
+      <label class="w-28 shrink-0 text-sm font-semibold text-slate-600">난이도</label>
+      <select name="diffCd" id="fq-diff" class="hm-input hm-input-sky max-w-56">
+        <option value="">선택 안 함</option>
+        <option value="EASY"   th:selected="${question?.diffCd?.name() == 'EASY'}">쉬움</option>
+        <option value="MEDIUM" th:selected="${question?.diffCd?.name() == 'MEDIUM'}">보통</option>
+        <option value="HARD"   th:selected="${question?.diffCd?.name() == 'HARD'}">어려움</option>
+      </select>
+    </div>
+
+    <!-- AI 원버튼 (신규 등록 시에만) -->
+    <div th:if="${question == null}" class="flex items-center gap-4 px-8 py-3 bg-violet-50/40">
+      <span class="text-xs font-bold px-1.5 py-0.5 rounded-full shrink-0"
+            style="background:linear-gradient(135deg,#7c3aed,#0ea5e9);color:#fff;">AI</span>
+      <span class="text-sm text-slate-400 flex-1">과목·난이도 선택 후 문항을 자동 생성합니다.</span>
+      <button type="button" id="ai-fill-btn" onclick="fqAiFill()"
+              class="hm-btn-primary shrink-0"
+              style="background:linear-gradient(135deg,#7c3aed,#0ea5e9);">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>자동 채우기
+      </button>
+      <span id="ai-spinner" class="hidden text-sm text-slate-400 shrink-0">
+        <i class="fa-solid fa-circle-notch fa-spin mr-1"></i>생성 중...
+      </span>
+    </div>
+
+    <!-- 문제 본문 -->
+    <div class="flex px-8 py-3">
+      <label class="w-28 shrink-0 pt-1 text-sm font-semibold text-slate-600">
+        문제 본문 <span class="text-red-400">*</span>
+      </label>
+      <textarea name="stem" id="fq-stem" required
+        class="hm-input hm-input-sky flex-1"
+        style="min-height:100px;resize:vertical;font-family:inherit;"
+        th:text="${question?.stem}"></textarea>
+    </div>
+
+    <!-- 선지 (객관식만) -->
+    <div id="fq-choices-wrap" class="flex items-start px-8 py-3"
+         th:classappend="${question != null and question.qstnTypeCd?.name() != 'MULTIPLE_CHOICE'} ? 'hidden' : ''">
+      <label class="w-28 shrink-0 pt-1 text-sm font-semibold text-slate-600">선지</label>
+      <div class="flex-1">
+        <div id="fq-choices" class="space-y-1.5">
+          <!-- JS가 초기화합니다 -->
+        </div>
+        <button type="button" onclick="fqAddChoice()" class="hm-btn-secondary mt-2 text-sm">
+          <i class="fa-solid fa-plus"></i>선지 추가
+        </button>
+      </div>
+    </div>
+
+    <!-- 정답 -->
+    <div class="flex items-center px-8 py-3">
+      <label class="w-28 shrink-0 text-sm font-semibold text-slate-600">정답</label>
+      <input type="text" name="corrAnswCn" id="fq-answer"
+        class="hm-input hm-input-sky flex-1"
+        th:value="${question?.corrAnswCn}" />
+    </div>
+
+    <!-- 배점 -->
+    <div class="flex items-center px-8 py-3">
+      <label class="w-28 shrink-0 text-sm font-semibold text-slate-600">배점 (점)</label>
+      <input type="number" name="allocScr" id="fq-score" step="0.5" min="0"
+        class="hm-input hm-input-sky max-w-40"
+        th:value="${question?.allocScr}" />
+    </div>
+
+    <!-- 해설 -->
+    <div class="flex px-8 py-3">
+      <label class="w-28 shrink-0 pt-1 text-sm font-semibold text-slate-600">해설</label>
+      <textarea name="explnCn" id="fq-expl"
+        class="hm-input hm-input-sky flex-1"
+        style="min-height:60px;resize:vertical;font-family:inherit;"
+        th:text="${question?.explnCn}"></textarea>
+    </div>
+
+  </div>
+
+  <!-- 버튼 영역 -->
+  <div class="flex justify-end gap-3 border-t border-slate-100 bg-slate-50 px-8 py-3">
+    <a th:href="${question != null} ? @{'/instructor/questions/' + ${question.qstnSn}} : @{/instructor/questions}"
+       class="hm-btn-secondary text-base">취소</a>
+    <button type="submit" class="hm-btn-primary hm-btn-sky text-base">
+      <i class="fa-solid fa-floppy-disk"></i>
+      <span th:text="${question != null} ? '수정 저장' : '등록'">등록</span>
+    </button>
+  </div>
+
+</form>
+
+<script th:src="@{/js/instructor/form-question.js}"></script>
