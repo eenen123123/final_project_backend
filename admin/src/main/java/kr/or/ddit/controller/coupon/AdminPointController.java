@@ -57,6 +57,13 @@ public class AdminPointController {
         return ResponseEntity.ok(result);
     }
 
+    // GET /admin/point/stats?assetType= - 유통 통계 (총잔액, 이번달 발행/소진, 전월잔액)
+    @GetMapping("/stats")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getAssetStats(@RequestParam AssetType assetType) {
+        return ResponseEntity.ok(pointMapper.getAssetStats(assetType));
+    }
+
     // GET /admin/point/users?q=&assetType=&role= - 유저 목록 + 잔액 조회
     @GetMapping("/users")
     @ResponseBody

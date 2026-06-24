@@ -7,6 +7,7 @@
   <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" th:href="@{/css/admin-core.css}" />
+  <script th:src="@{/js/admin-core.js}" defer></script>
   <style>body { font-family: 'Noto Sans KR', sans-serif; }</style>
 </head>
 <body class="bg-white text-slate-800">
@@ -33,7 +34,7 @@
       <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
         쿠폰명 <span class="text-rose-400">*</span>
       </label>
-      <input type="text" id="couponNm" class="hm-input w-full"
+      <input type="text" id="couponNm" class="hm-input hm-input-blue w-full"
         placeholder="예) 신규 가입 20% 할인 쿠폰" maxlength="100" />
     </div>
 
@@ -55,17 +56,17 @@
         </label>
       </div>
       <div id="fieldFixed">
-        <input type="number" id="discAmt" class="hm-input" placeholder="할인 금액 (원)" min="1" style="width:12rem;" />
+        <input type="number" id="discAmt" class="hm-input hm-input-blue" placeholder="할인 금액 (원)" min="1" style="width:12rem;" />
       </div>
       <div id="fieldRate" class="hidden">
-        <input type="number" id="discRate" class="hm-input" placeholder="할인율 (%)" min="1" max="100" style="width:8rem;" />
+        <input type="number" id="discRate" class="hm-input hm-input-blue" placeholder="할인율 (%)" min="1" max="100" style="width:8rem;" />
       </div>
     </div>
 
     <!-- 사용 범위 -->
     <div>
       <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">사용 가능 범위</label>
-      <select id="useLimitCd" class="hm-input" style="width:14rem;">
+      <select id="useLimitCd" class="hm-input hm-input-blue" style="width:14rem;">
         <option value="ALL">전체 (강좌 + 교재)</option>
         <option value="COURSE">강좌만</option>
         <option value="TEXTBOOK">교재만</option>
@@ -78,7 +79,7 @@
         유효일수 <span class="text-rose-400">*</span>
         <span class="text-slate-300 font-normal normal-case ml-1">발급일 기준 만료까지의 일수</span>
       </label>
-      <input type="number" id="validDays" class="hm-input" placeholder="예) 30" min="1" style="width:8rem;" />
+      <input type="number" id="validDays" class="hm-input hm-input-blue" placeholder="예) 30" min="1" style="width:8rem;" />
     </div>
 
   </div>
@@ -86,7 +87,7 @@
   <!-- 하단 버튼 -->
   <div class="px-5 py-3 border-t border-slate-100 bg-white flex items-center justify-end gap-3">
     <button type="button" onclick="window.close()" class="hm-btn-ghost">취소</button>
-    <button type="button" onclick="submitInsert()" class="hm-btn-primary">
+    <button type="button" onclick="submitInsert()" class="hm-btn-primary hm-btn-blue">
       <i class="fa-solid fa-plus mr-1.5"></i>등록
     </button>
   </div>
