@@ -20,7 +20,7 @@ function qs(obj) {
     .join("&");
 }
 function typeBadge(name) {
-  const map = { 대면: "bg-violet-50 text-violet-700", 전화: "bg-blue-50 text-blue-700", 문자: "bg-slate-100 text-slate-600" };
+  const map = { 대면: "bg-emerald-50 text-emerald-700", 전화: "bg-blue-50 text-blue-700", 문자: "bg-slate-100 text-slate-600" };
   return name
     ? `<span class="px-2 py-0.5 rounded-full text-xs font-medium ${map[name] || "bg-slate-100 text-slate-500"}">${esc(name)}</span>`
     : "-";
@@ -53,7 +53,7 @@ function renderPaging(containerId, total, page, screenSize, onMove) {
   const btn = (label, p, disabled, active) =>
     `<button ${disabled ? "disabled" : ""} onclick="${onMove}(${p})"
       class="w-8 h-8 rounded-lg text-xs flex items-center justify-center ${
-        active ? "bg-violet-600 text-white font-bold" : "border border-slate-200 text-slate-400 hover:bg-slate-50"
+        active ? "bg-emerald-600 text-white font-bold" : "border border-slate-200 text-slate-400 hover:bg-slate-50"
       } ${disabled ? "opacity-40 cursor-not-allowed" : ""}">${label}</button>`;
   let html = btn('<i class="fa-solid fa-chevron-left"></i>', page - 1, page <= 1, false);
   for (let p = start; p <= end; p++) html += btn(p, p, false, p === page);
@@ -114,7 +114,7 @@ function loadHistory(page) {
             <td class="py-3 px-3">${statusBadge(c.cnslStatNm)}</td>
             <td class="py-3 px-3 text-slate-500 text-xs con-summary">${esc(c.cnslSmry) || "-"}</td>
             <td class="py-3 px-3">
-              <button onclick="openDetailModal(${c.cnslSn})" class="text-violet-500 hover:text-violet-700 text-xs font-semibold whitespace-nowrap">
+              <button onclick="openDetailModal(${c.cnslSn})" class="text-emerald-500 hover:text-emerald-700 text-xs font-semibold whitespace-nowrap">
                 <i class="fa-solid fa-eye"></i> 보기
               </button>
             </td>
@@ -151,7 +151,7 @@ function loadStudentHistory(stdUserId) {
           (c) => `
         <div class="con-timeline-item">
           <div class="con-timeline-dot" style="${dotColor(c.cnslStatNm)}"></div>
-          <div class="bg-white border border-slate-100 rounded-xl p-3 hover:border-violet-200 cursor-pointer transition-colors" onclick="openDetailModal(${c.cnslSn})">
+          <div class="bg-white border border-slate-100 rounded-xl p-3 hover:border-emerald-200 cursor-pointer transition-colors" onclick="openDetailModal(${c.cnslSn})">
             <div class="flex items-center justify-between mb-1">
               <span class="text-xs font-semibold text-slate-600">${fmtDt(c.cnslDt)}</span>
               <div class="flex gap-1">${typeBadge(c.cnslTypeNm)} ${statusBadge(c.cnslStatNm)}</div>
@@ -195,12 +195,12 @@ function loadStudentSearch(page) {
         tbody.innerHTML = d.items
           .map(
             (s) => `
-          <tr class="border-t border-slate-50 hover:bg-violet-50/40 transition-colors">
+          <tr class="border-t border-slate-50 hover:bg-emerald-50/40 transition-colors">
             <td class="py-2.5 px-3 font-medium text-slate-800">${esc(s.studentNm)}</td>
             <td class="py-2.5 px-3 text-slate-500 text-xs">${esc(s.className) || "-"}</td>
             <td class="py-2.5 px-3 text-slate-500 text-xs">${esc(s.parentNm) || "-"}</td>
             <td class="py-2.5 px-3 text-right">
-              <button class="text-xs font-semibold text-violet-600 hover:text-violet-800"
+              <button class="text-xs font-semibold text-emerald-600 hover:text-emerald-800"
                 onclick='pickStudent(${JSON.stringify(s).replace(/'/g, "&#39;")})'>선택</button>
             </td>
           </tr>`,
@@ -252,7 +252,7 @@ function openDetailModal(cnslSn) {
     .then((c) => {
       const isMember = !!c.stdUserId;
       const targetBadge = isMember
-        ? `<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-violet-50 text-violet-700">재원생</span>`
+        ? `<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">재원생</span>`
         : `<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-600">신규문의</span>`;
       document.getElementById("detailModalTitle").textContent = `${c.studentNm} · ${fmtDt(c.cnslDt)} 상담 기록`;
       document.getElementById("detailModalBody").innerHTML = `
