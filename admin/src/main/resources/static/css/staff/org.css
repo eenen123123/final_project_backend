@@ -14,6 +14,8 @@
 .mnt-col.drag-over { border-color: #3b82f6 !important; box-shadow: 0 0 0 3px #dbeafe; }
 #mnt-unassigned-list.drag-over { background: #eff6ff; outline: 2px dashed #93c5fd; outline-offset: -4px; border-radius: .5rem; }
 .emp-card:active { cursor: grabbing; }
+.emp-card:hover    { box-shadow: 0 4px 16px rgba(59, 130, 246, 0.09); border-color: #93c5fd; }
+.emp-card.selected { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12); }
 
 /* ── Org Chart Tree ── */
 .org-tree-wrap { overflow: auto; width: 100%; min-height: 100%; padding: 1.5rem 1rem; }

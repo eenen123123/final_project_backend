@@ -60,7 +60,7 @@ function loadGrades(page) {
   fetch(url).then(r => r.json()).then(data => {
     renderGrades(data.list);
     document.getElementById('grade-count').textContent = data.total;
-    renderGradePagination(data.page, data.totalPages);
+    renderGradePagination(data.page, data.totalPages, data.total);
   });
 }
 
@@ -100,13 +100,31 @@ function renderGrades(list) {
   }).join('');
 }
 
-function renderGradePagination(cur, total) {
-  const el = document.getElementById('grade-pagination');
-  if (total <= 1) { el.innerHTML = ''; return; }
+function renderGradePagination(cur, totalPages, totalCount) {
+  const el   = document.getElementById('grade-pagination');
+  const info = document.getElementById('grade-pagination-info');
+  const start = totalCount === 0 ? 0 : (cur - 1) * GRADE_SIZE + 1;
+  const end   = Math.min(cur * GRADE_SIZE, totalCount);
+  if (info) {
+    info.textContent = totalCount === 0
+      ? '데이터가 없습니다.'
+      : `전체 ${totalCount}개 중 ${start} – ${end} 표시`;
+  }
+  if (totalPages <= 1) { el.innerHTML = ''; return; }
+  const BLOCK = 5;
+  const endPage   = Math.min(Math.ceil(cur / BLOCK) * BLOCK, totalPages);
+  const startPage = Math.max(endPage - BLOCK + 1, 1);
+  const BASE = 'w-8 h-8 rounded-lg text-xs flex items-center justify-center';
   let html = '';
-  for (let i = 1; i <= total; i++) {
-    const cls = i === cur ? 'active' : '';
-    html += `<button onclick="loadGrades(${i})" class="emp-page-btn ${cls}">${i}</button>`;
+  if (startPage > 1) {
+    html += `<button onclick="loadGrades(${startPage - 1})" class="${BASE} text-slate-400 hover:bg-slate-100">‹</button>`;
+  }
+  for (let p = startPage; p <= endPage; p++) {
+    const cls = p === cur ? 'bg-blue-500 text-white font-bold' : 'text-slate-400 hover:bg-slate-100';
+    html += `<button onclick="loadGrades(${p})" class="${BASE} ${cls}">${p}</button>`;
+  }
+  if (endPage < totalPages) {
+    html += `<button onclick="loadGrades(${endPage + 1})" class="${BASE} text-slate-400 hover:bg-slate-100">›</button>`;
   }
   el.innerHTML = html;
 }
