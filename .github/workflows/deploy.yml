@@ -19,4 +19,4 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          script: bash ~/hermes/backend/deploy.sh
+          script: bash ~/hermes/final_project_backend/deploy.sh
