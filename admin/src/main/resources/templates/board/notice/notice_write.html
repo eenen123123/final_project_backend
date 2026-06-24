@@ -23,7 +23,7 @@
           <label class="text-xs font-semibold text-slate-600 mb-1.5 block">
             공지 유형 <span class="text-red-400">*</span>
           </label>
-          <select name="noticeTypeCd" class="hm-input">
+          <select name="noticeTypeCd" class="hm-input hm-input-blue">
             <option value="01">일반공지</option>
             <option value="02">이벤트</option>
             <option value="03">점검</option>
@@ -47,7 +47,7 @@
       <!-- 작성자 -->
       <div class="mb-6">
         <label class="text-xs font-semibold text-slate-600 mb-1.5 block">작성자</label>
-        <input type="text" name="wrtrUserId" class="hm-input bg-slate-50"
+        <input type="text" name="wrtrUserId" class="hm-input hm-input-blue bg-slate-50"
                th:value="${currentUser}" readonly />
       </div>
 
@@ -57,7 +57,7 @@
           제목 <span class="text-red-400">*</span>
         </label>
         <input type="text" name="postSj" placeholder="공지사항 제목을 입력하세요."
-               class="hm-input" required />
+               class="hm-input hm-input-blue" required />
       </div>
 
       <!-- 내용 (에디터) -->
@@ -74,7 +74,7 @@
           class="px-6 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer">
           취소
         </a>
-        <button type="submit" class="hm-btn-primary px-8 py-2.5 cursor-pointer">
+        <button type="submit" class="hm-btn-primary hm-btn-blue hm-btn-blue hm-btn-blue px-8 py-2.5 cursor-pointer">
           등록
         </button>
       </div>
