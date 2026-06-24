@@ -224,22 +224,28 @@
     </div>
 
     <!-- 페이지네이션 -->
-    <div th:if="${paginationInfo.totalPage > 1}"
-      class="flex items-center justify-center gap-1 py-5 border-t border-slate-100">
-      <a th:href="@{/admin/textbook(page=${paginationInfo.startPage - 1}, keyword=${param.keyword}, subjClId=${param.subjClId}, archived=${archived})}"
-        th:classappend="${paginationInfo.startPage == 1} ? 'pointer-events-none opacity-30' : ''"
-        class="w-8 h-8 flex items-center justify-center border border-slate-200 rounded text-slate-400 hover:bg-slate-50 text-sm">‹</a>
+    <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50"
+         th:with="startItem=${(paginationInfo.page - 1) * paginationInfo.screenSize + 1},
+                  endItem=${paginationInfo.page * paginationInfo.screenSize > totalCount ? totalCount : paginationInfo.page * paginationInfo.screenSize}">
+      <p class="text-xs text-slate-400"
+         th:text="${totalCount > 0 ? '총 ' + totalCount + '건 · ' + startItem + ' - ' + endItem + ' 표시 중' : '데이터가 없습니다.'}"></p>
+      <div class="flex items-center gap-1" th:if="${paginationInfo.totalPage > 1}">
+        <a th:if="${paginationInfo.startPage > 1}"
+          th:href="@{/admin/textbook(page=${paginationInfo.startPage - 1}, keyword=${param.keyword}, subjClId=${param.subjClId}, archived=${archived})}"
+          class="w-8 h-8 rounded-lg text-xs flex items-center justify-center text-slate-400 hover:bg-slate-100">‹</a>
 
-      <th:block th:each="p : ${#numbers.sequence(paginationInfo.startPage, paginationInfo.endPage)}">
-        <a th:href="@{/admin/textbook(page=${p}, keyword=${param.keyword}, subjClId=${param.subjClId}, archived=${archived})}"
-          th:text="${p}"
-          th:classappend="${p == paginationInfo.page} ? 'bg-blue-950 text-white border-blue-950' : 'text-slate-500 border-slate-200 hover:bg-slate-50'"
-          class="w-8 h-8 flex items-center justify-center border rounded text-xs font-medium transition-colors">1</a>
-      </th:block>
+        <th:block th:each="p : ${#numbers.sequence(paginationInfo.startPage, paginationInfo.endPage)}">
+          <a th:href="@{/admin/textbook(page=${p}, keyword=${param.keyword}, subjClId=${param.subjClId}, archived=${archived})}"
+            th:text="${p}"
+            th:classappend="${p == paginationInfo.page} ? 'bg-blue-500 text-white font-bold' : 'text-slate-400 hover:bg-slate-100'"
+            class="w-8 h-8 rounded-lg text-xs flex items-center justify-center">1</a>
+        </th:block>
 
-      <a th:href="@{/admin/textbook(page=${paginationInfo.endPage + 1}, keyword=${param.keyword}, subjClId=${param.subjClId}, archived=${archived})}"
-        th:classappend="${paginationInfo.endPage >= paginationInfo.totalPage} ? 'pointer-events-none opacity-30' : ''"
-        class="w-8 h-8 flex items-center justify-center border border-slate-200 rounded text-slate-400 hover:bg-slate-50 text-sm">›</a>
+        <a th:if="${paginationInfo.endPage < paginationInfo.totalPage}"
+          th:href="@{/admin/textbook(page=${paginationInfo.endPage + 1}, keyword=${param.keyword}, subjClId=${param.subjClId}, archived=${archived})}"
+          class="w-8 h-8 rounded-lg text-xs flex items-center justify-center text-slate-400 hover:bg-slate-100">›</a>
+      </div>
+      <div th:unless="${paginationInfo.totalPage > 1}"></div>
     </div>
 
   </div>

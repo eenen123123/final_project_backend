@@ -43,6 +43,7 @@ public class TextbookStockController {
                 .keyword(keyword).subjClId(subjClId).sort("stock").build();
         paginationInfo.setDetailCondition(condition);
         int totalCount = textbookService.retrieveTextbookListCount(paginationInfo);
+        paginationInfo.setTotalCount(totalCount);
         List<TextbookDto> textbookList = textbookService.retrieveTextbookList(paginationInfo);
         model.addAttribute("textbookList", textbookList);
         model.addAttribute("totalCount", totalCount);

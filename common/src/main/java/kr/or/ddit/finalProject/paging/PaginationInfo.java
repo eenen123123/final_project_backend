@@ -14,6 +14,7 @@ public class PaginationInfo<T> implements Serializable {
     private int screenSize; // 한 페이지에 보여줄 데이터 수
     private int blockSize; // 한 번에 보여줄 페이지 번호 수
     private int page; // 현재 페이지 번호
+    @Setter
     private int totalCount; // 전체 데이터 수
 
     private String orderBy; // 정렬 기준 컬럼명 (ex: mem_id, mem_name 등.. mapper에서 if 문으로 사용)
@@ -75,11 +76,12 @@ public class PaginationInfo<T> implements Serializable {
     }
 
     public int getEndPage() {
-        return (page + blockSize - 1) / blockSize * blockSize; // 현재 페이지가 속한 블록의 마지막 페이지 번호 계산
+        int rawEnd = (page + blockSize - 1) / blockSize * blockSize;
+        return Math.min(rawEnd, getTotalPage());
     }
 
     public int getStartPage() {
-        return getEndPage() - blockSize + 1; // 현재 페이지가 속한 블록의 시작 페이지 번호 계산
+        return Math.max(1, getEndPage() - blockSize + 1);
     }
 
 }
