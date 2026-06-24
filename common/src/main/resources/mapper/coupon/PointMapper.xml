@@ -199,6 +199,24 @@
         SELECT USER_NAME FROM MEMBER WHERE USER_ID = #{userId}
     </select>
 
+    <!-- 포인트/머니 유통 통계 (관리자 대시보드용) -->
+    <!-- 회원 잔액 계산과 동일하게 MEMBER_COUPONPOINT JOIN 방식 사용 -->
+    <select id="getAssetStats" resultType="java.util.HashMap">
+        SELECT
+            NVL(SUM(ph.CHANGE_AMT), 0) AS "totalBalance",
+            NVL(SUM(CASE WHEN ph.CHANGE_AMT > 0
+                          AND TO_CHAR(ph.REG_DT, 'YYYYMM') = TO_CHAR(SYSDATE, 'YYYYMM')
+                         THEN ph.CHANGE_AMT ELSE 0 END), 0) AS "issuedThisMonth",
+            NVL(ABS(SUM(CASE WHEN ph.CHANGE_AMT &lt; 0
+                              AND TO_CHAR(ph.REG_DT, 'YYYYMM') = TO_CHAR(SYSDATE, 'YYYYMM')
+                             THEN ph.CHANGE_AMT ELSE 0 END)), 0) AS "consumedThisMonth",
+            NVL(SUM(CASE WHEN ph.REG_DT &lt; TRUNC(SYSDATE, 'MM')
+                         THEN ph.CHANGE_AMT ELSE 0 END), 0) AS "prevMonthBalance"
+        FROM POINT_HIST ph
+        LEFT JOIN MEMBER_COUPONPOINT mcp ON ph.MCPNT_SN = mcp.MCPNT_SN
+        WHERE NVL(mcp.ASSET_TYPE, ph.ASSET_TYPE) = #{assetType}
+    </select>
+
     <!-- 유저 목록 + 포인트 잔액 조회 (관리자) -->
     <select id="searchUsersWithBalance" resultType="java.util.HashMap">
         SELECT * FROM (
