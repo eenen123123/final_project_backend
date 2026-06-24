@@ -137,7 +137,7 @@ function renderCards(items) {
           </div>
           <div class="flex items-center gap-1">
             <button onclick="event.stopPropagation(); openBlacklistModal('${esc(s.stdUserId)}')"
-              class="text-xs text-slate-400 hover:text-violet-600 px-2.5 py-1 rounded-lg hover:bg-violet-50 transition-colors flex items-center gap-1">
+              class="text-xs text-slate-400 hover:text-blue-600 px-2.5 py-1 rounded-lg hover:bg-blue-50 transition-colors flex items-center gap-1">
               <i class="fa-regular fa-pen-to-square"></i> 수정
             </button>
             ${!resolved ? `
@@ -171,7 +171,7 @@ function renderStats(items) {
           <span class="font-semibold text-slate-700">${cnt}명 <span class="text-slate-400 font-normal">(${pct}%)</span></span>
         </div>
         <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
-          <div class="h-full rounded-full bg-violet-400" style="width:${pct}%"></div>
+          <div class="h-full rounded-full bg-blue-400" style="width:${pct}%"></div>
         </div>
       </div>`;
   }).join('');
@@ -210,7 +210,7 @@ function searchStudentPicker(prefix) {
       list.innerHTML = arr.length === 0
         ? '<div class="px-3 py-2 text-xs text-slate-400">검색 결과 없음</div>'
         : arr.map(it => `
-            <button type="button" class="w-full text-left px-3 py-2 text-sm hover:bg-violet-50 flex items-center gap-2"
+            <button type="button" class="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 flex items-center gap-2"
               onclick="pickStudent('${prefix}','${esc(it.userId)}','${esc(it.userName)}')">
               <span class="font-semibold text-slate-700">${esc(it.userName)}</span>
               <span class="text-xs text-slate-400 font-mono">${esc(it.userId)}</span>
@@ -293,7 +293,7 @@ async function openDetail(stdUserId) {
         <div class="space-y-2">
           ${(logs || []).map(l => `
             <div class="flex items-start gap-2.5">
-              <div class="w-5 h-5 rounded-full bg-violet-100 text-violet-500 flex items-center justify-center text-[9px] shrink-0 mt-0.5">
+              <div class="w-5 h-5 rounded-full bg-blue-100 text-blue-500 flex items-center justify-center text-[9px] shrink-0 mt-0.5">
                 <i class="fa-solid fa-clock"></i>
               </div>
               <p class="text-xs text-slate-500">
