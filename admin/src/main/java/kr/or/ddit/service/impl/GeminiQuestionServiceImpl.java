@@ -80,6 +80,10 @@ public class GeminiQuestionServiceImpl implements GeminiQuestionService {
                 "%s 영역의 %s 난이도 수능 실전 객관식 문제 1개를 생성하라.\n\n",
                 request.getSubjNm(), request.getDifficulty().getLabel()));
 
+        if (request.getExtraPrompt() != null && !request.getExtraPrompt().isBlank()) {
+            sb.append("추가 요구사항: ").append(request.getExtraPrompt().strip()).append("\n\n");
+        }
+
         sb.append("""
                 반드시 아래 JSON 스키마를 정확히 준수하라:
                 {

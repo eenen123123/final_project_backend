@@ -29,6 +29,8 @@ public interface QuestionMapper {
      */
     List<QuestionDto> selectMyQuestions(@Param("rgtrId") String rgtrId);
 
+    List<QuestionDto> selectMyQuestionsBySubjId(@Param("rgtrId") String rgtrId, @Param("subjId") Long subjId);
+
     /**
      * 필터 조건 + 페이징 적용 문항 목록 조회
      *
@@ -41,19 +43,22 @@ public interface QuestionMapper {
     List<QuestionDto> selectQuestionPage(@Param("rgtrId") String rgtrId,
                                          @Param("subjId") Long subjId,
                                          @Param("diffCd") String diffCd,
+                                         @Param("showDeleted") boolean showDeleted,
                                          @Param("offset") int offset,
                                          @Param("limit") int limit);
 
     /**
      * 필터 조건 적용 문항 총 건수 (페이징 계산용)
      *
-     * @param rgtrId  강사 ID
-     * @param subjId  과목 ID (null = 전체)
-     * @param diffCd  난이도 코드 (null = 전체)
+     * @param rgtrId      강사 ID
+     * @param subjId      과목 ID (null = 전체)
+     * @param diffCd      난이도 코드 (null = 전체)
+     * @param showDeleted 삭제 문항 포함 여부
      */
     int countQuestions(@Param("rgtrId") String rgtrId,
                        @Param("subjId") Long subjId,
-                       @Param("diffCd") String diffCd);
+                       @Param("diffCd") String diffCd,
+                       @Param("showDeleted") boolean showDeleted);
 
     /**
      * 문항 단건 조회

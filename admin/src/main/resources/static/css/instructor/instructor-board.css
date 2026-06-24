@@ -118,12 +118,25 @@
 }
 .board-filter-count strong { color: #475569; font-weight: 600; }
 .btn-filter-reset {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
     font-size: 0.75rem;
-    color: #94a3b8;
+    font-weight: 500;
+    color: #64748b;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 0 0.75rem;
+    height: 2.5rem;
     text-decoration: none;
     white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
 }
-.btn-filter-reset:hover { color: #0ea5e9; }
+.btn-filter-reset:hover {
+    background: #e2e8f0;
+    color: #334155;
+}
 
 /* 필터 내 컴포넌트 — admin-core 기본값(2.75rem)에서 2.5rem으로 통일 */
 .board-filter input.hm-input {

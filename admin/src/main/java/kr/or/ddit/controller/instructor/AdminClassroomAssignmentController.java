@@ -23,29 +23,19 @@ import kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse;
 import kr.or.ddit.finalProject.service.assignment.AssignmentBoardService;
 import kr.or.ddit.finalProject.service.classroom.ClassroomService;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Controller
 @RequestMapping("/classroom")
-@RequiredArgsConstructor
-public class AdminClassroomAssignmentController {
+public class AdminClassroomAssignmentController extends AbstractClassroomController {
 
     private static final int PAGE_SIZE = 10;
 
-    private final ClassroomService classroomService;
-    private final AssignmentBoardService assignmentBoardService;
-    private final InstructorBoardService instructorBoardService;
-
-    @ModelAttribute
-    public void addTabBadges(@PathVariable(required = false) Long classSn, Model model) {
-        if (classSn != null) {
-            model.addAttribute("assignmentCount",
-                    assignmentBoardService.getPendingGradeCount(classSn));
-            model.addAttribute("unansweredQnaCount",
-                    instructorBoardService.getUnansweredQnaCount(classSn));
-        }
+    public AdminClassroomAssignmentController(ClassroomService classroomService,
+                                              AssignmentBoardService assignmentBoardService,
+                                              InstructorBoardService instructorBoardService) {
+        super(classroomService, assignmentBoardService, instructorBoardService);
     }
 
     @InitBinder
@@ -58,15 +48,6 @@ public class AdminClassroomAssignmentController {
                         : LocalDateTime.parse(text, fmt));
             }
         });
-    }
-
-    private ClassroomDetailResponse getOwnedClassroom(Long classSn, String userId) {
-        try {
-            ClassroomDetailResponse classroom = classroomService.retrieveClassroomDetail(classSn);
-            return userId.equals(classroom.getInstrUserId()) ? classroom : null;
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
     }
 
     // 과제 목록 + 제출 현황 집계

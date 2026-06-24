@@ -83,8 +83,8 @@ public interface InstructorBoardService {
 
     // ── 클래스룸 Q&A ──────────────────────────────────────────────────
 
-    /** 클래스룸 Q&A 목록 조회 (페이징) */
-    PageResponse<ClassroomQnaDto> getClassroomQnaList(Long classSn, int page, int pageSize);
+    /** 클래스룸 Q&A 목록 조회 (페이징, writerUserId null이면 전체) */
+    PageResponse<ClassroomQnaDto> getClassroomQnaList(Long classSn, int page, int pageSize, String writerUserId);
 
     /** 클래스룸 Q&A 상세 조회 */
     ClassroomQnaDto getClassroomQnaDetail(Long postSn, Long classSn);
@@ -97,6 +97,9 @@ public interface InstructorBoardService {
 
     /** 클래스룸 미답변 Q&A 건수 조회 (대시보드 배지 표시용) */
     int getUnansweredQnaCount(Long classSn);
+
+    /** 특정 학생이 등록한 최근 QnA 조회 (학생 상세 페이지용) */
+    List<kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto> getRecentQnaByStudent(Long classSn, String userId, int limit);
 
     // ── 공개 강사 게시판 (React 프론트 전용) ─────────────────────────
 

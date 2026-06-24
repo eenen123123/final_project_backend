@@ -22,4 +22,7 @@ public class GeminiQuestionRequest {
 
     /** 난이도 */
     private Difficulty difficulty;
+
+    /** 강사 추가 요구사항 (선택) — 프롬프트 끝에 삽입 */
+    private String extraPrompt;
 }

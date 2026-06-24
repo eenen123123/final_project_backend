@@ -39,17 +39,25 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public List<QuestionDto> retrieveQuestionPage(String instrUserId, Long subjId, String diffCd,
-                                                   int page, int pageSize) {
-        int offset = (page - 1) * pageSize;
-        List<QuestionDto> list = questionMapper.selectQuestionPage(instrUserId, subjId, diffCd, offset, pageSize);
+    public List<QuestionDto> retrieveMyQuestionsBySubjId(String instrUserId, Long subjId) {
+        if (subjId == null) return retrieveMyQuestions(instrUserId);
+        List<QuestionDto> list = questionMapper.selectMyQuestionsBySubjId(instrUserId, subjId);
         list.forEach(this::parseQstnCn);
         return list;
     }
 
     @Override
-    public int countQuestions(String instrUserId, Long subjId, String diffCd) {
-        return questionMapper.countQuestions(instrUserId, subjId, diffCd);
+    public List<QuestionDto> retrieveQuestionPage(String instrUserId, Long subjId, String diffCd,
+                                                   boolean showDeleted, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        List<QuestionDto> list = questionMapper.selectQuestionPage(instrUserId, subjId, diffCd, showDeleted, offset, pageSize);
+        list.forEach(this::parseQstnCn);
+        return list;
+    }
+
+    @Override
+    public int countQuestions(String instrUserId, Long subjId, String diffCd, boolean showDeleted) {
+        return questionMapper.countQuestions(instrUserId, subjId, diffCd, showDeleted);
     }
 
     @Override

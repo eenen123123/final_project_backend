@@ -27,4 +27,7 @@ public interface AssignmentBoardService {
 
     /** 클래스룸 전체 최근 제출 최대 N건 */
     List<AssignmentSubmitDto> getRecentSubmits(Long classSn, int limit);
+
+    /** 특정 학생의 과제별 제출 현황 */
+    List<kr.or.ddit.finalProject.dto.classroom.StudentAssignmentDto> getAssignmentsByStudent(Long classSn, String userId);
 }

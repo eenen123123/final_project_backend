@@ -84,4 +84,21 @@
     )
   </insert>
 
+  <!-- 특정 학생의 과제별 제출 현황 — 해당 클래스룸 과제 전체 기준 -->
+  <select id="selectAssignmentsByStudent" resultType="kr.or.ddit.finalProject.dto.classroom.StudentAssignmentDto">
+    SELECT
+        ab.ASGMT_SN                                       AS asgmtSn,
+        ab.ASGMT_SJ                                       AS asgmtSj,
+        TO_CHAR(ab.SBMT_DDLN_DT, 'YYYY-MM-DD HH24:MI')  AS sbmtDdlnDt,
+        CASE WHEN s.SBMT_SN IS NOT NULL THEN 'Y' ELSE 'N' END AS sbmtYn,
+        NVL(s.GRDD_YN, 'N')                              AS grddYn,
+        s.SCORE                                           AS score
+    FROM ASSIGNMENT_BOARD ab
+    LEFT JOIN ASSIGNMENT_SUBMIT s
+           ON s.ASGMT_SN      = ab.ASGMT_SN
+          AND s.SBMT_USER_ID  = #{userId}
+    WHERE ab.CLASS_SN = #{classSn}
+    ORDER BY ab.SBMT_DDLN_DT ASC
+  </select>
+
 </mapper>

@@ -2,6 +2,7 @@ package kr.or.ddit.finalProject.service.exam;
 
 import kr.or.ddit.finalProject.dto.exam.ExamDto;
 import kr.or.ddit.finalProject.dto.exam.ExamSaveRequest;
+import kr.or.ddit.finalProject.dto.exam.ExamTakerDto;
 
 import java.util.List;
 
@@ -41,4 +42,24 @@ public interface ExamService {
      * 없거나 삭제됐거나 타인 소유면 예외 발생.
      */
     void removeExam(Long examSn, String instrUserId);
+
+    /**
+     * 특정 클래스룸의 시험 목록 조회 (EXAM_STAT_CD != '99')
+     */
+    List<ExamDto> retrieveExamsByClassSn(Long classSn);
+
+    /** 특정 학생의 시험별 응시 현황 */
+    List<kr.or.ddit.finalProject.dto.classroom.StudentExamDto> retrieveExamsByStudent(Long classSn, String userId);
+
+    /**
+     * 특정 시험의 응시자 목록 조회 (소유권 검증 포함, 단독 호출용)
+     * 없거나 삭제됐거나 타인 소유면 예외 발생.
+     */
+    List<ExamTakerDto> retrieveTakers(Long examSn, String instrUserId);
+
+    /**
+     * 이미 검증된 시험의 응시자 목록 조회 (소유권 재검증 없음)
+     * retrieveExamDetail 호출 직후 연속으로 쓸 때 중복 DB 조회를 방지한다.
+     */
+    List<ExamTakerDto> retrieveTakersDirectly(Long examSn);
 }

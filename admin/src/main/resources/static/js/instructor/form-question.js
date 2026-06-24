@@ -89,10 +89,13 @@ function fqAiFill() {
   btn.disabled = true;
   document.getElementById('ai-spinner').classList.remove('hidden');
 
+  var extraPromptEl = document.getElementById('ai-extra-prompt');
+  var extraPrompt = extraPromptEl ? extraPromptEl.value.trim() : '';
+
   fetch('/instructor/questions/ai/generate', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ subjId: Number(subjId), subjNm: subjNm, difficulty: diffCd })
+    body:    JSON.stringify({ subjId: Number(subjId), subjNm: subjNm, difficulty: diffCd, extraPrompt: extraPrompt || null })
   })
     .then(function(r) {
       if (!r.ok) return r.json().then(function(e) { throw new Error(e.message || r.status); });

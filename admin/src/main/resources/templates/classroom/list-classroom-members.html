@@ -29,45 +29,29 @@
           <tr class="border-b border-slate-100 text-sm text-slate-400">
             <th class="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
             <th class="py-4 px-7 font-medium">이름</th>
-            <th class="py-4 px-7 w-32 font-medium whitespace-nowrap">아이디</th>
-            <th class="py-4 px-7 w-32 text-center font-medium whitespace-nowrap">수강 상태</th>
-            <th class="py-4 px-7 w-36 font-medium whitespace-nowrap">등록일</th>
-            <th class="py-4 px-7 w-44 font-medium whitespace-nowrap">진도율</th>
+            <th class="py-4 px-7 w-40 font-medium whitespace-nowrap">아이디</th>
           </tr>
         </thead>
         <tbody class="text-slate-700">
           <tr th:each="member, stat : ${memberPage.items}"
               th:data-url="@{/classroom/detail/{sn}/members/{uid}(sn=${classroom.classSn},uid=${member.userId})}"
               onclick="location.href=this.dataset.url"
+              th:classappend="${member.enrlStatCd != T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).ENROLLED} ? 'opacity-50' : ''"
               class="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer">
             <td class="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap"
                 th:text="${memberPage.totalCount - (currentPage - 1) * pageSize - stat.index}">1</td>
-            <td class="py-4 px-7 font-semibold text-slate-800 text-sm" th:text="${member.userName}">홍길동</td>
-            <td class="py-4 px-7 text-sm text-slate-500 font-mono whitespace-nowrap" th:text="${member.userId}">user123</td>
-            <td class="py-4 px-7 text-center whitespace-nowrap">
-              <th:block th:switch="${member.enrlStatCd}">
-                <span th:case="${T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).ENROLLED}"
-                      class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold text-blue-500 border border-blue-100">수강중</span>
-                <span th:case="${T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).COMPLETED}"
-                      class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold text-emerald-500 border border-emerald-100">수강완료</span>
-                <span th:case="${T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).WITHDRAWN}"
-                      class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold text-amber-500 border border-amber-100">중도탈퇴</span>
-                <span th:case="${T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).CANCELLED}"
-                      class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold text-slate-400 border border-slate-100">등록취소</span>
-              </th:block>
-            </td>
-            <td class="py-4 px-7 text-sm text-slate-400 font-mono whitespace-nowrap" th:text="${member.formattedRegDt}">2026-01-01</td>
-            <td class="py-4 px-7 whitespace-nowrap">
+            <td class="py-4 px-7 text-sm whitespace-nowrap">
               <div class="flex items-center gap-2">
-                <div class="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div class="h-full rounded-full"
-                       th:style="'width:' + ${member.progressRate} + '%;'"
-                       th:classappend="${member.progressRate >= 80 ? 'bg-emerald-400' : (member.progressRate >= 40 ? 'bg-amber-400' : 'bg-slate-300')}"></div>
-                </div>
-                <span class="text-sm font-semibold text-slate-600"
-                      th:text="${member.progressRate} + '%'">0%</span>
+                <span class="font-semibold text-slate-800" th:text="${member.userName}">홍길동</span>
+                <span th:if="${member.enrlStatCd == T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).COMPLETED}"
+                      class="text-xs font-semibold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600">수강완료</span>
+                <span th:if="${member.enrlStatCd == T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).WITHDRAWN}"
+                      class="text-xs font-semibold px-1.5 py-0.5 rounded bg-amber-50 text-amber-600">중도탈퇴</span>
+                <span th:if="${member.enrlStatCd == T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).CANCELLED}"
+                      class="text-xs font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-400">등록취소</span>
               </div>
             </td>
+            <td class="py-4 px-7 text-sm text-slate-400 font-mono whitespace-nowrap" th:text="${member.userId}">user123</td>
           </tr>
         </tbody>
       </table>

@@ -21,39 +21,23 @@ import kr.or.ddit.finalProject.service.assignment.AssignmentBoardService;
 import kr.or.ddit.finalProject.service.classroom.ClassroomService;
 import kr.or.ddit.finalProject.service.file.FileUploadService;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Controller
 @RequestMapping("/classroom")
-@RequiredArgsConstructor
-public class AdminClassroomDataroomController {
+public class AdminClassroomDataroomController extends AbstractClassroomController {
 
     private static final int PAGE_SIZE = 10;
 
-    private final ClassroomService classroomService;
-    private final InstructorBoardService instructorBoardService;
     private final FileUploadService fileUploadService;
-    private final AssignmentBoardService assignmentBoardService;
 
-    @ModelAttribute
-    public void addTabBadges(@PathVariable(required = false) Long classSn, Model model) {
-        if (classSn != null) {
-            model.addAttribute("assignmentCount",
-                    assignmentBoardService.getPendingGradeCount(classSn));
-            model.addAttribute("unansweredQnaCount",
-                    instructorBoardService.getUnansweredQnaCount(classSn));
-        }
-    }
-
-    private ClassroomDetailResponse getOwnedClassroom(Long classSn, String userId) {
-        try {
-            ClassroomDetailResponse classroom = classroomService.retrieveClassroomDetail(classSn);
-            return userId.equals(classroom.getInstrUserId()) ? classroom : null;
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+    public AdminClassroomDataroomController(ClassroomService classroomService,
+                                            AssignmentBoardService assignmentBoardService,
+                                            InstructorBoardService instructorBoardService,
+                                            FileUploadService fileUploadService) {
+        super(classroomService, assignmentBoardService, instructorBoardService);
+        this.fileUploadService = fileUploadService;
     }
 
     // 자료실 목록
