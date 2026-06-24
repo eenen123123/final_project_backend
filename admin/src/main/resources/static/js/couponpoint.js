@@ -156,7 +156,7 @@ function renderCouponPagination(total) {
 function goToCouponPage(p) {
   couponPage = p;
   renderCouponTable();
-  document.getElementById('couponListSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  document.getElementById('panelCoupon').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 
@@ -164,14 +164,36 @@ function goToCouponPage(p) {
 // 탭 전환
 // ────────────────────────────────────────────────────────
 
-function switchTab(tab) {
+var ACTIVE_TAB_CLS   = 'main-tab-btn px-6 py-3 text-sm font-bold rounded-t-xl transition-all border-b-2 border-blue-600 text-blue-600';
+var INACTIVE_TAB_CLS = 'main-tab-btn px-6 py-3 text-sm font-bold rounded-t-xl transition-all text-slate-500 hover:text-blue-600 border-b-2 border-transparent';
+
+function switchMainTab(tab) {
   document.getElementById('panelCoupon').classList.toggle('hidden', tab !== 'coupon');
   document.getElementById('panelPoint').classList.toggle('hidden', tab !== 'point');
-  document.getElementById('tabCoupon').className = 'px-6 py-3 text-sm font-semibold border-b-2 transition-colors '
-    + (tab === 'coupon' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600');
-  document.getElementById('tabPoint').className = 'px-6 py-3 text-sm font-semibold border-b-2 transition-colors '
-    + (tab === 'point' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600');
+  document.getElementById('tabCoupon').className = tab === 'coupon' ? ACTIVE_TAB_CLS : INACTIVE_TAB_CLS;
+  document.getElementById('tabPoint').className  = tab === 'point'  ? ACTIVE_TAB_CLS : INACTIVE_TAB_CLS;
+
+  // 통계 카드 전환
+  document.getElementById('statsCoupon').classList.toggle('hidden', tab !== 'coupon');
+  if (tab === 'point') {
+    var activeSub = 'study';
+    if (!document.getElementById('ppanelHm').classList.contains('hidden'))    activeSub = 'hm';
+    else if (!document.getElementById('ppanelMoney').classList.contains('hidden')) activeSub = 'money';
+    updatePointStats(activeSub);
+  } else {
+    document.getElementById('statsStudyPoint').classList.add('hidden');
+    document.getElementById('statsHmPoint').classList.add('hidden');
+    document.getElementById('statsHmMoney').classList.add('hidden');
+  }
 }
+
+function updatePointStats(sub) {
+  document.getElementById('statsStudyPoint').classList.toggle('hidden', sub !== 'study');
+  document.getElementById('statsHmPoint').classList.toggle('hidden', sub !== 'hm');
+  document.getElementById('statsHmMoney').classList.toggle('hidden', sub !== 'money');
+}
+
+function switchTab(tab) { switchMainTab(tab); }
 
 
 // ────────────────────────────────────────────────────────
@@ -411,6 +433,66 @@ function openStudyRecipientsPopup(btn) {
 
 
 // ────────────────────────────────────────────────────────
+// HM포인트 / HM머니 유통 통계
+// ────────────────────────────────────────────────────────
+
+async function loadPointStats(prefix, assetType) {
+  var unit = assetType === 'HM_POINT' ? 'p' : '원';
+  var spinner = '<i class="fa-solid fa-spinner fa-spin text-slate-200"></i>';
+  ['Total','Issued','Consumed','Trend'].forEach(function(k) {
+    var el = document.getElementById(prefix + k);
+    if (el) el.innerHTML = spinner;
+  });
+
+  var res = await fetch('/admin/point/stats?assetType=' + assetType);
+  if (!res.ok) return;
+  var s = await res.json();
+
+  var total    = Number(s.totalBalance    || 0);
+  var issued   = Number(s.issuedThisMonth  || 0);
+  var consumed = Number(s.consumedThisMonth || 0);
+  var prevBal  = Number(s.prevMonthBalance  || 0);
+
+  document.getElementById(prefix + 'Total').textContent    = total.toLocaleString() + unit;
+  document.getElementById(prefix + 'Issued').textContent   = '+' + issued.toLocaleString() + unit;
+  document.getElementById(prefix + 'Consumed').textContent = consumed.toLocaleString() + unit;
+  document.getElementById(prefix + 'PrevBal').textContent  = '전월 ' + prevBal.toLocaleString() + unit;
+
+  var trendEl   = document.getElementById(prefix + 'Trend');
+  var iconEl    = document.getElementById(prefix + 'TrendIcon');
+  var BASE_ICON = 'w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0';
+
+  if (prevBal === 0) {
+    trendEl.textContent  = '-';
+    trendEl.className    = 'text-2xl font-bold text-slate-300 mt-0.5';
+    iconEl.className     = BASE_ICON + ' bg-slate-50 text-slate-300';
+    iconEl.innerHTML     = '<i class="fa-solid fa-chart-line"></i>';
+    return;
+  }
+
+  var rate = ((total - prevBal) / prevBal * 100).toFixed(1);
+  if (parseFloat(rate) > 0) {
+    // 유통 증가 → 회사에 불리 → rose 경고색
+    trendEl.textContent = '+' + rate + '%';
+    trendEl.className   = 'text-2xl font-bold text-rose-500 mt-0.5';
+    iconEl.className    = BASE_ICON + ' bg-rose-50 text-rose-500';
+    iconEl.innerHTML    = '<i class="fa-solid fa-arrow-trend-up"></i>';
+  } else if (parseFloat(rate) < 0) {
+    // 유통 감소 → 소진 중 → emerald 긍정색
+    trendEl.textContent = rate + '%';
+    trendEl.className   = 'text-2xl font-bold text-emerald-600 mt-0.5';
+    iconEl.className    = BASE_ICON + ' bg-emerald-50 text-emerald-500';
+    iconEl.innerHTML    = '<i class="fa-solid fa-arrow-trend-down"></i>';
+  } else {
+    trendEl.textContent = '0%';
+    trendEl.className   = 'text-2xl font-bold text-slate-500 mt-0.5';
+    iconEl.className    = BASE_ICON + ' bg-slate-50 text-slate-400';
+    iconEl.innerHTML    = '<i class="fa-solid fa-minus"></i>';
+  }
+}
+
+
+// ────────────────────────────────────────────────────────
 // HM포인트 / HM머니 유저 목록
 // ────────────────────────────────────────────────────────
 
@@ -431,7 +513,7 @@ function setPointRoleFilter(prefix, role) {
     var el  = document.getElementById(id);
     if (!el) return;
     el.className = 'px-3 py-2 transition-colors cursor-pointer '
-      + (val === role ? 'bg-slate-700 text-white' : 'text-slate-500 bg-white hover:bg-slate-50 border-l border-slate-200');
+      + (val === role ? 'bg-blue-600 text-white' : 'text-slate-500 bg-white hover:bg-blue-50 border-l border-slate-200');
   });
   var assetType = prefix === 'hm' ? 'HM_POINT' : 'HM_MONEY';
   searchPointUsers(assetType);
@@ -573,11 +655,18 @@ function switchPointTab(tab) {
   ['study','hm','money'].forEach(function(t) {
     document.getElementById('ppanel' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab);
     var btn = document.getElementById('ptab' + t.charAt(0).toUpperCase() + t.slice(1));
-    btn.className = 'px-5 py-2.5 text-sm font-semibold border-b-2 transition-colors '
-      + (t === tab ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600');
+    btn.className = 'point-sub-btn px-4 py-2 text-sm font-semibold rounded-lg transition-all '
+      + (t === tab ? 'bg-blue-50 text-blue-600' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100');
   });
-  if (tab === 'hm')    searchPointUsers('HM_POINT');
-  if (tab === 'money') searchPointUsers('HM_MONEY');
+  updatePointStats(tab);
+  if (tab === 'hm') {
+    searchPointUsers('HM_POINT');
+    loadPointStats('hmPoint', 'HM_POINT');
+  }
+  if (tab === 'money') {
+    searchPointUsers('HM_MONEY');
+    loadPointStats('hmMoney', 'HM_MONEY');
+  }
 }
 
 async function searchStudyGrants() {
@@ -650,10 +739,10 @@ document.addEventListener('DOMContentLoaded', function() {
   // URL 해시로 탭 복원
   var hash = location.hash;
   if (hash === '#point') {
-    switchTab('point');
+    switchMainTab('point');
   } else if (hash === '#point-hm') {
-    switchTab('point'); switchPointTab('hm');
+    switchMainTab('point'); switchPointTab('hm');
   } else if (hash === '#point-money') {
-    switchTab('point'); switchPointTab('money');
+    switchMainTab('point'); switchPointTab('money');
   }
 });
