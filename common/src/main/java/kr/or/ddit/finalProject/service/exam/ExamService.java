@@ -48,6 +48,9 @@ public interface ExamService {
      */
     List<ExamDto> retrieveExamsByClassSn(Long classSn);
 
+    /** 특정 학생의 시험별 응시 현황 */
+    List<kr.or.ddit.finalProject.dto.classroom.StudentExamDto> retrieveExamsByStudent(Long classSn, String userId);
+
     /**
      * 특정 시험의 응시자 목록 조회 (소유권 검증 포함, 단독 호출용)
      * 없거나 삭제됐거나 타인 소유면 예외 발생.

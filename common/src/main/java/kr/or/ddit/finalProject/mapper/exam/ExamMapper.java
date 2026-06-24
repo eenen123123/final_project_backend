@@ -107,4 +107,7 @@ public interface ExamMapper {
     List<kr.or.ddit.finalProject.dto.exam.ExamTakerDto> selectTakersByExamSn(@Param("examSn") Long examSn);
 
     void deleteExamTakers(@Param("examSn") Long examSn);
+
+    List<kr.or.ddit.finalProject.dto.classroom.StudentExamDto> selectExamsByStudent(
+            @Param("classSn") Long classSn, @Param("userId") String userId);
 }

@@ -31,16 +31,18 @@ public class AdminClassroomQnaController extends AbstractClassroomController {
     @GetMapping("/detail/{classSn}/qna")
     public String qnaList(@PathVariable Long classSn,
             @RequestParam(defaultValue = "1") int page,
+            @RequestParam(required = false) String writerUserId,
             Model model, Authentication authentication) {
         kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
         if (classroom == null) return "redirect:/classroom/list";
         kr.or.ddit.finalProject.dto.common.PageResponse<kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto> qnaPage =
-                instructorBoardService.getClassroomQnaList(classSn, page, PAGE_SIZE);
+                instructorBoardService.getClassroomQnaList(classSn, page, PAGE_SIZE, writerUserId);
         model.addAttribute("classroom", classroom);
         model.addAttribute("qnaPage", qnaPage);
         model.addAttribute("currentPage", page);
         model.addAttribute("pageSize", PAGE_SIZE);
         model.addAttribute("totalPages", (int) Math.ceil((double) qnaPage.getTotalCount() / PAGE_SIZE));
+        model.addAttribute("writerUserId", writerUserId);
         return "classroom/list-classroom-qna";
     }
 

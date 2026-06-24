@@ -231,4 +231,23 @@
         ORDER BY M.USER_NAME ASC
     </select>
 
+    <!-- 특정 학생의 시험별 응시 현황 — 해당 클래스룸 시험 전체 기준 -->
+    <select id="selectExamsByStudent" resultType="kr.or.ddit.finalProject.dto.classroom.StudentExamDto">
+        SELECT
+            e.EXAM_SN                                         AS examSn,
+            e.EXAM_REG_NM                                     AS examRegNm,
+            TO_CHAR(e.EXAM_STRT_DT, 'YYYY-MM-DD HH24:MI')   AS examStrtDt,
+            TO_CHAR(e.EXAM_END_DT,  'YYYY-MM-DD HH24:MI')   AS examEndDt,
+            CASE WHEN et.STD_USER_ID IS NOT NULL THEN 'Y' ELSE 'N' END AS takenYn,
+            et.TOT_SCORE                                      AS totScore,
+            TO_CHAR(et.SBMT_DT, 'YYYY-MM-DD HH24:MI')       AS sbmtDt
+        FROM EXAM e
+        LEFT JOIN EXAM_TAKER et
+               ON et.EXAM_SN      = e.EXAM_SN
+              AND et.STD_USER_ID  = #{userId}
+        WHERE e.CLASS_SN    = #{classSn}
+          AND e.EXAM_STAT_CD != '99'
+        ORDER BY e.EXAM_STRT_DT ASC
+    </select>
+
 </mapper>

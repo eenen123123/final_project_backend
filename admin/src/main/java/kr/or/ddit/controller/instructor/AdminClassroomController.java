@@ -34,6 +34,7 @@ import kr.or.ddit.finalProject.dto.staff.AdminActivityType;
 import kr.or.ddit.finalProject.service.assignment.AssignmentBoardService;
 import kr.or.ddit.finalProject.service.classroom.ClassroomService;
 import kr.or.ddit.finalProject.service.course.CourseService;
+import kr.or.ddit.finalProject.service.exam.ExamService;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
 import kr.or.ddit.finalProject.service.lecture.LectureService;
 import kr.or.ddit.service.AdminActivityApprovalService;
@@ -49,17 +50,20 @@ public class AdminClassroomController extends AbstractClassroomController {
     private final LectureService lectureService;
     private final CourseService courseService;
     private final AdminActivityApprovalService adminActivityApprovalService;
+    private final ExamService examService;
 
     public AdminClassroomController(ClassroomService classroomService,
                                     AssignmentBoardService assignmentBoardService,
                                     InstructorBoardService instructorBoardService,
                                     LectureService lectureService,
                                     CourseService courseService,
-                                    AdminActivityApprovalService adminActivityApprovalService) {
+                                    AdminActivityApprovalService adminActivityApprovalService,
+                                    ExamService examService) {
         super(classroomService, assignmentBoardService, instructorBoardService);
         this.lectureService = lectureService;
         this.courseService = courseService;
         this.adminActivityApprovalService = adminActivityApprovalService;
+        this.examService = examService;
     }
 
     // 클래스룸 목록 페이지 렌더링 (데이터는 AJAX로 별도 로드)
@@ -356,34 +360,29 @@ public class AdminClassroomController extends AbstractClassroomController {
         return "classroom/list-classroom-members";
     }
 
-    // 수강생 진도 상세 — 특정 수강생의 강의별 완료 현황 조회
+    // 수강생 상세 — 기본정보 + 강의진도 + 과제 + 시험 + 최근 QnA
     @GetMapping("/detail/{classSn}/members/{userId}")
     public String memberDetail(@PathVariable Long classSn, @PathVariable String userId,
             Model model, Authentication authentication) {
         ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
-        if (classroom == null) {
-            return "redirect:/classroom/list";
-        }
+        if (classroom == null) return "redirect:/classroom/list";
 
-        // classroom.getMembers()는 getOwnedClassroom에서 이미 로딩됨 — 추가 DB 쿼리 없이 재사용
-        ClassroomMemberListResponse member = classroom.getMembers().stream()
-                .filter(m -> m.getUserId().equals(userId))
-                .findFirst()
-                .orElse(null);
-        // 해당 클래스 소속이 아닌 userId로 직접 URL 접근 시 수강생 목록으로 리다이렉트
-        if (member == null) {
-            return "redirect:/classroom/detail/" + classSn + "/members";
-        }
+        kr.or.ddit.finalProject.dto.classroom.StudentDetailDto student =
+                classroomService.retrieveStudentDetail(classSn, userId);
+        if (student == null) return "redirect:/classroom/detail/" + classSn + "/members";
 
-        List<LectureProgressDetailResponse> lectureProgress
-                = lectureService.retrieveLectureProgressByStudent(classSn, userId);
-        long completedCount = lectureProgress.stream().filter(l -> "Y".equals(l.getCmplYn())).count();
+        List<LectureProgressDetailResponse> lectureProgress =
+                lectureService.retrieveLectureProgressByStudent(classSn, userId);
+        long completedLectureCount = lectureProgress.stream().filter(l -> "Y".equals(l.getCmplYn())).count();
 
         model.addAttribute("classroom", classroom);
-        model.addAttribute("member", member);
+        model.addAttribute("student", student);
         model.addAttribute("lectureProgress", lectureProgress);
-        model.addAttribute("completedCount", completedCount);
-        model.addAttribute("totalCount", lectureProgress.size());
+        model.addAttribute("completedLectureCount", completedLectureCount);
+        model.addAttribute("totalLectureCount", lectureProgress.size());
+        model.addAttribute("assignments", assignmentBoardService.getAssignmentsByStudent(classSn, userId));
+        model.addAttribute("exams", examService.retrieveExamsByStudent(classSn, userId));
+        model.addAttribute("recentQna", instructorBoardService.getRecentQnaByStudent(classSn, userId, 5));
         return "classroom/detail-classroom-member";
     }
 }

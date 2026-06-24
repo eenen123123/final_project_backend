@@ -76,24 +76,30 @@
 
   <select id="selectWeeklyCompletions" resultType="map">
     SELECT
-        TO_CHAR(TRUNC(CMPL_DT), 'YYYYMMDD') AS DAY_DATE,
-        COUNT(*)                              AS CNT
-    FROM STUDENT_CONTENT_PROGRESS
-    WHERE CLASS_SN = #{classSn}
-      AND CMPL_YN  = 'Y'
-      AND CMPL_DT >= TO_DATE(#{weekStart}, 'YYYYMMDD')
-      AND CMPL_DT  &lt; TO_DATE(#{weekEnd},   'YYYYMMDD') + 1
-    GROUP BY TRUNC(CMPL_DT)
-    ORDER BY TRUNC(CMPL_DT)
+        TO_CHAR(TRUNC(lp.LAST_UPDATE), 'YYYYMMDD') AS DAY_DATE,
+        COUNT(*)                                    AS CNT
+    FROM LECTURE_PROGRESS lp
+    JOIN LECTURE l ON l.LECTURE_SN = lp.LECTURE_SN AND l.COURSE_SN = lp.COURSE_SN
+    JOIN CLASSROOM cl ON cl.COURSE_SN = l.COURSE_SN AND cl.CLASS_SN = #{classSn}
+    JOIN CLASSROOM_MEMBER cm ON cm.CLASS_SN = #{classSn} AND cm.USER_ID = lp.USER_ID
+    WHERE l.LECTURE_DURATION > 0
+      AND lp.SECONDS_WATCHED >= l.LECTURE_DURATION
+      AND lp.LAST_UPDATE >= TO_DATE(#{weekStart}, 'YYYYMMDD')
+      AND lp.LAST_UPDATE  &lt; TO_DATE(#{weekEnd},   'YYYYMMDD') + 1
+    GROUP BY TRUNC(lp.LAST_UPDATE)
+    ORDER BY TRUNC(lp.LAST_UPDATE)
   </select>
 
   <select id="selectTotalCompletionsInRange" resultType="int">
     SELECT COUNT(*)
-    FROM STUDENT_CONTENT_PROGRESS
-    WHERE CLASS_SN = #{classSn}
-      AND CMPL_YN  = 'Y'
-      AND CMPL_DT >= TO_DATE(#{rangeStart}, 'YYYYMMDD')
-      AND CMPL_DT  &lt; TO_DATE(#{rangeEnd}, 'YYYYMMDD') + 1
+    FROM LECTURE_PROGRESS lp
+    JOIN LECTURE l ON l.LECTURE_SN = lp.LECTURE_SN AND l.COURSE_SN = lp.COURSE_SN
+    JOIN CLASSROOM cl ON cl.COURSE_SN = l.COURSE_SN AND cl.CLASS_SN = #{classSn}
+    JOIN CLASSROOM_MEMBER cm ON cm.CLASS_SN = #{classSn} AND cm.USER_ID = lp.USER_ID
+    WHERE l.LECTURE_DURATION > 0
+      AND lp.SECONDS_WATCHED >= l.LECTURE_DURATION
+      AND lp.LAST_UPDATE >= TO_DATE(#{rangeStart}, 'YYYYMMDD')
+      AND lp.LAST_UPDATE  &lt; TO_DATE(#{rangeEnd},   'YYYYMMDD') + 1
   </select>
 
   <select id="selectAvgProgressRate" resultType="java.lang.Double">
@@ -124,13 +130,14 @@
     ) lect ON 1 = 1
     LEFT JOIN (
         SELECT COUNT(*) AS TOTAL_COMPLETED
-        FROM STUDENT_CONTENT_PROGRESS scp
-        JOIN CLASSROOM_MEMBER cm
-          ON scp.CLASS_SN = cm.CLASS_SN
-         AND scp.USER_ID  = cm.USER_ID
-         AND cm.ENRL_STAT_CD IN ('ENROLLED', 'COMPLETED')
-        WHERE scp.CMPL_YN = 'Y'
-          AND scp.CLASS_SN = #{classSn}
+        FROM LECTURE_PROGRESS lp
+        JOIN LECTURE l ON l.LECTURE_SN = lp.LECTURE_SN AND l.COURSE_SN = lp.COURSE_SN
+        JOIN CLASSROOM cl ON cl.COURSE_SN = l.COURSE_SN AND cl.CLASS_SN = #{classSn}
+        JOIN CLASSROOM_MEMBER cm ON cm.CLASS_SN = #{classSn} AND cm.USER_ID = lp.USER_ID
+          AND cm.ENRL_STAT_CD IN ('ENROLLED', 'COMPLETED')
+        WHERE l.OPNN_YN = 'Y'
+          AND l.LECTURE_DURATION > 0
+          AND lp.SECONDS_WATCHED >= l.LECTURE_DURATION
     ) prog ON 1 = 1
   </select>
 
@@ -228,12 +235,14 @@
     WHERE cm.CLASS_SN     = #{classSn}
       AND cm.ENRL_STAT_CD = 'ENROLLED'
       AND cm.USER_ID NOT IN (
-          SELECT DISTINCT USER_ID
-          FROM STUDENT_CONTENT_PROGRESS
-          WHERE CLASS_SN = #{classSn}
-            AND CMPL_YN  = 'Y'
-            AND CMPL_DT >= TO_DATE(#{weekStart}, 'YYYYMMDD')
-            AND CMPL_DT  &lt; TO_DATE(#{weekEnd}, 'YYYYMMDD') + 1
+          SELECT DISTINCT lp.USER_ID
+          FROM LECTURE_PROGRESS lp
+          JOIN LECTURE l ON l.LECTURE_SN = lp.LECTURE_SN AND l.COURSE_SN = lp.COURSE_SN
+          JOIN CLASSROOM cl ON cl.COURSE_SN = l.COURSE_SN AND cl.CLASS_SN = #{classSn}
+          WHERE l.LECTURE_DURATION > 0
+            AND lp.SECONDS_WATCHED >= l.LECTURE_DURATION
+            AND lp.LAST_UPDATE >= TO_DATE(#{weekStart}, 'YYYYMMDD')
+            AND lp.LAST_UPDATE  &lt; TO_DATE(#{weekEnd},  'YYYYMMDD') + 1
       )
   </select>
 

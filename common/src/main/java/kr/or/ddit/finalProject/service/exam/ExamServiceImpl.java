@@ -147,6 +147,11 @@ public class ExamServiceImpl implements ExamService {
         return examMapper.selectTakersByExamSn(examSn);
     }
 
+    @Override
+    public List<kr.or.ddit.finalProject.dto.classroom.StudentExamDto> retrieveExamsByStudent(Long classSn, String userId) {
+        return examMapper.selectExamsByStudent(classSn, userId);
+    }
+
     // ──────────────────────────────────────────────
     // 내부 유틸
     // ──────────────────────────────────────────────
