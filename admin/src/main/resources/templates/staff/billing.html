@@ -136,7 +136,7 @@
         </select>
         <button onclick="loadUnpaid(1)" class="hm-btn-primary hm-btn-blue">조회</button>
         <div class="ml-auto flex items-center gap-2">
-          <button onclick="sendBulkNotice()" class="px-4 py-2 text-xs font-semibold text-white bg-amber-500 hover:bg-amber-600 rounded-xl transition-colors flex items-center gap-2">
+          <button onclick="sendBulkNotice()" class="px-4 py-2 text-xs font-semibold text-white bg-blue-500 hover:bg-blue-600 rounded-xl transition-colors flex items-center gap-2">
             <i class="fa-solid fa-paper-plane"></i>선택 안내 발송
           </button>
         </div>
@@ -181,7 +181,7 @@
           <input type="date" class="hm-input hm-input-blue w-36" id="historyFrom">
           <span class="text-slate-300">~</span>
           <input type="date" class="hm-input hm-input-blue w-36" id="historyTo" th:value="${today}">
-          <button onclick="loadHistory(1)" class="hm-btn-primary hm-btn-blue">조회</button>
+          <button onclick="loadHistory(1)" class="hm-btn-primary hm-btn-blue w-35">조회</button>
         </div>
       </div>
 
@@ -373,7 +373,7 @@
             <td class="py-3 px-3 text-center">${overdueBadge(u.overdueCnt)}</td>
             <td class="py-3 px-3 text-xs text-slate-400">${fmtDt(u.lastNoticeDt)}</td>
             <td class="py-3 px-3">
-              <button onclick="openMsgModal(['${esc(u.userId)}'])" class="text-xs font-semibold text-amber-500 hover:text-amber-700 whitespace-nowrap">
+              <button onclick="openMsgModal(['${esc(u.userId)}'])" class="text-xs font-semibold text-blue-500 hover:text-blue-700 whitespace-nowrap">
                 <i class="fa-solid fa-comment"></i> 안내
               </button>
             </td>

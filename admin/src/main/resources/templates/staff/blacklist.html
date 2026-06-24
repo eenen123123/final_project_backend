@@ -8,7 +8,7 @@
       <h1 class="text-2xl font-bold text-slate-900 tracking-tight">주의 학생 관리</h1>
       <p class="text-sm text-slate-500 mt-1">주의가 필요한 학생 정보를 등록하고 담당 직원 간 내부 공유합니다. 외부에 노출되지 않습니다.</p>
     </div>
-    <button class="hm-btn-primary" onclick="openBlacklistModal(null)">
+    <button class="hm-btn-primary hm-btn-blue" onclick="openBlacklistModal(null)">
       <i class="fa-solid fa-plus"></i>
       <span>주의 학생 등록</span>
     </button>
@@ -74,12 +74,12 @@
     <div class="lg:col-span-2 space-y-4">
       <div class="flex flex-wrap items-center gap-3">
         <div class="w-52 relative">
-          <input type="text" id="fKeyword" class="hm-input pl-10" placeholder="학생명 또는 사유 검색..." oninput="onKeywordInput()">
-          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+          <input type="text" id="fKeyword" class="hm-input hm-input-blue pl-10" placeholder="학생명 또는 사유 검색..." oninput="onKeywordInput()">
+          <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3.5 text-slate-400"></i>
         </div>
-        <select class="hm-input w-36" id="fLevel" data-cs-defer data-cl-code="700" data-all-label="등급 전체" onchange="doSearch(1)"></select>
-        <select class="hm-input w-36" id="fCategory" data-cs-defer data-cl-code="701" data-all-label="유형 전체" onchange="doSearch(1)"></select>
-        <select class="hm-input w-32" id="fStatus" onchange="doSearch(1)">
+        <select class="hm-input hm-input-blue w-36" id="fLevel" data-cs-defer data-cl-code="700" data-all-label="등급 전체" onchange="doSearch(1)"></select>
+        <select class="hm-input hm-input-blue w-36" id="fCategory" data-cs-defer data-cl-code="701" data-all-label="유형 전체" onchange="doSearch(1)"></select>
+        <select class="hm-input hm-input-blue w-32" id="fStatus" onchange="doSearch(1)">
           <option value="">상태 전체</option>
           <option value="active">적용 중</option>
           <option value="resolved">해제 완료</option>
@@ -100,20 +100,20 @@
       <!-- 빠른 등록 -->
       <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
         <h3 class="text-sm font-bold text-slate-700 mb-4">
-          <i class="fa-solid fa-bolt mr-1.5 text-violet-500"></i>빠른 등록
+          <i class="fa-solid fa-bolt mr-1.5 text-blue-500"></i>빠른 등록
         </h3>
         <div class="space-y-3">
           <div class="relative">
-            <input type="text" class="hm-input" id="quickStudent" placeholder="학생명 검색 후 선택" autocomplete="off"
+            <input type="text" class="hm-input hm-input-blue" id="quickStudent" placeholder="학생명 검색 후 선택" autocomplete="off"
                    oninput="searchStudentPicker('quick')" onfocus="searchStudentPicker('quick')">
             <input type="hidden" id="quickStudentId">
             <div id="quickStudentResults" class="hidden absolute z-20 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto"></div>
           </div>
-          <select class="hm-input" id="quickCategory" data-cs-defer data-cl-code="701" data-all-label="유형 선택"></select>
-          <textarea class="hm-input resize-none" id="quickReason" rows="2" placeholder="등록 사유 요약"></textarea>
+          <select class="hm-input hm-input-blue" id="quickCategory" data-cs-defer data-cl-code="701" data-all-label="유형 선택"></select>
+          <textarea class="hm-input hm-input-blue resize-none" id="quickReason" rows="2" placeholder="등록 사유 요약"></textarea>
           <p class="text-[11px] text-slate-400 leading-snug">누적 횟수로 자동 처리: 1회 경고 · 2회 7일 정지 · 3회+ 영구정지</p>
         </div>
-        <button class="hm-btn-primary w-full mt-3" onclick="saveQuick()">
+        <button class="hm-btn-primary hm-btn-blue w-full mt-3" onclick="saveQuick()">
           <i class="fa-solid fa-floppy-disk"></i>
           <span>등록</span>
         </button>
@@ -122,7 +122,7 @@
       <!-- 유형별 현황 -->
       <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
         <h3 class="text-sm font-bold text-slate-700 mb-4">
-          <i class="fa-solid fa-chart-pie mr-1.5 text-violet-500"></i>유형별 현황
+          <i class="fa-solid fa-chart-pie mr-1.5 text-blue-500"></i>유형별 현황
         </h3>
         <div class="space-y-2.5" id="categoryStats"></div>
       </div>
@@ -147,7 +147,7 @@
         <div>
           <label class="block text-xs font-medium text-slate-500 mb-1.5">학생 <span class="text-red-400">*</span></label>
           <div class="relative">
-            <input type="text" class="hm-input" id="blName" placeholder="학생명 검색 후 선택" autocomplete="off"
+            <input type="text" class="hm-input hm-input-blue" id="blName" placeholder="학생명 검색 후 선택" autocomplete="off"
                    oninput="searchStudentPicker('bl')" onfocus="searchStudentPicker('bl')">
             <input type="hidden" id="blStudentId">
             <div id="blStudentResults" class="hidden absolute z-20 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto"></div>
@@ -155,17 +155,17 @@
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-500 mb-1.5">클래스룸</label>
-          <input type="text" class="hm-input" id="blGrade" placeholder="-" readonly>
+          <input type="text" class="hm-input hm-input-blue" id="blGrade" placeholder="-" readonly>
         </div>
       </div>
 
-      <div class="flex items-start gap-2 p-3 bg-violet-50 border border-violet-100 rounded-xl text-xs text-violet-700">
+      <div class="flex items-start gap-2 p-3 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-700">
         <i class="fa-solid fa-circle-info mt-0.5 shrink-0"></i>
         <p>등급·정지는 <strong>누적 위반 횟수로 자동 결정</strong>됩니다 — 1회 경고(차단 없음) · 2회 7일 정지 · 3회 이상 영구정지.</p>
       </div>
 
       <label class="flex items-center gap-3 p-3 bg-rose-50 border border-rose-100 rounded-xl cursor-pointer">
-        <input type="checkbox" class="hm-switch" id="blForcePerm">
+        <input type="checkbox" class="hm-switch hm-switch-blue" id="blForcePerm">
         <div>
           <p class="text-xs font-semibold text-rose-700">즉시 영구정지</p>
           <p class="text-xs text-rose-500">누적 횟수를 무시하고 바로 영구 차단합니다 (사안이 중대한 경우).</p>
@@ -174,22 +174,22 @@
 
       <div>
         <label class="block text-xs font-medium text-slate-500 mb-1.5">유형 <span class="text-red-400">*</span></label>
-        <select class="hm-input" id="blCategory" data-cs-defer data-cl-code="701" data-all-label="선택"></select>
+        <select class="hm-input hm-input-blue" id="blCategory" data-cs-defer data-cl-code="701" data-all-label="선택"></select>
       </div>
 
       <div>
         <label class="block text-xs font-medium text-slate-500 mb-1.5">등록 사유 <span class="text-red-400">*</span></label>
-        <textarea class="hm-input resize-none" id="blReason" rows="3" placeholder="구체적인 사유를 입력하세요 (내부 공유용)"></textarea>
+        <textarea class="hm-input hm-input-blue resize-none" id="blReason" rows="3" placeholder="구체적인 사유를 입력하세요 (내부 공유용)"></textarea>
       </div>
 
       <div>
         <label class="block text-xs font-medium text-slate-500 mb-1.5">조치 내용</label>
-        <textarea class="hm-input resize-none" id="blAction" rows="2" placeholder="현재까지 취한 조치 내용 (선택)"></textarea>
+        <textarea class="hm-input hm-input-blue resize-none" id="blAction" rows="2" placeholder="현재까지 취한 조치 내용 (선택)"></textarea>
       </div>
     </div>
     <div class="flex gap-3 px-6 py-4 border-t border-slate-100 shrink-0">
       <button class="flex-1 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors" onclick="closeBlacklistModal()">취소</button>
-      <button class="flex-1 hm-btn-primary" onclick="saveBlacklist()">
+      <button class="flex-1 hm-btn-primary hm-btn-blue" onclick="saveBlacklist()">
         <i class="fa-solid fa-floppy-disk"></i><span>저장</span>
       </button>
     </div>
@@ -208,7 +208,7 @@
     <div class="p-6 space-y-4" id="blDetailContent"></div>
     <div class="flex gap-3 px-6 py-4 border-t border-slate-100">
       <button class="flex-1 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl" onclick="closeDetailModal()">닫기</button>
-      <button class="flex-1 hm-btn-primary" id="blDetailEditBtn">
+      <button class="flex-1 hm-btn-primary hm-btn-blue" id="blDetailEditBtn">
         <i class="fa-regular fa-pen-to-square"></i><span>수정</span>
       </button>
     </div>

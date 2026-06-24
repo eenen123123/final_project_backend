@@ -52,6 +52,8 @@
             REG_DT, MDFCN_DT
         FROM TEXTBOOK_INVENTORY
         WHERE TEXTBOOK_SN = #{textbookSn}
+        ORDER BY MDFCN_DT DESC
+        FETCH FIRST 1 ROWS ONLY
     </select>
 
     <!-- ============================= -->

@@ -67,7 +67,7 @@
     </h2>
     <form th:action="@{/admin/textbook/stock/{sn}/history(sn=${textbookSn})}" method="post"
           class="flex flex-wrap items-end gap-4"
-          onsubmit="return confirm('입/출고 내역을 등록하시겠습니까?')"
+          onsubmit="return confirm('입/출고 내역을 등록하시겠습니까?')">
 
       <!-- 유형 -->
       <div class="flex-1 min-w-48">
@@ -110,7 +110,7 @@
           th:object="${inventoryDto}"
           method="post"
           class="grid grid-cols-1 md:grid-cols-3 gap-5"
-          onsubmit="return confirm('재고를 수정하시겠습니까?')"
+          onsubmit="return confirm('재고를 수정하시겠습니까?')">
 
       <!-- 총 재고 -->
       <div>
