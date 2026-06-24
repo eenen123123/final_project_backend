@@ -63,6 +63,9 @@ public class TextbookStockController {
         // 재고 조회
         TextbookInventoryDto inventoryDto =
                 textbookStockService.retrieveInventoryByTextbookSn(textbookSn);
+        if (inventoryDto == null) {
+            inventoryDto = TextbookInventoryDto.builder().textbookSn(textbookSn).build();
+        }
 
         // 입출고 내역 전체 조회 (클라이언트 사이드 페이징)
         PaginationInfo<TextbookHistoryDto> paginationInfo = new PaginationInfo<>(9999, 1, 1);
