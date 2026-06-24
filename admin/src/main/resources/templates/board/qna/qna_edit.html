@@ -23,14 +23,14 @@
           <!-- 카테고리 -->
           <div>
             <label class="text-xs font-semibold text-slate-600 mb-1.5 block">카테고리</label>
-            <input type="text" class="hm-input bg-slate-50"
+            <input type="text" class="hm-input hm-input-blue bg-slate-50"
                    th:value="${qna.qnaCtgNm}" readonly />
           </div>
 
           <!-- 답변 상태 -->
           <div>
             <label class="text-xs font-semibold text-slate-600 mb-1.5 block">답변 상태 <span class="text-red-400">*</span></label>
-            <select name="answStatCd" class="hm-input">
+            <select name="answStatCd" class="hm-input hm-input-blue">
               <option value="01" th:selected="${qna.answStatCd == '01'}">답변대기</option>
               <option value="02" th:selected="${qna.answStatCd == '02'}">답변완료</option>
             </select>
@@ -41,14 +41,14 @@
           <!-- 작성자 -->
           <div>
             <label class="text-xs font-semibold text-slate-600 mb-1.5 block">작성자</label>
-            <input type="text" class="hm-input bg-slate-50"
+            <input type="text" class="hm-input hm-input-blue bg-slate-50"
                    th:value="${qna.wrtrUserId}" readonly />
           </div>
 
           <!-- 등록일 -->
           <div>
             <label class="text-xs font-semibold text-slate-600 mb-1.5 block">등록일</label>
-            <input type="text" class="hm-input bg-slate-50"
+            <input type="text" class="hm-input hm-input-blue bg-slate-50"
                    th:value="${#temporals.format(qna.regDt, 'yyyy-MM-dd')}" readonly />
           </div>
         </div>
@@ -56,14 +56,14 @@
         <!-- 질문 제목 -->
         <div class="mb-6">
           <label class="text-xs font-semibold text-slate-600 mb-1.5 block">질문 제목</label>
-          <input type="text" class="hm-input bg-slate-50"
+          <input type="text" class="hm-input hm-input-blue bg-slate-50"
                  th:value="${qna.postSj}" readonly />
         </div>
 
         <!-- 질문 내용 -->
         <div>
           <label class="text-xs font-semibold text-slate-600 mb-1.5 block">질문 내용</label>
-          <textarea rows="5" class="hm-input bg-slate-50 resize-none"
+          <textarea rows="5" class="hm-input hm-input-blue bg-slate-50 resize-none"
                     th:text="${qna.postCn}" readonly></textarea>
         </div>
       </div>
@@ -76,7 +76,7 @@
         </label>
         <textarea name="answCn" rows="10"
                   placeholder="답변 내용을 입력하세요."
-                  class="hm-input resize-none"
+                  class="hm-input hm-input-blue resize-none"
                   th:text="${qna.answCn}" required></textarea>
       </div>
 
@@ -86,7 +86,7 @@
           class="px-6 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer">
           취소
         </a>
-        <button type="submit" class="hm-btn-primary px-8 py-2.5 cursor-pointer">
+        <button type="submit" class="hm-btn-primary hm-btn-blue px-8 py-2.5 cursor-pointer">
           수정 완료
         </button>
       </div>

@@ -23,7 +23,7 @@
           <label class="text-xs font-semibold text-slate-600 mb-1.5 block">
             대분류 <span class="text-red-400">*</span>
           </label>
-          <select name="faqCtgCd" id="faqCtgCd" onchange="updateSubCtg()" class="hm-input">
+          <select name="faqCtgCd" id="faqCtgCd" onchange="updateSubCtg()" class="hm-input hm-input-blue">
             <option value="01">강의/교재</option>
             <option value="02">결제</option>
             <option value="03">학습기기</option>
@@ -37,7 +37,7 @@
           <label class="text-xs font-semibold text-slate-600 mb-1.5 block">
             중분류 <span class="text-red-400">*</span>
           </label>
-          <select name="faqSubCtgCd" id="faqSubCtgCd" class="hm-input"></select>
+          <select name="faqSubCtgCd" id="faqSubCtgCd" class="hm-input hm-input-blue"></select>
         </div>
       </div>
 
@@ -45,7 +45,7 @@
         <!-- 작성자 -->
         <div>
           <label class="text-xs font-semibold text-slate-600 mb-1.5 block">작성자</label>
-          <input type="text" name="wrtrUserId" class="hm-input bg-slate-50" th:value="${currentUser}" readonly />
+          <input type="text" name="wrtrUserId" class="hm-input hm-input-blue bg-slate-50" th:value="${currentUser}" readonly />
         </div>
 
         <!-- BEST 여부 -->
@@ -67,7 +67,7 @@
         <label class="text-xs font-semibold text-slate-600 mb-1.5 block">
           제목 <span class="text-red-400">*</span>
         </label>
-        <input type="text" name="postSj" placeholder="FAQ 제목을 입력하세요." class="hm-input" required />
+        <input type="text" name="postSj" placeholder="FAQ 제목을 입력하세요." class="hm-input hm-input-blue" required />
       </div>
 
       <!-- 내용 (에디터) -->
@@ -84,7 +84,7 @@
           class="px-6 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer">
           취소
         </a>
-        <button type="submit" class="hm-btn-primary px-8 py-2.5 cursor-pointer">
+        <button type="submit" class="hm-btn-primary hm-btn-blue px-8 py-2.5 cursor-pointer">
           등록
         </button>
       </div>

@@ -34,17 +34,17 @@ function renderPagination(containerId, totalCount, currentPage, size, loadFn) {
 
   let html = '<div class="flex items-center justify-center gap-1 mt-4">';
   if (startPage > 1) {
-    html += `<button onclick="${loadFn}(${startPage - 1})" class="px-2.5 py-1.5 text-xs text-slate-500 hover:text-violet-600 rounded-lg hover:bg-violet-50 transition-colors">&lt;</button>`;
+    html += `<button onclick="${loadFn}(${startPage - 1})" class="px-2.5 py-1.5 text-xs text-slate-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors">&lt;</button>`;
   }
   for (let p = startPage; p <= Math.min(endPage, totalPages); p++) {
     if (p === currentPage) {
-      html += `<button class="px-2.5 py-1.5 text-xs font-bold text-white bg-violet-600 rounded-lg">${p}</button>`;
+      html += `<button class="px-2.5 py-1.5 text-xs font-bold text-white bg-blue-600 rounded-lg">${p}</button>`;
     } else {
-      html += `<button onclick="${loadFn}(${p})" class="px-2.5 py-1.5 text-xs text-slate-500 hover:text-violet-600 rounded-lg hover:bg-violet-50 transition-colors">${p}</button>`;
+      html += `<button onclick="${loadFn}(${p})" class="px-2.5 py-1.5 text-xs text-slate-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors">${p}</button>`;
     }
   }
   if (endPage < totalPages) {
-    html += `<button onclick="${loadFn}(${endPage + 1})" class="px-2.5 py-1.5 text-xs text-slate-500 hover:text-violet-600 rounded-lg hover:bg-violet-50 transition-colors">&gt;</button>`;
+    html += `<button onclick="${loadFn}(${endPage + 1})" class="px-2.5 py-1.5 text-xs text-slate-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors">&gt;</button>`;
   }
   html += '</div>';
   container.innerHTML = html;
@@ -107,7 +107,7 @@ function renderFaqTable(items) {
       </td>
       <td class="py-3 px-4 text-center text-xs text-slate-500">${faq.faqSubCtgNm || ''}</td>
       <td class="py-3 px-4 text-slate-800 font-medium">
-        <a href="/admin/board/faq/${faq.postSn}" class="hover:text-violet-600 transition-colors">${faq.postSj}</a>
+        <a href="/admin/board/faq/${faq.postSn}" class="hover:text-blue-600 transition-colors">${faq.postSj}</a>
       </td>
       <td class="py-3 px-4 text-center">
         ${faq.topFixYn === 'Y'
@@ -117,7 +117,7 @@ function renderFaqTable(items) {
       <td class="py-3 px-4 text-center text-xs text-slate-400">${(faq.regDt || '').slice(0, 10)}</td>
       <td class="py-3 px-4 text-center">
         <div class="flex items-center justify-center gap-2">
-          <a href="/admin/board/faq/edit/${faq.postSn}" class="text-xs text-violet-600 font-semibold hover:underline">수정</a>
+          <a href="/admin/board/faq/edit/${faq.postSn}" class="text-xs text-blue-600 font-semibold hover:underline">수정</a>
           <span class="text-slate-300 text-xs">|</span>
           <form action="/admin/board/faq/delete/${faq.postSn}" method="post" onsubmit="return confirm('삭제하시겠습니까?')" class="m-0 p-0 flex">
             <button type="submit" class="text-xs text-red-500 font-semibold hover:underline cursor-pointer">삭제</button>
@@ -174,17 +174,17 @@ function renderNoticeTable(items) {
           <span class="text-xs bg-${color}-50 text-${color}-600 font-semibold px-2 py-0.5 rounded-full">${label}</span>
         </td>
         <td class="py-3 px-4 text-slate-800 font-medium">
-          <a href="/admin/board/notice/${notice.postSn}" class="hover:text-violet-600 transition-colors">${notice.postSj}</a>
+          <a href="/admin/board/notice/${notice.postSn}" class="hover:text-blue-600 transition-colors">${notice.postSj}</a>
         </td>
         <td class="py-3 px-4 text-center">
           ${notice.popupExpsYn === 'Y'
-            ? '<span class="text-xs bg-violet-50 text-violet-600 font-semibold px-2 py-0.5 rounded-full">Y</span>'
+            ? '<span class="text-xs bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded-full">Y</span>'
             : '<span class="text-xs text-slate-300">-</span>'}
         </td>
         <td class="py-3 px-4 text-center text-xs text-slate-400">${(notice.regDt || '').slice(0, 10)}</td>
         <td class="py-3 px-4 text-center">
           <div class="flex items-center justify-center gap-2">
-            <a href="/admin/board/notice/edit/${notice.postSn}" class="text-xs text-violet-600 font-semibold hover:underline">수정</a>
+            <a href="/admin/board/notice/edit/${notice.postSn}" class="text-xs text-blue-600 font-semibold hover:underline">수정</a>
             <span class="text-slate-300 text-xs">|</span>
             <form action="/admin/board/notice/delete/${notice.postSn}" method="post" onsubmit="return confirm('삭제하시겠습니까?')" class="m-0 p-0 flex">
               <button type="submit" class="text-xs text-red-500 font-semibold hover:underline cursor-pointer">삭제</button>
@@ -241,7 +241,7 @@ function renderQnaTable(items) {
         <span class="text-xs bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded-full">${qna.qnaCtgNm || ''}</span>
       </td>
       <td class="py-3 px-4 text-slate-800 font-medium">
-        <a href="/admin/board/qna/${qna.postSn}" class="hover:text-violet-600 transition-colors">${qna.postSj}</a>
+        <a href="/admin/board/qna/${qna.postSn}" class="hover:text-blue-600 transition-colors">${qna.postSj}</a>
       </td>
       <td class="py-3 px-4 text-center">
         ${qna.secrYn === 'Y'
@@ -301,7 +301,7 @@ function renderDataRoomTable(items) {
         <span class="text-xs bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded-full">${dr.dataCtgNm || ''}</span>
       </td>
       <td class="py-3 px-4 text-slate-800 font-medium">
-        <a href="/admin/board/dataroom/${dr.postSn}" class="hover:text-violet-600 transition-colors">${dr.postSj}</a>
+        <a href="/admin/board/dataroom/${dr.postSn}" class="hover:text-blue-600 transition-colors">${dr.postSj}</a>
       </td>
       <td class="py-3 px-4 text-center">
         ${dr.accsLmtCd === '01'
@@ -316,7 +316,7 @@ function renderDataRoomTable(items) {
       <td class="py-3 px-4 text-center text-xs text-slate-400">${(dr.regDt || '').slice(0, 10)}</td>
       <td class="py-3 px-4 text-center">
         <div class="flex items-center justify-center gap-2">
-          <a href="/admin/board/dataroom/edit/${dr.postSn}" class="text-xs text-violet-600 font-semibold hover:underline">수정</a>
+          <a href="/admin/board/dataroom/edit/${dr.postSn}" class="text-xs text-blue-600 font-semibold hover:underline">수정</a>
           <span class="text-slate-300 text-xs">|</span>
           <form action="/admin/board/dataroom/delete/${dr.postSn}" method="post" onsubmit="return confirm('삭제하시겠습니까?')" class="m-0 p-0 flex">
             <button type="submit" class="text-xs text-red-500 font-semibold hover:underline cursor-pointer">삭제</button>
