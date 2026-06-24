@@ -6,7 +6,9 @@ services:
     image: ddit-backend:latest
     environment:
       - APP_JAR=rest.jar
-    env_file: .env          # 인스턴스에 둔 .env 의 db_host, jwt_secret 등을 주입
+    volumes:
+      # 앱(DotEnvConfig)이 /app/.env 파일을 직접 읽음. :z → SELinux 공유 라벨(두 컨테이너 공용)
+      - ./.env:/app/.env:ro,z
     ports:
       - "8081:8081"
     mem_limit: 2g
@@ -18,7 +20,8 @@ services:
       - rest
     environment:
       - APP_JAR=admin.jar
-    env_file: .env
+    volumes:
+      - ./.env:/app/.env:ro,z
     ports:
       - "8080:8080"
     mem_limit: 2g
