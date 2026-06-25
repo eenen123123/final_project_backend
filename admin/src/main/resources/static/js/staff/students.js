@@ -68,12 +68,20 @@ var hrFilteredRows = null;
 
 var filterDebounceTimer = null;
 
+function syncClassFilter() {
+  const type = document.getElementById("hr-type-filter").value;
+  const wrap = document.getElementById("hr-class-filter-wrap");
+  const classEl = document.getElementById("hr-class-filter");
+  const isOffline = type === "오프라인";
+  if (wrap) wrap.style.display = isOffline ? "" : "none";
+  if (!isOffline && classEl) classEl.value = "";
+}
+
 function filterHrList() {
+  syncClassFilter();
   clearTimeout(filterDebounceTimer);
   filterDebounceTimer = setTimeout(() => doFilterHrList(1), 300);
 }
-
-var unregisteredFilter = false;
 
 async function fetchStudentStats() {
   try {
@@ -96,19 +104,6 @@ async function fetchStudentStats() {
 }
 fetchStudentStats();
 
-function filterUnregistered() {
-  unregisteredFilter = !unregisteredFilter;
-  const card = document.getElementById("card-unregistered");
-  if (card) card.classList.toggle("ring-2", unregisteredFilter);
-  if (card) card.classList.toggle("ring-red-400", unregisteredFilter);
-  // 미등록 필터 활성화 시 유형 필터 초기화
-  if (unregisteredFilter) {
-    const typeEl = document.getElementById("hr-type-filter");
-    if (typeEl) { if (typeEl.customSelect) typeEl.customSelect.setValue(""); else typeEl.value = ""; }
-  }
-  doFilterHrList(1);
-}
-
 async function doFilterHrList(page) {
   page = page || 1;
   currentHrPage = page;
@@ -117,11 +112,13 @@ async function doFilterHrList(page) {
   const type    = document.getElementById("hr-type-filter").value;
   const status  = document.getElementById("hr-status-filter").value;
 
+  const classFilter = type === "오프라인" ? document.getElementById("hr-class-filter").value : "";
+
   const params = new URLSearchParams();
   if (keyword) params.set("keyword",  keyword);
   if (year)    params.set("year",     year);
-  if (unregisteredFilter) {
-    params.set("unregistered", "true");
+  if (classFilter) {
+    params.set("classStatus", classFilter);
   } else {
     const typeToRole = { '일반': 'ROLE_USER', '오프라인': 'ROLE_STUDENT' };
     if (type) params.set("userRole", typeToRole[type] || type);
@@ -229,21 +226,17 @@ function openClassRegister(userId, userName) {
 
 function resetHrFilter() {
   document.getElementById("hr-search").value = "";
-  ["hr-year", "hr-type-filter", "hr-status-filter"].forEach((id) => {
+  ["hr-year", "hr-type-filter", "hr-status-filter", "hr-class-filter"].forEach((id) => {
     const el = document.getElementById(id);
     if (!el) return;
     if (el.customSelect) el.customSelect.setValue("");
     else el.value = "";
   });
-  if (unregisteredFilter) {
-    unregisteredFilter = false;
-    const card = document.getElementById("card-unregistered");
-    if (card) { card.classList.remove("ring-2"); card.classList.remove("ring-red-400"); }
-  }
+  syncClassFilter();
   hrSortCol = null;
   hrSortAsc = true;
   updateHrSortIcons(null);
-  filterHrList();
+  doFilterHrList(1);
 }
 
 function sortHrBy(col) {

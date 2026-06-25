@@ -55,8 +55,8 @@
         <p class="text-xl font-bold text-slate-800" id="stat-role-student">-</p>
       </div>
     </div>
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3 cursor-pointer hover:bg-red-50 transition-colors"
-         id="card-unregistered" onclick="filterUnregistered()">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3"
+         id="card-unregistered">
       <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
         <i class="fa-solid fa-user-xmark text-red-500"></i>
       </div>
@@ -95,12 +95,19 @@
           <select class="hm-input hm-input-blue" id="hr-year" style="width:10rem" onchange="filterHrList()"
                   data-cs-defer data-cl-code="218" data-all-label="전체 연도">
           </select>
-          <select class="hm-input hm-input-blue" id="hr-type-filter" style="width:10rem" onchange="filterHrList()"
-                  data-cs-defer data-cl-code="220" data-all-label="전체 유형">
-          </select>
           <select class="hm-input hm-input-blue" id="hr-status-filter" style="width:10rem" onchange="filterHrList()"
                   data-cs-defer data-cl-code="219" data-all-label="전체 상태">
           </select>
+          <select class="hm-input hm-input-blue" id="hr-type-filter" style="width:10rem" onchange="filterHrList()"
+                  data-cs-defer data-cl-code="220" data-all-label="전체 유형">
+          </select>
+          <div id="hr-class-filter-wrap" style="display:none">
+            <select class="hm-input hm-input-blue" id="hr-class-filter" style="width:10rem" onchange="filterHrList()">
+              <option value="">전체 클래스</option>
+              <option value="unregistered">미등록</option>
+              <option value="registered">등록</option>
+            </select>
+          </div>
           <button type="button" onclick="resetHrFilter()" class="hm-btn-secondary text-sm px-3 py-2 whitespace-nowrap">
             <i class="fa-solid fa-rotate-left mr-1"></i>초기화
           </button>
