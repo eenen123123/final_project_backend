@@ -235,6 +235,21 @@
         WHERE USER_ID = #{userId}
     </update>
 
+    <!-- 회원 탈퇴: 계정 비활성화 -->
+    <update id="withdrawMember">
+        UPDATE MEMBER
+           SET ENABLE   = 'N',
+               MOD_DATE = CURRENT_TIMESTAMP
+         WHERE USER_ID  = #{userId}
+           AND ENABLE   = 'Y'
+    </update>
+
+    <!-- 탈퇴 이력 저장 -->
+    <insert id="insertWithdrawLog" parameterType="kr.or.ddit.finalProject.dto.member.MemberWithdrawLogDto">
+        INSERT INTO MEMBER_WITHDRAW_LOG (USER_ID, WITHDRAW_RSN, RGTR_ID, LAST_MDFR_ID)
+        VALUES (#{userId}, #{withdrawRsn}, #{userId}, #{userId})
+    </insert>
+
     <select id="searchStudentsForCoupon" resultMap="memberTestResultMap">
         SELECT USER_ID, USER_NAME, USER_ROLE
         FROM MEMBER

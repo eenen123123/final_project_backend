@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -131,5 +132,15 @@ public class RestMyPageController {
         memberService.updateMember(memberDto);
 
         return ResponseEntity.ok(true);
+    }
+
+    // DELETE /api/mypage/withdraw - 회원 탈퇴 (소프트 딜리트)
+    @DeleteMapping("/withdraw")
+    public ResponseEntity<Void> withdraw(Authentication authentication,
+            @RequestBody(required = false) Map<String, String> body) {
+        String userId = authentication.getName();
+        String reason = body != null ? body.getOrDefault("reason", "") : "";
+        memberService.withdrawMember(userId, reason);
+        return ResponseEntity.noContent().build();
     }
 }

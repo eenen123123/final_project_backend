@@ -104,6 +104,8 @@ public interface MemberService {
      */
     void updateMember(MemberDto memberDto);
 
+    void withdrawMember(String userId, String reason);
+
     Map<String, List<AdminMemberDto>> getGroupedAdminUsers(String currentUserId);
 
 }

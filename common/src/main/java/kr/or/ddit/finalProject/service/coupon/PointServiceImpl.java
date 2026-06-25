@@ -68,10 +68,6 @@ public class PointServiceImpl implements PointService {
         if (userId == null || userId.isBlank()) {
             throw new FinalProjectException(ErrorCode.BAD_REQUEST);
         }
-        // 1,000p 미만 사용 불가
-        if (amount < MIN_USE_AMOUNT) {
-            throw new FinalProjectException(ErrorCode.POINT_MINIMUM_USAGE);
-        }
 
         // 잔액 체크 + 차감을 단일 SQL로 원자적 처리 (동시성 보호)
         // INSERT 결과가 0이면 잔액 부족 (다른 트랜잭션이 먼저 차감한 경우 포함)
