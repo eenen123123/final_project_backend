@@ -229,7 +229,7 @@ function filterByDiscType(type) {
   ['all', 'Rate', 'Fixed'].forEach(function(k) {
     var btn    = document.getElementById('discFilter' + (k === 'all' ? 'All' : k));
     var active = (k === 'all' && type === 'all') || ('RATE' === type && k === 'Rate') || ('FIXED' === type && k === 'Fixed');
-    btn.className = 'px-3 py-1.5 transition-colors ' + (active ? 'bg-blue-600 text-white' : 'text-slate-500 hover:bg-slate-50');
+    btn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ' + (active ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700');
   });
   couponPage = 1;
   renderCouponTable();
