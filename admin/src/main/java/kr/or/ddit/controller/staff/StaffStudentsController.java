@@ -67,13 +67,17 @@ public class StaffStudentsController {
     @GetMapping("/employees/students")
     public String getStudents(Model model) {
         log.info("getStudents");
-
-        // 1. 학생 관리 대시보드 테이블에 노출할 전체 학생 상세 목록 데이터를 조회한다.
-        List<MemberDto> studentList = staffService.retrieveStudentList();
-
-        model.addAttribute("studentList", studentList);
-
+        // 테이블 데이터는 JS AJAX로 처리 — 별도 model 속성 불필요
         return "admin:/staff/students";
+    }
+
+    /**
+     * 유형별 학생 수 조회 (상단 요약 카드용 AJAX)
+     */
+    @GetMapping("/employees/students/stats")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getStudentStats() {
+        return ResponseEntity.ok(staffService.getStudentStatusCounts());
     }
 
     private static final int PAGE_SIZE = 10;
