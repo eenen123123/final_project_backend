@@ -107,6 +107,15 @@
       </div>
     </div>
 
+    <!-- 세부 주제 -->
+    <div class="flex items-center px-8 py-3">
+      <label class="w-28 shrink-0 text-sm font-semibold text-slate-600">세부 주제</label>
+      <input type="text" name="topic" id="fq-topic" maxlength="100"
+        placeholder="예) 삼각함수 - 사인법칙, 확률 - 조합"
+        class="hm-input hm-input-sky flex-1"
+        th:value="${question?.topic}" />
+    </div>
+
     <!-- 문제 본문 -->
     <div class="flex px-8 py-3">
       <label class="w-28 shrink-0 pt-1 text-sm font-semibold text-slate-600">

@@ -37,6 +37,7 @@ import kr.or.ddit.finalProject.service.course.CourseService;
 import kr.or.ddit.finalProject.service.exam.ExamService;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
 import kr.or.ddit.finalProject.service.lecture.LectureService;
+import kr.or.ddit.finalProject.service.exam.GeminiQuestionService;
 import kr.or.ddit.service.AdminActivityApprovalService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,6 +52,7 @@ public class AdminClassroomController extends AbstractClassroomController {
     private final CourseService courseService;
     private final AdminActivityApprovalService adminActivityApprovalService;
     private final ExamService examService;
+    private final GeminiQuestionService geminiQuestionService;
 
     public AdminClassroomController(ClassroomService classroomService,
                                     AssignmentBoardService assignmentBoardService,
@@ -58,12 +60,14 @@ public class AdminClassroomController extends AbstractClassroomController {
                                     LectureService lectureService,
                                     CourseService courseService,
                                     AdminActivityApprovalService adminActivityApprovalService,
-                                    ExamService examService) {
+                                    ExamService examService,
+                                    GeminiQuestionService geminiQuestionService) {
         super(classroomService, assignmentBoardService, instructorBoardService);
         this.lectureService = lectureService;
         this.courseService = courseService;
         this.adminActivityApprovalService = adminActivityApprovalService;
         this.examService = examService;
+        this.geminiQuestionService = geminiQuestionService;
     }
 
     // 클래스룸 목록 페이지 렌더링 (데이터는 AJAX로 별도 로드)
@@ -321,23 +325,18 @@ public class AdminClassroomController extends AbstractClassroomController {
         return ResponseEntity.ok("ok");
     }
 
-    // ── 성적 관리 ────────────────────────────────────────────────
-    // 수강생별 성적 목록
+    // ── 약점 분석 ────────────────────────────────────────────────
     @GetMapping("/detail/{classSn}/grades")
     public String gradeList(@PathVariable Long classSn,
-            @RequestParam(defaultValue = "1") int page,
             Model model, Authentication authentication) {
         ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
         if (classroom == null) {
             return "redirect:/classroom/list";
         }
-        kr.or.ddit.finalProject.dto.common.PageResponse<kr.or.ddit.finalProject.dto.classroom.ClassroomGradeDto> gradePage =
-                classroomService.retrieveGradeList(classSn, page, PAGE_SIZE);
         model.addAttribute("classroom", classroom);
-        model.addAttribute("gradePage", gradePage);
-        model.addAttribute("currentPage", page);
-        model.addAttribute("pageSize", PAGE_SIZE);
-        model.addAttribute("totalPages", (int) Math.ceil((double) gradePage.getTotalCount() / PAGE_SIZE));
+        model.addAttribute("weakPoints", geminiQuestionService.retrieveWeakPoints(classSn));
+        model.addAttribute("difficultyStats", geminiQuestionService.retrieveDifficultyStats(classSn));
+        model.addAttribute("examTrend", geminiQuestionService.retrieveExamTrend(classSn));
         return "classroom/list-classroom-grades";
     }
 
