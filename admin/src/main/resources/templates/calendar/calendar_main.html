@@ -103,7 +103,7 @@
   <!-- 페이지 헤더 -->
   <div class="flex items-center justify-between mb-4">
     <div>
-        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">캘린더 관리</h1>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">통합 일정 관리</h1>
         <p class="text-sm text-slate-500 mt-1">혜택/이벤트 및 학사 일정을 등록·관리합니다.</p>
     </div>
   </div>
@@ -170,7 +170,7 @@
             <span id="event-count" class="text-xs bg-sky-100 text-sky-600 font-bold px-2 py-0.5 rounded-full">0</span>
           </div>
           <select id="type-filter" onchange="filterEvents()"
-            class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-600 cursor-pointer"
+            class="ml-auto text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-600 cursor-pointer hm-input" style="width:7rem"
 >
             <option value="">전체</option>
             <option value="event">혜택/이벤트</option>
@@ -215,29 +215,29 @@
             <label class="block text-xs font-semibold text-slate-600 mb-1.5">제목 <span
                 class="text-red-400">*</span></label>
             <input type="text" id="reg-event-title" placeholder="일정 제목을 입력하세요"
-              class="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-sky-400 transition-all" />
+              class="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-sky-400 transition-all hm-input"/>
           </div>
           <!-- 내용 -->
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1.5">내용</label>
             <textarea id="reg-event-cont" rows="3" placeholder="일정 내용을 입력하세요"
-              class="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-sky-400 transition-all resize-none"></textarea>
+              class="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-sky-400 transition-all resize-none hm-input"></textarea>
           </div>
           <!-- 기간 -->
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1.5">기간 <span
                 class="text-red-400">*</span></label>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-col gap-1.5">
               <input type="date" id="reg-start-dt"
-                class="flex-1 text-xs border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:border-sky-400 transition-all cursor-pointer" />
-              <span class="text-slate-400 text-xs flex-shrink-0">~</span>
+                class="w-full text-xs border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:border-sky-400 transition-all cursor-pointer hm-input" />
+              <span class="text-slate-400 text-xs text-center flex-shrink-0">~</span>
               <input type="date" id="reg-end-dt"
-                class="flex-1 text-xs border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:border-sky-400 transition-all cursor-pointer" />
+                class="w-full text-xs border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:border-sky-400 transition-all cursor-pointer hm-input" />
             </div>
           </div>
           <!-- 등록 버튼 -->
           <button onclick="submitRegForm()"
-            class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer">
+            class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer hm-btn-primary">
             <i class="fa-solid fa-plus mr-1.5"></i>일정 등록
           </button>
         </div>
@@ -290,13 +290,13 @@
           <label class="block text-xs font-semibold text-slate-600 mb-1.5">제목 <span
               class="text-red-400">*</span></label>
           <input type="text" id="edit-event-title"
-            class="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-sky-400 transition-all" />
+            class="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-sky-400 transition-all hm-input" />
         </div>
         <!-- 내용 -->
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1.5">내용</label>
           <textarea id="edit-event-cont" rows="3"
-            class="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-sky-400 transition-all resize-none"></textarea>
+            class="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-sky-400 transition-all resize-none  hm-input"></textarea>
         </div>
         <!-- 기간 -->
         <div>
@@ -304,15 +304,15 @@
               class="text-red-400">*</span></label>
           <div class="flex items-center gap-2">
             <input type="date" id="edit-start-dt"
-              class="flex-1 text-xs border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:border-sky-400 transition-all cursor-pointer" />
+              class="flex-1 text-xs border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:border-sky-400 transition-all cursor-pointer hm-input" />
             <span class="text-slate-400 text-xs flex-shrink-0">~</span>
             <input type="date" id="edit-end-dt"
-              class="flex-1 text-xs border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:border-sky-400 transition-all cursor-pointer" />
+              class="flex-1 text-xs border border-slate-200 rounded-lg px-2 py-2 focus:outline-none focus:border-sky-400 transition-all cursor-pointer hm-input" />
           </div>
         </div>
         <div class="flex gap-2 pt-1">
           <button onclick="submitEditForm()"
-            class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer">
+            class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer hm-btn-primary">
             <i class="fa-solid fa-floppy-disk mr-1.5"></i>수정 완료
           </button>
           <button onclick="submitDeleteForm()"
