@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.or.ddit.finalProject.dto.file.FileCtxType;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
@@ -89,7 +90,7 @@ public class AdminClassroomNoticeController extends AbstractClassroomController 
     @PostMapping("/detail/{classSn}/notice/write")
     public String noticeWrite(@PathVariable Long classSn, @ModelAttribute InstructorBoardDto dto,
             @RequestParam(required = false) List<MultipartFile> attachFiles,
-            Authentication authentication) {
+            Authentication authentication, RedirectAttributes redirectAttrs) {
         String userId = authentication.getName();
         if (getOwnedClassroom(classSn, userId) == null) return "redirect:/classroom/list";
         dto.setClassSn(classSn);
@@ -113,10 +114,13 @@ public class AdminClassroomNoticeController extends AbstractClassroomController 
                 log.error("공지 파일 업로드 실패 — 등록된 공지 보상 삭제 (postSn={}, groupId={})", dto.getPostSn(), groupId, e);
                 cleanupFileGroup(groupId, userId);
                 instructorBoardService.deleteClassroomNotice(dto.getPostSn(), classSn);
+                redirectAttrs.addFlashAttribute("toastMsg", "파일 업로드에 실패했습니다.");
+                redirectAttrs.addFlashAttribute("toastType", "error");
                 return "redirect:/classroom/detail/" + classSn + "/notice/write?error=fileUploadFailed";
             }
         }
 
+        redirectAttrs.addFlashAttribute("toastMsg", "공지사항이 등록되었습니다.");
         return "redirect:/classroom/detail/" + classSn + "/notice/" + dto.getPostSn();
     }
 
@@ -143,7 +147,7 @@ public class AdminClassroomNoticeController extends AbstractClassroomController 
     public String noticeEdit(@PathVariable Long classSn, @PathVariable Long postSn,
             @ModelAttribute InstructorBoardDto dto,
             @RequestParam(required = false) List<MultipartFile> attachFiles,
-            Authentication authentication) {
+            Authentication authentication, RedirectAttributes redirectAttrs) {
         String userId = authentication.getName();
         if (getOwnedClassroom(classSn, userId) == null) return "redirect:/classroom/list";
         dto.setPostSn(postSn);
@@ -174,6 +178,8 @@ public class AdminClassroomNoticeController extends AbstractClassroomController 
                             .stream().map(f -> f.getAtchFileDtlSn())
                             .filter(sn -> !before.contains(sn))
                             .forEach(sn -> fileUploadService.removeFile(sn, userId));
+                    redirectAttrs.addFlashAttribute("toastMsg", "파일 업로드에 실패했습니다.");
+                    redirectAttrs.addFlashAttribute("toastType", "error");
                     return editErrorUrl;
                 }
                 addedFileSns = fileUploadService.retrieveFilesByGroupId(existingGroupId.intValue())
@@ -192,6 +198,8 @@ public class AdminClassroomNoticeController extends AbstractClassroomController 
                 } catch (Exception e) {
                     log.error("공지 수정 파일 업로드 실패 — 새 그룹 정리 (postSn={}, groupId={})", postSn, newGroupId, e);
                     cleanupFileGroup(newGroupId, userId);
+                    redirectAttrs.addFlashAttribute("toastMsg", "파일 업로드에 실패했습니다.");
+                    redirectAttrs.addFlashAttribute("toastType", "error");
                     return editErrorUrl;
                 }
             }
@@ -199,10 +207,13 @@ public class AdminClassroomNoticeController extends AbstractClassroomController 
 
         try {
             instructorBoardService.updateClassroomNotice(dto);
+            redirectAttrs.addFlashAttribute("toastMsg", "공지사항이 수정되었습니다.");
         } catch (Exception e) {
             log.error("공지 수정 DB 반영 실패 (postSn={}, groupId={})", postSn, newGroupId, e);
             addedFileSns.forEach(sn -> fileUploadService.removeFile(sn, userId));
             cleanupFileGroup(newGroupId, userId);
+            redirectAttrs.addFlashAttribute("toastMsg", "수정에 실패했습니다.");
+            redirectAttrs.addFlashAttribute("toastType", "error");
             return editErrorUrl;
         }
 
@@ -212,7 +223,7 @@ public class AdminClassroomNoticeController extends AbstractClassroomController 
     // 공지사항 첨부파일 단건 삭제 (공지 소유권 검증 후 제거)
     @PostMapping("/detail/{classSn}/notice/{postSn}/file/{fileDtlSn}/delete")
     public String noticeFileDelete(@PathVariable Long classSn, @PathVariable Long postSn,
-            @PathVariable Integer fileDtlSn, Authentication authentication) {
+            @PathVariable Integer fileDtlSn, Authentication authentication, RedirectAttributes redirectAttrs) {
         String editUrl = "redirect:/classroom/detail/" + classSn + "/notice/" + postSn + "/edit";
         InstructorBoardDto notice = instructorBoardService.getClassroomNoticeDetail(postSn, classSn);
         if (notice == null || notice.getAtchFileId() == null) {
@@ -225,15 +236,17 @@ public class AdminClassroomNoticeController extends AbstractClassroomController 
             return editUrl;
         }
         fileUploadService.removeFile(fileDtlSn, authentication.getName());
+        redirectAttrs.addFlashAttribute("toastMsg", "파일이 삭제되었습니다.");
         return editUrl;
     }
 
     // 공지사항 삭제
     @PostMapping("/detail/{classSn}/notice/{postSn}/delete")
     public String noticeDelete(@PathVariable Long classSn, @PathVariable Long postSn,
-            Authentication authentication) {
+            Authentication authentication, RedirectAttributes redirectAttrs) {
         if (getOwnedClassroom(classSn, authentication.getName()) == null) return "redirect:/classroom/list";
         instructorBoardService.deleteClassroomNotice(postSn, classSn);
+        redirectAttrs.addFlashAttribute("toastMsg", "공지사항이 삭제되었습니다.");
         return "redirect:/classroom/detail/" + classSn + "/notice";
     }
 

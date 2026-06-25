@@ -38,4 +38,7 @@ public interface ClassroomMemberMapper {
     int existsByFileIdAndUserId(@Param("fileId") Long fileId, @Param("userId") String userId);
 
     StudentDetailDto selectStudentDetail(@Param("classSn") Long classSn, @Param("userId") String userId);
+
+    /** 해당 클래스룸의 ENROLLED 수강생인지 확인 */
+    boolean isMember(@Param("classSn") Long classSn, @Param("userId") String userId);
 }

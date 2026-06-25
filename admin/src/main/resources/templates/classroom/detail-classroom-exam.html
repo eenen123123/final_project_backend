@@ -64,11 +64,11 @@
                 <td class="py-3 px-4 text-sm text-slate-700 max-w-xs truncate" th:text="${q.stem}">문항 내용</td>
                 <td class="py-3 px-4 text-center">
                   <span th:if="${q.qstnTypeCd == 'MULTIPLE_CHOICE'}"
-                        class="text-xs font-semibold px-2 py-0.5 rounded-full bg-sky-50 text-sky-600">객관식</span>
+                        class="text-xs font-semibold px-2 py-0.5 rounded-lg bg-sky-50 text-sky-600">객관식</span>
                   <span th:if="${q.qstnTypeCd == 'SHORT_ANSWER'}"
-                        class="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-50 text-violet-600">단답형</span>
+                        class="text-xs font-semibold px-2 py-0.5 rounded-lg bg-violet-50 text-violet-600">단답형</span>
                   <span th:if="${q.qstnTypeCd == 'ESSAY'}"
-                        class="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-600">서술형</span>
+                        class="text-xs font-semibold px-2 py-0.5 rounded-lg bg-amber-50 text-amber-600">서술형</span>
                 </td>
                 <td class="py-3 px-4 text-center text-sm font-mono text-slate-600" th:text="${q.allocScr}">0</td>
               </tr>
@@ -89,7 +89,7 @@
 
       <div th:if="${#lists.isEmpty(takers)}"
            class="p-16 flex flex-col items-center justify-center text-center gap-3">
-        <div class="w-12 h-12 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 text-2xl">
+        <div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 text-3xl">
           <i class="fa-solid fa-users"></i>
         </div>
         <p class="text-sm font-medium text-slate-400">아직 응시자가 없습니다.</p>
@@ -102,6 +102,9 @@
               <th class="py-4 px-7 w-14 font-medium">번호</th>
               <th class="py-4 px-7 font-medium">이름</th>
               <th class="py-4 px-7 font-medium">아이디</th>
+              <th class="py-4 px-7 w-44 font-medium whitespace-nowrap">제출일시</th>
+              <th class="py-4 px-7 w-28 text-center font-medium whitespace-nowrap">총점</th>
+              <th class="py-4 px-7 w-28 text-center font-medium whitespace-nowrap">채점</th>
             </tr>
           </thead>
           <tbody class="text-slate-700">
@@ -109,6 +112,27 @@
               <td class="py-4 px-7 text-sm text-slate-300 font-mono" th:text="${stat.count}">1</td>
               <td class="py-4 px-7 text-sm font-semibold text-slate-700" th:text="${taker.stdNm}">이름</td>
               <td class="py-4 px-7 text-sm text-slate-400 font-mono" th:text="${taker.stdUserId}">아이디</td>
+              <td class="py-4 px-7 text-sm text-slate-400 font-mono whitespace-nowrap"
+                  th:text="${taker.sbmtDt != null ? taker.sbmtDt : '-'}">-</td>
+              <td class="py-4 px-7 text-center">
+                <span th:if="${taker.totScore != null}"
+                      class="text-sm font-bold text-slate-700 font-mono"
+                      th:text="${taker.totScore} + '점'">0점</span>
+                <span th:unless="${taker.totScore != null}"
+                      class="text-sm text-slate-300">-</span>
+              </td>
+              <td class="py-4 px-7 text-center">
+                <a th:href="@{/classroom/detail/{sn}/exams/{examSn}/grade/{userId}(sn=${classroom.classSn},examSn=${exam.examSn},userId=${taker.stdUserId})}"
+                   th:if="${taker.gradedYn == 'Y'}"
+                   class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors whitespace-nowrap">
+                  <i class="fa-solid fa-check text-xs"></i> 채점 완료
+                </a>
+                <a th:href="@{/classroom/detail/{sn}/exams/{examSn}/grade/{userId}(sn=${classroom.classSn},examSn=${exam.examSn},userId=${taker.stdUserId})}"
+                   th:unless="${taker.gradedYn == 'Y'}"
+                   class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors whitespace-nowrap">
+                  <i class="fa-solid fa-pen text-xs"></i> 채점하기
+                </a>
+              </td>
             </tr>
           </tbody>
         </table>
