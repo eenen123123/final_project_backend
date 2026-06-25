@@ -36,7 +36,7 @@ function renderTable(items) {
   tbody.innerHTML = items.map(function(c) {
     return '<tr class="hover:bg-slate-50/50 transition-colors">' +
       '<td class="py-4 px-6">' +
-        '<a href="/classroom/detail/' + c.classSn + '" target="_blank">' +
+        '<a href="/classroom/detail/' + c.classSn + '">' +
           '<div class="flex items-center gap-3">' +
             '<div class="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-sky-500 text-base shrink-0">' +
               '<i class="fa-solid fa-chalkboard"></i>' +

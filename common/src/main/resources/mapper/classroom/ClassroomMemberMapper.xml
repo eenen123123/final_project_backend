@@ -144,6 +144,14 @@
 
   </select>
 
+  <select id="isMember" resultType="boolean">
+    SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END
+    FROM CLASSROOM_MEMBER
+    WHERE CLASS_SN = #{classSn}
+      AND USER_ID = #{userId}
+      AND ENRL_STAT_CD = 'ENROLLED'
+  </select>
+
   <!-- 학생 상세 기본정보 — MEMBER JOIN으로 연락처/프로필 포함 -->
   <select id="selectStudentDetail" resultType="kr.or.ddit.finalProject.dto.classroom.StudentDetailDto">
     SELECT
