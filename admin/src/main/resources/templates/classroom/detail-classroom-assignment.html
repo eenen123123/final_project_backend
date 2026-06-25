@@ -84,7 +84,10 @@
       </div>
 
       <div th:if="${#lists.isEmpty(submitList)}"
-           class="p-16 flex flex-col items-center gap-4 text-center">
+           class="p-16 flex flex-col items-center justify-center gap-4 text-center">
+        <div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 text-3xl">
+          <i class="fa-solid fa-users"></i>
+        </div>
         <p class="text-base font-medium text-slate-400">등록된 수강생이 없습니다.</p>
       </div>
 

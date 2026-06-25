@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.or.ddit.finalProject.dto.assignment.AssignmentBoardDto;
 import kr.or.ddit.finalProject.dto.assignment.AssignmentSubmitDto;
@@ -89,12 +90,13 @@ public class AdminClassroomAssignmentController extends AbstractClassroomControl
     // 과제 등록
     @PostMapping("/detail/{classSn}/assignments/write")
     public String assignmentWrite(@PathVariable Long classSn,
-            @ModelAttribute AssignmentBoardDto dto, Authentication authentication) {
+            @ModelAttribute AssignmentBoardDto dto, Authentication authentication, RedirectAttributes redirectAttrs) {
         if (getOwnedClassroom(classSn, authentication.getName()) == null)
             return "redirect:/classroom/list";
         dto.setClassSn(classSn);
         dto.setRgtrUserId(authentication.getName());
         assignmentBoardService.insertAssignment(dto);
+        redirectAttrs.addFlashAttribute("toastMsg", "과제가 등록되었습니다.");
         return "redirect:/classroom/detail/" + classSn + "/assignments";
     }
 
@@ -149,39 +151,42 @@ public class AdminClassroomAssignmentController extends AbstractClassroomControl
     // 과제 수정 저장
     @PostMapping("/detail/{classSn}/assignments/{asgmtSn}/edit")
     public String assignmentEdit(@PathVariable Long classSn, @PathVariable Long asgmtSn,
-            @ModelAttribute AssignmentBoardDto dto, Authentication authentication) {
+            @ModelAttribute AssignmentBoardDto dto, Authentication authentication, RedirectAttributes redirectAttrs) {
         if (getOwnedClassroom(classSn, authentication.getName()) == null)
             return "redirect:/classroom/list";
         dto.setAsgmtSn(asgmtSn);
         dto.setClassSn(classSn);
         dto.setLastMdfrId(authentication.getName());
         assignmentBoardService.updateAssignment(dto);
+        redirectAttrs.addFlashAttribute("toastMsg", "과제가 수정되었습니다.");
         return "redirect:/classroom/detail/" + classSn + "/assignments/" + asgmtSn;
     }
 
     // 과제 삭제
     @PostMapping("/detail/{classSn}/assignments/{asgmtSn}/delete")
     public String assignmentDelete(@PathVariable Long classSn, @PathVariable Long asgmtSn,
-            Authentication authentication) {
+            Authentication authentication, RedirectAttributes redirectAttrs) {
         if (getOwnedClassroom(classSn, authentication.getName()) == null)
             return "redirect:/classroom/list";
         AssignmentBoardDto assignment = assignmentBoardService.getAssignmentDetail(asgmtSn);
         if (assignment == null || !classSn.equals(assignment.getClassSn()))
             return "redirect:/classroom/detail/" + classSn + "/assignments";
         assignmentBoardService.deleteAssignment(asgmtSn, classSn);
+        redirectAttrs.addFlashAttribute("toastMsg", "과제가 삭제되었습니다.");
         return "redirect:/classroom/detail/" + classSn + "/assignments";
     }
 
     // 재제출 허용 토글
     @PostMapping("/detail/{classSn}/assignments/{asgmtSn}/resubmit-toggle")
     public String resubmitToggle(@PathVariable Long classSn, @PathVariable Long asgmtSn,
-            Authentication authentication) {
+            Authentication authentication, RedirectAttributes redirectAttrs) {
         if (getOwnedClassroom(classSn, authentication.getName()) == null)
             return "redirect:/classroom/list";
         AssignmentBoardDto assignment = assignmentBoardService.getAssignmentDetail(asgmtSn);
         if (assignment == null || !classSn.equals(assignment.getClassSn()))
             return "redirect:/classroom/detail/" + classSn + "/assignments";
         assignmentBoardService.toggleResubmitAllow(asgmtSn, classSn);
+        redirectAttrs.addFlashAttribute("toastMsg", "재제출 허용 상태가 변경되었습니다.");
         return "redirect:/classroom/detail/" + classSn + "/assignments/" + asgmtSn;
     }
 
@@ -189,16 +194,20 @@ public class AdminClassroomAssignmentController extends AbstractClassroomControl
     @PostMapping("/detail/{classSn}/assignments/{asgmtSn}/grade/{sbmtSn}")
     public String assignmentGrade(@PathVariable Long classSn, @PathVariable Long asgmtSn,
             @PathVariable Long sbmtSn, @RequestParam BigDecimal score,
-            Authentication authentication) {
+            Authentication authentication, RedirectAttributes redirectAttrs) {
         if (getOwnedClassroom(classSn, authentication.getName()) == null)
             return "redirect:/classroom/list";
-        if (score == null || score.compareTo(BigDecimal.ZERO) < 0 || score.compareTo(new BigDecimal(100)) > 0)
+        if (score == null || score.compareTo(BigDecimal.ZERO) < 0 || score.compareTo(new BigDecimal(100)) > 0) {
+            redirectAttrs.addFlashAttribute("toastMsg", "유효하지 않은 점수입니다.");
+            redirectAttrs.addFlashAttribute("toastType", "error");
             return "redirect:/classroom/detail/" + classSn + "/assignments/" + asgmtSn + "?error=invalidScore";
+        }
         AssignmentBoardDto assignment = assignmentBoardService.getAssignmentDetail(asgmtSn);
         if (assignment == null || !classSn.equals(assignment.getClassSn()))
             return "redirect:/classroom/detail/" + classSn + "/assignments";
         int updated = assignmentBoardService.gradeSubmit(sbmtSn, asgmtSn, score, authentication.getName());
         if (updated == 0) log.warn("gradeSubmit 0 rows: classSn={} asgmtSn={} sbmtSn={}", classSn, asgmtSn, sbmtSn);
+        redirectAttrs.addFlashAttribute("toastMsg", "채점이 저장되었습니다.");
         return "redirect:/classroom/detail/" + classSn + "/assignments/" + asgmtSn;
     }
 }

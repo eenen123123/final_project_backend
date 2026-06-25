@@ -44,11 +44,11 @@
               <div class="flex items-center gap-2">
                 <span class="font-semibold text-slate-800" th:text="${member.userName}">홍길동</span>
                 <span th:if="${member.enrlStatCd == T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).COMPLETED}"
-                      class="text-xs font-semibold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600">수강완료</span>
+                      class="text-xs font-semibold px-1.5 py-0.5 rounded-lg bg-emerald-50 text-emerald-600">수강완료</span>
                 <span th:if="${member.enrlStatCd == T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).WITHDRAWN}"
-                      class="text-xs font-semibold px-1.5 py-0.5 rounded bg-amber-50 text-amber-600">중도탈퇴</span>
+                      class="text-xs font-semibold px-1.5 py-0.5 rounded-lg bg-amber-50 text-amber-600">중도탈퇴</span>
                 <span th:if="${member.enrlStatCd == T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).CANCELLED}"
-                      class="text-xs font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-400">등록취소</span>
+                      class="text-xs font-semibold px-1.5 py-0.5 rounded-lg bg-slate-100 text-slate-400">등록취소</span>
               </div>
             </td>
             <td class="py-4 px-7 text-sm text-slate-400 font-mono whitespace-nowrap" th:text="${member.userId}">user123</td>
