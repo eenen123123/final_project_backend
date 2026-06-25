@@ -610,11 +610,15 @@
     <if test="detailCondition != null and detailCondition.year != null and detailCondition.year != ''">
             AND TO_CHAR(m.JOIN_DT, 'YYYY') = #{detailCondition.year}
     </if>
-    <if test="detailCondition != null and detailCondition.unregistered != null and detailCondition.unregistered == 'true'">
+    <if test="detailCondition != null and detailCondition.classStatus == 'unregistered'">
             AND m.USER_ROLE = 'ROLE_STUDENT'
             AND NOT EXISTS (SELECT 1 FROM CLASSROOM_MEMBER cm WHERE cm.USER_ID = m.USER_ID)
     </if>
-    <if test="detailCondition != null and detailCondition.unregistered == null and detailCondition.userRole != null and detailCondition.userRole != ''">
+    <if test="detailCondition != null and detailCondition.classStatus == 'registered'">
+            AND m.USER_ROLE = 'ROLE_STUDENT'
+            AND EXISTS (SELECT 1 FROM CLASSROOM_MEMBER cm WHERE cm.USER_ID = m.USER_ID)
+    </if>
+    <if test="detailCondition != null and detailCondition.classStatus == null and detailCondition.userRole != null and detailCondition.userRole != ''">
             AND m.USER_ROLE = #{detailCondition.userRole}
     </if>
     <if test="detailCondition != null and detailCondition.enable != null and detailCondition.enable != ''">
@@ -702,11 +706,15 @@
     <if test="detailCondition != null and detailCondition.year != null and detailCondition.year != ''">
             AND TO_CHAR(m.JOIN_DT, 'YYYY') = #{detailCondition.year}
     </if>
-    <if test="detailCondition != null and detailCondition.unregistered != null and detailCondition.unregistered == 'true'">
+    <if test="detailCondition != null and detailCondition.classStatus == 'unregistered'">
             AND m.USER_ROLE = 'ROLE_STUDENT'
             AND NOT EXISTS (SELECT 1 FROM CLASSROOM_MEMBER cm WHERE cm.USER_ID = m.USER_ID)
     </if>
-    <if test="detailCondition != null and detailCondition.unregistered == null and detailCondition.userRole != null and detailCondition.userRole != ''">
+    <if test="detailCondition != null and detailCondition.classStatus == 'registered'">
+            AND m.USER_ROLE = 'ROLE_STUDENT'
+            AND EXISTS (SELECT 1 FROM CLASSROOM_MEMBER cm WHERE cm.USER_ID = m.USER_ID)
+    </if>
+    <if test="detailCondition != null and detailCondition.classStatus == null and detailCondition.userRole != null and detailCondition.userRole != ''">
             AND m.USER_ROLE = #{detailCondition.userRole}
     </if>
     <if test="detailCondition != null and detailCondition.enable != null and detailCondition.enable != ''">
