@@ -36,8 +36,7 @@
       </div>
       <div>
         <p class="text-xs text-slate-500">전체 직원</p>
-        <p class="text-xl font-bold text-slate-800" th:text="${employeeList != null ? #lists.size(employeeList) : 0}">0
-        </p>
+        <p class="text-xl font-bold text-slate-800" id="stat-total">-</p>
       </div>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
@@ -46,8 +45,7 @@
       </div>
       <div>
         <p class="text-xs text-slate-500">재직 중</p>
-        <p class="text-xl font-bold text-slate-800"
-          th:text="${employeeList != null ? #lists.size(employeeList.?[emplStatCd == '01']) : 0}">0</p>
+        <p class="text-xl font-bold text-slate-800" id="stat-active">-</p>
       </div>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
@@ -56,8 +54,7 @@
       </div>
       <div>
         <p class="text-xs text-slate-500">휴직 중</p>
-        <p class="text-xl font-bold text-slate-800"
-          th:text="${employeeList != null ? #lists.size(employeeList.?[emplStatCd == '02']) : 0}">0</p>
+        <p class="text-xl font-bold text-slate-800" id="stat-leave">-</p>
       </div>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
@@ -66,8 +63,7 @@
       </div>
       <div>
         <p class="text-xs text-slate-500">퇴사</p>
-        <p class="text-xl font-bold text-slate-800"
-          th:text="${employeeList != null ? #lists.size(employeeList.?[emplStatCd == '03']) : 0}">0</p>
+        <p class="text-xl font-bold text-slate-800" id="stat-resigned">-</p>
       </div>
     </div>
   </div>
@@ -164,67 +160,6 @@
             </tr>
           </thead>
           <tbody id="hr-table-body" class="divide-y divide-slate-50">
-            <tr th:if="${employeeList == null or #lists.isEmpty(employeeList)}">
-              <td colspan="8" class="text-center py-10 text-sm text-slate-400">등록된 직원이 없습니다.</td>
-            </tr>
-            <tr th:each="emp : ${employeeList}" class="hr-data-row hover:bg-slate-50 transition-colors"
-              th:data-id="${emp.member.userId}" 
-              th:data-name="${emp.member.userName}" 
-              th:data-grade="${emp.jbgrNm}"
-              th:data-grade-cd="${emp.employeeInfo != null ? emp.employeeInfo.jbgrCd : ''}"
-              th:data-join="${emp.employeeInfo != null ? emp.employeeInfo.joinYmd : ''}"
-              th:data-type="${emp.employeeInfo != null and emp.employeeInfo.emplTypeCd != null ? #strings.trim(emp.employeeInfo.emplTypeCd) : ''}"
-              th:data-dept="${emp.deptCd}"
-              th:data-dept-nm="${emp.deptNm}"
-              th:data-status="${emp.employeeInfo != null ? emp.employeeInfo.emplStatCd : ''}"
-              th:data-phone="${emp.member.userTelno}" 
-              th:data-email="${emp.member.userEmailAddr}"
-              th:data-birthdate="${emp.member.userBrdt}" 
-              th:data-gender="${emp.member.userGndrCd}"
-              th:data-zip="${emp.member.userZip}"
-              th:data-addr-base="${emp.member.userAddr != null ? emp.member.userAddr : ''}"
-              th:data-addr-detail="${emp.member.userDaddr != null ? emp.member.userDaddr : ''}"
-              th:data-addr="${(emp.member.userAddr != null ? emp.member.userAddr : '') + (emp.member.userDaddr != null and not #strings.isEmpty(emp.member.userDaddr) ? ' ' + emp.member.userDaddr : '')}"
-              th:data-contract-end="${emp.employeeInfo != null ? emp.employeeInfo.ctrctEndYmd : ''}"
-              th:data-duty="${emp.employeeInfo != null ? emp.employeeInfo.chrgDutyCn : ''}"
-              th:data-salary="${emp.baseSalary != null ? emp.baseSalary : ''}"
-              th:data-profile="${emp.member.userProfile != null ? emp.member.userProfile : ''}">
-              <!-- 테이블 내용 -->
-              <td class="py-3 px-4">
-                <div class="flex items-center gap-2">
-                  <img th:if="${emp.member.userProfile != null and #strings.startsWith(emp.member.userProfile, 'http')}"
-                    th:src="${emp.member.userProfile}"
-                    class="w-7 h-7 rounded-lg object-cover" alt="프로필">
-                  <div th:unless="${emp.member.userProfile != null and #strings.startsWith(emp.member.userProfile, 'http')}"
-                    class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-xs font-bold text-[#3b82f6]"
-                    th:text="${#strings.substring(emp.member.userName, 0, 1)}">?</div>
-
-                  <div>
-                      <p class="font-bold text-slate-800" th:text="${emp.member.userName}"></p>
-                      <p class="text-xs text-slate-400" th:text="${emp.userId}"></p>
-                  </div>
-                </div>
-              </td>
-              <td class="py-3 px-4 text-sm text-slate-600 truncate" th:text="${emp.deptNm}">-</td>
-              <td class="py-3 px-4">
-                <span class="text-sm text-slate-600 block truncate" th:text="${emp.jbgrNm}">-</span>
-              </td>
-              <td class="py-3 px-4 text-sm text-slate-600 whitespace-nowrap"
-              th:text="${emp.employeeInfo != null ? (emp.employeeInfo.emplTypeCd == '01' ? '정규직' : (emp.employeeInfo.emplTypeCd == '02' ? '계약직' : (emp.employeeInfo.emplTypeCd == '03' ? '파트타임' : '-'))) : '-'}">
-              -</td>
-              <td class="py-3 px-4 text-sm text-slate-600 whitespace-nowrap" th:text="${emp.employeeInfo != null ? emp.employeeInfo.joinYmd : '-'}">-</td>
-              <td class="py-3 px-4 text-sm text-slate-600 truncate" th:text="${emp.employeeInfo != null and emp.employeeInfo.ctrctEndYmd != null and !#strings.isEmpty(emp.employeeInfo.ctrctEndYmd) ? #strings.substring(emp.employeeInfo.ctrctEndYmd, 0, 10) : '-'}">-</td>
-              <td class="py-3 px-4">
-                <span class="status-badge"
-                  th:classappend="${emp.employeeInfo != null ? (emp.employeeInfo.emplStatCd == '01' ? 'status-active' : (emp.employeeInfo.emplStatCd == '02' ? 'status-leave' : 'status-resigned')) : 'status-resigned'}"
-                  th:text="${emp.employeeInfo != null ? (emp.employeeInfo.emplStatCd == '01' ? '재직' : (emp.employeeInfo.emplStatCd == '02' ? '휴직' : '퇴사')) : '미등록'}">-</span>
-              </td>
-              <td class="py-3 px-4">
-                <button type="button" th:data-id="${emp.member.userId}"
-                  onclick="openDetail(this.getAttribute('data-id'))"
-                  class="text-xs text-[#3b82f6] hover:underline font-semibold">상세</button>
-              </td>
-            </tr>
           </tbody>
         </table>
         <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
