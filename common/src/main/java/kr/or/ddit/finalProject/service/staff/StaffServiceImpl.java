@@ -132,6 +132,11 @@ public class StaffServiceImpl implements StaffService{
     }
 
     @Override
+    public Map<String, Object> getEmployeeStatusCounts() {
+        return staffMapper.selectEmployeeStatusCounts();
+    }
+
+    @Override
     public EmployeeDetailDto retrieveEmployeeDetailById(String userId) {
         return staffMapper.selectEmployeeDetailByUserId(userId);
     }
