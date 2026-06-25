@@ -148,6 +148,27 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
+    public List<ExamTakerDto> retrieveTakersWithScore(Long examSn) {
+        return examMapper.selectTakersWithScore(examSn);
+    }
+
+    @Override
+    public List<kr.or.ddit.finalProject.dto.exam.StudentAnswerDto> retrieveStudentAnswers(Long examSn, String userId) {
+        return examMapper.selectStudentAnswers(examSn, userId);
+    }
+
+    @Override
+    @Transactional
+    public void gradeStudentExam(Long examSn, String userId,
+                                 java.util.Map<Long, java.math.BigDecimal> scores,
+                                 String graderId) {
+        for (java.util.Map.Entry<Long, java.math.BigDecimal> entry : scores.entrySet()) {
+            examMapper.updateAnswerScore(entry.getKey(), entry.getValue(), graderId);
+        }
+        examMapper.updateExamTakerTotalScore(examSn, userId);
+    }
+
+    @Override
     public List<kr.or.ddit.finalProject.dto.classroom.StudentExamDto> retrieveExamsByStudent(Long classSn, String userId) {
         return examMapper.selectExamsByStudent(classSn, userId);
     }

@@ -4,7 +4,9 @@ import java.beans.PropertyEditorSupport;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -19,7 +21,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import kr.or.ddit.finalProject.dto.assignment.AssignmentBoardDto;
+import kr.or.ddit.finalProject.dto.assignment.AssignmentSubmitDto;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse;
+import kr.or.ddit.finalProject.dto.file.FileDto;
+import kr.or.ddit.finalProject.mapper.FileMapper;
 import kr.or.ddit.finalProject.service.assignment.AssignmentBoardService;
 import kr.or.ddit.finalProject.service.classroom.ClassroomService;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
@@ -32,10 +37,14 @@ public class AdminClassroomAssignmentController extends AbstractClassroomControl
 
     private static final int PAGE_SIZE = 10;
 
+    private final FileMapper fileMapper;
+
     public AdminClassroomAssignmentController(ClassroomService classroomService,
                                               AssignmentBoardService assignmentBoardService,
-                                              InstructorBoardService instructorBoardService) {
+                                              InstructorBoardService instructorBoardService,
+                                              FileMapper fileMapper) {
         super(classroomService, assignmentBoardService, instructorBoardService);
+        this.fileMapper = fileMapper;
     }
 
     @InitBinder
@@ -100,15 +109,23 @@ public class AdminClassroomAssignmentController extends AbstractClassroomControl
             return "redirect:/classroom/detail/" + classSn + "/assignments";
         model.addAttribute("classroom", classroom);
         model.addAttribute("assignment", assignment);
-        List<kr.or.ddit.finalProject.dto.assignment.AssignmentSubmitDto> submitList =
-                assignmentBoardService.getSubmitList(asgmtSn, classSn);
+        List<AssignmentSubmitDto> submitList = assignmentBoardService.getSubmitList(asgmtSn, classSn);
         long pendingCnt = submitList.stream()
                 .filter(s -> s.getSbmtSn() != null && !"Y".equals(s.getGrddYn()))
                 .count();
         long submittedCnt = submitList.stream()
                 .filter(s -> s.getSbmtSn() != null)
                 .count();
+        // 첨부파일 맵: atchFileId → 파일 목록
+        Map<Long, List<FileDto>> fileMap = new HashMap<>();
+        for (AssignmentSubmitDto sub : submitList) {
+            if (sub.getAtchFileId() != null) {
+                fileMap.put(sub.getAtchFileId(),
+                        fileMapper.selectFilesByGroupId(sub.getAtchFileId().intValue()));
+            }
+        }
         model.addAttribute("submitList", submitList);
+        model.addAttribute("fileMap", fileMap);
         model.addAttribute("pendingCnt", pendingCnt);
         model.addAttribute("submittedCnt", submittedCnt);
         model.addAttribute("now", LocalDateTime.now());
@@ -153,6 +170,19 @@ public class AdminClassroomAssignmentController extends AbstractClassroomControl
             return "redirect:/classroom/detail/" + classSn + "/assignments";
         assignmentBoardService.deleteAssignment(asgmtSn, classSn);
         return "redirect:/classroom/detail/" + classSn + "/assignments";
+    }
+
+    // 재제출 허용 토글
+    @PostMapping("/detail/{classSn}/assignments/{asgmtSn}/resubmit-toggle")
+    public String resubmitToggle(@PathVariable Long classSn, @PathVariable Long asgmtSn,
+            Authentication authentication) {
+        if (getOwnedClassroom(classSn, authentication.getName()) == null)
+            return "redirect:/classroom/list";
+        AssignmentBoardDto assignment = assignmentBoardService.getAssignmentDetail(asgmtSn);
+        if (assignment == null || !classSn.equals(assignment.getClassSn()))
+            return "redirect:/classroom/detail/" + classSn + "/assignments";
+        assignmentBoardService.toggleResubmitAllow(asgmtSn, classSn);
+        return "redirect:/classroom/detail/" + classSn + "/assignments/" + asgmtSn;
     }
 
     // 과제 채점
