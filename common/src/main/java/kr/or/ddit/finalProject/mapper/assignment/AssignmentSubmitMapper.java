@@ -21,4 +21,13 @@ public interface AssignmentSubmitMapper {
     List<AssignmentSubmitDto> selectRecentSubmitsByClass(@Param("classSn") Long classSn, @Param("limit") int limit);
 
     int deleteSubmitsByAsgmtSn(@Param("asgmtSn") Long asgmtSn);
+
+    /** 특정 학생의 과제 제출 내용 단건 조회 */
+    AssignmentSubmitDto selectMySubmit(@Param("asgmtSn") Long asgmtSn, @Param("userId") String userId);
+
+    /** 과제 제출 등록 */
+    int insertSubmit(AssignmentSubmitDto dto);
+
+    /** 과제 재제출 (본문 내용 갱신) */
+    int updateMySubmit(@Param("asgmtSn") Long asgmtSn, @Param("userId") String userId, @Param("sbmtCn") String sbmtCn);
 }

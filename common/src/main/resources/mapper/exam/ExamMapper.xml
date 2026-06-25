@@ -340,4 +340,28 @@
         WHERE et.TOT_SCORE IS NULL
     </select>
 
+    <!-- 특정 학생의 EXAM_TAKER 조회 -->
+    <select id="selectExamTaker" resultType="kr.or.ddit.finalProject.dto.exam.ExamTakerDto">
+        SELECT
+            EXAM_SN     AS examSn,
+            STD_USER_ID AS stdUserId,
+            TOT_SCORE   AS totScore,
+            TO_CHAR(SBMT_DT, 'YYYY-MM-DD HH24:MI') AS sbmtDt
+        FROM EXAM_TAKER
+        WHERE EXAM_SN      = #{examSn}
+          AND STD_USER_ID  = #{userId}
+    </select>
+
+    <!-- 학생 응시 등록 -->
+    <insert id="insertExamTaker">
+        INSERT INTO EXAM_TAKER (EXAM_SN, STD_USER_ID, SBMT_DT)
+        VALUES (#{examSn}, #{userId}, CURRENT_TIMESTAMP)
+    </insert>
+
+    <!-- 답안 저장 -->
+    <insert id="insertAnswer">
+        INSERT INTO ANSWER_SUBMIT (EXAM_SN, QSTN_SN, STD_USER_ID, SBMT_ANSW_CN)
+        VALUES (#{examSn}, #{qstnSn}, #{userId}, #{answCn})
+    </insert>
+
 </mapper>
