@@ -116,6 +116,12 @@ public interface StaffMapper {
     int updateEmployeeSalaryInactive(@Param("userId") String userId,
             @Param("loginUserId") String loginUserId);
 
+    // 상태별 직원 수 (stats 카드용)
+    Map<String, Object> selectEmployeeStatusCounts();
+
+    // 유형별 학생 수 (stats 카드용)
+    Map<String, Object> selectStudentStatusCounts();
+
     // 직원 목록 동적 검색 (서버 페이징)
     List<EmployeeDetailDto> searchEmployeeList(PaginationInfo<Map<String, Object>> paging);
 

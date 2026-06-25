@@ -73,6 +73,21 @@ function filterHrList() {
   filterDebounceTimer = setTimeout(() => doFilterHrList(1), 300);
 }
 
+async function fetchStudentStats() {
+  try {
+    const res  = await fetch("/admin/employees/students/stats");
+    const data = await res.json();
+    const toNum = v => (v == null ? 0 : Number(v));
+    const el = id => document.getElementById(id);
+    if (el("stat-total"))        el("stat-total").textContent        = toNum(data.total);
+    if (el("stat-role-user"))    el("stat-role-user").textContent    = toNum(data.roleUser);
+    if (el("stat-role-student")) el("stat-role-student").textContent = toNum(data.roleStudent);
+  } catch (e) {
+    console.error("학생 통계 조회 실패:", e);
+  }
+}
+fetchStudentStats();
+
 async function doFilterHrList(page) {
   page = page || 1;
   currentHrPage = page;
@@ -527,6 +542,7 @@ function executeResign() {
               syncRowCells(row);
             }
             closeModal("modal-emp-detail");
+            fetchStudentStats();
             const rsEl = document.getElementById("resign-reason");
             if (rsEl.customSelect) rsEl.customSelect.setValue("");
             else rsEl.value = "";

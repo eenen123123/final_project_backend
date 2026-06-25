@@ -408,6 +408,18 @@
         </if>
     </select>
 
+    <!-- selectEmployeeStatusCounts: 상태별 직원 수 (stats 카드용) -->
+    <select id="selectEmployeeStatusCounts" resultType="map">
+        SELECT
+            COUNT(*) AS "total",
+            SUM(CASE WHEN ei.EMPL_STAT_CD = '01' THEN 1 ELSE 0 END) AS "active",
+            SUM(CASE WHEN ei.EMPL_STAT_CD = '02' THEN 1 ELSE 0 END) AS "onLeave",
+            SUM(CASE WHEN ei.EMPL_STAT_CD = '03' THEN 1 ELSE 0 END) AS "resigned"
+        FROM MEMBER m
+        LEFT JOIN EMPLOYEE_INFO ei ON m.USER_ID = ei.USER_ID
+        WHERE m.USER_ROLE = 'ROLE_ADMIN'
+    </select>
+
     <!-- selectJoinYearList -->
     <select id="selectJoinYearList" resultType="int">
         SELECT DISTINCT TO_CHAR(JOIN_YMD, 'YYYY') AS JOIN_YEAR
@@ -653,6 +665,16 @@
         )
         VALUES(#{userId}, #{withdrawRsn}, #{rgtrId}, #{lastMdfrId}, SYSTIMESTAMP , SYSTIMESTAMP )
 </insert>
+
+<!-- selectStudentStatusCounts: 유형별 학생 수 (stats 카드용) -->
+<select id="selectStudentStatusCounts" resultType="map">
+    SELECT
+        COUNT(*) AS "total",
+        SUM(CASE WHEN USER_ROLE = 'ROLE_USER'    THEN 1 ELSE 0 END) AS "roleUser",
+        SUM(CASE WHEN USER_ROLE = 'ROLE_STUDENT' THEN 1 ELSE 0 END) AS "roleStudent"
+    FROM MEMBER
+    WHERE USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
+</select>
 
 <!-- countSearchStudentList -->
 <select id="countSearchStudentList" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo" resultType="int">
