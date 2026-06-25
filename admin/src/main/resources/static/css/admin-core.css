@@ -207,6 +207,9 @@ textarea.hm-input { min-height: unset; height: auto; }
 .cs-wrapper.hm-input-danger .cs-control::after { border-color: #ef4444 transparent transparent transparent; }
 .cs-wrapper.hm-input-danger.cs-open,
 .cs-wrapper.hm-input-danger:focus-within { border-color: #ef4444; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08); }
+.cs-wrapper.hm-input-danger .cs-dropdown li:hover,
+.cs-wrapper.hm-input-danger .cs-dropdown li:focus  { background-color: #fef2f2; color: #dc2626; }
+.cs-wrapper.hm-input-danger .cs-dropdown li.cs-selected { background-color: #fee2e2; color: #dc2626; }
 
 /* ==========================================================================
    5. CustomSelect (select.hm-input 에 자동 적용)
