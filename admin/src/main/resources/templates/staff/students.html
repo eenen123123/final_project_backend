@@ -26,8 +26,8 @@
     </button>
   </div>
 
-  <!-- ───────────────── 요약 카드 3개 ───────────────── -->
-  <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+  <!-- ───────────────── 요약 카드 4개 ───────────────── -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
       <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
         <i class="fa-solid fa-users text-[#3b82f6]"></i>
@@ -53,6 +53,16 @@
       <div>
         <p class="text-xs text-slate-500">오프라인 학생</p>
         <p class="text-xl font-bold text-slate-800" id="stat-role-student">-</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3 cursor-pointer hover:bg-red-50 transition-colors"
+         id="card-unregistered" onclick="filterUnregistered()">
+      <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
+        <i class="fa-solid fa-user-xmark text-red-500"></i>
+      </div>
+      <div>
+        <p class="text-xs text-slate-500">클래스 미등록</p>
+        <p class="text-xl font-bold text-red-500" id="stat-unregistered">-</p>
       </div>
     </div>
   </div>
@@ -102,11 +112,12 @@
       <div class="overflow-x-auto rounded-xl border border-slate-100" style="min-height:32rem">
         <table class="w-full text-sm table-fixed">
           <colgroup>
-            <col style="width:20%">
-            <col style="width:12%">
-            <col style="width:16%">
-            <col style="width:16%">
+            <col style="width:18%">
             <col style="width:10%">
+            <col style="width:24%">
+            <col style="width:13%">
+            <col style="width:9%">
+            <col style="width:8%">
             <col style="width:8%">
           </colgroup>
           <thead>
@@ -115,13 +126,13 @@
                 onclick="sortHrBy('name')">학생명 <span class="sort-icon text-slate-300">↕</span></th>
               <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="type"
                 onclick="sortHrBy('type')">유형 <span class="sort-icon text-slate-300">↕</span></th>
-              <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="email"
-                onclick="sortHrBy('email')">이메일 <span class="sort-icon text-slate-300">↕</span></th>
+              <th class="text-left py-3 px-4 font-semibold truncate">강사 · 강좌</th>
               <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="join"
                 onclick="sortHrBy('join')">가입일 <span class="sort-icon text-slate-300">↕</span></th>
               <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="status"
                 onclick="sortHrBy('status')">상태 <span class="sort-icon text-slate-300">↕</span></th>
               <th class="text-left py-3 px-4 font-semibold">상세</th>
+              <th class="text-left py-3 px-4 font-semibold">클래스</th>
             </tr>
           </thead>
           <tbody id="hr-table-body" class="divide-y divide-slate-50">

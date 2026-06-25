@@ -591,30 +591,42 @@
 <!-- searchStudentList: 학생 목록 동적 검색 + 서버 페이징 -->
 <select id="searchStudentList" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo" resultType="kr.or.ddit.finalProject.dto.member.MemberDto">
         SELECT
-            USER_ID, USER_ENPSWD, USER_NAME, USER_ENRRNO, USER_GNDR_CD, USER_BRDT,
-            JOIN_DT, USER_TELNO, USER_EMAIL_ADDR, USER_ZIP, USER_ADDR, USER_DADDR,
-            USER_PROFILE, REG_DATE, MOD_DATE, ENABLE, USER_ROLE
-        FROM MEMBER
-        WHERE USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
+            m.USER_ID, m.USER_ENPSWD, m.USER_NAME, m.USER_ENRRNO, m.USER_GNDR_CD, m.USER_BRDT,
+            m.JOIN_DT, m.USER_TELNO, m.USER_EMAIL_ADDR, m.USER_ZIP, m.USER_ADDR, m.USER_DADDR,
+            m.USER_PROFILE, m.REG_DATE, m.MOD_DATE, m.ENABLE, m.USER_ROLE,
+            (SELECT COUNT(*) FROM CLASSROOM_MEMBER cm WHERE cm.USER_ID = m.USER_ID) AS CLASS_CNT,
+            (SELECT mi.USER_NAME FROM CLASSROOM_MEMBER cm
+               JOIN CLASSROOM cl ON cm.CLASS_SN = cl.CLASS_SN
+               JOIN MEMBER mi ON cl.OPNR_USER_ID = mi.USER_ID
+              WHERE cm.USER_ID = m.USER_ID AND ROWNUM = 1) AS FIRST_INSTR_NM,
+            (SELECT cl.CLASS_NM FROM CLASSROOM_MEMBER cm
+               JOIN CLASSROOM cl ON cm.CLASS_SN = cl.CLASS_SN
+              WHERE cm.USER_ID = m.USER_ID AND ROWNUM = 1) AS FIRST_CLASS_NM
+        FROM MEMBER m
+        WHERE m.USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
     <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
-            AND USER_NAME LIKE '%' || #{detailCondition.keyword} || '%'
+            AND m.USER_NAME LIKE '%' || #{detailCondition.keyword} || '%'
     </if>
     <if test="detailCondition != null and detailCondition.year != null and detailCondition.year != ''">
-            AND TO_CHAR(JOIN_DT, 'YYYY') = #{detailCondition.year}
+            AND TO_CHAR(m.JOIN_DT, 'YYYY') = #{detailCondition.year}
     </if>
-    <if test="detailCondition != null and detailCondition.userRole != null and detailCondition.userRole != ''">
-            AND USER_ROLE = #{detailCondition.userRole}
+    <if test="detailCondition != null and detailCondition.unregistered != null and detailCondition.unregistered == 'true'">
+            AND m.USER_ROLE = 'ROLE_STUDENT'
+            AND NOT EXISTS (SELECT 1 FROM CLASSROOM_MEMBER cm WHERE cm.USER_ID = m.USER_ID)
+    </if>
+    <if test="detailCondition != null and detailCondition.unregistered == null and detailCondition.userRole != null and detailCondition.userRole != ''">
+            AND m.USER_ROLE = #{detailCondition.userRole}
     </if>
     <if test="detailCondition != null and detailCondition.enable != null and detailCondition.enable != ''">
-            AND ENABLE = #{detailCondition.enable}
+            AND m.ENABLE = #{detailCondition.enable}
     </if>
         ORDER BY
     <choose>
-        <when test="orderBy == 'name'">USER_NAME</when>
-        <when test="orderBy == 'role'">USER_ROLE</when>
-        <when test="orderBy == 'enable'">ENABLE</when>
-        <when test="orderBy == 'join'">JOIN_DT</when>
-        <otherwise>USER_ID</otherwise>
+        <when test="orderBy == 'name'">m.USER_NAME</when>
+        <when test="orderBy == 'role'">m.USER_ROLE</when>
+        <when test="orderBy == 'enable'">m.ENABLE</when>
+        <when test="orderBy == 'join'">m.JOIN_DT</when>
+        <otherwise>m.USER_ID</otherwise>
     </choose>
     <choose>
         <when test="orderDirection == 'DESC'">DESC</when>
@@ -669,29 +681,36 @@
 <!-- selectStudentStatusCounts: 유형별 학생 수 (stats 카드용) -->
 <select id="selectStudentStatusCounts" resultType="map">
     SELECT
-        COUNT(*) AS "total",
-        SUM(CASE WHEN USER_ROLE = 'ROLE_USER'    THEN 1 ELSE 0 END) AS "roleUser",
-        SUM(CASE WHEN USER_ROLE = 'ROLE_STUDENT' THEN 1 ELSE 0 END) AS "roleStudent"
-    FROM MEMBER
-    WHERE USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
+        COUNT(*)                                                                            AS "total",
+        SUM(CASE WHEN m.USER_ROLE = 'ROLE_USER'    THEN 1 ELSE 0 END)                     AS "roleUser",
+        SUM(CASE WHEN m.USER_ROLE = 'ROLE_STUDENT' THEN 1 ELSE 0 END)                     AS "roleStudent",
+        SUM(CASE WHEN m.USER_ROLE = 'ROLE_STUDENT' AND cm_d.USER_ID IS NULL THEN 1 ELSE 0 END) AS "unregistered"
+    FROM MEMBER m
+    LEFT JOIN (SELECT DISTINCT USER_ID FROM CLASSROOM_MEMBER) cm_d
+        ON m.USER_ID = cm_d.USER_ID
+    WHERE m.USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
 </select>
 
 <!-- countSearchStudentList -->
 <select id="countSearchStudentList" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo" resultType="int">
         SELECT COUNT(*)
-        FROM MEMBER
-        WHERE USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
+        FROM MEMBER m
+        WHERE m.USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
     <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
-            AND USER_NAME LIKE '%' || #{detailCondition.keyword} || '%'
+            AND m.USER_NAME LIKE '%' || #{detailCondition.keyword} || '%'
     </if>
     <if test="detailCondition != null and detailCondition.year != null and detailCondition.year != ''">
-            AND TO_CHAR(JOIN_DT, 'YYYY') = #{detailCondition.year}
+            AND TO_CHAR(m.JOIN_DT, 'YYYY') = #{detailCondition.year}
     </if>
-    <if test="detailCondition != null and detailCondition.userRole != null and detailCondition.userRole != ''">
-            AND USER_ROLE = #{detailCondition.userRole}
+    <if test="detailCondition != null and detailCondition.unregistered != null and detailCondition.unregistered == 'true'">
+            AND m.USER_ROLE = 'ROLE_STUDENT'
+            AND NOT EXISTS (SELECT 1 FROM CLASSROOM_MEMBER cm WHERE cm.USER_ID = m.USER_ID)
+    </if>
+    <if test="detailCondition != null and detailCondition.unregistered == null and detailCondition.userRole != null and detailCondition.userRole != ''">
+            AND m.USER_ROLE = #{detailCondition.userRole}
     </if>
     <if test="detailCondition != null and detailCondition.enable != null and detailCondition.enable != ''">
-            AND ENABLE = #{detailCondition.enable}
+            AND m.ENABLE = #{detailCondition.enable}
     </if>
 </select>
 
