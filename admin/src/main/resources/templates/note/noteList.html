@@ -142,6 +142,8 @@
       </a>
       <button
         class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-600 bg-white hover:bg-slate-50 transition-colors"
+        th:data-self-id="${#authentication.name}"
+        onclick="window.open('/admin/note/write?replyTo=' + this.dataset.selfId, '_blank', 'width=1000,height=600')"
       >
         <i class="fa-solid fa-user-pen text-slate-400"></i>
         내게 쓰기
