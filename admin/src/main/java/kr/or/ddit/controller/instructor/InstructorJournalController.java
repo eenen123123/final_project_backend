@@ -47,7 +47,7 @@ public class InstructorJournalController {
     // 역할 판별 헬퍼
     // ──────────────────────────────────────────────
 
-    /** 원장(Z001) 또는 팀 매니저(T001/T002/T003)이면 읽기 전용 뷰어로 처리 */
+    /** 원장(Z001) 또는 팀 매니저(T001/T002/T003)이면 팀 일지 열람 뷰어로 처리 */
     private boolean isViewer(Authentication auth) {
         return auth.getAuthorities().stream()
                 .anyMatch(a -> {
@@ -57,6 +57,12 @@ public class InstructorJournalController {
                         || "T002".equals(role)
                         || "T003".equals(role);
                 });
+    }
+
+    /** 원장(Z001)만 쓰기 불가 — 팀 매니저는 본인 일지 CRUD 허용 */
+    private boolean isReadOnly(Authentication auth) {
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> "Z001".equals(a.getAuthority()));
     }
 
     /**
@@ -95,9 +101,10 @@ public class InstructorJournalController {
             Model model,
             Authentication auth) {
 
-        String userId    = auth.getName();
-        boolean isViewer = isViewer(auth);
-        String mgrUserId = resolveMgrUserId(auth);
+        String userId     = auth.getName();
+        boolean isViewer  = isViewer(auth);
+        boolean isReadOnly = isReadOnly(auth);
+        String mgrUserId  = resolveMgrUserId(auth);
 
         // 좌측 패널: 역할 + 필터 + 페이지에 따라 목록 조회
         List<InstructorJournalDto> journalList =
@@ -107,7 +114,8 @@ public class InstructorJournalController {
         if (totalPages < 1) totalPages = 1;
 
         model.addAttribute("journalList", journalList);
-        model.addAttribute("isViewer", isViewer);
+        model.addAttribute("isViewer",   isViewer);
+        model.addAttribute("isReadOnly", isReadOnly);
 
         // 필터값 보존 (폼 재입력 + 목록 링크 href 유지용)
         model.addAttribute("keyword",         keyword         != null ? keyword         : "");
@@ -126,7 +134,7 @@ public class InstructorJournalController {
         model.addAttribute("totalCount",  totalCount);
 
         // 우측 패널 상태 결정
-        if (newForm && !isViewer) {
+        if (newForm && !isReadOnly) {
             // 새 일지 작성 폼
             model.addAttribute("mode", "new");
 
@@ -141,8 +149,8 @@ public class InstructorJournalController {
 
             model.addAttribute("selected", selected);
 
-            // 본인 일지 여부 — 수정·삭제 버튼 표시와 수정 폼 진입에 모두 사용
-            boolean isOwner = !isViewer && userId.equals(selected.getInstrUserId());
+            // 본인 일지 여부 — 원장(readOnly) 제외하고 작성자 본인이면 수정·삭제 허용
+            boolean isOwner = !isReadOnly && userId.equals(selected.getInstrUserId());
             model.addAttribute("isOwner", isOwner);
 
             if (edit && isOwner) {
@@ -168,7 +176,7 @@ public class InstructorJournalController {
                                 BindingResult bindingResult,
                                 Authentication auth,
                                 RedirectAttributes ra) {
-        if (isViewer(auth)) {
+        if (isReadOnly(auth)) {
             ra.addFlashAttribute("errorMessage", "읽기 전용 권한으로는 일지를 작성할 수 없습니다.");
             return "redirect:/instructor/journals";
         }
@@ -196,7 +204,7 @@ public class InstructorJournalController {
                                 BindingResult bindingResult,
                                 Authentication auth,
                                 RedirectAttributes ra) {
-        if (isViewer(auth)) {
+        if (isReadOnly(auth)) {
             ra.addFlashAttribute("errorMessage", "읽기 전용 권한으로는 일지를 수정할 수 없습니다.");
             return "redirect:/instructor/journals?jrnlSn=" + jrnlSn;
         }
@@ -223,7 +231,7 @@ public class InstructorJournalController {
     public String deleteJournal(@PathVariable Long jrnlSn,
                                 Authentication auth,
                                 RedirectAttributes ra) {
-        if (isViewer(auth)) {
+        if (isReadOnly(auth)) {
             ra.addFlashAttribute("errorMessage", "읽기 전용 권한으로는 일지를 삭제할 수 없습니다.");
             return "redirect:/instructor/journals?jrnlSn=" + jrnlSn;
         }
