@@ -6,15 +6,18 @@
 
     <select id="selectShippingStatusSummary" resultType="java.util.HashMap">
         SELECT
-            COUNT(CASE WHEN DLVRY_STAT_CD = 'READY'     THEN 1 END) AS READY_COUNT,
-            COUNT(CASE WHEN DLVRY_STAT_CD = 'SHIPPING'  THEN 1 END) AS SHIPPING_COUNT,
-            COUNT(CASE WHEN DLVRY_STAT_CD = 'DELIVERED' THEN 1 END) AS DELIVERED_COUNT,
-            COUNT(CASE WHEN DLVRY_STAT_CD = 'CANCELED'  THEN 1 END) AS CANCELED_COUNT
-          FROM ORDER_SHIPPING
+            COUNT(CASE WHEN os.DLVRY_STAT_CD = 'READY'     THEN 1 END) AS READY_COUNT,
+            COUNT(CASE WHEN os.DLVRY_STAT_CD = 'SHIPPING'  THEN 1 END) AS SHIPPING_COUNT,
+            COUNT(CASE WHEN os.DLVRY_STAT_CD = 'DELIVERED' THEN 1 END) AS DELIVERED_COUNT,
+            COUNT(CASE WHEN os.DLVRY_STAT_CD = 'CANCELED'  THEN 1 END) AS CANCELED_COUNT
+          FROM ORDER_SHIPPING os
+          JOIN ORDERS o ON os.ORD_SN = o.ORD_SN
+         WHERE o.ORD_STAT_CD NOT IN ('PENDING', 'EXPIRED')
     </select>
 
     <sql id="shippingSearchWhere">
         <trim prefix="WHERE" prefixOverrides="AND">
+            AND o.ORD_STAT_CD NOT IN ('PENDING', 'EXPIRED')
             <if test="detailCondition != null">
                 <if test="detailCondition.keyword != null and detailCondition.keyword != ''">
                     AND (instr(os.BUYER_NM, #{detailCondition.keyword}) &gt; 0

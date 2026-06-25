@@ -63,7 +63,6 @@ public class OrderServiceImpl implements OrderService {
             orderItems.add(item);
         }
         if (hasBook) {
-            totAmt += BOOK_SHIPPING_FEE; // 교재가 있으면 배송비 1회 부과
             // 주문 INSERT 전에 배송지 선검증 (INSERT 후 검증 시 고아 PENDING 주문 발생 방지)
             if (shipping == null) {
                 throw new FinalProjectException(ErrorCode.BAD_REQUEST);
@@ -76,7 +75,7 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
-        // 쿠폰 할인 적용
+        // 쿠폰 할인 적용 (배송비 추가 전 상품금액에만 적용)
         if (coupons != null && !coupons.isEmpty()) {
             List<MemberCouponPointDto> available = couponMapper.selectAvailableCouponsForCheckout(userId);
             for (OrderCreateRequest.CouponApplication ca : coupons) {
@@ -100,13 +99,15 @@ public class OrderServiceImpl implements OrderService {
         }
         // 쿠폰 예약은 주문 INSERT 후 처리 (ordSn 필요)
 
+        // 배송비 추가 (쿠폰 할인 후)
+        if (hasBook) {
+            totAmt += BOOK_SHIPPING_FEE;
+        }
+
         // 포인트 사용 검증 (토스 API 호출 전 선검증, 실제 차감은 결제 승인 후 수행)
         if (pointAmt > 0) {
             if (pointType == null || pointType == AssetType.COUPON) {
                 throw new FinalProjectException(ErrorCode.POINT_INVALID_TYPE);
-            }
-            if (pointAmt < 1_000) {
-                throw new FinalProjectException(ErrorCode.POINT_MINIMUM_USAGE);
             }
             if (pointAmt > totAmt) {
                 throw new FinalProjectException(ErrorCode.BAD_REQUEST);
