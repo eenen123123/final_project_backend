@@ -10,34 +10,30 @@
     </div>
   </div>
 
-  <!-- ② 검색 필터 -->
-  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-    <div class="flex flex-wrap gap-3 items-end">
-      <div class="relative min-w-48">
-        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-        <input type="text" id="cm-keyword" class="hm-input pl-10 w-52" placeholder="직원 이름 검색..."
-               onkeydown="if(event.key==='Enter') loadCerts(1)" />
-      </div>
-      <select class="hm-input w-36" id="cm-type" onchange="loadCerts(1)">
-        <option value="">전체 종류</option>
-        <option th:each="t : ${certTypes}" th:value="${t.comCd}" th:text="${t.comCdNm}"></option>
-      </select>
-      <select class="hm-input w-32" id="cm-prn" onchange="loadCerts(1)">
-        <option value="">전체 상태</option>
-        <option value="N">미출력</option>
-        <option value="Y">출력완료</option>
-      </select>
-      <input type="date" class="hm-input w-40" id="cm-from" onchange="loadCerts(1)" />
-      <span class="text-slate-400">~</span>
-      <input type="date" class="hm-input w-40" id="cm-to" onchange="loadCerts(1)" />
-      <button onclick="loadCerts(1)" class="hm-btn-primary px-5 py-2.5"><i class="fa-solid fa-magnifying-glass mr-1.5"></i>조회</button>
-    </div>
-  </div>
-
   <!-- ③ 발급 이력 테이블 -->
   <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
-    <div class="flex items-center justify-between p-5 border-b border-slate-100">
-      <p class="text-sm font-bold text-slate-700">발급 이력 <span class="text-slate-400 font-normal">(<span id="cm-total">0</span>건)</span></p>
+    <div class="flex items-center gap-2 px-4 py-3 border-b border-slate-100">
+      <p class="text-sm font-bold text-slate-700 shrink-0 mr-1">발급 이력 <span class="text-slate-400 font-normal">(<span id="cm-total">0</span>건)</span></p>
+      <div class="flex items-center gap-2 ml-auto">
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+          <input type="text" id="cm-keyword" class="hm-input hm-input-blue pl-7 text-xs" style="width: 12rem;" placeholder="이름 검색..."
+                 onkeydown="if(event.key==='Enter') loadCerts(1)" />
+        </div>
+        <select class="hm-input hm-input-blue text-xs" style="width: 8rem;" id="cm-type" onchange="loadCerts(1)">
+          <option value="">전체 종류</option>
+          <option th:each="t : ${certTypes}" th:value="${t.comCd}" th:text="${t.comCdNm}"></option>
+        </select>
+        <select class="hm-input hm-input-blue text-xs" style="width: 8rem;" id="cm-prn" onchange="loadCerts(1)">
+          <option value="">전체 상태</option>
+          <option value="N">미출력</option>
+          <option value="Y">출력완료</option>
+        </select>
+        <input type="date" class="hm-input hm-input-blue text-xs" style="width: 8rem;" id="cm-from" onchange="loadCerts(1)" />
+        <span class="text-slate-400 text-xs shrink-0">~</span>
+        <input type="date" class="hm-input hm-input-blue text-xs" style="width: 8rem;" id="cm-to" onchange="loadCerts(1)" />
+        <button onclick="loadCerts(1)" class="hm-btn-primary hm-btn-blue px-3 py-2 text-xs whitespace-nowrap shrink-0"><i class="fa-solid fa-magnifying-glass mr-1"></i>조회</button>
+      </div>
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
