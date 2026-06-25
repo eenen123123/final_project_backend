@@ -73,20 +73,41 @@ function filterHrList() {
   filterDebounceTimer = setTimeout(() => doFilterHrList(1), 300);
 }
 
+var unregisteredFilter = false;
+
 async function fetchStudentStats() {
   try {
-    const res  = await fetch("/admin/employees/students/stats");
+    const res = await fetch("/admin/employees/students/stats");
+    if (!res.ok) {
+      console.error("학생 통계 조회 실패 (HTTP " + res.status + "):", await res.text());
+      return;
+    }
     const data = await res.json();
+    console.log("[student stats]", data);
     const toNum = v => (v == null ? 0 : Number(v));
     const el = id => document.getElementById(id);
-    if (el("stat-total"))        el("stat-total").textContent        = toNum(data.total);
-    if (el("stat-role-user"))    el("stat-role-user").textContent    = toNum(data.roleUser);
-    if (el("stat-role-student")) el("stat-role-student").textContent = toNum(data.roleStudent);
+    if (el("stat-total"))          el("stat-total").textContent          = toNum(data.total);
+    if (el("stat-role-user"))      el("stat-role-user").textContent      = toNum(data.roleUser);
+    if (el("stat-role-student"))   el("stat-role-student").textContent   = toNum(data.roleStudent);
+    if (el("stat-unregistered"))   el("stat-unregistered").textContent   = toNum(data.unregistered);
   } catch (e) {
     console.error("학생 통계 조회 실패:", e);
   }
 }
 fetchStudentStats();
+
+function filterUnregistered() {
+  unregisteredFilter = !unregisteredFilter;
+  const card = document.getElementById("card-unregistered");
+  if (card) card.classList.toggle("ring-2", unregisteredFilter);
+  if (card) card.classList.toggle("ring-red-400", unregisteredFilter);
+  // 미등록 필터 활성화 시 유형 필터 초기화
+  if (unregisteredFilter) {
+    const typeEl = document.getElementById("hr-type-filter");
+    if (typeEl) { if (typeEl.customSelect) typeEl.customSelect.setValue(""); else typeEl.value = ""; }
+  }
+  doFilterHrList(1);
+}
 
 async function doFilterHrList(page) {
   page = page || 1;
@@ -99,8 +120,12 @@ async function doFilterHrList(page) {
   const params = new URLSearchParams();
   if (keyword) params.set("keyword",  keyword);
   if (year)    params.set("year",     year);
-  const typeToRole = { '일반': 'ROLE_USER', '오프라인': 'ROLE_STUDENT' };
-  if (type)    params.set("userRole", typeToRole[type] || type);
+  if (unregisteredFilter) {
+    params.set("unregistered", "true");
+  } else {
+    const typeToRole = { '일반': 'ROLE_USER', '오프라인': 'ROLE_STUDENT' };
+    if (type) params.set("userRole", typeToRole[type] || type);
+  }
   if (status)  params.set("enable",   status);
   if (hrSortCol) {
     params.set("orderBy",        hrSortCol);
@@ -121,7 +146,7 @@ async function doFilterHrList(page) {
 function renderStudentTable(students, totalCount) {
   const tbody = document.getElementById("hr-table-body");
   if (!students || students.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-sm text-slate-400">등록된 학생이 없습니다.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-sm text-slate-400">등록된 학생이 없습니다.</td></tr>';
     renderHrPagination(0);
     return;
   }
@@ -142,6 +167,28 @@ function renderStudentTable(students, totalCount) {
       ? `<img src="${escHtml(pro)}" class="w-7 h-7 rounded-lg object-cover" alt="프로필">`
       : `<div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-xs font-bold text-[#3b82f6]">${escHtml(nm.charAt(0))}</div>`;
 
+    // 강사·강좌 표시
+    let classTd = '-';
+    if (role === 'ROLE_STUDENT') {
+      const cnt = stu.classCnt || 0;
+      if (cnt === 0) {
+        classTd = '<span class="status-badge status-resigned">미등록</span>';
+      } else {
+        const instrNm  = escHtml(stu.firstInstrNm || "");
+        const classNm  = escHtml(stu.firstClassNm || "");
+        const instrStr = cnt > 1 ? `${instrNm} 외 ${cnt - 1}` : instrNm;
+        const classStr = cnt > 1 ? `${classNm} 외 ${cnt - 1}` : classNm;
+        classTd = `<span class="text-slate-700 font-medium">${instrStr}</span><br><span class="text-xs text-slate-400">${classStr}</span>`;
+      }
+    }
+
+    // 클래스 등록 버튼 (오프라인 학생만)
+    const classBtnTd = role === 'ROLE_STUDENT'
+      ? `<button type="button" data-id="${escHtml(uid)}" data-name="${escHtml(nm)}"
+           onclick="openClassRegister(this.dataset.id, this.dataset.name)"
+           class="text-xs text-violet-600 hover:underline font-semibold whitespace-nowrap">등록</button>`
+      : '-';
+
     return `<tr class="hr-data-row hover:bg-slate-50 transition-colors"
       data-id="${escHtml(uid)}" data-name="${escHtml(nm)}"
       data-email="${escHtml(stu.userEmailAddr||"")}" data-phone="${escHtml(stu.userTelno||"")}"
@@ -160,7 +207,7 @@ function renderStudentTable(students, totalCount) {
         </div>
       </td>
       <td class="py-3 px-4 text-sm text-slate-600 truncate">${typeNm}</td>
-      <td class="py-3 px-4 text-sm text-slate-600 truncate">${escHtml(stu.userEmailAddr||"-")}</td>
+      <td class="py-3 px-4 text-sm leading-snug">${classTd}</td>
       <td class="py-3 px-4 text-sm text-slate-600 whitespace-nowrap">${jn || "-"}</td>
       <td class="py-3 px-4"><span class="status-badge ${statCls}">${statNm}</span></td>
       <td class="py-3 px-4">
@@ -168,10 +215,16 @@ function renderStudentTable(students, totalCount) {
           onclick="openDetail(this.getAttribute('data-id'))"
           class="text-xs text-[#3b82f6] hover:underline font-semibold">상세</button>
       </td>
+      <td class="py-3 px-4">${classBtnTd}</td>
     </tr>`;
   }).join("");
 
   renderHrPagination(totalCount);
+}
+
+function openClassRegister(userId, userName) {
+  // TODO: 클래스 등록 페이지 연결
+  showHermesToast(`${userName} 학생의 클래스 등록 페이지 준비 중입니다.`, "info");
 }
 
 function resetHrFilter() {
@@ -182,6 +235,11 @@ function resetHrFilter() {
     if (el.customSelect) el.customSelect.setValue("");
     else el.value = "";
   });
+  if (unregisteredFilter) {
+    unregisteredFilter = false;
+    const card = document.getElementById("card-unregistered");
+    if (card) { card.classList.remove("ring-2"); card.classList.remove("ring-red-400"); }
+  }
   hrSortCol = null;
   hrSortAsc = true;
   updateHrSortIcons(null);
