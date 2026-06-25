@@ -3,6 +3,9 @@
    입력/버튼/모달 스타일은 admin-core.css에 위임
    ========================================================================== */
 
+/* ── 탭 active 색상 sky 오버라이드 (admin-core의 violet 덮어쓰기) ── */
+.emp-tab-btn.active { color: #0ea5e9 !important; border-bottom-color: #0ea5e9 !important; }
+
 /* ── TipTap 에디터/본문 공통 리치 텍스트 스타일 ──────────────────────────────
    Tailwind Preflight가 h1-h6, ul/ol, mark 기본 스타일을 제거하므로 여기서 복원.
    에디터(#editor .tiptap)와 상세보기(.board-content) 양쪽에 동일하게 적용.   */
