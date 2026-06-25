@@ -26,5 +26,7 @@ public interface AssignmentBoardMapper {
 
     int deleteAssignment(@Param("asgmtSn") Long asgmtSn, @Param("classSn") Long classSn);
 
+    int toggleResubmitAllow(@Param("asgmtSn") Long asgmtSn, @Param("classSn") Long classSn);
+
     List<StudentAssignmentDto> selectAssignmentsByStudent(@Param("classSn") Long classSn, @Param("userId") String userId);
 }

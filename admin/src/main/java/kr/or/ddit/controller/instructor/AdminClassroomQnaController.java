@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.or.ddit.finalProject.service.assignment.AssignmentBoardService;
 import kr.or.ddit.finalProject.service.classroom.ClassroomService;
@@ -62,9 +63,10 @@ public class AdminClassroomQnaController extends AbstractClassroomController {
     // Q&A 답변 등록/수정
     @PostMapping("/detail/{classSn}/qna/{postSn}/answer")
     public String qnaAnswer(@PathVariable Long classSn, @PathVariable Long postSn,
-            @RequestParam String answCn, Authentication authentication) {
+            @RequestParam String answCn, Authentication authentication, RedirectAttributes redirectAttrs) {
         if (getOwnedClassroom(classSn, authentication.getName()) == null) return "redirect:/classroom/list";
         instructorBoardService.answerClassroomQna(postSn, authentication.getName(), answCn);
+        redirectAttrs.addFlashAttribute("toastMsg", "답변이 저장되었습니다.");
         return "redirect:/classroom/detail/" + classSn + "/qna/" + postSn;
     }
 }

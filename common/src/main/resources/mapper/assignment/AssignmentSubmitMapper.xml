@@ -11,6 +11,7 @@
     <result property="sbmtUserId"   column="SBMT_USER_ID"/>
     <result property="userName"     column="USER_NAME"/>
     <result property="sbmtCn"       column="SBMT_CN"/>
+    <result property="atchFileId"   column="ATCH_FILE_ID"/>
     <result property="score"        column="SCORE"/>
     <result property="grddYn"       column="GRDD_YN"/>
     <result property="grddUserId"   column="GRDD_USER_ID"/>
@@ -27,6 +28,7 @@
         s.SBMT_SN,
         s.ASGMT_SN,
         s.SBMT_CN,
+        s.ATCH_FILE_ID,
         s.SCORE,
         s.GRDD_YN,
         s.GRDD_USER_ID,

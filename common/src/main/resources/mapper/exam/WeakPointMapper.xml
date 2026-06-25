@@ -5,28 +5,86 @@
 <mapper namespace="kr.or.ddit.finalProject.mapper.exam.WeakPointMapper">
 
     <!--
-        클래스 수강생의 과목별 평균 득점률 조회
+        클래스 수강생의 세부 주제별 평균 득점률 조회
+        - JSON_VALUE(q.QSTN_CN, '$.topic'): 문항 JSON의 topic 필드 추출
+        - topic이 NULL인 문항(수동 등록 + 미입력)은 WHERE 조건으로 제외
         - ANSWER_SUBMIT.SCORE IS NOT NULL: 미채점 제외
-        - HAVING COUNT(*) >= 5: 데이터 부족 과목 제외
+        - HAVING COUNT(*) >= 5: 데이터 부족 주제 제외 (신뢰도 확보)
         - 객관식(MULTIPLE_CHOICE)만 포함: 서술형/단답형은 부분채점 편차 커서 제외
-        - ORDER BY AVG_SCORE_RATE ASC: 낮을수록 약점
+        - cm.ENRL_STAT_CD = 'ENROLLED': 재학 중인 수강생만 포함
+        - ORDER BY AVG_SCORE_RATE ASC: 낮을수록 약점 (약점 먼저 표시)
     -->
     <select id="selectWeakPointsByClassSn"
             resultType="kr.or.ddit.finalProject.dto.exam.WeakPointDto">
         SELECT
-            s.SUBJ_ID                                                     AS subjId,
-            s.SUBJ_NM                                                     AS subjNm,
-            ROUND(AVG(a.SCORE / q.ALLOC_SCR) * 100, 0)                   AS avgScoreRate
+            JSON_VALUE(q.QSTN_CN, '$.topic')                      AS topic,
+            ROUND(AVG(a.SCORE / q.ALLOC_SCR) * 100, 0)           AS avgScoreRate,
+            COUNT(*)                                               AS answerCount
         FROM ANSWER_SUBMIT a
-        JOIN QUESTION_LIST q  ON a.QSTN_SN     = q.QSTN_SN
-        JOIN SUBJECT s        ON q.SUBJ_ID      = s.SUBJ_ID
+        JOIN QUESTION_LIST q   ON a.QSTN_SN    = q.QSTN_SN
+        JOIN EXAM_QUESTION eq  ON eq.QSTN_SN   = q.QSTN_SN
+        JOIN EXAM e            ON e.EXAM_SN     = eq.EXAM_SN
+                               AND e.CLASS_SN   = #{classSn}
+                               AND e.EXAM_STAT_CD != '99'
         JOIN CLASSROOM_MEMBER cm ON a.STD_USER_ID = cm.USER_ID
-                                AND cm.CLASS_SN   = #{classSn}
+                                 AND cm.CLASS_SN   = #{classSn}
+                                 AND cm.ENRL_STAT_CD = 'ENROLLED'
         WHERE a.SCORE IS NOT NULL
-          AND q.QSTN_TYPE_CD = 'MULTIPLE_CHOICE'
-        GROUP BY s.SUBJ_ID, s.SUBJ_NM
+          AND JSON_VALUE(q.QSTN_CN, '$.topic') IS NOT NULL
+        GROUP BY JSON_VALUE(q.QSTN_CN, '$.topic')
         HAVING COUNT(*) >= 5
         ORDER BY avgScoreRate ASC
+    </select>
+
+
+    <!-- 난이도별 평균 득점률 -->
+    <select id="selectDifficultyStatsByClassSn"
+            resultType="kr.or.ddit.finalProject.dto.exam.DifficultyStatsDto">
+        SELECT
+            NVL(q.DIFF_CD, 'NONE')                                 AS diffCd,
+            ROUND(AVG(a.SCORE / q.ALLOC_SCR) * 100, 0)            AS avgScoreRate,
+            COUNT(*)                                                AS answerCount
+        FROM ANSWER_SUBMIT a
+        JOIN QUESTION_LIST q   ON a.QSTN_SN  = q.QSTN_SN
+        JOIN EXAM_QUESTION eq  ON eq.QSTN_SN = q.QSTN_SN
+        JOIN EXAM e            ON e.EXAM_SN   = eq.EXAM_SN
+                               AND e.CLASS_SN  = #{classSn}
+                               AND e.EXAM_STAT_CD != '99'
+        JOIN CLASSROOM_MEMBER cm ON a.STD_USER_ID = cm.USER_ID
+                                 AND cm.CLASS_SN   = #{classSn}
+                                 AND cm.ENRL_STAT_CD = 'ENROLLED'
+        WHERE a.SCORE IS NOT NULL
+        GROUP BY NVL(q.DIFF_CD, 'NONE')
+        ORDER BY CASE NVL(q.DIFF_CD, 'NONE')
+                     WHEN 'EASY'   THEN 1
+                     WHEN 'MEDIUM' THEN 2
+                     WHEN 'HARD'   THEN 3
+                     ELSE 4
+                 END
+    </select>
+
+    <!-- 시험별 평균 득점률 추이 (응시일 오름차순) -->
+    <select id="selectExamTrendByClassSn"
+            resultType="kr.or.ddit.finalProject.dto.exam.ExamTrendDto">
+        SELECT
+            e.EXAM_SN                                                           AS examSn,
+            e.EXAM_REG_NM                                                       AS examNm,
+            ROUND(AVG(et.TOT_SCORE /
+                NULLIF((SELECT SUM(q2.ALLOC_SCR)
+                        FROM EXAM_QUESTION eq2
+                        JOIN QUESTION_LIST q2 ON q2.QSTN_SN = eq2.QSTN_SN
+                        WHERE eq2.EXAM_SN = e.EXAM_SN), 0)) * 100, 1)          AS avgScoreRate,
+            COUNT(et.STD_USER_ID)                                               AS takerCount
+        FROM EXAM_TAKER et
+        JOIN EXAM e ON e.EXAM_SN = et.EXAM_SN
+                   AND e.CLASS_SN = #{classSn}
+                   AND e.EXAM_STAT_CD != '99'
+        JOIN CLASSROOM_MEMBER cm ON et.STD_USER_ID = cm.USER_ID
+                                 AND cm.CLASS_SN    = #{classSn}
+                                 AND cm.ENRL_STAT_CD = 'ENROLLED'
+        WHERE et.TOT_SCORE IS NOT NULL
+        GROUP BY e.EXAM_SN, e.EXAM_REG_NM
+        ORDER BY MIN(et.SBMT_DT) ASC
     </select>
 
 </mapper>
