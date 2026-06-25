@@ -128,4 +128,15 @@ public interface ExamMapper {
 
     /** 클래스룸 내 시험 채점 대기 건수 (TOT_SCORE IS NULL) */
     int countPendingGradesByClassSn(@Param("classSn") Long classSn);
+
+    /** 특정 학생의 EXAM_TAKER 조회 (중복 제출 확인용) */
+    kr.or.ddit.finalProject.dto.exam.ExamTakerDto selectExamTaker(
+            @Param("examSn") Long examSn, @Param("userId") String userId);
+
+    /** 학생 응시 등록 (EXAM_TAKER INSERT) */
+    void insertExamTaker(@Param("examSn") Long examSn, @Param("userId") String userId);
+
+    /** 답안 저장 (ANSWER_SUBMIT INSERT) */
+    void insertAnswer(@Param("examSn") Long examSn, @Param("userId") String userId,
+                      @Param("qstnSn") Long qstnSn, @Param("answCn") String answCn);
 }

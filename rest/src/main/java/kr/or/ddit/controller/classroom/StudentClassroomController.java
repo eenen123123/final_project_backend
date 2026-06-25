@@ -2,7 +2,9 @@ package kr.or.ddit.controller.classroom;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import kr.or.ddit.finalProject.dto.assignment.AssignmentBoardDto;
 import kr.or.ddit.finalProject.dto.assignment.AssignmentSubmitDto;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse;
@@ -24,9 +29,13 @@ import kr.or.ddit.finalProject.dto.classroom.MySummaryResponse;
 import kr.or.ddit.finalProject.dto.classroom.StudentAssignmentDetail;
 import kr.or.ddit.finalProject.dto.classroom.StudentAssignmentItem;
 import kr.or.ddit.finalProject.dto.classroom.StudentAssignmentDto;
+import kr.or.ddit.finalProject.dto.classroom.StudentExamDetailResponse;
 import kr.or.ddit.finalProject.dto.classroom.StudentExamDto;
 import kr.or.ddit.finalProject.dto.classroom.StudentExamResponse;
 import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.dto.exam.ExamDto;
+import kr.or.ddit.finalProject.dto.exam.ExamQuestionDto;
+import kr.or.ddit.finalProject.dto.exam.ExamTakerDto;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
 import kr.or.ddit.finalProject.mapper.assignment.AssignmentBoardMapper;
 import kr.or.ddit.finalProject.mapper.assignment.AssignmentSubmitMapper;
@@ -49,6 +58,7 @@ public class StudentClassroomController {
     private final ExamMapper examMapper;
     private final InstructorBoardService instructorBoardService;
     private final ClassroomService classroomService;
+    private final ObjectMapper objectMapper;
 
     // ── 수강생 검증 헬퍼 ─────────────────────────────────────────────────
 
@@ -246,6 +256,89 @@ public class StudentClassroomController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(result);
+    }
+
+    // ── 시험 응시: 문제지 조회 ─────────────────────────────────────────────
+
+    @GetMapping("/exams/{examSn}")
+    public ResponseEntity<StudentExamDetailResponse> getExamDetail(
+            @PathVariable Long classSn,
+            @PathVariable Long examSn,
+            Authentication authentication) {
+        String userId = authentication.getName();
+        if (!isMember(classSn, userId)) return ResponseEntity.status(403).build();
+
+        ExamDto exam = examMapper.selectExamBySn(examSn);
+        if (exam == null || !classSn.equals(exam.getClassSn())) return ResponseEntity.notFound().build();
+
+        LocalDateTime now = LocalDateTime.now();
+        String status = resolveExamStatus(exam.getExamStrtDt(), exam.getExamEndDt(), now);
+        if (!"ONGOING".equals(status)) return ResponseEntity.status(403).build();
+
+        ExamTakerDto taker = examMapper.selectExamTaker(examSn, userId);
+        if (taker != null) return ResponseEntity.status(409).build(); // 이미 제출
+
+        List<ExamQuestionDto> raw = examMapper.selectExamQuestions(examSn);
+        List<StudentExamDetailResponse.QuestionItem> questions = new ArrayList<>();
+        for (ExamQuestionDto q : raw) {
+            Map<String, Object> parsed = parseQstnCn(q.getStem());
+            String stemText = (String) parsed.getOrDefault("stem", "");
+            @SuppressWarnings("unchecked")
+            List<String> choices = (List<String>) parsed.get("choices");
+            questions.add(new StudentExamDetailResponse.QuestionItem(
+                    q.getQstnSn(), q.getQstnOrdr(), stemText,
+                    q.getQstnTypeCd() != null ? q.getQstnTypeCd().name() : null,
+                    q.getAllocScr(), choices));
+        }
+
+        return ResponseEntity.ok(new StudentExamDetailResponse(
+                examSn, exam.getExamRegNm(), exam.getExamEndDt(), questions));
+    }
+
+    // ── 시험 응시: 답안 제출 ──────────────────────────────────────────────
+
+    @PostMapping("/exams/{examSn}/submit")
+    public ResponseEntity<Void> submitExam(
+            @PathVariable Long classSn,
+            @PathVariable Long examSn,
+            @RequestBody Map<String, List<Map<String, Object>>> body,
+            Authentication authentication) {
+        String userId = authentication.getName();
+        if (!isMember(classSn, userId)) return ResponseEntity.status(403).build();
+
+        ExamDto exam = examMapper.selectExamBySn(examSn);
+        if (exam == null || !classSn.equals(exam.getClassSn())) return ResponseEntity.notFound().build();
+
+        LocalDateTime now = LocalDateTime.now();
+        String status = resolveExamStatus(exam.getExamStrtDt(), exam.getExamEndDt(), now);
+        if (!"ONGOING".equals(status)) return ResponseEntity.status(409).build();
+
+        if (examMapper.selectExamTaker(examSn, userId) != null) return ResponseEntity.status(409).build();
+
+        examMapper.insertExamTaker(examSn, userId);
+
+        List<Map<String, Object>> answers = body.get("answers");
+        if (answers != null) {
+            for (Map<String, Object> ans : answers) {
+                Long qstnSn = ans.get("qstnSn") instanceof Number
+                        ? ((Number) ans.get("qstnSn")).longValue() : null;
+                String answCn = ans.get("answCn") instanceof String ? (String) ans.get("answCn") : null;
+                if (qstnSn != null) {
+                    examMapper.insertAnswer(examSn, userId, qstnSn, answCn);
+                }
+            }
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> parseQstnCn(String json) {
+        if (json == null || json.isBlank()) return Map.of();
+        try {
+            return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+        } catch (Exception e) {
+            return Map.of();
+        }
     }
 
     private String resolveExamStatus(String strtDt, String endDt, LocalDateTime now) {
