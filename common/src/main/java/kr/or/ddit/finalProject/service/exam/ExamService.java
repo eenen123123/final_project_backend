@@ -78,4 +78,7 @@ public interface ExamService {
     void gradeStudentExam(Long examSn, String userId,
                           java.util.Map<Long, java.math.BigDecimal> scores,
                           String graderId);
+
+    /** 클래스룸 내 시험 채점 대기 건수 */
+    int countPendingGradesByClassSn(Long classSn);
 }

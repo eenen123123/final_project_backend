@@ -186,6 +186,11 @@ public class ExamServiceImpl implements ExamService {
         }
     }
 
+    @Override
+    public int countPendingGradesByClassSn(Long classSn) {
+        return examMapper.countPendingGradesByClassSn(classSn);
+    }
+
     /**
      * 선택된 문항 목록을 EXAM_QUESTION 테이블에 순서대로 삽입합니다.
      */

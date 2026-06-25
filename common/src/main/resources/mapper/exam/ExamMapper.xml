@@ -330,4 +330,14 @@
         ORDER BY e.EXAM_STRT_DT ASC
     </select>
 
+    <!-- 클래스룸 내 시험 채점 대기 건수 (TOT_SCORE IS NULL인 EXAM_TAKER) -->
+    <select id="countPendingGradesByClassSn" resultType="int">
+        SELECT COUNT(*)
+        FROM EXAM_TAKER et
+        JOIN EXAM e ON e.EXAM_SN = et.EXAM_SN
+                   AND e.CLASS_SN = #{classSn}
+                   AND e.EXAM_STAT_CD != '99'
+        WHERE et.TOT_SCORE IS NULL
+    </select>
+
 </mapper>

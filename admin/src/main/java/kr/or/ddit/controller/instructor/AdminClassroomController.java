@@ -158,7 +158,7 @@ public class AdminClassroomController extends AbstractClassroomController {
         return ResponseEntity.ok(Map.of("success", true));
     }
 
-    // 클래스룸 홈 — 진도율·마감과제·최근제출·캘린더 등 대시보드
+    // 클래스룸 홈 대시보드
     @GetMapping("/detail/{classSn}")
     public String classroomDetail(@PathVariable Long classSn, Model model,
             Authentication authentication) {
@@ -167,94 +167,93 @@ public class AdminClassroomController extends AbstractClassroomController {
             return "redirect:/classroom/list";
         }
         LocalDate now = LocalDate.now();
-        int year = now.getYear();
-        int month = now.getMonthValue();
+        LocalDateTime nowDt = LocalDateTime.now();
 
         model.addAttribute("classroom", ownedClassroom);
-        model.addAttribute("weeklyData", classroomService.retrieveWeeklyData(classSn));
-        model.addAttribute("weeklyCompareText",
-                classroomService.retrieveWeeklyCompareText(classSn));
-        model.addAttribute("achievements", classroomService.retrieveAchievements(classSn));
-        model.addAttribute("todayQuestion", classroomService.retrieveTodayQuestion(classSn));
-        model.addAttribute("pendingGradeCount",
-                assignmentBoardService.getPendingGradeCount(classSn));
-        model.addAttribute("inactiveStudentCount",
-                classroomService.retrieveInactiveStudentCount(classSn));
-        model.addAttribute("calendarYear", year);
-        model.addAttribute("calendarMonth", month);
-        model.addAttribute("calendarPadding",
-                classroomService.retrieveCalendarPadding(year, month));
-        model.addAttribute("calendarDays",
-                classroomService.retrieveCalendarDays(classSn, year, month));
 
-        List<InstructorBoardDto> notices
-                = instructorBoardService.getClassroomNoticeList(classSn, 1, 1).getItems();
-        model.addAttribute("recentNotice", notices.isEmpty() ? null : notices.get(0));
-
-        // 강좌 진도율 요약 — 강의 위젯(home-classroom.html의 "강좌 진도율 요약" 카드)에서 사용
-        // avgCompletionPct: 강의별 완료율의 평균 (강의 중심)
-        // avgProgressRate(아래): 수강생별 진도율의 평균 (수강생 중심) — 요약 카드에서 사용
-        List<ClassroomLectureResponse> lectures = classroomService.retrieveLecturesWithProgress(classSn);
-        int totalLectures = lectures.size();
-        int avgCompletionPct = 0;
-        if (totalLectures > 0) {
-            long validCount = lectures.stream().filter(l -> l.getTotMemberCnt() > 0).count();
-            if (validCount > 0) {
-                avgCompletionPct = (int) lectures.stream()
-                        .filter(l -> l.getTotMemberCnt() > 0)
-                        .mapToLong(l -> (long) l.getCmplCnt() * 100 / l.getTotMemberCnt())
-                        .average()
-                        .orElse(0);
-            }
-        }
-        model.addAttribute("totalLectures", totalLectures);
-        model.addAttribute("avgCompletionPct", avgCompletionPct);
-
-        // 수강생 현황 요약 카드 — 탈퇴(WITHDRAWN)/취소(CANCELLED)는 집계에서 제외
+        // ── 수강생 현황 요약 카드
         List<kr.or.ddit.finalProject.dto.classroom.ClassroomMemberListResponse> members = ownedClassroom.getMembers();
-        long totalStudents = members.stream() // 총 수강생 수 (수강중 + 이수완료)
+        long totalStudents = members.stream()
                 .filter(m -> m.getEnrlStatCd() == kr.or.ddit.finalProject.dto.classroom.EnrollStatus.ENROLLED
-                || m.getEnrlStatCd() == kr.or.ddit.finalProject.dto.classroom.EnrollStatus.COMPLETED)
+                          || m.getEnrlStatCd() == kr.or.ddit.finalProject.dto.classroom.EnrollStatus.COMPLETED)
                 .count();
-        long completedStudents = members.stream() // 이수완료 수강생 수
+        long completedStudents = members.stream()
                 .filter(m -> m.getEnrlStatCd() == kr.or.ddit.finalProject.dto.classroom.EnrollStatus.COMPLETED)
                 .count();
-        int completionRate = totalStudents == 0 ? 0 // 이수율 (%) = 이수완료 / 총수강생
+        int completionRate = totalStudents == 0 ? 0
                 : (int) Math.round(completedStudents * 100.0 / totalStudents);
         model.addAttribute("totalStudents", totalStudents);
         model.addAttribute("completedStudents", completedStudents);
         model.addAttribute("completionRate", completionRate);
 
-        // 평균 진도율 — 수강생별 진도율의 평균 (수강중 + 이수완료만 대상, 탈퇴/취소 제외)
+        // ── 평균 진도율
         Map<String, Double> progressRates = classroomService.retrieveProgressRates(classSn);
         double avgProgressRate = members.stream()
                 .filter(m -> m.getEnrlStatCd() == kr.or.ddit.finalProject.dto.classroom.EnrollStatus.ENROLLED
-                || m.getEnrlStatCd() == kr.or.ddit.finalProject.dto.classroom.EnrollStatus.COMPLETED)
+                          || m.getEnrlStatCd() == kr.or.ddit.finalProject.dto.classroom.EnrollStatus.COMPLETED)
                 .mapToDouble(m -> progressRates.getOrDefault(m.getUserId(), 0.0))
-                .average()
-                .orElse(0.0);
+                .average().orElse(0.0);
         model.addAttribute("avgProgressRate", (int) Math.round(avgProgressRate));
 
-        // 마감 임박 과제 (오늘~모레) — 전체 과제 조회 후 필터
+        // ── 시험 현황 카드 + 예정 시험 목록
+        List<kr.or.ddit.finalProject.dto.exam.ExamDto> allExams = examService.retrieveExamsByClassSn(classSn);
+        String nowFormatted = now + " 00:00"; // "YYYY-MM-DD HH:MI" 포맷 비교용
+        long ongoingExamCount = allExams.stream()
+                .filter(e -> e.getExamStrtDt() != null && e.getExamEndDt() != null)
+                .filter(e -> e.getExamStrtDt().compareTo(nowFormatted) <= 0
+                          && e.getExamEndDt().compareTo(nowFormatted) >= 0)
+                .count();
+        long upcomingExamCount = allExams.stream()
+                .filter(e -> e.getExamStrtDt() != null)
+                .filter(e -> e.getExamStrtDt().compareTo(nowFormatted) > 0)
+                .count();
+        model.addAttribute("ongoingExamCount", ongoingExamCount);
+        model.addAttribute("upcomingExamCount", upcomingExamCount);
+        List<kr.or.ddit.finalProject.dto.exam.ExamDto> upcomingExams = allExams.stream()
+                .filter(e -> e.getExamEndDt() == null || e.getExamEndDt().compareTo(nowFormatted) >= 0)
+                .sorted(Comparator.comparing(e -> e.getExamStrtDt() != null ? e.getExamStrtDt() : "9999"))
+                .limit(5)
+                .collect(Collectors.toList());
+        model.addAttribute("upcomingExams", upcomingExams);
+
+        // ── 액션 아이템: 시험 채점 대기
+        model.addAttribute("pendingExamGradeCount", examService.countPendingGradesByClassSn(classSn));
+
+        // ── 강좌 진도율 요약
+        List<ClassroomLectureResponse> lectures = classroomService.retrieveLecturesWithProgress(classSn);
+        int totalLectures = lectures.size();
+        int avgCompletionPct = 0;
+        if (totalLectures > 0) {
+            avgCompletionPct = (int) lectures.stream()
+                    .filter(l -> l.getTotMemberCnt() > 0)
+                    .mapToLong(l -> (long) l.getCmplCnt() * 100 / l.getTotMemberCnt())
+                    .average().orElse(0);
+        }
+        model.addAttribute("totalLectures", totalLectures);
+        model.addAttribute("avgCompletionPct", avgCompletionPct);
+
+        // ── 마감 임박 과제 (오늘~모레)
         List<AssignmentBoardDto> allAssignments = assignmentBoardService.getAssignmentList(classSn, 1, 9999).getItems();
-        LocalDateTime nowDt = LocalDateTime.now();
         LocalDateTime threshold = now.plusDays(2).atTime(23, 59, 59);
         List<AssignmentBoardDto> deadlineSoonList = allAssignments.stream()
                 .filter(a -> a.getSbmtDdlnDt() != null)
-                .filter(a -> !a.getSbmtDdlnDt().isBefore(nowDt))
-                .filter(a -> !a.getSbmtDdlnDt().isAfter(threshold))
+                .filter(a -> !a.getSbmtDdlnDt().isBefore(nowDt) && !a.getSbmtDdlnDt().isAfter(threshold))
                 .sorted(Comparator.comparing(AssignmentBoardDto::getSbmtDdlnDt))
-                .map(a -> {
-                    a.setDaysUntil((int) ChronoUnit.DAYS.between(now, a.getSbmtDdlnDt().toLocalDate()));
-                    return a;
-                })
+                .map(a -> { a.setDaysUntil((int) ChronoUnit.DAYS.between(now, a.getSbmtDdlnDt().toLocalDate())); return a; })
                 .collect(Collectors.toList());
         model.addAttribute("totalAssignmentCount", allAssignments.size());
         model.addAttribute("deadlineSoonList", deadlineSoonList);
 
-        // 최근 제출된 과제 (최대 5건)
-        List<AssignmentSubmitDto> recentSubmits = assignmentBoardService.getRecentSubmits(classSn, 5);
-        model.addAttribute("recentSubmits", recentSubmits);
+        // ── 최근 제출된 과제 (최대 5건)
+        model.addAttribute("recentSubmits", assignmentBoardService.getRecentSubmits(classSn, 5));
+
+        // ── 최근 공지사항
+        List<InstructorBoardDto> notices = instructorBoardService.getClassroomNoticeList(classSn, 1, 1).getItems();
+        model.addAttribute("recentNotice", notices.isEmpty() ? null : notices.get(0));
+
+        // ── 약점 분석 TOP 3
+        model.addAttribute("topWeakPoints",
+                geminiQuestionService.retrieveWeakPoints(classSn).stream().limit(3).collect(Collectors.toList()));
 
         return "classroom/home-classroom";
     }

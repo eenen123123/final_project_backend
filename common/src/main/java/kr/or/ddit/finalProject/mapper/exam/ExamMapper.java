@@ -125,4 +125,7 @@ public interface ExamMapper {
 
     List<kr.or.ddit.finalProject.dto.classroom.StudentExamDto> selectExamsByStudent(
             @Param("classSn") Long classSn, @Param("userId") String userId);
+
+    /** 클래스룸 내 시험 채점 대기 건수 (TOT_SCORE IS NULL) */
+    int countPendingGradesByClassSn(@Param("classSn") Long classSn);
 }
