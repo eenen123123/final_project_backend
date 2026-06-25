@@ -72,14 +72,14 @@
 
     <!-- 목록 (좌) -->
     <div class="lg:col-span-2 space-y-4">
-      <div class="flex flex-wrap items-center gap-3">
-        <div class="w-52 relative">
-          <input type="text" id="fKeyword" class="hm-input hm-input-blue pl-10" placeholder="학생명 또는 사유 검색..." oninput="onKeywordInput()">
-          <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3.5 text-slate-400"></i>
+      <div class="flex items-center gap-2">
+        <div class="relative shrink-0">
+          <input type="text" id="fKeyword" class="hm-input hm-input-blue pl-10 text-xs" style="width: 12rem;" placeholder="학생명 또는 사유 검색..." oninput="onKeywordInput()">
+          <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
         </div>
-        <select class="hm-input hm-input-blue w-36" id="fLevel" data-cs-defer data-cl-code="700" data-all-label="등급 전체" onchange="doSearch(1)"></select>
-        <select class="hm-input hm-input-blue w-36" id="fCategory" data-cs-defer data-cl-code="701" data-all-label="유형 전체" onchange="doSearch(1)"></select>
-        <select class="hm-input hm-input-blue w-32" id="fStatus" onchange="doSearch(1)">
+        <select class="hm-input hm-input-blue text-xs" style="width: 8rem;" id="fLevel" data-cs-defer data-cl-code="700" data-all-label="등급 전체" onchange="doSearch(1)"></select>
+        <select class="hm-input hm-input-blue text-xs" style="width: 8rem;" id="fCategory" data-cs-defer data-cl-code="701" data-all-label="유형 전체" onchange="doSearch(1)"></select>
+        <select class="hm-input hm-input-blue text-xs" style="width: 8rem;" id="fStatus" onchange="doSearch(1)">
           <option value="">상태 전체</option>
           <option value="active">적용 중</option>
           <option value="resolved">해제 완료</option>
