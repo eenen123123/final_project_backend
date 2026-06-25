@@ -105,6 +105,9 @@ public interface StaffService {
      */
     List<EmployeeDetailDto> retrieveEmployeeList();
 
+    /** 상태별 직원 수 조회 (stats 카드용) */
+    Map<String, Object> getEmployeeStatusCounts();
+
     /** 단일 직원 상세 조회 (수정 전 스냅샷용) */
     EmployeeDetailDto retrieveEmployeeDetailById(String userId);
 
