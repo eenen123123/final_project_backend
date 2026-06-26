@@ -106,7 +106,7 @@
   <update id="updateMySubmit">
     UPDATE ASSIGNMENT_SUBMIT
     SET SBMT_CN   = #{sbmtCn},
-        <if test="atchFileId != null">ATCH_FILE_ID = #{atchFileId},</if>
+        <if test="updateAtchFile">ATCH_FILE_ID = #{atchFileId},</if>
         GRDD_YN   = 'N',
         SCORE     = NULL,
         MDFCN_DT  = CURRENT_TIMESTAMP
