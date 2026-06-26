@@ -1,12 +1,12 @@
-<title th:fragment="pageTitle">주의 학생 관리 | HERMES</title>
+<title th:fragment="pageTitle">블랙리스트 관리 | HERMES</title>
 
 <div class="space-y-6">
 
   <!-- ① 페이지 헤더 -->
   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
     <div>
-      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">주의 학생 관리</h1>
-      <p class="text-sm text-slate-500 mt-1">주의가 필요한 학생 정보를 등록하고 담당 직원 간 내부 공유합니다. 외부에 노출되지 않습니다.</p>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">블랙리스트 · 학생 관리</h1>
+      <p class="text-sm text-slate-500 mt-1">주의 학생을 등록·관리하고 등급·유형별로 분류합니다. 담당 직원 간 내부 공유 전용이며 외부에 노출되지 않습니다.</p>
     </div>
     <button class="hm-btn-primary hm-btn-blue" onclick="openBlacklistModal(null)">
       <i class="fa-solid fa-plus"></i>
@@ -72,14 +72,14 @@
 
     <!-- 목록 (좌) -->
     <div class="lg:col-span-2 space-y-4">
-      <div class="flex flex-wrap items-center gap-3">
-        <div class="w-52 relative">
-          <input type="text" id="fKeyword" class="hm-input hm-input-blue pl-10" placeholder="학생명 또는 사유 검색..." oninput="onKeywordInput()">
-          <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3.5 text-slate-400"></i>
+      <div class="flex items-center gap-2">
+        <div class="relative shrink-0">
+          <input type="text" id="fKeyword" class="hm-input hm-input-blue pl-10 text-xs" style="width: 12rem;" placeholder="학생명 또는 사유 검색..." oninput="onKeywordInput()">
+          <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
         </div>
-        <select class="hm-input hm-input-blue w-36" id="fLevel" data-cs-defer data-cl-code="700" data-all-label="등급 전체" onchange="doSearch(1)"></select>
-        <select class="hm-input hm-input-blue w-36" id="fCategory" data-cs-defer data-cl-code="701" data-all-label="유형 전체" onchange="doSearch(1)"></select>
-        <select class="hm-input hm-input-blue w-32" id="fStatus" onchange="doSearch(1)">
+        <select class="hm-input hm-input-blue text-xs" style="width: 8rem;" id="fLevel" data-cs-defer data-cl-code="700" data-all-label="등급 전체" onchange="doSearch(1)"></select>
+        <select class="hm-input hm-input-blue text-xs" style="width: 8rem;" id="fCategory" data-cs-defer data-cl-code="701" data-all-label="유형 전체" onchange="doSearch(1)"></select>
+        <select class="hm-input hm-input-blue text-xs" style="width: 8rem;" id="fStatus" onchange="doSearch(1)">
           <option value="">상태 전체</option>
           <option value="active">적용 중</option>
           <option value="resolved">해제 완료</option>

@@ -72,6 +72,13 @@ public class AdminCouponController {
         return "admin:/coupon/coupon_list";
     }
 
+    // GET /admin/coupon/list - 쿠폰 목록 JSON (비동기 테이블용)
+    @GetMapping("/list")
+    @ResponseBody
+    public ResponseEntity<List<CouponDto>> getCouponListJson() {
+        return ResponseEntity.ok(couponService.getAllCoupons());
+    }
+
     // GET /admin/coupon/insert - 쿠폰 등록 페이지 (레거시, 팝업으로 대체됨)
     @GetMapping("/insert")
     public String couponInsertForm() {

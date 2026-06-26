@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import java.util.List;
 import org.springframework.web.multipart.MultipartFile;
 
 import kr.or.ddit.finalProject.dto.board.DataRoomDto;
@@ -234,9 +235,9 @@ public class CustomerServiceController {
 
     @PostMapping("/dataroom/write")
     public String dataRoomWrite(DataRoomDto dataRoomDto,
-            @RequestParam(required = false) MultipartFile attachFile,
+            @RequestParam(value = "attachFiles", required = false) List<MultipartFile> attachFiles,
             Authentication authentication) {
-        dataRoomDto.setAttachFile(attachFile);
+        dataRoomDto.setAttachFiles(attachFiles);
         dataRoomService.create(dataRoomDto, authentication);
         return "redirect:/admin/board/customer-service?tab=tab-dataroom";
     }
@@ -252,11 +253,11 @@ public class CustomerServiceController {
 
     @PostMapping("/dataroom/edit/{postSn}")
     public String dataRoomEdit(@PathVariable Long postSn, DataRoomDto dataRoomDto,
-            @RequestParam(required = false) MultipartFile attachFile,
+            @RequestParam(value = "attachFiles", required = false) List<MultipartFile> attachFiles,
             Authentication authentication) {
         dataRoomDto.setPostSn(postSn);
         dataRoomDto.setPostCn(TipTapSanitizer.clean(dataRoomDto.getPostCn()));
-        dataRoomDto.setAttachFile(attachFile);
+        dataRoomDto.setAttachFiles(attachFiles);
         dataRoomService.update(dataRoomDto);
         return "redirect:/admin/board/customer-service?tab=tab-dataroom";
     }

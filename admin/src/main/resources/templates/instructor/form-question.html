@@ -86,18 +86,34 @@
     </div>
 
     <!-- AI 원버튼 (신규 등록 시에만) -->
-    <div th:if="${question == null}" class="flex items-center gap-4 px-8 py-3 bg-violet-50/40">
-      <span class="text-xs font-bold px-1.5 py-0.5 rounded-full shrink-0"
-            style="background:linear-gradient(135deg,#7c3aed,#0ea5e9);color:#fff;">AI</span>
-      <span class="text-sm text-slate-400 flex-1">과목·난이도 선택 후 문항을 자동 생성합니다.</span>
-      <button type="button" id="ai-fill-btn" onclick="fqAiFill()"
-              class="hm-btn-primary shrink-0"
-              style="background:linear-gradient(135deg,#7c3aed,#0ea5e9);">
-        <i class="fa-solid fa-wand-magic-sparkles"></i>자동 채우기
-      </button>
-      <span id="ai-spinner" class="hidden text-sm text-slate-400 shrink-0">
-        <i class="fa-solid fa-circle-notch fa-spin mr-1"></i>생성 중...
-      </span>
+    <div th:if="${question == null}" class="flex flex-col gap-2 px-8 py-3 bg-violet-50/40">
+      <div class="flex items-center gap-4">
+        <span class="text-xs font-bold px-1.5 py-0.5 rounded-full shrink-0"
+              style="background:linear-gradient(135deg,#7c3aed,#0ea5e9);color:#fff;">AI</span>
+        <span class="text-sm text-slate-400 flex-1">과목·난이도 선택 후 문항을 자동 생성합니다.</span>
+        <button type="button" id="ai-fill-btn" onclick="fqAiFill()"
+                class="hm-btn-primary shrink-0"
+                style="background:linear-gradient(135deg,#7c3aed,#0ea5e9);">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>자동 채우기
+        </button>
+        <span id="ai-spinner" class="hidden text-sm text-slate-400 shrink-0">
+          <i class="fa-solid fa-circle-notch fa-spin mr-1"></i>생성 중...
+        </span>
+      </div>
+      <div class="flex items-center gap-2 pl-7">
+        <label class="text-xs font-semibold text-violet-400 whitespace-nowrap shrink-0">추가 요구사항</label>
+        <input type="text" id="ai-extra-prompt" maxlength="300" placeholder="예) 함수의 극한 단원, 도표 포함해서 만들어줘 (선택)"
+               class="flex-1 px-3 py-1.5 text-sm border border-violet-200 rounded-lg bg-white focus:outline-none focus:border-violet-400 focus:ring-1 focus:ring-violet-100 text-slate-700 placeholder:text-slate-300" />
+      </div>
+    </div>
+
+    <!-- 세부 주제 -->
+    <div class="flex items-center px-8 py-3">
+      <label class="w-28 shrink-0 text-sm font-semibold text-slate-600">세부 주제</label>
+      <input type="text" name="topic" id="fq-topic" maxlength="100"
+        placeholder="예) 삼각함수 - 사인법칙, 확률 - 조합"
+        class="hm-input hm-input-sky flex-1"
+        th:value="${question?.topic}" />
     </div>
 
     <!-- 문제 본문 -->

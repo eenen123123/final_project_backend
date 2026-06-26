@@ -415,6 +415,9 @@
             WHERE IB.CLASS_SN      = #{classSn}
               AND IB.BOARD_TYPE_CD = 'QNA'
               AND IB.USE_YN        = 'Y'
+              <if test="writerUserId != null and writerUserId != ''">
+              AND IB.WRTR_USER_ID = #{writerUserId}
+              </if>
             ORDER BY IB.REG_DT DESC
             OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
       </select>
@@ -425,6 +428,28 @@
             WHERE CLASS_SN      = #{classSn}
               AND BOARD_TYPE_CD = 'QNA'
               AND USE_YN        = 'Y'
+              <if test="writerUserId != null and writerUserId != ''">
+              AND WRTR_USER_ID = #{writerUserId}
+              </if>
+      </select>
+
+      <!-- 특정 학생이 등록한 최근 QnA (상세 페이지용) -->
+      <select id="selectRecentQnaByStudent" resultMap="classroomQnaMap">
+            SELECT
+                  IB.POST_SN, IB.INSTR_USER_ID, IB.WRTR_USER_ID,
+                  IB.POST_SJ, IB.INQ_CNT, IB.REG_DT, IB.USE_YN,
+                  IB.CLASS_SN,
+                  M.USER_NAME,
+                  IQ.ANSW_YN, IQ.SECR_YN
+            FROM INSTRUCTOR_BOARD IB
+                  <include refid="wrtrMemberJoin"/>
+                  LEFT JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
+            WHERE IB.CLASS_SN      = #{classSn}
+              AND IB.BOARD_TYPE_CD = 'QNA'
+              AND IB.USE_YN        = 'Y'
+              AND IB.WRTR_USER_ID  = #{userId}
+            ORDER BY IB.REG_DT DESC
+            FETCH FIRST #{limit} ROWS ONLY
       </select>
 
       <select id="selectClassroomQnaDetail" resultMap="classroomQnaMap">

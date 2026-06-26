@@ -38,6 +38,7 @@
         <result property="userName" column="USER_NAME" />
         <result property="cmplYn" column="CMPL_YN" />
         <result property="cmplDt" column="CMPL_DT" />
+        <result property="progressPct" column="PROGRESS_PCT" />
     </resultMap>
 
     <select id="selectLecturesWithProgress" resultMap="lectureProgressMap">
@@ -49,18 +50,24 @@
         l.SORT_ORD,
         l.OPNN_YN,
         l.LOCK_YN,
-        COUNT(CASE WHEN p.CMPL_YN = 'Y' THEN 1 END) AS CMPL_CNT,
+        (
+            SELECT COUNT(*)
+            FROM LECTURE_PROGRESS lp2
+            JOIN CLASSROOM_MEMBER cm2
+              ON cm2.USER_ID    = lp2.USER_ID
+             AND cm2.CLASS_SN   = #{classSn}
+             AND cm2.ENRL_STAT_CD = 'ENROLLED'
+            WHERE lp2.LECTURE_SN = l.LECTURE_SN
+              AND lp2.COURSE_SN  = l.COURSE_SN
+              AND l.LECTURE_DURATION > 0
+              AND lp2.SECONDS_WATCHED >= l.LECTURE_DURATION
+        ) AS CMPL_CNT,
         (SELECT COUNT(*)
          FROM CLASSROOM_MEMBER
          WHERE CLASS_SN = #{classSn}
            AND ENRL_STAT_CD = 'ENROLLED') AS TOT_MEMBER_CNT
     FROM LECTURE l
-    JOIN CLASSROOM c ON c.COURSE_SN = l.COURSE_SN
-    LEFT JOIN STUDENT_CONTENT_PROGRESS p
-           ON p.LECTURE_SN = l.LECTURE_SN
-          AND p.CLASS_SN   = #{classSn}
-    WHERE c.CLASS_SN = #{classSn}
-    GROUP BY l.LECTURE_SN, l.LECTURE_NM, l.LECTURE_DURATION, l.LECTURE_TYPE_CD, l.SORT_ORD, l.OPNN_YN, l.LOCK_YN
+    JOIN CLASSROOM c ON c.COURSE_SN = l.COURSE_SN AND c.CLASS_SN = #{classSn}
     ORDER BY l.SORT_ORD ASC, l.LECTURE_SN ASC
     </select>
 
@@ -68,14 +75,30 @@
     SELECT
         cm.USER_ID,
         m.USER_NAME,
-        NVL(p.CMPL_YN, 'N') AS CMPL_YN,
-        TO_CHAR(p.CMPL_DT, 'YYYY-MM-DD HH24:MI') AS CMPL_DT
+        CASE
+            WHEN lp.SECONDS_WATCHED IS NOT NULL
+             AND l.LECTURE_DURATION > 0
+             AND lp.SECONDS_WATCHED >= l.LECTURE_DURATION
+            THEN 'Y' ELSE 'N'
+        END AS CMPL_YN,
+        CASE
+            WHEN lp.SECONDS_WATCHED IS NOT NULL
+             AND l.LECTURE_DURATION > 0
+             AND lp.SECONDS_WATCHED >= l.LECTURE_DURATION
+            THEN TO_CHAR(lp.LAST_UPDATE, 'YYYY-MM-DD HH24:MI')
+            ELSE NULL
+        END AS CMPL_DT,
+        CASE
+            WHEN lp.SECONDS_WATCHED IS NULL OR NVL(l.LECTURE_DURATION, 0) = 0 THEN 0
+            ELSE LEAST(ROUND(lp.SECONDS_WATCHED * 100.0 / l.LECTURE_DURATION, 0), 100)
+        END AS PROGRESS_PCT
     FROM CLASSROOM_MEMBER cm
     JOIN MEMBER m ON m.USER_ID = cm.USER_ID
-    LEFT JOIN STUDENT_CONTENT_PROGRESS p
-           ON p.USER_ID     = cm.USER_ID
-          AND p.CLASS_SN    = cm.CLASS_SN
-          AND p.LECTURE_SN  = #{lectureSn}
+    JOIN LECTURE l ON l.LECTURE_SN = #{lectureSn}
+    LEFT JOIN LECTURE_PROGRESS lp
+           ON lp.LECTURE_SN = l.LECTURE_SN
+          AND lp.COURSE_SN  = l.COURSE_SN
+          AND lp.USER_ID    = cm.USER_ID
     WHERE cm.CLASS_SN     = #{classSn}
       AND cm.ENRL_STAT_CD = 'ENROLLED'
     ORDER BY m.USER_NAME ASC
@@ -86,19 +109,33 @@
     <select id="selectLectureProgressByStudent"
             resultType="kr.or.ddit.finalProject.dto.lecture.LectureProgressDetailResponse">
     SELECT
-        l.LECTURE_SN                                      AS lectureSn,
-        l.LECTURE_NM                                      AS lectureNm,
-        l.SORT_ORD                                        AS sortOrd,
-        NVL(p.CMPL_YN, 'N')                              AS cmplYn,
-        TO_CHAR(p.CMPL_DT, 'YYYY-MM-DD HH24:MI')         AS cmplDt
+        l.LECTURE_SN                                                          AS lectureSn,
+        l.LECTURE_NM                                                          AS lectureNm,
+        l.SORT_ORD                                                            AS sortOrd,
+        CASE
+            WHEN lp.SECONDS_WATCHED IS NOT NULL
+             AND l.LECTURE_DURATION > 0
+             AND lp.SECONDS_WATCHED >= l.LECTURE_DURATION
+            THEN 'Y' ELSE 'N'
+        END                                                                   AS cmplYn,
+        CASE
+            WHEN lp.SECONDS_WATCHED IS NOT NULL
+             AND l.LECTURE_DURATION > 0
+             AND lp.SECONDS_WATCHED >= l.LECTURE_DURATION
+            THEN TO_CHAR(lp.LAST_UPDATE, 'YYYY-MM-DD HH24:MI')
+            ELSE NULL
+        END                                                                   AS cmplDt,
+        CASE
+            WHEN lp.SECONDS_WATCHED IS NULL OR NVL(l.LECTURE_DURATION, 0) = 0 THEN 0
+            ELSE LEAST(ROUND(lp.SECONDS_WATCHED * 100.0 / l.LECTURE_DURATION, 0), 100)
+        END                                                                   AS progressPct
     FROM LECTURE l
-    JOIN CLASSROOM cl ON cl.COURSE_SN = l.COURSE_SN
-    LEFT JOIN STUDENT_CONTENT_PROGRESS p
-           ON p.LECTURE_SN = l.LECTURE_SN
-          AND p.CLASS_SN   = #{classSn}
-          AND p.USER_ID    = #{userId}
-    WHERE cl.CLASS_SN = #{classSn}
-      AND l.OPNN_YN   = 'Y'
+    JOIN CLASSROOM cl ON cl.COURSE_SN = l.COURSE_SN AND cl.CLASS_SN = #{classSn}
+    LEFT JOIN LECTURE_PROGRESS lp
+           ON lp.LECTURE_SN = l.LECTURE_SN
+          AND lp.COURSE_SN  = l.COURSE_SN
+          AND lp.USER_ID    = #{userId}
+    WHERE l.OPNN_YN = 'Y'
     ORDER BY l.SORT_ORD ASC, l.LECTURE_SN ASC
     </select>
 

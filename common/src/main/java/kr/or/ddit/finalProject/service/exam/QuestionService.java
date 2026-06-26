@@ -20,6 +20,12 @@ public interface QuestionService {
     List<QuestionDto> retrieveMyQuestions(String instrUserId);
 
     /**
+     * 내 문항 목록 중 특정 과목만 조회
+     * subjId가 null이면 전체 조회 위임.
+     */
+    List<QuestionDto> retrieveMyQuestionsBySubjId(String instrUserId, Long subjId);
+
+    /**
      * 필터 + 페이징 적용 문항 목록 조회
      *
      * @param instrUserId 강사 ID
@@ -29,12 +35,12 @@ public interface QuestionService {
      * @param pageSize    페이지 당 건수
      */
     List<QuestionDto> retrieveQuestionPage(String instrUserId, Long subjId, String diffCd,
-                                            int page, int pageSize);
+                                            boolean showDeleted, int page, int pageSize);
 
     /**
      * 필터 조건 총 문항 건수 (페이징 계산용)
      */
-    int countQuestions(String instrUserId, Long subjId, String diffCd);
+    int countQuestions(String instrUserId, Long subjId, String diffCd, boolean showDeleted);
 
     /**
      * 문항 단건 조회 (소유권 확인 포함)

@@ -140,14 +140,15 @@ public interface InstructorBoardMapper {
 
     // ── 클래스룸 Q&A ──────────────────────────────────────────────────
 
-    /** 클래스룸 Q&A 목록 조회 (페이징) */
+    /** 클래스룸 Q&A 목록 조회 (페이징, writerUserId null이면 전체) */
     List<kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto> selectClassroomQnaList(
             @Param("classSn") Long classSn,
             @Param("offset") int offset,
-            @Param("pageSize") int pageSize);
+            @Param("pageSize") int pageSize,
+            @Param("writerUserId") String writerUserId);
 
-    /** 클래스룸 Q&A 총 건수 */
-    int countClassroomQnaList(@Param("classSn") Long classSn);
+    /** 클래스룸 Q&A 총 건수 (writerUserId null이면 전체) */
+    int countClassroomQnaList(@Param("classSn") Long classSn, @Param("writerUserId") String writerUserId);
 
     /** 클래스룸 Q&A 상세 조회 (답변 정보 포함) */
     kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto selectClassroomQnaDetail(
@@ -168,6 +169,12 @@ public interface InstructorBoardMapper {
 
     /** 클래스룸 내 미답변 Q&A 건수 조회 (대시보드 배지 표시용) */
     int selectUnansweredQnaCount(@Param("classSn") Long classSn);
+
+    /** 특정 학생이 등록한 최근 QnA 조회 (학생 상세 페이지용) */
+    List<kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto> selectRecentQnaByStudent(
+            @Param("classSn") Long classSn,
+            @Param("userId") String userId,
+            @Param("limit") int limit);
 
     // ── 강사 프로필 ───────────────────────────────────────────────────
 

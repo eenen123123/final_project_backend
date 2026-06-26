@@ -1,65 +1,81 @@
-<div class="sidebar-section" data-section-key="강사 업무" style="--section-color: #0ea5e9;">
-  <p class="sidebar-title text-sky-500 sidebar-section-toggle"><i
-      class="fa-solid fa-chalkboard-user sidebar-section-icon"></i>강사 업무<i
-      class="fa-solid fa-chevron-down sidebar-section-arrow"></i></p>
+<div
+  class="sidebar-section"
+  data-section-key="강사 업무"
+  style="--section-color: #0ea5e9"
+>
+  <p class="sidebar-title text-sky-500 sidebar-section-toggle">
+    <i class="fa-solid fa-chalkboard-user sidebar-section-icon"></i>강사 업무<i
+      class="fa-solid fa-chevron-down sidebar-section-arrow"
+    ></i>
+  </p>
   <ul class="sidebar-list">
-    <!-- 2 그룹: 담당 클래스 및 수업 자료 관리 -->
+    <!-- 담당 클래스 관리 -->
     <li>
-      <a href="/classroom/list" class="sidebar-link" th:classappend="${currentUri.startsWith('/classroom')} ? 'active'">
+      <a
+        href="/classroom/list"
+        class="sidebar-link"
+        th:classappend="${currentUri.startsWith('/classroom')} ? 'active'"
+      >
         <i class="fa-solid fa-chalkboard sidebar-icon"></i>
         <span class="sidebar-link-text">담당 클래스 관리</span>
       </a>
     </li>
-    <!-- 4 그룹: 강사 커뮤니티 및 개인 설정 -->
+
+    <!-- 강사 게시판 -->
     <li>
-      <a href="/instructor/board/list" class="sidebar-link"
-        th:classappend="${currentUri.startsWith('/instructor/board')} ? 'active'">
+      <a
+        href="/instructor/board/list"
+        class="sidebar-link"
+        th:classappend="${currentUri.startsWith('/instructor/board')} ? 'active'"
+      >
         <i class="fa-solid fa-clipboard sidebar-icon"></i>
         <span class="sidebar-link-text">강사 게시판</span>
       </a>
     </li>
 
+    <!-- 문항 관리 -->
     <li>
-      <a href="/instructor/curriculum" class="sidebar-link"
-        th:classappend="${currentUri.startsWith('/instructor/curriculum')} ? 'active'">
-        <i class="fa-solid fa-book-open-reader sidebar-icon"></i>
-        <span class="sidebar-link-text">커리큘럼 관리</span>
-      </a>
-    </li>
-    <!-- <li>
-    <a href="#" class="sidebar-link">
-      <i class="fa-solid fa-folder-open sidebar-icon"></i>
-      <span class="sidebar-link-text">강좌 자료 관리(제거됨)</span>
-    </a>
-  </li> -->
-
-    <!-- 1 그룹: 당일 업무 파악 -->
-    <li>
-      <a href="/instructor/journals" class="sidebar-link"
-        th:classappend="${currentUri.startsWith('/instructor/journals')} ? 'active'">
-        <i class="fa-solid fa-book sidebar-icon"></i>
-        <span class="sidebar-link-text">업무 일지</span>
-      </a>
-    </li>
-    <!-- <li>
-      <a href="/instructor/ai-questions" class="sidebar-link group"
-      th:classappend="${currentUri.startsWith('/instructor/ai-questions')} ? 'active'">
-      <i class="fa-solid fa-wand-magic-sparkles sidebar-icon group-hover:text-sky-400"></i>
-      <span class="sidebar-link-text">AI 문항 생성 지원</span>
-    </a>
-  </li> -->
-
-    <!-- 3 그룹: 문항 출제 및 AI 출제 지원 평가 -->
-    <li>
-      <a href="/instructor/questions" class="sidebar-link"
-        th:classappend="${currentUri.startsWith('/instructor/questions')} ? 'active'">
+      <a
+        href="/instructor/questions"
+        class="sidebar-link"
+        th:classappend="${currentUri.startsWith('/instructor/questions')} ? 'active'"
+      >
         <i class="fa-solid fa-marker sidebar-icon"></i>
         <span class="sidebar-link-text">문항 관리</span>
       </a>
     </li>
+
+    <!-- 업무 일지 관리 -->
     <li>
-      <a href="/instructor/profile/instructor" class="sidebar-link"
-        th:classappend="${currentUri.startsWith('/instructor/profile')} ? 'active'">
+      <a
+        href="/instructor/journals"
+        class="sidebar-link"
+        th:classappend="${currentUri.startsWith('/instructor/journals')} ? 'active'"
+      >
+        <i class="fa-solid fa-book sidebar-icon"></i>
+        <span class="sidebar-link-text">업무 일지</span>
+      </a>
+    </li>
+
+    <!-- 커리큘럼 관리 -->
+    <li>
+      <a
+        href="/instructor/curriculum"
+        class="sidebar-link"
+        th:classappend="${currentUri.startsWith('/instructor/curriculum')} ? 'active'"
+      >
+        <i class="fa-solid fa-book-open-reader sidebar-icon"></i>
+        <span class="sidebar-link-text">커리큘럼 관리</span>
+      </a>
+    </li>
+
+    <!--  개인 페이지 관리 -->
+    <li>
+      <a
+        href="/instructor/profile/instructor"
+        class="sidebar-link"
+        th:classappend="${currentUri.startsWith('/instructor/profile')} ? 'active'"
+      >
         <i class="fa-solid fa-address-card sidebar-icon"></i>
         <span class="sidebar-link-text">개인 페이지 관리</span>
       </a>

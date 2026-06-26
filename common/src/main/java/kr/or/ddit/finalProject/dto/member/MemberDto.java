@@ -33,4 +33,15 @@ public class MemberDto implements Serializable {
 
     private String userRole; // 사용자 권한 (예: ROLE_USER, ROLE_ADMIN 등)
 
+    // 클래스 등록 정보 (students 목록 조회 시 서브쿼리로 채워짐)
+    private Integer classCnt;     // 등록된 클래스 수
+    private String firstInstrNm;  // 대표 강사 이름
+    private String firstClassNm;  // 대표 클래스명
+
+    // 학부모 연동 정보 (STUDENT 테이블 JOIN 시 채워짐)
+    private String prntUserId;
+    private String prntUserName;   // 학부모명
+    private String prntTelno;      // 학부모 연락처
+    private String prntEmailAddr;  // 학부모 이메일
+
 }

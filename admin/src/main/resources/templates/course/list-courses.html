@@ -12,7 +12,7 @@
       </p>
     </div>
     <a th:href="@{/admin/course/insert}" sec:authorize="hasAuthority('D300')"
-      class="hm-btn-primary hm-btn-orange shrink-0">
+      class="hm-btn-primary hm-btn-violet shrink-0">
       <i class="fa-solid fa-plus"></i>
       <span>강좌 등록</span>
     </a>
@@ -24,7 +24,7 @@
     <div
       class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-6 pt-5 pb-4 border-b border-slate-100">
       <h2 class="text-sm font-bold text-slate-700 shrink-0">
-        <i class="fa-solid fa-book-open text-orange-500 mr-2"></i>강좌 목록
+        <i class="fa-solid fa-book-open text-violet-500 mr-2"></i>강좌 목록
         <span class="ml-1 text-xs font-normal text-slate-400" th:text="'총 ' + ${totalCount} + '개'">총 0개</span>
       </h2>
       <form th:action="@{/admin/course/list}" method="get" class="flex items-center gap-2">
@@ -41,7 +41,7 @@
             </option>
           </select>
         </div>
-        <button type="submit" class="hm-btn-primary hm-btn-orange" style="padding: 0.6rem 1rem; white-space: nowrap">
+        <button type="submit" class="hm-btn-primary hm-btn-violet" style="padding: 0.6rem 1rem; white-space: nowrap">
           <i class="fa-solid fa-magnifying-glass"></i>
         </button>
         <a th:href="@{/admin/course/list}"
@@ -74,7 +74,7 @@
                 <i class="fa-solid fa-book-open text-4xl"></i>
                 <p class="text-sm">등록된 강좌가 없습니다.</p>
                 <a th:href="@{/admin/course/insert}"
-                  class="text-xs text-orange-500 hover:text-orange-600 font-semibold">
+                  class="text-xs text-violet-500 hover:text-violet-600 font-semibold">
                   첫 강좌 등록하기 →
                 </a>
               </div>
@@ -121,7 +121,7 @@
             <!-- 커리큘럼 -->
             <td class="py-4 px-6">
               <span
-                class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-600 truncate max-w-full inline-block"
+                class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-violet-50 text-violet-600 truncate max-w-full inline-block"
                 th:text="${course.curriculumTitle ?: '-'}">커리큘럼</span>
             </td>
 
@@ -134,7 +134,7 @@
             <!-- 강의 수 -->
             <td class="py-4 px-3 text-center">
               <span
-                class="w-8 h-8 rounded-lg bg-orange-50 text-orange-500 text-xs font-bold inline-flex items-center justify-center"
+                class="w-8 h-8 rounded-lg bg-violet-50 text-violet-500 text-xs font-bold inline-flex items-center justify-center"
                 th:text="${(course.lectureCnt ?: 0) + '강'}">0강</span>
             </td>
 
@@ -155,7 +155,7 @@
             <!-- 바로가기 버튼 -->
             <td class="py-4 px-4 text-center" onclick="event.stopPropagation()">
               <a th:href="@{/admin/lectures/list(courseId=${course.courseSn})}"
-                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-orange-500 hover:bg-orange-50 transition-colors border border-orange-100"
+                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-violet-500 hover:bg-violet-50 transition-colors border border-violet-100"
                 title="강의 목록">
                 <i class="fa-solid fa-film text-[11px]"></i>
                 <span>강의</span>
@@ -175,7 +175,7 @@
 
       <th:block th:each="p : ${#numbers.sequence(paginationInfo.startPage, paginationInfo.endPage)}">
         <a th:href="@{/admin/course/list(page=${p}, keyword=${param.keyword}, opnnYn=${param.opnnYn})}" th:text="${p}"
-          th:classappend="${p == paginationInfo.page} ? 'bg-orange-500 text-white border-orange-500' : 'text-slate-500 border-slate-200 hover:bg-slate-50'"
+          th:classappend="${p == paginationInfo.page} ? 'bg-violet-500 text-white border-violet-500' : 'text-slate-500 border-slate-200 hover:bg-slate-50'"
           class="w-8 h-8 flex items-center justify-center border rounded text-xs font-medium transition-colors">1</a>
       </th:block>
 

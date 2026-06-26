@@ -62,6 +62,9 @@ public interface ClassroomService {
     // 수강생 목록 페이징 (진도율 병합 포함)
     PageResponse<kr.or.ddit.finalProject.dto.classroom.ClassroomMemberListResponse> retrieveMemberListPaged(Long classSn, int page, int pageSize);
 
+    // 특정 수강생 기본정보 (email/phone/profile 포함)
+    kr.or.ddit.finalProject.dto.classroom.StudentDetailDto retrieveStudentDetail(Long classSn, String userId);
+
     // 클래스룸 등록 (결재 승인 후 실행)
     void createClassroom(ClassroomDto dto);
 

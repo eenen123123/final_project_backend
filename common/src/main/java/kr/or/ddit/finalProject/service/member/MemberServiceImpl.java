@@ -238,6 +238,19 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional
+    public void withdrawMember(String userId, String reason) {
+        int updated = memberMapper.withdrawMember(userId);
+        if (updated == 0) throw new FinalProjectException(ErrorCode.BAD_REQUEST);
+        memberMapper.insertWithdrawLog(
+            kr.or.ddit.finalProject.dto.member.MemberWithdrawLogDto.builder()
+                .userId(userId)
+                .withdrawRsn(reason)
+                .build()
+        );
+    }
+
+    @Override
     public Map<String, List<AdminMemberDto>> getGroupedAdminUsers(String currentUserId) {
         List<AdminMemberDto> adminUsers = memberMapper.getAdminUsers(currentUserId);
         Map<String, List<AdminMemberDto>> groupedAdminUsers = adminUsers.stream()

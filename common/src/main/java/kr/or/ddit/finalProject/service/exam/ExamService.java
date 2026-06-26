@@ -2,6 +2,7 @@ package kr.or.ddit.finalProject.service.exam;
 
 import kr.or.ddit.finalProject.dto.exam.ExamDto;
 import kr.or.ddit.finalProject.dto.exam.ExamSaveRequest;
+import kr.or.ddit.finalProject.dto.exam.ExamTakerDto;
 
 import java.util.List;
 
@@ -41,4 +42,43 @@ public interface ExamService {
      * 없거나 삭제됐거나 타인 소유면 예외 발생.
      */
     void removeExam(Long examSn, String instrUserId);
+
+    /**
+     * 특정 클래스룸의 시험 목록 조회 (EXAM_STAT_CD != '99')
+     */
+    List<ExamDto> retrieveExamsByClassSn(Long classSn);
+
+    /** 특정 학생의 시험별 응시 현황 */
+    List<kr.or.ddit.finalProject.dto.classroom.StudentExamDto> retrieveExamsByStudent(Long classSn, String userId);
+
+    /**
+     * 특정 시험의 응시자 목록 조회 (소유권 검증 포함, 단독 호출용)
+     * 없거나 삭제됐거나 타인 소유면 예외 발생.
+     */
+    List<ExamTakerDto> retrieveTakers(Long examSn, String instrUserId);
+
+    /**
+     * 이미 검증된 시험의 응시자 목록 조회 (소유권 재검증 없음)
+     * retrieveExamDetail 호출 직후 연속으로 쓸 때 중복 DB 조회를 방지한다.
+     */
+    List<ExamTakerDto> retrieveTakersDirectly(Long examSn);
+
+    /** 응시자 목록 — 총점·제출일시·채점완료여부 포함 (시험 상세 페이지용) */
+    List<ExamTakerDto> retrieveTakersWithScore(Long examSn);
+
+    /** 특정 학생의 시험 문항별 답안 + 채점 현황 조회 */
+    List<kr.or.ddit.finalProject.dto.exam.StudentAnswerDto> retrieveStudentAnswers(Long examSn, String userId);
+
+    /**
+     * 시험 채점 저장.
+     * scores: key=sbmtAnswSn, value=획득점수
+     * 객관식은 자동채점이므로 호출부에서 제외하고 넘겨도 무방.
+     * 채점 완료 후 EXAM_TAKER.TOT_SCORE를 자동 갱신한다.
+     */
+    void gradeStudentExam(Long examSn, String userId,
+                          java.util.Map<Long, java.math.BigDecimal> scores,
+                          String graderId);
+
+    /** 클래스룸 내 시험 채점 대기 건수 */
+    int countPendingGradesByClassSn(Long classSn);
 }

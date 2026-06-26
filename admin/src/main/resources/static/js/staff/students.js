@@ -68,10 +68,41 @@ var hrFilteredRows = null;
 
 var filterDebounceTimer = null;
 
+function syncClassFilter() {
+  const type = document.getElementById("hr-type-filter").value;
+  const wrap = document.getElementById("hr-class-filter-wrap");
+  const classEl = document.getElementById("hr-class-filter");
+  const isOffline = type === "오프라인";
+  if (wrap) wrap.style.display = isOffline ? "" : "none";
+  if (!isOffline && classEl) classEl.value = "";
+}
+
 function filterHrList() {
+  syncClassFilter();
   clearTimeout(filterDebounceTimer);
   filterDebounceTimer = setTimeout(() => doFilterHrList(1), 300);
 }
+
+async function fetchStudentStats() {
+  try {
+    const res = await fetch("/admin/employees/students/stats");
+    if (!res.ok) {
+      console.error("학생 통계 조회 실패 (HTTP " + res.status + "):", await res.text());
+      return;
+    }
+    const data = await res.json();
+    const toNum = v => (v == null ? 0 : Number(v));
+    const el = id => document.getElementById(id);
+    if (el("stat-total"))          el("stat-total").textContent          = toNum(data.total);
+    if (el("stat-role-user"))      el("stat-role-user").textContent      = toNum(data.roleUser);
+    if (el("stat-role-student"))   el("stat-role-student").textContent   = toNum(data.roleStudent);
+    if (el("stat-unregistered"))   el("stat-unregistered").textContent   = toNum(data.unregistered);
+    if (el("stat-no-parent"))      el("stat-no-parent").textContent      = toNum(data.noParent);
+  } catch (e) {
+    console.error("학생 통계 조회 실패:", e);
+  }
+}
+fetchStudentStats();
 
 async function doFilterHrList(page) {
   page = page || 1;
@@ -81,12 +112,20 @@ async function doFilterHrList(page) {
   const type    = document.getElementById("hr-type-filter").value;
   const status  = document.getElementById("hr-status-filter").value;
 
+  const classFilter  = type === "오프라인" ? document.getElementById("hr-class-filter").value : "";
+  const parentFilter = document.getElementById("hr-parent-filter").value;
+
   const params = new URLSearchParams();
   if (keyword) params.set("keyword",  keyword);
   if (year)    params.set("year",     year);
-  const typeToRole = { '일반': 'ROLE_USER', '오프라인': 'ROLE_STUDENT' };
-  if (type)    params.set("userRole", typeToRole[type] || type);
-  if (status)  params.set("enable",   status);
+  if (classFilter) {
+    params.set("classStatus", classFilter);
+  } else {
+    const typeToRole = { '일반': 'ROLE_USER', '오프라인': 'ROLE_STUDENT' };
+    if (type) params.set("userRole", typeToRole[type] || type);
+  }
+  if (status)       params.set("enable",       status);
+  if (parentFilter) params.set("parentStatus", parentFilter);
   if (hrSortCol) {
     params.set("orderBy",        hrSortCol);
     params.set("orderDirection", hrSortAsc ? "ASC" : "DESC");
@@ -127,6 +166,45 @@ function renderStudentTable(students, totalCount) {
       ? `<img src="${escHtml(pro)}" class="w-7 h-7 rounded-lg object-cover" alt="프로필">`
       : `<div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-xs font-bold text-[#3b82f6]">${escHtml(nm.charAt(0))}</div>`;
 
+    // 강사·강좌 표시
+    let classTd = '-';
+    if (role === 'ROLE_STUDENT') {
+      const cnt = stu.classCnt || 0;
+      if (cnt === 0) {
+        classTd = '<span class="status-badge status-resigned">미등록</span>';
+      } else {
+        const instrNm  = escHtml(stu.firstInstrNm || "");
+        const classNm  = escHtml(stu.firstClassNm || "");
+        const instrStr = cnt > 1 ? `${instrNm} 외 ${cnt - 1}` : instrNm;
+        const classStr = cnt > 1 ? `${classNm} 외 ${cnt - 1}` : classNm;
+        classTd = `<span class="text-slate-700 font-medium">${instrStr}</span><br><span class="text-xs text-slate-400">${classStr}</span>`;
+      }
+    }
+
+    // 관리 버튼 그룹
+    const detailBtn = `<button type="button" data-id="${escHtml(uid)}"
+      onclick="openDetail(this.getAttribute('data-id'))"
+      class="text-xs text-[#3b82f6] hover:underline font-semibold whitespace-nowrap">상세</button>`;
+
+    const classBtn = role === 'ROLE_STUDENT'
+      ? `<button type="button" data-id="${escHtml(uid)}" data-name="${escHtml(nm)}"
+           onclick="openClassRegister(this.dataset.id, this.dataset.name)"
+           class="text-xs text-blue-600 hover:underline font-semibold whitespace-nowrap">클래스</button>`
+      : '';
+
+    const parentLinked = stu.prntUserId;
+    const linkBtn = role === 'ROLE_STUDENT'
+      ? (parentLinked
+          ? `<span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 rounded-lg px-2 py-0.5 whitespace-nowrap"><i class="fa-solid fa-link text-[9px]"></i>연동됨</span>`
+          : `<button type="button" data-id="${escHtml(uid)}" data-name="${escHtml(nm)}"
+               onclick="openParentLinkModal(this.dataset.id, this.dataset.name)"
+               class="inline-flex items-center gap-1 text-xs font-semibold text-white bg-blue-400 hover:bg-blue-500 rounded-lg px-2 py-0.5 whitespace-nowrap transition-colors"><i class="fa-solid fa-paper-plane text-[9px]"></i>연동</button>`)
+      : '';
+
+    const actionBtns = [detailBtn, classBtn, linkBtn].filter(Boolean).join(
+      '<span class="text-slate-200 mx-0.5">|</span>'
+    );
+
     return `<tr class="hr-data-row hover:bg-slate-50 transition-colors"
       data-id="${escHtml(uid)}" data-name="${escHtml(nm)}"
       data-email="${escHtml(stu.userEmailAddr||"")}" data-phone="${escHtml(stu.userTelno||"")}"
@@ -134,7 +212,9 @@ function renderStudentTable(students, totalCount) {
       data-zip="${escHtml(stu.userZip||"")}" data-addr-base="${escHtml(stu.userAddr||"")}"
       data-addr-detail="${escHtml(stu.userDaddr||"")}" data-addr="${escHtml(addr)}"
       data-profile="${escHtml(pro)}" data-type="${escHtml(role)}"
-      data-join="${escHtml(jn)}" data-enable="${escHtml(en)}">
+      data-join="${escHtml(jn)}" data-enable="${escHtml(en)}"
+      data-parent-id="${escHtml(stu.prntUserId||"")}" data-parent-name="${escHtml(stu.prntUserName||"")}"
+      data-parent-phone="${escHtml(stu.prntTelno||"")}" data-parent-email="${escHtml(stu.prntEmailAddr||"")}">
       <td class="py-3 px-4">
         <div class="flex items-center gap-2">
           ${avatar}
@@ -145,13 +225,11 @@ function renderStudentTable(students, totalCount) {
         </div>
       </td>
       <td class="py-3 px-4 text-sm text-slate-600 truncate">${typeNm}</td>
-      <td class="py-3 px-4 text-sm text-slate-600 truncate">${escHtml(stu.userEmailAddr||"-")}</td>
+      <td class="py-3 px-4 text-sm leading-snug">${classTd}</td>
       <td class="py-3 px-4 text-sm text-slate-600 whitespace-nowrap">${jn || "-"}</td>
       <td class="py-3 px-4"><span class="status-badge ${statCls}">${statNm}</span></td>
       <td class="py-3 px-4">
-        <button type="button" data-id="${escHtml(uid)}"
-          onclick="openDetail(this.getAttribute('data-id'))"
-          class="text-xs text-[#3b82f6] hover:underline font-semibold">상세</button>
+        <div class="flex items-center gap-1 flex-wrap">${actionBtns}</div>
       </td>
     </tr>`;
   }).join("");
@@ -159,18 +237,250 @@ function renderStudentTable(students, totalCount) {
   renderHrPagination(totalCount);
 }
 
-function resetHrFilter() {
+/* ─── 클래스 등록 모달 ─── */
+var classRegisterUserId  = null;
+var selectedClassSn      = null;
+var selectedClassNm      = null;
+var availableClassesData = [];
+
+var CLASS_STAT_LABEL = { ACTIVE: "운영중", RECRUITING: "모집중", CLOSED: "종료", WAITING: "대기" };
+var CLASS_STAT_CLS   = {
+  ACTIVE:     "text-emerald-600 bg-emerald-50",
+  RECRUITING: "text-[#3b82f6] bg-blue-50",
+  CLOSED:     "text-slate-500 bg-slate-100",
+  WAITING:    "text-amber-600 bg-amber-50",
+};
+
+function openClassRegister(userId, userName) {
+  classRegisterUserId  = userId;
+  selectedClassSn      = null;
+  availableClassesData = [];
+
+  document.getElementById("class-register-student-name").textContent = userName;
+  document.getElementById("class-register-submit-btn").disabled = true;
+
+  // 좌측 초기화
+  document.getElementById("enrolled-list-loading").classList.remove("hidden");
+  document.getElementById("enrolled-list-empty").classList.add("hidden");
+  document.getElementById("enrolled-list-body").classList.add("hidden");
+  document.getElementById("enrolled-list-body").innerHTML = "";
+
+  // 우측 초기화
+  document.getElementById("instr-list-loading").classList.remove("hidden");
+  document.getElementById("instr-list-empty").classList.add("hidden");
+  document.getElementById("instr-list-body").classList.add("hidden");
+  document.getElementById("instr-list-body").innerHTML = "";
+  showInstrPanel();
+
+  openModal("modal-class-register");
+
+  Promise.all([
+    fetch(`/admin/employees/students/${encodeURIComponent(userId)}/enrolled-classes`).then(r => r.json()),
+    fetch(`/admin/employees/students/${encodeURIComponent(userId)}/available-classes`).then(r => r.json()),
+  ]).then(([enrolled, available]) => {
+    renderEnrolledList(enrolled);
+    availableClassesData = available || [];
+    renderInstrList(availableClassesData);
+  }).catch(() => {
+    showHermesToast("클래스 정보를 불러오는 데 실패했습니다.", "error");
+  });
+}
+
+function renderEnrolledList(list) {
+  const loading = document.getElementById("enrolled-list-loading");
+  const empty   = document.getElementById("enrolled-list-empty");
+  const body    = document.getElementById("enrolled-list-body");
+  loading.classList.add("hidden");
+  if (!list || list.length === 0) { empty.classList.remove("hidden"); return; }
+  body.innerHTML = list.map(cl => `
+    <div class="p-2.5 rounded-lg border border-slate-200 bg-white">
+      <div class="flex items-start justify-between gap-1 mb-0.5">
+        <p class="text-xs font-semibold text-slate-700 leading-snug">${escHtml(cl.classNm)}</p>
+        <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 ${CLASS_STAT_CLS[cl.classStatCd] || 'text-slate-500 bg-slate-100'}">${CLASS_STAT_LABEL[cl.classStatCd] || cl.classStatCd}</span>
+      </div>
+      <p class="text-[11px] text-slate-400 truncate">${escHtml(cl.courseNm)}</p>
+      <p class="text-[11px] text-slate-400 truncate">${escHtml(cl.instrNm)}</p>
+    </div>`).join("");
+  body.classList.remove("hidden");
+}
+
+function renderInstrList(classes) {
+  const loading = document.getElementById("instr-list-loading");
+  const empty   = document.getElementById("instr-list-empty");
+  const body    = document.getElementById("instr-list-body");
+  loading.classList.add("hidden");
+  if (!classes || classes.length === 0) { empty.classList.remove("hidden"); return; }
+
+  const instrMap = {};
+  classes.forEach(cl => {
+    if (!instrMap[cl.instrUserId]) instrMap[cl.instrUserId] = { instrNm: cl.instrNm, cnt: 0 };
+    instrMap[cl.instrUserId].cnt++;
+  });
+  const instructors = Object.entries(instrMap)
+    .map(([id, v]) => ({ instrUserId: id, instrNm: v.instrNm, cnt: v.cnt }))
+    .sort((a, b) => a.instrNm.localeCompare(b.instrNm, "ko"));
+
+  body.innerHTML = instructors.map(instr => `
+    <button type="button"
+            onclick="showClassPanel('${escHtml(instr.instrUserId)}', '${escHtml(instr.instrNm)}')"
+            class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-slate-200 bg-white hover:border-[#3b82f6] hover:bg-blue-50 transition-colors text-left">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-xs font-bold text-[#3b82f6] flex-shrink-0">
+          ${escHtml(instr.instrNm.charAt(0))}
+        </div>
+        <span class="text-sm font-semibold text-slate-700 truncate">${escHtml(instr.instrNm)}</span>
+      </div>
+      <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
+        <span class="text-xs text-slate-400">${instr.cnt}개 강좌</span>
+        <i class="fa-solid fa-chevron-right text-xs text-slate-300"></i>
+      </div>
+    </button>`).join("");
+  body.classList.remove("hidden");
+}
+
+function showInstrPanel() {
+  document.getElementById("instr-panel").style.display = "";
+  document.getElementById("class-panel").style.display = "none";
+  selectedClassSn = null;
+  document.getElementById("class-register-submit-btn").disabled = true;
+}
+
+function showClassPanel(instrUserId, instrNm) {
+  document.getElementById("instr-panel").style.display = "none";
+  document.getElementById("class-panel").style.display = "flex";
+  document.getElementById("selected-instr-name").textContent = instrNm;
+
+  const classes = availableClassesData.filter(cl => cl.instrUserId === instrUserId);
+  const body    = document.getElementById("class-list-body2");
+  const empty   = document.getElementById("class-list-empty2");
+
+  if (!classes || classes.length === 0) {
+    empty.classList.remove("hidden");
+    body.innerHTML = "";
+    return;
+  }
+  empty.classList.add("hidden");
+  body.innerHTML = classes.map(cl => `
+    <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white cursor-pointer hover:border-[#3b82f6] has-[:checked]:border-[#3b82f6] has-[:checked]:bg-blue-50 transition-colors">
+      <input type="radio" name="class-radio" value="${cl.classSn}" onchange="onClassRadioChange(${cl.classSn})" class="accent-[#3b82f6] w-4 h-4 flex-shrink-0">
+      <div class="flex-1 min-w-0">
+        <p class="font-semibold text-slate-800 text-sm truncate">${escHtml(cl.classNm)}</p>
+        <p class="text-xs text-slate-400 truncate">${escHtml(cl.courseNm)}</p>
+      </div>
+      <div class="flex flex-col items-end gap-1 flex-shrink-0">
+        <span class="text-[11px] font-medium px-2 py-0.5 rounded-full ${CLASS_STAT_CLS[cl.classStatCd] || 'text-slate-500 bg-slate-100'}">${CLASS_STAT_LABEL[cl.classStatCd] || cl.classStatCd}</span>
+        <span class="text-[11px] text-slate-400">수강 ${cl.enrolledCnt}명</span>
+      </div>
+    </label>`).join("");
+}
+
+function onClassRadioChange(classSn) {
+  selectedClassSn = classSn;
+  const cl = availableClassesData.find(c => String(c.classSn) === String(classSn));
+  selectedClassNm = cl ? cl.classNm : String(classSn);
+  document.getElementById("class-register-submit-btn").disabled = false;
+}
+
+function submitClassRegister() {
+  if (!classRegisterUserId || !selectedClassSn) return;
+  const btn = document.getElementById("class-register-submit-btn");
+  btn.disabled = true;
+
+  fetch(`/admin/employees/students/${encodeURIComponent(classRegisterUserId)}/class`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ classSn: selectedClassSn, classNm: selectedClassNm }),
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.result === "success") {
+        closeModal("modal-class-register");
+        showHermesToast("결재 요청이 완료되었습니다. 승인 후 반영됩니다.", "info");
+      } else {
+        showHermesToast("등록 실패: " + (data.message || "서버 오류"), "error");
+        btn.disabled = false;
+      }
+    })
+    .catch(() => {
+      showHermesToast("클래스 등록 요청 중 오류가 발생했습니다.", "error");
+      btn.disabled = false;
+    });
+}
+
+/* ─── 학부모 연동 모달 ─── */
+function openParentLinkModal(studentId, studentName) {
+  document.getElementById("parent-link-student-id").value = studentId;
+  document.getElementById("parent-link-student-name").textContent = studentName;
+  document.getElementById("parent-link-phone").value = "";
+  const modal = document.getElementById("modal-parent-link");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+  setTimeout(() => document.getElementById("parent-link-phone").focus(), 100);
+}
+
+function closeParentLinkModal() {
+  const modal = document.getElementById("modal-parent-link");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
+
+function formatParentLinkPhone(input) {
+  let v = input.value.replace(/\D/g, "");
+  if (v.length <= 3)       input.value = v;
+  else if (v.length <= 7)  input.value = v.slice(0,3) + "-" + v.slice(3);
+  else                     input.value = v.slice(0,3) + "-" + v.slice(3,7) + "-" + v.slice(7,11);
+}
+
+function sendParentLink() {
+  const studentId  = document.getElementById("parent-link-student-id").value;
+  const parentPhone = document.getElementById("parent-link-phone").value.trim();
+  if (!parentPhone) {
+    showHermesToast("학부모 전화번호를 입력해 주세요.", "error");
+    return;
+  }
+  const params = new URLSearchParams({ studentId, parentPhone });
+  fetch("/admin/parent/join-message/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: params.toString(),
+  })
+    .then(res => {
+      closeParentLinkModal();
+      if (res.ok) {
+        showHermesToast("가입 링크가 발송되었습니다.", "success");
+      } else {
+        showHermesToast("발송 실패: " + (res.statusText || "알 수 없는 오류"), "error");
+      }
+    })
+    .catch(() => showHermesToast("서버 오류가 발생했습니다.", "error"));
+}
+
+function filterByNoParent() {
   document.getElementById("hr-search").value = "";
-  ["hr-year", "hr-type-filter", "hr-status-filter"].forEach((id) => {
+  ["hr-year", "hr-type-filter", "hr-status-filter", "hr-class-filter"].forEach((id) => {
     const el = document.getElementById(id);
     if (!el) return;
     if (el.customSelect) el.customSelect.setValue("");
     else el.value = "";
   });
+  document.getElementById("hr-parent-filter").value = "02";
+  syncClassFilter();
+  doFilterHrList(1);
+}
+
+function resetHrFilter() {
+  document.getElementById("hr-search").value = "";
+  ["hr-year", "hr-type-filter", "hr-status-filter", "hr-class-filter", "hr-parent-filter"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.customSelect) el.customSelect.setValue("");
+    else el.value = "";
+  });
+  syncClassFilter();
   hrSortCol = null;
   hrSortAsc = true;
   updateHrSortIcons(null);
-  filterHrList();
+  doFilterHrList(1);
 }
 
 function sortHrBy(col) {
@@ -320,6 +630,35 @@ function openDetail(id) {
   document.getElementById("detail-enable").textContent    = statusTx;
 
   document.getElementById("resign-confirm-name").textContent = row.dataset.name || "";
+
+  // 학부모 정보 섹션 (오프라인 학생만)
+  const parentSection = document.getElementById("detail-parent-section");
+  if (typeVal === "ROLE_STUDENT") {
+    parentSection.classList.remove("hidden");
+    const linked   = (row.dataset.parentId || "").trim() !== "";
+    const badge    = document.getElementById("detail-parent-badge");
+    const linkedEl = document.getElementById("detail-parent-linked");
+    const unlinkEl = document.getElementById("detail-parent-unlinked");
+
+    if (linked) {
+      badge.className   = "inline-flex items-center gap-1 text-xs font-semibold rounded-lg px-2 py-0.5 text-emerald-600 bg-emerald-50";
+      badge.innerHTML   = '<i class="fa-solid fa-link text-[9px]"></i>연동됨';
+      linkedEl.classList.remove("hidden");
+      unlinkEl.classList.add("hidden");
+      document.getElementById("detail-parent-name").textContent  = row.dataset.parentName || "-";
+      document.getElementById("detail-parent-phone").textContent = formatPhoneDisplay(row.dataset.parentPhone);
+      document.getElementById("detail-parent-email").textContent = row.dataset.parentEmail || "-";
+    } else {
+      badge.className   = "inline-flex items-center gap-1 text-xs font-semibold rounded-lg px-2 py-0.5 text-orange-500 bg-orange-50";
+      badge.innerHTML   = '<i class="fa-solid fa-link-slash text-[9px]"></i>미연동';
+      linkedEl.classList.add("hidden");
+      unlinkEl.classList.remove("hidden");
+      const btn = document.getElementById("detail-parent-link-btn");
+      btn.onclick = () => { closeModal("modal-emp-detail"); openParentLinkModal(row.dataset.id, row.dataset.name); };
+    }
+  } else {
+    parentSection.classList.add("hidden");
+  }
 
   if (detailEditMode) toggleDetailEdit();
   openModal("modal-emp-detail");
@@ -527,6 +866,7 @@ function executeResign() {
               syncRowCells(row);
             }
             closeModal("modal-emp-detail");
+            fetchStudentStats();
             const rsEl = document.getElementById("resign-reason");
             if (rsEl.customSelect) rsEl.customSelect.setValue("");
             else rsEl.value = "";

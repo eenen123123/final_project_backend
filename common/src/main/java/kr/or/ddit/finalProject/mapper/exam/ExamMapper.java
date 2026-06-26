@@ -90,4 +90,53 @@ public interface ExamMapper {
      * @param examSn 초기화할 시험 일련번호
      */
     void deleteExamQuestions(@Param("examSn") Long examSn);
+
+    /**
+     * 특정 클래스룸의 시험 목록 조회 (EXAM_STAT_CD != '99')
+     * 등록일시 내림차순 정렬.
+     *
+     * @param classSn 클래스룸 일련번호
+     */
+    List<ExamDto> selectExamsByClassSn(@Param("classSn") Long classSn);
+
+    /**
+     * 특정 시험의 응시자 목록 조회 (EXAM_TAKER JOIN MEMBER)
+     *
+     * @param examSn 시험 일련번호
+     */
+    List<kr.or.ddit.finalProject.dto.exam.ExamTakerDto> selectTakersByExamSn(@Param("examSn") Long examSn);
+
+    /** 응시자 목록 — 총점·제출일시·채점완료여부 포함 */
+    List<kr.or.ddit.finalProject.dto.exam.ExamTakerDto> selectTakersWithScore(@Param("examSn") Long examSn);
+
+    /** 특정 학생의 시험 문항별 답안 + 채점 현황 */
+    List<kr.or.ddit.finalProject.dto.exam.StudentAnswerDto> selectStudentAnswers(
+            @Param("examSn") Long examSn, @Param("userId") String userId);
+
+    /** 단일 문항 채점 점수 저장 */
+    int updateAnswerScore(@Param("sbmtAnswSn") Long sbmtAnswSn,
+                          @Param("score") java.math.BigDecimal score,
+                          @Param("grdgUserId") String grdgUserId);
+
+    /** EXAM_TAKER 총점 갱신 (채점 완료 후 호출) */
+    int updateExamTakerTotalScore(@Param("examSn") Long examSn, @Param("userId") String userId);
+
+    void deleteExamTakers(@Param("examSn") Long examSn);
+
+    List<kr.or.ddit.finalProject.dto.classroom.StudentExamDto> selectExamsByStudent(
+            @Param("classSn") Long classSn, @Param("userId") String userId);
+
+    /** 클래스룸 내 시험 채점 대기 건수 (TOT_SCORE IS NULL) */
+    int countPendingGradesByClassSn(@Param("classSn") Long classSn);
+
+    /** 특정 학생의 EXAM_TAKER 조회 (중복 제출 확인용) */
+    kr.or.ddit.finalProject.dto.exam.ExamTakerDto selectExamTaker(
+            @Param("examSn") Long examSn, @Param("userId") String userId);
+
+    /** 학생 응시 등록 (EXAM_TAKER INSERT) */
+    void insertExamTaker(@Param("examSn") Long examSn, @Param("userId") String userId);
+
+    /** 답안 저장 (ANSWER_SUBMIT INSERT) */
+    void insertAnswer(@Param("examSn") Long examSn, @Param("userId") String userId,
+                      @Param("qstnSn") Long qstnSn, @Param("answCn") String answCn);
 }

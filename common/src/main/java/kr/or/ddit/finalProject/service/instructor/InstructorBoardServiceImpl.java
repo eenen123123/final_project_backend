@@ -214,10 +214,10 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     // ── 클래스룸 Q&A ──────────────────────────────────────────────────
 
     @Override
-    public PageResponse<ClassroomQnaDto> getClassroomQnaList(Long classSn, int page, int pageSize) {
+    public PageResponse<ClassroomQnaDto> getClassroomQnaList(Long classSn, int page, int pageSize, String writerUserId) {
         int offset = (page - 1) * pageSize;
-        List<ClassroomQnaDto> items = instructorBoardMapper.selectClassroomQnaList(classSn, offset, pageSize);
-        int totalCount = instructorBoardMapper.countClassroomQnaList(classSn);
+        List<ClassroomQnaDto> items = instructorBoardMapper.selectClassroomQnaList(classSn, offset, pageSize, writerUserId);
+        int totalCount = instructorBoardMapper.countClassroomQnaList(classSn, writerUserId);
         return new PageResponse<>(items, totalCount);
     }
 
@@ -242,6 +242,11 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
     @Override
     public int getUnansweredQnaCount(Long classSn) {
         return instructorBoardMapper.selectUnansweredQnaCount(classSn);
+    }
+
+    @Override
+    public List<kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto> getRecentQnaByStudent(Long classSn, String userId, int limit) {
+        return instructorBoardMapper.selectRecentQnaByStudent(classSn, userId, limit);
     }
 
     // ── 공개 강사 게시판 (React 프론트 전용) ─────────────────────────

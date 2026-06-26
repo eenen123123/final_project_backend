@@ -26,9 +26,10 @@
     </sql>
 
     <!-- 필터 WHERE 절 재사용 -->
+    <!-- showDeleted = true 이면 삭제된 문항(STAT_CD='99')도 포함 -->
     <sql id="filterWhere">
         WHERE RGTR_ID = #{rgtrId}
-          AND STAT_CD != '99'
+          <if test="showDeleted == null or showDeleted == false">AND STAT_CD != '99'</if>
           <if test="subjId != null">AND SUBJ_ID = #{subjId}</if>
           <if test="diffCd != null and diffCd != ''">AND DIFF_CD = #{diffCd}</if>
     </sql>
@@ -59,6 +60,17 @@
         FROM QUESTION_LIST
         WHERE RGTR_ID = #{rgtrId}
           AND STAT_CD != '99'
+        ORDER BY QSTN_TYPE_CD ASC, REG_DT DESC
+    </select>
+
+    <!-- 특정 강사의 문항 중 과목 필터 조회 -->
+    <select id="selectMyQuestionsBySubjId"
+            resultType="kr.or.ddit.finalProject.dto.exam.QuestionDto">
+        SELECT <include refid="questionColumns"/>
+        FROM QUESTION_LIST
+        WHERE RGTR_ID = #{rgtrId}
+          AND STAT_CD != '99'
+          AND SUBJ_ID = #{subjId}
         ORDER BY QSTN_TYPE_CD ASC, REG_DT DESC
     </select>
 

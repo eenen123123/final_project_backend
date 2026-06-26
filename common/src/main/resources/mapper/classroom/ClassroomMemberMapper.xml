@@ -52,11 +52,14 @@
           AND l.OPNN_YN = 'Y'
     ) lect
     LEFT JOIN (
-        SELECT USER_ID, COUNT(*) AS COMPLETED
-        FROM STUDENT_CONTENT_PROGRESS
-        WHERE CLASS_SN = #{classSn}
-          AND CMPL_YN = 'Y'
-        GROUP BY USER_ID
+        SELECT lp.USER_ID, COUNT(*) AS COMPLETED
+        FROM LECTURE_PROGRESS lp
+        JOIN LECTURE l ON l.LECTURE_SN = lp.LECTURE_SN AND l.COURSE_SN = lp.COURSE_SN
+        JOIN CLASSROOM cl ON cl.COURSE_SN = l.COURSE_SN AND cl.CLASS_SN = #{classSn}
+        WHERE l.OPNN_YN = 'Y'
+          AND l.LECTURE_DURATION > 0
+          AND lp.SECONDS_WATCHED >= l.LECTURE_DURATION
+        GROUP BY lp.USER_ID
     ) prog ON cm.USER_ID = prog.USER_ID
     WHERE cm.CLASS_SN = #{classSn}
   </select>
@@ -140,4 +143,28 @@
       
 
   </select>
+
+  <select id="isMember" resultType="boolean">
+    SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END
+    FROM CLASSROOM_MEMBER
+    WHERE CLASS_SN = #{classSn}
+      AND USER_ID = #{userId}
+      AND ENRL_STAT_CD = 'ENROLLED'
+  </select>
+
+  <!-- 학생 상세 기본정보 — MEMBER JOIN으로 연락처/프로필 포함 -->
+  <select id="selectStudentDetail" resultType="kr.or.ddit.finalProject.dto.classroom.StudentDetailDto">
+    SELECT
+        cm.USER_ID        AS userId,
+        m.USER_NAME       AS userName,
+        m.USER_EMAIL_ADDR AS userEmail,
+        m.USER_TELNO      AS userTelno,
+        m.USER_PROFILE    AS userProfile,
+        cm.ENRL_STAT_CD   AS enrlStatCd
+    FROM CLASSROOM_MEMBER cm
+    JOIN MEMBER m ON m.USER_ID = cm.USER_ID
+    WHERE cm.CLASS_SN = #{classSn}
+      AND cm.USER_ID  = #{userId}
+  </select>
+
 </mapper>

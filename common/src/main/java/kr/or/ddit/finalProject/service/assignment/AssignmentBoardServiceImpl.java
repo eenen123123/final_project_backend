@@ -73,4 +73,15 @@ public class AssignmentBoardServiceImpl implements AssignmentBoardService {
     public List<AssignmentSubmitDto> getRecentSubmits(Long classSn, int limit) {
         return assignmentSubmitMapper.selectRecentSubmitsByClass(classSn, limit);
     }
+
+    @Override
+    @Transactional
+    public int toggleResubmitAllow(Long asgmtSn, Long classSn) {
+        return assignmentBoardMapper.toggleResubmitAllow(asgmtSn, classSn);
+    }
+
+    @Override
+    public List<kr.or.ddit.finalProject.dto.classroom.StudentAssignmentDto> getAssignmentsByStudent(Long classSn, String userId) {
+        return assignmentBoardMapper.selectAssignmentsByStudent(classSn, userId);
+    }
 }

@@ -116,6 +116,26 @@ async function doFilterHrList(page) {
 // defer 스크립트와 AJAX 탭 이동 모두에서 DOM 준비 완료 후 실행되므로 직접 호출
 doFilterHrList(1);
 
+async function fetchEmployeeStats() {
+  try {
+    const res  = await fetch("/admin/employees/stats");
+    const data = await res.json();
+    const toNum = v => (v == null ? 0 : Number(v));
+    const total    = toNum(data.total);
+    const active   = toNum(data.active);
+    const onLeave  = toNum(data.onLeave);
+    const resigned = toNum(data.resigned);
+    const el = id => document.getElementById(id);
+    if (el("stat-total"))    el("stat-total").textContent    = total;
+    if (el("stat-active"))   el("stat-active").textContent   = active;
+    if (el("stat-leave"))    el("stat-leave").textContent    = onLeave;
+    if (el("stat-resigned")) el("stat-resigned").textContent = resigned;
+  } catch (e) {
+    console.error("직원 통계 조회 실패:", e);
+  }
+}
+fetchEmployeeStats();
+
 function renderEmployeeTable(employees, totalCount) {
   const tbody = document.getElementById("hr-table-body");
   if (!employees || employees.length === 0) {
@@ -874,6 +894,7 @@ function executeResign() {
               if (card) card.dataset.emplStatCd = "03";
             }
             closeModal("modal-emp-detail");
+            fetchEmployeeStats();
             const rsEl = document.getElementById("resign-reason");
             if (rsEl.customSelect) rsEl.customSelect.setValue("");
             else rsEl.value = "";

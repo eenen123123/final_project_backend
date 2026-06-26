@@ -63,13 +63,13 @@
         총 <span class="font-bold text-slate-800" th:text="${totalCount}">0</span>개 항목
       </p>
       <div class="flex items-center gap-3">
-        <div class="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
+        <div class="flex items-center gap-1 bg-slate-100 rounded-xl p-1 shrink-0">
           <button id="sortByOrd" onclick="setSortMode('ord')"
-            class="px-3 py-1.5 bg-slate-800 text-white transition-colors">정렬순</button>
+            class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap bg-white text-slate-800 shadow-sm">정렬순</button>
           <button id="sortByReg" onclick="setSortMode('reg')"
-            class="px-3 py-1.5 text-slate-500 hover:bg-slate-50 transition-colors">등록순</button>
+            class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap text-slate-500 hover:text-slate-700">등록순</button>
         </div>
-        <a th:if="${totalCount < 11}" href="/admin/featured/insert" class="hm-btn-primary whitespace-nowrap">
+        <a th:if="${totalCount < 11}" href="/admin/featured/insert" class="hm-btn-primary hm-btn-blue whitespace-nowrap">
           <i class="fa-solid fa-plus"></i>
           <span>추천 등록</span>
         </a>
@@ -231,10 +231,10 @@
     rows.forEach(function(row) { tbody.appendChild(row); });
     currentPage = 1;
     renderPage();
-    document.getElementById('sortByOrd').className = 'px-3 py-1.5 text-xs font-medium transition-colors '
-      + (mode === 'ord' ? 'bg-slate-800 text-white' : 'text-slate-500 hover:bg-slate-50');
-    document.getElementById('sortByReg').className = 'px-3 py-1.5 text-xs font-medium transition-colors '
-      + (mode === 'reg' ? 'bg-slate-800 text-white' : 'text-slate-500 hover:bg-slate-50');
+    document.getElementById('sortByOrd').className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap '
+      + (mode === 'ord' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700');
+    document.getElementById('sortByReg').className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap '
+      + (mode === 'reg' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700');
   }
 
   function renderPage() {

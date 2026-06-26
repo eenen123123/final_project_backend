@@ -35,6 +35,8 @@ public class AssignmentBoardDto implements Serializable {
     private int totMemberCnt;
     private int grddCnt;
 
+    private String resbmtAlldYn; // 재제출 허용 여부 (Y/N)
+
     // 홈 대시보드용 계산값 (서비스에서 세팅, DB 컬럼 아님)
     private int daysUntil;
 }

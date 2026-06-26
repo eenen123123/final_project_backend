@@ -62,6 +62,9 @@ public interface PointMapper {
     // 유저 ID로 회원 이름 조회
     String selectUserNameById(@Param("userId") String userId);
 
+    // 포인트/머니 유통 통계
+    java.util.Map<String, Object> getAssetStats(@Param("assetType") AssetType assetType);
+
     // 유저 목록 + 포인트 잔액 조회 (관리자)
     List<java.util.Map<String, Object>> searchUsersWithBalance(
             @Param("q") String q,

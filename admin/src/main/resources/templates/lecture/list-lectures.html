@@ -9,15 +9,15 @@
       <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
         <a
           th:href="@{/admin/course/list}"
-          class="hover:text-orange-500 transition-colors"
+          class="hover:text-violet-500 transition-colors"
           >강좌 관리</a
         >
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
         <a th:href="@{/admin/course/detail(courseSn=${course.courseSn})}"
           th:text="${course.courseNm}"
-          class="text-slate-600 font-medium hover:text-orange-500 transition-colors">강좌명</a>
+          class="text-slate-600 font-medium hover:text-violet-500 transition-colors">강좌명</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        <span class="text-orange-500 font-medium">강의 목록</span>
+        <span class="text-violet-500 font-medium">강의 목록</span>
       </div>
       <h1
         class="text-2xl font-bold text-slate-900 tracking-tight"
@@ -40,7 +40,7 @@
       <a
         th:if="${#authentication.name == course.instrUserId}"
         th:href="@{/admin/lectures/insert(courseId=${course.courseSn})}"
-        class="hm-btn-primary hm-btn-orange"
+        class="hm-btn-primary hm-btn-violet"
       >
         <i class="fa-solid fa-plus"></i>
         <span>강의 추가</span>
@@ -54,7 +54,7 @@
       class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-100"
     >
       <h2 class="text-sm font-bold text-slate-700">
-        <i class="fa-solid fa-list text-orange-500 mr-2"></i>강의 목록
+        <i class="fa-solid fa-list text-violet-500 mr-2"></i>강의 목록
         <span
           class="ml-1 text-xs font-normal text-slate-400"
           th:text="'총 ' + ${lectures != null ? lectures.size() : 0} + '개'"
@@ -86,7 +86,7 @@
                 <p class="text-sm">등록된 강의가 없습니다.</p>
                 <a
                   th:href="@{/admin/lectures/insert(courseId=${course.courseSn})}"
-                  class="text-xs text-orange-500 hover:text-orange-600 font-semibold"
+                  class="text-xs text-violet-500 hover:text-violet-600 font-semibold"
                 >
                   첫 강의 등록하기 →
                 </a>
@@ -101,7 +101,7 @@
           >
             <td class="py-4 px-6 text-center">
               <span
-                class="w-7 h-7 rounded-lg bg-orange-50 text-orange-500 text-xs font-bold inline-flex items-center justify-center"
+                class="w-7 h-7 rounded-lg bg-violet-50 text-violet-500 text-xs font-bold inline-flex items-center justify-center"
                 th:text="${lec.sortOrd != null ? lec.sortOrd : iter.index + 1}"
                 >1</span
               >
@@ -126,7 +126,7 @@
               >
                 <span
                   th:case="'VOD'"
-                  class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-600"
+                  class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-violet-50 text-violet-600"
                   >영상(VOD)</span
                 >
                 <span
@@ -181,7 +181,7 @@
               <div class="flex items-center justify-center gap-1">
                 <a
                   th:href="@{/admin/lectures/view(lectureId=${lec.lectureSn})}"
-                  class="p-1.5 text-slate-400 hover:text-orange-500 transition-colors"
+                  class="p-1.5 text-slate-400 hover:text-violet-500 transition-colors"
                   title="미리보기"
                 >
                   <i class="fa-solid fa-play text-sm"></i>

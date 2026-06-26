@@ -67,13 +67,17 @@ public class StaffStudentsController {
     @GetMapping("/employees/students")
     public String getStudents(Model model) {
         log.info("getStudents");
-
-        // 1. 학생 관리 대시보드 테이블에 노출할 전체 학생 상세 목록 데이터를 조회한다.
-        List<MemberDto> studentList = staffService.retrieveStudentList();
-
-        model.addAttribute("studentList", studentList);
-
+        // 테이블 데이터는 JS AJAX로 처리 — 별도 model 속성 불필요
         return "admin:/staff/students";
+    }
+
+    /**
+     * 유형별 학생 수 조회 (상단 요약 카드용 AJAX)
+     */
+    @GetMapping("/employees/students/stats")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getStudentStats() {
+        return ResponseEntity.ok(staffService.getStudentStatusCounts());
     }
 
     private static final int PAGE_SIZE = 10;
@@ -89,6 +93,8 @@ public class StaffStudentsController {
             @RequestParam(required = false) String year,
             @RequestParam(required = false) String userRole,
             @RequestParam(required = false) String enable,
+            @RequestParam(required = false) String classStatus,
+            @RequestParam(required = false) String parentStatus,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int screenSize,
             @RequestParam(required = false) String orderBy,
@@ -102,6 +108,10 @@ public class StaffStudentsController {
             params.put("userRole", userRole.trim());
         if (enable != null && !enable.isBlank())
             params.put("enable", enable.trim());
+        if (classStatus != null && !classStatus.isBlank())
+            params.put("classStatus", classStatus.trim());
+        if (parentStatus != null && !parentStatus.isBlank())
+            params.put("parentStatus", parentStatus.trim());
 
         String safeDir = "DESC".equalsIgnoreCase(orderDirection) ? "DESC" : "ASC";
         PaginationInfo<Map<String, Object>> paging =
@@ -277,13 +287,61 @@ public class StaffStudentsController {
         }
     }
 
+    /**
+     * 학생이 현재 수강 중인 클래스 목록
+     */
+    @GetMapping("/employees/students/{userId}/enrolled-classes")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> getEnrolledClasses(@PathVariable String userId) {
+        return ResponseEntity.ok(staffService.getEnrolledClassrooms(userId));
+    }
+
+    /**
+     * 학생이 등록 가능한 클래스 목록 (ACTIVE/RECRUITING, 미등록, 수강 인원 포함)
+     */
+    @GetMapping("/employees/students/{userId}/available-classes")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> getAvailableClasses(@PathVariable String userId) {
+        return ResponseEntity.ok(staffService.getAvailableClassrooms(userId));
+    }
+
+    /**
+     * 학생 클래스 등록 (결재 요청)
+     */
+    @PostMapping("/employees/students/{userId}/class")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> registerStudentClass(
+            @PathVariable String userId,
+            @RequestBody Map<String, Object> body,
+            Principal principal) {
+        Long classSn = Long.valueOf(body.get("classSn").toString());
+        String classNm = body.getOrDefault("classNm", classSn.toString()).toString();
+        String loginAdminId = principal != null ? principal.getName() : "SYSTEM";
+        try {
+            Map<String, Object> data = new LinkedHashMap<>();
+            data.put("userId",  userId);
+            data.put("classSn", classSn);
+            data.put("classNm", classNm);
+            activityApprovalService.submitForApproval(
+                    loginAdminId,
+                    AdminActivityType.STUDENT_CLASS_REGISTER,
+                    userId + " → " + classNm,
+                    data);
+            return ResponseEntity.ok(Map.of("result", "success"));
+        } catch (Exception e) {
+            log.error("[registerStudentClass] userId={}, classSn={}, cause={}", userId, classSn, e.getMessage());
+            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("result", "error", "message", e.getMessage()));
+        }
+    }
+
     @PostMapping("/parent/join-message/send")
     @ResponseBody
     public ResponseEntity<Void> sendParentJoinMessage(@RequestParam String studentId,
             @RequestParam String parentPhone) {
         // String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toString();
         // TODO: Rest API 서버 URL을 환경변수나 설정파일에서 읽어오도록 수정 필요
-        String baseUrl = "http://localhost:9001"; // Rest API 서버의 URL로 고정 
+        String baseUrl = "https://hermes.maerchen.dev"; // Rest API 서버의 URL로 고정 
         parentService.sendParentJoinLink(parentPhone, baseUrl, studentId);
 
         return ResponseEntity.ok().build();

@@ -89,10 +89,15 @@ function fqAiFill() {
   btn.disabled = true;
   document.getElementById('ai-spinner').classList.remove('hidden');
 
+  var extraPromptEl = document.getElementById('ai-extra-prompt');
+  var extraPrompt = extraPromptEl ? extraPromptEl.value.trim() : '';
+
+  var qstnTypeCd = document.getElementById('fq-type').value || 'MULTIPLE_CHOICE';
+
   fetch('/instructor/questions/ai/generate', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ subjId: Number(subjId), subjNm: subjNm, difficulty: diffCd })
+    body:    JSON.stringify({ subjId: Number(subjId), subjNm: subjNm, difficulty: diffCd, qstnTypeCd: qstnTypeCd, extraPrompt: extraPrompt || null })
   })
     .then(function(r) {
       if (!r.ok) return r.json().then(function(e) { throw new Error(e.message || r.status); });
@@ -107,10 +112,16 @@ function fqAiFill() {
 }
 
 function fqFillForm(q) {
-  // 유형 — AI는 항상 객관식
-  document.getElementById('fq-type').value = 'MULTIPLE_CHOICE';
+  // 유형 — AI 응답 기준으로 설정 (선택한 유형 그대로 유지)
+  if (q.qstnTypeCd) {
+    document.getElementById('fq-type').value = q.qstnTypeCd;
+  }
   fqOnTypeChange();
   if (window.initCustomSelect) window.initCustomSelect(document.getElementById('fq-type'));
+
+  // 세부 주제
+  var topicEl = document.getElementById('fq-topic');
+  if (topicEl) topicEl.value = q.topic || '';
 
   // 본문
   document.getElementById('fq-stem').value = q.stem || '';

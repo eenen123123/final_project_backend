@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import kr.or.ddit.finalProject.dto.assignment.AssignmentBoardDto;
+import kr.or.ddit.finalProject.dto.classroom.StudentAssignmentDto;
 
 @Mapper
 public interface AssignmentBoardMapper {
@@ -24,4 +25,8 @@ public interface AssignmentBoardMapper {
     int updateAssignment(AssignmentBoardDto dto);
 
     int deleteAssignment(@Param("asgmtSn") Long asgmtSn, @Param("classSn") Long classSn);
+
+    int toggleResubmitAllow(@Param("asgmtSn") Long asgmtSn, @Param("classSn") Long classSn);
+
+    List<StudentAssignmentDto> selectAssignmentsByStudent(@Param("classSn") Long classSn, @Param("userId") String userId);
 }

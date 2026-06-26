@@ -104,6 +104,11 @@ public class ClassroomServiceImpl implements ClassroomService {
     }
 
     @Override
+    public kr.or.ddit.finalProject.dto.classroom.StudentDetailDto retrieveStudentDetail(Long classSn, String userId) {
+        return classroomMemberMapper.selectStudentDetail(classSn, userId);
+    }
+
+    @Override
     public Map<String, Double> retrieveProgressRates(Long classSn) {
         return classroomMemberMapper.selectProgressRatesByClassSn(classSn)
                 .stream().collect(Collectors.toMap(

@@ -9,4 +9,5 @@ public class StudentLectureProgressResponse {
     private String userName;
     private String cmplYn;
     private String cmplDt;
+    private Integer progressPct;
 }

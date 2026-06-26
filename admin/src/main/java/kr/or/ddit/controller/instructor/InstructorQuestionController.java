@@ -53,13 +53,14 @@ public class InstructorQuestionController {
             @RequestParam(required = false) Long subjId,
             @RequestParam(required = false) Long subjClId,
             @RequestParam(required = false) String diffCd,
+            @RequestParam(defaultValue = "false") boolean showDeleted,
             Model model, Authentication auth) {
 
         String instrUserId = auth.getName();
 
         List<QuestionDto> questions =
-                questionService.retrieveQuestionPage(instrUserId, subjId, diffCd, page, PAGE_SIZE);
-        int totalCount = questionService.countQuestions(instrUserId, subjId, diffCd);
+                questionService.retrieveQuestionPage(instrUserId, subjId, diffCd, showDeleted, page, PAGE_SIZE);
+        int totalCount = questionService.countQuestions(instrUserId, subjId, diffCd, showDeleted);
         int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
 
         model.addAttribute("questions", questions);
@@ -71,6 +72,7 @@ public class InstructorQuestionController {
         model.addAttribute("selectedSubjId", subjId);
         model.addAttribute("selectedSubjClId", subjClId);
         model.addAttribute("selectedDiffCd", diffCd);
+        model.addAttribute("showDeleted", showDeleted);
 
         return "admin:/instructor/list-questions";
     }

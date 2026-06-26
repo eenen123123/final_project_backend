@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Param;
 import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.member.AdminMemberDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
+import kr.or.ddit.finalProject.dto.member.MemberWithdrawLogDto;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
 
 @Mapper
@@ -41,5 +42,9 @@ public interface MemberMapper {
             @Param("paging") PaginationInfo<MemberDto> paging);
 
     List<MemberDto> searchStudentsForCoupon(@Param("q") String q);
+
+    int withdrawMember(@Param("userId") String userId);
+
+    void insertWithdrawLog(MemberWithdrawLogDto dto);
 
 }

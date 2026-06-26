@@ -5,12 +5,9 @@
 
     <!-- 페이지 헤더 -->
     <div class="flex items-center justify-between mb-5">
-        <div class="flex items-center gap-2">
-            <div>
-                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">업무 일지
-                </h1>
-                <p class="text-sm text-slate-500 mt-1">업무 기록을 작성하고 관리합니다.</p>
-            </div>
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">업무 일지</h1>
+            <p class="text-sm text-slate-500 mt-1">업무 기록을 작성하고 관리합니다.</p>
         </div>
     </div>
 
@@ -26,76 +23,83 @@
 
         <!-- ── 좌측: 일지 목록 패널 ── -->
         <div class="journal-list-pane">
-            <div class="list-header">
-                <h2><i class="fa-solid fa-book-open mr-1 text-sky-400"></i>일지 목록</h2>
-                <!-- 뷰어(수석 강사·원장)는 작성 버튼 숨김 -->
-                <a th:unless="${isViewer}"
+
+            <!-- 패널 헤더 -->
+            <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+                <h2 class="text-sm font-bold text-slate-700">
+                    <i class="fa-solid fa-book-open mr-1 text-sky-400"></i>일지 목록
+                </h2>
+                <a th:unless="${isReadOnly}"
                     th:href="@{/instructor/journals(newForm=true, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}"
-                    class="btn-new">
-                    <i class="fa-solid fa-plus mr-0.5"></i> 새 일지
+                    class="hm-btn-primary hm-btn-sky text-xs px-3 py-1.5">
+                    <i class="fa-solid fa-plus"></i> 새 일지
                 </a>
             </div>
 
             <!-- 검색/필터 영역 -->
             <div class="filter-area">
-                <form th:action="@{/instructor/journals}" method="get">
-                    <!-- 뷰어 전용: 강사 선택 드롭다운 -->
-                    <select th:if="${isViewer}" name="selectedInstrId" class="filter-select">
+                <form th:action="@{/instructor/journals}" method="get" class="flex flex-col gap-1.5">
+                    <select th:if="${isViewer}" name="selectedInstrId" class="hm-input hm-input-sky">
                         <option value="">전체 강사</option>
                         <option th:each="instr : ${journalInstructors}" th:value="${instr.instrUserId}"
                             th:text="${instr.instrUserNm}" th:selected="${instr.instrUserId == selectedInstrId}">
                         </option>
                     </select>
-                    <input type="text" name="keyword" placeholder="제목 검색" th:value="${keyword}" />
+                    <input type="text" name="keyword" placeholder="제목 검색" th:value="${keyword}"
+                        class="hm-input hm-input-sky" style="margin-bottom:0; border-radius:0.75rem" />
                     <div class="filter-date-row">
-                        <input type="date" name="fromDt" th:value="${fromDt}" />
+                        <input type="date" name="fromDt" th:value="${fromDt}" class="hm-input hm-input-sky" style="border-radius:0.75rem" />
                         <span>~</span>
-                        <input type="date" name="toDt" th:value="${toDt}" />
+                        <input type="date" name="toDt" th:value="${toDt}" class="hm-input hm-input-sky" style="border-radius:0.75rem" />
                     </div>
-                    <button type="submit" class="btn-filter">
+                    <button type="submit" class="hm-btn-primary hm-btn-sky w-full">
                         <i class="fa-solid fa-magnifying-glass mr-1"></i>검색
                     </button>
-                    <a th:if="${keyword != '' or fromDt != '' or toDt != '' or selectedInstrId != ''}"
-                        th:href="@{/instructor/journals}" class="btn-filter-reset">필터 초기화</a>
+                    <a th:href="@{/instructor/journals}" class="hm-btn-secondary w-full">
+                        <i class="fa-solid fa-rotate-left mr-1"></i>초기화
+                    </a>
                 </form>
             </div>
 
+            <!-- 일지 목록 -->
             <div class="journal-list">
                 <div th:if="${#lists.isEmpty(journalList)}" class="text-center text-slate-400 text-xs py-8">
                     작성된 일지가 없습니다.
                 </div>
-
                 <a th:each="j : ${journalList}"
                     th:href="@{/instructor/journals(jrnlSn=${j.jrnlSn}, page=${currentPage}, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}"
                     th:classappend="${selected != null and selected.jrnlSn == j.jrnlSn} ? 'active' : ''"
                     class="journal-item">
                     <div class="item-date" th:text="${j.jrnlDt}">2026-06-01</div>
                     <div class="item-title" th:text="${j.jrnlTitle}">제목</div>
-                    <!-- 뷰어 모드: 목록에서 작성 강사 이름 표시 -->
                     <div th:if="${isViewer}" class="item-author" th:text="${j.instrUserNm}"></div>
                 </a>
             </div>
 
             <!-- 페이지네이션 -->
-            <div class="pagination" th:if="${totalPages > 1}">
+            <div th:if="${totalPages > 1}"
+                class="flex items-center justify-between px-3 py-2 border-t border-slate-100 flex-shrink-0 text-xs">
                 <a th:if="${currentPage > 1}"
-                    th:href="@{/instructor/journals(page=${currentPage - 1}, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}">
-                    <i class="fa-solid fa-chevron-left"></i> 이전
+                    th:href="@{/instructor/journals(page=${currentPage - 1}, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}"
+                    class="text-slate-500 hover:text-sky-500 flex items-center gap-1">
+                    <i class="fa-solid fa-chevron-left text-xs"></i> 이전
                 </a>
-                <span th:unless="${currentPage > 1}" class="disabled">
-                    <i class="fa-solid fa-chevron-left"></i> 이전
+                <span th:unless="${currentPage > 1}" class="text-slate-300 flex items-center gap-1">
+                    <i class="fa-solid fa-chevron-left text-xs"></i> 이전
                 </span>
 
-                <span class="page-info" th:text="${currentPage} + ' / ' + ${totalPages} + ' 페이지'"></span>
+                <span class="text-slate-400" th:text="${currentPage} + ' / ' + ${totalPages} + ' 페이지'"></span>
 
                 <a th:if="${currentPage < totalPages}"
-                    th:href="@{/instructor/journals(page=${currentPage + 1}, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}">
-                    다음 <i class="fa-solid fa-chevron-right"></i>
+                    th:href="@{/instructor/journals(page=${currentPage + 1}, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}"
+                    class="text-slate-500 hover:text-sky-500 flex items-center gap-1">
+                    다음 <i class="fa-solid fa-chevron-right text-xs"></i>
                 </a>
-                <span th:unless="${currentPage < totalPages}" class="disabled">
-                    다음 <i class="fa-solid fa-chevron-right"></i>
+                <span th:unless="${currentPage < totalPages}" class="text-slate-300 flex items-center gap-1">
+                    다음 <i class="fa-solid fa-chevron-right text-xs"></i>
                 </span>
             </div>
+
         </div>
 
         <!-- ── 우측: 상세 / 폼 패널 ── -->
@@ -111,13 +115,13 @@
             <div th:if="${mode == 'view'}">
                 <div class="detail-header">
                     <div class="detail-title" th:text="${selected.jrnlTitle}">제목</div>
-                    <!-- 본인 일지에만 수정·삭제 버튼 표시 (isOwner = 본인 작성 + 뷰어 아님) -->
-                    <div class="action-bar" th:if="${isOwner}">
+                    <div th:if="${isOwner}" class="flex items-center gap-2 flex-shrink-0">
                         <a th:href="@{/instructor/journals(jrnlSn=${selected.jrnlSn}, edit=true, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}"
-                            class="btn-edit"><i class="fa-solid fa-pen mr-1"></i>수정</a>
-                        <form id="form-delete" th:action="@{/instructor/journals/{sn}/delete(sn=${selected.jrnlSn})}"
-                            method="post">
-                            <button type="button" class="btn-delete" onclick="openDeleteModal()">
+                            class="hm-btn-secondary text-xs px-3 py-1.5">
+                            <i class="fa-solid fa-pen mr-1"></i>수정
+                        </a>
+                        <form id="form-delete" th:action="@{/instructor/journals/{sn}/delete(sn=${selected.jrnlSn})}" method="post">
+                            <button type="button" class="hm-btn-danger text-xs px-3 py-1.5" onclick="openDeleteModal()">
                                 <i class="fa-solid fa-trash mr-1"></i>삭제
                             </button>
                         </form>
@@ -125,7 +129,6 @@
                 </div>
                 <div class="detail-meta">
                     <span><i class="fa-regular fa-calendar mr-1"></i><span th:text="${selected.jrnlDt}"></span></span>
-                    <!-- 뷰어 모드: 작성자 표시 -->
                     <span th:if="${isViewer}">
                         <i class="fa-solid fa-user mr-1"></i>
                         <span style="font-weight:600; color:#0369a1;" th:text="${selected.instrUserNm}"></span>
@@ -135,11 +138,11 @@
                     </span>
                 </div>
                 <div class="detail-content" th:utext="${selected.jrnlCont}">내용</div>
-<script>
-  document.querySelectorAll('.detail-content img[data-file-id]').forEach(function(img) {
-    img.src = '/admin/files/' + img.dataset.fileId + '/view';
-  });
-</script>
+                <script>
+                    document.querySelectorAll('.detail-content img[data-file-id]').forEach(function(img) {
+                        img.src = '/admin/files/' + img.dataset.fileId + '/view';
+                    });
+                </script>
             </div>
 
             <!-- (3) 새 일지 작성 폼 -->
@@ -159,7 +162,6 @@
                         <label class="form-label">업무 날짜 *</label>
                         <input type="date" id="create-dt" name="jrnlDt" class="hm-input hm-input-sky"
                             th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}" />
-                        <div class="form-hint"></div>
                         <div class="form-error" id="create-dt-error">날짜를 선택해주세요.</div>
                     </div>
                     <div class="form-group">
@@ -199,7 +201,6 @@
                         <label class="form-label">업무 날짜 *</label>
                         <input type="date" id="edit-dt" name="jrnlDt" class="hm-input hm-input-sky"
                             th:value="${selected.jrnlDt}" />
-                        <div class="form-hint"></div>
                         <div class="form-error" id="edit-dt-error">날짜를 선택해주세요.</div>
                     </div>
                     <div class="form-group">

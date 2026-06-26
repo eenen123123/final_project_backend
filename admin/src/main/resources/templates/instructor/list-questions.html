@@ -42,10 +42,15 @@
   <button type="submit" class="hm-btn-primary hm-btn-sky">
     <i class="fa-solid fa-magnifying-glass"></i>검색
   </button>
-  <a th:if="${selectedSubjClId != null or selectedDiffCd != null}"
-     href="/instructor/questions" class="btn-filter-reset">
-    <i class="fa-solid fa-xmark mr-0.5"></i>초기화
+  <a href="/instructor/questions" class="btn-filter-reset">
+    <i class="fa-solid fa-rotate-left"></i>초기화
   </a>
+  <label class="flex items-center gap-1.5 text-sm text-slate-500 cursor-pointer select-none ml-1">
+    <input type="checkbox" name="showDeleted" value="true"
+           th:checked="${showDeleted}"
+           class="w-4 h-4 rounded border-slate-300 text-rose-500 cursor-pointer" />
+    삭제된 문항 포함
+  </label>
   <span class="board-filter-count">
     <strong th:text="${totalCount}">0</strong>건
   </span>
@@ -69,9 +74,12 @@
 
   <a th:each="q,s : ${questions}"
      th:href="@{'/instructor/questions/' + ${q.qstnSn}}"
+     th:classappend="${q.statCd == '99'} ? ' opacity-40 line-through bg-rose-50/60 pointer-events-none' : ''"
      class="board-item">
     <span class="board-item-no" th:text="${(currentPage - 1) * pageSize + s.count}"></span>
     <span>
+      <span th:if="${q.statCd == '99'}"
+        class="inline-block text-xs font-bold px-1.5 py-0.5 rounded-full mr-1 bg-rose-100 text-rose-500">삭제</span>
       <span th:if="${q.aiGenYn == 'Y'}"
         class="inline-block text-xs font-bold px-1.5 py-0.5 rounded-full mr-1"
         style="background:linear-gradient(135deg,#ede9fe,#e0f2fe);color:#6d28d9;">AI</span>
@@ -101,7 +109,7 @@
 <!-- 페이지네이션 -->
 <div th:if="${totalPages > 1}" class="board-pagination">
   <a th:if="${currentPage > 1}"
-     th:href="@{/instructor/questions(page=${currentPage - 1}, subjId=${selectedSubjId}, subjClId=${selectedSubjClId}, diffCd=${selectedDiffCd})}">
+     th:href="@{/instructor/questions(page=${currentPage - 1}, subjId=${selectedSubjId}, subjClId=${selectedSubjClId}, diffCd=${selectedDiffCd}, showDeleted=${showDeleted})}">
     <i class="fa-solid fa-chevron-left text-xs"></i>
   </a>
   <span th:unless="${currentPage > 1}" class="disabled">
@@ -112,14 +120,14 @@
                      endPage=${T(java.lang.Math).min(totalPages, currentPage + 2)}">
     <th:block th:each="p : ${#numbers.sequence(startPage, endPage)}">
       <a th:if="${p != currentPage}"
-         th:href="@{/instructor/questions(page=${p}, subjId=${selectedSubjId}, subjClId=${selectedSubjClId}, diffCd=${selectedDiffCd})}"
+         th:href="@{/instructor/questions(page=${p}, subjId=${selectedSubjId}, subjClId=${selectedSubjClId}, diffCd=${selectedDiffCd}, showDeleted=${showDeleted})}"
          th:text="${p}"></a>
       <span th:if="${p == currentPage}" class="current" th:text="${p}"></span>
     </th:block>
   </th:block>
 
   <a th:if="${currentPage < totalPages}"
-     th:href="@{/instructor/questions(page=${currentPage + 1}, subjId=${selectedSubjId}, subjClId=${selectedSubjClId}, diffCd=${selectedDiffCd})}">
+     th:href="@{/instructor/questions(page=${currentPage + 1}, subjId=${selectedSubjId}, subjClId=${selectedSubjClId}, diffCd=${selectedDiffCd}, showDeleted=${showDeleted})}">
     <i class="fa-solid fa-chevron-right text-xs"></i>
   </a>
   <span th:unless="${currentPage < totalPages}" class="disabled">
@@ -135,3 +143,7 @@
   };
 </script>
 <script th:src="@{/js/instructor/list-questions.js}"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>

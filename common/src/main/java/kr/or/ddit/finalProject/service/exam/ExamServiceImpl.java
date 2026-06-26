@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.or.ddit.finalProject.dto.exam.ExamDto;
 import kr.or.ddit.finalProject.dto.exam.ExamQuestionDto;
 import kr.or.ddit.finalProject.dto.exam.ExamSaveRequest;
+import kr.or.ddit.finalProject.dto.exam.ExamTakerDto;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.mapper.exam.ExamMapper;
@@ -121,6 +122,55 @@ public class ExamServiceImpl implements ExamService {
         }
         examMapper.deleteExam(examSn);
         examMapper.deleteExamQuestions(examSn);
+        examMapper.deleteExamTakers(examSn);
+    }
+
+    @Override
+    public List<ExamDto> retrieveExamsByClassSn(Long classSn) {
+        return examMapper.selectExamsByClassSn(classSn);
+    }
+
+    @Override
+    public List<ExamTakerDto> retrieveTakers(Long examSn, String instrUserId) {
+        ExamDto exam = examMapper.selectExamBySn(examSn);
+        if (exam == null || "99".equals(exam.getExamStatCd())) {
+            throw new FinalProjectException(ErrorCode.EXAM_NOT_FOUND);
+        }
+        if (!exam.getExamChrgUserId().equals(instrUserId)) {
+            throw new FinalProjectException(ErrorCode.EXAM_ACCESS_DENIED);
+        }
+        return examMapper.selectTakersByExamSn(examSn);
+    }
+
+    @Override
+    public List<ExamTakerDto> retrieveTakersDirectly(Long examSn) {
+        return examMapper.selectTakersByExamSn(examSn);
+    }
+
+    @Override
+    public List<ExamTakerDto> retrieveTakersWithScore(Long examSn) {
+        return examMapper.selectTakersWithScore(examSn);
+    }
+
+    @Override
+    public List<kr.or.ddit.finalProject.dto.exam.StudentAnswerDto> retrieveStudentAnswers(Long examSn, String userId) {
+        return examMapper.selectStudentAnswers(examSn, userId);
+    }
+
+    @Override
+    @Transactional
+    public void gradeStudentExam(Long examSn, String userId,
+                                 java.util.Map<Long, java.math.BigDecimal> scores,
+                                 String graderId) {
+        for (java.util.Map.Entry<Long, java.math.BigDecimal> entry : scores.entrySet()) {
+            examMapper.updateAnswerScore(entry.getKey(), entry.getValue(), graderId);
+        }
+        examMapper.updateExamTakerTotalScore(examSn, userId);
+    }
+
+    @Override
+    public List<kr.or.ddit.finalProject.dto.classroom.StudentExamDto> retrieveExamsByStudent(Long classSn, String userId) {
+        return examMapper.selectExamsByStudent(classSn, userId);
     }
 
     // ──────────────────────────────────────────────
@@ -131,6 +181,14 @@ public class ExamServiceImpl implements ExamService {
         if (request.getExamRegNm() == null || request.getExamRegNm().isBlank()) {
             throw new FinalProjectException(ErrorCode.BAD_REQUEST);
         }
+        if (request.getQstnSnList() == null || request.getQstnSnList().isEmpty()) {
+            throw new FinalProjectException(ErrorCode.BAD_REQUEST);
+        }
+    }
+
+    @Override
+    public int countPendingGradesByClassSn(Long classSn) {
+        return examMapper.countPendingGradesByClassSn(classSn);
     }
 
     /**

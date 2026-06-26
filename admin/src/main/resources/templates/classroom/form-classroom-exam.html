@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html th:replace="~{classroom/layout-classroom :: layout(
+    ${classroom.classNm} + (${exam != null} ? ' | 시험 수정' : ' | 시험 등록'),
+    ${classroom},
+    'exams',
+    ~{:: #content}
+)}" lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head></head>
+
+<body>
+  <div id="content">
+
+    <div class="flex flex-col gap-5">
+
+      <a th:href="@{/classroom/detail/{sn}/exams(sn=${classroom.classSn})}"
+        class="text-sm font-semibold text-slate-400 hover:text-slate-600 flex items-center gap-2 transition-colors w-fit">
+        <i class="fa-solid fa-arrow-left text-xs"></i> 목록으로
+      </a>
+
+      <form th:action="${exam != null}
+                      ? @{/classroom/detail/{sn}/exams/{examSn}/edit(sn=${classroom.classSn},examSn=${exam.examSn})}
+                      : @{/classroom/detail/{sn}/exams/write(sn=${classroom.classSn})}"
+            method="post"
+            onsubmit="return validateForm()"
+            id="examForm">
+
+        <!-- 기본 정보 -->
+        <div class="bg-white border border-slate-100 rounded-xl overflow-hidden mb-5">
+          <div class="px-7 py-5 border-b border-slate-100">
+            <h2 class="text-base font-bold text-slate-800" th:text="${exam != null} ? '시험 수정' : '시험 등록'">시험 등록</h2>
+          </div>
+          <div class="px-7 py-6 flex flex-col gap-5">
+
+            <div class="flex flex-col gap-1.5">
+              <label class="text-sm font-semibold text-slate-700">시험명 <span class="text-rose-500">*</span></label>
+              <input type="text" name="examRegNm" required maxlength="200" th:value="${exam?.examRegNm}"
+                placeholder="시험명을 입력하세요"
+                class="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-semibold text-slate-700">시험 시작일시</label>
+                <input type="datetime-local" name="examStrtDt"
+                  th:value="${exam?.examStrtDt != null ? #strings.replace(exam.examStrtDt, ' ', 'T') : ''}"
+                  class="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50" />
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-semibold text-slate-700">시험 종료일시</label>
+                <input type="datetime-local" name="examEndDt"
+                  th:value="${exam?.examEndDt != null ? #strings.replace(exam.examEndDt, ' ', 'T') : ''}"
+                  class="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50" />
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 문항 선택 -->
+        <div class="bg-white border border-slate-100 rounded-xl overflow-hidden mb-5">
+          <div class="px-7 py-5 border-b border-slate-100 flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-bold text-slate-800">문항 선택</h2>
+              <p class="text-sm text-slate-400 mt-1">시험에 포함할 문항을 선택하세요.</p>
+            </div>
+            <span id="selectedCount" class="text-sm font-semibold text-blue-600">0개 선택됨</span>
+          </div>
+
+          <div th:if="${#lists.isEmpty(myQuestions)}"
+            class="p-16 flex flex-col items-center justify-center text-center gap-3">
+            <div
+              class="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 text-3xl">
+              <i class="fa-solid fa-file-circle-xmark"></i>
+            </div>
+            <p class="text-sm font-medium text-slate-400">등록된 문항이 없습니다.</p>
+            <a href="/instructor/questions/new" class="text-sm text-blue-500 hover:underline">문항 등록하러 가기</a>
+          </div>
+
+          <div th:unless="${#lists.isEmpty(myQuestions)}" class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-slate-100 text-sm text-slate-400">
+                  <th class="py-3 px-7 w-16 text-center font-medium whitespace-nowrap">순서</th>
+                  <th class="py-3 px-4 font-medium">문항 내용</th>
+                  <th class="py-3 px-4 w-24 text-center font-medium whitespace-nowrap">유형</th>
+                  <th class="py-3 px-4 w-24 text-center font-medium whitespace-nowrap">난이도</th>
+                  <th class="py-3 px-4 w-20 text-center font-medium whitespace-nowrap">배점</th>
+                </tr>
+              </thead>
+              <tbody class="text-slate-700">
+                <tr th:each="q : ${myQuestions}"
+                  class="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer"
+                  th:data-qstn-sn="${q.qstnSn}" onclick="toggleRow(this)">
+                  <td class="py-3 px-7 text-center">
+                    <span class="order-badge inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold border-2 border-slate-200 text-slate-300 transition-all"></span>
+                  </td>
+                  <td class="py-3 px-4 text-sm text-slate-700 max-w-xs truncate" th:text="${q.stem}">문항 내용</td>
+                  <td class="py-3 px-4 text-center">
+                    <span th:if="${q.qstnTypeCd?.name() == 'MULTIPLE_CHOICE'}"
+                      class="text-xs font-semibold px-2 py-0.5 rounded-lg bg-sky-50 text-sky-600">객관식</span>
+                    <span th:if="${q.qstnTypeCd?.name() == 'SHORT_ANSWER'}"
+                      class="text-xs font-semibold px-2 py-0.5 rounded-lg bg-violet-50 text-violet-600">단답형</span>
+                    <span th:if="${q.qstnTypeCd?.name() == 'ESSAY'}"
+                      class="text-xs font-semibold px-2 py-0.5 rounded-lg bg-amber-50 text-amber-600">서술형</span>
+                  </td>
+                  <td class="py-3 px-4 text-center">
+                    <span th:if="${q.diffCd?.name() == 'EASY'}" class="text-xs font-semibold text-emerald-500">하</span>
+                    <span th:if="${q.diffCd?.name() == 'MEDIUM'}" class="text-xs font-semibold text-amber-500">중</span>
+                    <span th:if="${q.diffCd?.name() == 'HARD'}" class="text-xs font-semibold text-rose-500">상</span>
+                  </td>
+                  <td class="py-3 px-4 text-center text-sm font-mono text-slate-600" th:text="${q.allocScr}">0</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 하단 버튼 -->
+        <div class="flex items-center justify-end gap-3">
+          <a th:href="@{/classroom/detail/{sn}/exams(sn=${classroom.classSn})}"
+            class="text-sm font-semibold px-5 py-2.5 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">취소</a>
+          <button type="submit"
+            class="text-sm font-semibold px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            th:text="${exam != null} ? '수정 완료' : '시험 등록'">시험 등록</button>
+        </div>
+
+      </form>
+    </div>
+
+    <script th:inline="javascript">
+      // 수정 폼일 때 서버에서 내려온 순서 배열, 신규 등록이면 빈 배열
+      const _initOrder = /*[[${orderedQstnSns}]]*/ [];
+
+      // 클릭 순서대로 qstnSn을 담는 배열
+      let checkOrder = _initOrder ? [..._initOrder] : [];
+
+      function renderBadges() {
+        document.querySelectorAll('tr[data-qstn-sn]').forEach(row => {
+          const sn = Number(row.dataset.qstnSn);
+          const badge = row.querySelector('.order-badge');
+          const idx = checkOrder.indexOf(sn);
+          if (idx === -1) {
+            badge.textContent = '';
+            badge.classList.remove('bg-blue-600', 'text-white', 'border-blue-600');
+            badge.classList.add('border-slate-200', 'text-slate-300');
+            row.classList.remove('bg-blue-50/40');
+          } else {
+            badge.textContent = idx + 1;
+            badge.classList.add('bg-blue-600', 'text-white', 'border-blue-600');
+            badge.classList.remove('border-slate-200', 'text-slate-300');
+            row.classList.add('bg-blue-50/40');
+          }
+        });
+        document.getElementById('selectedCount').textContent = checkOrder.length + '개 선택됨';
+      }
+
+      function toggleRow(row) {
+        const sn = Number(row.dataset.qstnSn);
+        const idx = checkOrder.indexOf(sn);
+        if (idx === -1) {
+          checkOrder.push(sn);
+        } else {
+          checkOrder.splice(idx, 1);
+        }
+        renderBadges();
+      }
+
+      function validateForm() {
+        if (checkOrder.length === 0) {
+          showHermesToast('문항을 1개 이상 선택해주세요.', 'warning');
+          return false;
+        }
+        // 체크된 기존 checkbox는 제출에서 제외하고, 순서대로 hidden input 주입
+        const form = document.getElementById('examForm');
+        checkOrder.forEach(sn => {
+          const h = document.createElement('input');
+          h.type = 'hidden';
+          h.name = 'qstnSnList';
+          h.value = sn;
+          form.appendChild(h);
+        });
+        return true;
+      }
+
+      // 페이지 로드 시 수정 모드 초기 뱃지 렌더링
+      renderBadges();
+    </script>
+
+  </div>
+</body>
+
+</html>

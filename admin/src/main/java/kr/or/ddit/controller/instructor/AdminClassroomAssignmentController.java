@@ -4,7 +4,9 @@ import java.beans.PropertyEditorSupport;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -17,35 +19,33 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.or.ddit.finalProject.dto.assignment.AssignmentBoardDto;
+import kr.or.ddit.finalProject.dto.assignment.AssignmentSubmitDto;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse;
+import kr.or.ddit.finalProject.dto.file.FileDto;
+import kr.or.ddit.finalProject.mapper.FileMapper;
 import kr.or.ddit.finalProject.service.assignment.AssignmentBoardService;
 import kr.or.ddit.finalProject.service.classroom.ClassroomService;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Controller
 @RequestMapping("/classroom")
-@RequiredArgsConstructor
-public class AdminClassroomAssignmentController {
+public class AdminClassroomAssignmentController extends AbstractClassroomController {
 
     private static final int PAGE_SIZE = 10;
 
-    private final ClassroomService classroomService;
-    private final AssignmentBoardService assignmentBoardService;
-    private final InstructorBoardService instructorBoardService;
+    private final FileMapper fileMapper;
 
-    @ModelAttribute
-    public void addTabBadges(@PathVariable(required = false) Long classSn, Model model) {
-        if (classSn != null) {
-            model.addAttribute("assignmentCount",
-                    assignmentBoardService.getPendingGradeCount(classSn));
-            model.addAttribute("unansweredQnaCount",
-                    instructorBoardService.getUnansweredQnaCount(classSn));
-        }
+    public AdminClassroomAssignmentController(ClassroomService classroomService,
+                                              AssignmentBoardService assignmentBoardService,
+                                              InstructorBoardService instructorBoardService,
+                                              FileMapper fileMapper) {
+        super(classroomService, assignmentBoardService, instructorBoardService);
+        this.fileMapper = fileMapper;
     }
 
     @InitBinder
@@ -58,15 +58,6 @@ public class AdminClassroomAssignmentController {
                         : LocalDateTime.parse(text, fmt));
             }
         });
-    }
-
-    private ClassroomDetailResponse getOwnedClassroom(Long classSn, String userId) {
-        try {
-            ClassroomDetailResponse classroom = classroomService.retrieveClassroomDetail(classSn);
-            return userId.equals(classroom.getInstrUserId()) ? classroom : null;
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
     }
 
     // 과제 목록 + 제출 현황 집계
@@ -99,12 +90,13 @@ public class AdminClassroomAssignmentController {
     // 과제 등록
     @PostMapping("/detail/{classSn}/assignments/write")
     public String assignmentWrite(@PathVariable Long classSn,
-            @ModelAttribute AssignmentBoardDto dto, Authentication authentication) {
+            @ModelAttribute AssignmentBoardDto dto, Authentication authentication, RedirectAttributes redirectAttrs) {
         if (getOwnedClassroom(classSn, authentication.getName()) == null)
             return "redirect:/classroom/list";
         dto.setClassSn(classSn);
         dto.setRgtrUserId(authentication.getName());
         assignmentBoardService.insertAssignment(dto);
+        redirectAttrs.addFlashAttribute("toastMsg", "과제가 등록되었습니다.");
         return "redirect:/classroom/detail/" + classSn + "/assignments";
     }
 
@@ -119,15 +111,23 @@ public class AdminClassroomAssignmentController {
             return "redirect:/classroom/detail/" + classSn + "/assignments";
         model.addAttribute("classroom", classroom);
         model.addAttribute("assignment", assignment);
-        List<kr.or.ddit.finalProject.dto.assignment.AssignmentSubmitDto> submitList =
-                assignmentBoardService.getSubmitList(asgmtSn, classSn);
+        List<AssignmentSubmitDto> submitList = assignmentBoardService.getSubmitList(asgmtSn, classSn);
         long pendingCnt = submitList.stream()
                 .filter(s -> s.getSbmtSn() != null && !"Y".equals(s.getGrddYn()))
                 .count();
         long submittedCnt = submitList.stream()
                 .filter(s -> s.getSbmtSn() != null)
                 .count();
+        // 첨부파일 맵: atchFileId → 파일 목록
+        Map<Long, List<FileDto>> fileMap = new HashMap<>();
+        for (AssignmentSubmitDto sub : submitList) {
+            if (sub.getAtchFileId() != null) {
+                fileMap.put(sub.getAtchFileId(),
+                        fileMapper.selectFilesByGroupId(sub.getAtchFileId().intValue()));
+            }
+        }
         model.addAttribute("submitList", submitList);
+        model.addAttribute("fileMap", fileMap);
         model.addAttribute("pendingCnt", pendingCnt);
         model.addAttribute("submittedCnt", submittedCnt);
         model.addAttribute("now", LocalDateTime.now());
@@ -151,43 +151,63 @@ public class AdminClassroomAssignmentController {
     // 과제 수정 저장
     @PostMapping("/detail/{classSn}/assignments/{asgmtSn}/edit")
     public String assignmentEdit(@PathVariable Long classSn, @PathVariable Long asgmtSn,
-            @ModelAttribute AssignmentBoardDto dto, Authentication authentication) {
+            @ModelAttribute AssignmentBoardDto dto, Authentication authentication, RedirectAttributes redirectAttrs) {
         if (getOwnedClassroom(classSn, authentication.getName()) == null)
             return "redirect:/classroom/list";
         dto.setAsgmtSn(asgmtSn);
         dto.setClassSn(classSn);
         dto.setLastMdfrId(authentication.getName());
         assignmentBoardService.updateAssignment(dto);
+        redirectAttrs.addFlashAttribute("toastMsg", "과제가 수정되었습니다.");
         return "redirect:/classroom/detail/" + classSn + "/assignments/" + asgmtSn;
     }
 
     // 과제 삭제
     @PostMapping("/detail/{classSn}/assignments/{asgmtSn}/delete")
     public String assignmentDelete(@PathVariable Long classSn, @PathVariable Long asgmtSn,
-            Authentication authentication) {
+            Authentication authentication, RedirectAttributes redirectAttrs) {
         if (getOwnedClassroom(classSn, authentication.getName()) == null)
             return "redirect:/classroom/list";
         AssignmentBoardDto assignment = assignmentBoardService.getAssignmentDetail(asgmtSn);
         if (assignment == null || !classSn.equals(assignment.getClassSn()))
             return "redirect:/classroom/detail/" + classSn + "/assignments";
         assignmentBoardService.deleteAssignment(asgmtSn, classSn);
+        redirectAttrs.addFlashAttribute("toastMsg", "과제가 삭제되었습니다.");
         return "redirect:/classroom/detail/" + classSn + "/assignments";
+    }
+
+    // 재제출 허용 토글
+    @PostMapping("/detail/{classSn}/assignments/{asgmtSn}/resubmit-toggle")
+    public String resubmitToggle(@PathVariable Long classSn, @PathVariable Long asgmtSn,
+            Authentication authentication, RedirectAttributes redirectAttrs) {
+        if (getOwnedClassroom(classSn, authentication.getName()) == null)
+            return "redirect:/classroom/list";
+        AssignmentBoardDto assignment = assignmentBoardService.getAssignmentDetail(asgmtSn);
+        if (assignment == null || !classSn.equals(assignment.getClassSn()))
+            return "redirect:/classroom/detail/" + classSn + "/assignments";
+        assignmentBoardService.toggleResubmitAllow(asgmtSn, classSn);
+        redirectAttrs.addFlashAttribute("toastMsg", "재제출 허용 상태가 변경되었습니다.");
+        return "redirect:/classroom/detail/" + classSn + "/assignments/" + asgmtSn;
     }
 
     // 과제 채점
     @PostMapping("/detail/{classSn}/assignments/{asgmtSn}/grade/{sbmtSn}")
     public String assignmentGrade(@PathVariable Long classSn, @PathVariable Long asgmtSn,
             @PathVariable Long sbmtSn, @RequestParam BigDecimal score,
-            Authentication authentication) {
+            Authentication authentication, RedirectAttributes redirectAttrs) {
         if (getOwnedClassroom(classSn, authentication.getName()) == null)
             return "redirect:/classroom/list";
-        if (score == null || score.compareTo(BigDecimal.ZERO) < 0 || score.compareTo(new BigDecimal(100)) > 0)
+        if (score == null || score.compareTo(BigDecimal.ZERO) < 0 || score.compareTo(new BigDecimal(100)) > 0) {
+            redirectAttrs.addFlashAttribute("toastMsg", "유효하지 않은 점수입니다.");
+            redirectAttrs.addFlashAttribute("toastType", "error");
             return "redirect:/classroom/detail/" + classSn + "/assignments/" + asgmtSn + "?error=invalidScore";
+        }
         AssignmentBoardDto assignment = assignmentBoardService.getAssignmentDetail(asgmtSn);
         if (assignment == null || !classSn.equals(assignment.getClassSn()))
             return "redirect:/classroom/detail/" + classSn + "/assignments";
         int updated = assignmentBoardService.gradeSubmit(sbmtSn, asgmtSn, score, authentication.getName());
         if (updated == 0) log.warn("gradeSubmit 0 rows: classSn={} asgmtSn={} sbmtSn={}", classSn, asgmtSn, sbmtSn);
+        redirectAttrs.addFlashAttribute("toastMsg", "채점이 저장되었습니다.");
         return "redirect:/classroom/detail/" + classSn + "/assignments/" + asgmtSn;
     }
 }

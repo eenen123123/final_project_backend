@@ -30,7 +30,7 @@
     </div>
     <div class="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium shrink-0">
       <button type="button" id="fAll" onclick="setUseYnFilter('all')"
-        class="px-3 py-2 bg-slate-700 text-white transition-colors cursor-pointer">전체</button>
+        class="px-3 py-2 bg-blue-700 text-white transition-colors cursor-pointer">전체</button>
       <button type="button" id="fN" onclick="setUseYnFilter('N')"
         class="px-3 py-2 text-slate-500 bg-white hover:bg-slate-50 border-l border-slate-200 transition-colors cursor-pointer">미사용</button>
       <button type="button" id="fY" onclick="setUseYnFilter('Y')"
@@ -92,7 +92,7 @@
         var keyVal = k === 'All' ? 'all' : k;
         var match = keyVal === val;
         document.getElementById(id).className = 'px-3 py-2 transition-colors cursor-pointer '
-          + (match ? 'bg-slate-700 text-white' : 'text-slate-500 bg-white hover:bg-slate-50 border-l border-slate-200');
+          + (match ? 'bg-blue-700 text-white' : 'text-slate-500 bg-white hover:bg-slate-50 border-l border-slate-200');
       });
       applyFilter();
     }

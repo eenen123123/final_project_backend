@@ -105,6 +105,12 @@ public interface StaffService {
      */
     List<EmployeeDetailDto> retrieveEmployeeList();
 
+    /** 상태별 직원 수 조회 (stats 카드용) */
+    Map<String, Object> getEmployeeStatusCounts();
+
+    /** 유형별 학생 수 조회 (stats 카드용) */
+    Map<String, Object> getStudentStatusCounts();
+
     /** 단일 직원 상세 조회 (수정 전 스냅샷용) */
     EmployeeDetailDto retrieveEmployeeDetailById(String userId);
 
@@ -229,4 +235,13 @@ public interface StaffService {
 
     /** 휴가 결재 승인 시 휴가 이력 적재 */
     void insertLeaveHistory(AnnualLeaveHistoryDto dto);
+
+    /** 학생이 현재 수강 중인 클래스 목록 */
+    List<Map<String, Object>> getEnrolledClassrooms(String userId);
+
+    /** 학생이 등록 가능한 클래스 목록 (ACTIVE/RECRUITING, 미등록) */
+    List<Map<String, Object>> getAvailableClassrooms(String userId);
+
+    /** 학생을 클래스에 등록 */
+    void registerStudentToClass(Long classSn, String userId);
 }

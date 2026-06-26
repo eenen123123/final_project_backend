@@ -18,6 +18,7 @@
     <result property="sbmtCnt"      column="SBMT_CNT"/>
     <result property="totMemberCnt" column="TOT_MEMBER_CNT"/>
     <result property="grddCnt"      column="GRDD_CNT"/>
+    <result property="resbmtAlldYn" column="RESBMT_ALLD_YN"/>
   </resultMap>
 
   <select id="selectAssignmentList" resultMap="assignmentBoardMap">
@@ -53,11 +54,20 @@
         ab.ASGMT_STAT_CD,
         ab.LAST_MDFR_ID,
         ab.REG_DT,
+        ab.RESBMT_ALLD_YN,
         (SELECT COUNT(*) FROM ASSIGNMENT_SUBMIT s WHERE s.ASGMT_SN = ab.ASGMT_SN) AS SBMT_CNT,
         (SELECT COUNT(*) FROM CLASSROOM_MEMBER cm WHERE cm.CLASS_SN = ab.CLASS_SN AND cm.ENRL_STAT_CD = 'ENROLLED') AS TOT_MEMBER_CNT
     FROM ASSIGNMENT_BOARD ab
     WHERE ab.ASGMT_SN = #{asgmtSn}
   </select>
+
+  <update id="toggleResubmitAllow">
+    UPDATE ASSIGNMENT_BOARD
+    SET RESBMT_ALLD_YN = CASE WHEN RESBMT_ALLD_YN = 'Y' THEN 'N' ELSE 'Y' END,
+        MDFCN_DT       = CURRENT_TIMESTAMP
+    WHERE ASGMT_SN = #{asgmtSn}
+      AND CLASS_SN  = #{classSn}
+  </update>
 
   <update id="updateAssignment">
     UPDATE ASSIGNMENT_BOARD
@@ -83,5 +93,22 @@
         CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, #{rgtrUserId}, #{rgtrUserId}
     )
   </insert>
+
+  <!-- 특정 학생의 과제별 제출 현황 — 해당 클래스룸 과제 전체 기준 -->
+  <select id="selectAssignmentsByStudent" resultType="kr.or.ddit.finalProject.dto.classroom.StudentAssignmentDto">
+    SELECT
+        ab.ASGMT_SN                                       AS asgmtSn,
+        ab.ASGMT_SJ                                       AS asgmtSj,
+        TO_CHAR(ab.SBMT_DDLN_DT, 'YYYY-MM-DD HH24:MI')  AS sbmtDdlnDt,
+        CASE WHEN s.SBMT_SN IS NOT NULL THEN 'Y' ELSE 'N' END AS sbmtYn,
+        NVL(s.GRDD_YN, 'N')                              AS grddYn,
+        s.SCORE                                           AS score
+    FROM ASSIGNMENT_BOARD ab
+    LEFT JOIN ASSIGNMENT_SUBMIT s
+           ON s.ASGMT_SN      = ab.ASGMT_SN
+          AND s.SBMT_USER_ID  = #{userId}
+    WHERE ab.CLASS_SN = #{classSn}
+    ORDER BY ab.SBMT_DDLN_DT ASC
+  </select>
 
 </mapper>

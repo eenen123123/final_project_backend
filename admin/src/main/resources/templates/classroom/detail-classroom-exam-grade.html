@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html th:replace="~{classroom/layout-classroom :: layout(
+    ${classroom.classNm} + ' | 시험 채점',
+    ${classroom},
+    'exams',
+    ~{:: #content}
+)}" lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div id="content">
+
+  <div class="flex flex-col gap-5">
+
+    <a th:href="@{/classroom/detail/{sn}/exams/{examSn}(sn=${classroom.classSn},examSn=${exam.examSn})}"
+       class="text-sm font-semibold text-slate-400 hover:text-slate-600 flex items-center gap-2 transition-colors w-fit">
+      <i class="fa-solid fa-arrow-left text-xs"></i> 응시자 목록으로
+    </a>
+
+    <!-- 시험 정보 헤더 -->
+    <div class="bg-white border border-slate-100 rounded-xl px-7 py-5 flex items-center justify-between gap-4">
+      <div>
+        <p class="text-xs text-slate-400 mb-1" th:text="${exam.examRegNm}">시험명</p>
+        <h1 class="text-lg font-bold text-slate-800" th:text="${userId} + ' 님의 답안 채점'">채점</h1>
+      </div>
+      <div class="text-right text-sm text-slate-400">
+        <p th:if="${exam.examStrtDt != null}">
+          <span th:text="${exam.examStrtDt}"></span> ~ <span th:text="${exam.examEndDt}"></span>
+        </p>
+      </div>
+    </div>
+
+    <!-- 채점 폼 -->
+    <form th:action="@{/classroom/detail/{sn}/exams/{examSn}/grade/{userId}(sn=${classroom.classSn},examSn=${exam.examSn},userId=${userId})}"
+          method="post" id="gradeForm">
+
+      <div class="flex flex-col gap-4">
+
+        <div th:if="${#lists.isEmpty(answers)}"
+             class="bg-white border border-slate-100 rounded-xl px-7 py-16 text-center">
+          <p class="text-sm text-slate-400">이 학생의 제출 답안이 없습니다.</p>
+        </div>
+
+        <!-- 문항별 답안 카드 -->
+        <div th:each="ans, stat : ${answers}"
+             class="bg-white border border-slate-100 rounded-xl overflow-hidden">
+
+          <!-- 문항 헤더 -->
+          <div class="px-7 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <span class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 text-xs font-bold flex items-center justify-center"
+                    th:text="${stat.count}">1</span>
+              <span th:switch="${ans.qstnTypeCd}">
+                <span th:case="'MULTIPLE_CHOICE'"
+                      class="text-xs font-semibold text-blue-500 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-lg">객관식</span>
+                <span th:case="'SHORT_ANSWER'"
+                      class="text-xs font-semibold text-violet-500 bg-violet-50 border border-violet-100 px-2.5 py-1 rounded-lg">단답형</span>
+                <span th:case="'ESSAY'"
+                      class="text-xs font-semibold text-amber-500 bg-amber-50 border border-amber-100 px-2.5 py-1 rounded-lg">서술형</span>
+              </span>
+            </div>
+            <span class="text-sm text-slate-400 font-mono">배점 <span class="font-semibold text-slate-600" th:text="${ans.allocScr}">0</span>점</span>
+          </div>
+
+          <div class="px-7 py-5 flex flex-col gap-4">
+
+            <!-- 문항 본문 (JSON에서 text 필드만 표시) -->
+            <div class="text-sm font-semibold text-slate-800 leading-relaxed" th:utext="${ans.qstnCn}">문항 내용</div>
+
+            <!-- 정답 / 학생 답안 -->
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-emerald-50 border border-emerald-100 rounded-lg px-4 py-3">
+                <p class="text-xs font-semibold text-emerald-600 mb-1">정답</p>
+                <p class="text-sm text-slate-700" th:text="${ans.corrAnswCn != null ? ans.corrAnswCn : '-'}">-</p>
+              </div>
+              <div class="bg-slate-50 border border-slate-100 rounded-lg px-4 py-3">
+                <p class="text-xs font-semibold text-slate-500 mb-1">학생 답안</p>
+                <p class="text-sm text-slate-700"
+                   th:text="${ans.sbmtAnswCn != null ? ans.sbmtAnswCn : '미제출'}">-</p>
+              </div>
+            </div>
+
+            <!-- 채점 영역 -->
+            <div class="flex items-center justify-end gap-3">
+
+              <!-- 객관식: 자동채점 결과 표시 (수정 불가) -->
+              <div th:if="${ans.qstnTypeCd == 'MULTIPLE_CHOICE'}" class="flex items-center gap-2">
+                <span th:if="${ans.score != null and ans.score > 0}"
+                      class="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-lg">
+                  <i class="fa-solid fa-check text-xs"></i> 정답 · <span th:text="${ans.score}">0</span>점
+                </span>
+                <span th:if="${ans.score != null and ans.score == 0}"
+                      class="inline-flex items-center gap-1.5 text-sm font-semibold text-rose-500 bg-rose-50 border border-rose-100 px-3 py-1.5 rounded-lg">
+                  <i class="fa-solid fa-xmark text-xs"></i> 오답 · 0점
+                </span>
+                <span th:if="${ans.score == null}"
+                      class="text-sm text-slate-400">미응시</span>
+              </div>
+
+              <!-- 주관식/서술형: 점수 입력 -->
+              <div th:unless="${ans.qstnTypeCd == 'MULTIPLE_CHOICE'}"
+                   class="flex items-center gap-2">
+                <span th:if="${ans.grdgUserId != null}"
+                      class="text-xs text-slate-400" th:text="'채점: ' + ${ans.grdgDt}"></span>
+                <div th:if="${ans.sbmtAnswSn != null}" class="flex items-center gap-2">
+                  <label class="text-sm text-slate-500">점수</label>
+                  <input type="number"
+                         th:name="'score_' + ${ans.sbmtAnswSn}"
+                         th:value="${ans.score}"
+                         th:max="${ans.allocScr}"
+                         min="0" step="0.5"
+                         class="w-24 border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-center font-mono focus:outline-none focus:border-blue-400"
+                         th:placeholder="${'0~' + ans.allocScr}">
+                  <span class="text-sm text-slate-400">/ <span th:text="${ans.allocScr}">0</span>점</span>
+                </div>
+                <span th:unless="${ans.sbmtAnswSn != null}" class="text-sm text-slate-400">미응시</span>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 제출 버튼 -->
+      <div th:unless="${#lists.isEmpty(answers)}" class="flex justify-end gap-3 mt-2">
+        <a th:href="@{/classroom/detail/{sn}/exams/{examSn}(sn=${classroom.classSn},examSn=${exam.examSn})}"
+           class="px-5 py-2.5 rounded-lg border border-slate-200 text-sm font-semibold text-slate-500 hover:bg-slate-50 transition-colors">
+          취소
+        </a>
+        <button type="submit"
+                class="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">
+          채점 저장
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+</body>
+</html>
