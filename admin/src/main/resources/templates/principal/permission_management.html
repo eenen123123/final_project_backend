@@ -144,17 +144,24 @@
         <p class="text-xs text-violet-700 leading-relaxed flex-1">
           아래 스위치를 통해 직급별 메뉴 접근 권한을 설정하세요.
         </p>
-        <button class="hm-btn-primary shrink-0" onclick="showHermesToast('권한 설정을 저장했습니다.', 'success')">
+        <button id="perm-save-btn" class="hm-btn-primary shrink-0" onclick="saveMenuPermissions()">
           <i class="fa-solid fa-floppy-disk"></i>
           <span>변경사항 저장</span>
         </button>
       </div>
 
-      <div class="rounded-xl border border-slate-100 overflow-hidden">
+      <div class="rounded-xl border border-slate-100 overflow-hidden relative">
+        <!-- 로딩 오버레이 -->
+        <div id="perm-table-loading" class="absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-xl">
+          <div class="flex flex-col items-center gap-2 text-slate-400">
+            <i class="fa-solid fa-spinner fa-spin text-2xl text-violet-400"></i>
+            <span class="text-xs">권한 정보 불러오는 중...</span>
+          </div>
+        </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm border-collapse">
             <thead>
-              <!-- 부서 그룹 헤더 -->
+              <!-- 부서 그룹 헤더 (동적) -->
               <tr class="bg-slate-100 border-b border-slate-200">
                 <th class="py-3 px-6 text-left text-xs font-bold text-slate-500 tracking-wider w-52" rowspan="2">
                   <div class="flex flex-col gap-1.5">
@@ -169,50 +176,21 @@
                     </div>
                   </div>
                 </th>
-                <th class="py-2 px-3 text-center text-[11px] font-bold text-emerald-600 border-b border-slate-200 border-l border-slate-200" colspan="4">행정팀</th>
-                <th class="py-2 px-3 text-center text-[11px] font-bold text-sky-600 border-b border-slate-200 border-l border-slate-200" colspan="3">강사팀</th>
+                <th th:each="group : ${permDeptGroups}"
+                    th:colspan="${group.grades.size()}"
+                    th:text="${group.deptNm}"
+                    th:classappend="${group.deptCd == 'D100' ? 'text-emerald-600' : 'text-sky-600'}"
+                    class="py-2 px-3 text-center text-[11px] font-bold border-b border-slate-200 border-l border-slate-200">
+                </th>
               </tr>
               <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold tracking-wider">
-                <th class="py-3 px-3 text-center text-emerald-600 border-l border-slate-100">
+                <th th:each="grade : ${permJobGradeList}"
+                    th:data-grade-cd="${grade.jbgrCd}"
+                    class="py-3 px-3 text-center border-l border-slate-100">
                   <div class="flex flex-col items-center gap-0.5">
-                    <i class="fa-solid fa-user-tie text-[10px]"></i>
-                    <span>행정팀장</span>
-                  </div>
-                </th>
-                <th class="py-3 px-3 text-center text-blue-500 border-l border-slate-100">
-                  <div class="flex flex-col items-center gap-0.5">
-                    <i class="fa-solid fa-user-check text-[10px]"></i>
-                    <span>선임행정원</span>
-                  </div>
-                </th>
-                <th class="py-3 px-3 text-center text-blue-400 border-l border-slate-100">
-                  <div class="flex flex-col items-center gap-0.5">
-                    <i class="fa-solid fa-user text-[10px]"></i>
-                    <span>행정원</span>
-                  </div>
-                </th>
-                <th class="py-3 px-3 text-center text-slate-400 border-l border-slate-100">
-                  <div class="flex flex-col items-center gap-0.5">
-                    <i class="fa-solid fa-user-clock text-[10px]"></i>
-                    <span>인턴</span>
-                  </div>
-                </th>
-                <th class="py-3 px-3 text-center text-sky-600 border-l border-slate-100">
-                  <div class="flex flex-col items-center gap-0.5">
-                    <i class="fa-solid fa-chalkboard-user text-[10px]"></i>
-                    <span>수석강사</span>
-                  </div>
-                </th>
-                <th class="py-3 px-3 text-center text-sky-500 border-l border-slate-100">
-                  <div class="flex flex-col items-center gap-0.5">
-                    <i class="fa-solid fa-chalkboard text-[10px]"></i>
-                    <span>전임강사</span>
-                  </div>
-                </th>
-                <th class="py-3 px-3 text-center text-sky-400 border-l border-slate-100">
-                  <div class="flex flex-col items-center gap-0.5">
-                    <i class="fa-solid fa-user-graduate text-[10px]"></i>
-                    <span>조교</span>
+                    <i th:class="${grade.deptCd == 'D100' ? 'fa-solid fa-user text-[10px]' : 'fa-solid fa-chalkboard-user text-[10px]'}"></i>
+                    <span th:text="${grade.jbgrNm}"
+                          th:classappend="${grade.deptCd == 'D100' ? 'text-emerald-600' : 'text-sky-600'}"></span>
                   </div>
                 </th>
               </tr>
@@ -221,375 +199,177 @@
 
               <!-- ── 공통 업무 ── -->
               <tr class="bg-slate-50/80 cursor-pointer select-none group" onclick="togglePermSection('common')">
-                <td colspan="8" class="py-2.5 px-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                <td th:colspan="${1 + permJobGradeList.size()}" class="py-2.5 px-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                   <span>공통 업무</span>
                   <i id="perm-chevron-common" class="fa-solid fa-chevron-down ml-2 text-[9px] transition-transform duration-200"></i>
                 </td>
               </tr>
               <!-- A001 A002 A003 A004 T001 T002 T003 -->
-              <tr data-perm-group="common" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="common" data-menu-cd="main_dashboard" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">메인 대시보드</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="common" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="common" data-menu-cd="messages" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">메시지 관리</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="common" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="common" data-menu-cd="messenger" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">사내 메신저</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="common" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="common" data-menu-cd="approval" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">내부 전자 결재</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="common" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="common" data-menu-cd="schedule" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">통합 일정 관리</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="common" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="common" data-menu-cd="course_view" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">강좌 조회</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="common" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="common" data-menu-cd="certificate_issue" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">증명서 발급</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
 
               <!-- ── 원장 업무 ── -->
               <tr class="bg-slate-50/80 cursor-pointer select-none group" onclick="togglePermSection('principal')">
-                <td colspan="8" class="py-2.5 px-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                <td th:colspan="${1 + permJobGradeList.size()}" class="py-2.5 px-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                   <span>원장 업무</span>
                   <i id="perm-chevron-principal" class="fa-solid fa-chevron-down ml-2 text-[9px] transition-transform duration-200"></i>
                 </td>
               </tr>
-              <tr data-perm-group="principal" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="principal" data-menu-cd="academic_monitoring" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">학사 운영 모니터링</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="principal" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="principal" data-menu-cd="system_log" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">시스템 로그 관리</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="principal" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="principal" data-menu-cd="finance_analysis" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">매출 및 재무 분석</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="principal" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="principal" data-menu-cd="quality" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">서비스 품질 관리</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="principal" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="principal" data-menu-cd="perm_settings" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">관리자 권한 설정</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
 
               <!-- ── 행정팀장 업무 ── -->
               <tr class="bg-slate-50/80 cursor-pointer select-none group" onclick="togglePermSection('manager')">
-                <td colspan="8" class="py-2.5 px-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                <td th:colspan="${1 + permJobGradeList.size()}" class="py-2.5 px-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                   <span>행정팀장 업무</span>
                   <i id="perm-chevron-manager" class="fa-solid fa-chevron-down ml-2 text-[9px] transition-transform duration-200"></i>
                 </td>
               </tr>
-              <tr data-perm-group="manager" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="manager" data-menu-cd="instructor_monitor" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">강사 및 업무 모니터링</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="manager" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="manager" data-menu-cd="consultation" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">학부모 상담 관리</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="manager" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="manager" data-menu-cd="retention" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">퇴원 방어 및 유지</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
 
               <!-- ── 행정 업무 ── -->
               <tr class="bg-slate-50/80 cursor-pointer select-none group" onclick="togglePermSection('staff')">
-                <td colspan="8" class="py-2.5 px-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                <td th:colspan="${1 + permJobGradeList.size()}" class="py-2.5 px-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                   <span>행정 업무</span>
                   <i id="perm-chevron-staff" class="fa-solid fa-chevron-down ml-2 text-[9px] transition-transform duration-200"></i>
                 </td>
               </tr>
               <!-- A001 A002 A003 A004 T001 T002 T003 -->
-              <tr data-perm-group="staff" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="staff" data-menu-cd="customer_center" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">고객센터 관리</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="staff" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="staff" data-menu-cd="user_management" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">사용자 관리</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="staff" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="staff" data-menu-cd="org_management" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">조직 관리</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="staff" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="staff" data-menu-cd="blacklist" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">블랙리스트 관리</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="staff" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="staff" data-menu-cd="billing" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">원비 및 수납 관리</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="staff" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="staff" data-menu-cd="textbook" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">교재 관리</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="staff" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="staff" data-menu-cd="orders" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">주문 관리</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="staff" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="staff" data-menu-cd="featured" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">추천 항목 관리</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="staff" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="staff" data-menu-cd="coupon" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">쿠폰 / 포인트 관리</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="staff" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="staff" data-menu-cd="common_codes" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">공통코드 관리</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="staff" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="staff" data-menu-cd="certificate_manage" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">증명서 발급 관리</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="staff" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="staff" data-menu-cd="subject" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">과목 관리</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
 
               <!-- ── 강사 업무 ── -->
               <tr class="bg-slate-50/80 cursor-pointer select-none group" onclick="togglePermSection('instructor')">
-                <td colspan="8" class="py-2.5 px-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                <td th:colspan="${1 + permJobGradeList.size()}" class="py-2.5 px-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                   <span>강사 업무</span>
                   <i id="perm-chevron-instructor" class="fa-solid fa-chevron-down ml-2 text-[9px] transition-transform duration-200"></i>
                 </td>
               </tr>
               <!-- A001 A002 A003 A004 T001 T002 T003 -->
-              <tr data-perm-group="instructor" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="instructor" data-menu-cd="classroom" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">담당 클래스 관리</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="instructor" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="instructor" data-menu-cd="instructor_board" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">강사 게시판</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="instructor" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="instructor" data-menu-cd="questions" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">문항 관리</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="instructor" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="instructor" data-menu-cd="work_log" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">업무 일지</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="instructor" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="instructor" data-menu-cd="curriculum" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">커리큘럼 관리</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
-              <tr data-perm-group="instructor" class="hover:bg-slate-50/40 transition-colors">
+              <tr data-perm-group="instructor" data-menu-cd="my_page" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">개인 페이지 관리</td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
-                <td class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" checked /></td>
+                <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
 
             </tbody>
@@ -638,7 +418,7 @@
 </style>
 
 <!-- ===== 페이지 스크립트 ===== -->
-<script>
+<script th:inline="javascript">
   /* ===== 전역 변수 ===== */
   const PERM_PAGE_SIZE  = 10;
   const PERM_BLOCK_SIZE = 5;
@@ -961,11 +741,74 @@
     if (e.target === this) closeActivityModal();
   });
 
+  /* ===== 직급별 메뉴 권한 로드 ===== */
+  const GRADE_COLS = /*[[${permGradeCodes}]]*/ [];
+
+  async function loadMenuPermissions() {
+    const overlay = document.getElementById('perm-table-loading');
+    if (overlay) overlay.style.display = 'flex';
+    try {
+      const res  = await fetch('/admin/settings/permissions/menu-permissions');
+      const data = await res.json();
+      document.querySelectorAll('[data-menu-cd]').forEach(tr => {
+        const menuCd   = tr.dataset.menuCd;
+        const switches = tr.querySelectorAll('input.hm-switch');
+        switches.forEach((sw, i) => {
+          const grade = GRADE_COLS[i];
+          if (grade) {
+            const key = menuCd + ':' + grade;
+            sw.checked = data[key] === true;
+          }
+        });
+      });
+    } catch (e) {
+      console.error('권한 로드 실패:', e);
+    } finally {
+      if (overlay) overlay.style.display = 'none';
+    }
+  }
+
+  /* ===== 변경사항 저장 ===== */
+  async function saveMenuPermissions() {
+    const btn = document.getElementById('perm-save-btn');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>저장 중...</span>'; }
+
+    const permissions = [];
+    document.querySelectorAll('[data-menu-cd]').forEach(tr => {
+      const menuCd   = tr.dataset.menuCd;
+      const switches = tr.querySelectorAll('input.hm-switch');
+      switches.forEach((sw, i) => {
+        const grade = GRADE_COLS[i];
+        if (grade) {
+          permissions.push({ menuCd, jobGrade: grade, allowed: sw.checked ? 'Y' : 'N' });
+        }
+      });
+    });
+
+    try {
+      const res = await fetch('/admin/settings/permissions/menu-permissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(permissions)
+      });
+      if (res.ok) {
+        showHermesToast('권한 설정을 저장했습니다.', 'success');
+      } else {
+        showHermesToast('저장에 실패했습니다.', 'error');
+      }
+    } catch (e) {
+      showHermesToast('저장 중 오류가 발생했습니다.', 'error');
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i><span>변경사항 저장</span>'; }
+    }
+  }
+
   /* ===== 초기 로딩 ===== */
   (function initTabs() {
     const firstBtn = document.querySelector('.perm-tab-btn[data-tab="tab-employees"]');
     if (firstBtn) switchPermTab('tab-employees', firstBtn);
     doPermSearch(1);
+    loadMenuPermissions();
   })();
 </script>
 <div class="hidden w-8 h-8 rounded-lg text-xs flex items-center justify-center bg-violet-700 text-white font-bold text-slate-400 hover:bg-slate-100"></div>
