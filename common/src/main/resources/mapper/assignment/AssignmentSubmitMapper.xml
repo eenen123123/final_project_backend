@@ -11,6 +11,7 @@
     <result property="sbmtUserId"   column="SBMT_USER_ID"/>
     <result property="userName"     column="USER_NAME"/>
     <result property="sbmtCn"       column="SBMT_CN"/>
+    <result property="atchFileId"   column="ATCH_FILE_ID"/>
     <result property="score"        column="SCORE"/>
     <result property="grddYn"       column="GRDD_YN"/>
     <result property="grddUserId"   column="GRDD_USER_ID"/>
@@ -27,6 +28,7 @@
         s.SBMT_SN,
         s.ASGMT_SN,
         s.SBMT_CN,
+        s.ATCH_FILE_ID,
         s.SCORE,
         s.GRDD_YN,
         s.GRDD_USER_ID,
@@ -71,6 +73,34 @@
     )
     WHERE ROWNUM &lt;= #{limit}
   </select>
+
+  <select id="selectMySubmit" resultMap="assignmentSubmitMap">
+    SELECT SBMT_SN, ASGMT_SN, SBMT_USER_ID, SBMT_CN, ATCH_FILE_ID,
+           SCORE, GRDD_YN, GRDD_USER_ID, GRDD_DT, SBMT_DT
+    FROM ASSIGNMENT_SUBMIT
+    WHERE ASGMT_SN = #{asgmtSn}
+      AND SBMT_USER_ID = #{userId}
+  </select>
+
+  <insert id="insertSubmit" useGeneratedKeys="true" keyProperty="sbmtSn" keyColumn="SBMT_SN">
+    INSERT INTO ASSIGNMENT_SUBMIT (
+        ASGMT_SN, SBMT_USER_ID, SBMT_CN,
+        GRDD_YN, SBMT_DT, REG_DT, MDFCN_DT
+    ) VALUES (
+        #{asgmtSn}, #{sbmtUserId}, #{sbmtCn},
+        'N', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+    )
+  </insert>
+
+  <update id="updateMySubmit">
+    UPDATE ASSIGNMENT_SUBMIT
+    SET SBMT_CN   = #{sbmtCn},
+        GRDD_YN   = 'N',
+        SCORE     = NULL,
+        MDFCN_DT  = CURRENT_TIMESTAMP
+    WHERE ASGMT_SN    = #{asgmtSn}
+      AND SBMT_USER_ID = #{userId}
+  </update>
 
   <delete id="deleteSubmitsByAsgmtSn">
     DELETE FROM ASSIGNMENT_SUBMIT WHERE ASGMT_SN = #{asgmtSn}

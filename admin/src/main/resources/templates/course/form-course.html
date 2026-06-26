@@ -6,15 +6,15 @@
   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
     <div>
       <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
-        <a th:href="@{/admin/course/list}" class="hover:text-orange-500 transition-colors">강좌 관리</a>
+        <a th:href="@{/admin/course/list}" class="hover:text-violet-500 transition-colors">강좌 관리</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
         <th:block th:if="${course?.courseSn != null}">
           <a th:href="@{/admin/course/detail(courseSn=${course.courseSn})}"
              th:text="${course.courseNm}"
-             class="hover:text-orange-500 transition-colors">강좌명</a>
+             class="hover:text-violet-500 transition-colors">강좌명</a>
           <i class="fa-solid fa-chevron-right text-[10px]"></i>
         </th:block>
-        <span class="text-orange-500 font-medium"
+        <span class="text-violet-500 font-medium"
               th:text="${course?.courseSn != null ? '강좌 수정' : '강좌 등록'}">강좌 등록</span>
       </div>
       <h1 class="text-2xl font-bold text-slate-900 tracking-tight"
@@ -47,7 +47,7 @@
     <!-- 기본 정보 -->
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-5">
       <h2 class="text-sm font-bold text-slate-700">
-        <i class="fa-solid fa-circle-info text-orange-500 mr-2"></i>기본 정보
+        <i class="fa-solid fa-circle-info text-violet-500 mr-2"></i>기본 정보
       </h2>
 
       <div>
@@ -56,7 +56,7 @@
         </label>
         <input type="text" id="courseNm" name="courseNm"
                th:value="${course?.courseNm}"
-               class="hm-input hm-input-orange"
+               class="hm-input hm-input-violet"
                placeholder="예) 수능 수학 완성 — 미적분"/>
         <p id="courseNm-err" class="hidden text-xs text-red-500 mt-1"></p>
       </div>
@@ -65,7 +65,7 @@
       <div>
         <label class="block text-xs font-medium text-slate-500 mb-1.5">강좌 설명</label>
         <textarea name="courseExplnCn" rows="4"
-                  class="hm-input hm-input-orange resize-none"
+                  class="hm-input hm-input-violet resize-none"
                   placeholder="강좌의 목표와 내용을 간략히 설명해 주세요."
                   th:text="${course?.courseExplnCn}"></textarea>
       </div>
@@ -78,13 +78,13 @@
             <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
               <input type="radio" name="opnnYn" value="Y"
                      th:checked="${course == null or course.opnnYn == 'Y'}"
-                     class="accent-orange-500"/>
+                     class="accent-violet-500"/>
               <span>공개</span>
             </label>
             <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
               <input type="radio" name="opnnYn" value="N"
                      th:checked="${course != null and course.opnnYn == 'N'}"
-                     class="accent-orange-500"/>
+                     class="accent-violet-500"/>
               <span>비공개</span>
             </label>
           </div>
@@ -94,7 +94,7 @@
           <input type="number" id="coursePrice" name="coursePrice"
                  th:value="${course != null ? course.coursePrice : 0}"
                  min="0"
-                 class="hm-input hm-input-orange"
+                 class="hm-input hm-input-violet"
                  onfocus="this.select()"
                  oninput="if(this.value.length>1&&this.value[0]==='0')this.value=String(Number(this.value))"/>
           <p id="coursePrice-err" class="hidden text-xs text-red-500 mt-1"></p>
@@ -105,14 +105,14 @@
     <!-- 분류 / 커리큘럼 -->
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-5">
       <h2 class="text-sm font-bold text-slate-700">
-        <i class="fa-solid fa-sitemap text-orange-500 mr-2"></i>분류 &amp; 커리큘럼
+        <i class="fa-solid fa-sitemap text-violet-500 mr-2"></i>분류 &amp; 커리큘럼
       </h2>
 
       <!-- 과목 분류 → 과목 -->
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-xs font-medium text-slate-500 mb-1.5">과목 분류</label>
-          <select id="subjClId" name="subjClId" class="hm-input hm-input-orange" onchange="loadSubjects(this.value)">
+          <select id="subjClId" name="subjClId" class="hm-input hm-input-violet" onchange="loadSubjects(this.value)">
             <option value="">— 선택 안 함 —</option>
             <option th:each="cl : ${subjClList}"
                     th:value="${cl.subjClId}"
@@ -122,7 +122,7 @@
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-500 mb-1.5">과목</label>
-          <select id="subjId" name="subjId" class="hm-input hm-input-orange" disabled>
+          <select id="subjId" name="subjId" class="hm-input hm-input-violet" disabled>
             <option value="">— 분류를 먼저 선택 —</option>
           </select>
         </div>
@@ -131,7 +131,7 @@
       <!-- 커리큘럼 -->
       <div>
         <label class="block text-xs font-medium text-slate-500 mb-1.5">커리큘럼</label>
-        <select id="curriculumId" name="curriculumId" class="hm-input hm-input-orange">
+        <select id="curriculumId" name="curriculumId" class="hm-input hm-input-violet">
           <option value="">— 선택 안 함 (독립 강좌) —</option>
           <option th:each="cur : ${curriculumList}"
                   th:value="${cur.curriculumId}"
@@ -147,7 +147,7 @@
          class="hm-btn-secondary">
         취소
       </a>
-      <button type="submit" class="hm-btn-primary hm-btn-orange px-8">
+      <button type="submit" class="hm-btn-primary hm-btn-violet px-8">
         <i th:class="${course?.courseSn != null ? 'fa-solid fa-pen' : 'fa-solid fa-circle-plus'}"></i>
         <span th:text="${course?.courseSn != null ? '수정 완료' : '강좌 등록'}">강좌 등록</span>
       </button>

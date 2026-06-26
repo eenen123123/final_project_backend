@@ -33,15 +33,15 @@
   >
     <div>
       <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
-        <a th:href="@{/admin/course/list}" class="hover:text-orange-500 transition-colors"
+        <a th:href="@{/admin/course/list}" class="hover:text-violet-500 transition-colors"
           >강좌 관리</a
         >
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
         <a th:href="@{/admin/course/detail(courseSn=${course.courseSn})}"
           th:text="${course.courseNm}"
-          class="text-slate-600 font-medium hover:text-orange-500 transition-colors">강좌명</a>
+          class="text-slate-600 font-medium hover:text-violet-500 transition-colors">강좌명</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        <span class="text-orange-500 font-medium">강의 등록</span>
+        <span class="text-violet-500 font-medium">강의 등록</span>
       </div>
       <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
         강의 등록
@@ -67,7 +67,7 @@
       <!-- 영상 업로드 -->
       <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
         <h2 class="text-sm font-bold text-slate-700 mb-4">
-          <i class="fa-solid fa-video text-orange-500 mr-2"></i>강의 영상
+          <i class="fa-solid fa-video text-violet-500 mr-2"></i>강의 영상
         </h2>
 
         <div
@@ -80,7 +80,7 @@
         >
           <div id="dropPlaceholder">
             <div
-              class="w-16 h-16 rounded-2xl bg-orange-50 text-orange-400 flex items-center justify-center text-3xl mb-4 mx-auto"
+              class="w-16 h-16 rounded-2xl bg-violet-50 text-violet-400 flex items-center justify-center text-3xl mb-4 mx-auto"
             >
               <i class="fa-solid fa-clapperboard"></i>
             </div>
@@ -92,9 +92,9 @@
             </p>
           </div>
           <div id="fileSelectedInfo" class="hidden w-full">
-            <div class="flex items-center gap-4 bg-orange-50 rounded-xl p-4">
+            <div class="flex items-center gap-4 bg-violet-50 rounded-xl p-4">
               <div
-                class="w-12 h-12 rounded-xl bg-orange-100 text-orange-500 flex items-center justify-center text-xl shrink-0"
+                class="w-12 h-12 rounded-xl bg-violet-100 text-violet-500 flex items-center justify-center text-xl shrink-0"
               >
                 <i class="fa-solid fa-file-video"></i>
               </div>
@@ -144,7 +144,7 @@
       <!-- 강의 정보 입력 -->
       <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
         <h2 class="text-sm font-bold text-slate-700 mb-5">
-          <i class="fa-solid fa-circle-info text-orange-500 mr-2"></i>강의 정보
+          <i class="fa-solid fa-circle-info text-violet-500 mr-2"></i>강의 정보
         </h2>
 
         <form
@@ -165,7 +165,7 @@
               type="text"
               name="lectureNm"
               id="lectureNm"
-              class="hm-input hm-input-orange"
+              class="hm-input hm-input-violet"
               placeholder="예) 15강 삼각함수의 활용"
             />
           </div>
@@ -180,7 +180,7 @@
                 type="number"
                 name="sortOrd"
                 id="sortOrd"
-                class="hm-input hm-input-orange"
+                class="hm-input hm-input-violet"
                 th:value="${lectures != null ? lectures.size() + 1 : 1}"
                 min="1"
               />
@@ -196,7 +196,7 @@
               name="lectureExplnCn"
               id="lectureExplnCn"
               rows="4"
-              class="hm-input hm-input-orange resize-none"
+              class="hm-input hm-input-violet resize-none"
               placeholder="이 강의에서 다루는 내용을 간략히 설명해 주세요."
             ></textarea>
           </div>
@@ -216,7 +216,7 @@
                     name="opnnYn"
                     value="Y"
                     checked
-                    class="accent-orange-500"
+                    class="accent-violet-500"
                   />
                   <span>공개</span>
                 </label>
@@ -227,7 +227,7 @@
                     type="radio"
                     name="opnnYn"
                     value="N"
-                    class="accent-orange-500"
+                    class="accent-violet-500"
                   />
                   <span>비공개</span>
                 </label>
@@ -246,7 +246,7 @@
                     name="lockYn"
                     value="N"
                     checked
-                    class="accent-orange-500"
+                    class="accent-violet-500"
                   />
                   <span>해제</span>
                 </label>
@@ -257,7 +257,7 @@
                     type="radio"
                     name="lockYn"
                     value="Y"
-                    class="accent-orange-500"
+                    class="accent-violet-500"
                   />
                   <span>잠금</span>
                 </label>
@@ -270,7 +270,7 @@
             <label class="block text-xs font-medium text-slate-500 mb-1.5"
               >선행 강의</label
             >
-            <select name="prereqLectureSn" class="hm-input hm-input-orange">
+            <select name="prereqLectureSn" class="hm-input hm-input-violet">
               <option value="">없음 (바로 수강 가능)</option>
               <option
                 th:each="lec : ${lectures}"
@@ -286,7 +286,7 @@
           <button
             type="button"
             onclick="submitLecture()"
-            class="w-full hm-btn-primary hm-btn-orange py-3.5 text-base"
+            class="w-full hm-btn-primary hm-btn-violet py-3.5 text-base"
           >
             <i class="fa-solid fa-circle-plus text-lg"></i>
             <span>강의 등록</span>
@@ -300,7 +300,7 @@
       <!-- 강좌 정보 -->
       <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
         <h2 class="text-sm font-bold text-slate-700 mb-4">
-          <i class="fa-solid fa-book-open text-orange-500 mr-2"></i>강좌 정보
+          <i class="fa-solid fa-book-open text-violet-500 mr-2"></i>강좌 정보
         </h2>
         <div class="space-y-3">
           <div>
@@ -351,7 +351,7 @@
       <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
         <div class="px-5 pt-4 pb-3 border-b border-slate-100">
           <h2 class="text-sm font-bold text-slate-700">
-            <i class="fa-solid fa-list text-orange-500 mr-2"></i>등록된 강의
+            <i class="fa-solid fa-list text-violet-500 mr-2"></i>등록된 강의
           </h2>
         </div>
 
@@ -379,7 +379,7 @@
               class="flex items-center gap-3 px-5 py-3 hover:bg-slate-50/70 transition-colors"
             >
               <span
-                class="w-6 h-6 rounded-lg bg-orange-50 text-orange-500 text-xs font-bold flex items-center justify-center shrink-0"
+                class="w-6 h-6 rounded-lg bg-violet-50 text-violet-500 text-xs font-bold flex items-center justify-center shrink-0"
                 th:text="${iter.index + 1}"
                 >1</span
               >

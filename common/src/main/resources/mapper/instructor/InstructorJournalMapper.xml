@@ -33,11 +33,14 @@
     <sql id="journalWhere">
         WHERE j.DEL_YN = 'N'
         <if test="mgrUserId != null">
-            AND j.INSTR_USER_ID IN (
-                SELECT USER_ID
-                FROM EMPLOYEE_INFO
-                START WITH MNT_USER_ID = #{mgrUserId}
-                CONNECT BY NOCYCLE PRIOR USER_ID = MNT_USER_ID
+            AND (
+                j.INSTR_USER_ID = #{mgrUserId}
+                OR j.INSTR_USER_ID IN (
+                    SELECT USER_ID
+                    FROM EMPLOYEE_INFO
+                    START WITH MNT_USER_ID = #{mgrUserId}
+                    CONNECT BY NOCYCLE PRIOR USER_ID = MNT_USER_ID
+                )
             )
         </if>
         <if test="instrUserId != null">
@@ -88,11 +91,14 @@
         JOIN MEMBER m ON j.INSTR_USER_ID = m.USER_ID
         WHERE j.DEL_YN = 'N'
         <if test="mgrUserId != null">
-            AND j.INSTR_USER_ID IN (
-                SELECT USER_ID
-                FROM EMPLOYEE_INFO
-                START WITH MNT_USER_ID = #{mgrUserId}
-                CONNECT BY NOCYCLE PRIOR USER_ID = MNT_USER_ID
+            AND (
+                j.INSTR_USER_ID = #{mgrUserId}
+                OR j.INSTR_USER_ID IN (
+                    SELECT USER_ID
+                    FROM EMPLOYEE_INFO
+                    START WITH MNT_USER_ID = #{mgrUserId}
+                    CONNECT BY NOCYCLE PRIOR USER_ID = MNT_USER_ID
+                )
             )
         </if>
         ORDER BY instrUserNm

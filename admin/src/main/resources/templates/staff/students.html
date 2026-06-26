@@ -26,15 +26,15 @@
     </button>
   </div>
 
-  <!-- ───────────────── 요약 카드 3개 ───────────────── -->
-  <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+  <!-- ───────────────── 요약 카드 4개 ───────────────── -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
       <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
         <i class="fa-solid fa-users text-[#3b82f6]"></i>
       </div>
       <div>
         <p class="text-xs text-slate-500">전체 학생</p>
-        <p class="text-xl font-bold text-slate-800" th:text="${studentList != null ? #lists.size(studentList) : 0}">0</p>
+        <p class="text-xl font-bold text-slate-800" id="stat-total">-</p>
       </div>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
@@ -43,8 +43,7 @@
       </div>
       <div>
         <p class="text-xs text-slate-500">일반 학생</p>
-        <p class="text-xl font-bold text-slate-800"
-          th:text="${studentList != null ? #lists.size(studentList.?[userRole == 'ROLE_USER']) : 0}">0</p>
+        <p class="text-xl font-bold text-slate-800" id="stat-role-user">-</p>
       </div>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
@@ -53,8 +52,17 @@
       </div>
       <div>
         <p class="text-xs text-slate-500">오프라인 학생</p>
-        <p class="text-xl font-bold text-slate-800"
-          th:text="${studentList != null ? #lists.size(studentList.?[userRole == 'ROLE_STUDENT']) : 0}">0</p>
+        <p class="text-xl font-bold text-slate-800" id="stat-role-student">-</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3 cursor-pointer hover:bg-red-50 transition-colors"
+         id="card-unregistered" onclick="filterUnregistered()">
+      <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
+        <i class="fa-solid fa-user-xmark text-red-500"></i>
+      </div>
+      <div>
+        <p class="text-xs text-slate-500">클래스 미등록</p>
+        <p class="text-xl font-bold text-red-500" id="stat-unregistered">-</p>
       </div>
     </div>
   </div>
@@ -104,11 +112,12 @@
       <div class="overflow-x-auto rounded-xl border border-slate-100" style="min-height:32rem">
         <table class="w-full text-sm table-fixed">
           <colgroup>
-            <col style="width:20%">
-            <col style="width:12%">
-            <col style="width:16%">
-            <col style="width:16%">
+            <col style="width:18%">
             <col style="width:10%">
+            <col style="width:24%">
+            <col style="width:13%">
+            <col style="width:9%">
+            <col style="width:8%">
             <col style="width:8%">
           </colgroup>
           <thead>
@@ -117,70 +126,16 @@
                 onclick="sortHrBy('name')">학생명 <span class="sort-icon text-slate-300">↕</span></th>
               <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="type"
                 onclick="sortHrBy('type')">유형 <span class="sort-icon text-slate-300">↕</span></th>
-              <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="email"
-                onclick="sortHrBy('email')">이메일 <span class="sort-icon text-slate-300">↕</span></th>
+              <th class="text-left py-3 px-4 font-semibold truncate">강사 · 강좌</th>
               <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="join"
                 onclick="sortHrBy('join')">가입일 <span class="sort-icon text-slate-300">↕</span></th>
               <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="status"
                 onclick="sortHrBy('status')">상태 <span class="sort-icon text-slate-300">↕</span></th>
               <th class="text-left py-3 px-4 font-semibold">상세</th>
+              <th class="text-left py-3 px-4 font-semibold">클래스</th>
             </tr>
           </thead>
           <tbody id="hr-table-body" class="divide-y divide-slate-50">
-            <tr th:if="${studentList == null or #lists.isEmpty(studentList)}">
-              <td colspan="6" class="text-center py-10 text-sm text-slate-400">등록된 학생이 없습니다.</td>
-            </tr>
-            <tr th:each="stu : ${studentList}" class="hr-data-row hover:bg-slate-50 transition-colors"
-              th:data-id="${stu.userId}"
-              th:data-name="${stu.userName}"
-              th:data-email="${stu.userEmailAddr}"
-              th:data-phone="${stu.userTelno}"
-              th:data-birthdate="${stu.userBrdt}"
-              th:data-gender="${stu.userGndrCd}"
-              th:data-zip="${stu.userZip}"
-              th:data-addr-base="${stu.userAddr != null ? stu.userAddr : ''}"
-              th:data-addr-detail="${stu.userDaddr != null ? stu.userDaddr : ''}"
-              th:data-addr="${(stu.userAddr != null ? stu.userAddr : '') + (stu.userDaddr != null and not #strings.isEmpty(stu.userDaddr) ? ' ' + stu.userDaddr : '')}"
-              th:data-profile="${stu.userProfile != null ? stu.userProfile : ''}"
-              th:data-type="${stu.userRole}"
-              th:data-join="${stu.joinDt != null ? stu.joinDt : ''}"
-              th:data-enable="${stu.enable}">
-
-              <!-- 학생명 + 아바타 -->
-              <td class="py-3 px-4">
-                <div class="flex items-center gap-2">
-                  <img th:if="${stu.userProfile != null and #strings.startsWith(stu.userProfile, 'http')}"
-                    th:src="${stu.userProfile}" class="w-7 h-7 rounded-lg object-cover" alt="프로필">
-                  <div th:unless="${stu.userProfile != null and #strings.startsWith(stu.userProfile, 'http')}"
-                    class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-xs font-bold text-[#3b82f6]"
-                    th:text="${#strings.substring(stu.userName, 0, 1)}">?</div>
-                  <div>
-                    <p class="font-bold text-slate-800" th:text="${stu.userName}"></p>
-                    <p class="text-xs text-slate-400" th:text="${stu.userId}"></p>
-                  </div>
-                </div>
-              </td>
-              <!-- 유형 -->
-              <td class="py-3 px-4 text-sm text-slate-600 truncate"
-                th:text="${stu.userRole == 'ROLE_USER' ? '일반' : (stu.userRole == 'ROLE_STUDENT' ? '오프라인' : '-')}">-</td>
-              <!-- 이메일 -->
-              <td class="py-3 px-4 text-sm text-slate-600 truncate" th:text="${stu.userEmailAddr ?: '-'}">-</td>
-              <!-- 가입일 -->
-              <td class="py-3 px-4 text-sm text-slate-600 whitespace-nowrap"
-                th:text="${stu.joinDt != null ? #strings.substring(stu.joinDt.toString(), 0, 10) : '-'}">-</td>
-              <!-- 상태 -->
-              <td class="py-3 px-4">
-                <span class="status-badge"
-                  th:classappend="${stu.enable == 'Y' ? 'status-active' : 'status-resigned'}"
-                  th:text="${stu.enable == 'Y' ? '정상' : '탈퇴'}">-</span>
-              </td>
-              <!-- 상세 버튼 -->
-              <td class="py-3 px-4">
-                <button type="button" th:data-id="${stu.userId}"
-                  onclick="openDetail(this.getAttribute('data-id'))"
-                  class="text-xs text-[#3b82f6] hover:underline font-semibold">상세</button>
-              </td>
-            </tr>
           </tbody>
         </table>
       </div>

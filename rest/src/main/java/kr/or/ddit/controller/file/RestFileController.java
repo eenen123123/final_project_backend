@@ -1,5 +1,11 @@
 package kr.or.ddit.controller.file;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URI;
+
+import jakarta.servlet.http.HttpServletResponse;
 import kr.or.ddit.finalProject.dto.file.FileCtxType;
 import kr.or.ddit.finalProject.dto.file.FileDto;
 import kr.or.ddit.finalProject.exception.ErrorCode;
@@ -9,6 +15,7 @@ import kr.or.ddit.finalProject.service.file.FileUploadService;
 import kr.or.ddit.service.file.FileAccessTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +35,12 @@ public class RestFileController {
     private final FileUploadService fileUploadService;
     private final FileAccessTokenService tokenService;
     private final FileAuthorizationService authorizationService;
+
+    @Value("${file.server.base-url}")
+    private String fileServerBaseUrl;
+
+    @Value("${file.server.api-key}")
+    private String apiKey;
 
 
 
@@ -70,6 +83,29 @@ public class RestFileController {
     }
 
 
+
+    @GetMapping("/{fileServerId}/download")
+    public void proxyDownload(@PathVariable long fileServerId, HttpServletResponse response,
+            Authentication authentication) throws IOException {
+        if (!authorizationService.canAccess(fileServerId, authentication)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+        HttpURLConnection conn = openFileServerConnection(fileServerId);
+        response.setContentType(conn.getContentType());
+        response.setHeader("Content-Disposition", conn.getHeaderField("Content-Disposition"));
+        try (InputStream in = conn.getInputStream()) {
+            in.transferTo(response.getOutputStream());
+        }
+    }
+
+    private HttpURLConnection openFileServerConnection(long fileServerId) throws IOException {
+        HttpURLConnection conn = (HttpURLConnection) URI
+                .create(fileServerBaseUrl + "/api/storage/files/" + fileServerId + "/download")
+                .toURL().openConnection();
+        conn.setRequestProperty("X-Api-Key", apiKey);
+        return conn;
+    }
 
     @PostMapping("/{fileId}/token")
     public ResponseEntity<Map<String, String>> issueToken(@PathVariable long fileId,

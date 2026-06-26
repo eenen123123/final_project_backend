@@ -78,7 +78,7 @@ function loadCerts(page) {
           <td class="py-3 px-4 text-xs text-slate-500">${fmtDateTime(c.issueDt)}</td>
           <td class="py-3 px-4">
             <div class="flex items-center gap-2">
-              <div class="w-6 h-6 rounded-md bg-violet-100 flex items-center justify-center text-xs font-bold text-violet-700">${(c.userName || '?')[0]}</div>
+              <div class="w-6 h-6 rounded-md bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700">${(c.userName || '?')[0]}</div>
               <span class="text-xs font-semibold text-slate-800">${c.userName || '-'}</span>
             </div>
           </td>

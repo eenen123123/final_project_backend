@@ -35,6 +35,20 @@
           </div>
         </div>
         <div class="flex items-center gap-2 flex-shrink-0">
+          <!-- 재제출 허용 토글 -->
+          <form th:action="@{/classroom/detail/{sn}/assignments/{asgmtSn}/resubmit-toggle(sn=${classroom.classSn},asgmtSn=${assignment.asgmtSn})}"
+                method="post">
+            <button type="submit"
+                    th:if="${assignment.resbmtAlldYn == 'Y'}"
+                    class="text-sm font-semibold px-4 py-2 border border-emerald-200 text-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors whitespace-nowrap">
+              <i class="fa-solid fa-rotate-left text-xs mr-1"></i> 재제출 허용 중
+            </button>
+            <button type="submit"
+                    th:unless="${assignment.resbmtAlldYn == 'Y'}"
+                    class="text-sm font-semibold px-4 py-2 border border-slate-200 text-slate-500 rounded-lg hover:bg-slate-50 transition-colors whitespace-nowrap">
+              <i class="fa-solid fa-rotate-left text-xs mr-1"></i> 재제출 허용
+            </button>
+          </form>
           <a th:href="@{/classroom/detail/{sn}/assignments/{asgmtSn}/edit(sn=${classroom.classSn},asgmtSn=${assignment.asgmtSn})}"
              class="text-sm font-semibold px-4 py-2 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">수정</a>
           <form th:action="@{/classroom/detail/{sn}/assignments/{asgmtSn}/delete(sn=${classroom.classSn},asgmtSn=${assignment.asgmtSn})}"
@@ -70,7 +84,10 @@
       </div>
 
       <div th:if="${#lists.isEmpty(submitList)}"
-           class="p-16 flex flex-col items-center gap-4 text-center">
+           class="p-16 flex flex-col items-center justify-center gap-4 text-center">
+        <div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 text-3xl">
+          <i class="fa-solid fa-users"></i>
+        </div>
         <p class="text-base font-medium text-slate-400">등록된 수강생이 없습니다.</p>
       </div>
 
@@ -102,6 +119,17 @@
                      th:id="'content-' + ${stat.index}"
                      class="hidden mt-2 text-sm text-slate-600 bg-slate-50 rounded-lg px-3 py-2 whitespace-pre-wrap max-h-32 overflow-y-auto"
                      th:text="${sub.sbmtCn}"></div>
+                <!-- 첨부파일 목록 -->
+                <div th:if="${sub.atchFileId != null and fileMap[sub.atchFileId] != null}"
+                     class="mt-2 flex flex-col gap-1">
+                  <a th:each="f : ${fileMap[sub.atchFileId]}"
+                     th:href="${f.savePathNm}"
+                     target="_blank"
+                     class="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-blue-500 transition-colors">
+                    <i class="fa-solid fa-paperclip text-xs"></i>
+                    <span th:text="${f.orgnFileNm}">파일명</span>
+                  </a>
+                </div>
               </td>
               <td class="py-4 px-7 text-center">
                 <span th:if="${sub.sbmtSn != null}"

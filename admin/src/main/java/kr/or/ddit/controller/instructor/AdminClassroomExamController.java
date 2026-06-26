@@ -5,6 +5,7 @@ import kr.or.ddit.finalProject.dto.exam.ExamDto;
 import kr.or.ddit.finalProject.dto.exam.ExamSaveRequest;
 import kr.or.ddit.finalProject.dto.exam.ExamTakerDto;
 import kr.or.ddit.finalProject.dto.exam.QuestionDto;
+import kr.or.ddit.finalProject.dto.exam.StudentAnswerDto;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.service.assignment.AssignmentBoardService;
 import kr.or.ddit.finalProject.service.classroom.ClassroomService;
@@ -15,8 +16,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
@@ -62,11 +67,12 @@ public class AdminClassroomExamController extends AbstractClassroomController {
     @PostMapping("/detail/{classSn}/exams/write")
     public String examWrite(@PathVariable Long classSn,
                             @ModelAttribute ExamSaveRequest request,
-                            Authentication auth) {
+                            Authentication auth, RedirectAttributes redirectAttrs) {
         if (getOwnedClassroom(classSn, auth.getName()) == null)
             return "redirect:/classroom/list";
         request.setClassSn(classSn);
         examService.addExam(auth.getName(), request);
+        redirectAttrs.addFlashAttribute("toastMsg", "시험이 등록되었습니다.");
         return "redirect:/classroom/detail/" + classSn + "/exams";
     }
 
@@ -80,7 +86,7 @@ public class AdminClassroomExamController extends AbstractClassroomController {
         List<ExamTakerDto> takers;
         try {
             exam = examService.retrieveExamDetail(examSn, auth.getName());
-            takers = examService.retrieveTakersDirectly(examSn);
+            takers = examService.retrieveTakersWithScore(examSn);
         } catch (FinalProjectException e) {
             return "redirect:/classroom/detail/" + classSn + "/exams";
         }
@@ -121,7 +127,7 @@ public class AdminClassroomExamController extends AbstractClassroomController {
     @PostMapping("/detail/{classSn}/exams/{examSn}/edit")
     public String examEdit(@PathVariable Long classSn, @PathVariable Long examSn,
                            @ModelAttribute ExamSaveRequest request,
-                           Authentication auth) {
+                           Authentication auth, RedirectAttributes redirectAttrs) {
         if (getOwnedClassroom(classSn, auth.getName()) == null)
             return "redirect:/classroom/list";
         ExamDto existing;
@@ -138,13 +144,67 @@ public class AdminClassroomExamController extends AbstractClassroomController {
         } catch (FinalProjectException e) {
             return "redirect:/classroom/detail/" + classSn + "/exams";
         }
+        redirectAttrs.addFlashAttribute("toastMsg", "시험이 수정되었습니다.");
+        return "redirect:/classroom/detail/" + classSn + "/exams/" + examSn;
+    }
+
+    // 채점 페이지 (특정 학생 답안 조회)
+    @GetMapping("/detail/{classSn}/exams/{examSn}/grade/{userId}")
+    public String gradeForm(@PathVariable Long classSn, @PathVariable Long examSn,
+                            @PathVariable String userId,
+                            Model model, Authentication auth) {
+        ClassroomDetailResponse classroom = getOwnedClassroom(classSn, auth.getName());
+        if (classroom == null) return "redirect:/classroom/list";
+        ExamDto exam;
+        try {
+            exam = examService.retrieveExamDetail(examSn, auth.getName());
+        } catch (FinalProjectException e) {
+            return "redirect:/classroom/detail/" + classSn + "/exams";
+        }
+        if (!classSn.equals(exam.getClassSn()))
+            return "redirect:/classroom/detail/" + classSn + "/exams";
+        List<StudentAnswerDto> answers = examService.retrieveStudentAnswers(examSn, userId);
+        model.addAttribute("classroom", classroom);
+        model.addAttribute("exam", exam);
+        model.addAttribute("userId", userId);
+        model.addAttribute("answers", answers);
+        return "classroom/detail-classroom-exam-grade";
+    }
+
+    // 채점 저장
+    @PostMapping("/detail/{classSn}/exams/{examSn}/grade/{userId}")
+    public String gradeSave(@PathVariable Long classSn, @PathVariable Long examSn,
+                            @PathVariable String userId,
+                            @RequestParam Map<String, String> params,
+                            Authentication auth, RedirectAttributes redirectAttrs) {
+        if (getOwnedClassroom(classSn, auth.getName()) == null)
+            return "redirect:/classroom/list";
+        ExamDto exam;
+        try {
+            exam = examService.retrieveExamDetail(examSn, auth.getName());
+        } catch (FinalProjectException e) {
+            return "redirect:/classroom/detail/" + classSn + "/exams";
+        }
+        if (!classSn.equals(exam.getClassSn()))
+            return "redirect:/classroom/detail/" + classSn + "/exams";
+        // params: "score_{sbmtAnswSn}" → 점수 값
+        Map<Long, BigDecimal> scores = new HashMap<>();
+        for (Map.Entry<String, String> e : params.entrySet()) {
+            if (e.getKey().startsWith("score_") && !e.getValue().isBlank()) {
+                String key = e.getKey();
+                Long sbmtAnswSn = Long.parseLong(key, 6, key.length(), 10);
+                scores.put(sbmtAnswSn, new BigDecimal(e.getValue()));
+            }
+        }
+        examService.gradeStudentExam(examSn, userId, scores, auth.getName());
+        redirectAttrs.addFlashAttribute("toastMsg", "채점이 저장되었습니다.");
         return "redirect:/classroom/detail/" + classSn + "/exams/" + examSn;
     }
 
     // 시험 삭제
     @PostMapping("/detail/{classSn}/exams/{examSn}/delete")
     public String examDelete(@PathVariable Long classSn, @PathVariable Long examSn,
-                             Authentication auth) {
+                             Authentication auth, RedirectAttributes redirectAttrs) {
         if (getOwnedClassroom(classSn, auth.getName()) == null)
             return "redirect:/classroom/list";
         ExamDto existing;
@@ -160,6 +220,7 @@ public class AdminClassroomExamController extends AbstractClassroomController {
         } catch (FinalProjectException e) {
             return "redirect:/classroom/detail/" + classSn + "/exams";
         }
+        redirectAttrs.addFlashAttribute("toastMsg", "시험이 삭제되었습니다.");
         return "redirect:/classroom/detail/" + classSn + "/exams";
     }
 }

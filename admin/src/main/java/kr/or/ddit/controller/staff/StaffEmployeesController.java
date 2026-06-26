@@ -81,22 +81,20 @@ public class StaffEmployeesController {
     public String getEmployees(Model model) {
         log.info("getEmployees()");
 
-        // 1. 인사 관리 대시보드 테이블에 노출할 전체 직원 상세 목록 데이터를 조회한다.
-        List<EmployeeDetailDto> employeeList = staffService.retrieveEmployeeList();
+        // 필터 셀렉트박스 메타데이터만 조회 (테이블 데이터는 JS AJAX로 처리)
+        model.addAttribute("departmentlist", staffService.retrieveDepartmentList());
+        model.addAttribute("jobgradelist", staffService.retrieveJobGradeList());
 
-        // 2. 화면 상단 검색 조건 필터(Select Box) 구성을 위한 부서명 메타데이터 목록을 조회한다.
-        List<DepartmentDto> departmentlist = staffService.retrieveDepartmentList();
-
-        //3. 화면 상단 검색 조건 필터 구성을 위한 직급명 메타데이터 목록을 조회한다.
-        List<JobGradeDto> jobgradelist = staffService.retrieveJobGradeList();
-
-        // 4. 조회된 목록 데이터를 Thymeleaf 템플릿 엔진에서 식별할 수 있도록 Model 객체에 바인딩한다.
-        model.addAttribute("departmentlist", departmentlist);
-        model.addAttribute("jobgradelist", jobgradelist);
-        model.addAttribute("employeeList", employeeList);
-
-        // 6. 직원 목록 화면을 렌더링할 admin 권한 전용 staff/employees 뷰 템플릿 경로를 반환한다.
         return "admin:/staff/employees";
+    }
+
+    /**
+     * 상태별 직원 수 조회 (상단 요약 카드용 AJAX)
+     */
+    @GetMapping("/employees/stats")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getEmployeeStats() {
+        return ResponseEntity.ok(staffService.getEmployeeStatusCounts());
     }
 
     /**

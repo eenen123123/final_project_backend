@@ -3,11 +3,9 @@
 
 <!-- 페이지 헤더 -->
 <div class="flex items-center justify-between mb-6">
-  <div class="flex items-center gap-2">
-    <div>
-      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">강사 게시판</h1>
-      <p class="text-sm text-slate-500 mt-1">공지사항, 질문, 자료를 관리합니다.</p>
-    </div>
+  <div>
+    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">강사 게시판</h1>
+    <p class="text-sm text-slate-500 mt-1">공지사항, 질문, 자료를 관리합니다.</p>
   </div>
   <a th:href="@{/instructor/board/insertForm(page=${currentPage}, keyword=${keyword}, boardTypeCd=${boardTypeCd}, searchType=${searchType})}"
     class="hm-btn-primary hm-btn-sky">
@@ -15,108 +13,157 @@
   </a>
 </div>
 
-<!-- 탭 -->
-<div class="board-tabs">
-  <a th:href="@{/instructor/board/list(keyword=${keyword}, searchType=${searchType})}"
-    th:classappend="${boardTypeCd == ''} ? ' active'" class="board-tab">전체</a>
-  <a th:each="type : ${boardTypes}"
-    th:href="@{/instructor/board/list(boardTypeCd=${type.comCd}, keyword=${keyword}, searchType=${searchType})}"
-    th:classappend="${type.comCd == boardTypeCd} ? ' active'" th:text="${type.comCdNm}" class="board-tab"></a>
-</div>
+<!-- 메인 카드 -->
+<div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
 
-<!-- 검색 + 건수 -->
-<div class="board-filter">
-  <form method="get" action="/instructor/board/list" style="display:contents;">
-    <input type="hidden" name="boardTypeCd" th:value="${boardTypeCd}" />
-    <select name="searchType" class="hm-input hm-input-sky" style="width:auto; min-width:110px;">
-      <option value="" th:selected="${searchType == ''}">전체</option>
-      <option value="title" th:selected="${searchType == 'title'}">제목</option>
-      <option value="content" th:selected="${searchType == 'content'}">내용</option>
-      <option value="titleContent" th:selected="${searchType == 'titleContent'}">제목+내용</option>
-      <option value="writer" th:selected="${searchType == 'writer'}">작성자</option>
-    </select>
-    <input type="text" name="keyword" th:value="${keyword}" placeholder="검색어를 입력하세요" class="hm-input hm-input-sky"
-      style="width:220px;" />
-    <button type="submit" class="hm-btn-primary hm-btn-sky">
-      <i class="fa-solid fa-magnifying-glass"></i>검색
-    </button>
-    <a th:href="@{/instructor/board/list(boardTypeCd=${boardTypeCd})}" class="btn-filter-reset">
-      <i class="fa-solid fa-rotate-left"></i>초기화
-    </a>
-    <span class="board-filter-count">
-      <strong th:text="${totalCount}">0</strong>건<th:block th:if="${keyword != ''}"> · 검색 결과</th:block>
-    </span>
-  </form>
-</div>
-
-<div class="board-list">
-  <div class="board-list-header">
-    <span>번호</span><span>분류</span><span>제목</span><span>조회</span><span>작성자</span><span>등록일</span>
+  <!-- 탭 -->
+  <div class="flex border-b border-slate-100 px-6">
+    <a th:href="@{/instructor/board/list(keyword=${keyword}, searchType=${searchType})}"
+      th:classappend="${boardTypeCd == ''} ? 'active' : 'text-slate-500'"
+      class="emp-tab-btn emp-tab py-3.5 px-4 text-sm -mb-px flex items-center">전체</a>
+    <a th:each="type : ${boardTypes}"
+      th:href="@{/instructor/board/list(boardTypeCd=${type.comCd}, keyword=${keyword}, searchType=${searchType})}"
+      th:classappend="${type.comCd == boardTypeCd} ? 'active' : 'text-slate-500'"
+      th:text="${type.comCdNm}" class="emp-tab-btn emp-tab py-3.5 px-4 text-sm -mb-px flex items-center"></a>
   </div>
 
-  <!-- 빈 목록 -->
-  <div th:if="${#lists.isEmpty(boardList)}" class="board-empty">
-    <i class="fa-regular fa-folder-open"></i>
-    <p th:if="${keyword != '' or boardTypeCd != ''}">검색 결과가 없습니다.</p>
-    <p th:unless="${keyword != '' or boardTypeCd != ''}">등록된 게시글이 없습니다.</p>
+  <!-- 필터 -->
+  <div class="flex flex-wrap gap-3 px-6 py-4 items-center border-b border-slate-100">
+    <form method="get" action="/instructor/board/list" style="display:contents;">
+      <input type="hidden" name="boardTypeCd" th:value="${boardTypeCd}" />
+      <select name="searchType" class="hm-input hm-input-sky" style="width:auto; min-width:110px;">
+        <option value="" th:selected="${searchType == ''}">전체</option>
+        <option value="title" th:selected="${searchType == 'title'}">제목</option>
+        <option value="content" th:selected="${searchType == 'content'}">내용</option>
+        <option value="titleContent" th:selected="${searchType == 'titleContent'}">제목+내용</option>
+        <option value="writer" th:selected="${searchType == 'writer'}">작성자</option>
+      </select>
+      <div class="relative">
+        <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+        <input type="text" name="keyword" th:value="${keyword}" placeholder="검색어를 입력하세요"
+          class="hm-input hm-input-sky pr-9" style="width:220px;" />
+      </div>
+      <button type="submit" class="hm-btn-primary hm-btn-sky">
+        <i class="fa-solid fa-magnifying-glass"></i>검색
+      </button>
+      <a th:href="@{/instructor/board/list(boardTypeCd=${boardTypeCd})}" class="hm-btn-secondary text-sm px-3 py-2 whitespace-nowrap">
+        <i class="fa-solid fa-rotate-left mr-1"></i>초기화
+      </a>
+    </form>
   </div>
 
-  <!-- 게시글 목록 -->
-  <a th:each="board : ${boardList}"
-    th:href="@{/instructor/board/detail/{sn}(sn=${board.postSn}, page=${currentPage}, keyword=${keyword}, boardTypeCd=${boardTypeCd}, searchType=${searchType})}"
-    th:classappend="${board.useYn == 'N'} ? ' deleted'" class="board-item">
-    <span class="board-item-no" th:text="${board.displayNo}"></span>
-    <span>
-      <span th:if="${board.boardTypeCd == 'NOTICE'}" class="badge badge-notice">
-        <i class="fa-solid fa-bullhorn"></i> <span th:text="${board.boardTypeNm}"></span>
-      </span>
-      <th:block th:if="${board.boardTypeCd == 'QNA'}">
-        <span th:if="${board.answYn == 'Y'}" class="badge badge-qna-answered">
-          <i class="fa-solid fa-circle-check"></i> <span th:text="${board.boardTypeNm}"></span>
-        </span>
-        <span th:unless="${board.answYn == 'Y'}" class="badge badge-qna-unanswered">
-          <i class="fa-solid fa-circle-exclamation"></i> <span th:text="${board.boardTypeNm}"></span>
-        </span>
-      </th:block>
-      <span th:if="${board.boardTypeCd == 'DATAROOM'}" class="badge badge-dataroom">
-        <i class="fa-solid fa-folder-open"></i> <span th:text="${board.boardTypeNm}"></span>
-      </span>
-    </span>
-    <span class="board-item-title">
-      <span th:if="${board.useYn == 'N'}" class="deleted-tag">삭제됨</span>
-      <span th:classappend="${board.useYn == 'N'} ? ' strikethrough'" th:text="${board.title}"></span>
-    </span>
-    <span class="board-item-no" th:text="${board.inqCnt != null ? board.inqCnt : 0}"></span>
-    <span class="board-item-author" th:text="${board.userName}"></span>
-    <span class="board-item-date" th:text="${board.regDt}"></span>
-  </a>
-</div>
+  <!-- 테이블 -->
+  <div class="p-6 pt-4">
+    <div class="overflow-x-auto rounded-xl border border-slate-100" style="min-height:32rem">
+      <table class="w-full text-sm table-fixed">
+        <colgroup>
+          <col style="width:7%">
+          <col style="width:13%">
+          <col>
+          <col style="width:7%">
+          <col style="width:12%">
+          <col style="width:12%">
+        </colgroup>
+        <thead>
+          <tr class="bg-slate-100 text-slate-500 text-sm">
+            <th class="text-left py-3 px-4 font-semibold">번호</th>
+            <th class="text-left py-3 px-4 font-semibold">분류</th>
+            <th class="text-left py-3 px-4 font-semibold">제목</th>
+            <th class="text-left py-3 px-4 font-semibold">조회</th>
+            <th class="text-left py-3 px-4 font-semibold">작성자</th>
+            <th class="text-left py-3 px-4 font-semibold">등록일</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
 
-<!-- 페이지네이션 -->
-<div th:if="${totalPages > 1}" class="board-pagination">
-  <a th:if="${currentPage > 1}"
-    th:href="@{/instructor/board/list(page=${currentPage - 1}, keyword=${keyword}, boardTypeCd=${boardTypeCd}, searchType=${searchType})}">
-    <i class="fa-solid fa-chevron-left text-xs"></i>
-  </a>
-  <span th:unless="${currentPage > 1}" class="disabled">
-    <i class="fa-solid fa-chevron-left text-xs"></i>
-  </span>
+          <!-- 빈 목록 -->
+          <tr th:if="${boardList == null or #lists.isEmpty(boardList)}">
+            <td colspan="6" class="text-center py-16 text-slate-400">
+              <i class="fa-regular fa-folder-open text-2xl mb-2 block"></i>
+              <p th:if="${keyword != '' or boardTypeCd != ''}">검색 결과가 없습니다.</p>
+              <p th:unless="${keyword != '' or boardTypeCd != ''}">등록된 게시글이 없습니다.</p>
+            </td>
+          </tr>
 
-  <th:block th:with="startPage=${T(java.lang.Math).max(1, currentPage - 2)},
-                     endPage=${T(java.lang.Math).min(totalPages, currentPage + 2)}">
-    <th:block th:each="p : ${#numbers.sequence(startPage, endPage)}">
-      <a th:if="${p != currentPage}"
-        th:href="@{/instructor/board/list(page=${p}, keyword=${keyword}, boardTypeCd=${boardTypeCd}, searchType=${searchType})}"
-        th:text="${p}"></a>
-      <span th:if="${p == currentPage}" class="current" th:text="${p}"></span>
-    </th:block>
-  </th:block>
+          <!-- 게시글 목록 -->
+          <tr th:each="board : ${boardList}"
+            th:classappend="${board.useYn == 'N'} ? 'opacity-60'"
+            class="hover:bg-slate-50 transition-colors cursor-pointer"
+            th:onclick="|window.location.href='@{/instructor/board/detail/{sn}(sn=${board.postSn}, page=${currentPage}, keyword=${keyword}, boardTypeCd=${boardTypeCd}, searchType=${searchType})}'|">
+            <td class="py-3 px-4 text-sm text-slate-500" th:text="${board.displayNo}"></td>
+            <td class="py-3 px-4">
+              <span th:if="${board.boardTypeCd == 'NOTICE'}" class="badge badge-notice">
+                <i class="fa-solid fa-bullhorn"></i> <span th:text="${board.boardTypeNm}"></span>
+              </span>
+              <th:block th:if="${board.boardTypeCd == 'QNA'}">
+                <span th:if="${board.answYn == 'Y'}" class="badge badge-qna-answered">
+                  <i class="fa-solid fa-circle-check"></i> <span th:text="${board.boardTypeNm}"></span>
+                </span>
+                <span th:unless="${board.answYn == 'Y'}" class="badge badge-qna-unanswered">
+                  <i class="fa-solid fa-circle-exclamation"></i> <span th:text="${board.boardTypeNm}"></span>
+                </span>
+              </th:block>
+              <span th:if="${board.boardTypeCd == 'DATAROOM'}" class="badge badge-dataroom">
+                <i class="fa-solid fa-folder-open"></i> <span th:text="${board.boardTypeNm}"></span>
+              </span>
+            </td>
+            <td class="py-3 px-4">
+              <div class="flex items-center gap-2">
+                <span th:if="${board.useYn == 'N'}" class="deleted-tag">삭제됨</span>
+                <span th:classappend="${board.useYn == 'N'} ? 'line-through text-slate-400' : 'text-slate-800'"
+                  class="truncate block" th:text="${board.title}"></span>
+              </div>
+            </td>
+            <td class="py-3 px-4 text-sm text-slate-500" th:text="${board.inqCnt != null ? board.inqCnt : 0}"></td>
+            <td class="py-3 px-4 text-sm text-slate-600" th:text="${board.userName}"></td>
+            <td class="py-3 px-4 text-sm text-slate-500" th:text="${board.regDt}"></td>
+          </tr>
 
-  <a th:if="${currentPage < totalPages}"
-    th:href="@{/instructor/board/list(page=${currentPage + 1}, keyword=${keyword}, boardTypeCd=${boardTypeCd}, searchType=${searchType})}">
-    <i class="fa-solid fa-chevron-right text-xs"></i>
-  </a>
-  <span th:unless="${currentPage < totalPages}" class="disabled">
-    <i class="fa-solid fa-chevron-right text-xs"></i>
-  </span>
+        </tbody>
+      </table>
+
+      <!-- 페이지네이션 -->
+      <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+        <p class="text-xs text-slate-400">
+          전체 <strong class="text-slate-600" th:text="${totalCount}">0</strong>건
+          <th:block th:if="${keyword != ''}"> · 검색 결과</th:block>
+        </p>
+        <div class="flex items-center gap-1">
+          <a th:if="${currentPage > 1}"
+            th:href="@{/instructor/board/list(page=${currentPage - 1}, keyword=${keyword}, boardTypeCd=${boardTypeCd}, searchType=${searchType})}"
+            class="w-8 h-8 rounded-lg flex items-center justify-center text-xs text-slate-500 hover:bg-slate-100 border border-slate-200">
+            <i class="fa-solid fa-chevron-left text-xs"></i>
+          </a>
+          <span th:unless="${currentPage > 1}"
+            class="w-8 h-8 rounded-lg flex items-center justify-center text-xs text-slate-300 border border-slate-100">
+            <i class="fa-solid fa-chevron-left text-xs"></i>
+          </span>
+
+          <th:block th:with="startPage=${T(java.lang.Math).max(1, currentPage - 2)},
+                             endPage=${T(java.lang.Math).min(totalPages, currentPage + 2)}">
+            <th:block th:each="p : ${#numbers.sequence(startPage, endPage)}">
+              <a th:if="${p != currentPage}"
+                th:href="@{/instructor/board/list(page=${p}, keyword=${keyword}, boardTypeCd=${boardTypeCd}, searchType=${searchType})}"
+                th:text="${p}"
+                class="w-8 h-8 rounded-lg flex items-center justify-center text-xs text-slate-500 hover:bg-slate-100 border border-slate-200"></a>
+              <span th:if="${p == currentPage}" th:text="${p}"
+                class="w-8 h-8 rounded-lg flex items-center justify-center text-xs bg-sky-500 text-white font-bold"></span>
+            </th:block>
+          </th:block>
+
+          <a th:if="${currentPage < totalPages}"
+            th:href="@{/instructor/board/list(page=${currentPage + 1}, keyword=${keyword}, boardTypeCd=${boardTypeCd}, searchType=${searchType})}"
+            class="w-8 h-8 rounded-lg flex items-center justify-center text-xs text-slate-500 hover:bg-slate-100 border border-slate-200">
+            <i class="fa-solid fa-chevron-right text-xs"></i>
+          </a>
+          <span th:unless="${currentPage < totalPages}"
+            class="w-8 h-8 rounded-lg flex items-center justify-center text-xs text-slate-300 border border-slate-100">
+            <i class="fa-solid fa-chevron-right text-xs"></i>
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
