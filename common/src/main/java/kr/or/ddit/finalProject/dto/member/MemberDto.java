@@ -38,4 +38,10 @@ public class MemberDto implements Serializable {
     private String firstInstrNm;  // 대표 강사 이름
     private String firstClassNm;  // 대표 클래스명
 
+    // 학부모 연동 정보 (STUDENT 테이블 JOIN 시 채워짐)
+    private String prntUserId;
+    private String prntUserName;   // 학부모명
+    private String prntTelno;      // 학부모 연락처
+    private String prntEmailAddr;  // 학부모 이메일
+
 }

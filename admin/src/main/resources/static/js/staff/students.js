@@ -91,13 +91,13 @@ async function fetchStudentStats() {
       return;
     }
     const data = await res.json();
-    console.log("[student stats]", data);
     const toNum = v => (v == null ? 0 : Number(v));
     const el = id => document.getElementById(id);
     if (el("stat-total"))          el("stat-total").textContent          = toNum(data.total);
     if (el("stat-role-user"))      el("stat-role-user").textContent      = toNum(data.roleUser);
     if (el("stat-role-student"))   el("stat-role-student").textContent   = toNum(data.roleStudent);
     if (el("stat-unregistered"))   el("stat-unregistered").textContent   = toNum(data.unregistered);
+    if (el("stat-no-parent"))      el("stat-no-parent").textContent      = toNum(data.noParent);
   } catch (e) {
     console.error("학생 통계 조회 실패:", e);
   }
@@ -112,7 +112,8 @@ async function doFilterHrList(page) {
   const type    = document.getElementById("hr-type-filter").value;
   const status  = document.getElementById("hr-status-filter").value;
 
-  const classFilter = type === "오프라인" ? document.getElementById("hr-class-filter").value : "";
+  const classFilter  = type === "오프라인" ? document.getElementById("hr-class-filter").value : "";
+  const parentFilter = document.getElementById("hr-parent-filter").value;
 
   const params = new URLSearchParams();
   if (keyword) params.set("keyword",  keyword);
@@ -123,7 +124,8 @@ async function doFilterHrList(page) {
     const typeToRole = { '일반': 'ROLE_USER', '오프라인': 'ROLE_STUDENT' };
     if (type) params.set("userRole", typeToRole[type] || type);
   }
-  if (status)  params.set("enable",   status);
+  if (status)       params.set("enable",       status);
+  if (parentFilter) params.set("parentStatus", parentFilter);
   if (hrSortCol) {
     params.set("orderBy",        hrSortCol);
     params.set("orderDirection", hrSortAsc ? "ASC" : "DESC");
@@ -143,7 +145,7 @@ async function doFilterHrList(page) {
 function renderStudentTable(students, totalCount) {
   const tbody = document.getElementById("hr-table-body");
   if (!students || students.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-sm text-slate-400">등록된 학생이 없습니다.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-sm text-slate-400">등록된 학생이 없습니다.</td></tr>';
     renderHrPagination(0);
     return;
   }
@@ -179,12 +181,29 @@ function renderStudentTable(students, totalCount) {
       }
     }
 
-    // 클래스 등록 버튼 (오프라인 학생만)
-    const classBtnTd = role === 'ROLE_STUDENT'
+    // 관리 버튼 그룹
+    const detailBtn = `<button type="button" data-id="${escHtml(uid)}"
+      onclick="openDetail(this.getAttribute('data-id'))"
+      class="text-xs text-[#3b82f6] hover:underline font-semibold whitespace-nowrap">상세</button>`;
+
+    const classBtn = role === 'ROLE_STUDENT'
       ? `<button type="button" data-id="${escHtml(uid)}" data-name="${escHtml(nm)}"
            onclick="openClassRegister(this.dataset.id, this.dataset.name)"
-           class="text-xs text-blue-600 hover:underline font-semibold whitespace-nowrap">등록</button>`
-      : '-';
+           class="text-xs text-blue-600 hover:underline font-semibold whitespace-nowrap">클래스</button>`
+      : '';
+
+    const parentLinked = stu.prntUserId;
+    const linkBtn = role === 'ROLE_STUDENT'
+      ? (parentLinked
+          ? `<span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 rounded-lg px-2 py-0.5 whitespace-nowrap"><i class="fa-solid fa-link text-[9px]"></i>연동됨</span>`
+          : `<button type="button" data-id="${escHtml(uid)}" data-name="${escHtml(nm)}"
+               onclick="openParentLinkModal(this.dataset.id, this.dataset.name)"
+               class="inline-flex items-center gap-1 text-xs font-semibold text-white bg-blue-400 hover:bg-blue-500 rounded-lg px-2 py-0.5 whitespace-nowrap transition-colors"><i class="fa-solid fa-paper-plane text-[9px]"></i>연동</button>`)
+      : '';
+
+    const actionBtns = [detailBtn, classBtn, linkBtn].filter(Boolean).join(
+      '<span class="text-slate-200 mx-0.5">|</span>'
+    );
 
     return `<tr class="hr-data-row hover:bg-slate-50 transition-colors"
       data-id="${escHtml(uid)}" data-name="${escHtml(nm)}"
@@ -193,7 +212,9 @@ function renderStudentTable(students, totalCount) {
       data-zip="${escHtml(stu.userZip||"")}" data-addr-base="${escHtml(stu.userAddr||"")}"
       data-addr-detail="${escHtml(stu.userDaddr||"")}" data-addr="${escHtml(addr)}"
       data-profile="${escHtml(pro)}" data-type="${escHtml(role)}"
-      data-join="${escHtml(jn)}" data-enable="${escHtml(en)}">
+      data-join="${escHtml(jn)}" data-enable="${escHtml(en)}"
+      data-parent-id="${escHtml(stu.prntUserId||"")}" data-parent-name="${escHtml(stu.prntUserName||"")}"
+      data-parent-phone="${escHtml(stu.prntTelno||"")}" data-parent-email="${escHtml(stu.prntEmailAddr||"")}">
       <td class="py-3 px-4">
         <div class="flex items-center gap-2">
           ${avatar}
@@ -208,11 +229,8 @@ function renderStudentTable(students, totalCount) {
       <td class="py-3 px-4 text-sm text-slate-600 whitespace-nowrap">${jn || "-"}</td>
       <td class="py-3 px-4"><span class="status-badge ${statCls}">${statNm}</span></td>
       <td class="py-3 px-4">
-        <button type="button" data-id="${escHtml(uid)}"
-          onclick="openDetail(this.getAttribute('data-id'))"
-          class="text-xs text-[#3b82f6] hover:underline font-semibold">상세</button>
+        <div class="flex items-center gap-1 flex-wrap">${actionBtns}</div>
       </td>
-      <td class="py-3 px-4">${classBtnTd}</td>
     </tr>`;
   }).join("");
 
@@ -389,9 +407,70 @@ function submitClassRegister() {
     });
 }
 
-function resetHrFilter() {
+/* ─── 학부모 연동 모달 ─── */
+function openParentLinkModal(studentId, studentName) {
+  document.getElementById("parent-link-student-id").value = studentId;
+  document.getElementById("parent-link-student-name").textContent = studentName;
+  document.getElementById("parent-link-phone").value = "";
+  const modal = document.getElementById("modal-parent-link");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+  setTimeout(() => document.getElementById("parent-link-phone").focus(), 100);
+}
+
+function closeParentLinkModal() {
+  const modal = document.getElementById("modal-parent-link");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
+
+function formatParentLinkPhone(input) {
+  let v = input.value.replace(/\D/g, "");
+  if (v.length <= 3)       input.value = v;
+  else if (v.length <= 7)  input.value = v.slice(0,3) + "-" + v.slice(3);
+  else                     input.value = v.slice(0,3) + "-" + v.slice(3,7) + "-" + v.slice(7,11);
+}
+
+function sendParentLink() {
+  const studentId  = document.getElementById("parent-link-student-id").value;
+  const parentPhone = document.getElementById("parent-link-phone").value.trim();
+  if (!parentPhone) {
+    showHermesToast("학부모 전화번호를 입력해 주세요.", "error");
+    return;
+  }
+  const params = new URLSearchParams({ studentId, parentPhone });
+  fetch("/admin/parent/join-message/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: params.toString(),
+  })
+    .then(res => {
+      closeParentLinkModal();
+      if (res.ok) {
+        showHermesToast("가입 링크가 발송되었습니다.", "success");
+      } else {
+        showHermesToast("발송 실패: " + (res.statusText || "알 수 없는 오류"), "error");
+      }
+    })
+    .catch(() => showHermesToast("서버 오류가 발생했습니다.", "error"));
+}
+
+function filterByNoParent() {
   document.getElementById("hr-search").value = "";
   ["hr-year", "hr-type-filter", "hr-status-filter", "hr-class-filter"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.customSelect) el.customSelect.setValue("");
+    else el.value = "";
+  });
+  document.getElementById("hr-parent-filter").value = "02";
+  syncClassFilter();
+  doFilterHrList(1);
+}
+
+function resetHrFilter() {
+  document.getElementById("hr-search").value = "";
+  ["hr-year", "hr-type-filter", "hr-status-filter", "hr-class-filter", "hr-parent-filter"].forEach((id) => {
     const el = document.getElementById(id);
     if (!el) return;
     if (el.customSelect) el.customSelect.setValue("");
@@ -551,6 +630,35 @@ function openDetail(id) {
   document.getElementById("detail-enable").textContent    = statusTx;
 
   document.getElementById("resign-confirm-name").textContent = row.dataset.name || "";
+
+  // 학부모 정보 섹션 (오프라인 학생만)
+  const parentSection = document.getElementById("detail-parent-section");
+  if (typeVal === "ROLE_STUDENT") {
+    parentSection.classList.remove("hidden");
+    const linked   = (row.dataset.parentId || "").trim() !== "";
+    const badge    = document.getElementById("detail-parent-badge");
+    const linkedEl = document.getElementById("detail-parent-linked");
+    const unlinkEl = document.getElementById("detail-parent-unlinked");
+
+    if (linked) {
+      badge.className   = "inline-flex items-center gap-1 text-xs font-semibold rounded-lg px-2 py-0.5 text-emerald-600 bg-emerald-50";
+      badge.innerHTML   = '<i class="fa-solid fa-link text-[9px]"></i>연동됨';
+      linkedEl.classList.remove("hidden");
+      unlinkEl.classList.add("hidden");
+      document.getElementById("detail-parent-name").textContent  = row.dataset.parentName || "-";
+      document.getElementById("detail-parent-phone").textContent = formatPhoneDisplay(row.dataset.parentPhone);
+      document.getElementById("detail-parent-email").textContent = row.dataset.parentEmail || "-";
+    } else {
+      badge.className   = "inline-flex items-center gap-1 text-xs font-semibold rounded-lg px-2 py-0.5 text-orange-500 bg-orange-50";
+      badge.innerHTML   = '<i class="fa-solid fa-link-slash text-[9px]"></i>미연동';
+      linkedEl.classList.add("hidden");
+      unlinkEl.classList.remove("hidden");
+      const btn = document.getElementById("detail-parent-link-btn");
+      btn.onclick = () => { closeModal("modal-emp-detail"); openParentLinkModal(row.dataset.id, row.dataset.name); };
+    }
+  } else {
+    parentSection.classList.add("hidden");
+  }
 
   if (detailEditMode) toggleDetailEdit();
   openModal("modal-emp-detail");
