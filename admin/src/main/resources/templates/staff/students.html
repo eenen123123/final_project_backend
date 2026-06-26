@@ -26,8 +26,8 @@
     </button>
   </div>
 
-  <!-- ───────────────── 요약 카드 4개 ───────────────── -->
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+  <!-- ───────────────── 요약 카드 5개 ───────────────── -->
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
       <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
         <i class="fa-solid fa-users text-[#3b82f6]"></i>
@@ -63,6 +63,16 @@
       <div>
         <p class="text-xs text-slate-500">클래스 미등록</p>
         <p class="text-xl font-bold text-red-500" id="stat-unregistered">-</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3"
+         id="card-no-parent">
+      <div class="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
+        <i class="fa-solid fa-person-circle-question text-orange-500"></i>
+      </div>
+      <div>
+        <p class="text-xs text-slate-500">학부모 미연동</p>
+        <p class="text-xl font-bold text-orange-500" id="stat-no-parent">-</p>
       </div>
     </div>
   </div>
@@ -108,6 +118,9 @@
               <option value="registered">등록</option>
             </select>
           </div>
+          <select class="hm-input hm-input-blue" id="hr-parent-filter" style="width:10rem" onchange="filterHrList()"
+                  data-cs-defer data-cl-code="229" data-all-label="전체 연동">
+          </select>
           <button type="button" onclick="resetHrFilter()" class="hm-btn-secondary text-sm px-3 py-2 whitespace-nowrap">
             <i class="fa-solid fa-rotate-left mr-1"></i>초기화
           </button>
@@ -119,13 +132,12 @@
       <div class="overflow-x-auto rounded-xl border border-slate-100" style="min-height:32rem">
         <table class="w-full text-sm table-fixed">
           <colgroup>
-            <col style="width:18%">
-            <col style="width:10%">
-            <col style="width:24%">
-            <col style="width:13%">
+            <col style="width:20%">
             <col style="width:9%">
+            <col style="width:23%">
+            <col style="width:12%">
             <col style="width:8%">
-            <col style="width:8%">
+            <col style="width:15%">
           </colgroup>
           <thead>
             <tr id="hr-thead" class="bg-slate-100 text-slate-500 text-sm">
@@ -138,8 +150,7 @@
                 onclick="sortHrBy('join')">가입일 <span class="sort-icon text-slate-300">↕</span></th>
               <th class="text-left py-3 px-4 font-semibold cursor-pointer select-none truncate" data-col="status"
                 onclick="sortHrBy('status')">상태 <span class="sort-icon text-slate-300">↕</span></th>
-              <th class="text-left py-3 px-4 font-semibold">상세</th>
-              <th class="text-left py-3 px-4 font-semibold">클래스</th>
+              <th class="text-left py-3 px-4 font-semibold">관리</th>
             </tr>
           </thead>
           <tbody id="hr-table-body" class="divide-y divide-slate-50">
@@ -155,6 +166,51 @@
     </div>
   </div>
 
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!--  MODAL: 학부모 연동 링크 전송                       -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="modal-parent-link" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+        <h3 class="text-base font-bold text-slate-800">
+          <i class="fa-solid fa-paper-plane mr-2 text-blue-400"></i>학부모 연동 링크 전송
+        </h3>
+        <button onclick="closeParentLinkModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <div class="p-6 space-y-4">
+        <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-start gap-2">
+          <i class="fa-solid fa-circle-info text-blue-400 text-sm shrink-0 mt-0.5"></i>
+          <p class="text-xs text-blue-700 leading-relaxed">
+            학생 <strong id="parent-link-student-name"></strong>의 학부모에게<br />
+            회원가입 링크를 SMS로 발송합니다.
+          </p>
+        </div>
+        <input type="hidden" id="parent-link-student-id" />
+        <div>
+          <label for="parent-link-phone" class="block text-xs font-medium text-slate-500 mb-1.5">
+            학부모 전화번호 <span class="text-red-400">*</span>
+          </label>
+          <input type="text" id="parent-link-phone" class="hm-input hm-input-blue w-full"
+            placeholder="010-0000-0000" maxlength="13"
+            oninput="formatParentLinkPhone(this)"
+            onkeydown="if(event.key==='Enter') sendParentLink();" />
+        </div>
+      </div>
+      <div class="flex gap-3 px-6 py-4 border-t border-slate-100">
+        <button onclick="closeParentLinkModal()"
+          class="flex-1 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
+          취소
+        </button>
+        <button onclick="sendParentLink()"
+          class="flex-1 py-2.5 text-sm font-semibold text-white bg-blue-400 hover:bg-blue-500 rounded-xl transition-colors flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-paper-plane text-xs"></i>발송
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- ═══════════════════════════════════════════════════ -->
   <!--  MODAL: 신규 학생 등록                             -->

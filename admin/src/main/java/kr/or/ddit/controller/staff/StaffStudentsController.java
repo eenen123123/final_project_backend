@@ -94,6 +94,7 @@ public class StaffStudentsController {
             @RequestParam(required = false) String userRole,
             @RequestParam(required = false) String enable,
             @RequestParam(required = false) String classStatus,
+            @RequestParam(required = false) String parentStatus,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int screenSize,
             @RequestParam(required = false) String orderBy,
@@ -109,6 +110,8 @@ public class StaffStudentsController {
             params.put("enable", enable.trim());
         if (classStatus != null && !classStatus.isBlank())
             params.put("classStatus", classStatus.trim());
+        if (parentStatus != null && !parentStatus.isBlank())
+            params.put("parentStatus", parentStatus.trim());
 
         String safeDir = "DESC".equalsIgnoreCase(orderDirection) ? "DESC" : "ASC";
         PaginationInfo<Map<String, Object>> paging =
@@ -338,7 +341,7 @@ public class StaffStudentsController {
             @RequestParam String parentPhone) {
         // String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toString();
         // TODO: Rest API 서버 URL을 환경변수나 설정파일에서 읽어오도록 수정 필요
-        String baseUrl = "http://localhost:9001"; // Rest API 서버의 URL로 고정 
+        String baseUrl = "https://hermes.maerchen.dev"; // Rest API 서버의 URL로 고정 
         parentService.sendParentJoinLink(parentPhone, baseUrl, studentId);
 
         return ResponseEntity.ok().build();
