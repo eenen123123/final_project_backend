@@ -594,6 +594,10 @@
             m.USER_ID, m.USER_ENPSWD, m.USER_NAME, m.USER_ENRRNO, m.USER_GNDR_CD, m.USER_BRDT,
             m.JOIN_DT, m.USER_TELNO, m.USER_EMAIL_ADDR, m.USER_ZIP, m.USER_ADDR, m.USER_DADDR,
             m.USER_PROFILE, m.REG_DATE, m.MOD_DATE, m.ENABLE, m.USER_ROLE,
+            s.PRNT_USER_ID,
+            pm.USER_NAME       AS PRNT_USER_NAME,
+            pm.USER_TELNO      AS PRNT_TELNO,
+            pm.USER_EMAIL_ADDR AS PRNT_EMAIL_ADDR,
             (SELECT COUNT(*) FROM CLASSROOM_MEMBER cm WHERE cm.USER_ID = m.USER_ID) AS CLASS_CNT,
             (SELECT mi.USER_NAME FROM CLASSROOM_MEMBER cm
                JOIN CLASSROOM cl ON cm.CLASS_SN = cl.CLASS_SN
@@ -603,6 +607,8 @@
                JOIN CLASSROOM cl ON cm.CLASS_SN = cl.CLASS_SN
               WHERE cm.USER_ID = m.USER_ID AND ROWNUM = 1) AS FIRST_CLASS_NM
         FROM MEMBER m
+        LEFT JOIN STUDENT s ON m.USER_ID = s.STD_USER_ID
+        LEFT JOIN MEMBER pm ON pm.USER_ID = s.PRNT_USER_ID
         WHERE m.USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
     <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
             AND m.USER_NAME LIKE '%' || #{detailCondition.keyword} || '%'
@@ -623,6 +629,14 @@
     </if>
     <if test="detailCondition != null and detailCondition.enable != null and detailCondition.enable != ''">
             AND m.ENABLE = #{detailCondition.enable}
+    </if>
+    <if test="detailCondition != null and detailCondition.parentStatus == '01'">
+            AND m.USER_ROLE = 'ROLE_STUDENT'
+            AND s.PRNT_USER_ID IS NOT NULL
+    </if>
+    <if test="detailCondition != null and detailCondition.parentStatus == '02'">
+            AND m.USER_ROLE = 'ROLE_STUDENT'
+            AND s.PRNT_USER_ID IS NULL
     </if>
         ORDER BY
     <choose>
@@ -688,10 +702,12 @@
         COUNT(*)                                                                            AS "total",
         SUM(CASE WHEN m.USER_ROLE = 'ROLE_USER'    THEN 1 ELSE 0 END)                     AS "roleUser",
         SUM(CASE WHEN m.USER_ROLE = 'ROLE_STUDENT' THEN 1 ELSE 0 END)                     AS "roleStudent",
-        SUM(CASE WHEN m.USER_ROLE = 'ROLE_STUDENT' AND cm_d.USER_ID IS NULL THEN 1 ELSE 0 END) AS "unregistered"
+        SUM(CASE WHEN m.USER_ROLE = 'ROLE_STUDENT' AND cm_d.USER_ID IS NULL THEN 1 ELSE 0 END) AS "unregistered",
+        SUM(CASE WHEN m.USER_ROLE = 'ROLE_STUDENT' AND s.PRNT_USER_ID IS NULL THEN 1 ELSE 0 END) AS "noParent"
     FROM MEMBER m
     LEFT JOIN (SELECT DISTINCT USER_ID FROM CLASSROOM_MEMBER) cm_d
         ON m.USER_ID = cm_d.USER_ID
+    LEFT JOIN STUDENT s ON m.USER_ID = s.STD_USER_ID
     WHERE m.USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
 </select>
 
@@ -699,6 +715,7 @@
 <select id="countSearchStudentList" parameterType="kr.or.ddit.finalProject.paging.PaginationInfo" resultType="int">
         SELECT COUNT(*)
         FROM MEMBER m
+        LEFT JOIN STUDENT s ON m.USER_ID = s.STD_USER_ID
         WHERE m.USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
     <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
             AND m.USER_NAME LIKE '%' || #{detailCondition.keyword} || '%'
@@ -719,6 +736,14 @@
     </if>
     <if test="detailCondition != null and detailCondition.enable != null and detailCondition.enable != ''">
             AND m.ENABLE = #{detailCondition.enable}
+    </if>
+    <if test="detailCondition != null and detailCondition.parentStatus == '01'">
+            AND m.USER_ROLE = 'ROLE_STUDENT'
+            AND s.PRNT_USER_ID IS NOT NULL
+    </if>
+    <if test="detailCondition != null and detailCondition.parentStatus == '02'">
+            AND m.USER_ROLE = 'ROLE_STUDENT'
+            AND s.PRNT_USER_ID IS NULL
     </if>
 </select>
 
@@ -1077,6 +1102,54 @@
         #{annUserId}, #{annTypeCd}, #{annStrtYmd}, #{annEndYmd}, #{annReqDays},
         #{annRsnCn}, #{aprvlDocSn}, #{annUserId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
     )
+</insert>
+
+<!-- selectEnrolledClassrooms: 학생이 현재 수강 중인 클래스 목록 -->
+<select id="selectEnrolledClassrooms" resultType="map">
+    SELECT
+        cl.CLASS_SN      AS "classSn",
+        cl.CLASS_NM      AS "classNm",
+        c.COURSE_NM      AS "courseNm",
+        m.USER_NAME      AS "instrNm",
+        cl.CLASS_STAT_CD AS "classStatCd"
+    FROM CLASSROOM_MEMBER cm
+    JOIN CLASSROOM cl ON cm.CLASS_SN     = cl.CLASS_SN
+    JOIN COURSE c     ON cl.COURSE_SN    = c.COURSE_SN
+    JOIN MEMBER m     ON cl.OPNR_USER_ID = m.USER_ID
+    WHERE cm.USER_ID      = #{userId}
+      AND cm.ENRL_STAT_CD = 'ENROLLED'
+    ORDER BY cm.REG_DT DESC
+</select>
+
+<!-- selectAvailableClassrooms: 학생이 등록 가능한 클래스 목록 (ACTIVE/RECRUITING, 미등록, 수강 인원 포함) -->
+<select id="selectAvailableClassrooms" resultType="map">
+    SELECT
+        cl.CLASS_SN      AS "classSn",
+        cl.CLASS_NM      AS "classNm",
+        c.COURSE_NM      AS "courseNm",
+        m.USER_ID        AS "instrUserId",
+        m.USER_NAME      AS "instrNm",
+        cl.CLASS_STAT_CD AS "classStatCd",
+        (SELECT COUNT(*) FROM CLASSROOM_MEMBER cm2
+         WHERE cm2.CLASS_SN     = cl.CLASS_SN
+           AND cm2.ENRL_STAT_CD = 'ENROLLED') AS "enrolledCnt"
+    FROM CLASSROOM cl
+    JOIN COURSE c  ON cl.COURSE_SN    = c.COURSE_SN
+    JOIN MEMBER m  ON cl.OPNR_USER_ID = m.USER_ID
+    WHERE cl.CLASS_STAT_CD IN ('ACTIVE', 'RECRUITING')
+      AND NOT EXISTS (
+          SELECT 1 FROM CLASSROOM_MEMBER cm
+          WHERE cm.CLASS_SN     = cl.CLASS_SN
+            AND cm.USER_ID      = #{userId}
+            AND cm.ENRL_STAT_CD = 'ENROLLED'
+      )
+    ORDER BY m.USER_NAME ASC, cl.CLASS_NM ASC
+</select>
+
+<!-- insertClassroomMember: 학생 클래스 등록 -->
+<insert id="insertClassroomMember">
+    INSERT INTO CLASSROOM_MEMBER (ENRL_SN, CLASS_SN, USER_ID, ENRL_STAT_CD, REG_DT)
+    VALUES (SEQ_CLASSROOM_MEMBER.NEXTVAL, #{classSn}, #{userId}, 'ENROLLED', SYSDATE)
 </insert>
 
 <!-- selectLeaveSummary: 상단 요약 카드 (오늘 휴가자 / 이번달 / 올해 건수·일수) -->
