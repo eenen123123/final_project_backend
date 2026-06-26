@@ -51,6 +51,12 @@ public class RestMyPageController {
         return ResponseEntity.ok(lectureMapper.selectSubjectProgress(authentication.getName()));
     }
 
+    // GET /api/mypage/instructor-ranking - 강사별 시청 시간 (선생님 집중도 랭킹용)
+    @GetMapping("/instructor-ranking")
+    public ResponseEntity<List<Map<String, Object>>> getInstructorRanking(Authentication authentication) {
+        return ResponseEntity.ok(lectureMapper.selectInstructorRanking(authentication.getName()));
+    }
+
     @GetMapping("/courses")
     public ResponseEntity<List<CourseEnrollmentDto>> getMyCourses(Authentication authentication) {
         String userId = authentication.getName();

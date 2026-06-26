@@ -270,19 +270,40 @@
         where COURSE_SN = (select COURSE_SN from LECTURE where ATCH_FILE_ID = #{fileServerId})
     </select>
 
-    <!-- 과목 분류별 시청 시간 집계 (수강 리포트 레이더 차트용) -->
+    <!-- 과목 분류별 시청 시간 집계 (수강 리포트 레이더 차트용) - 데이터 없는 과목도 포함 -->
     <select id="selectSubjectProgress" resultType="java.util.HashMap">
         SELECT
             sc.SUBJ_CL_NM AS "subjectName",
+            NVL(SUM(lp.SECONDS_WATCHED), 0) AS "totalSeconds"
+        FROM SUBJECT_CLASSIFICATION sc
+        LEFT JOIN SUBJECT s ON s.SUBJ_CL_ID = sc.SUBJ_CL_ID
+        LEFT JOIN COURSE c ON c.SUBJ_ID = s.SUBJ_ID
+        LEFT JOIN LECTURE l ON l.COURSE_SN = c.COURSE_SN
+        LEFT JOIN LECTURE_PROGRESS lp ON lp.LECTURE_SN = l.LECTURE_SN
+            AND lp.COURSE_SN = l.COURSE_SN
+            AND lp.USER_ID = #{userId}
+        GROUP BY sc.SUBJ_CL_ID, sc.SUBJ_CL_NM
+        ORDER BY NVL(SUM(lp.SECONDS_WATCHED), 0) DESC
+    </select>
+
+    <!-- 강사별 시청 시간 집계 (수강 리포트 선생님 집중도 랭킹용) -->
+    <select id="selectInstructorRanking" resultType="java.util.HashMap">
+        SELECT
+            m.USER_NAME AS "instructorName",
+            i.INSTR_PROFILE_IMG AS "profileImage",
+            sc.SUBJ_CL_NM AS "subjectName",
             SUM(lp.SECONDS_WATCHED) AS "totalSeconds"
         FROM LECTURE_PROGRESS lp
-        JOIN LECTURE l  ON lp.LECTURE_SN = l.LECTURE_SN AND lp.COURSE_SN = l.COURSE_SN
-        JOIN COURSE c   ON l.COURSE_SN = c.COURSE_SN
-        JOIN SUBJECT s  ON c.SUBJ_ID = s.SUBJ_ID
+        JOIN LECTURE l ON lp.LECTURE_SN = l.LECTURE_SN AND lp.COURSE_SN = l.COURSE_SN
+        JOIN COURSE c ON l.COURSE_SN = c.COURSE_SN
+        JOIN SUBJECT s ON c.SUBJ_ID = s.SUBJ_ID
         JOIN SUBJECT_CLASSIFICATION sc ON s.SUBJ_CL_ID = sc.SUBJ_CL_ID
+        JOIN INSTRUCTOR i ON i.INSTR_USER_ID = c.INSTR_USER_ID
+        JOIN MEMBER m ON m.USER_ID = i.INSTR_USER_ID
         WHERE lp.USER_ID = #{userId}
-        GROUP BY sc.SUBJ_CL_ID, sc.SUBJ_CL_NM
+        GROUP BY c.INSTR_USER_ID, m.USER_NAME, i.INSTR_PROFILE_IMG, sc.SUBJ_CL_NM
         ORDER BY "totalSeconds" DESC
+        FETCH FIRST 5 ROWS ONLY
     </select>
 
 </mapper>
