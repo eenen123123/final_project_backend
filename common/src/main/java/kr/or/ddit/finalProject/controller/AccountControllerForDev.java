@@ -11,7 +11,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@Profile("dev")
 public class AccountControllerForDev {
     private final MemberMapper memberMapper;
 
@@ -47,8 +48,7 @@ public class AccountControllerForDev {
         }
     }
 
-    private List<String> userIds = List.of(
-            "testuser01", // 원장
+    private List<String> userIds = List.of("testuser01", // 원장
 
             "testuser02", // 행정팀장
             "testuser23", // 선임행정원
@@ -80,24 +80,22 @@ public class AccountControllerForDev {
                 adminMemberDto = memberMapper.findAdminByUserId(id).orElse(null);
             }
             return adminMemberDto;
-        })
-                .map(member -> {
+        }).map(member -> {
 
-                    AccountInfo accountInfo = new AccountInfo(member);
-                    if (accountInfo.getUserId().equals("testuser104")) {
-                        accountInfo.setDepartment("ClassRoom 21");
+            AccountInfo accountInfo = new AccountInfo(member);
+            if (accountInfo.getUserId().equals("testuser104")) {
+                accountInfo.setDepartment("ClassRoom 21");
 
-                    } else if (accountInfo.getUserId().equals("testuser103")) {
-                        accountInfo.setDepartment("111의 학부모");
-                    } else if (accountInfo.getUserId().equals("testuser105")) {
-                        accountInfo.setDepartment("112의 학부모");
-                    } else if (accountInfo.getUserId().equals("testuser163")) {
-                        accountInfo.setDepartment("116의 학부모");
-                    }
-                    return accountInfo;
+            } else if (accountInfo.getUserId().equals("testuser103")) {
+                accountInfo.setDepartment("111의 학부모");
+            } else if (accountInfo.getUserId().equals("testuser105")) {
+                accountInfo.setDepartment("112의 학부모");
+            } else if (accountInfo.getUserId().equals("testuser163")) {
+                accountInfo.setDepartment("116의 학부모");
+            }
+            return accountInfo;
 
-                })
-                .toList();
+        }).toList();
     }
 
     @GetMapping("/api/temp/accounts")
