@@ -105,7 +105,7 @@ public class AdminClassroomNoticeController extends AbstractClassroomController 
                 groupId = fileUploadService.createFileGroup();
                 for (MultipartFile f : attachFiles) {
                     if (!f.isEmpty()) {
-                        fileUploadService.uploadFile(f, userId, groupId, FileCtxType.INSTRUCTOR, String.valueOf(groupId));
+                        fileUploadService.uploadFile(f, userId, groupId, FileCtxType.CLASSROOM_NOTICE, String.valueOf(dto.getPostSn()));
                     }
                 }
                 dto.setAtchFileId((long) groupId);
@@ -169,7 +169,7 @@ public class AdminClassroomNoticeController extends AbstractClassroomController 
                     for (MultipartFile f : attachFiles) {
                         if (!f.isEmpty()) {
                             fileUploadService.uploadFile(f, userId, existingGroupId.intValue(),
-                                    FileCtxType.INSTRUCTOR, String.valueOf(existingGroupId));
+                                    FileCtxType.CLASSROOM_NOTICE, String.valueOf(dto.getPostSn()));
                         }
                     }
                 } catch (Exception e) {
@@ -192,7 +192,7 @@ public class AdminClassroomNoticeController extends AbstractClassroomController 
                     for (MultipartFile f : attachFiles) {
                         if (!f.isEmpty()) {
                             fileUploadService.uploadFile(f, userId, newGroupId,
-                                    FileCtxType.INSTRUCTOR, String.valueOf(newGroupId));
+                                    FileCtxType.CLASSROOM_NOTICE, String.valueOf(dto.getPostSn()));
                         }
                     }
                 } catch (Exception e) {

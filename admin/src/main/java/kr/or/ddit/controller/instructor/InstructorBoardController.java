@@ -176,7 +176,7 @@ public class InstructorBoardController {
                 groupId = fileUploadService.createFileGroup();
                 for (MultipartFile f : attachFiles) {
                     if (!f.isEmpty()) {
-                        fileUploadService.uploadFile(f, userId, groupId, FileCtxType.INSTRUCTOR, String.valueOf(groupId));
+                        fileUploadService.uploadFile(f, userId, groupId, FileCtxType.INSTRUCTOR_BOARD, String.valueOf(instructorBoardDto.getPostSn()));
                     }
                 }
                 instructorBoardDto.setAtchFileId((long) groupId);
@@ -299,7 +299,7 @@ public class InstructorBoardController {
                 try {
                     for (MultipartFile f : attachFiles) {
                         if (!f.isEmpty()) {
-                            fileUploadService.uploadFile(f, userId, groupId, FileCtxType.INSTRUCTOR, String.valueOf(groupId));
+                            fileUploadService.uploadFile(f, userId, groupId, FileCtxType.INSTRUCTOR_BOARD, String.valueOf(instructorBoardDto.getPostSn()));
                         }
                     }
                 } catch (Exception e) {
@@ -324,7 +324,7 @@ public class InstructorBoardController {
                     instructorBoardDto.setAtchFileId((long) newGroupId);
                     for (MultipartFile f : attachFiles) {
                         if (!f.isEmpty()) {
-                            fileUploadService.uploadFile(f, userId, newGroupId, FileCtxType.INSTRUCTOR, String.valueOf(newGroupId));
+                            fileUploadService.uploadFile(f, userId, newGroupId, FileCtxType.INSTRUCTOR_BOARD, String.valueOf(instructorBoardDto.getPostSn()));
                         }
                     }
                 } catch (Exception e) {
