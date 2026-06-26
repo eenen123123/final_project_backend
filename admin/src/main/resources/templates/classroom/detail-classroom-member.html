@@ -134,7 +134,7 @@
                 </span>
               </td>
               <td class="py-3 px-4 text-sm text-slate-400 font-mono"
-                  th:text="${lp.cmplDt != null ? #temporals.format(lp.cmplDt, 'yyyy-MM-dd HH:mm') : '-'}">-</td>
+                  th:text="${lp.cmplDt != null ? lp.cmplDt : '-'}">-</td>
             </tr>
           </tbody>
         </table>
@@ -175,7 +175,7 @@
             <tr th:each="a, stat : ${assignments}" class="border-b border-slate-50">
               <td class="py-3 px-7 text-sm text-slate-300 font-mono" th:text="${stat.count}">1</td>
               <td class="py-3 px-4 text-sm font-semibold text-slate-800 max-w-xs truncate" th:text="${a.asgmtSj}">과제명</td>
-              <td class="py-3 px-4 text-sm text-slate-400 font-mono whitespace-nowrap" th:text="${a.sbmtDdlnDt != null ? #temporals.format(a.sbmtDdlnDt, 'yyyy-MM-dd HH:mm') : '-'}">-</td>
+              <td class="py-3 px-4 text-sm text-slate-400 font-mono whitespace-nowrap" th:text="${a.sbmtDdlnDt != null ? a.sbmtDdlnDt : '-'}">-</td>
               <td class="py-3 px-4 text-center">
                 <span th:if="${a.sbmtYn == 'Y'}"
                       class="text-xs font-semibold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-lg">제출</span>
@@ -286,7 +286,7 @@
         <span th:unless="${q.answYn == 'Y'}"
               class="shrink-0 text-xs font-semibold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded">미답변</span>
         <span class="shrink-0 text-xs text-slate-300 font-mono"
-              th:text="${#temporals.format(q.regDt, 'MM-dd')}">01-01</span>
+              th:text="${q.regDt}">01-01</span>
       </div>
     </div>
   </div>

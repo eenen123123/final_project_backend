@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,6 +24,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.or.ddit.finalProject.dto.assignment.AssignmentBoardDto;
 import kr.or.ddit.finalProject.dto.assignment.AssignmentSubmitDto;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse;
+import kr.or.ddit.finalProject.dto.file.FileDto;
+import kr.or.ddit.finalProject.service.file.FileUploadService;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomMemberListResponse;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto;
 import kr.or.ddit.finalProject.dto.classroom.MySummaryResponse;
@@ -58,6 +61,7 @@ public class StudentClassroomController {
     private final ExamMapper examMapper;
     private final InstructorBoardService instructorBoardService;
     private final ClassroomService classroomService;
+    private final FileUploadService fileUploadService;
     private final ObjectMapper objectMapper;
 
     // ── 수강생 검증 헬퍼 ─────────────────────────────────────────────────
@@ -194,6 +198,11 @@ public class StudentClassroomController {
             }
         }
 
+        List<FileDto> attachedFiles = null;
+        if (submit != null && submit.getAtchFileId() != null) {
+            attachedFiles = fileUploadService.retrieveFilesByGroupId(submit.getAtchFileId().intValue());
+        }
+
         return ResponseEntity.ok(new StudentAssignmentDetail(
                 board.getAsgmtSn(),
                 board.getAsgmtSj(),
@@ -203,7 +212,8 @@ public class StudentClassroomController {
                 sbmtCnVal,
                 scoreVal,
                 null,
-                board.getResbmtAlldYn() != null ? board.getResbmtAlldYn() : "N"
+                board.getResbmtAlldYn() != null ? board.getResbmtAlldYn() : "N",
+                attachedFiles
         ));
     }
 
@@ -213,24 +223,35 @@ public class StudentClassroomController {
     public ResponseEntity<Void> submitAssignment(
             @PathVariable Long classSn,
             @PathVariable Long asgmtSn,
-            @RequestBody java.util.Map<String, String> body,
+            @RequestBody Map<String, Object> body,
             Authentication authentication) {
         String userId = authentication.getName();
         if (!isMember(classSn, userId)) return ResponseEntity.status(403).build();
 
-        String sbmtCn = body.get("sbmtCn");
-        AssignmentSubmitDto existing = assignmentSubmitMapper.selectMySubmit(asgmtSn, userId);
+        String sbmtCn = (String) body.get("sbmtCn");
 
+        @SuppressWarnings("unchecked")
+        List<?> rawIds = body.get("fileServerIds") instanceof List ? (List<?>) body.get("fileServerIds") : null;
+        Long atchFileId = null;
+        if (rawIds != null && !rawIds.isEmpty()) {
+            List<Long> fileServerIds = rawIds.stream()
+                    .map(id -> ((Number) id).longValue())
+                    .collect(Collectors.toList());
+            atchFileId = (long) fileUploadService.linkFilesToGroup(fileServerIds);
+        }
+
+        AssignmentSubmitDto existing = assignmentSubmitMapper.selectMySubmit(asgmtSn, userId);
         if (existing == null) {
             AssignmentSubmitDto dto = new AssignmentSubmitDto();
             dto.setAsgmtSn(asgmtSn);
             dto.setSbmtUserId(userId);
             dto.setSbmtCn(sbmtCn);
+            dto.setAtchFileId(atchFileId);
             assignmentSubmitMapper.insertSubmit(dto);
         } else {
             AssignmentBoardDto board = assignmentBoardMapper.selectAssignmentDetail(asgmtSn);
             if (!"Y".equals(board.getResbmtAlldYn())) return ResponseEntity.status(409).build();
-            assignmentSubmitMapper.updateMySubmit(asgmtSn, userId, sbmtCn);
+            assignmentSubmitMapper.updateMySubmit(asgmtSn, userId, sbmtCn, atchFileId);
         }
         return ResponseEntity.ok().build();
     }
@@ -370,7 +391,9 @@ public class StudentClassroomController {
             @PathVariable Long classSn, @PathVariable Long postSn, Authentication authentication) {
         if (!isMember(classSn, authentication.getName())) return ResponseEntity.status(403).build();
         InstructorBoardDto detail = instructorBoardService.getClassroomNoticeDetail(postSn, classSn);
-        return detail != null ? ResponseEntity.ok(detail) : ResponseEntity.notFound().build();
+        if (detail == null) return ResponseEntity.notFound().build();
+        instructorBoardService.incrementViewCount(postSn);
+        return ResponseEntity.ok(detail);
     }
 
     // ── 자료실 ────────────────────────────────────────────────────────────
@@ -393,7 +416,9 @@ public class StudentClassroomController {
             @PathVariable Long classSn, @PathVariable Long postSn, Authentication authentication) {
         if (!isMember(classSn, authentication.getName())) return ResponseEntity.status(403).build();
         InstructorBoardDto detail = instructorBoardService.getClassroomDataroomDetail(postSn, classSn);
-        return detail != null ? ResponseEntity.ok(detail) : ResponseEntity.notFound().build();
+        if (detail == null) return ResponseEntity.notFound().build();
+        instructorBoardService.incrementViewCount(postSn);
+        return ResponseEntity.ok(detail);
     }
 
     // ── Q&A ───────────────────────────────────────────────────────────────
@@ -420,7 +445,29 @@ public class StudentClassroomController {
             @PathVariable Long classSn, @PathVariable Long postSn, Authentication authentication) {
         if (!isMember(classSn, authentication.getName())) return ResponseEntity.status(403).build();
         ClassroomQnaDto detail = instructorBoardService.getClassroomQnaDetail(postSn, classSn);
-        return detail != null ? ResponseEntity.ok(detail) : ResponseEntity.notFound().build();
+        if (detail == null) return ResponseEntity.notFound().build();
+        instructorBoardService.incrementViewCount(postSn);
+        return ResponseEntity.ok(detail);
+    }
+
+    @PutMapping("/qna/{postSn}")
+    public ResponseEntity<Void> updateQna(
+            @PathVariable Long classSn,
+            @PathVariable Long postSn,
+            @RequestBody Map<String, String> body,
+            Authentication authentication) {
+        String userId = authentication.getName();
+        if (!isMember(classSn, userId)) return ResponseEntity.status(403).build();
+        String postSj = body.getOrDefault("boardSj", body.get("postSj"));
+        String postCn = body.getOrDefault("boardCn", body.get("postCn"));
+        try {
+            instructorBoardService.updateClassroomQna(postSn, classSn, userId, postSj, postCn);
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/qna")

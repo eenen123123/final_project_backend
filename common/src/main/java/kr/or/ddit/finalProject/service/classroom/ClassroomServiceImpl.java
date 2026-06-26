@@ -220,8 +220,8 @@ public class ClassroomServiceImpl implements ClassroomService {
         Map<String, Object> row = classroomMapper.selectTodayExam(classSn);
         if (row == null) return null;
         return new TodayQuestionDto(
-                (String) row.get("COURSENM"),
-                (String) row.get("EXAMREGNM")
+                (String) row.get("courseNm"),
+                (String) row.get("examRegNm")
         );
     }
 

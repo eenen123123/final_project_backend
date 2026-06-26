@@ -21,6 +21,8 @@ public interface AssignmentBoardService {
 
     List<AssignmentSubmitDto> getSubmitList(Long asgmtSn, Long classSn);
 
+    AssignmentSubmitDto getSubmitBySn(Long sbmtSn);
+
     int gradeSubmit(Long sbmtSn, Long asgmtSn, BigDecimal score, String grddUserId);
 
     int getPendingGradeCount(Long classSn);

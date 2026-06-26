@@ -159,7 +159,11 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
 
     @Override
     public InstructorBoardDto getClassroomNoticeDetail(Long postSn, Long classSn) {
-        return instructorBoardMapper.selectClassroomNoticeDetail(postSn, classSn);
+        InstructorBoardDto dto = instructorBoardMapper.selectClassroomNoticeDetail(postSn, classSn);
+        if (dto != null && dto.getAtchFileId() != null) {
+            dto.setAttachedFiles(fileUploadService.retrieveFilesByGroupId(dto.getAtchFileId().intValue()));
+        }
+        return dto;
     }
 
     @Override
@@ -191,7 +195,11 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
 
     @Override
     public InstructorBoardDto getClassroomDataroomDetail(Long postSn, Long classSn) {
-        return instructorBoardMapper.selectClassroomDataroomDetail(postSn, classSn);
+        InstructorBoardDto dto = instructorBoardMapper.selectClassroomDataroomDetail(postSn, classSn);
+        if (dto != null && dto.getAtchFileId() != null) {
+            dto.setAttachedFiles(fileUploadService.retrieveFilesByGroupId(dto.getAtchFileId().intValue()));
+        }
+        return dto;
     }
 
     @Override
@@ -232,6 +240,15 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
         dto.setBoardTypeCd("QNA");
         instructorBoardMapper.insertClassroomQnaBoard(dto);
         instructorBoardMapper.insertClassroomQnaChild(dto.getPostSn());
+    }
+
+    @Override
+    @Transactional
+    public void updateClassroomQna(Long postSn, Long classSn, String wrtrUserId, String postSj, String postCn) {
+        ClassroomQnaDto existing = instructorBoardMapper.selectClassroomQnaDetail(postSn, classSn);
+        if (existing == null) throw new IllegalArgumentException("존재하지 않는 게시글입니다.");
+        if (!wrtrUserId.equals(existing.getWrtrUserId())) throw new SecurityException("수정 권한이 없습니다.");
+        instructorBoardMapper.updateClassroomQna(postSn, classSn, postSj, postCn);
     }
 
     @Override
@@ -276,6 +293,11 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
             detail.setFiles(instructorBoardMapper.selectBoardFiles(postSn));
         }
         return detail;
+    }
+
+    @Override
+    public void incrementViewCount(Long postSn) {
+        instructorBoardMapper.incrementViewCount(postSn);
     }
 
     // ── 내부 유틸 ─────────────────────────────────────────────────────
