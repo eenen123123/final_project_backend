@@ -1,5 +1,7 @@
 package kr.or.ddit.finalProject.dto.board;
 
+import java.util.List;
+import kr.or.ddit.finalProject.dto.file.FileDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,6 +22,9 @@ public class DataRoomDto extends BoardDto {
     private String dataCtgNm;
     private String accsLmtNm;
 
-    // 파일 첨부
-    private transient MultipartFile attachFile;
+    // 파일 첨부 (입력용 - 최대 5개)
+    private transient List<MultipartFile> attachFiles;
+
+    // 첨부파일 목록 (조회용)
+    private List<FileDto> files;
 }

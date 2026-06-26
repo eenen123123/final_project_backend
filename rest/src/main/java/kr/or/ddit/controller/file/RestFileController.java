@@ -8,6 +8,7 @@ import java.net.URI;
 import jakarta.servlet.http.HttpServletResponse;
 import kr.or.ddit.finalProject.dto.file.FileCtxType;
 import kr.or.ddit.finalProject.dto.file.FileDto;
+import kr.or.ddit.finalProject.mapper.FileMapper;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
 import kr.or.ddit.finalProject.service.file.FileAuthorizationService;
@@ -35,6 +36,7 @@ public class RestFileController {
     private final FileUploadService fileUploadService;
     private final FileAccessTokenService tokenService;
     private final FileAuthorizationService authorizationService;
+    private final FileMapper fileMapper;
 
     @Value("${file.server.base-url}")
     private String fileServerBaseUrl;
@@ -87,7 +89,14 @@ public class RestFileController {
     @GetMapping("/{fileServerId}/download")
     public void proxyDownload(@PathVariable long fileServerId, HttpServletResponse response,
             Authentication authentication) throws IOException {
-        if (!authorizationService.canAccess(fileServerId, authentication)) {
+        if (authentication == null) {
+            // 비로그인: POST 타입(자료실 등 게시판 파일)만 허용
+            FileDto fileDto = fileMapper.findContextByFileServerId(fileServerId);
+            if (fileDto == null || fileDto.getFileCtxType() != FileCtxType.POST) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                return;
+            }
+        } else if (!authorizationService.canAccess(fileServerId, authentication)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }

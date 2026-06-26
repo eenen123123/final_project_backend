@@ -30,4 +30,7 @@ public interface FileMapper {
     int updateFileContext(@Param("fileIds") List<Long> fileIds,
             @Param("ctxType") String ctxType,
             @Param("ctxId") long ctxId);
+
+    // CTX_TYPE + CTX_ID로 파일 목록 조회 (자료실 첨부파일 조회용)
+    List<FileDto> selectFilesByCtx(@Param("ctxType") String ctxType, @Param("ctxId") String ctxId);
 }
