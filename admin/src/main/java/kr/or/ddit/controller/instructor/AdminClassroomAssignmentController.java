@@ -4,9 +4,7 @@ import java.beans.PropertyEditorSupport;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -118,16 +116,7 @@ public class AdminClassroomAssignmentController extends AbstractClassroomControl
         long submittedCnt = submitList.stream()
                 .filter(s -> s.getSbmtSn() != null)
                 .count();
-        // 첨부파일 맵: atchFileId → 파일 목록
-        Map<Long, List<FileDto>> fileMap = new HashMap<>();
-        for (AssignmentSubmitDto sub : submitList) {
-            if (sub.getAtchFileId() != null) {
-                fileMap.put(sub.getAtchFileId(),
-                        fileMapper.selectFilesByGroupId(sub.getAtchFileId().intValue()));
-            }
-        }
         model.addAttribute("submitList", submitList);
-        model.addAttribute("fileMap", fileMap);
         model.addAttribute("pendingCnt", pendingCnt);
         model.addAttribute("submittedCnt", submittedCnt);
         model.addAttribute("now", LocalDateTime.now());
@@ -190,6 +179,30 @@ public class AdminClassroomAssignmentController extends AbstractClassroomControl
         return "redirect:/classroom/detail/" + classSn + "/assignments/" + asgmtSn;
     }
 
+    // 채점 상세 페이지 (제출 내용 + 첨부파일 + 채점 폼)
+    @GetMapping("/detail/{classSn}/assignments/{asgmtSn}/grade/{sbmtSn}")
+    public String assignmentGradeDetail(@PathVariable Long classSn, @PathVariable Long asgmtSn,
+            @PathVariable Long sbmtSn, Model model, Authentication authentication) {
+        ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
+        if (classroom == null) return "redirect:/classroom/list";
+        AssignmentBoardDto assignment = assignmentBoardService.getAssignmentDetail(asgmtSn);
+        if (assignment == null || !classSn.equals(assignment.getClassSn()))
+            return "redirect:/classroom/detail/" + classSn + "/assignments";
+        AssignmentSubmitDto submit = assignmentBoardService.getSubmitBySn(sbmtSn);
+        if (submit == null || !asgmtSn.equals(submit.getAsgmtSn()))
+            return "redirect:/classroom/detail/" + classSn + "/assignments/" + asgmtSn;
+        List<FileDto> attachedFiles = java.util.Collections.emptyList();
+        if (submit.getAtchFileId() != null) {
+            attachedFiles = fileMapper.selectFilesByGroupId(submit.getAtchFileId().intValue());
+        }
+        model.addAttribute("classroom", classroom);
+        model.addAttribute("assignment", assignment);
+        model.addAttribute("submit", submit);
+        model.addAttribute("attachedFiles", attachedFiles);
+        model.addAttribute("now", LocalDateTime.now());
+        return "classroom/detail-classroom-assignment-grade";
+    }
+
     // 과제 채점
     @PostMapping("/detail/{classSn}/assignments/{asgmtSn}/grade/{sbmtSn}")
     public String assignmentGrade(@PathVariable Long classSn, @PathVariable Long asgmtSn,
@@ -200,7 +213,7 @@ public class AdminClassroomAssignmentController extends AbstractClassroomControl
         if (score == null || score.compareTo(BigDecimal.ZERO) < 0 || score.compareTo(new BigDecimal(100)) > 0) {
             redirectAttrs.addFlashAttribute("toastMsg", "유효하지 않은 점수입니다.");
             redirectAttrs.addFlashAttribute("toastType", "error");
-            return "redirect:/classroom/detail/" + classSn + "/assignments/" + asgmtSn + "?error=invalidScore";
+            return "redirect:/classroom/detail/" + classSn + "/assignments/" + asgmtSn + "/grade/" + sbmtSn;
         }
         AssignmentBoardDto assignment = assignmentBoardService.getAssignmentDetail(asgmtSn);
         if (assignment == null || !classSn.equals(assignment.getClassSn()))
@@ -208,6 +221,6 @@ public class AdminClassroomAssignmentController extends AbstractClassroomControl
         int updated = assignmentBoardService.gradeSubmit(sbmtSn, asgmtSn, score, authentication.getName());
         if (updated == 0) log.warn("gradeSubmit 0 rows: classSn={} asgmtSn={} sbmtSn={}", classSn, asgmtSn, sbmtSn);
         redirectAttrs.addFlashAttribute("toastMsg", "채점이 저장되었습니다.");
-        return "redirect:/classroom/detail/" + classSn + "/assignments/" + asgmtSn;
+        return "redirect:/classroom/detail/" + classSn + "/assignments/" + asgmtSn + "/grade/" + sbmtSn;
     }
 }

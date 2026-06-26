@@ -82,6 +82,15 @@
       AND SBMT_USER_ID = #{userId}
   </select>
 
+  <select id="selectSubmitBySn" resultMap="assignmentSubmitMap">
+    SELECT s.SBMT_SN, s.ASGMT_SN, s.SBMT_USER_ID, m.USER_NAME,
+           s.SBMT_CN, s.ATCH_FILE_ID, s.SCORE, s.GRDD_YN,
+           s.GRDD_USER_ID, s.GRDD_DT, s.SBMT_DT
+    FROM ASSIGNMENT_SUBMIT s
+    JOIN MEMBER m ON m.USER_ID = s.SBMT_USER_ID
+    WHERE s.SBMT_SN = #{sbmtSn}
+  </select>
+
   <insert id="insertSubmit" useGeneratedKeys="true" keyProperty="sbmtSn" keyColumn="SBMT_SN">
     INSERT INTO ASSIGNMENT_SUBMIT (
         ASGMT_SN, SBMT_USER_ID, SBMT_CN,
