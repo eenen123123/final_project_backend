@@ -5,7 +5,11 @@ public enum FileCtxType {
     CHAT_ROOM, // 채팅방 관련 파일 id type = long
     COURSE, // 강좌 관련 파일 id type = long
     DEPT_DOC, // 부서 문서 관련 파일 id type = String
-    INSTRUCTOR, // 강사 페이지 관련 파일 id type = String
+    INSTRUCTOR,         // 레거시 — 신규 저장 금지
+    INSTRUCTOR_BOARD,   // 강사 일반 게시판 첨부파일 (CTX_ID = postSn)
+    CLASSROOM_NOTICE,   // 클래스룸 공지사항 첨부파일 (CTX_ID = postSn)
+    CLASSROOM_DATAROOM, // 클래스룸 자료실 첨부파일  (CTX_ID = postSn)
+    CLASSROOM_ASSIGNMENT, // 클래스룸 과제 제출 첨부파일 (CTX_ID = asgmtSn)
     POST, // React 게시글 관련 파일 id type = long
 
 }
