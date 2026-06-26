@@ -393,6 +393,7 @@ public class StudentClassroomController {
         InstructorBoardDto detail = instructorBoardService.getClassroomNoticeDetail(postSn, classSn);
         if (detail == null) return ResponseEntity.notFound().build();
         instructorBoardService.incrementViewCount(postSn);
+        detail.setInqCnt(detail.getInqCnt() + 1);
         return ResponseEntity.ok(detail);
     }
 
@@ -418,6 +419,7 @@ public class StudentClassroomController {
         InstructorBoardDto detail = instructorBoardService.getClassroomDataroomDetail(postSn, classSn);
         if (detail == null) return ResponseEntity.notFound().build();
         instructorBoardService.incrementViewCount(postSn);
+        detail.setInqCnt(detail.getInqCnt() + 1);
         return ResponseEntity.ok(detail);
     }
 
@@ -447,6 +449,7 @@ public class StudentClassroomController {
         ClassroomQnaDto detail = instructorBoardService.getClassroomQnaDetail(postSn, classSn);
         if (detail == null) return ResponseEntity.notFound().build();
         instructorBoardService.incrementViewCount(postSn);
+        detail.setInqCnt(detail.getInqCnt() + 1);
         return ResponseEntity.ok(detail);
     }
 
