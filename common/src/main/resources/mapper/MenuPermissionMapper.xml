@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.MenuPermissionMapper">
+
+    <select id="selectAll" resultType="kr.or.ddit.finalProject.dto.permission.MenuPermissionDto">
+        SELECT MENU_CD AS menuCd, JOB_GRADE AS jobGrade, ALLOWED AS allowed
+        FROM MENU_PERMISSION
+    </select>
+
+    <insert id="upsert" parameterType="kr.or.ddit.finalProject.dto.permission.MenuPermissionDto">
+        MERGE INTO MENU_PERMISSION dst
+        USING (SELECT #{menuCd} AS MENU_CD, #{jobGrade} AS JOB_GRADE FROM DUAL) src
+        ON (dst.MENU_CD = src.MENU_CD AND dst.JOB_GRADE = src.JOB_GRADE)
+        WHEN MATCHED THEN
+            UPDATE SET ALLOWED = #{allowed}, UPDATED_AT = SYSDATE
+        WHEN NOT MATCHED THEN
+            INSERT (MENU_CD, JOB_GRADE, ALLOWED, UPDATED_AT)
+            VALUES (#{menuCd}, #{jobGrade}, #{allowed}, SYSDATE)
+    </insert>
+
+</mapper>
