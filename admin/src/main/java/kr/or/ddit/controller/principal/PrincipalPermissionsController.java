@@ -1,7 +1,11 @@
 package kr.or.ddit.controller.principal;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -10,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -20,6 +25,7 @@ import kr.or.ddit.finalProject.dto.log.LoginLogDto;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
 import kr.or.ddit.finalProject.service.log.LoginLogService;
 import kr.or.ddit.finalProject.service.staff.StaffService;
+import kr.or.ddit.mapper.PrincipalSystemMonitoringMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,6 +37,7 @@ public class PrincipalPermissionsController {
 
     private final StaffService staffService;
     private final LoginLogService loginLogService;
+    private final PrincipalSystemMonitoringMapper monitoringMapper;
 
     private static final int PERM_SCREEN_SIZE = 10;
     private static final int PERM_BLOCK_SIZE  = 5;
@@ -45,6 +52,8 @@ public class PrincipalPermissionsController {
     public String getPermissions(Model model) {
         log.info("getPermissions");
 
+        List<EmployeeDetailDto> employeeList = staffService.retrieveActiveEmployeeList();
+
         Map<String, LoginLogDto> lastLoginMap = loginLogService.getLastLoginPerUser()
                 .stream()
                 .collect(Collectors.toMap(LoginLogDto::getUserId, dto -> dto));
@@ -53,9 +62,18 @@ public class PrincipalPermissionsController {
                 .filter(dto -> dto.getLogoutDt() == null)
                 .count();
 
-        model.addAttribute("employeeList", staffService.retrieveActiveEmployeeList());
+        LocalDateTime threshold = LocalDateTime.now().minusDays(7);
+        long inactiveCount = employeeList.stream()
+                .filter(emp -> {
+                    LoginLogDto last = lastLoginMap.get(emp.getUserId());
+                    return last == null || (last.getLoginDt() != null && last.getLoginDt().isBefore(threshold));
+                })
+                .count();
+
+        model.addAttribute("employeeList", employeeList);
         model.addAttribute("lastLoginMap", lastLoginMap);
         model.addAttribute("onlineCount", onlineCount);
+        model.addAttribute("inactiveCount", inactiveCount);
         model.addAttribute("departmentList", staffService.retrieveDepartmentList());
         model.addAttribute("jobGradeList", staffService.retrieveJobGradeList());
         return "admin:/principal/permission_management";
@@ -114,5 +132,40 @@ public class PrincipalPermissionsController {
         response.put("totalCount",   pageResp.getTotalCount());
         response.put("lastLoginMap", lastLoginMap);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 특정 직원의 접속 이력 + 활동 감사 로그 조회 (모달용 AJAX)
+     * 응답: { loginLogs: [...], auditLogs: [...] }
+     */
+    @GetMapping("/settings/permissions/login-history/{userId}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getLoginHistory(@PathVariable String userId) {
+        // 1. 로그인/로그아웃 이력 (ADMINLOGIN_LOG)
+        List<Map<String, Object>> loginLogs = new ArrayList<>();
+        for (LoginLogDto log : loginLogService.getLoginLogsByUserId(userId)) {
+            Map<String, Object> entry = new LinkedHashMap<>();
+            entry.put("loginDt",  log.getLoginDt()  != null ? log.getLoginDt().format(LOGIN_FMT)  : null);
+            entry.put("logoutDt", log.getLogoutDt() != null ? log.getLogoutDt().format(LOGIN_FMT) : null);
+            entry.put("loginIp",  log.getLoginIp());
+            loginLogs.add(entry);
+        }
+
+        // 2. 최근 URL 접근 감사 로그 (HERMES_ADMIN_AUDIT_LOG)
+        List<Map<String, Object>> auditLogs = new ArrayList<>();
+        monitoringMapper.findRecentAdminAudits(userId).forEach(a -> {
+            Map<String, Object> entry = new LinkedHashMap<>();
+            entry.put("dt",         a.getCreatedAt());
+            entry.put("method",     a.getHttpMethod());
+            entry.put("uri",        a.getRequestUri());
+            entry.put("ip",         a.getMemberIp());
+            entry.put("statusCode", a.getStatusCode());
+            auditLogs.add(entry);
+        });
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("loginLogs", loginLogs);
+        result.put("auditLogs", auditLogs);
+        return ResponseEntity.ok(result);
     }
 }
