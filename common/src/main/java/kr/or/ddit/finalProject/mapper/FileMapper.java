@@ -26,6 +26,9 @@ public interface FileMapper {
     // fileIds 중 userId 소유인 파일 수 반환 — size()와 비교해 전체 소유 여부 확인
     int countOwnedFiles(@Param("fileIds") List<Long> fileIds, @Param("userId") String userId);
 
+    // 이미 업로드된 파일들을 특정 그룹 ID로 묶을 때 사용
+    int updateFileGroupByServerIds(@Param("fileServerIds") List<Long> fileServerIds, @Param("groupId") int groupId);
+
     // 게시글 저장 완료 후 이미지 파일들의 CTX_TYPE, CTX_ID 일괄 업데이트
     int updateFileContext(@Param("fileIds") List<Long> fileIds,
             @Param("ctxType") String ctxType,

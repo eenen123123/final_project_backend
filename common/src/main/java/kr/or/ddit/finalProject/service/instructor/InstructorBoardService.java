@@ -92,6 +92,9 @@ public interface InstructorBoardService {
     /** 클래스룸 Q&A 등록 (INSTRUCTOR_BOARD + INSTRUCTOR_QNA child 레코드 동시 생성) */
     void insertClassroomQna(InstructorBoardDto dto);
 
+    /** 클래스룸 Q&A 본문 수정 (작성자 본인만) */
+    void updateClassroomQna(Long postSn, Long classSn, String wrtrUserId, String postSj, String postCn);
+
     /** 클래스룸 Q&A 답변 등록 또는 수정 */
     void answerClassroomQna(Long postSn, String answrUserId, String answCn);
 
@@ -112,4 +115,7 @@ public interface InstructorBoardService {
 
     /** 강사 공개 게시판 상세 조회 (이전/다음글, 첨부파일 포함) + 조회수 증가 */
     InstructorPublicBoardDetail getPublicBoardDetail(String instrUuid, Long postSn);
+
+    /** 조회수 증가 — 학생이 게시글 상세를 열람할 때만 호출. 관리자 화면에서는 호출 금지 */
+    void incrementViewCount(Long postSn);
 }

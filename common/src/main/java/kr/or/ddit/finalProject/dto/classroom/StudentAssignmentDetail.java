@@ -1,5 +1,7 @@
 package kr.or.ddit.finalProject.dto.classroom;
 
+import java.util.List;
+import kr.or.ddit.finalProject.dto.file.FileDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -13,6 +15,7 @@ public class StudentAssignmentDetail {
     private boolean submitted;
     private String sbmtCn;
     private Double score;
-    private String feedbackCn;   // 채점 완료 시 강사 피드백 (현재 DB에 없으면 null)
+    private String feedbackCn;
     private String resubmitYn;
+    private List<FileDto> attachedFiles;
 }

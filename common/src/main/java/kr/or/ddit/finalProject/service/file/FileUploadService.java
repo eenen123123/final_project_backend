@@ -296,6 +296,12 @@ public class FileUploadService {
         return fileUploadMapper.selectFilesByGroupId(groupId);
     }
 
+    public int linkFilesToGroup(List<Long> fileServerIds) {
+        int groupId = createFileGroup();
+        fileUploadMapper.updateFileGroupByServerIds(fileServerIds, groupId);
+        return groupId;
+    }
+
     /**
      * CMMT_ATCH_FILE_DTL 행을 논리 삭제(DEL_YN='Y')합니다.
      *

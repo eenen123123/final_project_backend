@@ -81,6 +81,7 @@
         SELECT
             ATCH_FILE_DTL_SN   AS atchFileDtlSn,
             ATCH_FILE_ID        AS atchFileId,
+            FILE_SERVER_ID      AS fileServerId,
             ORGN_FILE_NM        AS orgnFileNm,
             SAVE_PATH_NM        AS savePathNm,
             SAVE_FILE_NM        AS saveFileNm,
@@ -130,6 +131,17 @@
         <foreach collection="fileIds" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
+    </update>
+
+    <!-- 이미 업로드된 파일들을 특정 그룹 ID로 묶기 (과제 제출 첨부파일 처리용) -->
+    <update id="updateFileGroupByServerIds">
+        UPDATE CMMT_ATCH_FILE_DTL
+        SET ATCH_FILE_ID = #{groupId}
+        WHERE FILE_SERVER_ID IN
+        <foreach collection="fileServerIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        AND DEL_YN = 'N'
     </update>
 
     <!-- findContextByFileServerId -->

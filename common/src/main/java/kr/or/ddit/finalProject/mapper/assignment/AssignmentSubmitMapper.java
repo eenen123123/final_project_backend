@@ -28,6 +28,6 @@ public interface AssignmentSubmitMapper {
     /** 과제 제출 등록 */
     int insertSubmit(AssignmentSubmitDto dto);
 
-    /** 과제 재제출 (본문 내용 갱신) */
-    int updateMySubmit(@Param("asgmtSn") Long asgmtSn, @Param("userId") String userId, @Param("sbmtCn") String sbmtCn);
+    /** 과제 재제출 (본문 내용 및 첨부파일 갱신) */
+    int updateMySubmit(@Param("asgmtSn") Long asgmtSn, @Param("userId") String userId, @Param("sbmtCn") String sbmtCn, @Param("atchFileId") Long atchFileId);
 }
