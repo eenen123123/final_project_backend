@@ -156,4 +156,13 @@ public interface StaffMapper {
     int updateMemberWithdrwa(MemberWithdrawLogDto withdrawLog);
 
     Optional<MemberDto> selectStudent(@Param("userId") String userId);
+
+    // 학생이 현재 수강 중인 클래스 목록
+    List<Map<String, Object>> selectEnrolledClassrooms(@Param("userId") String userId);
+
+    // 학생이 등록 가능한 클래스 목록 (ACTIVE/RECRUITING, 이미 ENROLLED 아닌 것)
+    List<Map<String, Object>> selectAvailableClassrooms(@Param("userId") String userId);
+
+    // 클래스에 학생 등록
+    int insertClassroomMember(@Param("classSn") Long classSn, @Param("userId") String userId);
 }

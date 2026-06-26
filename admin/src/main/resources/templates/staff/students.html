@@ -429,6 +429,78 @@
 
 
   <!-- ═══════════════════════════════════════════════════ -->
+  <!--  MODAL: 클래스 등록                                -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="modal-class-register" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
+    <div class="hm-modal-inner" style="max-width:52rem">
+      <div class="hm-modal-scroll">
+        <div class="hm-modal-header">
+          <h2>
+            <i class="fa-solid fa-chalkboard-user mr-2 text-[#3b82f6]"></i>클래스 등록
+            <span class="text-sm font-normal text-slate-500 ml-1">— <span id="class-register-student-name"></span></span>
+          </h2>
+          <button type="button" onclick="closeModal('modal-class-register')" class="text-slate-400 hover:text-slate-600">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-5 gap-4 p-5" style="min-height:22rem">
+
+          <!-- 좌측: 현재 등록 강좌 -->
+          <div class="col-span-2 border border-slate-200 rounded-xl p-4 flex flex-col">
+            <p class="text-xs font-bold text-[#3b82f6] uppercase tracking-wider mb-3">현재 등록 강좌</p>
+            <div id="enrolled-list-loading" class="flex-1 flex items-center justify-center text-xs text-slate-400">
+              <i class="fa-solid fa-spinner fa-spin mr-1"></i>불러오는 중...
+            </div>
+            <div id="enrolled-list-empty" class="hidden flex-1 flex items-center justify-center text-xs text-slate-400 text-center">
+              등록된<br>강좌가 없습니다.
+            </div>
+            <div id="enrolled-list-body" class="hidden flex-1 overflow-y-auto space-y-2 pr-0.5"></div>
+          </div>
+
+          <!-- 우측: 강사 선택 → 강좌 선택 -->
+          <div class="col-span-3 border border-slate-200 rounded-xl p-4 flex flex-col bg-slate-50/50">
+
+            <!-- Step 1: 강사 목록 -->
+            <div id="instr-panel" class="flex flex-col flex-1">
+              <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">강사 선택</p>
+              <div id="instr-list-loading" class="flex-1 flex items-center justify-center text-xs text-slate-400">
+                <i class="fa-solid fa-spinner fa-spin mr-1"></i>불러오는 중...
+              </div>
+              <div id="instr-list-empty" class="hidden flex-1 flex items-center justify-center text-xs text-slate-400">
+                등록 가능한 강사가 없습니다.
+              </div>
+              <div id="instr-list-body" class="hidden overflow-y-auto space-y-2 pr-0.5" style="max-height:15rem"></div>
+            </div>
+
+            <!-- Step 2: 강좌 목록 -->
+            <div id="class-panel" class="hidden flex-col flex-1">
+              <div class="flex items-center gap-2 mb-3">
+                <button type="button" onclick="showInstrPanel()" class="text-xs text-[#3b82f6] hover:underline flex items-center gap-1">
+                  <i class="fa-solid fa-chevron-left text-[10px]"></i>강사 목록
+                </button>
+                <span class="text-slate-300 text-xs">|</span>
+                <p class="text-xs font-bold text-slate-700" id="selected-instr-name"></p>
+              </div>
+              <div id="class-list-empty2" class="hidden flex-1 flex items-center justify-center text-xs text-slate-400">
+                등록 가능한 강좌가 없습니다.
+              </div>
+              <div id="class-list-body2" class="overflow-y-auto space-y-2 pr-0.5" style="max-height:14rem"></div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="hm-modal-footer">
+          <button type="button" onclick="closeModal('modal-class-register')" class="hm-btn-secondary px-5 py-2.5">취소</button>
+          <button type="button" onclick="submitClassRegister()" id="class-register-submit-btn"
+                  class="hm-btn-primary hm-btn-blue px-6 py-2.5" disabled>등록</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
   <!--  MODAL: 탈퇴 최종 확인                             -->
   <!-- ═══════════════════════════════════════════════════ -->
   <div id="modal-resign-confirm" class="fixed inset-0 bg-black/60 z-[60] hidden flex items-center justify-center p-4">

@@ -115,9 +115,10 @@ public class AdminActivityExecutionService {
                 case "EMPLOYEE_UPDATE"   -> executeEmployeeUpdate(data, actorUserId);
                 case "EMPLOYEE_RETIRE"   -> executeEmployeeRetire(data, actorUserId);
                 case "SALARY_ACCOUNT_UPDATE" -> executeSalaryAccountUpdate(data, actorUserId);
-                case "STUDENT_REGISTER"  -> executeStudentRegister(data, actorUserId);
-                case "STUDENT_UPDATE"    -> executeStudentUpdate(data, actorUserId);
-                case "STUDENT_RETIRE"    -> executeStudentRetire(data, actorUserId);
+                case "STUDENT_REGISTER"        -> executeStudentRegister(data, actorUserId);
+                case "STUDENT_UPDATE"          -> executeStudentUpdate(data, actorUserId);
+                case "STUDENT_RETIRE"          -> executeStudentRetire(data, actorUserId);
+                case "STUDENT_CLASS_REGISTER"  -> executeStudentClassRegister(data);
                 case "DEPT_CREATE"       -> executeDeptCreate(data, actorUserId);
                 case "DEPT_UPDATE"       -> executeDeptUpdate(data, actorUserId);
                 case "DEPT_TOGGLE"       -> executeDeptToggle(data, actorUserId);
@@ -285,6 +286,15 @@ public class AdminActivityExecutionService {
 
         // 1. 학생 인적 사항 변경 정보를 시스템에 영구 반영한다.
         staffService.updateStudent(memberDto, actorUserId);
+    }
+
+    /**
+     * 학생 클래스 등록 집행
+     */
+    private void executeStudentClassRegister(Map<String, Object> data) {
+        String userId = (String) data.get("userId");
+        Long classSn  = Long.valueOf(String.valueOf(data.get("classSn")));
+        staffService.registerStudentToClass(classSn, userId);
     }
 
     /**
