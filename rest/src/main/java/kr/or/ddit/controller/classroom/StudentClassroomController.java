@@ -232,8 +232,9 @@ public class StudentClassroomController {
 
         @SuppressWarnings("unchecked")
         List<?> rawIds = body.get("fileServerIds") instanceof List ? (List<?>) body.get("fileServerIds") : null;
+        boolean fileIdsProvided = rawIds != null; // [] 와 미전송을 구분
         Long atchFileId = null;
-        if (rawIds != null && !rawIds.isEmpty()) {
+        if (fileIdsProvided && !rawIds.isEmpty()) {
             List<Long> fileServerIds = rawIds.stream()
                     .map(id -> ((Number) id).longValue())
                     .collect(Collectors.toList());
@@ -251,7 +252,9 @@ public class StudentClassroomController {
         } else {
             AssignmentBoardDto board = assignmentBoardMapper.selectAssignmentDetail(asgmtSn);
             if (!"Y".equals(board.getResbmtAlldYn())) return ResponseEntity.status(409).build();
-            assignmentSubmitMapper.updateMySubmit(asgmtSn, userId, sbmtCn, atchFileId);
+            // fileIdsProvided=true → ATCH_FILE_ID 항상 갱신 (null이면 첨부파일 전체 삭제)
+            // fileIdsProvided=false → ATCH_FILE_ID 유지
+            assignmentSubmitMapper.updateMySubmit(asgmtSn, userId, sbmtCn, atchFileId, fileIdsProvided);
         }
         return ResponseEntity.ok().build();
     }
