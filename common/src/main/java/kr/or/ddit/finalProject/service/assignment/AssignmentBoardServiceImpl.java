@@ -59,6 +59,11 @@ public class AssignmentBoardServiceImpl implements AssignmentBoardService {
     }
 
     @Override
+    public AssignmentSubmitDto getSubmitBySn(Long sbmtSn) {
+        return assignmentSubmitMapper.selectSubmitBySn(sbmtSn);
+    }
+
+    @Override
     @Transactional
     public int gradeSubmit(Long sbmtSn, Long asgmtSn, BigDecimal score, String grddUserId) {
         return assignmentSubmitMapper.updateGrade(sbmtSn, asgmtSn, score, grddUserId);

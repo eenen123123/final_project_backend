@@ -276,7 +276,7 @@
             SELECT
                   IB.POST_SN, IB.INSTR_USER_ID, IB.WRTR_USER_ID,
                   IB.BOARD_TYPE_CD, IB.POST_SJ, IB.POST_CN,
-                  IB.INQ_CNT, IB.REG_DT, IB.MDFCN_DT, IB.USE_YN,
+                  IB.INQ_CNT, IB.ATCH_FILE_ID, IB.REG_DT, IB.MDFCN_DT, IB.USE_YN,
                   M.USER_NAME
             FROM INSTRUCTOR_BOARD IB
                   <include refid="wrtrMemberJoin"/>
@@ -487,6 +487,16 @@
             INSERT INTO INSTRUCTOR_QNA (POST_SN, ANSW_YN, SECR_YN)
             VALUES (#{postSn}, 'N', 'N')
       </insert>
+
+      <update id="updateClassroomQna">
+            UPDATE INSTRUCTOR_BOARD
+            SET POST_SJ    = #{postSj},
+                POST_CN    = #{postCn},
+                MDFCN_DT   = SYSDATE
+            WHERE POST_SN  = #{postSn}
+              AND CLASS_SN = #{classSn}
+              AND USE_YN   = 'Y'
+      </update>
 
       <update id="updateClassroomQnaAnswer">
             UPDATE INSTRUCTOR_QNA
