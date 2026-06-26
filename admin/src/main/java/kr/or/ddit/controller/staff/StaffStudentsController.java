@@ -93,7 +93,7 @@ public class StaffStudentsController {
             @RequestParam(required = false) String year,
             @RequestParam(required = false) String userRole,
             @RequestParam(required = false) String enable,
-            @RequestParam(required = false) String unregistered,
+            @RequestParam(required = false) String classStatus,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int screenSize,
             @RequestParam(required = false) String orderBy,
@@ -107,8 +107,8 @@ public class StaffStudentsController {
             params.put("userRole", userRole.trim());
         if (enable != null && !enable.isBlank())
             params.put("enable", enable.trim());
-        if ("true".equals(unregistered))
-            params.put("unregistered", "true");
+        if (classStatus != null && !classStatus.isBlank())
+            params.put("classStatus", classStatus.trim());
 
         String safeDir = "DESC".equalsIgnoreCase(orderDirection) ? "DESC" : "ASC";
         PaginationInfo<Map<String, Object>> paging =
