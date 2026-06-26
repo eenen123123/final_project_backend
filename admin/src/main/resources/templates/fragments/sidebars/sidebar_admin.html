@@ -7,29 +7,17 @@
   <nav class="flex-1 overflow-y-auto py-1 no-scrollbar">
     <div th:replace="~{fragments/sidebars/menus/menu_common}"></div>
 
-    <div
-      sec:authorize="hasAuthority('D400')"
-      th:replace="~{fragments/sidebars/menus/menu_principal}"
-    ></div>
+    <div th:replace="~{fragments/sidebars/menus/menu_principal}"></div>
 
-    <div
-      sec:authorize="hasAuthority('D100') and hasAuthority('A001')"
-      th:replace="~{fragments/sidebars/menus/menu_manager}"
-    ></div>
+    <div th:replace="~{fragments/sidebars/menus/menu_manager}"></div>
 
-    <div
-      sec:authorize="hasAuthority('D100')"
-      th:replace="~{fragments/sidebars/menus/menu_staff}"
-    ></div>
+    <div th:replace="~{fragments/sidebars/menus/menu_staff}"></div>
 
     <div
       sec:authorize="hasAuthority('D200')"
       th:replace="~{fragments/sidebars/menus/menu_pd}"
     ></div>
 
-    <div
-      sec:authorize="hasAuthority('D300')"
-      th:replace="~{fragments/sidebars/menus/menu_instructor}"
-    ></div>
+    <div th:replace="~{fragments/sidebars/menus/menu_instructor}"></div>
   </nav>
 </aside>
