@@ -546,4 +546,20 @@ public class StaffServiceImpl implements StaffService{
     public void insertLeaveHistory(AnnualLeaveHistoryDto dto) {
         staffMapper.insertLeaveHistory(dto);
     }
+
+    @Override
+    public List<Map<String, Object>> getEnrolledClassrooms(String userId) {
+        return staffMapper.selectEnrolledClassrooms(userId);
+    }
+
+    @Override
+    public List<Map<String, Object>> getAvailableClassrooms(String userId) {
+        return staffMapper.selectAvailableClassrooms(userId);
+    }
+
+    @Override
+    @Transactional
+    public void registerStudentToClass(Long classSn, String userId) {
+        staffMapper.insertClassroomMember(classSn, userId);
+    }
 }

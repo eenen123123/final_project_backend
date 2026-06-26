@@ -284,6 +284,54 @@ public class StaffStudentsController {
         }
     }
 
+    /**
+     * 학생이 현재 수강 중인 클래스 목록
+     */
+    @GetMapping("/employees/students/{userId}/enrolled-classes")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> getEnrolledClasses(@PathVariable String userId) {
+        return ResponseEntity.ok(staffService.getEnrolledClassrooms(userId));
+    }
+
+    /**
+     * 학생이 등록 가능한 클래스 목록 (ACTIVE/RECRUITING, 미등록, 수강 인원 포함)
+     */
+    @GetMapping("/employees/students/{userId}/available-classes")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> getAvailableClasses(@PathVariable String userId) {
+        return ResponseEntity.ok(staffService.getAvailableClassrooms(userId));
+    }
+
+    /**
+     * 학생 클래스 등록 (결재 요청)
+     */
+    @PostMapping("/employees/students/{userId}/class")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> registerStudentClass(
+            @PathVariable String userId,
+            @RequestBody Map<String, Object> body,
+            Principal principal) {
+        Long classSn = Long.valueOf(body.get("classSn").toString());
+        String classNm = body.getOrDefault("classNm", classSn.toString()).toString();
+        String loginAdminId = principal != null ? principal.getName() : "SYSTEM";
+        try {
+            Map<String, Object> data = new LinkedHashMap<>();
+            data.put("userId",  userId);
+            data.put("classSn", classSn);
+            data.put("classNm", classNm);
+            activityApprovalService.submitForApproval(
+                    loginAdminId,
+                    AdminActivityType.STUDENT_CLASS_REGISTER,
+                    userId + " → " + classNm,
+                    data);
+            return ResponseEntity.ok(Map.of("result", "success"));
+        } catch (Exception e) {
+            log.error("[registerStudentClass] userId={}, classSn={}, cause={}", userId, classSn, e.getMessage());
+            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("result", "error", "message", e.getMessage()));
+        }
+    }
+
     @PostMapping("/parent/join-message/send")
     @ResponseBody
     public ResponseEntity<Void> sendParentJoinMessage(@RequestParam String studentId,

@@ -183,7 +183,7 @@ function renderStudentTable(students, totalCount) {
     const classBtnTd = role === 'ROLE_STUDENT'
       ? `<button type="button" data-id="${escHtml(uid)}" data-name="${escHtml(nm)}"
            onclick="openClassRegister(this.dataset.id, this.dataset.name)"
-           class="text-xs text-violet-600 hover:underline font-semibold whitespace-nowrap">등록</button>`
+           class="text-xs text-blue-600 hover:underline font-semibold whitespace-nowrap">등록</button>`
       : '-';
 
     return `<tr class="hr-data-row hover:bg-slate-50 transition-colors"
@@ -219,9 +219,174 @@ function renderStudentTable(students, totalCount) {
   renderHrPagination(totalCount);
 }
 
+/* ─── 클래스 등록 모달 ─── */
+var classRegisterUserId  = null;
+var selectedClassSn      = null;
+var selectedClassNm      = null;
+var availableClassesData = [];
+
+var CLASS_STAT_LABEL = { ACTIVE: "운영중", RECRUITING: "모집중", CLOSED: "종료", WAITING: "대기" };
+var CLASS_STAT_CLS   = {
+  ACTIVE:     "text-emerald-600 bg-emerald-50",
+  RECRUITING: "text-[#3b82f6] bg-blue-50",
+  CLOSED:     "text-slate-500 bg-slate-100",
+  WAITING:    "text-amber-600 bg-amber-50",
+};
+
 function openClassRegister(userId, userName) {
-  // TODO: 클래스 등록 페이지 연결
-  showHermesToast(`${userName} 학생의 클래스 등록 페이지 준비 중입니다.`, "info");
+  classRegisterUserId  = userId;
+  selectedClassSn      = null;
+  availableClassesData = [];
+
+  document.getElementById("class-register-student-name").textContent = userName;
+  document.getElementById("class-register-submit-btn").disabled = true;
+
+  // 좌측 초기화
+  document.getElementById("enrolled-list-loading").classList.remove("hidden");
+  document.getElementById("enrolled-list-empty").classList.add("hidden");
+  document.getElementById("enrolled-list-body").classList.add("hidden");
+  document.getElementById("enrolled-list-body").innerHTML = "";
+
+  // 우측 초기화
+  document.getElementById("instr-list-loading").classList.remove("hidden");
+  document.getElementById("instr-list-empty").classList.add("hidden");
+  document.getElementById("instr-list-body").classList.add("hidden");
+  document.getElementById("instr-list-body").innerHTML = "";
+  showInstrPanel();
+
+  openModal("modal-class-register");
+
+  Promise.all([
+    fetch(`/admin/employees/students/${encodeURIComponent(userId)}/enrolled-classes`).then(r => r.json()),
+    fetch(`/admin/employees/students/${encodeURIComponent(userId)}/available-classes`).then(r => r.json()),
+  ]).then(([enrolled, available]) => {
+    renderEnrolledList(enrolled);
+    availableClassesData = available || [];
+    renderInstrList(availableClassesData);
+  }).catch(() => {
+    showHermesToast("클래스 정보를 불러오는 데 실패했습니다.", "error");
+  });
+}
+
+function renderEnrolledList(list) {
+  const loading = document.getElementById("enrolled-list-loading");
+  const empty   = document.getElementById("enrolled-list-empty");
+  const body    = document.getElementById("enrolled-list-body");
+  loading.classList.add("hidden");
+  if (!list || list.length === 0) { empty.classList.remove("hidden"); return; }
+  body.innerHTML = list.map(cl => `
+    <div class="p-2.5 rounded-lg border border-slate-200 bg-white">
+      <div class="flex items-start justify-between gap-1 mb-0.5">
+        <p class="text-xs font-semibold text-slate-700 leading-snug">${escHtml(cl.classNm)}</p>
+        <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 ${CLASS_STAT_CLS[cl.classStatCd] || 'text-slate-500 bg-slate-100'}">${CLASS_STAT_LABEL[cl.classStatCd] || cl.classStatCd}</span>
+      </div>
+      <p class="text-[11px] text-slate-400 truncate">${escHtml(cl.courseNm)}</p>
+      <p class="text-[11px] text-slate-400 truncate">${escHtml(cl.instrNm)}</p>
+    </div>`).join("");
+  body.classList.remove("hidden");
+}
+
+function renderInstrList(classes) {
+  const loading = document.getElementById("instr-list-loading");
+  const empty   = document.getElementById("instr-list-empty");
+  const body    = document.getElementById("instr-list-body");
+  loading.classList.add("hidden");
+  if (!classes || classes.length === 0) { empty.classList.remove("hidden"); return; }
+
+  const instrMap = {};
+  classes.forEach(cl => {
+    if (!instrMap[cl.instrUserId]) instrMap[cl.instrUserId] = { instrNm: cl.instrNm, cnt: 0 };
+    instrMap[cl.instrUserId].cnt++;
+  });
+  const instructors = Object.entries(instrMap)
+    .map(([id, v]) => ({ instrUserId: id, instrNm: v.instrNm, cnt: v.cnt }))
+    .sort((a, b) => a.instrNm.localeCompare(b.instrNm, "ko"));
+
+  body.innerHTML = instructors.map(instr => `
+    <button type="button"
+            onclick="showClassPanel('${escHtml(instr.instrUserId)}', '${escHtml(instr.instrNm)}')"
+            class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-slate-200 bg-white hover:border-[#3b82f6] hover:bg-blue-50 transition-colors text-left">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-xs font-bold text-[#3b82f6] flex-shrink-0">
+          ${escHtml(instr.instrNm.charAt(0))}
+        </div>
+        <span class="text-sm font-semibold text-slate-700 truncate">${escHtml(instr.instrNm)}</span>
+      </div>
+      <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
+        <span class="text-xs text-slate-400">${instr.cnt}개 강좌</span>
+        <i class="fa-solid fa-chevron-right text-xs text-slate-300"></i>
+      </div>
+    </button>`).join("");
+  body.classList.remove("hidden");
+}
+
+function showInstrPanel() {
+  document.getElementById("instr-panel").style.display = "";
+  document.getElementById("class-panel").style.display = "none";
+  selectedClassSn = null;
+  document.getElementById("class-register-submit-btn").disabled = true;
+}
+
+function showClassPanel(instrUserId, instrNm) {
+  document.getElementById("instr-panel").style.display = "none";
+  document.getElementById("class-panel").style.display = "flex";
+  document.getElementById("selected-instr-name").textContent = instrNm;
+
+  const classes = availableClassesData.filter(cl => cl.instrUserId === instrUserId);
+  const body    = document.getElementById("class-list-body2");
+  const empty   = document.getElementById("class-list-empty2");
+
+  if (!classes || classes.length === 0) {
+    empty.classList.remove("hidden");
+    body.innerHTML = "";
+    return;
+  }
+  empty.classList.add("hidden");
+  body.innerHTML = classes.map(cl => `
+    <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white cursor-pointer hover:border-[#3b82f6] has-[:checked]:border-[#3b82f6] has-[:checked]:bg-blue-50 transition-colors">
+      <input type="radio" name="class-radio" value="${cl.classSn}" onchange="onClassRadioChange(${cl.classSn})" class="accent-[#3b82f6] w-4 h-4 flex-shrink-0">
+      <div class="flex-1 min-w-0">
+        <p class="font-semibold text-slate-800 text-sm truncate">${escHtml(cl.classNm)}</p>
+        <p class="text-xs text-slate-400 truncate">${escHtml(cl.courseNm)}</p>
+      </div>
+      <div class="flex flex-col items-end gap-1 flex-shrink-0">
+        <span class="text-[11px] font-medium px-2 py-0.5 rounded-full ${CLASS_STAT_CLS[cl.classStatCd] || 'text-slate-500 bg-slate-100'}">${CLASS_STAT_LABEL[cl.classStatCd] || cl.classStatCd}</span>
+        <span class="text-[11px] text-slate-400">수강 ${cl.enrolledCnt}명</span>
+      </div>
+    </label>`).join("");
+}
+
+function onClassRadioChange(classSn) {
+  selectedClassSn = classSn;
+  const cl = availableClassesData.find(c => String(c.classSn) === String(classSn));
+  selectedClassNm = cl ? cl.classNm : String(classSn);
+  document.getElementById("class-register-submit-btn").disabled = false;
+}
+
+function submitClassRegister() {
+  if (!classRegisterUserId || !selectedClassSn) return;
+  const btn = document.getElementById("class-register-submit-btn");
+  btn.disabled = true;
+
+  fetch(`/admin/employees/students/${encodeURIComponent(classRegisterUserId)}/class`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ classSn: selectedClassSn, classNm: selectedClassNm }),
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.result === "success") {
+        closeModal("modal-class-register");
+        showHermesToast("결재 요청이 완료되었습니다. 승인 후 반영됩니다.", "info");
+      } else {
+        showHermesToast("등록 실패: " + (data.message || "서버 오류"), "error");
+        btn.disabled = false;
+      }
+    })
+    .catch(() => {
+      showHermesToast("클래스 등록 요청 중 오류가 발생했습니다.", "error");
+      btn.disabled = false;
+    });
 }
 
 function resetHrFilter() {
