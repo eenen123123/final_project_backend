@@ -212,7 +212,9 @@ function renderStudentTable(students, totalCount) {
       data-zip="${escHtml(stu.userZip||"")}" data-addr-base="${escHtml(stu.userAddr||"")}"
       data-addr-detail="${escHtml(stu.userDaddr||"")}" data-addr="${escHtml(addr)}"
       data-profile="${escHtml(pro)}" data-type="${escHtml(role)}"
-      data-join="${escHtml(jn)}" data-enable="${escHtml(en)}">
+      data-join="${escHtml(jn)}" data-enable="${escHtml(en)}"
+      data-parent-id="${escHtml(stu.prntUserId||"")}" data-parent-name="${escHtml(stu.prntUserName||"")}"
+      data-parent-phone="${escHtml(stu.prntTelno||"")}" data-parent-email="${escHtml(stu.prntEmailAddr||"")}">
       <td class="py-3 px-4">
         <div class="flex items-center gap-2">
           ${avatar}
@@ -628,6 +630,35 @@ function openDetail(id) {
   document.getElementById("detail-enable").textContent    = statusTx;
 
   document.getElementById("resign-confirm-name").textContent = row.dataset.name || "";
+
+  // 학부모 정보 섹션 (오프라인 학생만)
+  const parentSection = document.getElementById("detail-parent-section");
+  if (typeVal === "ROLE_STUDENT") {
+    parentSection.classList.remove("hidden");
+    const linked   = (row.dataset.parentId || "").trim() !== "";
+    const badge    = document.getElementById("detail-parent-badge");
+    const linkedEl = document.getElementById("detail-parent-linked");
+    const unlinkEl = document.getElementById("detail-parent-unlinked");
+
+    if (linked) {
+      badge.className   = "inline-flex items-center gap-1 text-xs font-semibold rounded-lg px-2 py-0.5 text-emerald-600 bg-emerald-50";
+      badge.innerHTML   = '<i class="fa-solid fa-link text-[9px]"></i>연동됨';
+      linkedEl.classList.remove("hidden");
+      unlinkEl.classList.add("hidden");
+      document.getElementById("detail-parent-name").textContent  = row.dataset.parentName || "-";
+      document.getElementById("detail-parent-phone").textContent = formatPhoneDisplay(row.dataset.parentPhone);
+      document.getElementById("detail-parent-email").textContent = row.dataset.parentEmail || "-";
+    } else {
+      badge.className   = "inline-flex items-center gap-1 text-xs font-semibold rounded-lg px-2 py-0.5 text-orange-500 bg-orange-50";
+      badge.innerHTML   = '<i class="fa-solid fa-link-slash text-[9px]"></i>미연동';
+      linkedEl.classList.add("hidden");
+      unlinkEl.classList.remove("hidden");
+      const btn = document.getElementById("detail-parent-link-btn");
+      btn.onclick = () => { closeModal("modal-emp-detail"); openParentLinkModal(row.dataset.id, row.dataset.name); };
+    }
+  } else {
+    parentSection.classList.add("hidden");
+  }
 
   if (detailEditMode) toggleDetailEdit();
   openModal("modal-emp-detail");

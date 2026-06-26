@@ -595,6 +595,9 @@
             m.JOIN_DT, m.USER_TELNO, m.USER_EMAIL_ADDR, m.USER_ZIP, m.USER_ADDR, m.USER_DADDR,
             m.USER_PROFILE, m.REG_DATE, m.MOD_DATE, m.ENABLE, m.USER_ROLE,
             s.PRNT_USER_ID,
+            pm.USER_NAME       AS PRNT_USER_NAME,
+            pm.USER_TELNO      AS PRNT_TELNO,
+            pm.USER_EMAIL_ADDR AS PRNT_EMAIL_ADDR,
             (SELECT COUNT(*) FROM CLASSROOM_MEMBER cm WHERE cm.USER_ID = m.USER_ID) AS CLASS_CNT,
             (SELECT mi.USER_NAME FROM CLASSROOM_MEMBER cm
                JOIN CLASSROOM cl ON cm.CLASS_SN = cl.CLASS_SN
@@ -605,6 +608,7 @@
               WHERE cm.USER_ID = m.USER_ID AND ROWNUM = 1) AS FIRST_CLASS_NM
         FROM MEMBER m
         LEFT JOIN STUDENT s ON m.USER_ID = s.STD_USER_ID
+        LEFT JOIN MEMBER pm ON pm.USER_ID = s.PRNT_USER_ID
         WHERE m.USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
     <if test="detailCondition != null and detailCondition.keyword != null and detailCondition.keyword != ''">
             AND m.USER_NAME LIKE '%' || #{detailCondition.keyword} || '%'
