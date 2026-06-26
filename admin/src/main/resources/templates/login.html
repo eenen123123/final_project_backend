@@ -116,7 +116,7 @@
           <!-- <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" /> -->
         </form>
       </div>
-      <div class="text-center text-sm text-gray-500 my-12">
+      <div th:if="${@environment.acceptsProfiles('dev')}" class="text-center text-sm text-gray-500 my-12">
         <table class="w-[700px] border-collapse mx-auto mt-10 absolute text-center left-1/2 -translate-x-1/2 font-bold">
           <caption class="text-lg mb-4 bg-gray-200 p-2">계정 정보, 클릭해서 로그인(관리자 계정만 가능)</caption>
           <thead class="bg-gray-200">
