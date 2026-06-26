@@ -122,6 +122,22 @@
     </select>
 
     <!-- 게시글 저장 완료 후 이미지 파일 CTX 일괄 업데이트 -->
+    <!-- CTX_TYPE + CTX_ID로 파일 목록 조회 -->
+    <select id="selectFilesByCtx" resultType="kr.or.ddit.finalProject.dto.file.FileDto">
+        SELECT
+            ATCH_FILE_DTL_SN AS atchFileDtlSn,
+            FILE_SERVER_ID   AS fileServerId,
+            ORGN_FILE_NM     AS orgnFileNm,
+            SAVE_PATH_NM     AS savePathNm,
+            FILE_EXT_NM      AS fileExtNm,
+            FILE_SIZE_CNT    AS fileSizeCnt
+        FROM CMMT_ATCH_FILE_DTL
+        WHERE CTX_TYPE = #{ctxType}
+          AND CTX_ID   = #{ctxId}
+          AND DEL_YN   = 'N'
+        ORDER BY ATCH_FILE_DTL_SN ASC
+    </select>
+
     <update id="updateFileContext">
         UPDATE CMMT_ATCH_FILE_DTL
         SET CTX_TYPE = #{ctxType},
