@@ -63,6 +63,10 @@ public class AdminSecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/instructor/questions/ai/subjects",
                                                "/instructor/questions/ai/weak-points").hasRole("ADMIN")
 
+                // 공통코드 드롭다운 옵션 조회 — 읽기 전용이므로 ADMIN 전체 허용
+                // (관리 화면/CRUD는 아래 권한 매트릭스 유지)
+                .requestMatchers(HttpMethod.GET, "/admin/common-codes/options/**").hasRole("ADMIN")
+
                 // PD 전용 (D200) — 권한 매트릭스 외 별도 관리
                 .requestMatchers("/admin/media/**").hasAuthority("D200")
 
