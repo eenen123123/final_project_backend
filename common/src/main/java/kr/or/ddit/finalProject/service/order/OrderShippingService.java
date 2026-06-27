@@ -1,5 +1,6 @@
 package kr.or.ddit.finalProject.service.order;
 
+import java.util.List;
 import java.util.Map;
 
 import kr.or.ddit.finalProject.dto.common.PageResponse;
@@ -20,6 +21,9 @@ public interface OrderShippingService {
 
     // 배송 정보 조회 - 관리자용 (소유자 검증 없음)
     OrderShippingDto getOrderShippingByOrdSn(Long ordSn);
+
+    // 배송 중인 내 주문 목록 (알림용)
+    List<OrderShippingDto> getMyShippingList(String userId);
 
     // 배송 정보 조회 - 사용자용 (소유자 검증 포함)
     OrderShippingDto getMyOrderShipping(Long ordSn, String userId);

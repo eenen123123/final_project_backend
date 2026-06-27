@@ -4,6 +4,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 import kr.or.ddit.finalProject.dto.order.OrderShippingDto;
 import kr.or.ddit.finalProject.service.order.OrderShippingService;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,12 @@ import lombok.extern.slf4j.Slf4j;
 public class OrderShippingController {
 
     private final OrderShippingService orderShippingService;
+
+    // 배송 중인 내 주문 목록 (알림용)
+    @GetMapping("/my")
+    public ResponseEntity<List<OrderShippingDto>> getMyShippingList(Authentication authentication) {
+        return ResponseEntity.ok(orderShippingService.getMyShippingList(authentication.getName()));
+    }
 
     // 내 주문 배송 정보 조회 (소유자 검증 포함)
     @GetMapping("/{ordSn}")

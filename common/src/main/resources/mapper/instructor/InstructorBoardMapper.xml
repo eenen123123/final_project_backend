@@ -608,6 +608,40 @@
       </select>
 
       <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           나의 선생님 Q&A (마이페이지용) - 강사 홈페이지 게시판만 (CLASS_SN IS NULL)
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+
+      <select id="selectMyInstructorQnaList" resultType="java.util.HashMap">
+            SELECT
+                  IB.POST_SN                          AS "postSn",
+                  IB.POST_SJ                          AS "postSj",
+                  I.INSTR_UUID                        AS "instrUuid",
+                  MI.USER_NAME                        AS "instrUserNm",
+                  IQ.ANSW_YN                          AS "answYn",
+                  IQ.SECR_YN                          AS "secrYn",
+                  TO_CHAR(IB.REG_DT, 'YYYY-MM-DD')   AS "regDt"
+            FROM INSTRUCTOR_BOARD IB
+                  JOIN INSTRUCTOR I  ON I.INSTR_USER_ID  = IB.INSTR_USER_ID
+                  JOIN MEMBER MI     ON MI.USER_ID        = IB.INSTR_USER_ID
+                  LEFT JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
+            WHERE IB.WRTR_USER_ID  = #{userId}
+              AND IB.BOARD_TYPE_CD = 'QNA'
+              AND IB.CLASS_SN      IS NULL
+              AND IB.USE_YN        = 'Y'
+            ORDER BY IB.REG_DT DESC
+            OFFSET #{offset} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+      </select>
+
+      <select id="countMyInstructorQnaList" resultType="int">
+            SELECT COUNT(*)
+            FROM INSTRUCTOR_BOARD
+            WHERE WRTR_USER_ID  = #{userId}
+              AND BOARD_TYPE_CD = 'QNA'
+              AND CLASS_SN      IS NULL
+              AND USE_YN        = 'Y'
+      </select>
+
+      <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
            공통 유틸 쿼리
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
 

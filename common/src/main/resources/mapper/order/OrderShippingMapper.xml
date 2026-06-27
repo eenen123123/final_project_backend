@@ -111,6 +111,17 @@
          WHERE os.ORD_SN = #{ordSn}
     </select>
 
+    <!-- 내 배송 중 목록 (알림용) -->
+    <select id="selectMyShippingList" resultMap="orderShippingResultMap">
+        SELECT os.SHIPPING_SN, os.ORD_SN, o.ORD_ID, o.ORD_NM,
+               os.DLVRY_STAT_CD, os.INVOICE_NO, os.MDFCN_DT
+          FROM ORDER_SHIPPING os
+          JOIN ORDERS o ON os.ORD_SN = o.ORD_SN
+         WHERE o.USER_ID = #{userId}
+           AND os.DLVRY_STAT_CD = 'SHIPPING'
+         ORDER BY os.MDFCN_DT DESC
+    </select>
+
     <select id="selectMyOrderShipping" resultMap="orderShippingResultMap">
         SELECT os.SHIPPING_SN, os.ORD_SN, os.BUYER_NM, os.BUYER_TEL, os.BUYER_EMAIL,
                os.RECEIVER_NM, os.RECEIVER_TEL, os.RECEIVER_TEL2,

@@ -1,6 +1,7 @@
 package kr.or.ddit.finalProject.mapper.instructor;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -223,4 +224,15 @@ public interface InstructorBoardMapper {
 
     /** 게시글 첨부파일 목록 조회 (DEL_YN='N' 인 파일만) */
     List<InstructorBoardFileItem> selectBoardFiles(@Param("postSn") Long postSn);
+
+    // ── 나의 선생님 Q&A (마이페이지) ─────────────────────────────────
+
+    /** 내가 작성한 강사 홈페이지 Q&A 목록 (페이징) */
+    List<Map<String, Object>> selectMyInstructorQnaList(
+            @Param("userId") String userId,
+            @Param("offset") int offset,
+            @Param("pageSize") int pageSize);
+
+    /** 내가 작성한 강사 홈페이지 Q&A 총 건수 */
+    int countMyInstructorQnaList(@Param("userId") String userId);
 }
