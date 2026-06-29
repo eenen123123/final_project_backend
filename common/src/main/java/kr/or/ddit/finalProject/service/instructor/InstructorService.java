@@ -11,6 +11,7 @@ import kr.or.ddit.finalProject.dto.instructor.profile.InstructorDetailResponse;
 import kr.or.ddit.finalProject.dto.instructor.profile.InstructorDto;
 import kr.or.ddit.finalProject.dto.instructor.profile.InstructorFeaturedCourseResponse;
 import kr.or.ddit.finalProject.dto.instructor.profile.InstructorListResponse;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorPublicCourseResponse;
 import kr.or.ddit.finalProject.dto.instructor.profile.InstructorRecentPostResponse;
 
 /**
@@ -124,4 +125,20 @@ public interface InstructorService {
      * @param instrUserId 요청한 강사 ID (소유권 확인 + 삭제자 기록용)
      */
     void removeCareer(Long careerSn, String instrUserId);
+
+    // ── 대표 강좌 관리 ────────────────────────────────────────────────
+    /**
+     * 강사 본인의 전체 강좌 목록 조회 (대표 강좌 추가 폼용)
+     */
+    List<InstructorPublicCourseResponse> retrieveInstructorCourses(String instrUuid);
+
+    /**
+     * 대표 강좌 추가. 최대 4개, 본인 강좌, 중복 여부를 검증합니다.
+     */
+    void addFeaturedCourse(String instrUuid, Long courseSn);
+
+    /**
+     * 대표 강좌 삭제
+     */
+    void removeFeaturedCourse(String instrUuid, Long courseSn);
 }
