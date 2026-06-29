@@ -238,7 +238,7 @@
   FROM COURSE C
   INNER JOIN INSTRUCTOR I  ON C.INSTR_USER_ID = I.INSTR_USER_ID
   LEFT  JOIN SUBJECT S     ON C.SUBJ_ID = S.SUBJ_ID
-  join textbook t on c.course_sn = t.course_sn
+  LEFT JOIN textbook t on c.course_sn = t.course_sn
   WHERE I.INSTR_UUID = #{instrUuid}
     AND C.OPNN_YN   = 'Y'
   ORDER BY C.SORT_ORD ASC, C.COURSE_SN ASC
@@ -359,7 +359,7 @@
         inner join subject s on c.SUBJ_ID = s.SUBJ_ID
         inner join member m on c.INSTR_USER_ID = m.USER_ID
         inner join instructor i on c.INSTR_USER_ID = i.INSTR_USER_ID
-        inner join textbook t on c.COURSE_SN = t.COURSE_SN
+        left join textbook t on c.COURSE_SN = t.COURSE_SN
     <include refid="courseListSearch"/>
     offset #{paginationInfo.offset} rows fetch next #{paginationInfo.screenSize} rows only
   </select>
