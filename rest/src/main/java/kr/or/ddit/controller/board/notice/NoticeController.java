@@ -44,7 +44,8 @@ public class NoticeController {
     // GET /api/notice/{postSn}
     @GetMapping("/{postSn}")
     public ResponseEntity<NoticeDto> getNoticeById(@PathVariable Long postSn) {
-        return ResponseEntity.ok(noticeService.getById(postSn, null));
+        NoticeDto notice = noticeService.getById(postSn, null);
+        return notice != null ? ResponseEntity.ok(notice) : ResponseEntity.notFound().build();
     }
 
     // GET /api/notice/{postSn}/prev
