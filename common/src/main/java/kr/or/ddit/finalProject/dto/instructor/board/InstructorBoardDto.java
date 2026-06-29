@@ -2,9 +2,11 @@ package kr.or.ddit.finalProject.dto.instructor.board;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import kr.or.ddit.finalProject.dto.file.FileDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -73,4 +75,7 @@ public class InstructorBoardDto implements Serializable {
 
     /** Q&A 답변 여부 (Y/N) — INSTRUCTOR_QNA 조인 결과, 목록 조회 전용 */
     private String answYn;
+
+    /** 첨부파일 목록 — 상세 조회 전용, atchFileId 기준으로 서비스 레이어에서 채워준다 */
+    private List<FileDto> attachedFiles;
 }

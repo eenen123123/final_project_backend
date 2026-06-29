@@ -4,15 +4,18 @@ import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authorization.AuthorityAuthorizationManager;
-import org.springframework.security.authorization.AuthorizationManagers;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 
+import lombok.RequiredArgsConstructor;
+
 @Configuration
+@RequiredArgsConstructor
 public class AdminSecurityConfig {
+
+    private final MenuPermissionAuthorizationManager menuPermissionManager;
 
     // 뷰 리졸버 작성 후 아래 코드를 사용하면 보안 관련 설정이 먹통이 되는 문제가 발생했음.
     // @Bean
@@ -60,55 +63,33 @@ public class AdminSecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/instructor/questions/ai/subjects",
                                                "/instructor/questions/ai/weak-points").hasRole("ADMIN")
 
-                // 강사 전용 (D300)
-                .requestMatchers("/instructor/**", "/classroom/**").hasAuthority("D300")
-
-                // 강좌 목록/상세/과목목록은 전체 관리자 허용
-                .requestMatchers(HttpMethod.GET, "/admin/course/list", "/admin/course/detail", "/admin/course/subjects").hasRole("ADMIN")
-                // 강좌 등록/수정/삭제는 강사(D300) 전용
-                .requestMatchers(HttpMethod.GET, "/admin/course/insert", "/admin/course/edit").hasAuthority("D300")
-                .requestMatchers(HttpMethod.POST, "/admin/course/insert", "/admin/course/edit", "/admin/course/delete").hasAuthority("D300")
-
-                // PD 전용 (D200)
+                // PD 전용 (D200) — 권한 매트릭스 외 별도 관리
                 .requestMatchers("/admin/media/**").hasAuthority("D200")
 
-                // 행정팀장 전용 (D100 + A001)
-                .requestMatchers(
-                        "/admin/consultation", "/admin/instructors/monitor",
-                        "/admin/retention", "/admin/settings/manager-permissions",
-                        "/admin/approval/request"
-                ).access(AuthorizationManagers.allOf(
-                        AuthorityAuthorizationManager.hasAuthority("D100"),
-                        AuthorityAuthorizationManager.hasAuthority("A001")
-                ))
-
-                // 공통코드 관리 — 행정(D100) 메뉴이나 원장(D400)도 접근 가능
-                .requestMatchers("/admin/common-codes/**").hasAnyAuthority("D100", "D400")
-
-                // 알림은 모든 관리자 공통 기능
-                .requestMatchers("/admin/notifications/**").hasRole("ADMIN")
-
-                // 행정 전용 (D100)
-                .requestMatchers(
-                        "/admin/attendance/**", "/admin/billing/**", "/admin/blacklist/**",
-                        "/admin/certificates/**", "/admin/coupon/**",
-                        "/admin/employees/**", "/admin/expenses/**", "/admin/facilities/**",
-                        "/admin/featured/**", "/admin/hr/**", "/admin/logistics/**",
-                          "/admin/org/**",
-                        "/admin/parent/**", "/admin/salary/**",
-                        "/admin/subject/**", "/admin/textbook/**"
-                ).hasAuthority("D100")
-
-                // 학생 승인 — 원장(D400) 전용, 학생 수정/퇴직은 행정(D100)이므로 경로를 구체적으로 지정
+                // 학생 승인 — 원장(D400)은 menuPermissionManager가 처리, 명시적으로 앞에 선언
                 .requestMatchers("/admin/students/approve/**").hasAuthority("D400")
-                .requestMatchers("/admin/students/**").hasAuthority("D100")
 
-                // 원장 전용 (D400)
+                // 직급별 세부 권한이 필요한 모든 경로 — DB 기반 권한 매트릭스 적용
                 .requestMatchers(
-                        "/admin/finance/**", "/admin/monitoring/**", "/admin/payments/approve/**",
+                        "/admin/monitoring/**", "/admin/system/**", "/admin/finance/**",
                         "/admin/quality/**", "/admin/settings/permissions/**",
-                        "/admin/system/**"
-                ).hasAuthority("D400")
+                        "/admin/instructors/monitor/**", "/admin/consultation/**", "/admin/retention/**",
+                        "/admin/students/**", "/admin/org/**", "/admin/blacklist/**",
+                        "/admin/billing/**", "/admin/attendance/**", "/admin/textbook/**",
+                        "/admin/logistics/**", "/admin/featured/**", "/admin/coupon/**",
+                        "/admin/expenses/**", "/admin/salary/**", "/admin/hr/**",
+                        "/admin/parent/**", "/admin/subject/**", "/admin/common-codes/**",
+                        "/admin/certificates/**",
+                        "/instructor/**", "/classroom/**"
+                ).access(menuPermissionManager)
+
+                // 알림·결재·일정·강좌조회 — ADMIN 전체 허용 (공통 업무)
+                .requestMatchers("/admin/notifications/**", "/admin/messenger/**",
+                        "/admin/approval/**", "/admin/schedule/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/admin/course/list", "/admin/course/detail",
+                        "/admin/course/subjects", "/admin/course/insert", "/admin/course/edit").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/admin/course/insert", "/admin/course/edit",
+                        "/admin/course/delete").hasAuthority("D300")
 
                 // 로그인 페이지를 제외한 모든 페이지는 관리자 권한을 가진 사용자만 접근 가능
                 .anyRequest().hasRole("ADMIN"))

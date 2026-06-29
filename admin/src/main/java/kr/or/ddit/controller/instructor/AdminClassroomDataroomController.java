@@ -106,7 +106,7 @@ public class AdminClassroomDataroomController extends AbstractClassroomControlle
                 for (MultipartFile f : attachFiles) {
                     if (!f.isEmpty()) {
                         fileUploadService.uploadFile(f, userId, groupId,
-                                FileCtxType.INSTRUCTOR, String.valueOf(groupId));
+                                FileCtxType.CLASSROOM_DATAROOM, String.valueOf(dto.getPostSn()));
                     }
                 }
                 dto.setAtchFileId((long) groupId);
@@ -172,7 +172,7 @@ public class AdminClassroomDataroomController extends AbstractClassroomControlle
                     for (MultipartFile f : attachFiles) {
                         if (!f.isEmpty()) {
                             fileUploadService.uploadFile(f, userId, existingGroupId.intValue(),
-                                    FileCtxType.INSTRUCTOR, String.valueOf(existingGroupId));
+                                    FileCtxType.CLASSROOM_DATAROOM, String.valueOf(dto.getPostSn()));
                         }
                     }
                 } catch (Exception e) {
@@ -195,7 +195,7 @@ public class AdminClassroomDataroomController extends AbstractClassroomControlle
                     for (MultipartFile f : attachFiles) {
                         if (!f.isEmpty()) {
                             fileUploadService.uploadFile(f, userId, newGroupId,
-                                    FileCtxType.INSTRUCTOR, String.valueOf(newGroupId));
+                                    FileCtxType.CLASSROOM_DATAROOM, String.valueOf(dto.getPostSn()));
                         }
                     }
                 } catch (Exception e) {
