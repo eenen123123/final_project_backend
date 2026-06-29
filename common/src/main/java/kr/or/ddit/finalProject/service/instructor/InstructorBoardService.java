@@ -93,7 +93,7 @@ public interface InstructorBoardService {
     void insertClassroomQna(InstructorBoardDto dto);
 
     /** 클래스룸 Q&A 본문 수정 (작성자 본인만) */
-    void updateClassroomQna(Long postSn, Long classSn, String wrtrUserId, String postSj, String postCn);
+    void updateClassroomQna(Long postSn, Long classSn, String wrtrUserId, String postSj, String postCn, Long atchFileId, boolean updateAtchFile);
 
     /** 클래스룸 Q&A 답변 등록 또는 수정 */
     void answerClassroomQna(Long postSn, String answrUserId, String answCn);

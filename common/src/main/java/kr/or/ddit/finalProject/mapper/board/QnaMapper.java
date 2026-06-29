@@ -41,4 +41,10 @@ public interface QnaMapper {
     // QnA DELETE
     int deleteQna(@Param("postSn") Long postSn);
 
+    // 미답변 QnA 건수
+    int countUnansweredQna();
+
+    // 최근 미답변 QnA 목록
+    List<QnaDto> selectRecentUnansweredQna(@Param("limit") int limit);
+
 }

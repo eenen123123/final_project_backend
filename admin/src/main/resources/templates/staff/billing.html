@@ -472,8 +472,10 @@
 
   /* ── 초기화 ── */
   (function () {
-    const firstBtn = document.querySelector('.bl-tab-btn[data-tab="tab-receipt"]');
-    if (firstBtn) switchBlTab('tab-receipt', firstBtn);
+    const hash = location.hash.replace('#', '') || 'tab-receipt';
+    const initBtn = document.querySelector(`.bl-tab-btn[data-tab="${hash}"]`)
+                 || document.querySelector('.bl-tab-btn[data-tab="tab-receipt"]');
+    switchBlTab(initBtn.dataset.tab, initBtn);
     loadReceipts(1);
     loadUnpaid(1);
     loadHistory(1);

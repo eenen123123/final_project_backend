@@ -14,6 +14,12 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public class LayoutThymeleafViewResolver extends ThymeleafViewResolver {
 
+    private final kr.or.ddit.finalProject.mapper.MemberMapper memberMapper;
+
+    public LayoutThymeleafViewResolver(kr.or.ddit.finalProject.mapper.MemberMapper memberMapper) {
+        this.memberMapper = memberMapper;
+    }
+
     @Override
     protected View loadView(String viewName, Locale locale) throws Exception {
 
@@ -46,9 +52,15 @@ public class LayoutThymeleafViewResolver extends ThymeleafViewResolver {
             public void render(@Nullable Map<String, ?> model, @NonNull HttpServletRequest request,
                     @NonNull HttpServletResponse response) throws Exception {
 
-                // 로그인한 사용자 아이디를 모델에 추가 (adminName)
                 if (request.getUserPrincipal() != null) {
-                    request.setAttribute("adminName", request.getUserPrincipal().getName());
+                    String userId = request.getUserPrincipal().getName();
+                    request.setAttribute("adminName", userId);
+                    memberMapper.findByUserId(userId).ifPresent(m -> {
+                        request.setAttribute("adminUserName", m.getUserName());
+                        if (m.getUserProfile() != null && m.getUserProfile().startsWith("http")) {
+                            request.setAttribute("adminUserProfile", m.getUserProfile());
+                        }
+                    });
                 }
 
                 Map<String, Object> mergedModel = new HashMap<>(model);

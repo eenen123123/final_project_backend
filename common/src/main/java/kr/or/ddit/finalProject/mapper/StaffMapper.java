@@ -165,4 +165,6 @@ public interface StaffMapper {
 
     // 클래스에 학생 등록
     int insertClassroomMember(@Param("classSn") Long classSn, @Param("userId") String userId);
+
+    int countActiveStaffByDept(@Param("deptCd") String deptCd);
 }
