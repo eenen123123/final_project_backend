@@ -903,6 +903,14 @@
     </where>
 </select>
 
+<select id="countActiveStaffByDept" resultType="int">
+    SELECT COUNT(*)
+    FROM EMPLOYEE_INFO ei
+    JOIN JOB_GRADE jg ON ei.JBGR_CD = jg.JBGR_CD
+    WHERE jg.DEPT_CD = #{deptCd}
+      AND ei.EMPL_STAT_CD = '01'
+</select>
+
 <insert id="insertJobGrade" parameterType="kr.or.ddit.finalProject.dto.employee.JobGradeDto">
         INSERT INTO JOB_GRADE (JBGR_CD, JBGR_NM, SORT_ORD, USE_YN, BASE_ANN_LV_DAYS, DEPT_CD, RGTR_ID, LAST_MDFR_ID, REG_DT, MDFCN_DT)
         VALUES (#{jbgrCd}, #{jbgrNm}, #{sortOrd, jdbcType=NUMERIC}, 'Y',

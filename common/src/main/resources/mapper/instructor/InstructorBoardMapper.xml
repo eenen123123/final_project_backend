@@ -474,11 +474,11 @@
             INSERT INTO INSTRUCTOR_BOARD (
                   INSTR_USER_ID, WRTR_USER_ID, BOARD_TYPE_CD,
                   CLASS_SN, POST_SJ, POST_CN,
-                  INQ_CNT, USE_YN, REG_DT, MDFCN_DT, RGTR_ID, LAST_MDFR_ID
+                  INQ_CNT, ATCH_FILE_ID, USE_YN, REG_DT, MDFCN_DT, RGTR_ID, LAST_MDFR_ID
             ) VALUES (
                   #{instrUserId}, #{wrtrUserId}, 'QNA',
                   #{classSn}, #{postSj}, #{postCn},
-                  0, 'Y', SYSDATE, SYSDATE, #{wrtrUserId}, #{wrtrUserId}
+                  0, #{atchFileId, jdbcType=NUMERIC}, 'Y', SYSDATE, SYSDATE, #{wrtrUserId}, #{wrtrUserId}
             )
       </insert>
 
@@ -490,9 +490,10 @@
 
       <update id="updateClassroomQna">
             UPDATE INSTRUCTOR_BOARD
-            SET POST_SJ    = #{postSj},
-                POST_CN    = #{postCn},
-                MDFCN_DT   = SYSDATE
+            SET POST_SJ  = #{postSj},
+                POST_CN  = #{postCn},
+                <if test="updateAtchFile">ATCH_FILE_ID = #{atchFileId, jdbcType=NUMERIC},</if>
+                MDFCN_DT = SYSDATE
             WHERE POST_SN  = #{postSn}
               AND CLASS_SN = #{classSn}
               AND USE_YN   = 'Y'
@@ -506,6 +507,34 @@
                 ANSW_YN       = 'Y'
             WHERE POST_SN = #{postSn}
       </update>
+
+      <!-- 강사 게시판 미답변 Q&A 건수: 내 게시판(CLASS_SN IS NULL) 기준 -->
+      <select id="countUnansweredInstructorQna" resultType="int">
+            SELECT COUNT(*)
+            FROM INSTRUCTOR_BOARD IB
+                 INNER JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
+            WHERE IB.INSTR_USER_ID  = #{userId}
+              AND IB.CLASS_SN       IS NULL
+              AND IB.BOARD_TYPE_CD  = 'QNA'
+              AND IB.USE_YN         = 'Y'
+              AND IQ.ANSW_YN        = 'N'
+      </select>
+
+      <!-- 강사 게시판 최근 미답변 Q&A 목록 (대시보드 목록 섹션용) -->
+      <select id="selectRecentUnansweredInstructorQna" resultMap="instructorBoardMap">
+            SELECT IB.POST_SN, IB.INSTR_USER_ID, IB.WRTR_USER_ID, IB.BOARD_TYPE_CD,
+                   IB.POST_SJ, IB.REG_DT, IB.USE_YN, M.USER_NAME, IQ.ANSW_YN
+            FROM INSTRUCTOR_BOARD IB
+                 INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
+                 INNER JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
+            WHERE IB.INSTR_USER_ID = #{userId}
+              AND IB.CLASS_SN      IS NULL
+              AND IB.BOARD_TYPE_CD = 'QNA'
+              AND IB.USE_YN        = 'Y'
+              AND IQ.ANSW_YN       = 'N'
+            ORDER BY IB.REG_DT DESC
+            FETCH NEXT #{limit} ROWS ONLY
+      </select>
 
       <!-- 미답변 Q&A 건수: 대시보드 배지 및 알림 표시에 사용 -->
       <select id="selectUnansweredQnaCount" resultType="int">

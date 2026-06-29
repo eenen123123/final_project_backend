@@ -234,7 +234,7 @@ public class StudentClassroomController {
         List<?> rawIds = body.get("fileServerIds") instanceof List ? (List<?>) body.get("fileServerIds") : null;
         boolean fileIdsProvided = rawIds != null; // [] 와 미전송을 구분
         Long atchFileId = null;
-        if (fileIdsProvided && !rawIds.isEmpty()) {
+        if (rawIds != null && !rawIds.isEmpty()) {
             List<Long> fileServerIds = rawIds.stream()
                     .map(id -> ((Number) id).longValue())
                     .collect(Collectors.toList());
@@ -460,14 +460,26 @@ public class StudentClassroomController {
     public ResponseEntity<Void> updateQna(
             @PathVariable Long classSn,
             @PathVariable Long postSn,
-            @RequestBody Map<String, String> body,
+            @RequestBody Map<String, Object> body,
             Authentication authentication) {
         String userId = authentication.getName();
         if (!isMember(classSn, userId)) return ResponseEntity.status(403).build();
-        String postSj = body.getOrDefault("boardSj", body.get("postSj"));
-        String postCn = body.getOrDefault("boardCn", body.get("postCn"));
+        String postSj = (String) body.getOrDefault("boardSj", body.get("postSj"));
+        String postCn = (String) body.getOrDefault("boardCn", body.get("postCn"));
+
+        @SuppressWarnings("unchecked")
+        List<?> rawIds = body.get("fileServerIds") instanceof List ? (List<?>) body.get("fileServerIds") : null;
+        boolean fileIdsProvided = rawIds != null;
+        Long atchFileId = null;
+        if (fileIdsProvided && !rawIds.isEmpty()) {
+            List<Long> fileServerIds = rawIds.stream()
+                    .map(id -> ((Number) id).longValue())
+                    .collect(Collectors.toList());
+            atchFileId = (long) fileUploadService.linkFilesToGroup(fileServerIds);
+        }
+
         try {
-            instructorBoardService.updateClassroomQna(postSn, classSn, userId, postSj, postCn);
+            instructorBoardService.updateClassroomQna(postSn, classSn, userId, postSj, postCn, atchFileId, fileIdsProvided);
         } catch (SecurityException e) {
             return ResponseEntity.status(403).build();
         } catch (IllegalArgumentException e) {
@@ -479,15 +491,29 @@ public class StudentClassroomController {
     @PostMapping("/qna")
     public ResponseEntity<Void> createQna(
             @PathVariable Long classSn,
-            @RequestBody InstructorBoardDto req,
+            @RequestBody Map<String, Object> body,
             Authentication authentication) {
         String userId = authentication.getName();
         if (!isMember(classSn, userId)) return ResponseEntity.status(403).build();
 
+        @SuppressWarnings("unchecked")
+        List<?> rawIds = body.get("fileServerIds") instanceof List ? (List<?>) body.get("fileServerIds") : null;
+        Long atchFileId = null;
+        if (rawIds != null && !rawIds.isEmpty()) {
+            List<Long> fileServerIds = rawIds.stream()
+                    .map(id -> ((Number) id).longValue())
+                    .collect(Collectors.toList());
+            atchFileId = (long) fileUploadService.linkFilesToGroup(fileServerIds);
+        }
+
         ClassroomDetailResponse classroom = classroomService.retrieveClassroomDetail(classSn);
+        InstructorBoardDto req = new InstructorBoardDto();
         req.setClassSn(classSn);
         req.setWrtrUserId(userId);
         req.setInstrUserId(classroom.getInstrUserId());
+        req.setPostSj((String) body.get("postSj"));
+        req.setPostCn((String) body.get("postCn"));
+        req.setAtchFileId(atchFileId);
         instructorBoardService.insertClassroomQna(req);
         return ResponseEntity.ok().build();
     }

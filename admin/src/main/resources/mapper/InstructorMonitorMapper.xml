@@ -41,11 +41,30 @@
         SELECT COUNT(*) FROM CLASSROOM_MEMBER WHERE ENRL_STAT_CD = 'ENROLLED'
     </select>
 
+    <!-- ③-1 이번 달 수료 예정 수강생 수 (운영중 클래스룸 중 이달 종료) -->
+    <select id="countGraduatingStudentsThisMonth" resultType="int">
+        SELECT COUNT(cm.ENRL_SN)
+        FROM CLASSROOM_MEMBER cm
+        JOIN CLASSROOM c ON c.CLASS_SN = cm.CLASS_SN
+        WHERE c.CLASS_STAT_CD = 'ACTIVE'
+          AND cm.ENRL_STAT_CD = 'ENROLLED'
+          AND SUBSTR(c.ENRL_END_YMD, 1, 6) = TO_CHAR(SYSDATE, 'YYYYMM')
+    </select>
+
     <!-- ④ 이번달 업무 일지 총 건수 -->
     <select id="selectThisMonthJournalCount" resultType="int">
         SELECT COUNT(*)
         FROM INSTRUCTOR_JOURNAL
         WHERE DEL_YN = 'N'
+          AND TRUNC(JRNL_DT, 'MM') = TRUNC(SYSDATE, 'MM')
+    </select>
+
+    <!-- ④-1 이번달 내 업무 일지 건수 (개인) -->
+    <select id="selectMyJournalCountThisMonth" resultType="int">
+        SELECT COUNT(*)
+        FROM INSTRUCTOR_JOURNAL
+        WHERE INSTR_USER_ID = #{userId}
+          AND DEL_YN = 'N'
           AND TRUNC(JRNL_DT, 'MM') = TRUNC(SYSDATE, 'MM')
     </select>
 

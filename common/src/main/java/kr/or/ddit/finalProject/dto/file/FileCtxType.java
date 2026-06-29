@@ -10,6 +10,7 @@ public enum FileCtxType {
     CLASSROOM_NOTICE,   // 클래스룸 공지사항 첨부파일 (CTX_ID = postSn)
     CLASSROOM_DATAROOM, // 클래스룸 자료실 첨부파일  (CTX_ID = postSn)
     CLASSROOM_ASSIGNMENT, // 클래스룸 과제 제출 첨부파일 (CTX_ID = asgmtSn)
+    CLASSROOM_QNA, // 클래스룸 Q&A 첨부파일 (CTX_ID = postSn)
     POST, // React 게시글 관련 파일 id type = long
 
 }

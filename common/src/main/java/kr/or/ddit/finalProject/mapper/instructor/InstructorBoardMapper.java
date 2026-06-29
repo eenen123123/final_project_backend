@@ -162,12 +162,14 @@ public interface InstructorBoardMapper {
     /** 클래스룸 Q&A child 레코드 생성 (INSTRUCTOR_QNA INSERT, insertClassroomQnaBoard 직후 호출) */
     int insertClassroomQnaChild(@Param("postSn") Long postSn);
 
-    /** 클래스룸 Q&A 본문 수정 (제목·내용) */
+    /** 클래스룸 Q&A 본문 수정 (제목·내용·첨부파일) */
     int updateClassroomQna(
             @Param("postSn") Long postSn,
             @Param("classSn") Long classSn,
             @Param("postSj") String postSj,
-            @Param("postCn") String postCn);
+            @Param("postCn") String postCn,
+            @Param("atchFileId") Long atchFileId,
+            @Param("updateAtchFile") boolean updateAtchFile);
 
     /** 클래스룸 Q&A 답변 등록 또는 수정 */
     int updateClassroomQnaAnswer(
@@ -177,6 +179,14 @@ public interface InstructorBoardMapper {
 
     /** 클래스룸 내 미답변 Q&A 건수 조회 (대시보드 배지 표시용) */
     int selectUnansweredQnaCount(@Param("classSn") Long classSn);
+
+    /** 강사 게시판 미답변 Q&A 총 건수 (강사 대시보드용) */
+    int countUnansweredInstructorQna(@Param("userId") String userId);
+
+    /** 강사 게시판 최근 미답변 Q&A 목록 (강사 대시보드 목록 섹션용) */
+    List<kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto> selectRecentUnansweredInstructorQna(
+            @Param("userId") String userId,
+            @Param("limit") int limit);
 
     /** 특정 학생이 등록한 최근 QnA 조회 (학생 상세 페이지용) */
     List<kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto> selectRecentQnaByStudent(

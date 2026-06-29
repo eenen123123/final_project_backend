@@ -173,6 +173,22 @@
         JOIN QNA q ON q.POST_SN = b.POST_SN
         WHERE b.WRTR_USER_ID = #{userId}
           AND b.BOARD_TYPE_CD = '03'
+    <!-- 미답변 QnA 건수 -->
+    <select id="countUnansweredQna" resultType="int">
+        SELECT COUNT(*) FROM QNA WHERE ANSW_STAT_CD = '01'
+    </select>
+
+    <!-- 최근 미답변 QnA -->
+    <select id="selectRecentUnansweredQna" resultMap="qnaResultMap">
+        SELECT q.POST_SN, q.QNA_CTG_CD, q.ANSW_STAT_CD,
+               b.POST_SJ, b.WRTR_USER_ID, b.REG_DT,
+               c1.COM_CD_NM AS QNA_CTG_NM
+        FROM QNA q
+        JOIN BOARD b ON b.POST_SN = q.POST_SN
+        LEFT JOIN COM_CD c1 ON c1.CL_CODE = '105' AND c1.COM_CD = q.QNA_CTG_CD
+        WHERE q.ANSW_STAT_CD = '01'
+        ORDER BY b.REG_DT DESC
+        FETCH NEXT #{limit} ROWS ONLY
     </select>
 
     <!-- QnA DELETE -->

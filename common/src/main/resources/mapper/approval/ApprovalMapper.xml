@@ -216,4 +216,10 @@
         aprvl_rsn_cn   = #{aprvlRsnCn,jdbcType=VARCHAR}
     WHERE aprvl_line_sn = #{aprvlLineSn}
     </update>
+
+    <select id="countAllPendingLines" resultType="int">
+        SELECT COUNT(*)
+        FROM APPROVAL_LINE
+        WHERE aprvl_prgrs_cd = 'IN_PROGRESS'
+    </select>
 </mapper>
