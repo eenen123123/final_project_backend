@@ -1,4 +1,6 @@
-<title th:fragment="pageTitle" th:text="${lecture.lectureNm} + ' | HERMES'">강의 미리보기 | HERMES</title>
+<title th:fragment="pageTitle" th:text="${lecture.lectureNm} + ' | HERMES'">
+  강의 미리보기 | HERMES
+</title>
 
 <style>
   .lecture-sidebar {
@@ -12,7 +14,7 @@
     width: 100%;
   }
   video::-webkit-media-controls-panel {
-    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
   }
   .lecture-item.active {
     background-color: #f5f3ff;
@@ -24,10 +26,9 @@
 </style>
 
 <div class="space-y-4">
-
   <!-- 상단 브레드크럼 -->
   <div class="flex items-center justify-between">
-    <div class="flex items-center gap-2 text-xs text-slate-400">
+    <!-- <div class="flex items-center gap-2 text-xs text-slate-400">
       <a th:href="@{/admin/course/list}" class="hover:text-violet-500 transition-colors">강좌 관리</a>
       <i class="fa-solid fa-chevron-right text-[10px]"></i>
       <a th:href="@{/admin/lectures/list(courseId=${course.courseSn})}"
@@ -35,6 +36,21 @@
          class="hover:text-violet-500 transition-colors text-slate-600">강좌명</a>
       <i class="fa-solid fa-chevron-right text-[10px]"></i>
       <span class="text-violet-500 font-medium truncate max-w-xs" th:text="${lecture.lectureNm}">강의명</span>
+    </div> -->
+    <div class="flex items-center gap-2 shrink-0">
+      <span
+        class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl font-semibold"
+        th:classappend="${lecture.opnnYn == 'Y'} ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'"
+      >
+        <i class="fa-solid fa-circle text-[8px]"></i>
+        <span th:text="${lecture.opnnYn == 'Y'} ? '학생 공개' : '비공개'"
+          >공개</span
+        >
+      </span>
+      <span
+        class="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-lg"
+        >관리자 미리보기</span
+      >
     </div>
     <div class="flex items-center gap-2 shrink-0">
       <a
@@ -44,40 +60,40 @@
         <i class="fa-solid fa-arrow-left"></i>
         <span>강의 목록</span>
       </a>
-      <span class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl font-semibold"
-            th:classappend="${lecture.opnnYn == 'Y'} ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'">
-        <i class="fa-solid fa-circle text-[8px]"></i>
-        <span th:text="${lecture.opnnYn == 'Y'} ? '학생 공개' : '비공개'">공개</span>
-      </span>
-      <span class="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-lg">관리자 미리보기</span>
     </div>
   </div>
 
   <!-- 메인: 플레이어 + 목차 사이드바 -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-
     <!-- 왼쪽: 영상 플레이어 + 강의 정보 (2/3) -->
     <div class="lg:col-span-2 space-y-4">
-
       <!-- 플레이어 -->
       <div class="video-wrapper">
         <!-- 영상 있을 때 -->
-        <video th:if="${lecture.atchFileId != null and !#strings.isEmpty(lecture.atchFileId)}"
-               id="lectureVideo"
-               class="w-full h-full object-contain"
-               controls
-               controlsList="nodownload"
-               preload="metadata">
-          <source th:src="@{/admin/files/{id}/view(id=${lecture.atchFileId})}" />
+        <video
+          th:if="${lecture.atchFileId != null and !#strings.isEmpty(lecture.atchFileId)}"
+          id="lectureVideo"
+          class="w-full h-full object-contain"
+          controls
+          controlsList="nodownload"
+          preload="metadata"
+        >
+          <source
+            th:src="@{/admin/files/{id}/view(id=${lecture.atchFileId})}"
+          />
           이 브라우저는 video 태그를 지원하지 않습니다.
         </video>
         <!-- 영상 없을 때 -->
-        <div th:unless="${lecture.atchFileId != null and !#strings.isEmpty(lecture.atchFileId)}"
-             class="w-full h-full flex flex-col items-center justify-center gap-4 text-white/30">
+        <div
+          th:unless="${lecture.atchFileId != null and !#strings.isEmpty(lecture.atchFileId)}"
+          class="w-full h-full flex flex-col items-center justify-center gap-4 text-white/30"
+        >
           <i class="fa-solid fa-clapperboard text-5xl"></i>
           <p class="text-sm font-medium">등록된 영상이 없습니다.</p>
-          <a th:href="@{/admin/lectures/insert(courseId=${course.courseSn})}"
-             class="text-xs text-violet-400 hover:text-violet-300 transition-colors">
+          <a
+            th:href="@{/admin/lectures/insert(courseId=${course.courseSn})}"
+            class="text-xs text-violet-400 hover:text-violet-300 transition-colors"
+          >
             강의 등록하러 가기 →
           </a>
         </div>
@@ -88,44 +104,85 @@
         <div class="flex items-start justify-between gap-4">
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-2 flex-wrap">
-              <!-- 유형 배지 -->
-              <span th:switch="${lecture.lectureTypeCd}">
-                <span th:case="'VOD'"  class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-violet-50 text-violet-600"><i class="fa-solid fa-play mr-1 text-[10px]"></i>영상(VOD)</span>
-                <span th:case="'LIVE'" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-500"><i class="fa-solid fa-circle-dot mr-1 text-[10px]"></i>라이브</span>
-                <span th:case="'QUIZ'" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-violet-50 text-violet-600"><i class="fa-solid fa-question mr-1 text-[10px]"></i>퀴즈</span>
-                <span th:case="'DOC'"  class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-50 text-sky-600"><i class="fa-solid fa-file mr-1 text-[10px]"></i>자료</span>
-                <span th:case="*"      class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-500" th:text="${lecture.lectureTypeCd}">-</span>
-              </span>
-              <span th:if="${lecture.lockYn == 'Y'}"
-                    class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-600">
+              <span
+                th:if="${lecture.lockYn == 'Y'}"
+                class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-600"
+              >
                 <i class="fa-solid fa-lock mr-1 text-[10px]"></i>수강 잠금
               </span>
             </div>
-            <h2 class="text-lg font-bold text-slate-900 leading-snug" th:text="${lecture.lectureNm}">강의명</h2>
-            <p class="text-xs text-slate-400 mt-1" th:text="${course?.courseNm}">강좌명</p>
+            <h2
+              class="text-lg font-bold text-slate-900 leading-snug"
+              th:text="${lecture.lectureNm}"
+            >
+              강의명
+            </h2>
+            <p
+              class="text-xs text-slate-400 mt-1"
+              th:text="${course?.courseNm}"
+            >
+              강좌명
+            </p>
           </div>
-          <div class="flex items-center gap-2 shrink-0">
-            <a th:if="${#authentication.name == course.instrUserId}"
-               th:href="@{/admin/lectures/edit(lectureId=${lecture.lectureSn})}"
-               class="hm-btn-secondary text-xs">
+          <div
+            class="flex items-center gap-2 shrink-0"
+            th:if="${#authentication.name == course.instrUserId}"
+          >
+            <a
+              th:href="@{/admin/lectures/edit(lectureId=${lecture.lectureSn})}"
+              class="hm-btn-secondary text-xs"
+            >
               <i class="fa-solid fa-pen"></i>
               <span>수정</span>
             </a>
+            <form
+              th:action="@{/admin/lectures/delete}"
+              method="post"
+              onsubmit="
+                return confirm(
+                  '강의를 삭제하면 복구할 수 없습니다. 삭제하시겠습니까?',
+                );
+              "
+            >
+              <input
+                type="hidden"
+                name="lectureId"
+                th:value="${lecture.lectureSn}"
+              />
+              <button
+                type="submit"
+                class="hm-btn-secondary text-xs text-red-500 hover:text-red-600"
+              >
+                <i class="fa-solid fa-trash"></i>
+                <span>삭제</span>
+              </button>
+            </form>
           </div>
         </div>
 
-        <div th:if="${lecture.lectureExplnCn}" class="mt-4 pt-4 border-t border-slate-100">
+        <div
+          th:if="${lecture.lectureExplnCn}"
+          class="mt-4 pt-4 border-t border-slate-100"
+        >
           <p class="text-xs font-medium text-slate-500 mb-1.5">강의 설명</p>
-          <p class="text-sm text-slate-600 leading-relaxed" th:text="${lecture.lectureExplnCn}">강의 설명</p>
+          <p
+            class="text-sm text-slate-600 leading-relaxed"
+            th:text="${lecture.lectureExplnCn}"
+          >
+            강의 설명
+          </p>
         </div>
 
-        <div class="mt-4 pt-4 border-t border-slate-100 flex items-center gap-4 text-xs text-slate-400">
+        <div
+          class="mt-4 pt-4 border-t border-slate-100 flex items-center gap-4 text-xs text-slate-400"
+        >
           <span th:if="${lecture.sortOrd != null}">
             <i class="fa-solid fa-list-ol mr-1"></i>
             <span th:text="${lecture.sortOrd} + '번째 강의'">-번째 강의</span>
           </span>
           <span th:if="${lecture.prereqLectureSn != null}">
-            <i class="fa-solid fa-arrow-right-to-bracket mr-1"></i>선행 강의 있음
+            <i class="fa-solid fa-arrow-right-to-bracket mr-1"></i>선행 강의
+            있음
           </span>
         </div>
       </div>
@@ -133,56 +190,87 @@
 
     <!-- 오른쪽: 목차 사이드바 (1/3) -->
     <div class="lg:col-span-1">
-      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden sticky top-4">
-
+      <div
+        class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden sticky top-4"
+      >
         <!-- 강좌명 헤더 -->
         <div class="px-5 py-4 border-b border-slate-100 bg-slate-50">
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">강좌</p>
-          <h3 class="text-sm font-bold text-slate-800 leading-snug" th:text="${course?.courseNm}">강좌명</h3>
+          <p
+            class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5"
+          >
+            강좌
+          </p>
+          <h3
+            class="text-sm font-bold text-slate-800 leading-snug"
+            th:text="${course?.courseNm}"
+          >
+            강좌명
+          </h3>
           <p class="text-xs text-slate-400 mt-1">
-            <span th:text="${lectures != null ? lectures.size() : 0}">0</span>개 강의
+            <span th:text="${lectures != null ? lectures.size() : 0}">0</span>개
+            강의
           </p>
         </div>
 
         <!-- 강의 목차 -->
         <div class="overflow-y-auto lecture-sidebar">
-          <ul th:if="${lectures != null and !lectures.isEmpty()}" class="divide-y divide-slate-50">
+          <ul
+            th:if="${lectures != null and !lectures.isEmpty()}"
+            class="divide-y divide-slate-50"
+          >
             <li th:each="lec, iter : ${lectures}">
-              <a th:href="@{/admin/lectures/view(lectureId=${lec.lectureSn})}"
-                 class="lecture-item flex items-center gap-3 px-4 py-3.5 hover:bg-violet-50/60 transition-colors"
-                 th:classappend="${lec.lectureSn == lecture.lectureSn} ? ' active' : ''">
+              <a
+                th:href="@{/admin/lectures/view(lectureId=${lec.lectureSn})}"
+                class="lecture-item flex items-center gap-3 px-4 py-3.5 hover:bg-violet-50/60 transition-colors"
+                th:classappend="${lec.lectureSn == lecture.lectureSn} ? ' active' : ''"
+              >
                 <!-- 순서 번호 -->
-                <span class="w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center shrink-0 transition-colors"
-                      th:classappend="${lec.lectureSn == lecture.lectureSn} ? 'bg-violet-500 text-white' : 'bg-slate-100 text-slate-500'"
-                      th:text="${lec.sortOrd != null ? lec.sortOrd : iter.index + 1}">1</span>
+                <span
+                  class="w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center shrink-0 transition-colors"
+                  th:classappend="${lec.lectureSn == lecture.lectureSn} ? 'bg-violet-500 text-white' : 'bg-slate-100 text-slate-500'"
+                  th:text="${lec.sortOrd != null ? lec.sortOrd : iter.index + 1}"
+                  >1</span
+                >
                 <!-- 강의명 + 상태 -->
                 <div class="flex-1 min-w-0">
-                  <p class="text-sm font-medium leading-snug truncate"
-                     th:classappend="${lec.lectureSn == lecture.lectureSn} ? 'text-violet-600' : 'text-slate-700'"
-                     th:text="${lec.lectureNm}">강의명</p>
+                  <p
+                    class="text-sm font-medium leading-snug truncate"
+                    th:classappend="${lec.lectureSn == lecture.lectureSn} ? 'text-violet-600' : 'text-slate-700'"
+                    th:text="${lec.lectureNm}"
+                  >
+                    강의명
+                  </p>
                   <div class="flex items-center gap-1.5 mt-0.5">
-                    <span th:if="${lec.lockYn == 'Y'}" class="text-[10px] text-amber-500">
+                    <span
+                      th:if="${lec.lockYn == 'Y'}"
+                      class="text-[10px] text-amber-500"
+                    >
                       <i class="fa-solid fa-lock"></i>
                     </span>
-                    <span th:unless="${lec.opnnYn == 'Y'}" class="text-[10px] text-slate-400">
+                    <span
+                      th:unless="${lec.opnnYn == 'Y'}"
+                      class="text-[10px] text-slate-400"
+                    >
                       <i class="fa-solid fa-eye-slash"></i>
                     </span>
                   </div>
                 </div>
                 <!-- 현재 강의 표시 -->
-                <i th:if="${lec.lectureSn == lecture.lectureSn}"
-                   class="fa-solid fa-play text-violet-400 text-[10px] shrink-0"></i>
+                <i
+                  th:if="${lec.lectureSn == lecture.lectureSn}"
+                  class="fa-solid fa-play text-violet-400 text-[10px] shrink-0"
+                ></i>
               </a>
             </li>
           </ul>
-          <div th:if="${lectures == null or lectures.isEmpty()}"
-               class="py-12 text-center text-slate-300 text-xs">
+          <div
+            th:if="${lectures == null or lectures.isEmpty()}"
+            class="py-12 text-center text-slate-300 text-xs"
+          >
             등록된 강의가 없습니다.
           </div>
         </div>
-
       </div>
     </div>
-
   </div>
 </div>

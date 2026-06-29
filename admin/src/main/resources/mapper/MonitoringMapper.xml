@@ -56,4 +56,140 @@
     ORDER BY CL.CLASS_SN
   </select>
 
+
+  <!--
+    월별 강좌 진도율 추이 조회 (최근 6개월).
+
+    [한계]
+    LECTURE_PROGRESS.LAST_UPDATE 는 해당 수강 레코드의 '마지막 갱신 시각'이다.
+    학생이 3월에 강의를 시청한 뒤 4월에 다시 시청하면 LAST_UPDATE 가 4월로 덮여
+    3월 기록이 사라진다. 따라서 이 쿼리는 "해당 월에 마지막으로 활동한 레코드"
+    기준의 근삿값이며, 엄밀한 월말 스냅샷이 아니다.
+
+    [개선 방향]
+    정확한 월별 추이를 원한다면 다음 중 하나를 선택해야 한다.
+    1) LECTURE_PROGRESS 에 FIRST_WATCHED_DT(최초 시청일) 컬럼을 추가하고
+       최초 완료 시각 기준으로 집계한다.
+    2) 월말 배치 스케줄러로 강좌별 진도율 스냅샷 테이블(CLASS_PROGRESS_SNAPSHOT)
+       을 적재하고 해당 테이블을 조회한다.
+    현재는 일정 제약으로 LAST_UPDATE 근삿값을 사용한다.
+  -->
+  <select id="selectProgressTrend"
+          resultType="kr.or.ddit.finalProject.dto.monitoring.ProgressTrendDto">
+    SELECT
+        TO_CHAR(TRUNC(LP.LAST_UPDATE, 'MM'), 'YYYY-MM') AS MON,
+        CL.CLASS_NM,
+        ROUND(
+            COUNT(*) * 100.0 / NULLIF(SC.STUDENT_CNT * LC.LECTURE_CNT, 0)
+        , 1) AS PROGRESS_RATE
+    FROM LECTURE_PROGRESS LP
+    JOIN CLASSROOM_MEMBER CM
+        ON CM.USER_ID = LP.USER_ID
+       AND CM.ENRL_STAT_CD = 'ENROLLED'
+    JOIN CLASSROOM CL ON CL.CLASS_SN = CM.CLASS_SN
+    JOIN COURSE CO ON CO.COURSE_SN = CL.COURSE_SN
+    JOIN (
+        SELECT CLASS_SN, COUNT(*) AS STUDENT_CNT
+        FROM CLASSROOM_MEMBER
+        WHERE ENRL_STAT_CD = 'ENROLLED'
+        GROUP BY CLASS_SN
+    ) SC ON SC.CLASS_SN = CL.CLASS_SN
+    JOIN (
+        SELECT COURSE_SN, COUNT(*) AS LECTURE_CNT
+        FROM LECTURE
+        GROUP BY COURSE_SN
+    ) LC ON LC.COURSE_SN = CO.COURSE_SN
+    WHERE LP.SECONDS_WATCHED > 0
+      AND LP.LAST_UPDATE >= ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -5)
+    GROUP BY
+        TRUNC(LP.LAST_UPDATE, 'MM'),
+        CL.CLASS_SN, CL.CLASS_NM,
+        SC.STUDENT_CNT, LC.LECTURE_CNT
+    ORDER BY TRUNC(LP.LAST_UPDATE, 'MM'), CL.CLASS_SN
+  </select>
+
+  <!-- 예정 시험 목록 (종료일 > 현재) -->
+  <select id="selectUpcomingExams"
+          resultType="kr.or.ddit.finalProject.dto.monitoring.ExamScheduleDto">
+    SELECT
+        E.EXAM_SN,
+        E.EXAM_REG_NM,
+        TO_CHAR(E.EXAM_STRT_DT, 'YYYY-MM-DD HH24:MI') AS EXAM_STRT_DT,
+        TO_CHAR(E.EXAM_END_DT,  'YYYY-MM-DD HH24:MI') AS EXAM_END_DT,
+        CL.CLASS_SN,
+        CL.CLASS_NM,
+        NVL(SC.STUDENT_CNT, 0) AS TARGET_CNT
+    FROM EXAM E
+    JOIN CLASSROOM CL ON CL.CLASS_SN = E.CLASS_SN
+    LEFT JOIN (
+        SELECT CLASS_SN, COUNT(*) AS STUDENT_CNT
+        FROM CLASSROOM_MEMBER
+        WHERE ENRL_STAT_CD = 'ENROLLED'
+        GROUP BY CLASS_SN
+    ) SC ON SC.CLASS_SN = CL.CLASS_SN
+    WHERE E.EXAM_STAT_CD != '99'
+      AND E.EXAM_END_DT > SYSDATE
+    ORDER BY E.EXAM_STRT_DT ASC
+  </select>
+
+  <!-- 최근 완료 시험 (종료일 &lt;= 현재, 응시자 있음, 최신 5건) -->
+  <select id="selectRecentCompletedExams"
+          resultType="kr.or.ddit.finalProject.dto.monitoring.ExamScheduleDto">
+    SELECT *
+    FROM (
+        SELECT
+            E.EXAM_SN,
+            E.EXAM_REG_NM,
+            TO_CHAR(E.EXAM_END_DT, 'YYYY-MM-DD') AS EXAM_END_DT,
+            CL.CLASS_NM,
+            COUNT(ET.STD_USER_ID) AS TAKER_CNT,
+            ROUND(AVG(ET.TOT_SCORE), 1) AS AVG_SCORE
+        FROM EXAM E
+        JOIN CLASSROOM CL ON CL.CLASS_SN = E.CLASS_SN
+        JOIN EXAM_TAKER ET ON ET.EXAM_SN = E.EXAM_SN
+        WHERE E.EXAM_STAT_CD != '99'
+          AND E.EXAM_END_DT &lt;= SYSDATE
+          AND ET.TOT_SCORE IS NOT NULL
+        GROUP BY E.EXAM_SN, E.EXAM_REG_NM, E.EXAM_END_DT, CL.CLASS_NM
+        ORDER BY E.EXAM_END_DT DESC
+    )
+    WHERE ROWNUM &lt;= 5
+  </select>
+
+  <!-- 반별 성적 통계 (전체 기간) -->
+  <select id="selectClassroomGradeStats"
+          resultType="kr.or.ddit.finalProject.dto.monitoring.ClassroomGradeStatsDto">
+    SELECT
+        CL.CLASS_SN,
+        CL.CLASS_NM,
+        COUNT(ET.STD_USER_ID)                                          AS TAKER_CNT,
+        ROUND(AVG(ET.TOT_SCORE), 1)                                    AS AVG_SCORE,
+        MAX(ET.TOT_SCORE)                                              AS MAX_SCORE,
+        MIN(ET.TOT_SCORE)                                              AS MIN_SCORE,
+        SUM(CASE WHEN ET.TOT_SCORE >= 90 THEN 1 ELSE 0 END)           AS CNT_90_PLUS,
+        SUM(CASE WHEN ET.TOT_SCORE  &lt; 60 THEN 1 ELSE 0 END)          AS CNT_BELOW_60
+    FROM EXAM E
+    JOIN CLASSROOM CL ON CL.CLASS_SN = E.CLASS_SN
+    JOIN EXAM_TAKER ET ON ET.EXAM_SN = E.EXAM_SN
+    WHERE E.EXAM_STAT_CD != '99'
+      AND ET.TOT_SCORE IS NOT NULL
+    GROUP BY CL.CLASS_SN, CL.CLASS_NM
+    ORDER BY AVG_SCORE DESC
+  </select>
+
+  <!-- 점수 구간 분포 (전체 응시 기록) -->
+  <select id="selectGradeDistribution"
+          resultType="java.util.Map">
+    SELECT
+        SUM(CASE WHEN TOT_SCORE  &lt; 40 THEN 1 ELSE 0 END) AS CNT_0_39,
+        SUM(CASE WHEN TOT_SCORE >= 40 AND TOT_SCORE &lt; 50 THEN 1 ELSE 0 END) AS CNT_40_49,
+        SUM(CASE WHEN TOT_SCORE >= 50 AND TOT_SCORE &lt; 60 THEN 1 ELSE 0 END) AS CNT_50_59,
+        SUM(CASE WHEN TOT_SCORE >= 60 AND TOT_SCORE &lt; 70 THEN 1 ELSE 0 END) AS CNT_60_69,
+        SUM(CASE WHEN TOT_SCORE >= 70 AND TOT_SCORE &lt; 80 THEN 1 ELSE 0 END) AS CNT_70_79,
+        SUM(CASE WHEN TOT_SCORE >= 80 AND TOT_SCORE &lt; 90 THEN 1 ELSE 0 END) AS CNT_80_89,
+        SUM(CASE WHEN TOT_SCORE >= 90                     THEN 1 ELSE 0 END) AS CNT_90_100
+    FROM EXAM_TAKER
+    WHERE TOT_SCORE IS NOT NULL
+  </select>
+
 </mapper>

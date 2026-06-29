@@ -27,36 +27,40 @@ public class LectureController {
     private final CourseService courseService;
 
     @GetMapping("/insert")
-    public String insertLecture(@RequestParam Long courseId, Model model) {
-        log.info("강의 등록 페이지 요청 - courseId: {}", courseId);
+    public String insertLecture(@RequestParam Long courseId, Authentication authentication,
+            RedirectAttributes redirectAttributes, Model model) {
         var course = courseService.retrieveCourseBySn(courseId);
         if (course == null) {
             throw new FinalProjectException(ErrorCode.COURSE_NOT_FOUND);
         }
+        if (!authentication.getName().equals(course.getInstrUserId())) {
+            redirectAttributes.addFlashAttribute("errorMsg", "본인이 담당하는 강좌에만 강의를 등록할 수 있습니다.");
+            return "redirect:/admin/lectures/list?courseId=" + courseId;
+        }
         model.addAttribute("course", course);
-
-        var lectures = lectureService.retrieveLectureByCourseSn(courseId);
-        model.addAttribute("lectures", lectures);
-
-
-
+        model.addAttribute("lectures", lectureService.retrieveLectureByCourseSn(courseId));
         return "admin:/lecture/insert-lecture";
     }
 
     @PostMapping("/insert")
     public String insertLecturePost(@ModelAttribute LectureDto lectureDto,
             Authentication authentication, RedirectAttributes redirectAttributes) {
-        log.info("강의 등록 요청 - lectureDto: {}", lectureDto);
         String userId = authentication.getName();
+        var course = courseService.retrieveCourseBySn(lectureDto.getCourseSn());
+        if (course == null) {
+            throw new FinalProjectException(ErrorCode.COURSE_NOT_FOUND);
+        }
+        if (!userId.equals(course.getInstrUserId())) {
+            redirectAttributes.addFlashAttribute("errorMsg", "본인이 담당하는 강좌에만 강의를 등록할 수 있습니다.");
+            return "redirect:/admin/lectures/list?courseId=" + lectureDto.getCourseSn();
+        }
         lectureDto.setRgtrId(userId);
         lectureDto.setLastMdfrId(userId);
-
         boolean created = lectureService.createLecture(lectureDto);
         if (!created) {
             redirectAttributes.addFlashAttribute("errorMsg", "강의 등록에 실패했습니다.");
             return "redirect:/admin/lectures/insert?courseId=" + lectureDto.getCourseSn();
         }
-
         redirectAttributes.addFlashAttribute("successMsg", "강의가 등록되었습니다.");
         return "redirect:/admin/lectures/insert?courseId=" + lectureDto.getCourseSn();
     }
@@ -83,12 +87,71 @@ public class LectureController {
         model.addAttribute("lecture", lecture);
         model.addAttribute("course", course);
         model.addAttribute("lectures", lectures);
-
-        log.info("lecture : {}", lecture);
         return "admin:/lecture/view-lecture";
     }
 
-    // TODO: /admin/lectures/edit 구현 시 course.instrUserId == currentUser 소유권 체크 필수
-    // TODO: /admin/lectures/delete 구현 시 동일한 소유권 체크 필수
+    @GetMapping("/edit")
+    public String editLecture(@RequestParam Long lectureId, Authentication authentication,
+            RedirectAttributes redirectAttributes, Model model) {
+        var lecture = lectureService.retrieveLectureBySn(lectureId);
+        if (lecture == null) {
+            throw new FinalProjectException(ErrorCode.LECTURE_NOT_FOUND);
+        }
+        var course = courseService.retrieveCourseBySn(lecture.getCourseSn());
+        if (!authentication.getName().equals(course.getInstrUserId())) {
+            redirectAttributes.addFlashAttribute("errorMsg", "본인이 담당하는 강좌의 강의만 수정할 수 있습니다.");
+            return "redirect:/admin/lectures/view?lectureId=" + lectureId;
+        }
+        model.addAttribute("lecture", lecture);
+        model.addAttribute("course", course);
+        model.addAttribute("lectures", lectureService.retrieveLectureByCourseSn(lecture.getCourseSn()));
+        return "admin:/lecture/insert-lecture";
+    }
+
+    @PostMapping("/edit")
+    public String editLecturePost(@ModelAttribute LectureDto lectureDto,
+            Authentication authentication, RedirectAttributes redirectAttributes) {
+        String userId = authentication.getName();
+        var lecture = lectureService.retrieveLectureBySn(lectureDto.getLectureSn());
+        if (lecture == null) {
+            throw new FinalProjectException(ErrorCode.LECTURE_NOT_FOUND);
+        }
+        var course = courseService.retrieveCourseBySn(lecture.getCourseSn());
+        if (!userId.equals(course.getInstrUserId())) {
+            redirectAttributes.addFlashAttribute("errorMsg", "본인이 담당하는 강좌의 강의만 수정할 수 있습니다.");
+            return "redirect:/admin/lectures/view?lectureId=" + lectureDto.getLectureSn();
+        }
+        try {
+            lectureService.modifyLecture(lectureDto, userId);
+        } catch (IllegalArgumentException | SecurityException e) {
+            redirectAttributes.addFlashAttribute("errorMsg", e.getMessage());
+            return "redirect:/admin/lectures/edit?lectureId=" + lectureDto.getLectureSn();
+        }
+        redirectAttributes.addFlashAttribute("successMsg", "강의가 수정되었습니다.");
+        return "redirect:/admin/lectures/view?lectureId=" + lectureDto.getLectureSn();
+    }
+
+    @PostMapping("/delete")
+    public String deleteLecture(@RequestParam Long lectureId,
+            Authentication authentication, RedirectAttributes redirectAttributes) {
+        var lecture = lectureService.retrieveLectureBySn(lectureId);
+        if (lecture == null) {
+            throw new FinalProjectException(ErrorCode.LECTURE_NOT_FOUND);
+        }
+        Long courseSn = lecture.getCourseSn();
+        var course = courseService.retrieveCourseBySn(courseSn);
+        if (!authentication.getName().equals(course.getInstrUserId())) {
+            redirectAttributes.addFlashAttribute("errorMsg", "본인이 담당하는 강좌의 강의만 삭제할 수 있습니다.");
+            return "redirect:/admin/lectures/view?lectureId=" + lectureId;
+        }
+        try {
+            lectureService.removeLecture(lectureId, authentication.getName());
+        } catch (IllegalArgumentException | SecurityException e) {
+            redirectAttributes.addFlashAttribute("errorMsg", e.getMessage());
+            return "redirect:/admin/lectures/view?lectureId=" + lectureId;
+        }
+        redirectAttributes.addFlashAttribute("successMsg", "강의가 삭제되었습니다.");
+        return "redirect:/admin/lectures/list?courseId=" + courseSn;
+    }
 
 }
