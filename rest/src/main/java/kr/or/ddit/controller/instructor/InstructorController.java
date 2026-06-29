@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.dto.course.CourseDetailResponse;
+import kr.or.ddit.finalProject.dto.instructor.board.InstructorPublicBoardDetail;
+import kr.or.ddit.finalProject.dto.instructor.board.InstructorPublicBoardItem;
 import kr.or.ddit.finalProject.dto.instructor.profile.InstructorDetailResponse;
 import kr.or.ddit.finalProject.dto.instructor.profile.InstructorFeaturedCourseResponse;
 import kr.or.ddit.finalProject.dto.instructor.profile.InstructorListResponse;
-import kr.or.ddit.finalProject.dto.instructor.board.InstructorPublicBoardDetail;
-import kr.or.ddit.finalProject.dto.instructor.board.InstructorPublicBoardItem;
 import kr.or.ddit.finalProject.dto.instructor.profile.InstructorPublicCourseResponse;
 import kr.or.ddit.finalProject.dto.instructor.profile.InstructorRecentPostResponse;
 import kr.or.ddit.finalProject.service.course.CourseService;
@@ -112,7 +112,7 @@ public class InstructorController {
             @PathVariable String instrUuid,
             @RequestParam(name = "page", defaultValue = "0") int pageIndex,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(instructorBoardService.getPublicBoardList(instrUuid, "02", pageIndex, size));
+        return ResponseEntity.ok(instructorBoardService.getPublicBoardList(instrUuid, "NOTICE", pageIndex, size));
     }
 
     /**
@@ -123,7 +123,7 @@ public class InstructorController {
             @PathVariable String instrUuid,
             @RequestParam(name = "page", defaultValue = "0") int pageIndex,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(instructorBoardService.getPublicBoardList(instrUuid, "03", pageIndex, size));
+        return ResponseEntity.ok(instructorBoardService.getPublicBoardList(instrUuid, "QNA", pageIndex, size));
     }
 
     /**
@@ -134,7 +134,7 @@ public class InstructorController {
             @PathVariable String instrUuid,
             @RequestParam(name = "page", defaultValue = "0") int pageIndex,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(instructorBoardService.getPublicBoardList(instrUuid, "04", pageIndex, size));
+        return ResponseEntity.ok(instructorBoardService.getPublicBoardList(instrUuid, "DATAROOM", pageIndex, size));
     }
 
     /**
