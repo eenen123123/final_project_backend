@@ -80,16 +80,16 @@ public class QnaController {
 
     // PUT /api/qna/{postSn}
     @PutMapping("/{postSn}")
-    public ResponseEntity<Void> updateQna(@PathVariable Long postSn, @RequestBody QnaDto dto) {
+    public ResponseEntity<Void> updateQna(@PathVariable Long postSn, @RequestBody QnaDto dto, Authentication authentication) {
         dto.setPostSn(postSn);
-        qnaService.update(dto);
+        qnaService.update(dto, authentication);
         return ResponseEntity.ok().build();
     }
 
     // DELETE /api/qna/{postSn}
     @DeleteMapping("/{postSn}")
-    public ResponseEntity<Void> deleteQna(@PathVariable Long postSn) {
-        qnaService.delete(postSn);
+    public ResponseEntity<Void> deleteQna(@PathVariable Long postSn, Authentication authentication) {
+        qnaService.delete(postSn, authentication);
         return ResponseEntity.ok().build();
     }
 }

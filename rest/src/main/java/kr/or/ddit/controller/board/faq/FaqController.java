@@ -47,7 +47,8 @@ public class FaqController {
     // GET /api/faq/{postSn}
     @GetMapping("/{postSn}")
     public ResponseEntity<FaqDto> getFaqById(@PathVariable Long postSn) {
-        return ResponseEntity.ok(faqService.getById(postSn, null));
+        FaqDto faq = faqService.getById(postSn, null);
+        return faq != null ? ResponseEntity.ok(faq) : ResponseEntity.notFound().build();
     }
 
     // GET /api/faq/{postSn}/prev?faqCtgCd=01
