@@ -231,7 +231,11 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
 
     @Override
     public ClassroomQnaDto getClassroomQnaDetail(Long postSn, Long classSn) {
-        return instructorBoardMapper.selectClassroomQnaDetail(postSn, classSn);
+        ClassroomQnaDto dto = instructorBoardMapper.selectClassroomQnaDetail(postSn, classSn);
+        if (dto != null && dto.getAtchFileId() != null) {
+            dto.setAttachedFiles(fileUploadService.retrieveFilesByGroupId(dto.getAtchFileId().intValue()));
+        }
+        return dto;
     }
 
     @Override
