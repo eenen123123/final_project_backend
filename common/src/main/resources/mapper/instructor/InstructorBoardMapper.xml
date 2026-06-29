@@ -474,11 +474,11 @@
             INSERT INTO INSTRUCTOR_BOARD (
                   INSTR_USER_ID, WRTR_USER_ID, BOARD_TYPE_CD,
                   CLASS_SN, POST_SJ, POST_CN,
-                  INQ_CNT, USE_YN, REG_DT, MDFCN_DT, RGTR_ID, LAST_MDFR_ID
+                  INQ_CNT, ATCH_FILE_ID, USE_YN, REG_DT, MDFCN_DT, RGTR_ID, LAST_MDFR_ID
             ) VALUES (
                   #{instrUserId}, #{wrtrUserId}, 'QNA',
                   #{classSn}, #{postSj}, #{postCn},
-                  0, 'Y', SYSDATE, SYSDATE, #{wrtrUserId}, #{wrtrUserId}
+                  0, #{atchFileId, jdbcType=NUMERIC}, 'Y', SYSDATE, SYSDATE, #{wrtrUserId}, #{wrtrUserId}
             )
       </insert>
 
@@ -490,9 +490,10 @@
 
       <update id="updateClassroomQna">
             UPDATE INSTRUCTOR_BOARD
-            SET POST_SJ    = #{postSj},
-                POST_CN    = #{postCn},
-                MDFCN_DT   = SYSDATE
+            SET POST_SJ  = #{postSj},
+                POST_CN  = #{postCn},
+                <if test="updateAtchFile">ATCH_FILE_ID = #{atchFileId, jdbcType=NUMERIC},</if>
+                MDFCN_DT = SYSDATE
             WHERE POST_SN  = #{postSn}
               AND CLASS_SN = #{classSn}
               AND USE_YN   = 'Y'

@@ -161,12 +161,14 @@ public interface InstructorBoardMapper {
     /** 클래스룸 Q&A child 레코드 생성 (INSTRUCTOR_QNA INSERT, insertClassroomQnaBoard 직후 호출) */
     int insertClassroomQnaChild(@Param("postSn") Long postSn);
 
-    /** 클래스룸 Q&A 본문 수정 (제목·내용) */
+    /** 클래스룸 Q&A 본문 수정 (제목·내용·첨부파일) */
     int updateClassroomQna(
             @Param("postSn") Long postSn,
             @Param("classSn") Long classSn,
             @Param("postSj") String postSj,
-            @Param("postCn") String postCn);
+            @Param("postCn") String postCn,
+            @Param("atchFileId") Long atchFileId,
+            @Param("updateAtchFile") boolean updateAtchFile);
 
     /** 클래스룸 Q&A 답변 등록 또는 수정 */
     int updateClassroomQnaAnswer(
