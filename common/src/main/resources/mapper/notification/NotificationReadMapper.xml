@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.notification.NotificationReadMapper">
+
+    <!-- 읽은 알림 ID 목록 (삭제되지 않은 것만) -->
+    <select id="selectReadNotiIds" resultType="String">
+        SELECT NOTI_ID
+          FROM NOTIFICATION_READ
+         WHERE USER_ID = #{userId}
+           AND DISMISSED_YN = 'N'
+    </select>
+
+    <!-- 삭제된 알림 ID 목록 -->
+    <select id="selectDismissedNotiIds" resultType="String">
+        SELECT NOTI_ID
+          FROM NOTIFICATION_READ
+         WHERE USER_ID = #{userId}
+           AND DISMISSED_YN = 'Y'
+    </select>
+
+    <!-- 읽음 처리 (이미 존재하면 무시) -->
+    <insert id="insertReadNoti">
+        INSERT INTO NOTIFICATION_READ (USER_ID, NOTI_ID, DISMISSED_YN)
+        SELECT #{userId}, #{notiId}, 'N'
+          FROM DUAL
+         WHERE NOT EXISTS (
+             SELECT 1 FROM NOTIFICATION_READ
+              WHERE USER_ID = #{userId}
+                AND NOTI_ID = #{notiId}
+         )
+    </insert>
+
+    <!-- 알림 삭제 처리 (읽음 여부와 무관하게 DISMISSED_YN = Y) -->
+    <update id="dismissNoti">
+        MERGE INTO NOTIFICATION_READ nr
+        USING DUAL
+           ON (nr.USER_ID = #{userId} AND nr.NOTI_ID = #{notiId})
+         WHEN MATCHED THEN
+              UPDATE SET DISMISSED_YN = 'Y'
+         WHEN NOT MATCHED THEN
+              INSERT (USER_ID, NOTI_ID, DISMISSED_YN)
+              VALUES (#{userId}, #{notiId}, 'Y')
+    </update>
+
+</mapper>

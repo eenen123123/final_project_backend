@@ -61,7 +61,9 @@ public class StaffController {
     @GetMapping("/certificates")
     public String getCertificates(Model model) {
         log.info("getCertificates()");
-        model.addAttribute("certTypes", commonCodeService.getAllCodes("228"));
+        model.addAttribute("certTypes", commonCodeService.getAllCodes("228").stream()
+                .filter(c -> "Y".equals(c.getUseYn() == null ? "Y" : c.getUseYn().trim()))
+                .collect(java.util.stream.Collectors.toList()));
         return "admin:/staff/certificates";
     }
 

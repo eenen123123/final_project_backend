@@ -22,9 +22,12 @@ import kr.or.ddit.finalProject.dto.enrollment.CourseEnrollmentDto;
 import kr.or.ddit.finalProject.dto.member.MemberDto;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
+import kr.or.ddit.finalProject.dto.common.PageResponse;
+import kr.or.ddit.finalProject.mapper.instructor.InstructorBoardMapper;
 import kr.or.ddit.finalProject.mapper.lecture.LectureMapper;
 import kr.or.ddit.finalProject.service.enrollment.CourseEnrollmentService;
 import kr.or.ddit.finalProject.service.member.MemberService;
+import org.springframework.web.bind.annotation.RequestParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,6 +40,7 @@ public class RestMyPageController {
     private final MemberService memberService;
     private final CourseEnrollmentService enrollmentService;
     private final LectureMapper lectureMapper;
+    private final InstructorBoardMapper instructorBoardMapper;
 
     /**
      * 비밀번호 확인 메서드 개인정보 수정 페이지 진입 전 본인 확인을 위해 현재 비밀번호를 검증한다.
@@ -49,6 +53,20 @@ public class RestMyPageController {
     @GetMapping("/subject-progress")
     public ResponseEntity<List<Map<String, Object>>> getSubjectProgress(Authentication authentication) {
         return ResponseEntity.ok(lectureMapper.selectSubjectProgress(authentication.getName()));
+    }
+
+    // GET /api/mypage/instructor-qna?page=1&size=10 - 내가 작성한 선생님 Q&A 목록
+    @GetMapping("/instructor-qna")
+    public ResponseEntity<PageResponse<Map<String, Object>>> getMyInstructorQna(
+            Authentication authentication,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        String userId = authentication.getName();
+        int offset = (page - 1) * size;
+        List<Map<String, Object>> items = instructorBoardMapper.selectMyInstructorQnaList(userId, offset, size);
+        int total = instructorBoardMapper.countMyInstructorQnaList(userId);
+        int totalPages = (int) Math.ceil((double) total / size);
+        return ResponseEntity.ok(new PageResponse<>(items, total, totalPages));
     }
 
     // GET /api/mypage/instructor-ranking - 강사별 시청 시간 (선생님 집중도 랭킹용)

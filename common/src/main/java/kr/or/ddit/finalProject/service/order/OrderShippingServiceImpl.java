@@ -59,6 +59,11 @@ public class OrderShippingServiceImpl implements OrderShippingService {
     }
 
     @Override
+    public List<OrderShippingDto> getMyShippingList(String userId) {
+        return orderShippingMapper.selectMyShippingList(userId);
+    }
+
+    @Override
     public OrderShippingDto getMyOrderShipping(Long ordSn, String userId) {
         OrderShippingDto dto = orderShippingMapper.selectMyOrderShipping(ordSn, userId);
         if (dto == null) {

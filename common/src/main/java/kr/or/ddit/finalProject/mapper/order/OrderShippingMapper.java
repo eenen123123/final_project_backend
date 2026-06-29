@@ -22,6 +22,8 @@ public interface OrderShippingMapper {
 
     OrderShippingDto selectOrderShippingByOrdSn(Long ordSn);
 
+    List<OrderShippingDto> selectMyShippingList(@Param("userId") String userId);
+
     OrderShippingDto selectMyOrderShipping(@Param("ordSn") Long ordSn, @Param("userId") String userId);
 
     int updateOrderShipping(OrderShippingDto orderShippingDto);
