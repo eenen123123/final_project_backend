@@ -173,6 +173,8 @@
         JOIN QNA q ON q.POST_SN = b.POST_SN
         WHERE b.WRTR_USER_ID = #{userId}
           AND b.BOARD_TYPE_CD = '03'
+    </select>
+
     <!-- 미답변 QnA 건수 -->
     <select id="countUnansweredQna" resultType="int">
         SELECT COUNT(*) FROM QNA WHERE ANSW_STAT_CD = '01'
