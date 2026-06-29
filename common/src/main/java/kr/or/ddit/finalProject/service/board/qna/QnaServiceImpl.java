@@ -77,6 +77,17 @@ public class QnaServiceImpl implements QnaService {
 
     @Override
     @Transactional
+    public void update(QnaDto dto, Authentication authentication) {
+        QnaDto existing = qnaMapper.findQnaById(dto.getPostSn());
+        if (existing == null) throw new FinalProjectException(ErrorCode.POST_NOT_FOUND);
+        if (!existing.getWrtrUserId().equals(authentication.getName()))
+            throw new FinalProjectException(ErrorCode.QNA_ACCESS_DENIED);
+        boardMapper.updateBoard(dto);
+        qnaMapper.updateQna(dto);
+    }
+
+    @Override
+    @Transactional
     public void answerQna(QnaDto qnaDto) {
         qnaMapper.updateQnaAnswer(qnaDto);
     }
@@ -84,6 +95,17 @@ public class QnaServiceImpl implements QnaService {
     @Override
     @Transactional
     public void delete(Long postSn) {
+        qnaMapper.deleteQna(postSn);
+        boardMapper.deleteBoard(postSn);
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long postSn, Authentication authentication) {
+        QnaDto existing = qnaMapper.findQnaById(postSn);
+        if (existing == null) throw new FinalProjectException(ErrorCode.POST_NOT_FOUND);
+        if (!existing.getWrtrUserId().equals(authentication.getName()))
+            throw new FinalProjectException(ErrorCode.QNA_ACCESS_DENIED);
         qnaMapper.deleteQna(postSn);
         boardMapper.deleteBoard(postSn);
     }
