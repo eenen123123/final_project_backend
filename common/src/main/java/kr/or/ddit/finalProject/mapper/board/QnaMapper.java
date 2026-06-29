@@ -1,6 +1,7 @@
 package kr.or.ddit.finalProject.mapper.board;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -33,6 +34,9 @@ public interface QnaMapper {
 
     // QnA 답변 등록
     int updateQnaAnswer(QnaDto qnaDto);
+
+    // 내 Q&A 답변 현황 요약
+    Map<String, Object> selectMyQnaSummary(@Param("userId") String userId);
 
     // QnA DELETE
     int deleteQna(@Param("postSn") Long postSn);
