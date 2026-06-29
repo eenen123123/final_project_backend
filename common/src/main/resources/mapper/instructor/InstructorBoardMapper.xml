@@ -508,6 +508,18 @@
             WHERE POST_SN = #{postSn}
       </update>
 
+      <!-- 강사 게시판 미답변 Q&A 건수: 내 게시판(CLASS_SN IS NULL) 기준 -->
+      <select id="countUnansweredInstructorQna" resultType="int">
+            SELECT COUNT(*)
+            FROM INSTRUCTOR_BOARD IB
+                 INNER JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
+            WHERE IB.INSTR_USER_ID  = #{userId}
+              AND IB.CLASS_SN       IS NULL
+              AND IB.BOARD_TYPE_CD  = 'QNA'
+              AND IB.USE_YN         = 'Y'
+              AND IQ.ANSW_YN        = 'N'
+      </select>
+
       <!-- 미답변 Q&A 건수: 대시보드 배지 및 알림 표시에 사용 -->
       <select id="selectUnansweredQnaCount" resultType="int">
             SELECT COUNT(*)

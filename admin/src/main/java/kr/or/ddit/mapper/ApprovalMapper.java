@@ -40,4 +40,6 @@ public interface ApprovalMapper {
             @Param("aprvl_status") String aprvlStatus);
 
     int updateApprovalLine(ApprovalLineDto myLine);
+
+    int countAllPendingLines();
 }

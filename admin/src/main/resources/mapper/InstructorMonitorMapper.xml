@@ -49,6 +49,15 @@
           AND TRUNC(JRNL_DT, 'MM') = TRUNC(SYSDATE, 'MM')
     </select>
 
+    <!-- ④-1 이번달 내 업무 일지 건수 (개인) -->
+    <select id="selectMyJournalCountThisMonth" resultType="int">
+        SELECT COUNT(*)
+        FROM INSTRUCTOR_JOURNAL
+        WHERE INSTR_USER_ID = #{userId}
+          AND DEL_YN = 'N'
+          AND TRUNC(JRNL_DT, 'MM') = TRUNC(SYSDATE, 'MM')
+    </select>
+
     <!-- ⑤ 운영중 강좌 목록 (강좌명, 담당 강사 userId/name, 수강생 수)
          CLASSROOM → COURSE → MEMBER (강사는 COURSE 테이블에 있음) -->
     <select id="selectActiveClassrooms"

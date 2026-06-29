@@ -1,0 +1,188 @@
+<title th:fragment="pageTitle">대시보드 | HERMES</title>
+
+<div class="space-y-6">
+  <!-- 인사말 -->
+  <div
+    class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center justify-between"
+  >
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">
+        안녕하세요, <span th:text="${adminUserName}">담당자님</span> 👋
+      </h1>
+      <p class="text-sm text-gray-500 mt-1">오늘도 수고해주세요.</p>
+    </div>
+    <span
+      class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-sky-700 bg-sky-50 rounded-full border border-sky-100"
+    >
+      <span class="w-1.5 h-1.5 bg-sky-500 rounded-full animate-pulse"></span>
+      <span th:text="${isTeamLead} ? '행정팀장' : '행정'">행정</span>
+    </span>
+  </div>
+
+  <!-- 요약 카드 -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+      <div class="flex justify-between items-start">
+        <div>
+          <p
+            class="text-xs font-semibold text-gray-400 uppercase tracking-wider"
+          >
+            내 결재 대기
+          </p>
+          <h3
+            class="text-2xl font-bold text-gray-900 mt-2"
+            th:text="${myPendingCnt} + ' 건'"
+          >
+            0 건
+          </h3>
+        </div>
+        <div class="p-2.5 bg-violet-50 text-violet-600 rounded-xl">
+          <i class="fa-solid fa-pen-to-square text-base"></i>
+        </div>
+      </div>
+      <a
+        href="/admin/approval"
+        class="mt-4 flex items-center gap-1 text-xs text-violet-600 font-medium hover:underline"
+      >
+        결재함 바로가기 <i class="fa-solid fa-angle-right text-[10px]"></i>
+      </a>
+    </div>
+
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+      <div class="flex justify-between items-start">
+        <div>
+          <p
+            class="text-xs font-semibold text-gray-400 uppercase tracking-wider"
+          >
+            신규 회원 승인 대기
+          </p>
+          <h3
+            class="text-2xl font-bold text-gray-900 mt-2"
+            th:text="${pendingMemberCnt} + ' 명'"
+          >
+            0 명
+          </h3>
+        </div>
+        <div class="p-2.5 bg-rose-50 text-rose-500 rounded-xl">
+          <i class="fa-solid fa-user-clock text-base"></i>
+        </div>
+      </div>
+      <a
+        href="/admin/students/approve"
+        class="mt-4 flex items-center gap-1 text-xs text-rose-500 font-medium hover:underline"
+      >
+        승인 처리 <i class="fa-solid fa-angle-right text-[10px]"></i>
+      </a>
+    </div>
+
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+      <div class="flex justify-between items-start">
+        <div>
+          <p
+            class="text-xs font-semibold text-gray-400 uppercase tracking-wider"
+          >
+            수강료 미납 인원
+          </p>
+          <h3
+            class="text-2xl font-bold text-amber-600 mt-2"
+            th:text="${unpaidCnt} + ' 명'"
+          >
+            0 명
+          </h3>
+        </div>
+        <div class="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+          <i class="fa-solid fa-triangle-exclamation text-base"></i>
+        </div>
+      </div>
+      <a
+        href="/admin/billing/unpaid"
+        class="mt-4 flex items-center gap-1 text-xs text-amber-600 font-medium hover:underline"
+      >
+        미납 관리 <i class="fa-solid fa-angle-right text-[10px]"></i>
+      </a>
+    </div>
+
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+      <div class="flex justify-between items-start">
+        <div>
+          <p
+            class="text-xs font-semibold text-gray-400 uppercase tracking-wider"
+          >
+            오늘 수납액
+          </p>
+          <h3
+            class="text-2xl font-bold text-emerald-600 mt-2"
+            th:text="${#numbers.formatInteger(todayAmt != null ? todayAmt : 0, 0, 'COMMA')} + ' 원'"
+          >
+            0 원
+          </h3>
+        </div>
+        <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+          <i class="fa-solid fa-won-sign text-base"></i>
+        </div>
+      </div>
+      <a
+        href="/admin/billing"
+        class="mt-4 flex items-center gap-1 text-xs text-emerald-600 font-medium hover:underline"
+      >
+        수납 내역 <i class="fa-solid fa-angle-right text-[10px]"></i>
+      </a>
+    </div>
+  </div>
+
+  <!-- 팀장 전용: 팀원 현황 -->
+  <div
+    th:if="${isTeamLead}"
+    class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
+  >
+    <h2 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+      <i class="fa-solid fa-people-group text-sky-500"></i> 행정팀 현황
+    </h2>
+    <div class="flex items-center gap-4">
+      <div class="bg-sky-50 rounded-xl px-6 py-4 text-center">
+        <p class="text-xs text-sky-600 font-semibold">재직 중 팀원</p>
+        <p
+          class="text-3xl font-bold text-sky-700 mt-1"
+          th:text="${teamMemberCnt} + ' 명'"
+        >
+          0 명
+        </p>
+      </div>
+      <p class="text-sm text-gray-400">행정팀 현재 재직 인원입니다.</p>
+    </div>
+  </div>
+
+  <!-- 바로가기 -->
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+    <h2 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+      <i class="fa-solid fa-layer-group text-sky-500"></i> 주요 메뉴 바로가기
+    </h2>
+    <div class="flex flex-wrap gap-3">
+      <a
+        href="/admin/approval"
+        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-sky-600 hover:bg-sky-700 rounded-xl transition-all shadow-sm"
+      >
+        <i class="fa-solid fa-file-signature text-xs"></i> 전자결재
+      </a>
+      <a
+        href="/admin/students/approve"
+        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all"
+      >
+        <i class="fa-solid fa-user-check text-xs text-gray-400"></i> 회원 승인
+      </a>
+      <a
+        href="/admin/billing"
+        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all"
+      >
+        <i class="fa-solid fa-receipt text-xs text-gray-400"></i> 수납 관리
+      </a>
+      <a
+        href="/admin/billing/unpaid"
+        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all"
+      >
+        <i class="fa-solid fa-circle-exclamation text-xs text-gray-400"></i>
+        미납 관리
+      </a>
+    </div>
+  </div>
+</div>

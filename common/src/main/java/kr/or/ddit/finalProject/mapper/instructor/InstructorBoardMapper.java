@@ -180,6 +180,9 @@ public interface InstructorBoardMapper {
     /** 클래스룸 내 미답변 Q&A 건수 조회 (대시보드 배지 표시용) */
     int selectUnansweredQnaCount(@Param("classSn") Long classSn);
 
+    /** 강사 게시판 미답변 Q&A 총 건수 (강사 대시보드용) */
+    int countUnansweredInstructorQna(@Param("userId") String userId);
+
     /** 특정 학생이 등록한 최근 QnA 조회 (학생 상세 페이지용) */
     List<kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto> selectRecentQnaByStudent(
             @Param("classSn") Long classSn,
