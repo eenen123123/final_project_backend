@@ -1,6 +1,7 @@
 package kr.or.ddit.controller.instructor;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -15,7 +16,9 @@ import org.springframework.web.multipart.MultipartFile;
 import kr.or.ddit.finalProject.dto.instructor.profile.InstructorCareerDto;
 import kr.or.ddit.finalProject.dto.instructor.profile.InstructorCareerSaveRequest;
 import kr.or.ddit.finalProject.dto.instructor.profile.InstructorDto;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorFeaturedCourseResponse;
 import kr.or.ddit.finalProject.dto.instructor.profile.InstructorIntroUpdateRequest;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorPublicCourseResponse;
 import kr.or.ddit.finalProject.service.instructor.InstructorService;
 import lombok.RequiredArgsConstructor;
 
@@ -58,8 +61,25 @@ public class AdminInstructorController {
         // 약력 항목 목록 (DEL_YN='N'인 항목만, 유형별 정렬)
         List<InstructorCareerDto> careers = profileService.retrieveCareers(instrUserId);
 
+        // 대표 강좌 목록 + 추가 가능한 강좌 목록 (instrUuid 없으면 빈 목록)
+        String instrUuid = profile.getInstrUuid();
+        List<InstructorFeaturedCourseResponse> featuredCourses = List.of();
+        List<InstructorPublicCourseResponse> availableCourses = List.of();
+        if (instrUuid != null) {
+            featuredCourses = profileService.retrieveFeaturedCourses(instrUuid);
+            Set<Long> featuredSns = new java.util.HashSet<>();
+            for (InstructorFeaturedCourseResponse fc : featuredCourses) {
+                featuredSns.add(fc.getCourseSn());
+            }
+            availableCourses = profileService.retrieveInstructorCourses(instrUuid).stream()
+                    .filter(c -> !featuredSns.contains(c.getCourseSn()))
+                    .toList();
+        }
+
         model.addAttribute("profile", profile);
         model.addAttribute("careers", careers);
+        model.addAttribute("featuredCourses", featuredCourses);
+        model.addAttribute("availableCourses", availableCourses);
 
         return "admin:/instructor/instructorProfile";
     }
@@ -113,6 +133,32 @@ public class AdminInstructorController {
             Authentication auth) {
         // 소유권 확인은 서비스에서 처리
         profileService.modifyCareer(careerSn, auth.getName(), request);
+        return "redirect:/instructor/profile/instructor";
+    }
+
+    // ──────────────────────────────────────────────
+    // 대표 강좌 추가
+    // ──────────────────────────────────────────────
+    @PostMapping("/featured-courses/add")
+    public String addFeaturedCourse(@RequestParam Long courseSn, Authentication auth) {
+        String instrUserId = auth.getName();
+        InstructorDto profile = profileService.retrieveProfile(instrUserId);
+        if (profile != null && profile.getInstrUuid() != null) {
+            profileService.addFeaturedCourse(profile.getInstrUuid(), courseSn);
+        }
+        return "redirect:/instructor/profile/instructor";
+    }
+
+    // ──────────────────────────────────────────────
+    // 대표 강좌 삭제
+    // ──────────────────────────────────────────────
+    @PostMapping("/featured-courses/{courseSn}/delete")
+    public String deleteFeaturedCourse(@PathVariable Long courseSn, Authentication auth) {
+        String instrUserId = auth.getName();
+        InstructorDto profile = profileService.retrieveProfile(instrUserId);
+        if (profile != null && profile.getInstrUuid() != null) {
+            profileService.removeFeaturedCourse(profile.getInstrUuid(), courseSn);
+        }
         return "redirect:/instructor/profile/instructor";
     }
 

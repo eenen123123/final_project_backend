@@ -16,6 +16,9 @@ public class InstructorDto implements Serializable {
     /** 기본키(PK) */
     private String instrUserId;
 
+    /** 강사 공개 UUID (INSTRUCTOR.INSTR_UUID) */
+    private String instrUuid;
+
     /** 강사 소개글 (INSTRUCTOR.INSTR_INTRO) */
     private String instrIntro;
 

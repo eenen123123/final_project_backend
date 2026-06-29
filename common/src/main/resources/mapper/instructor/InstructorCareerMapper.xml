@@ -36,6 +36,7 @@
             resultType="kr.or.ddit.finalProject.dto.instructor.profile.InstructorDto">
         SELECT
             INSTR_USER_ID     AS instrUserId,
+            INSTR_UUID        AS instrUuid,
             INSTR_INTRO       AS instrIntro,
             INSTR_PROFILE_IMG AS instrProfileImg
         FROM INSTRUCTOR
