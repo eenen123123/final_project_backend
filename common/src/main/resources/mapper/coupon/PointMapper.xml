@@ -153,7 +153,11 @@
     <!-- 포인트 이력 공통 조건 -->
     <sql id="pointHistCondition">
         WHERE ph.USER_ID = #{userId}
-          AND mcp.ASSET_TYPE = #{assetType}
+          AND (
+            (ph.MCPNT_SN IS NOT NULL AND mcp.ASSET_TYPE = #{assetType})
+            OR
+            (ph.MCPNT_SN IS NULL AND ph.ASSET_TYPE = #{assetType})
+          )
         <if test="startDate != null and startDate != ''">
             AND TRUNC(ph.REG_DT) &gt;= TO_DATE(#{startDate}, 'YYYY-MM-DD')
         </if>
@@ -168,7 +172,7 @@
                ph.CHANGE_AMT, ph.ORD_SN, ph.MEMO, ph.REG_DT,
                mcp.EXPIRY_DT
         FROM POINT_HIST ph
-        JOIN MEMBER_COUPONPOINT mcp ON ph.MCPNT_SN = mcp.MCPNT_SN
+        LEFT JOIN MEMBER_COUPONPOINT mcp ON ph.MCPNT_SN = mcp.MCPNT_SN
         <include refid="pointHistCondition"/>
         ORDER BY ph.REG_DT DESC
         OFFSET #{paginationInfo.offset} ROWS FETCH NEXT #{paginationInfo.screenSize} ROWS ONLY
@@ -180,9 +184,13 @@
                ph.CHANGE_AMT, ph.ORD_SN, ph.MEMO, ph.REG_DT,
                mcp.EXPIRY_DT
         FROM POINT_HIST ph
-        JOIN MEMBER_COUPONPOINT mcp ON ph.MCPNT_SN = mcp.MCPNT_SN
+        LEFT JOIN MEMBER_COUPONPOINT mcp ON ph.MCPNT_SN = mcp.MCPNT_SN
         WHERE ph.USER_ID = #{userId}
-          AND mcp.ASSET_TYPE = #{assetType}
+          AND (
+            (ph.MCPNT_SN IS NOT NULL AND mcp.ASSET_TYPE = #{assetType})
+            OR
+            (ph.MCPNT_SN IS NULL AND ph.ASSET_TYPE = #{assetType})
+          )
         ORDER BY ph.REG_DT DESC
     </select>
 
@@ -190,7 +198,7 @@
     <select id="selectPointHistCountByUserAndType" resultType="int">
         SELECT COUNT(*)
         FROM POINT_HIST ph
-        JOIN MEMBER_COUPONPOINT mcp ON ph.MCPNT_SN = mcp.MCPNT_SN
+        LEFT JOIN MEMBER_COUPONPOINT mcp ON ph.MCPNT_SN = mcp.MCPNT_SN
         <include refid="pointHistCondition"/>
     </select>
 
