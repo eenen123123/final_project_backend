@@ -27,7 +27,6 @@ import kr.or.ddit.finalProject.mapper.instructor.InstructorBoardMapper;
 import kr.or.ddit.finalProject.mapper.lecture.LectureMapper;
 import kr.or.ddit.finalProject.service.enrollment.CourseEnrollmentService;
 import kr.or.ddit.finalProject.service.member.MemberService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.RequestParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +41,6 @@ public class RestMyPageController {
     private final CourseEnrollmentService enrollmentService;
     private final LectureMapper lectureMapper;
     private final InstructorBoardMapper instructorBoardMapper;
-    private final PasswordEncoder passwordEncoder;
 
     /**
      * 비밀번호 확인 메서드 개인정보 수정 페이지 진입 전 본인 확인을 위해 현재 비밀번호를 검증한다.
@@ -140,10 +138,18 @@ public class RestMyPageController {
 
         MemberDto memberDto = memberService.getMemberByUserId(authentication.getName());
 
-        // 비밀번호 변경 요청 시 BCrypt 암호화 후 세팅
+        if (userTelno != null) memberDto.setUserTelno(userTelno.replaceAll("-", ""));
+        if (userEmailAddr != null) memberDto.setUserEmailAddr(userEmailAddr);
+        if (userZip != null) memberDto.setUserZip(userZip);
+        if (userAddr != null) memberDto.setUserAddr(userAddr);
+        if (userDaddr != null) memberDto.setUserDaddr(userDaddr);
+
+        // 비밀번호 변경 요청 시만 세팅, 없으면 null로 초기화 → updateMember에서 기존 해시 건드리지 않음
         if (newPassword != null && !newPassword.isBlank()) {
-            memberDto.setUserEnpswd(passwordEncoder.encode(newPassword));
+            memberDto.setUserEnpswd(newPassword);
             log.info("비밀번호 변경 요청 - userId: {}", memberDto.getUserId());
+        } else {
+            memberDto.setUserEnpswd(null);
         }
 
         // 프로필 이미지 업로드 처리
