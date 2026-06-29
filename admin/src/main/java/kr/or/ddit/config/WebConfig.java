@@ -6,6 +6,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import kr.or.ddit.finalProject.mapper.MemberMapper;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -16,9 +17,11 @@ public class WebConfig implements WebMvcConfigurer {
 
     private final AuditInterceptor auditInterceptor;
 
+    private final MemberMapper memberMapper;
+
     @Bean
     public LayoutThymeleafViewResolver thymeleafViewResolver() {
-        LayoutThymeleafViewResolver resolver = new LayoutThymeleafViewResolver();
+        LayoutThymeleafViewResolver resolver = new LayoutThymeleafViewResolver(memberMapper);
         resolver.setTemplateEngine(templateEngine);
         resolver.setCharacterEncoding("UTF-8");
         // resolver.setOrder(1); // 스프링 부트 기본 리졸버보다 우선순위를 높게 설정합니다.

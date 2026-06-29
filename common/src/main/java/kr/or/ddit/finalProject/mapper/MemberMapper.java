@@ -47,4 +47,6 @@ public interface MemberMapper {
 
     void insertWithdrawLog(MemberWithdrawLogDto dto);
 
+    int countPendingApprovalMembers();
+
 }

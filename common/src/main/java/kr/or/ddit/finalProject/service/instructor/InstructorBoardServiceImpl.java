@@ -244,11 +244,11 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
 
     @Override
     @Transactional
-    public void updateClassroomQna(Long postSn, Long classSn, String wrtrUserId, String postSj, String postCn) {
+    public void updateClassroomQna(Long postSn, Long classSn, String wrtrUserId, String postSj, String postCn, Long atchFileId, boolean updateAtchFile) {
         ClassroomQnaDto existing = instructorBoardMapper.selectClassroomQnaDetail(postSn, classSn);
         if (existing == null) throw new IllegalArgumentException("존재하지 않는 게시글입니다.");
         if (!wrtrUserId.equals(existing.getWrtrUserId())) throw new SecurityException("수정 권한이 없습니다.");
-        instructorBoardMapper.updateClassroomQna(postSn, classSn, postSj, postCn);
+        instructorBoardMapper.updateClassroomQna(postSn, classSn, postSj, postCn, atchFileId, updateAtchFile);
     }
 
     @Override

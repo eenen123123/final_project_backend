@@ -1,0 +1,245 @@
+<title th:fragment="pageTitle">대시보드 | HERMES</title>
+
+<div class="space-y-6">
+  <!-- 인사말 -->
+  <div
+    class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center justify-between"
+  >
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">
+        안녕하세요, <span th:text="${adminUserName}"></span> 님 👋
+      </h1>
+      <p class="text-sm text-gray-500 mt-1">오늘도 수고해주세요.</p>
+    </div>
+    <span
+      class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-sky-700 bg-sky-50 rounded-full border border-sky-100"
+    >
+      <span class="w-1.5 h-1.5 bg-sky-500 rounded-full animate-pulse"></span>
+      <span th:text="${isTeamLead} ? '행정팀장' : '행정'">행정</span>
+    </span>
+  </div>
+
+  <!-- 요약 카드 -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+      <div class="flex justify-between items-start">
+        <div>
+          <p
+            class="text-xs font-semibold text-gray-400 uppercase tracking-wider"
+          >
+            내 결재 대기
+          </p>
+          <h3
+            class="text-2xl font-bold text-gray-900 mt-2"
+            th:text="${myPendingCnt} + ' 건'"
+          >
+            0 건
+          </h3>
+        </div>
+        <div class="p-2.5 bg-violet-50 text-violet-600 rounded-xl">
+          <i class="fa-solid fa-pen-to-square text-base"></i>
+        </div>
+      </div>
+      <p class="mt-2 text-xs text-gray-400">내가 처리해야 할 미결재 문서</p>
+      <a
+        href="/admin/approval"
+        class="mt-2 flex items-center gap-1 text-xs text-violet-600 font-medium hover:underline"
+      >
+        결재함 바로가기 <i class="fa-solid fa-angle-right text-[10px]"></i>
+      </a>
+    </div>
+
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+      <div class="flex justify-between items-start">
+        <div>
+          <p
+            class="text-xs font-semibold text-gray-400 uppercase tracking-wider"
+          >
+            수강료 미납 인원
+          </p>
+          <h3
+            class="text-2xl font-bold mt-2"
+            th:classappend="${unpaidCnt > 0} ? 'text-amber-600' : 'text-gray-400'"
+            th:text="${unpaidCnt} + ' 명'"
+          >
+            0 명
+          </h3>
+        </div>
+        <div class="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+          <i class="fa-solid fa-triangle-exclamation text-base"></i>
+        </div>
+      </div>
+      <p class="mt-2 text-xs text-gray-400">수강료 납부 기한이 지난 학생 수</p>
+      <a
+        href="/admin/billing#tab-unpaid"
+        class="mt-2 flex items-center gap-1 text-xs text-amber-600 font-medium hover:underline"
+      >
+        미납 관리 <i class="fa-solid fa-angle-right text-[10px]"></i>
+      </a>
+    </div>
+
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+      <div class="flex justify-between items-start">
+        <div>
+          <p
+            class="text-xs font-semibold text-gray-400 uppercase tracking-wider"
+          >
+            오늘 수납액
+          </p>
+          <h3
+            class="text-2xl font-bold text-emerald-600 mt-2"
+            th:text="${#numbers.formatInteger(todayAmt != null ? todayAmt : 0, 0, 'COMMA')} + ' 원'"
+          >
+            0 원
+          </h3>
+        </div>
+        <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+          <i class="fa-solid fa-won-sign text-base"></i>
+        </div>
+      </div>
+      <p class="mt-2 text-xs text-gray-400">오늘 처리된 원비·온라인 결제 합계</p>
+      <a
+        href="/admin/billing"
+        class="mt-2 flex items-center gap-1 text-xs text-emerald-600 font-medium hover:underline"
+      >
+        수납 내역 <i class="fa-solid fa-angle-right text-[10px]"></i>
+      </a>
+    </div>
+    <!-- 팀장 전용 카드 -->
+    <div th:if="${isTeamLead}" class="bg-white p-5 rounded-2xl shadow-sm border border-sky-100">
+      <div class="flex justify-between items-start">
+        <div>
+          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">재직 중 팀원</p>
+          <h3 class="text-2xl font-bold text-sky-600 mt-2" th:text="${teamMemberCnt} + ' 명'">0 명</h3>
+        </div>
+        <div class="p-2.5 bg-sky-50 text-sky-600 rounded-xl">
+          <i class="fa-solid fa-people-group text-base"></i>
+        </div>
+      </div>
+      <p class="mt-4 text-xs text-gray-400">현재 재직 중인 행정팀 구성원 수</p>
+    </div>
+
+
+    <div th:if="${isTeamLead}" class="bg-white p-5 rounded-2xl shadow-sm border border-sky-100">
+      <div class="flex justify-between items-start">
+        <div>
+          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">후속 조치 필요</p>
+          <h3
+            class="text-2xl font-bold mt-2"
+            th:classappend="${followupCnt > 0} ? 'text-amber-600' : 'text-gray-400'"
+            th:text="${followupCnt} + ' 건'"
+          >0 건</h3>
+        </div>
+        <div class="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+          <i class="fa-solid fa-clipboard-list text-base"></i>
+        </div>
+      </div>
+      <p class="mt-2 text-xs text-gray-400">상담 완료 후 추가 조치가 필요한 건수</p>
+      <a href="/admin/consultation" class="mt-2 flex items-center gap-1 text-xs text-amber-600 font-medium hover:underline">
+        상담 관리 <i class="fa-solid fa-angle-right text-[10px]"></i>
+      </a>
+    </div>
+
+    <div th:if="${isTeamLead}" class="bg-white p-5 rounded-2xl shadow-sm border border-sky-100">
+      <div class="flex justify-between items-start">
+        <div>
+          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">퇴원 위험 학생</p>
+          <h3
+            class="text-2xl font-bold mt-2"
+            th:classappend="${riskCnt > 0} ? 'text-red-500' : 'text-gray-400'"
+            th:text="${riskCnt} + ' 명'"
+          >0 명</h3>
+        </div>
+        <div class="p-2.5 bg-red-50 text-red-500 rounded-xl">
+          <i class="fa-solid fa-shield-heart text-base"></i>
+        </div>
+      </div>
+      <p class="mt-2 text-xs text-gray-400">퇴원 가능성이 높은 고위험 학생 수</p>
+      <a href="/admin/retention" class="mt-2 flex items-center gap-1 text-xs text-red-500 font-medium hover:underline">
+        퇴원 방어 관리 <i class="fa-solid fa-angle-right text-[10px]"></i>
+      </a>
+    </div>
+
+  </div>
+
+  <!-- 최근 미답변 QnA -->
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+    <h2 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+      <i class="fa-solid fa-comment-dots text-indigo-500"></i> 미답변 QnA
+      <span
+        th:if="${unansweredQnaCnt > 0}"
+        class="ml-1 px-2 py-0.5 text-xs font-bold bg-indigo-100 text-indigo-600 rounded-full"
+        th:text="${unansweredQnaCnt} + '건'"
+      ></span>
+    </h2>
+    <div
+      th:if="${#lists.isEmpty(recentQnaList)}"
+      class="py-8 text-center text-sm text-gray-400"
+    >
+      <i class="fa-solid fa-circle-check text-gray-300 text-2xl mb-2 block"></i>
+      미답변 QnA가 없습니다.
+    </div>
+    <ul
+      th:unless="${#lists.isEmpty(recentQnaList)}"
+      class="divide-y divide-gray-100"
+    >
+      <li
+        th:each="qna : ${recentQnaList}"
+        class="py-3 flex items-center justify-between gap-4"
+      >
+        <div class="min-w-0">
+          <p
+            class="text-sm font-medium text-gray-800 truncate"
+            th:text="${qna.postSj}"
+          >
+            문의 제목
+          </p>
+          <p class="text-xs text-gray-400 mt-0.5">
+            <span th:text="${qna.qnaCtgNm}">카테고리</span> ·
+            <span th:text="${#temporals.format(qna.regDt, 'MM.dd')}">날짜</span>
+          </p>
+        </div>
+        <a
+          th:href="@{/admin/board/qna/{sn}(sn=${qna.postSn})}"
+          class="text-xs text-indigo-500 hover:underline font-medium whitespace-nowrap"
+          >답변하기 →</a
+        >
+      </li>
+    </ul>
+    <a
+      th:if="${unansweredQnaCnt > 3}"
+      href="/admin/board/customer-service?tab=tab-qna"
+      class="mt-3 block text-xs text-center text-gray-400 hover:text-indigo-500 transition-colors"
+    >
+      + 더 보기
+    </a>
+  </div>
+
+  <!-- 바로가기 -->
+  <!-- <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+    <h2 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+      <i class="fa-solid fa-layer-group text-sky-500"></i> 주요 메뉴 바로가기
+    </h2>
+    <div class="flex flex-wrap gap-3">
+      <a
+        href="/admin/approval"
+        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-sky-600 hover:bg-sky-700 rounded-xl transition-all shadow-sm"
+      >
+        <i class="fa-solid fa-file-signature text-xs"></i> 전자결재
+      </a>
+      <a
+        href="/admin/billing"
+        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all"
+      >
+        <i class="fa-solid fa-receipt text-xs text-gray-400"></i> 수납 관리
+      </a>
+      <a
+        href="/admin/billing#tab-unpaid"
+        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all"
+      >
+        <i class="fa-solid fa-circle-exclamation text-xs text-gray-400"></i>
+        미납 관리
+      </a>
+    </div>
+  </div> -->
+</div>

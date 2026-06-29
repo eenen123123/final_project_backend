@@ -262,4 +262,8 @@
         ORDER BY USER_NAME
     </select>
 
+    <select id="countPendingApprovalMembers" resultType="int">
+        SELECT COUNT(*) FROM MEMBER WHERE ENABLE = 'N' AND USER_ROLE = 'ROLE_USER'
+    </select>
+
 </mapper>
