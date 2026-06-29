@@ -215,7 +215,7 @@ async function deleteArchivedCoupon(btn) {
   var couponSn = btn.dataset.sn;
   var couponNm = btn.dataset.nm;
   if (!confirm('"' + couponNm + '" 쿠폰을 삭제하시겠습니까?')) return;
-  var res = await fetch('/admin/coupon/' + couponSn, { method: 'DELETE' });
+  var res = await fetch('/admin/coupon/' + couponSn, { method: 'DELETE', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
   if (res.ok || res.status === 204) {
     await loadCoupons();
   } else {
@@ -286,7 +286,8 @@ async function submitEdit() {
   if (!couponNm) { alert('쿠폰명을 입력하세요.'); return; }
   if (!validDays || validDays < 1) { alert('유효일수를 1일 이상 입력하세요.'); return; }
 
-  var body = { couponNm: couponNm, discType: discType, useLimitCd: useLimitCd, validDays: validDays, useYn: useYn };
+  var rawCode = document.getElementById('editCouponCode').value.replace(/-/g, '');
+  var body = { couponNm: couponNm, discType: discType, useLimitCd: useLimitCd, validDays: validDays, useYn: useYn, couponCode: rawCode || null };
   if (discType === 'FIXED') {
     var discAmt = parseInt(document.getElementById('editDiscAmt').value);
     if (!discAmt || discAmt < 1) { alert('할인 금액을 입력하세요.'); return; }
@@ -299,7 +300,7 @@ async function submitEdit() {
 
   var res = await fetch('/admin/coupon/' + editCouponSn, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
     body: JSON.stringify(body)
   });
 
@@ -315,7 +316,7 @@ async function submitEdit() {
 async function submitDelete() {
   if (!confirm('이 쿠폰을 삭제하시겠습니까?\n발급 이력이 있는 경우 삭제되지 않습니다.')) return;
 
-  var res = await fetch('/admin/coupon/' + editCouponSn, { method: 'DELETE' });
+  var res = await fetch('/admin/coupon/' + editCouponSn, { method: 'DELETE', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
 
   if (res.ok || res.status === 204) {
     closeEditModal();

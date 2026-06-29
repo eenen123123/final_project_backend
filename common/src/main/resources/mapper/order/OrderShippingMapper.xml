@@ -123,7 +123,8 @@
     </select>
 
     <select id="selectMyOrderShipping" resultMap="orderShippingResultMap">
-        SELECT os.SHIPPING_SN, os.ORD_SN, os.BUYER_NM, os.BUYER_TEL, os.BUYER_EMAIL,
+        SELECT os.SHIPPING_SN, os.ORD_SN, o.ORD_ID, o.ORD_NM,
+               os.BUYER_NM, os.BUYER_TEL, os.BUYER_EMAIL,
                os.RECEIVER_NM, os.RECEIVER_TEL, os.RECEIVER_TEL2,
                os.ZIP_CD, os.ADDR_ROAD, os.ADDR_JIBUN, os.ADDR_DTL,
                os.DELIVERY_MSG, os.DLVRY_STAT_CD, os.INVOICE_NO,

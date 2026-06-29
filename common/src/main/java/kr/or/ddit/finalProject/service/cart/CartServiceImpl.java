@@ -27,6 +27,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public List<CartDto> retrieveCart(String userId) {
+        cartMapper.deleteExpiredCartItems(userId);
         return cartMapper.selectCartByUserId(userId);
     }
 

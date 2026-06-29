@@ -144,10 +144,13 @@
 
     <!-- 내 쿠폰 목록 조회 (사용자, 날짜 범위, 페이징) -->
     <select id="selectUserCouponsByUserId" resultMap="memberCouponPointResultMap">
-        SELECT MCPNT_SN, USER_ID, COUPON_SN, COUPON_NM, ISSUE_DT, EXPIRY_DT, USE_YN, USE_DT, ORDER_SN, ISSUED_BY, REG_DT
-        FROM MEMBER_COUPONPOINT
+        SELECT mcp.MCPNT_SN, mcp.USER_ID, mcp.COUPON_SN, mcp.COUPON_NM, mcp.ISSUE_DT, mcp.EXPIRY_DT,
+               mcp.USE_YN, mcp.USE_DT, mcp.ORDER_SN, mcp.ISSUED_BY, mcp.REG_DT,
+               c.DISC_TYPE, c.DISC_AMT, c.DISC_RATE, c.USE_LIMIT_CD
+        FROM MEMBER_COUPONPOINT mcp
+        LEFT JOIN COUPON c ON c.COUPON_SN = mcp.COUPON_SN
         <include refid="userCouponCondition"/>
-        ORDER BY ISSUE_DT DESC
+        ORDER BY mcp.ISSUE_DT DESC
         OFFSET #{paginationInfo.offset} ROWS FETCH NEXT #{paginationInfo.screenSize} ROWS ONLY
     </select>
 

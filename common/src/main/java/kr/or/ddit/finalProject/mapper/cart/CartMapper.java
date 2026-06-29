@@ -15,6 +15,9 @@ public interface CartMapper {
 
     int insertCart(CartDto cartDto);
 
+    // 보관기한(30일) 초과 항목 자동 삭제
+    int deleteExpiredCartItems(@Param("userId") String userId);
+
     int deleteCartBySn(@Param("cartSn") Long cartSn, @Param("userId") String userId);
 
     int deleteCartByUserId(@Param("userId") String userId);

@@ -18,6 +18,7 @@
         <result property="thmbImg" column="THMB_IMG"/>
         <result property="instrNm" column="INSTR_NM"/>
         <result property="progressPct" column="PROGRESS_PCT"/>
+        <result property="subjClNm" column="SUBJ_CL_NM"/>
     </resultMap>
 
     <select id="selectByUserAndCourse" resultMap="enrollmentResultMap">
@@ -57,6 +58,7 @@
                e.ACCS_STRT_DT, e.ACCS_END_DT, e.ENRL_STAT_CD, e.REG_DT, e.MDFCN_DT,
                c.COURSE_NM, c.THMB_IMG,
                m.USER_NAME AS INSTR_NM,
+               sc.SUBJ_CL_NM,
                ROUND(
                    CASE WHEN SUM(NVL(l.LECTURE_DURATION, 0)) = 0 THEN 0
                         ELSE LEAST(100, SUM(NVL(p.SECONDS_WATCHED, 0)) / SUM(NVL(l.LECTURE_DURATION, 0)) * 100)
@@ -65,13 +67,15 @@
         FROM COURSE_ENROLLMENT e
         JOIN COURSE c ON c.COURSE_SN = e.COURSE_SN
         LEFT JOIN MEMBER m ON m.USER_ID = c.INSTR_USER_ID
+        LEFT JOIN SUBJECT s ON s.SUBJ_ID = c.SUBJ_ID
+        LEFT JOIN SUBJECT_CLASSIFICATION sc ON sc.SUBJ_CL_ID = s.SUBJ_CL_ID
         LEFT JOIN LECTURE l ON l.COURSE_SN = e.COURSE_SN
         LEFT JOIN LECTURE_PROGRESS p ON p.LECTURE_SN = l.LECTURE_SN AND p.USER_ID = e.USER_ID
         WHERE e.USER_ID = #{userId}
           AND e.ENRL_STAT_CD = 'ACTIVE'
         GROUP BY e.ENRL_SN, e.USER_ID, e.COURSE_SN, e.ORD_SN,
                  e.ACCS_STRT_DT, e.ACCS_END_DT, e.ENRL_STAT_CD, e.REG_DT, e.MDFCN_DT,
-                 c.COURSE_NM, c.THMB_IMG, m.USER_NAME
+                 c.COURSE_NM, c.THMB_IMG, m.USER_NAME, sc.SUBJ_CL_NM
         ORDER BY e.ACCS_STRT_DT DESC
     </select>
 

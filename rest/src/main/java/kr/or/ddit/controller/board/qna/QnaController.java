@@ -20,6 +20,8 @@ import kr.or.ddit.finalProject.dto.board.req.QnaRequestDto;
 import kr.or.ddit.finalProject.dto.board.req.QnaSearchCondition;
 import kr.or.ddit.finalProject.dto.common.PageResponse;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
+import java.util.Map;
+import kr.or.ddit.finalProject.mapper.board.QnaMapper;
 import kr.or.ddit.finalProject.service.board.qna.QnaService;
 import lombok.RequiredArgsConstructor;
 
@@ -30,6 +32,13 @@ public class QnaController {
 
     private final QnaService qnaService;
     private final ObjectMapper objectMapper;
+    private final QnaMapper qnaMapper;
+
+    // GET /api/qna/my/summary - 내 Q&A 답변 현황 요약
+    @GetMapping("/my/summary")
+    public ResponseEntity<Map<String, Object>> getMyQnaSummary(Authentication authentication) {
+        return ResponseEntity.ok(qnaMapper.selectMyQnaSummary(authentication.getName()));
+    }
 
     // GET /api/qna/paged?page=1&size=10&keyword=xxx&myOnly=true
     @GetMapping("/paged")

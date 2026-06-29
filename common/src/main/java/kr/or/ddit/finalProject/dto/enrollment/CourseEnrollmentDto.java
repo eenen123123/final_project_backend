@@ -28,5 +28,6 @@ public class CourseEnrollmentDto {
     private String thmbImg; // COURSE.THMB_IMG
     private String instrNm; // MEMBER.USER_NAME (강사명)
     private int progressPct; // 진척도
+    private String subjClNm; // SUBJECT_CLASSIFICATION.SUBJ_CL_NM (과목 대분류)
 
 }
