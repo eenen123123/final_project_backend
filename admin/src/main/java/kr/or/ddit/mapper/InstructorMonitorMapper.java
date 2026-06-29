@@ -21,5 +21,7 @@ public interface InstructorMonitorMapper {
 
     int selectMyJournalCountThisMonth(@Param("userId") String userId);
 
+    int countGraduatingStudentsThisMonth();
+
     List<ClassroomOverviewDto> selectActiveClassrooms();
 }

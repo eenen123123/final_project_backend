@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import kr.or.ddit.finalProject.dto.finance.MonthlySalesDto;
-import kr.or.ddit.finalProject.mapper.MemberMapper;
 import kr.or.ddit.mapper.ApprovalMapper;
 import kr.or.ddit.mapper.FinanceMapper;
 import kr.or.ddit.mapper.InstructorMonitorMapper;
@@ -24,7 +23,6 @@ public class DashboardPrincipalController {
     private final ApprovalMapper approvalMapper;
     private final FinanceMapper financeMapper;
     private final InstructorMonitorMapper instructorMonitorMapper;
-    private final MemberMapper memberMapper;
 
     @GetMapping
     public String dashboard(Authentication authentication, Model model) {
@@ -37,9 +35,9 @@ public class DashboardPrincipalController {
         MonthlySalesDto sales = financeMapper.selectMonthSummary(currentYm);
         model.addAttribute("monthTotal", sales != null ? sales.getTotal() : 0L);
 
-        model.addAttribute("pendingMemberCnt", memberMapper.countPendingApprovalMembers());
         model.addAttribute("activeClassCnt", instructorMonitorMapper.selectActiveClassCount());
         model.addAttribute("totalStudentCnt", instructorMonitorMapper.selectTotalStudentCount());
+        model.addAttribute("graduatingCnt", instructorMonitorMapper.countGraduatingStudentsThisMonth());
 
         return "admin:/dashboard/dashboard-principal";
     }
