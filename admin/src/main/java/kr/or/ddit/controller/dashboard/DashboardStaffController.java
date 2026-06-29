@@ -9,10 +9,14 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import kr.or.ddit.finalProject.dto.consultation.ConsultationSummaryDto;
+import kr.or.ddit.finalProject.dto.retention.RetentionSummaryDto;
 import kr.or.ddit.finalProject.dto.tuition.BillingSummaryDto;
-import kr.or.ddit.finalProject.mapper.MemberMapper;
 import kr.or.ddit.finalProject.mapper.StaffMapper;
+import kr.or.ddit.finalProject.mapper.board.QnaMapper;
 import kr.or.ddit.mapper.ApprovalMapper;
+import kr.or.ddit.mapper.ConsultationMapper;
+import kr.or.ddit.mapper.RetentionMapper;
 import kr.or.ddit.mapper.StaffBillingMapper;
 import lombok.RequiredArgsConstructor;
 
@@ -23,8 +27,10 @@ public class DashboardStaffController {
 
     private final ApprovalMapper approvalMapper;
     private final StaffBillingMapper staffBillingMapper;
-    private final MemberMapper memberMapper;
     private final StaffMapper staffMapper;
+    private final QnaMapper qnaMapper;
+    private final ConsultationMapper consultationMapper;
+    private final RetentionMapper retentionMapper;
 
     @GetMapping
     public String dashboard(Authentication authentication, Model model) {
@@ -32,16 +38,29 @@ public class DashboardStaffController {
         String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         model.addAttribute("myPendingCnt", approvalMapper.selectMyPendingLines(userId).size());
-        model.addAttribute("pendingMemberCnt", memberMapper.countPendingApprovalMembers());
+        model.addAttribute("unansweredQnaCnt", qnaMapper.countUnansweredQna());
+        model.addAttribute("recentQnaList", qnaMapper.selectRecentUnansweredQna(3));
 
         BillingSummaryDto billing = staffBillingMapper.selectSummary(today);
-        model.addAttribute("unpaidCnt", billing != null ? billing.getUnpaidCnt() : 0);
-        model.addAttribute("todayAmt", billing != null ? billing.getTodayAmt() : 0L);
+        int unpaidCnt = 0;
+        long todayAmt = 0L;
+        if (billing != null) {
+            if (billing.getUnpaidCnt() != null) unpaidCnt = billing.getUnpaidCnt();
+            if (billing.getTodayAmt() != null) todayAmt = billing.getTodayAmt();
+        }
+        model.addAttribute("unpaidCnt", unpaidCnt);
+        model.addAttribute("todayAmt", todayAmt);
 
         boolean isTeamLead = hasAuthority(authentication, "A001");
         model.addAttribute("isTeamLead", isTeamLead);
         if (isTeamLead) {
             model.addAttribute("teamMemberCnt", staffMapper.countActiveStaffByDept("D100"));
+
+            ConsultationSummaryDto cnsl = consultationMapper.selectSummary();
+            model.addAttribute("followupCnt", cnsl != null ? cnsl.getFollowupCnt() : 0);
+
+            RetentionSummaryDto retention = retentionMapper.selectSummary();
+            model.addAttribute("riskCnt", retention != null ? retention.getRiskCnt() : 0);
         }
 
         return "admin:/dashboard/dashboard-staff";

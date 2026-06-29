@@ -33,7 +33,9 @@ public class DashboardInstructorController {
         model.addAttribute("myPendingCnt", approvalMapper.selectMyPendingLines(userId).size());
         model.addAttribute("myClassroomCnt", classroomMapper.countClassroomListByInstructor(userId));
         model.addAttribute("myQuestionCnt", questionMapper.countQuestions(userId, null, null, false));
-        model.addAttribute("unansweredQnaCnt", instructorBoardMapper.countUnansweredInstructorQna(userId));
+        int unansweredQnaCnt = instructorBoardMapper.countUnansweredInstructorQna(userId);
+        model.addAttribute("unansweredQnaCnt", unansweredQnaCnt);
+        model.addAttribute("recentQnaList", instructorBoardMapper.selectRecentUnansweredInstructorQna(userId, 3));
 
         boolean isTeamLead = hasAuthority(authentication, "T001");
         model.addAttribute("isTeamLead", isTeamLead);

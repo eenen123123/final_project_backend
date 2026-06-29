@@ -183,6 +183,11 @@ public interface InstructorBoardMapper {
     /** 강사 게시판 미답변 Q&A 총 건수 (강사 대시보드용) */
     int countUnansweredInstructorQna(@Param("userId") String userId);
 
+    /** 강사 게시판 최근 미답변 Q&A 목록 (강사 대시보드 목록 섹션용) */
+    List<kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto> selectRecentUnansweredInstructorQna(
+            @Param("userId") String userId,
+            @Param("limit") int limit);
+
     /** 특정 학생이 등록한 최근 QnA 조회 (학생 상세 페이지용) */
     List<kr.or.ddit.finalProject.dto.classroom.ClassroomQnaDto> selectRecentQnaByStudent(
             @Param("classSn") Long classSn,

@@ -520,6 +520,22 @@
               AND IQ.ANSW_YN        = 'N'
       </select>
 
+      <!-- 강사 게시판 최근 미답변 Q&A 목록 (대시보드 목록 섹션용) -->
+      <select id="selectRecentUnansweredInstructorQna" resultMap="instructorBoardMap">
+            SELECT IB.POST_SN, IB.INSTR_USER_ID, IB.WRTR_USER_ID, IB.BOARD_TYPE_CD,
+                   IB.POST_SJ, IB.REG_DT, IB.USE_YN, M.USER_NAME, IQ.ANSW_YN
+            FROM INSTRUCTOR_BOARD IB
+                 INNER JOIN MEMBER M ON IB.WRTR_USER_ID = M.USER_ID
+                 INNER JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
+            WHERE IB.INSTR_USER_ID = #{userId}
+              AND IB.CLASS_SN      IS NULL
+              AND IB.BOARD_TYPE_CD = 'QNA'
+              AND IB.USE_YN        = 'Y'
+              AND IQ.ANSW_YN       = 'N'
+            ORDER BY IB.REG_DT DESC
+            FETCH NEXT #{limit} ROWS ONLY
+      </select>
+
       <!-- 미답변 Q&A 건수: 대시보드 배지 및 알림 표시에 사용 -->
       <select id="selectUnansweredQnaCount" resultType="int">
             SELECT COUNT(*)
