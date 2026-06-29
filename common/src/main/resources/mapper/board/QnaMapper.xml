@@ -163,6 +163,18 @@
         WHERE POST_SN = #{postSn}
     </update>
 
+    <!-- 내 Q&A 답변 현황 요약 (전체/답변완료/답변대기) -->
+    <select id="selectMyQnaSummary" resultType="java.util.HashMap">
+        SELECT
+            COUNT(*) AS "total",
+            SUM(CASE WHEN q.ANSW_STAT_CD != '01' THEN 1 ELSE 0 END) AS "answered",
+            SUM(CASE WHEN q.ANSW_STAT_CD = '01' THEN 1 ELSE 0 END) AS "waiting"
+        FROM BOARD b
+        JOIN QNA q ON q.POST_SN = b.POST_SN
+        WHERE b.WRTR_USER_ID = #{userId}
+          AND b.BOARD_TYPE_CD = '03'
+    </select>
+
     <!-- QnA DELETE -->
     <delete id="deleteQna">
         DELETE FROM QNA

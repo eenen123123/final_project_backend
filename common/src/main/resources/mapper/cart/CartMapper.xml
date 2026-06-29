@@ -53,6 +53,13 @@
         )
     </insert>
 
+    <!-- 보관기한(30일) 초과 항목 자동 삭제 -->
+    <delete id="deleteExpiredCartItems">
+        DELETE FROM CART
+        WHERE USER_ID = #{userId}
+          AND REG_DT &lt; SYSDATE - 30
+    </delete>
+
     <delete id="deleteCartBySn">
         DELETE FROM CART
         WHERE CART_SN = #{cartSn}
