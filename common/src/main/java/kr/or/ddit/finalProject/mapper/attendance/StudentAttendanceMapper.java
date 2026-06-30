@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Param;
 
 import kr.or.ddit.finalProject.dto.attendance.AttendanceRowDto;
 import kr.or.ddit.finalProject.dto.attendance.AttendanceUpsertDto;
+import kr.or.ddit.finalProject.dto.attendance.MyAttendanceDto;
 
 @Mapper
 public interface StudentAttendanceMapper {
@@ -18,4 +19,9 @@ public interface StudentAttendanceMapper {
 
     /** 학생 1명의 특정 날짜 출결 upsert */
     void upsertAttendance(AttendanceUpsertDto dto);
+
+    /** 학생 본인의 클래스룸 출석 이력 전체 조회 */
+    List<MyAttendanceDto> selectMyAttendanceByClassSn(
+            @Param("classSn") Long classSn,
+            @Param("userId") String userId);
 }

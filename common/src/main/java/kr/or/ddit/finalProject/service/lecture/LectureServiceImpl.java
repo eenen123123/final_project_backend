@@ -52,6 +52,7 @@ public class LectureServiceImpl implements LectureService {
     }
 
     @Override
+    @Transactional
     public void updateLectureProgress(Long lectureId, Long courseId, Integer progress, String userId) {
         // TODO: 강의를 수강하는 사용자가 해당 강의에 접근 권한이 있는지 확인하는 로직 추가 필요
 
