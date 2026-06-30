@@ -2,6 +2,7 @@ package kr.or.ddit.finalProject.dto.instructor.board;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 /**
@@ -56,4 +57,14 @@ public class InstructorPublicBoardDetail {
 
     /** 첨부파일 목록 (hasFile == 'Y' 일 때만 채워짐) */
     private List<InstructorBoardFileItem> files;
+
+    /** 비밀글 여부 (Y/N, boardTypeCd == 'QNA' 일 때만 유효) */
+    private String secrYn;
+
+    /** 현재 로그인한 유저가 작성자인지 여부 */
+    private boolean isMyPost;
+
+    /** 작성자 ID — isMyPost 계산에만 사용, JSON 응답에서 제외 */
+    @JsonIgnore
+    private String wrtrUserId;
 }
