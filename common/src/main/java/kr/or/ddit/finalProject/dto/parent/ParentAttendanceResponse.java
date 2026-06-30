@@ -1,0 +1,28 @@
+package kr.or.ddit.finalProject.dto.parent;
+
+import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ParentAttendanceResponse {
+
+    private int year;
+    private int month;
+    private int attendCount;
+    private int lateCount;
+    private int absentCount;
+    private List<Record> records;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Record {
+        private int day;
+        private String status;
+    }
+}

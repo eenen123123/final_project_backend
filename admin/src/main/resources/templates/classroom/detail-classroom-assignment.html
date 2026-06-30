@@ -16,8 +16,8 @@
       <i class="fa-solid fa-arrow-left text-xs"></i> 목록으로
     </a>
 
-    <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
-      <div class="px-7 py-5 border-b border-slate-100 flex items-start justify-between gap-4">
+    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div class="px-7 py-5 border-b border-slate-200 flex items-start justify-between gap-4">
         <div>
           <h1 class="text-base font-bold text-slate-800" th:text="${assignment.asgmtSj}">과제 제목</h1>
           <div class="flex items-center gap-3 mt-2 text-sm text-slate-400">
@@ -63,8 +63,8 @@
            th:text="${assignment.asgmtCn}">과제 내용</div>
     </div>
 
-    <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
-      <div class="px-7 py-5 border-b border-slate-100 flex items-center justify-between">
+    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div class="px-7 py-5 border-b border-slate-200 flex items-center justify-between">
         <div>
           <h2 class="text-base font-bold text-slate-800">제출 현황</h2>
           <p class="text-sm text-slate-400 mt-1">수강생의 과제 제출 및 채점 현황입니다.</p>
@@ -85,7 +85,7 @@
 
       <div th:if="${#lists.isEmpty(submitList)}"
            class="p-16 flex flex-col items-center justify-center gap-4 text-center">
-        <div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 text-3xl">
+        <div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-300 text-3xl">
           <i class="fa-solid fa-users"></i>
         </div>
         <p class="text-base font-medium text-slate-400">등록된 수강생이 없습니다.</p>
@@ -94,7 +94,7 @@
       <div th:unless="${#lists.isEmpty(submitList)}" class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="border-b border-slate-100 text-sm text-slate-400">
+            <tr class="border-b border-slate-200 text-sm text-slate-400">
               <th class="py-4 px-4 w-14 text-center font-medium whitespace-nowrap">번호</th>
               <th class="py-4 px-7 font-medium">학생</th>
               <th class="py-4 px-7 w-32 text-center font-medium whitespace-nowrap">제출</th>
@@ -105,13 +105,13 @@
           </thead>
           <tbody class="text-slate-700">
             <tr th:each="sub, stat : ${submitList}"
-                class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
               <td class="py-4 px-4 text-sm text-center text-slate-300 font-mono" th:text="${stat.count}">1</td>
               <td class="py-4 px-7">
                 <div class="flex items-center gap-2">
                   <span class="font-semibold text-slate-800 text-sm" th:text="${sub.userName}">홍길동</span>
                   <span th:if="${sub.atchFileId != null}"
-                        class="inline-flex items-center gap-1 text-xs text-slate-400 border border-slate-100 px-2 py-0.5 rounded">
+                        class="inline-flex items-center gap-1 text-xs text-slate-400 border border-slate-200 px-2 py-0.5 rounded">
                     <i class="fa-solid fa-paperclip text-xs"></i> 첨부
                   </span>
                 </div>
@@ -120,7 +120,7 @@
                 <span th:if="${sub.sbmtSn != null}"
                       class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold text-emerald-500 border border-emerald-100">제출</span>
                 <span th:unless="${sub.sbmtSn != null}"
-                      class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold text-slate-400 border border-slate-100">미제출</span>
+                      class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold text-slate-400 border border-slate-200">미제출</span>
               </td>
               <td class="py-4 px-7 text-sm text-slate-400 font-mono"
                   th:text="${sub.sbmtDt != null ? #temporals.format(sub.sbmtDt, 'yyyy-MM-dd HH:mm') : '-'}">-</td>
@@ -150,7 +150,7 @@
   </div>
 
   <div th:unless="${assignment != null}"
-       class="bg-white border border-slate-100 rounded-xl p-20 flex flex-col items-center gap-4 text-center">
+       class="bg-white border border-slate-200 rounded-xl p-20 flex flex-col items-center gap-4 text-center">
     <p class="text-base font-medium text-slate-400">존재하지 않는 과제입니다.</p>
   </div>
 

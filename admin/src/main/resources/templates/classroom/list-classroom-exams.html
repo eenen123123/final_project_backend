@@ -9,8 +9,8 @@
 <body>
 <div id="content">
 
-  <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
-    <div class="px-7 py-5 border-b border-slate-100 flex items-center justify-between">
+  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+    <div class="px-7 py-5 border-b border-slate-200 flex items-center justify-between">
       <div>
         <h2 class="text-base font-bold text-slate-800">시험 목록</h2>
         <p class="text-sm text-slate-400 mt-1">이 클래스룸에 등록된 시험 목록입니다.</p>
@@ -23,7 +23,7 @@
 
     <div th:if="${#lists.isEmpty(exams)}"
          class="p-20 flex flex-col items-center justify-center text-center gap-4">
-      <div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 text-3xl">
+      <div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-300 text-3xl">
         <i class="fa-solid fa-clipboard-question"></i>
       </div>
       <p class="text-base font-medium text-slate-400">등록된 시험이 없습니다.</p>
@@ -32,7 +32,7 @@
     <div th:unless="${#lists.isEmpty(exams)}" class="overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>
-          <tr class="border-b border-slate-100 text-sm text-slate-400">
+          <tr class="border-b border-slate-200 text-sm text-slate-400">
             <th class="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
             <th class="py-4 px-7 font-medium">시험명</th>
             <th class="py-4 px-7 w-24 text-center font-medium whitespace-nowrap">문항 수</th>
@@ -41,7 +41,7 @@
           </tr>
         </thead>
         <tbody class="text-slate-700">
-          <tr th:each="exam, stat : ${exams}" class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+          <tr th:each="exam, stat : ${exams}" class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
             <td class="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap"
                 th:text="${exams.size() - stat.index}">1</td>
             <td class="py-4 px-7">
@@ -64,7 +64,7 @@
       </table>
     </div>
 
-    <div class="px-7 py-4 border-t border-slate-100">
+    <div class="px-7 py-4 border-t border-slate-200">
       <p class="text-sm text-slate-400">
         전체 <span class="font-semibold text-slate-600" th:text="${exams.size()}">0</span>건
       </p>

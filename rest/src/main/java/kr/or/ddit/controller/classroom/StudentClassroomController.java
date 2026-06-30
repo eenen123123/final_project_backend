@@ -40,7 +40,9 @@ import kr.or.ddit.finalProject.dto.exam.ExamDto;
 import kr.or.ddit.finalProject.dto.exam.ExamQuestionDto;
 import kr.or.ddit.finalProject.dto.exam.ExamTakerDto;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
+import kr.or.ddit.finalProject.dto.attendance.MyAttendanceDto;
 import kr.or.ddit.finalProject.mapper.assignment.AssignmentBoardMapper;
+import kr.or.ddit.finalProject.mapper.attendance.StudentAttendanceMapper;
 import kr.or.ddit.finalProject.mapper.assignment.AssignmentSubmitMapper;
 import kr.or.ddit.finalProject.mapper.classroom.ClassroomMemberMapper;
 import kr.or.ddit.finalProject.mapper.exam.ExamMapper;
@@ -56,6 +58,7 @@ public class StudentClassroomController {
     private static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     private final ClassroomMemberMapper classroomMemberMapper;
+    private final StudentAttendanceMapper studentAttendanceMapper;
     private final AssignmentBoardMapper assignmentBoardMapper;
     private final AssignmentSubmitMapper assignmentSubmitMapper;
     private final ExamMapper examMapper;
@@ -95,17 +98,7 @@ public class StudentClassroomController {
         long submittedCount = assignments.stream().filter(a -> "Y".equals(a.getSbmtYn())).count();
         int assignSubmitRate = totalAsgmt > 0 ? (int) (submittedCount * 100 / totalAsgmt) : 0;
 
-        double sum = 0;
-        int gradedCount = 0;
-        for (StudentAssignmentDto a : assignments) {
-            if ("Y".equals(a.getGrddYn()) && a.getScore() != null) {
-                sum += a.getScore();
-                gradedCount++;
-            }
-        }
-        Double avgScore = gradedCount > 0 ? Math.round(sum / gradedCount * 100.0) / 100.0 : null;
-
-        // 예정/진행 시험 수
+        // 예정/진행 시험 수 + 시험 평균 점수
         LocalDateTime now = LocalDateTime.now();
         List<StudentExamDto> exams = examMapper.selectExamsByStudent(classSn, userId);
         long upcomingExamCount = exams.stream()
@@ -113,8 +106,25 @@ public class StudentClassroomController {
                         && LocalDateTime.parse(e.getExamEndDt(), DT_FMT).isAfter(now))
                 .count();
 
+        List<Double> examScores = exams.stream()
+                .map(StudentExamDto::getTotScore)
+                .filter(s -> s != null)
+                .collect(Collectors.toList());
+        Double examAvgScore = examScores.isEmpty() ? null
+                : Math.round(examScores.stream().mapToDouble(Double::doubleValue).average().orElse(0) * 100.0) / 100.0;
+
         return ResponseEntity.ok(new MySummaryResponse(
-                progressRate, assignSubmitRate, (int) upcomingExamCount, avgScore));
+                progressRate, assignSubmitRate, (int) upcomingExamCount, examAvgScore));
+    }
+
+    // ── 출석 탭: 내 출석 이력 ─────────────────────────────────────────────
+
+    @GetMapping("/my-attendance")
+    public ResponseEntity<List<MyAttendanceDto>> getMyAttendance(
+            @PathVariable Long classSn, Authentication authentication) {
+        String userId = authentication.getName();
+        if (!isMember(classSn, userId)) return ResponseEntity.status(403).build();
+        return ResponseEntity.ok(studentAttendanceMapper.selectMyAttendanceByClassSn(classSn, userId));
     }
 
     // ── 홈 탭: 마감 임박 과제 (오늘~2일 이내) ────────────────────────────

@@ -40,25 +40,25 @@
     SELECT
         cm.USER_ID,
         CASE
-            WHEN NVL(lect.TOTAL_LECTURES, 0) = 0 THEN 0
-            ELSE ROUND(NVL(prog.COMPLETED, 0) * 100.0 / lect.TOTAL_LECTURES, 0)
+            WHEN NVL(lect.TOTAL_DURATION, 0) = 0 THEN 0
+            ELSE LEAST(ROUND(NVL(prog.WATCHED, 0) * 100.0 / lect.TOTAL_DURATION, 0), 100)
         END AS PROGRESS_RATE
     FROM CLASSROOM_MEMBER cm
     CROSS JOIN (
-        SELECT COUNT(*) AS TOTAL_LECTURES
+        SELECT SUM(l.LECTURE_DURATION) AS TOTAL_DURATION
         FROM LECTURE l
         JOIN CLASSROOM cl ON cl.COURSE_SN = l.COURSE_SN
         WHERE cl.CLASS_SN = #{classSn}
           AND l.OPNN_YN = 'Y'
+          AND l.LECTURE_DURATION > 0
     ) lect
     LEFT JOIN (
-        SELECT lp.USER_ID, COUNT(*) AS COMPLETED
+        SELECT lp.USER_ID, SUM(LEAST(lp.SECONDS_WATCHED, l.LECTURE_DURATION)) AS WATCHED
         FROM LECTURE_PROGRESS lp
         JOIN LECTURE l ON l.LECTURE_SN = lp.LECTURE_SN AND l.COURSE_SN = lp.COURSE_SN
         JOIN CLASSROOM cl ON cl.COURSE_SN = l.COURSE_SN AND cl.CLASS_SN = #{classSn}
         WHERE l.OPNN_YN = 'Y'
           AND l.LECTURE_DURATION > 0
-          AND lp.SECONDS_WATCHED >= l.LECTURE_DURATION
         GROUP BY lp.USER_ID
     ) prog ON cm.USER_ID = prog.USER_ID
     WHERE cm.CLASS_SN = #{classSn}
@@ -110,14 +110,24 @@
 
   <select id="selectClassroomsByUserId" resultType="kr.or.ddit.finalProject.dto.classroom.ClassroomListResponse">
     SELECT
-        cl.CLASS_SN    AS classSn,
-        cl.CLASS_NM    AS classNm,
-        c.COURSE_NM    AS courseNm,
-        cl.CLASS_STAT_CD AS classStatCd
+        cl.CLASS_SN                                       AS classSn,
+        cl.CLASS_NM                                       AS classNm,
+        c.COURSE_NM                                       AS courseNm,
+        cl.CLASS_STAT_CD                                  AS classStatCd,
+        m.USER_NAME                                       AS instrNm,
+        cl.ENRL_STRT_YMD                                  AS enrlStrtYmd,
+        cl.ENRL_END_YMD                                   AS enrlEndYmd,
+        (
+            SELECT COUNT(*)
+            FROM CLASSROOM_MEMBER cm2
+            WHERE cm2.CLASS_SN     = cl.CLASS_SN
+              AND cm2.ENRL_STAT_CD = 'ENROLLED'
+        )                                                 AS studentCount
     FROM CLASSROOM_MEMBER cm
-    JOIN CLASSROOM cl ON cm.CLASS_SN = cl.CLASS_SN
-    JOIN COURSE c     ON cl.COURSE_SN = c.COURSE_SN
-    WHERE cm.USER_ID = #{userId}
+    JOIN CLASSROOM cl ON cm.CLASS_SN    = cl.CLASS_SN
+    JOIN COURSE c     ON cl.COURSE_SN   = c.COURSE_SN
+    JOIN MEMBER m     ON c.INSTR_USER_ID = m.USER_ID
+    WHERE cm.USER_ID      = #{userId}
       AND cm.ENRL_STAT_CD = 'ENROLLED'
     ORDER BY cm.REG_DT DESC
   </select>
