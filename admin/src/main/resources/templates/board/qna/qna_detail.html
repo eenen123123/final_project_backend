@@ -39,7 +39,7 @@
       </div>
       <div>
         <label class="text-xs font-semibold text-slate-600 mb-1.5 block">내용</label>
-        <textarea rows="5" class="hm-input hm-input-blue bg-slate-50 resize-none" th:text="${qna.postCn}" readonly></textarea>
+        <div id="questionViewer" class="hm-input hm-input-blue bg-slate-50 min-h-[120px] overflow-auto"></div>
       </div>
     </div>
 
@@ -51,24 +51,83 @@
           <span class="text-xs font-bold text-blue-600">관리자 답변</span>
           <span class="text-xs text-slate-400" th:text="${#temporals.format(qna.answDt, 'yyyy-MM-dd')}"></span>
         </div>
-        <div class="text-sm text-slate-600 leading-relaxed whitespace-pre-line" th:text="${qna.answCn}"></div>
+        <div id="answerViewer" class="text-sm text-slate-600 leading-relaxed"></div>
       </div>
     </div>
 
     <!-- 답변 대기인 경우 - 답변 입력 폼 -->
     <div th:if="${qna.answStatCd == '01'}" class="mb-8">
       <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">답변 작성</p>
-      <form th:action="@{/admin/board/qna/{postSn}/answer(postSn=${qna.postSn})}" method="post">
+      <form th:action="@{/admin/board/qna/{postSn}/answer(postSn=${qna.postSn})}" method="post" id="answerForm">
+        <input type="hidden" name="answCn" id="answCnHidden" />
         <label class="text-xs font-semibold text-slate-600 mb-1.5 block">답변 내용 <span class="text-red-400">*</span></label>
-        <textarea name="answCn" rows="6" placeholder="답변 내용을 입력하세요."
-          class="hm-input hm-input-blue resize-none mb-3" required
-          oninvalid="this.setCustomValidity('답변 내용을 입력해주세요.')"
-          oninput="this.setCustomValidity('')"></textarea>
+        <div id="answerEditor" class="mb-3"></div>
         <div class="flex justify-end">
           <button type="submit" class="hm-btn-primary hm-btn-blue text-sm cursor-pointer">답변 등록</button>
         </div>
       </form>
     </div>
+
+  <script defer th:src="@{/js/tiptap/tiptap-editor.iife.js}"></script>
+  <script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+      // 질문 내용 읽기 전용 렌더링
+      const questionContent = /*[[${qna.postCn}]]*/ null;
+      let qInitial = '';
+      let qHtml = null;
+      if (questionContent) {
+        try { JSON.parse(questionContent); qInitial = questionContent; }
+        catch { qHtml = questionContent; }
+      }
+      TipTapEditor.mount('questionViewer', {
+        editable: false,
+        initialContent: qInitial,
+      });
+      if (qHtml) {
+        const t = setInterval(() => {
+          const el = document.querySelector('#questionViewer .tiptap');
+          if (el && el.editor) { el.editor.commands.setContent(qHtml); clearInterval(t); }
+        }, 50);
+        setTimeout(() => clearInterval(t), 3000);
+      }
+
+      // 기존 답변 읽기 전용 렌더링
+      const answerContent = /*[[${qna.answCn}]]*/ null;
+      if (document.getElementById('answerViewer') && answerContent) {
+        let aInitial = '';
+        let aHtml = null;
+        try { JSON.parse(answerContent); aInitial = answerContent; }
+        catch { aHtml = answerContent; }
+        TipTapEditor.mount('answerViewer', {
+          editable: false,
+          initialContent: aInitial,
+        });
+        if (aHtml) {
+          const t2 = setInterval(() => {
+            const el = document.querySelector('#answerViewer .tiptap');
+            if (el && el.editor) { el.editor.commands.setContent(aHtml); clearInterval(t2); }
+          }, 50);
+          setTimeout(() => clearInterval(t2), 3000);
+        }
+      }
+
+      // 답변 작성 에디터
+      if (!document.getElementById('answerEditor')) return;
+      TipTapEditor.mount('answerEditor', {
+        editable: true,
+        outputInputId: 'answCnHidden',
+        imageUrlResolver: (fileId) => `/admin/files/${fileId}/view`,
+      });
+      document.getElementById('answerForm').addEventListener('submit', function (e) {
+        const el = document.querySelector('#answerEditor .tiptap');
+        if (el && el.editor) {
+          const html = el.editor.getHTML();
+          if (!html || html === '<p></p>') { e.preventDefault(); alert('답변 내용을 입력해주세요.'); return; }
+          document.getElementById('answCnHidden').value = html;
+        }
+      });
+    });
+  </script>
 
     <!-- 하단 버튼 -->
     <div class="flex justify-between mt-4">
