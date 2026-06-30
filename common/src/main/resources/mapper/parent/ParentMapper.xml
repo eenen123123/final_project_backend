@@ -4,7 +4,7 @@
 
 <mapper namespace="kr.or.ddit.finalProject.mapper.parent.ParentMapper">
 
-    <!-- 학부모의 자녀 목록 조회 (가장 최근 ENROLLED 클래스룸 기준) -->
+    <!-- 학부모의 자녀 목록 조회 (ENROLLED 클래스룸별 각각 반환) -->
     <select id="selectChildrenByParentId" resultType="kr.or.ddit.finalProject.dto.parent.ParentChildDto">
         SELECT
             s.STD_USER_ID        AS studentId,
@@ -16,12 +16,31 @@
             TO_CHAR(cm.REG_DT, 'YYYY-MM-DD') AS enrollStartDate,
             (
                 SELECT ROUND(
-                    COUNT(CASE WHEN TRIM(a.ATND_TYPE_CD) != '02' THEN 1 END) * 100.0
-                    / NULLIF(COUNT(*), 0)
+                    (
+                        SELECT COUNT(*)
+                        FROM STUDENT_ATTENDANCE a
+                        WHERE a.STD_USER_ID = s.STD_USER_ID
+                          AND TRIM(a.ATND_TYPE_CD) IN ('01','03','04')
+                          AND TRUNC(a.ATND_REG_DT) IN (
+                              SELECT DISTINCT TRUNC(sa2.ATND_REG_DT)
+                              FROM STUDENT_ATTENDANCE sa2
+                              JOIN CLASSROOM_MEMBER cm3 ON cm3.USER_ID = sa2.STD_USER_ID
+                              WHERE cm3.CLASS_SN = cl.CLASS_SN
+                                AND cm3.ENRL_STAT_CD = 'ENROLLED'
+                          )
+                    ) * 100.0
+                    / NULLIF(
+                        (
+                            SELECT COUNT(DISTINCT TRUNC(sa2.ATND_REG_DT))
+                            FROM STUDENT_ATTENDANCE sa2
+                            JOIN CLASSROOM_MEMBER cm3 ON cm3.USER_ID = sa2.STD_USER_ID
+                            WHERE cm3.CLASS_SN = cl.CLASS_SN
+                              AND cm3.ENRL_STAT_CD = 'ENROLLED'
+                        ),
+                        0
+                    )
                 )
-                FROM STUDENT_ATTENDANCE a
-                WHERE a.STD_USER_ID = s.STD_USER_ID
-                  AND a.ATND_REG_DT >= SYSDATE - 30
+                FROM DUAL
             ) AS attendanceRate,
             (
                 SELECT ROUND(
@@ -43,17 +62,12 @@
             ) AS recentExamAvgScore
         FROM STUDENT s
         JOIN MEMBER m ON s.STD_USER_ID = m.USER_ID
-        LEFT JOIN (
-            SELECT cm2.USER_ID, cm2.CLASS_SN, cm2.REG_DT,
-                   ROW_NUMBER() OVER (PARTITION BY cm2.USER_ID ORDER BY cm2.REG_DT DESC) AS rn
-            FROM CLASSROOM_MEMBER cm2
-            WHERE cm2.ENRL_STAT_CD = 'ENROLLED'
-        ) cm ON cm.USER_ID = s.STD_USER_ID AND cm.rn = 1
-        LEFT JOIN CLASSROOM cl ON cm.CLASS_SN = cl.CLASS_SN
-        LEFT JOIN COURSE c ON cl.COURSE_SN = c.COURSE_SN
-        LEFT JOIN MEMBER instr_m ON c.INSTR_USER_ID = instr_m.USER_ID
+        JOIN CLASSROOM_MEMBER cm ON cm.USER_ID = s.STD_USER_ID AND cm.ENRL_STAT_CD = 'ENROLLED'
+        JOIN CLASSROOM cl ON cm.CLASS_SN = cl.CLASS_SN
+        JOIN COURSE c ON cl.COURSE_SN = c.COURSE_SN
+        JOIN MEMBER instr_m ON c.INSTR_USER_ID = instr_m.USER_ID
         WHERE s.PRNT_USER_ID = #{parentId}
-        ORDER BY m.USER_NAME
+        ORDER BY m.USER_NAME, cm.REG_DT DESC
     </select>
 
     <!-- 학부모-자녀 관계 확인 -->

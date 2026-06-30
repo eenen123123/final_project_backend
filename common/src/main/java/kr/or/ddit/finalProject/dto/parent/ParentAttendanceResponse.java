@@ -16,6 +16,7 @@ public class ParentAttendanceResponse {
     private int attendCount;
     private int lateCount;
     private int absentCount;
+    private int earlyLeaveCount;
     private List<Record> records;
 
     @Data

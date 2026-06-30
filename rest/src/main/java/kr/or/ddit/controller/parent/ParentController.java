@@ -57,23 +57,24 @@ public class ParentController {
 
         List<StudentAttendanceDto> raw = parentMapper.selectMonthlyAttendance(studentId, year, month);
 
-        int attendCount = 0, lateCount = 0, absentCount = 0;
+        int attendCount = 0, lateCount = 0, absentCount = 0, earlyLeaveCount = 0;
         List<ParentAttendanceResponse.Record> records = new java.util.ArrayList<>();
 
         for (StudentAttendanceDto dto : raw) {
             String typeCd = dto.getAtndTypeCd() != null ? dto.getAtndTypeCd().trim() : "";
             String status;
             switch (typeCd) {
-                case "02": status = "ABSENT"; absentCount++; break;
-                case "03": status = "LATE";   lateCount++;   break;
-                default:   status = "ATTEND"; attendCount++; break;
+                case "02": status = "ABSENT";      absentCount++;     break;
+                case "03": status = "LATE";        lateCount++;       break;
+                case "04": status = "EARLY_LEAVE"; earlyLeaveCount++; break;
+                default:   status = "ATTEND";      attendCount++;     break;
             }
             int day = dto.getAtndRegDt().getDayOfMonth();
             records.add(new ParentAttendanceResponse.Record(day, status));
         }
 
         return ResponseEntity.ok(
-                new ParentAttendanceResponse(year, month, attendCount, lateCount, absentCount, records));
+                new ParentAttendanceResponse(year, month, attendCount, lateCount, absentCount, earlyLeaveCount, records));
     }
 
     // ── 자녀 과제 목록 ────────────────────────────────────────────────────────
