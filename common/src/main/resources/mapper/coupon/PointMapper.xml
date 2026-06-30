@@ -233,9 +233,13 @@
                    m.USER_ROLE  AS "userRole",
                    NVL((SELECT SUM(ph.CHANGE_AMT)
                         FROM POINT_HIST ph
-                        JOIN MEMBER_COUPONPOINT mcp ON ph.MCPNT_SN = mcp.MCPNT_SN
+                        LEFT JOIN MEMBER_COUPONPOINT mcp ON ph.MCPNT_SN = mcp.MCPNT_SN
                         WHERE ph.USER_ID = m.USER_ID
-                          AND mcp.ASSET_TYPE = #{assetType}), 0) AS "balance"
+                          AND (
+                            (ph.MCPNT_SN IS NOT NULL AND mcp.ASSET_TYPE = #{assetType})
+                            OR
+                            (ph.MCPNT_SN IS NULL AND ph.ASSET_TYPE = #{assetType})
+                          )), 0) AS "balance"
             FROM MEMBER m
             WHERE m.USER_ROLE IN ('ROLE_USER', 'ROLE_STUDENT')
               AND m.ENABLE = 'Y'
