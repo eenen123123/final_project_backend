@@ -56,6 +56,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/files/*/download").permitAll()
                         .requestMatchers("/api/files/**").authenticated()
 
+                        .requestMatchers(HttpMethod.POST, "/api/instructors/*/board/qna").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/instructors/*/board/*").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/instructors/*/board/*").authenticated()
+
                         .requestMatchers("/").permitAll().anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class);

@@ -203,22 +203,32 @@ public interface InstructorBoardMapper {
 
     // ── 공개 강사 게시판 (React 프론트 전용) ─────────────────────────
 
-    /** 공개 게시판 총 건수 (QNA는 비밀글 제외) */
+    /** 공개 게시판 총 건수 (searchType: title/writer, keyword 없으면 전체) */
     int selectPublicBoardCount(
             @Param("instrUuid") String instrUuid,
-            @Param("boardTypeCd") String boardTypeCd);
+            @Param("boardTypeCd") String boardTypeCd,
+            @Param("searchType") String searchType,
+            @Param("keyword") String keyword);
 
-    /** 공개 게시판 목록 조회 (페이징, QNA는 비밀글 제외) */
+    /** 공개 게시판 목록 조회 (페이징, searchType: title/writer) */
     List<InstructorPublicBoardItem> selectPublicBoardList(
             @Param("instrUuid") String instrUuid,
             @Param("boardTypeCd") String boardTypeCd,
             @Param("offset") int offset,
-            @Param("limit") int limit);
+            @Param("limit") int limit,
+            @Param("searchType") String searchType,
+            @Param("keyword") String keyword);
 
-    /** 공개 게시판 상세 조회 (이전/다음글, 답변 정보 포함) */
-    InstructorPublicBoardDetail selectPublicBoardDetail(
+    /** 게시글 존재 여부 확인 (비밀글 여부 무관 — 403 vs 404 구분용) */
+    int existsPublicBoard(
             @Param("instrUuid") String instrUuid,
             @Param("postSn") Long postSn);
+
+    /** 공개 게시판 상세 조회 (이전/다음글, 답변 정보 포함, currentUserId=null이면 비밀글 제외) */
+    InstructorPublicBoardDetail selectPublicBoardDetail(
+            @Param("instrUuid") String instrUuid,
+            @Param("postSn") Long postSn,
+            @Param("currentUserId") String currentUserId);
 
     /**
      * 조회수 증가.
@@ -252,4 +262,25 @@ public interface InstructorBoardMapper {
 
     /** 내가 작성한 강사 홈페이지 Q&A 총 건수 */
     int countMyInstructorQnaList(@Param("userId") String userId);
+
+    // ── 공개 강사 게시판 Q&A CRUD ─────────────────────────────────────
+
+    /** instrUuid → instrUserId 변환 */
+    String selectInstrUserIdByUuid(@Param("instrUuid") String instrUuid);
+
+    /** 공개 Q&A child 레코드 생성 (secrYn 파라미터 포함) */
+    int insertPublicQnaChild(@Param("postSn") Long postSn, @Param("secrYn") String secrYn);
+
+    /** 공개 Q&A 본문 수정 (작성자 본인만) */
+    int updatePublicQnaBoard(
+            @Param("postSn") Long postSn,
+            @Param("wrtrUserId") String wrtrUserId,
+            @Param("postSj") String postSj,
+            @Param("postCn") String postCn);
+
+    /** 공개 Q&A 비밀글 여부 수정 */
+    int updatePublicQnaChild(@Param("postSn") Long postSn, @Param("secrYn") String secrYn);
+
+    /** 공개 Q&A 소프트 삭제 (작성자 본인만) */
+    int deletePublicQnaBoard(@Param("postSn") Long postSn, @Param("wrtrUserId") String wrtrUserId);
 }

@@ -577,20 +577,30 @@
            instrUuid 기준 조회. QNA는 비밀글(SECR_YN='Y') 제외.
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
 
-      <select id="selectPublicBoardCount" resultType="int">
-            SELECT COUNT(*)
-            FROM INSTRUCTOR_BOARD IB
-                  INNER JOIN INSTRUCTOR I ON IB.INSTR_USER_ID = I.INSTR_USER_ID
-                  <if test="'QNA'.equals(boardTypeCd)">
-                  LEFT JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN = IB.POST_SN
-                  </if>
+      <!-- 공개 게시판 검색 조건 (COUNT/LIST 공통) -->
+      <sql id="publicBoardSearchWhere">
             WHERE I.INSTR_UUID     = #{instrUuid}
               AND IB.BOARD_TYPE_CD = #{boardTypeCd}
               AND IB.CLASS_SN      IS NULL
               AND IB.USE_YN        = 'Y'
-              <if test="'QNA'.equals(boardTypeCd)">
-              AND IQ.SECR_YN = 'N'
-              </if>
+            <if test="keyword != null and keyword != ''">
+              <choose>
+                <when test="searchType == 'writer'">
+                  AND UPPER(M.USER_NAME) LIKE '%' || UPPER(#{keyword}) || '%'
+                </when>
+                <otherwise>
+                  AND UPPER(IB.POST_SJ) LIKE '%' || UPPER(#{keyword}) || '%'
+                </otherwise>
+              </choose>
+            </if>
+      </sql>
+
+      <select id="selectPublicBoardCount" resultType="int">
+            SELECT COUNT(*)
+            FROM INSTRUCTOR_BOARD IB
+                  INNER JOIN INSTRUCTOR I ON IB.INSTR_USER_ID = I.INSTR_USER_ID
+                  LEFT  JOIN MEMBER M     ON IB.WRTR_USER_ID  = M.USER_ID
+            <include refid="publicBoardSearchWhere"/>
       </select>
 
       <select id="selectPublicBoardList"
@@ -602,19 +612,14 @@
                   IB.INQ_CNT                                               AS viewCount,
                   M.USER_NAME                                              AS writerName,
                   IQ.ANSW_YN                                               AS answerYn,
+                  IQ.SECR_YN                                               AS secrYn,
                   CASE WHEN IB.ATCH_FILE_ID IS NOT NULL THEN 'Y' ELSE 'N' END AS hasFile
             FROM INSTRUCTOR_BOARD IB
                   INNER JOIN INSTRUCTOR I  ON IB.INSTR_USER_ID = I.INSTR_USER_ID
                   LEFT  JOIN MEMBER M      ON IB.WRTR_USER_ID  = M.USER_ID
                   LEFT  JOIN INSTRUCTOR_QNA IQ ON IQ.POST_SN   = IB.POST_SN
                                                AND IB.BOARD_TYPE_CD = 'QNA'
-            WHERE I.INSTR_UUID     = #{instrUuid}
-              AND IB.BOARD_TYPE_CD = #{boardTypeCd}
-              AND IB.CLASS_SN      IS NULL
-              AND IB.USE_YN        = 'Y'
-              <if test="'QNA'.equals(boardTypeCd)">
-              AND IQ.SECR_YN = 'N'
-              </if>
+            <include refid="publicBoardSearchWhere"/>
             ORDER BY IB.REG_DT DESC
             OFFSET #{offset} ROWS FETCH NEXT #{limit} ROWS ONLY
       </select>
@@ -626,11 +631,13 @@
                   IB.BOARD_TYPE_CD                                         AS boardTypeCd,
                   IB.POST_SJ                                               AS title,
                   IB.POST_CN                                               AS content,
+                  IB.WRTR_USER_ID                                          AS wrtrUserId,
                   M.USER_NAME                                              AS writerName,
                   TO_CHAR(IB.REG_DT, 'YYYY-MM-DD HH24:MI:SS')             AS regDt,
                   IB.INQ_CNT                                               AS viewCount,
                   CASE WHEN IB.ATCH_FILE_ID IS NOT NULL THEN 'Y' ELSE 'N' END AS hasFile,
                   IQ.ANSW_YN                                               AS answerYn,
+                  IQ.SECR_YN                                               AS secrYn,
                   IQ.ANSW_CN                                               AS answerContent,
                   AM.USER_NAME                                             AS answererName,
                   TO_CHAR(IQ.ANSW_DT, 'YYYY-MM-DD HH24:MI')               AS answerDt
@@ -643,7 +650,11 @@
               AND IB.POST_SN   = #{postSn}
               AND IB.CLASS_SN  IS NULL
               AND IB.USE_YN    = 'Y'
-              AND (IQ.POST_SN IS NULL OR IQ.SECR_YN = 'N')
+              AND (IQ.POST_SN IS NULL OR IQ.SECR_YN = 'N'
+                   <if test="currentUserId != null">
+                   OR IB.WRTR_USER_ID  = #{currentUserId}
+                   OR IB.INSTR_USER_ID = #{currentUserId}
+                   </if>)
       </select>
 
       <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -721,6 +732,57 @@
             ORDER BY IB.POST_SN ASC
             FETCH FIRST 1 ROWS ONLY
       </select>
+
+      <!-- 게시글 존재 여부 확인 (비밀글 여부 무관, 403 vs 404 구분용) -->
+      <select id="existsPublicBoard" resultType="int">
+            SELECT COUNT(*)
+            FROM INSTRUCTOR_BOARD IB
+                  INNER JOIN INSTRUCTOR I ON IB.INSTR_USER_ID = I.INSTR_USER_ID
+            WHERE I.INSTR_UUID = #{instrUuid}
+              AND IB.POST_SN   = #{postSn}
+              AND IB.CLASS_SN  IS NULL
+              AND IB.USE_YN    = 'Y'
+      </select>
+
+      <!-- instrUuid → instrUserId 변환 (공개 Q&A CRUD에서 사용) -->
+      <select id="selectInstrUserIdByUuid" resultType="String">
+            SELECT INSTR_USER_ID FROM INSTRUCTOR WHERE INSTR_UUID = #{instrUuid}
+      </select>
+
+      <!-- 공개 Q&A child 레코드 생성 (secrYn 파라미터 포함) -->
+      <insert id="insertPublicQnaChild">
+            INSERT INTO INSTRUCTOR_QNA (POST_SN, ANSW_YN, SECR_YN)
+            VALUES (#{postSn}, 'N', #{secrYn})
+      </insert>
+
+      <!-- 공개 Q&A 본문 수정 (작성자 본인만) -->
+      <update id="updatePublicQnaBoard">
+            UPDATE INSTRUCTOR_BOARD
+            SET POST_SJ  = #{postSj},
+                POST_CN  = #{postCn},
+                MDFCN_DT = SYSDATE
+            WHERE POST_SN      = #{postSn}
+              AND WRTR_USER_ID = #{wrtrUserId}
+              AND CLASS_SN     IS NULL
+              AND USE_YN       = 'Y'
+      </update>
+
+      <!-- 공개 Q&A 비밀글 여부 수정 -->
+      <update id="updatePublicQnaChild">
+            UPDATE INSTRUCTOR_QNA
+            SET SECR_YN = #{secrYn}
+            WHERE POST_SN = #{postSn}
+      </update>
+
+      <!-- 공개 Q&A 소프트 삭제 (작성자 본인만) -->
+      <update id="deletePublicQnaBoard">
+            UPDATE INSTRUCTOR_BOARD
+            SET USE_YN   = 'N',
+                MDFCN_DT = SYSDATE
+            WHERE POST_SN      = #{postSn}
+              AND WRTR_USER_ID = #{wrtrUserId}
+              AND CLASS_SN     IS NULL
+      </update>
 
       <!-- 첨부파일 목록: DEL_YN='N' 인 파일만 반환 -->
       <select id="selectBoardFiles"

@@ -274,19 +274,20 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
 
     @Override
     public PageResponse<InstructorPublicBoardItem> getPublicBoardList(
-            String instrUuid, String boardTypeCd, int pageIndex, int size) {
+            String instrUuid, String boardTypeCd, int pageIndex, int size,
+            String searchType, String keyword) {
         int offset = pageIndex * size;
-        int total = instructorBoardMapper.selectPublicBoardCount(instrUuid, boardTypeCd);
+        int total = instructorBoardMapper.selectPublicBoardCount(instrUuid, boardTypeCd, searchType, keyword);
         List<InstructorPublicBoardItem> items =
-                instructorBoardMapper.selectPublicBoardList(instrUuid, boardTypeCd, offset, size);
+                instructorBoardMapper.selectPublicBoardList(instrUuid, boardTypeCd, offset, size, searchType, keyword);
         return new PageResponse<>(items, total);
     }
 
     @Override
     @Transactional
-    public InstructorPublicBoardDetail getPublicBoardDetail(String instrUuid, Long postSn) {
+    public InstructorPublicBoardDetail getPublicBoardDetail(String instrUuid, Long postSn, String currentUserId) {
         InstructorPublicBoardDetail detail =
-                instructorBoardMapper.selectPublicBoardDetail(instrUuid, postSn);
+                instructorBoardMapper.selectPublicBoardDetail(instrUuid, postSn, currentUserId);
         if (detail == null) {
             return null;
         }
@@ -296,7 +297,52 @@ public class InstructorBoardServiceImpl implements InstructorBoardService {
         if ("Y".equals(detail.getHasFile())) {
             detail.setFiles(instructorBoardMapper.selectBoardFiles(postSn));
         }
+        if (currentUserId != null && currentUserId.equals(detail.getWrtrUserId())) {
+            detail.setMyPost(true);
+        }
         return detail;
+    }
+
+    @Override
+    @Transactional
+    public void insertPublicQna(String instrUuid, String wrtrUserId, String postSj, String postCn, String secrYn) {
+        String instrUserId = instructorBoardMapper.selectInstrUserIdByUuid(instrUuid);
+        if (instrUserId == null) {
+            throw new IllegalArgumentException("존재하지 않는 강사입니다: " + instrUuid);
+        }
+        InstructorBoardDto dto = InstructorBoardDto.builder()
+                .instrUserId(instrUserId)
+                .wrtrUserId(wrtrUserId)
+                .boardTypeCd("QNA")
+                .postSj(postSj)
+                .postCn(postCn)
+                .build();
+        instructorBoardMapper.insertInstructorBoard(dto);
+        instructorBoardMapper.insertPublicQnaChild(dto.getPostSn(), secrYn != null ? secrYn : "N");
+    }
+
+    @Override
+    @Transactional
+    public void updatePublicQna(Long postSn, String wrtrUserId, String postSj, String postCn, String secrYn) {
+        int rows = instructorBoardMapper.updatePublicQnaBoard(postSn, wrtrUserId, postSj, postCn);
+        if (rows == 0) {
+            throw new IllegalArgumentException("수정 권한이 없거나 존재하지 않는 게시글입니다: " + postSn);
+        }
+        instructorBoardMapper.updatePublicQnaChild(postSn, secrYn != null ? secrYn : "N");
+    }
+
+    @Override
+    @Transactional
+    public void deletePublicQna(Long postSn, String wrtrUserId) {
+        int rows = instructorBoardMapper.deletePublicQnaBoard(postSn, wrtrUserId);
+        if (rows == 0) {
+            throw new IllegalArgumentException("삭제 권한이 없거나 존재하지 않는 게시글입니다: " + postSn);
+        }
+    }
+
+    @Override
+    public boolean existsPublicBoard(String instrUuid, Long postSn) {
+        return instructorBoardMapper.existsPublicBoard(instrUuid, postSn) > 0;
     }
 
     @Override
