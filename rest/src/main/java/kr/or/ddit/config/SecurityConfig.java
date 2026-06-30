@@ -49,7 +49,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/member/email-code/verify")
                         .permitAll()
 
-                        .requestMatchers("/api/parent/join/**").authenticated()
+                        .requestMatchers("/api/parent/**").authenticated()
 
                         .requestMatchers(HttpMethod.GET, "/api/qna/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/qna").authenticated()
