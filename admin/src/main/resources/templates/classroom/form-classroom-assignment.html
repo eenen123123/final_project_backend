@@ -9,8 +9,8 @@
 <body>
 <div id="content">
 
-  <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
-    <div class="px-7 py-5 border-b border-slate-100">
+  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+    <div class="px-7 py-5 border-b border-slate-200">
       <h2 class="text-base font-bold text-slate-800"
           th:text="${editAssignment != null} ? '과제 수정' : '과제 등록'">과제 등록</h2>
     </div>
@@ -26,7 +26,7 @@
         <input type="text" name="asgmtSj"
                th:value="${editAssignment != null} ? ${editAssignment.asgmtSj} : ''"
                placeholder="과제 제목을 입력하세요"
-               class="w-full text-sm px-4 py-3 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 transition-colors"
+               class="w-full text-sm px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 transition-colors"
                required />
       </div>
 
@@ -34,7 +34,7 @@
         <label class="text-sm font-semibold text-slate-600">내용</label>
         <textarea name="asgmtCn" rows="6" placeholder="과제 내용을 입력하세요"
                   th:text="${editAssignment != null} ? ${editAssignment.asgmtCn} : ''"
-                  class="w-full text-sm px-4 py-3 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 transition-colors resize-none"
+                  class="w-full text-sm px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 transition-colors resize-none"
                   required></textarea>
       </div>
 
@@ -44,14 +44,14 @@
                th:value="${editAssignment != null and editAssignment.sbmtDdlnDt != null}
                           ? ${#temporals.format(editAssignment.sbmtDdlnDt, 'yyyy-MM-dd''T''HH:mm')}
                           : ''"
-               class="w-64 text-sm px-4 py-3 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 transition-colors" />
+               class="w-64 text-sm px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 transition-colors" />
       </div>
 
       <div class="flex justify-end gap-3 pt-2">
         <a th:href="${editAssignment != null}
                      ? @{/classroom/detail/{sn}/assignments/{asgmtSn}(sn=${classroom.classSn},asgmtSn=${editAssignment.asgmtSn})}
                      : @{/classroom/detail/{sn}/assignments(sn=${classroom.classSn})}"
-           class="text-sm font-semibold px-5 py-2.5 text-slate-500 hover:text-slate-700 border border-slate-100 rounded-lg transition-colors">취소</a>
+           class="text-sm font-semibold px-5 py-2.5 text-slate-500 hover:text-slate-700 border border-slate-200 rounded-lg transition-colors">취소</a>
         <button type="submit"
                 class="text-sm font-semibold px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 th:text="${editAssignment != null} ? '수정' : '등록'">등록</button>

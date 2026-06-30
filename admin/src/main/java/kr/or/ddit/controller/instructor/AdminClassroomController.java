@@ -23,6 +23,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import kr.or.ddit.finalProject.dto.assignment.AssignmentBoardDto;
 import kr.or.ddit.finalProject.dto.assignment.AssignmentSubmitDto;
+import kr.or.ddit.finalProject.dto.attendance.AttendanceRowDto;
+import kr.or.ddit.finalProject.dto.attendance.AttendanceUpsertDto;
+import kr.or.ddit.finalProject.mapper.attendance.StudentAttendanceMapper;
 import kr.or.ddit.finalProject.dto.classroom.ClassStatus;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomDto;
@@ -53,6 +56,7 @@ public class AdminClassroomController extends AbstractClassroomController {
     private final AdminActivityApprovalService adminActivityApprovalService;
     private final ExamService examService;
     private final GeminiQuestionService geminiQuestionService;
+    private final StudentAttendanceMapper studentAttendanceMapper;
 
     public AdminClassroomController(ClassroomService classroomService,
                                     AssignmentBoardService assignmentBoardService,
@@ -61,13 +65,15 @@ public class AdminClassroomController extends AbstractClassroomController {
                                     CourseService courseService,
                                     AdminActivityApprovalService adminActivityApprovalService,
                                     ExamService examService,
-                                    GeminiQuestionService geminiQuestionService) {
+                                    GeminiQuestionService geminiQuestionService,
+                                    StudentAttendanceMapper studentAttendanceMapper) {
         super(classroomService, assignmentBoardService, instructorBoardService);
         this.lectureService = lectureService;
         this.courseService = courseService;
         this.adminActivityApprovalService = adminActivityApprovalService;
         this.examService = examService;
         this.geminiQuestionService = geminiQuestionService;
+        this.studentAttendanceMapper = studentAttendanceMapper;
     }
 
     // 클래스룸 목록 페이지 렌더링 (데이터는 AJAX로 별도 로드)
@@ -356,6 +362,68 @@ public class AdminClassroomController extends AbstractClassroomController {
         model.addAttribute("pageSize", PAGE_SIZE);
         model.addAttribute("totalPages", (int) Math.ceil((double) memberPage.getTotalCount() / PAGE_SIZE));
         return "classroom/list-classroom-members";
+    }
+
+    // ── 출결 관리 ──────────────────────────────────────────────────
+
+    // 출결 페이지 렌더링 (기본: 오늘 날짜)
+    @GetMapping("/detail/{classSn}/attendance")
+    public String attendancePage(@PathVariable Long classSn,
+            @RequestParam(required = false) String date,
+            Model model, Authentication authentication) {
+        ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
+        if (classroom == null) return "redirect:/classroom/list";
+
+        String targetDate = (date != null && !date.isBlank()) ? date
+                : LocalDate.now().toString();
+
+        List<AttendanceRowDto> rows =
+                studentAttendanceMapper.selectAttendanceByClassSnAndDate(classSn, targetDate);
+
+        model.addAttribute("classroom", classroom);
+        model.addAttribute("targetDate", targetDate);
+        model.addAttribute("attendanceRows", rows);
+        return "classroom/list-classroom-attendance";
+    }
+
+    // 출결 일괄 저장 (AJAX)
+    @PostMapping("/detail/{classSn}/attendance")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> saveAttendance(
+            @PathVariable Long classSn,
+            @RequestParam String date,
+            @RequestParam Map<String, String> params,
+            Authentication authentication) {
+        ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
+        if (classroom == null) return ResponseEntity.status(403).body(Map.of("success", false));
+
+        // params에서 studentId → typeCd 매핑 추출 (key 형식: "status_std001")
+        params.entrySet().stream()
+                .filter(e -> e.getKey().startsWith("status_"))
+                .forEach(e -> {
+                    String stdUserId = e.getKey().substring(7);
+                    String typeCd = resolveTypeCd(e.getValue());
+                    if (typeCd != null) {
+                        AttendanceUpsertDto dto = new AttendanceUpsertDto();
+                        dto.setStdUserId(stdUserId);
+                        dto.setAtndTypeCd(typeCd);
+                        dto.setDate(date);
+                        studentAttendanceMapper.upsertAttendance(dto);
+                    }
+                });
+
+        return ResponseEntity.ok(Map.of("success", true));
+    }
+
+    private String resolveTypeCd(String status) {
+        if (status == null) return null;
+        switch (status) {
+            case "ATTEND":      return "01";
+            case "ABSENT":      return "02";
+            case "LATE":        return "03";
+            case "EARLY_LEAVE": return "04";
+            default:            return null;
+        }
     }
 
     // 수강생 상세 — 기본정보 + 강의진도 + 과제 + 시험 + 최근 QnA

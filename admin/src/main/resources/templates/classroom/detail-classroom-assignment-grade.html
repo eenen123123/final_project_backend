@@ -17,8 +17,8 @@
     </a>
 
     <!-- 과제 정보 카드 -->
-    <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
-      <div class="px-7 py-4 border-b border-slate-100 flex items-center justify-between">
+    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div class="px-7 py-4 border-b border-slate-200 flex items-center justify-between">
         <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wide">과제 안내</h2>
         <span th:if="${assignment.sbmtDdlnDt != null}"
               class="text-xs text-slate-400">
@@ -39,8 +39,8 @@
     </div>
 
     <!-- 제출 내용 카드 -->
-    <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
-      <div class="px-7 py-4 border-b border-slate-100 flex items-center justify-between">
+    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div class="px-7 py-4 border-b border-slate-200 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-sm font-bold select-none"
                th:text="${#strings.substring(submit.userName, 0, 1)}">학</div>
@@ -71,10 +71,10 @@
 
       <!-- 첨부파일 -->
       <div th:if="${not #lists.isEmpty(attachedFiles)}"
-           class="px-7 py-5 border-t border-slate-100 flex flex-col gap-2">
+           class="px-7 py-5 border-t border-slate-200 flex flex-col gap-2">
         <p class="text-sm font-semibold text-slate-500 mb-1">첨부파일</p>
         <div th:each="f : ${attachedFiles}"
-             class="flex items-center gap-3 rounded-lg border border-slate-100 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+             class="flex items-center gap-3 rounded-lg border border-slate-200 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
           <i class="fa-solid fa-paperclip text-slate-300"></i>
           <span th:text="${f.orgnFileNm}" class="flex-1 truncate"></span>
           <span class="text-slate-400 text-xs"
@@ -88,8 +88,8 @@
     </div>
 
     <!-- 채점 카드 -->
-    <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
-      <div class="px-7 py-4 border-b border-slate-100">
+    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div class="px-7 py-4 border-b border-slate-200">
         <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wide">채점</h2>
       </div>
       <div class="px-7 py-6">

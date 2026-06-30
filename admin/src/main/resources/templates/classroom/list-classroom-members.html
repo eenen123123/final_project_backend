@@ -9,15 +9,15 @@
 <body>
 <div id="content">
 
-  <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
-    <div class="px-7 py-5 border-b border-slate-100">
+  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+    <div class="px-7 py-5 border-b border-slate-200">
       <h2 class="text-base font-bold text-slate-800">수강생 목록</h2>
       <p class="text-sm text-slate-400 mt-1">이 클래스에 등록된 수강생 목록입니다.</p>
     </div>
 
     <div th:if="${#lists.isEmpty(memberPage.items)}"
          class="p-20 flex flex-col items-center justify-center text-center gap-4">
-      <div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 text-3xl">
+      <div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-300 text-3xl">
         <i class="fa-solid fa-users"></i>
       </div>
       <p class="text-base font-medium text-slate-400">등록된 수강생이 없습니다.</p>
@@ -26,7 +26,7 @@
     <div th:unless="${#lists.isEmpty(memberPage.items)}" class="overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>
-          <tr class="border-b border-slate-100 text-sm text-slate-400">
+          <tr class="border-b border-slate-200 text-sm text-slate-400">
             <th class="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
             <th class="py-4 px-7 font-medium">이름</th>
             <th class="py-4 px-7 w-40 font-medium whitespace-nowrap">아이디</th>
@@ -37,7 +37,7 @@
               th:data-url="@{/classroom/detail/{sn}/members/{uid}(sn=${classroom.classSn},uid=${member.userId})}"
               onclick="location.href=this.dataset.url"
               th:classappend="${member.enrlStatCd != T(kr.or.ddit.finalProject.dto.classroom.EnrollStatus).ENROLLED} ? 'opacity-50' : ''"
-              class="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer">
+              class="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
             <td class="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap"
                 th:text="${memberPage.totalCount - (currentPage - 1) * pageSize - stat.index}">1</td>
             <td class="py-4 px-7 text-sm whitespace-nowrap">
@@ -57,7 +57,7 @@
       </table>
     </div>
 
-    <div class="px-7 py-4 border-t border-slate-100 flex items-center justify-between">
+    <div class="px-7 py-4 border-t border-slate-200 flex items-center justify-between">
       <p class="text-sm text-slate-400">
         전체 <span class="font-semibold text-slate-600" th:text="${memberPage.totalCount}">0</span>명
       </p>

@@ -17,8 +17,8 @@
     </a>
 
     <!-- 강의 기본 정보 -->
-    <div class="bg-white border border-slate-100 rounded-xl overflow-hidden mb-5">
-      <div class="px-7 py-5 border-b border-slate-100 flex items-center justify-between">
+    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden mb-5">
+      <div class="px-7 py-5 border-b border-slate-200 flex items-center justify-between">
         <div>
           <h2 class="text-base font-bold text-slate-800" th:text="${lecture.lectureNm}">강의명</h2>
           <p class="text-sm text-slate-400 mt-1" th:with="dur=${lecture.lectureDuration}"
@@ -31,7 +31,7 @@
             th:data-class-sn="${classroom.classSn}"
             th:data-current="${lecture.opnnYn}"
             onclick="toggleDetail(this, 'opnn')"
-            th:classappend="${lecture.opnnYn == 'Y' ? 'text-blue-500 border-blue-100 hover:bg-blue-50' : 'text-slate-400 border-slate-100 hover:bg-slate-50'}"
+            th:classappend="${lecture.opnnYn == 'Y' ? 'text-blue-500 border-blue-100 hover:bg-blue-50' : 'text-slate-400 border-slate-200 hover:bg-slate-50'}"
             class="inline-flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-lg border transition-colors">
             <i class="fa-solid fa-eye text-xs"></i>
             <span th:text="${lecture.opnnYn == 'Y' ? '공개' : '비공개'}">공개</span>
@@ -41,7 +41,7 @@
             th:data-class-sn="${classroom.classSn}"
             th:data-current="${lecture.lockYn}"
             onclick="toggleDetail(this, 'lock')"
-            th:classappend="${lecture.lockYn == 'Y' ? 'text-amber-500 border-amber-100 hover:bg-amber-50' : 'text-slate-400 border-slate-100 hover:bg-slate-50'}"
+            th:classappend="${lecture.lockYn == 'Y' ? 'text-amber-500 border-amber-100 hover:bg-amber-50' : 'text-slate-400 border-slate-200 hover:bg-slate-50'}"
             class="inline-flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-lg border transition-colors">
             <i class="fa-solid fa-lock text-xs"></i>
             <span th:text="${lecture.lockYn == 'Y' ? '잠김' : '잠금 해제'}">잠금 해제</span>
@@ -49,14 +49,14 @@
         </div>
       </div>
       <div th:if="${lecture.lectureExplnCn != null and !#strings.isEmpty(lecture.lectureExplnCn)}"
-           class="px-7 py-5 text-sm text-slate-600 leading-relaxed whitespace-pre-wrap border-b border-slate-50"
+           class="px-7 py-5 text-sm text-slate-600 leading-relaxed whitespace-pre-wrap border-b border-slate-100"
            th:text="${lecture.lectureExplnCn}"></div>
     </div>
 
   <!-- 강의 영상 -->
   <div th:if="${lecture.atchFileId != null}"
-       class="bg-white border border-slate-100 rounded-xl overflow-hidden mb-5">
-    <div class="px-7 py-5 border-b border-slate-100">
+       class="bg-white border border-slate-200 rounded-xl overflow-hidden mb-5">
+    <div class="px-7 py-5 border-b border-slate-200">
       <h2 class="text-base font-bold text-slate-800">강의 영상</h2>
     </div>
     <div class="p-7">
@@ -69,8 +69,8 @@
   </div>
 
     <!-- 수강생 진도 현황 -->
-    <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
-      <div class="px-7 py-5 border-b border-slate-100">
+    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div class="px-7 py-5 border-b border-slate-200">
         <h2 class="text-base font-bold text-slate-800">수강생 진도 현황</h2>
         <p class="text-sm text-slate-400 mt-1">이 강의를 완료한 수강생 목록입니다.</p>
       </div>
@@ -83,7 +83,7 @@
       <div th:unless="${#lists.isEmpty(studentProgress)}" class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="border-b border-slate-100 text-sm text-slate-400">
+            <tr class="border-b border-slate-200 text-sm text-slate-400">
               <th class="py-4 px-7 w-14 font-medium">#</th>
               <th class="py-4 px-7 font-medium">수강생</th>
               <th class="py-4 px-7 w-40 font-medium">진도율</th>
@@ -93,7 +93,7 @@
           </thead>
           <tbody class="text-slate-700">
             <tr th:each="s, stat : ${studentProgress}"
-              class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+              class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
               <td class="py-4 px-7 text-sm text-slate-300 font-mono" th:text="${stat.count}">1</td>
               <td class="py-4 px-7 font-semibold text-slate-800 text-sm" th:text="${s.userName}">홍길동</td>
               <td class="py-4 px-7">
@@ -113,7 +113,7 @@
                   완료
                 </span>
                 <span th:unless="${s.cmplYn == 'Y'}"
-                  class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-400 border border-slate-100 px-3 py-1 rounded-lg whitespace-nowrap">
+                  class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-400 border border-slate-200 px-3 py-1 rounded-lg whitespace-nowrap">
                   미완료
                 </span>
               </td>
@@ -124,7 +124,7 @@
         </table>
       </div>
 
-      <div th:unless="${#lists.isEmpty(studentProgress)}" class="px-7 py-4 border-t border-slate-100">
+      <div th:unless="${#lists.isEmpty(studentProgress)}" class="px-7 py-4 border-t border-slate-200">
         <p class="text-sm text-slate-400">
           전체 <span class="font-semibold text-slate-600" th:text="${#lists.size(studentProgress)}">0</span>명 중
           <span class="font-semibold text-emerald-500"
@@ -148,7 +148,7 @@ function toggleDetail(btn, type) {
         btn.classList.toggle('border-blue-100', !isActive);
         btn.classList.toggle('hover:bg-blue-50', !isActive);
         btn.classList.toggle('text-slate-400', isActive);
-        btn.classList.toggle('border-slate-100', isActive);
+        btn.classList.toggle('border-slate-200', isActive);
         btn.classList.toggle('hover:bg-slate-50', isActive);
         label.textContent = !isActive ? '공개' : '비공개';
         showHermesToast(isActive ? '강의를 비공개로 전환했습니다.' : '강의를 공개로 전환했습니다.');
@@ -157,7 +157,7 @@ function toggleDetail(btn, type) {
         btn.classList.toggle('border-amber-100', !isActive);
         btn.classList.toggle('hover:bg-amber-50', !isActive);
         btn.classList.toggle('text-slate-400', isActive);
-        btn.classList.toggle('border-slate-100', isActive);
+        btn.classList.toggle('border-slate-200', isActive);
         btn.classList.toggle('hover:bg-slate-50', isActive);
         label.textContent = !isActive ? '잠김' : '잠금 해제';
         showHermesToast(isActive ? '강의를 잠금 처리했습니다.' : '강의 잠금을 해제했습니다.');
