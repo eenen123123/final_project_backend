@@ -106,8 +106,7 @@
 
     <!-- OPNN_YN='Y'만 조회: 비공개 강의는 수강생에게 노출되지 않으므로 진도 대상에서 제외.
          LOCK_YN 잠금 강의는 공개 상태이므로 포함 -->
-    <select id="selectLectureProgressByStudent"
-            resultType="kr.or.ddit.finalProject.dto.lecture.LectureProgressDetailResponse">
+    <select id="selectLectureProgressByStudent" resultType="kr.or.ddit.finalProject.dto.lecture.LectureProgressDetailResponse">
     SELECT
         l.LECTURE_SN                                                          AS lectureSn,
         l.LECTURE_NM                                                          AS lectureNm,
@@ -267,7 +266,9 @@
     <select id="findCourseIdByFileServerId" resultType="kr.or.ddit.finalProject.dto.course.CourseDto">
         select COURSE_SN, COURSE_NM,  RGTR_ID, LAST_MDFR_ID
         from COURSE
-        where COURSE_SN = (select COURSE_SN from LECTURE where ATCH_FILE_ID = #{fileServerId})
+        where COURSE_SN = (select COURSE_SN from LECTURE where ATCH_FILE_ID = #{fileServerId} 
+            fetch first 1 row only
+        )
     </select>
 
     <!-- 과목 분류별 시청 시간 집계 (수강 리포트 레이더 차트용) - 데이터 없는 과목도 포함 -->
