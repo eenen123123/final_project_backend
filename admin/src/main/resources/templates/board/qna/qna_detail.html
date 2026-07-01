@@ -68,8 +68,22 @@
       </form>
     </div>
 
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
   <script defer th:src="@{/js/tiptap/tiptap-editor.iife.js}"></script>
   <script th:inline="javascript">
+    function renderMathIn(el) {
+      if (el && window.renderMathInElement) {
+        renderMathInElement(el, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false },
+          ],
+        });
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
       // 질문 내용 읽기 전용 렌더링
       const questionContent = /*[[${qna.postCn}]]*/ null;
@@ -86,9 +100,11 @@
       if (qHtml) {
         const t = setInterval(() => {
           const el = document.querySelector('#questionViewer .tiptap');
-          if (el && el.editor) { el.editor.commands.setContent(qHtml); clearInterval(t); }
+          if (el && el.editor) { el.editor.commands.setContent(qHtml); clearInterval(t); renderMathIn(document.getElementById('questionViewer')); }
         }, 50);
         setTimeout(() => clearInterval(t), 3000);
+      } else {
+        setTimeout(() => renderMathIn(document.getElementById('questionViewer')), 100);
       }
 
       // 기존 답변 읽기 전용 렌더링
@@ -105,9 +121,11 @@
         if (aHtml) {
           const t2 = setInterval(() => {
             const el = document.querySelector('#answerViewer .tiptap');
-            if (el && el.editor) { el.editor.commands.setContent(aHtml); clearInterval(t2); }
+            if (el && el.editor) { el.editor.commands.setContent(aHtml); clearInterval(t2); renderMathIn(document.getElementById('answerViewer')); }
           }, 50);
           setTimeout(() => clearInterval(t2), 3000);
+        } else {
+          setTimeout(() => renderMathIn(document.getElementById('answerViewer')), 100);
         }
       }
 
