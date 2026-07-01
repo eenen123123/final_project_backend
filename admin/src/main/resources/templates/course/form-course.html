@@ -109,6 +109,44 @@
         ></textarea>
       </div>
 
+      <!-- 과목 분류 → 과목 -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5"
+            >과목 분류</label
+          >
+          <select
+            id="subjClId"
+            name="subjClId"
+            class="hm-input hm-input-violet"
+            onchange="loadSubjects(this.value)"
+          >
+            <option value="">— 선택 안 함 —</option>
+            <option
+              th:each="cl : ${subjClList}"
+              th:value="${cl.subjClId}"
+              th:selected="${course?.subjClId == cl.subjClId}"
+              th:text="${cl.subjClNm}"
+            >
+              분류명
+            </option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5"
+            >과목</label
+          >
+          <select
+            id="subjId"
+            name="subjId"
+            class="hm-input hm-input-violet"
+            disabled
+          >
+            <option value="">— 분류를 먼저 선택 —</option>
+          </select>
+        </div>
+      </div>
+
       <!-- 공개 여부 / 수강료 -->
       <div class="grid grid-cols-2 gap-4">
         <div>
@@ -161,76 +199,6 @@
           />
           <p id="coursePrice-err" class="hidden text-xs text-red-500 mt-1"></p>
         </div>
-      </div>
-    </div>
-
-    <!-- 분류 / 커리큘럼 -->
-    <div
-      class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-5"
-    >
-      <h2 class="text-sm font-bold text-slate-700">
-        <i class="fa-solid fa-sitemap text-violet-500 mr-2"></i>분류 &amp;
-        커리큘럼
-      </h2>
-
-      <!-- 과목 분류 → 과목 -->
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-xs font-medium text-slate-500 mb-1.5"
-            >과목 분류</label
-          >
-          <select
-            id="subjClId"
-            name="subjClId"
-            class="hm-input hm-input-violet"
-            onchange="loadSubjects(this.value)"
-          >
-            <option value="">— 선택 안 함 —</option>
-            <option
-              th:each="cl : ${subjClList}"
-              th:value="${cl.subjClId}"
-              th:selected="${course?.subjClId == cl.subjClId}"
-              th:text="${cl.subjClNm}"
-            >
-              분류명
-            </option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-500 mb-1.5"
-            >과목</label
-          >
-          <select
-            id="subjId"
-            name="subjId"
-            class="hm-input hm-input-violet"
-            disabled
-          >
-            <option value="">— 분류를 먼저 선택 —</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- 커리큘럼 -->
-      <div>
-        <label class="block text-xs font-medium text-slate-500 mb-1.5"
-          >커리큘럼</label
-        >
-        <select
-          id="curriculumId"
-          name="curriculumId"
-          class="hm-input hm-input-violet"
-        >
-          <option value="">— 선택 안 함 (독립 강좌) —</option>
-          <option
-            th:each="cur : ${curriculumList}"
-            th:value="${cur.curriculumId}"
-            th:selected="${course?.curriculumId == cur.curriculumId}"
-            th:text="${cur.title}"
-          >
-            커리큘럼명
-          </option>
-        </select>
       </div>
     </div>
 
