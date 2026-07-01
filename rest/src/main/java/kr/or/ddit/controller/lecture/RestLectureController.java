@@ -5,6 +5,9 @@ import org.springframework.web.bind.annotation.RestController;
 import kr.or.ddit.finalProject.dto.lecture.LectureDto;
 import kr.or.ddit.finalProject.dto.lecture.LectureProgressUpdateRequest;
 import kr.or.ddit.finalProject.dto.lecture.LectureResponseDto;
+import kr.or.ddit.finalProject.exception.ErrorCode;
+import kr.or.ddit.finalProject.exception.FinalProjectException;
+import kr.or.ddit.finalProject.mapper.enrollment.CourseEnrollmentMapper;
 import kr.or.ddit.finalProject.service.lecture.LectureService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequiredArgsConstructor
 public class RestLectureController {
     private final LectureService lectureService;
+    private final CourseEnrollmentMapper enrollmentMapper;
 
     @GetMapping("/info")
     public ResponseEntity<LectureDto> getLectureInfo(@RequestParam Long lectureId, @RequestParam Long courseId,
@@ -33,6 +37,12 @@ public class RestLectureController {
         if (lectureDto == null || !courseId.equals(lectureDto.getCourseSn())
                 || !"Y".equals(lectureDto.getOpnnYn())) {
             return ResponseEntity.notFound().build();
+        }
+
+        // 수강 기간 만료 여부 확인 (ACTIVE + ACCS_END_DT >= CURRENT_TIMESTAMP)
+        int access = enrollmentMapper.countActiveAccess(authentication.getName(), courseId);
+        if (access == 0) {
+            throw new FinalProjectException(ErrorCode.ENROLLMENT_EXPIRED);
         }
 
         return ResponseEntity.ok(lectureDto);
