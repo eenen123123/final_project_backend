@@ -19,6 +19,7 @@ import kr.or.ddit.finalProject.dto.file.FileCtxType;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
 import kr.or.ddit.finalProject.service.assignment.AssignmentBoardService;
 import kr.or.ddit.finalProject.service.classroom.ClassroomService;
+import kr.or.ddit.finalProject.service.exam.ExamService;
 import kr.or.ddit.finalProject.service.file.FileUploadService;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
 import kr.or.ddit.finalProject.util.TipTapSanitizer;
@@ -36,8 +37,9 @@ public class AdminClassroomNoticeController extends AbstractClassroomController 
     public AdminClassroomNoticeController(ClassroomService classroomService,
                                           AssignmentBoardService assignmentBoardService,
                                           InstructorBoardService instructorBoardService,
+                                          ExamService examService,
                                           FileUploadService fileUploadService) {
-        super(classroomService, assignmentBoardService, instructorBoardService);
+        super(classroomService, assignmentBoardService, instructorBoardService, examService);
         this.fileUploadService = fileUploadService;
     }
 

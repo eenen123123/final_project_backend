@@ -26,6 +26,7 @@ import kr.or.ddit.finalProject.dto.file.FileDto;
 import kr.or.ddit.finalProject.mapper.FileMapper;
 import kr.or.ddit.finalProject.service.assignment.AssignmentBoardService;
 import kr.or.ddit.finalProject.service.classroom.ClassroomService;
+import kr.or.ddit.finalProject.service.exam.ExamService;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,8 +42,9 @@ public class AdminClassroomAssignmentController extends AbstractClassroomControl
     public AdminClassroomAssignmentController(ClassroomService classroomService,
                                               AssignmentBoardService assignmentBoardService,
                                               InstructorBoardService instructorBoardService,
+                                              ExamService examService,
                                               FileMapper fileMapper) {
-        super(classroomService, assignmentBoardService, instructorBoardService);
+        super(classroomService, assignmentBoardService, instructorBoardService, examService);
         this.fileMapper = fileMapper;
     }
 

@@ -66,7 +66,7 @@ public class AdminClassroomController extends AbstractClassroomController {
                                     ExamService examService,
                                     GeminiQuestionService geminiQuestionService,
                                     StudentAttendanceMapper studentAttendanceMapper) {
-        super(classroomService, assignmentBoardService, instructorBoardService);
+        super(classroomService, assignmentBoardService, instructorBoardService, examService);
         this.lectureService = lectureService;
         this.courseService = courseService;
         this.adminActivityApprovalService = adminActivityApprovalService;
@@ -220,9 +220,7 @@ public class AdminClassroomController extends AbstractClassroomController {
                 .limit(5)
                 .collect(Collectors.toList());
         model.addAttribute("upcomingExams", upcomingExams);
-
-        // ── 액션 아이템: 시험 채점 대기
-        model.addAttribute("pendingExamGradeCount", examService.countPendingGradesByClassSn(classSn));
+        // pendingExamGradeCount는 addExamTabBadge()에서 공통 주입
 
         // ── 강좌 진도율 요약
         List<ClassroomLectureResponse> lectures = classroomService.retrieveLecturesWithProgress(classSn);

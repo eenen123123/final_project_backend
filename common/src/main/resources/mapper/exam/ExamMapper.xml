@@ -250,10 +250,8 @@
                 WHEN EXISTS (
                     SELECT 1
                     FROM ANSWER_SUBMIT ans
-                    JOIN QUESTION_LIST ql ON ql.QSTN_SN = ans.QSTN_SN
                     WHERE ans.EXAM_SN     = ET.EXAM_SN
                       AND ans.STD_USER_ID = ET.STD_USER_ID
-                      AND ql.QSTN_TYPE_CD != 'MULTIPLE_CHOICE'
                       AND ans.SCORE IS NULL
                 ) THEN 'N'
                 ELSE 'Y'
@@ -330,14 +328,26 @@
         ORDER BY e.EXAM_STRT_DT ASC
     </select>
 
-    <!-- 클래스룸 내 시험 채점 대기 건수 (TOT_SCORE IS NULL인 EXAM_TAKER) -->
+    <!-- 클래스룸 내 시험 채점 대기 건수 (문항 단위 미채점 답안이 있는 EXAM_TAKER, selectTakersWithScore의 gradedYn 판정과 동일 기준) -->
     <select id="countPendingGradesByClassSn" resultType="int">
         SELECT COUNT(*)
         FROM EXAM_TAKER et
         JOIN EXAM e ON e.EXAM_SN = et.EXAM_SN
                    AND e.CLASS_SN = #{classSn}
                    AND e.EXAM_STAT_CD != '99'
-        WHERE et.TOT_SCORE IS NULL
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM ANSWER_SUBMIT ans
+            WHERE ans.EXAM_SN     = et.EXAM_SN
+              AND ans.STD_USER_ID = et.STD_USER_ID
+        )
+        OR EXISTS (
+            SELECT 1
+            FROM ANSWER_SUBMIT ans
+            WHERE ans.EXAM_SN     = et.EXAM_SN
+              AND ans.STD_USER_ID = et.STD_USER_ID
+              AND ans.SCORE IS NULL
+        )
     </select>
 
     <!-- 특정 학생의 EXAM_TAKER 조회 -->
