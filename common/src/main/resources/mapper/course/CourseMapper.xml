@@ -147,6 +147,14 @@
     SELECT COUNT(*) FROM LECTURE WHERE COURSE_SN = #{courseSn}
     </select>
 
+    <select id="countEnrollmentByCourse" resultType="int">
+    SELECT COUNT(*) FROM COURSE_ENROLLMENT WHERE COURSE_SN = #{courseSn}
+    </select>
+
+    <select id="countFeaturedByCourse" resultType="int">
+    SELECT COUNT(*) FROM INSTRUCTOR_FEATURED_COURSE WHERE COURSE_SN = #{courseSn}
+    </select>
+
     <sql id="courseListSearchWhere">
         <trim prefix="WHERE" prefixOverrides="AND">
             <if test="detailCondition != null and detailCondition.opnnYn != null and detailCondition.opnnYn != ''">

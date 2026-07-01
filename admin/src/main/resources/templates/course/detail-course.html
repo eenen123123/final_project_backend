@@ -54,6 +54,24 @@
     </div>
   </div>
 
+  <!-- 에러 메시지 -->
+  <div
+    th:if="${errorMsg}"
+    class="flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl px-5 py-3"
+  >
+    <i class="fa-solid fa-circle-exclamation"></i>
+    <span th:text="${errorMsg}"></span>
+  </div>
+
+  <!-- 성공 메시지 -->
+  <div
+    th:if="${successMsg}"
+    class="flex items-center gap-3 bg-emerald-50 border border-emerald-100 text-emerald-600 text-sm rounded-xl px-5 py-3"
+  >
+    <i class="fa-solid fa-circle-check"></i>
+    <span th:text="${successMsg}"></span>
+  </div>
+
   <!-- 강좌 정보 카드 -->
   <div
     class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
