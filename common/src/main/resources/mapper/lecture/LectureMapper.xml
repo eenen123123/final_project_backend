@@ -212,6 +212,10 @@
     DELETE FROM LECTURE WHERE LECTURE_SN = #{lectureSn}
     </delete>
 
+    <delete id="deleteLectureProgressByLectureSn">
+    DELETE FROM LECTURE_PROGRESS WHERE LECTURE_SN = #{lectureSn}
+    </delete>
+
 
 
 
@@ -244,7 +248,8 @@
 
 
     FROM LECTURE l
-    WHERE l.COURSE_SN = #{courseSn} 
+    WHERE l.COURSE_SN = #{courseSn}
+      AND l.OPNN_YN = 'Y'
     ORDER BY l.SORT_ORD ASC, l.LECTURE_SN ASC
     </select>
 
