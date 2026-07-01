@@ -188,7 +188,7 @@
     </select>
 
     <!-- ================================================================
-         Excel 업로드 적재 (외부 급여지급 프로그램 수납내역)
+         Excel 업로드 적재 (외부 결제 프로그램 수납내역)
     ================================================================ -->
     <select id="existsByExtPayId" resultType="int">
         SELECT COUNT(*) FROM TUITION_PAYMENT WHERE EXT_PAY_ID = #{extPayId}
