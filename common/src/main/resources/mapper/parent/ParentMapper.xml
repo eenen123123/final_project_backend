@@ -65,4 +65,15 @@
         ORDER BY ATND_REG_DT
     </select>
 
+    <!-- 수강 기간 전체 누적 근태 특이사항(결석/지각/조퇴) 요약 -->
+    <select id="selectAttendanceSummary" resultType="kr.or.ddit.finalProject.dto.parent.ParentAttendanceSummaryDto">
+        SELECT
+            NVL(SUM(CASE WHEN TRIM(ATND_TYPE_CD) = '03' THEN 1 ELSE 0 END), 0) AS lateCount,
+            NVL(SUM(CASE WHEN TRIM(ATND_TYPE_CD) = '02' THEN 1 ELSE 0 END), 0) AS absentCount,
+            NVL(SUM(CASE WHEN TRIM(ATND_TYPE_CD) = '04' THEN 1 ELSE 0 END), 0) AS earlyLeaveCount
+        FROM STUDENT_ATTENDANCE
+        WHERE STD_USER_ID = #{studentId}
+          AND TRIM(ATND_TYPE_CD) IN ('02', '03', '04')
+    </select>
+
 </mapper>

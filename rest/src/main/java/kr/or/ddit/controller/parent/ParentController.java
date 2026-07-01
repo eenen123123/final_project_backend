@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import kr.or.ddit.finalProject.dto.classroom.StudentAssignmentItem;
 import kr.or.ddit.finalProject.dto.classroom.StudentExamResponse;
 import kr.or.ddit.finalProject.dto.parent.ParentAttendanceResponse;
+import kr.or.ddit.finalProject.dto.parent.ParentAttendanceSummaryDto;
 import kr.or.ddit.finalProject.dto.parent.ParentChildDto;
 import kr.or.ddit.finalProject.dto.student.StudentAttendanceDto;
 import kr.or.ddit.finalProject.mapper.assignment.AssignmentBoardMapper;
@@ -75,6 +76,20 @@ public class ParentController {
 
         return ResponseEntity.ok(
                 new ParentAttendanceResponse(year, month, lateCount, absentCount, earlyLeaveCount, records));
+    }
+
+    // ── 자녀 수강 기간 전체 누적 근태 특이사항 요약 ────────────────────────────────
+
+    @GetMapping("/children/{studentId}/attendance/summary")
+    public ResponseEntity<ParentAttendanceSummaryDto> getAttendanceSummary(
+            @PathVariable String studentId,
+            Authentication authentication) {
+
+        if (!parentMapper.isParentOf(authentication.getName(), studentId)) {
+            return ResponseEntity.status(403).build();
+        }
+
+        return ResponseEntity.ok(parentMapper.selectAttendanceSummary(studentId));
     }
 
     // ── 자녀 과제 목록 ────────────────────────────────────────────────────────

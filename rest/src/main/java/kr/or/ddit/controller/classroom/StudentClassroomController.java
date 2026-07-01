@@ -40,10 +40,14 @@ import kr.or.ddit.finalProject.dto.exam.ExamDto;
 import kr.or.ddit.finalProject.dto.exam.ExamQuestionDto;
 import kr.or.ddit.finalProject.dto.exam.ExamTakerDto;
 import kr.or.ddit.finalProject.dto.instructor.board.InstructorBoardDto;
+import kr.or.ddit.finalProject.dto.parent.ParentAttendanceResponse;
+import kr.or.ddit.finalProject.dto.parent.ParentAttendanceSummaryDto;
+import kr.or.ddit.finalProject.dto.student.StudentAttendanceDto;
 import kr.or.ddit.finalProject.mapper.assignment.AssignmentBoardMapper;
 import kr.or.ddit.finalProject.mapper.assignment.AssignmentSubmitMapper;
 import kr.or.ddit.finalProject.mapper.classroom.ClassroomMemberMapper;
 import kr.or.ddit.finalProject.mapper.exam.ExamMapper;
+import kr.or.ddit.finalProject.mapper.parent.ParentMapper;
 import kr.or.ddit.finalProject.service.classroom.ClassroomService;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
 import lombok.RequiredArgsConstructor;
@@ -63,6 +67,7 @@ public class StudentClassroomController {
     private final ClassroomService classroomService;
     private final FileUploadService fileUploadService;
     private final ObjectMapper objectMapper;
+    private final ParentMapper parentMapper;
 
     // ── 수강생 검증 헬퍼 ─────────────────────────────────────────────────
 
@@ -112,6 +117,50 @@ public class StudentClassroomController {
 
         return ResponseEntity.ok(new MySummaryResponse(
                 progressRate, assignSubmitRate, (int) upcomingExamCount, examAvgScore));
+    }
+
+    // ── 내 근태 특이사항 (월별 리스트) ────────────────────────────────────
+
+    @GetMapping("/my-attendance")
+    public ResponseEntity<ParentAttendanceResponse> getMyAttendance(
+            @PathVariable Long classSn,
+            @RequestParam int year,
+            @RequestParam int month,
+            Authentication authentication) {
+        String userId = authentication.getName();
+        if (!isMember(classSn, userId)) return ResponseEntity.status(403).build();
+
+        List<StudentAttendanceDto> raw = parentMapper.selectMonthlyAttendance(userId, year, month);
+
+        int lateCount = 0, absentCount = 0, earlyLeaveCount = 0;
+        List<ParentAttendanceResponse.Record> records = new ArrayList<>();
+
+        for (StudentAttendanceDto dto : raw) {
+            String typeCd = dto.getAtndTypeCd() != null ? dto.getAtndTypeCd().trim() : "";
+            String status;
+            switch (typeCd) {
+                case "02": status = "ABSENT";      absentCount++;     break;
+                case "03": status = "LATE";        lateCount++;       break;
+                case "04": status = "EARLY_LEAVE"; earlyLeaveCount++; break;
+                default: continue; // 근태 특이사항이 아닌 기록(출석 등)은 제외
+            }
+            int day = dto.getAtndRegDt().getDayOfMonth();
+            records.add(new ParentAttendanceResponse.Record(day, status, dto.getAtndNoteCn()));
+        }
+
+        return ResponseEntity.ok(
+                new ParentAttendanceResponse(year, month, lateCount, absentCount, earlyLeaveCount, records));
+    }
+
+    // ── 내 근태 특이사항 (수강 기간 전체 누적 요약) ─────────────────────────
+
+    @GetMapping("/my-attendance/summary")
+    public ResponseEntity<ParentAttendanceSummaryDto> getMyAttendanceSummary(
+            @PathVariable Long classSn, Authentication authentication) {
+        String userId = authentication.getName();
+        if (!isMember(classSn, userId)) return ResponseEntity.status(403).build();
+
+        return ResponseEntity.ok(parentMapper.selectAttendanceSummary(userId));
     }
 
     // ── 홈 탭: 마감 임박 과제 (오늘~2일 이내) ────────────────────────────
