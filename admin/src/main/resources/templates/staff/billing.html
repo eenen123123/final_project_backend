@@ -13,7 +13,7 @@
       <input type="file" id="excelFile" accept=".xlsx,.xls" class="hidden" onchange="uploadExcel(this)">
       <button class="hm-btn-primary hm-btn-blue" onclick="document.getElementById('excelFile').click()">
         <i class="fa-solid fa-file-excel"></i>
-        <span>외부 급여지급 프로그램 Excel 업로드</span>
+        <span>외부 결제 프로그램 Excel 업로드</span>
       </button>
     </div>
   </div>
@@ -446,7 +446,7 @@
     showHermesToast(msgTargetIds.length + '명에게 안내가 발송되었습니다.', 'success');
   }
 
-  /* ── Excel 업로드 (외부 급여지급 프로그램 수납내역 적재) ── */
+  /* ── Excel 업로드 (외부 결제 프로그램 수납내역 적재) ── */
   function uploadExcel(input) {
     if (!input.files.length) return;
     const fd = new FormData();

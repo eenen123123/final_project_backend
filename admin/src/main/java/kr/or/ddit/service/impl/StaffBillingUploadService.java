@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 외부 급여지급 프로그램 수납 Excel 업로드 적재 서비스
+ * 외부 결제 프로그램 수납 Excel 업로드 적재 서비스
  * - 헤더명 기반 파싱(컬럼 순서 무관): 결제ID, 학생ID, 항목, 금액, 결제수단, 할부, 상태, 수납일시
  * - 결제ID(EXT_PAY_ID) 중복 행은 스킵(멱등)
  * - TUITION_PAYMENT 적재 후 같은 학생·금액의 미납 청구를 완료로 자동 정산
