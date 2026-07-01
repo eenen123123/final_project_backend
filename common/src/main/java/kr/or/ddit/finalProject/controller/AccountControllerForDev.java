@@ -51,26 +51,18 @@ public class AccountControllerForDev {
     private List<String> userIds = List.of("testuser01", // 원장
 
             "testuser02", // 행정팀장
-            "testuser23", // 선임행정원
-            "testuser25", // 행정팀 직원
+            "testuser48", // 선임행정원
+            // "testuser71", // 행정팀 직원
+            // "testuser99", // 행정원
 
-            "testuser03", // 총괄PD
-            "testuser66", // 메인PD
-            "testuser07", // 서브PD
+            "testuser05" // 수석강사
+            // , "testuser14" // 수석강사
+            // , "testuser15" // 수석강사
 
-            "testuser04" // 수석강사
-            , "testuser05" // 전임강사
-            , "testuser19" // 조교
+            , "testuser112" // 일반 회원
+            , "testuser104" // 오프라인 회원
+            , "testuser113" // 일반 회원
 
-            , "testuser101" // 일반 회원
-            , "testuser107" // 일반 회원
-            , "testuser122" // 일반 회원
-
-            , "testuser104" // 21번 ClassRoom의 학생
-
-            , "testuser103" // (학생 111의 학부모)
-            , "testuser105" // (학생 112의 학부모)
-            , "testuser163" // (학생 116의 학부모)
     );
 
     public List<AccountInfo> getAllAccounts() {
