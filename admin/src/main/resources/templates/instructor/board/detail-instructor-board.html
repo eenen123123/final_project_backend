@@ -217,6 +217,9 @@
   </div>
 </div>
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <script defer th:src="@{/js/tiptap/tiptap-editor.iife.js}"></script>
 <script th:inline="javascript">
   const existingAnswerContent = /*[[${board.answer?.answCn}]]*/ null;
@@ -230,6 +233,16 @@
     const answerViewContent = document.getElementById('answerViewContent');
     if (answerViewContent && !answerViewContent.querySelector('p, h1, h2, h3, ul, ol, blockquote')) {
       answerViewContent.innerHTML = answerViewContent.textContent.replace(/\n/g, '<br>');
+    }
+
+    // 수식($...$) 렌더링 — 줄바꿈 복원 이후에 실행해야 katex가 렌더링한 내용이 지워지지 않음
+    if (window.renderMathInElement) {
+      renderMathInElement(document.body, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true },
+          { left: '$', right: '$', display: false },
+        ],
+      });
     }
 
     // 답변 수정 에디터 (hidden 상태로 초기화 — toggleAnswerEdit 시 표시)

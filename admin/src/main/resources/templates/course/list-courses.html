@@ -92,7 +92,9 @@
             <th class="py-4 px-6">강좌명</th>
             <th class="py-4 px-6 w-24">강사</th>
             <th class="py-4 px-6 w-36">과목 / 분류</th>
+            <!-- 커리큘럼 기능 폐기로 컬럼 제거
             <th class="py-4 px-6 w-36">커리큘럼</th>
+            -->
             <th class="py-4 px-4 w-28 text-right">수강료</th>
             <th class="py-4 px-3 w-20 text-center">강의 수</th>
             <th class="py-4 px-3 w-24 text-center">공개</th>
@@ -105,7 +107,7 @@
         >
           <!-- 강좌 없을 때 -->
           <tr th:if="${courseList == null or courseList.isEmpty()}">
-            <td colspan="9" class="py-16 text-center">
+            <td colspan="8" class="py-16 text-center">
               <div class="flex flex-col items-center gap-3 text-slate-300">
                 <i class="fa-solid fa-book-open text-4xl"></i>
                 <p class="text-sm">등록된 강좌가 없습니다.</p>
@@ -179,7 +181,7 @@
               </p>
             </td>
 
-            <!-- 커리큘럼 -->
+            <!-- 커리큘럼 기능 폐기로 컬럼 제거
             <td class="py-4 px-6">
               <span
                 class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-violet-50 text-violet-600 truncate max-w-full inline-block"
@@ -187,6 +189,7 @@
                 >커리큘럼</span
               >
             </td>
+            -->
 
             <!-- 수강료 -->
             <td class="py-4 px-4 text-right">
