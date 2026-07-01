@@ -1,6 +1,21 @@
 document.addEventListener('DOMContentLoaded', function () {
     const TITLE_MAX = 200;
 
+    /* ── 검색 필터 토글 (펼침 상태 기억) ── */
+    const btnToggleFilter = document.getElementById('btn-toggle-filter');
+    const filterArea = document.getElementById('filter-area');
+    const FILTER_STATE_KEY = 'journalFilterOpen';
+    if (btnToggleFilter && filterArea) {
+        const savedOpen = localStorage.getItem(FILTER_STATE_KEY);
+        if (savedOpen === 'true') filterArea.classList.remove('hidden');
+        else if (savedOpen === 'false') filterArea.classList.add('hidden');
+
+        btnToggleFilter.addEventListener('click', function () {
+            filterArea.classList.toggle('hidden');
+            localStorage.setItem(FILTER_STATE_KEY, !filterArea.classList.contains('hidden'));
+        });
+    }
+
     /* ── 인라인 에러 헬퍼 ── */
     function setError(inputEl, errorEl, msg) {
         if (inputEl) inputEl.classList.add('is-error');
