@@ -177,6 +177,7 @@ public class AdminCourseController {
                 .keyword(keyword).opnnYn(opnnYn).build();
         paginationInfo.setDetailCondition(condition);
         int totalCount = courseService.retrieveCourseListCount(paginationInfo);
+        paginationInfo.setTotalCount(totalCount);
         List<CourseDto> courseList = courseService.retrieveCourseList(paginationInfo);
         model.addAttribute("courseList", courseList);
         model.addAttribute("totalCount", totalCount);
