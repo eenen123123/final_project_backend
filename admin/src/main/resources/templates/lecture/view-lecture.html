@@ -138,11 +138,7 @@
             <form
               th:action="@{/admin/lectures/delete}"
               method="post"
-              onsubmit="
-                return confirm(
-                  '강의를 삭제하면 복구할 수 없습니다. 삭제하시겠습니까?',
-                );
-              "
+              th:attr="onsubmit=|return confirmLectureDelete(this, '${#strings.escapeJavaScript(lecture.lectureNm)}')|"
             >
               <input
                 type="hidden"
@@ -273,4 +269,19 @@
       </div>
     </div>
   </div>
+
+<script>
+  function confirmLectureDelete(form, lectureNm) {
+    const input = prompt(
+      '강의를 삭제하면 이 강의를 시청한 모든 학생의 진도 기록도 함께 영구 삭제되며, 복구할 수 없습니다.\n' +
+      '삭제하려면 강의명을 정확히 입력하세요: "' + lectureNm + '"'
+    );
+    if (input === null) return false;
+    if (input !== lectureNm) {
+      alert('입력한 강의명이 일치하지 않아 삭제가 취소되었습니다.');
+      return false;
+    }
+    return true;
+  }
+</script>
 </div>

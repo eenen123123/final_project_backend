@@ -73,6 +73,14 @@
             class="tab-btn px-5 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 -mb-px transition-colors">
       시험
     </button>
+    <button onclick="switchTab('attendance')" id="tab-attendance"
+            class="tab-btn px-5 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 -mb-px transition-colors">
+      근태 특이사항
+    </button>
+    <button onclick="switchTab('qna')" id="tab-qna"
+            class="tab-btn px-5 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 -mb-px transition-colors">
+      Q&amp;A
+    </button>
   </div>
 
   <!-- 강의 진도 탭 패널 -->
@@ -261,39 +269,80 @@
     </div>
   </div>
 
-  <!-- Q&A 섹션 -->
-  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
-    <div class="px-7 py-5 border-b border-slate-200 flex items-center justify-between">
-      <h2 class="text-sm font-bold text-slate-700">최근 Q&amp;A</h2>
-      <a th:href="@{/classroom/detail/{sn}/qna(sn=${classroom.classSn},writerUserId=${student.userId})}"
-         class="text-xs font-semibold text-blue-500 hover:text-blue-700 transition-colors">
-        전체 보기 <i class="fa-solid fa-arrow-right text-xs ml-0.5"></i>
-      </a>
+  <!-- 근태 특이사항 탭 패널 -->
+  <div id="panel-attendance" class="hidden">
+    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden mb-5">
+      <div class="px-7 py-5 border-b border-slate-200">
+        <h2 class="text-sm font-bold text-slate-700">근태 특이사항 이력</h2>
+      </div>
+      <div th:if="${#lists.isEmpty(attendanceHistory)}"
+           class="p-16 flex flex-col items-center justify-center text-center gap-3">
+        <i class="fa-solid fa-clipboard-check text-3xl text-slate-200"></i>
+        <p class="text-sm font-medium text-slate-400">등록된 근태 특이사항이 없습니다.</p>
+      </div>
+      <div th:unless="${#lists.isEmpty(attendanceHistory)}" class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-slate-200 text-sm text-slate-400">
+              <th class="py-3 px-7 w-12 font-medium">#</th>
+              <th class="py-3 px-4 w-32 font-medium whitespace-nowrap">날짜</th>
+              <th class="py-3 px-4 w-24 text-center font-medium whitespace-nowrap">유형</th>
+              <th class="py-3 px-4 font-medium">사유</th>
+            </tr>
+          </thead>
+          <tbody class="text-slate-700">
+            <tr th:each="h, stat : ${attendanceHistory}" class="border-b border-slate-100">
+              <td class="py-3 px-7 text-sm text-slate-300 font-mono" th:text="${stat.count}">1</td>
+              <td class="py-3 px-4 text-sm text-slate-500 font-mono"
+                  th:text="${#temporals.format(h.atndRegDt, 'yyyy-MM-dd')}">2026-01-01</td>
+              <td class="py-3 px-4 text-center">
+                <span class="text-xs font-semibold px-2 py-1 rounded"
+                      th:classappend="${h.atndType == 'ABSENT'} ? 'bg-red-50 text-red-500' : (${h.atndType == 'LATE'} ? 'bg-amber-50 text-amber-500' : 'bg-orange-50 text-orange-500')"
+                      th:text="${h.atndType == 'ABSENT'} ? '결석' : (${h.atndType == 'LATE'} ? '지각' : '조퇴')">결석</span>
+              </td>
+              <td class="py-3 px-4 text-sm text-slate-600" th:text="${h.note} ?: '-'">-</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-    <div th:if="${#lists.isEmpty(recentQna)}"
-         class="p-10 flex flex-col items-center justify-center text-center gap-2">
-      <i class="fa-regular fa-comment-dots text-2xl text-slate-200"></i>
-      <p class="text-sm text-slate-400">등록한 Q&amp;A가 없습니다.</p>
-    </div>
-    <div th:unless="${#lists.isEmpty(recentQna)}">
-      <div th:each="q : ${recentQna}"
-           class="flex items-center gap-4 px-7 py-3.5 border-b border-slate-100 last:border-0">
-        <a th:href="@{/classroom/detail/{sn}/qna/{postSn}(sn=${classroom.classSn},postSn=${q.postSn})}"
-           class="flex-1 min-w-0 text-sm font-semibold text-slate-700 hover:text-blue-600 truncate transition-colors"
-           th:text="${q.postSj}">Q&amp;A 제목</a>
-        <span th:if="${q.answYn == 'Y'}"
-              class="shrink-0 text-xs font-semibold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded">답변완료</span>
-        <span th:unless="${q.answYn == 'Y'}"
-              class="shrink-0 text-xs font-semibold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded">미답변</span>
-        <span class="shrink-0 text-xs text-slate-300 font-mono"
-              th:text="${q.regDt}">01-01</span>
+  </div>
+
+  <!-- Q&A 탭 패널 -->
+  <div id="panel-qna" class="hidden">
+    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div class="px-7 py-5 border-b border-slate-200 flex items-center justify-between">
+        <h2 class="text-sm font-bold text-slate-700">최근 Q&amp;A</h2>
+        <a th:href="@{/classroom/detail/{sn}/qna(sn=${classroom.classSn},writerUserId=${student.userId})}"
+           class="text-xs font-semibold text-blue-500 hover:text-blue-700 transition-colors">
+          전체 보기 <i class="fa-solid fa-arrow-right text-xs ml-0.5"></i>
+        </a>
+      </div>
+      <div th:if="${#lists.isEmpty(recentQna)}"
+           class="p-10 flex flex-col items-center justify-center text-center gap-2">
+        <i class="fa-regular fa-comment-dots text-2xl text-slate-200"></i>
+        <p class="text-sm text-slate-400">등록한 Q&amp;A가 없습니다.</p>
+      </div>
+      <div th:unless="${#lists.isEmpty(recentQna)}">
+        <div th:each="q : ${recentQna}"
+             class="flex items-center gap-4 px-7 py-3.5 border-b border-slate-100 last:border-0">
+          <a th:href="@{/classroom/detail/{sn}/qna/{postSn}(sn=${classroom.classSn},postSn=${q.postSn})}"
+             class="flex-1 min-w-0 text-sm font-semibold text-slate-700 hover:text-blue-600 truncate transition-colors"
+             th:text="${q.postSj}">Q&amp;A 제목</a>
+          <span th:if="${q.answYn == 'Y'}"
+                class="shrink-0 text-xs font-semibold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded">답변완료</span>
+          <span th:unless="${q.answYn == 'Y'}"
+                class="shrink-0 text-xs font-semibold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded">미답변</span>
+          <span class="shrink-0 text-xs text-slate-300 font-mono"
+                th:text="${q.regDt}">01-01</span>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
     function switchTab(name) {
-      ['lectures', 'assignments', 'exams'].forEach(function(t) {
+      ['lectures', 'assignments', 'exams', 'attendance', 'qna'].forEach(function(t) {
         document.getElementById('panel-' + t).classList.toggle('hidden', t !== name);
         var btn = document.getElementById('tab-' + t);
         if (t === name) {

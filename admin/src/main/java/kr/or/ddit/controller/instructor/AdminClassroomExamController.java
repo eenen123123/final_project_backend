@@ -36,7 +36,7 @@ public class AdminClassroomExamController extends AbstractClassroomController {
                                         InstructorBoardService instructorBoardService,
                                         ExamService examService,
                                         QuestionService questionService) {
-        super(classroomService, assignmentBoardService, instructorBoardService);
+        super(classroomService, assignmentBoardService, instructorBoardService, examService);
         this.examService = examService;
         this.questionService = questionService;
     }

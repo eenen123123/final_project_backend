@@ -3,6 +3,7 @@ package kr.or.ddit.controller.instructor;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse;
 import kr.or.ddit.finalProject.service.assignment.AssignmentBoardService;
 import kr.or.ddit.finalProject.service.classroom.ClassroomService;
+import kr.or.ddit.finalProject.service.exam.ExamService;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -17,13 +18,16 @@ public abstract class AbstractClassroomController {
     protected final ClassroomService classroomService;
     protected final AssignmentBoardService assignmentBoardService;
     protected final InstructorBoardService instructorBoardService;
+    protected final ExamService examService;
 
     protected AbstractClassroomController(ClassroomService classroomService,
                                           AssignmentBoardService assignmentBoardService,
-                                          InstructorBoardService instructorBoardService) {
+                                          InstructorBoardService instructorBoardService,
+                                          ExamService examService) {
         this.classroomService = classroomService;
         this.assignmentBoardService = assignmentBoardService;
         this.instructorBoardService = instructorBoardService;
+        this.examService = examService;
     }
 
     @ModelAttribute
@@ -33,6 +37,8 @@ public abstract class AbstractClassroomController {
                     assignmentBoardService.getPendingGradeCount(classSn));
             model.addAttribute("unansweredQnaCount",
                     instructorBoardService.getUnansweredQnaCount(classSn));
+            model.addAttribute("pendingExamGradeCount",
+                    examService.countPendingGradesByClassSn(classSn));
         }
     }
 

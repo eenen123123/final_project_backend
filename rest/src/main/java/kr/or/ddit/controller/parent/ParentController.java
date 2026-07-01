@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import kr.or.ddit.finalProject.dto.classroom.StudentAssignmentItem;
 import kr.or.ddit.finalProject.dto.classroom.StudentExamResponse;
 import kr.or.ddit.finalProject.dto.parent.ParentAttendanceResponse;
+import kr.or.ddit.finalProject.dto.parent.ParentAttendanceSummaryDto;
 import kr.or.ddit.finalProject.dto.parent.ParentChildDto;
 import kr.or.ddit.finalProject.dto.student.StudentAttendanceDto;
 import kr.or.ddit.finalProject.mapper.assignment.AssignmentBoardMapper;
@@ -57,23 +58,38 @@ public class ParentController {
 
         List<StudentAttendanceDto> raw = parentMapper.selectMonthlyAttendance(studentId, year, month);
 
-        int attendCount = 0, lateCount = 0, absentCount = 0;
+        int lateCount = 0, absentCount = 0, earlyLeaveCount = 0;
         List<ParentAttendanceResponse.Record> records = new java.util.ArrayList<>();
 
         for (StudentAttendanceDto dto : raw) {
             String typeCd = dto.getAtndTypeCd() != null ? dto.getAtndTypeCd().trim() : "";
             String status;
             switch (typeCd) {
-                case "02": status = "ABSENT"; absentCount++; break;
-                case "03": status = "LATE";   lateCount++;   break;
-                default:   status = "ATTEND"; attendCount++; break;
+                case "02": status = "ABSENT";      absentCount++;     break;
+                case "03": status = "LATE";        lateCount++;       break;
+                case "04": status = "EARLY_LEAVE"; earlyLeaveCount++; break;
+                default: continue; // 근태 특이사항이 아닌 기록(출석 등)은 제외
             }
             int day = dto.getAtndRegDt().getDayOfMonth();
-            records.add(new ParentAttendanceResponse.Record(day, status));
+            records.add(new ParentAttendanceResponse.Record(day, status, dto.getAtndNoteCn()));
         }
 
         return ResponseEntity.ok(
-                new ParentAttendanceResponse(year, month, attendCount, lateCount, absentCount, records));
+                new ParentAttendanceResponse(year, month, lateCount, absentCount, earlyLeaveCount, records));
+    }
+
+    // ── 자녀 수강 기간 전체 누적 근태 특이사항 요약 ────────────────────────────────
+
+    @GetMapping("/children/{studentId}/attendance/summary")
+    public ResponseEntity<ParentAttendanceSummaryDto> getAttendanceSummary(
+            @PathVariable String studentId,
+            Authentication authentication) {
+
+        if (!parentMapper.isParentOf(authentication.getName(), studentId)) {
+            return ResponseEntity.status(403).build();
+        }
+
+        return ResponseEntity.ok(parentMapper.selectAttendanceSummary(studentId));
     }
 
     // ── 자녀 과제 목록 ────────────────────────────────────────────────────────

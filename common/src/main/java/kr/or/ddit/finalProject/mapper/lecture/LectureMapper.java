@@ -26,6 +26,9 @@ public interface LectureMapper {
 
     int deleteLecture(@Param("lectureSn") Long lectureSn);
 
+    /** 강의 삭제 전 FK 참조 제거용: 해당 강의의 학생 진도 기록 전체 삭제 */
+    int deleteLectureProgressByLectureSn(@Param("lectureSn") Long lectureSn);
+
     List<LectureResponseDto> selectLectureListByCourseSn(@Param("courseSn") Long courseSn,
             @Param("userId") String userId);
 
