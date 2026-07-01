@@ -130,6 +130,14 @@ public class CourseServiceImpl implements CourseService {
         if (lectureCount > 0) {
             throw new IllegalArgumentException("강의가 존재하는 강좌는 삭제할 수 없습니다. 강의를 먼저 삭제해 주세요.");
         }
+        int enrollmentCount = courseMapper.countEnrollmentByCourse(courseSn);
+        if (enrollmentCount > 0) {
+            throw new IllegalArgumentException("수강 신청한 학생이 있는 강좌는 삭제할 수 없습니다.");
+        }
+        int featuredCount = courseMapper.countFeaturedByCourse(courseSn);
+        if (featuredCount > 0) {
+            throw new IllegalArgumentException("강사 대표 강좌로 등록된 강좌는 삭제할 수 없습니다. 대표 강좌 설정을 먼저 해제해 주세요.");
+        }
         courseMapper.deleteCourse(courseSn);
         Long curriculumId = original.getCurriculumId();
         Integer sortOrd = original.getSortOrd();

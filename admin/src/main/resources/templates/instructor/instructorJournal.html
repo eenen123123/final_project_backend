@@ -29,15 +29,20 @@
                 <h2 class="text-sm font-bold text-slate-700">
                     <i class="fa-solid fa-book-open mr-1 text-sky-400"></i>일지 목록
                 </h2>
-                <a th:unless="${isReadOnly}"
-                    th:href="@{/instructor/journals(newForm=true, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}"
-                    class="hm-btn-primary hm-btn-sky text-xs px-3 py-1.5">
-                    <i class="fa-solid fa-plus"></i> 새 일지
-                </a>
+                <div class="flex items-center gap-1.5">
+                    <button type="button" id="btn-toggle-filter" class="hm-btn-secondary text-xs px-3 py-1.5">
+                        <i class="fa-solid fa-filter"></i> 검색
+                    </button>
+                    <a th:unless="${isReadOnly}"
+                        th:href="@{/instructor/journals(newForm=true, selectedInstrId=${selectedInstrId}, keyword=${keyword}, fromDt=${fromDt}, toDt=${toDt})}"
+                        class="hm-btn-primary hm-btn-sky text-xs px-3 py-1.5">
+                        <i class="fa-solid fa-plus"></i> 새 일지
+                    </a>
+                </div>
             </div>
 
             <!-- 검색/필터 영역 -->
-            <div class="filter-area">
+            <div class="filter-area" id="filter-area" th:classappend="${keyword == null and fromDt == null and toDt == null and selectedInstrId == null} ? 'hidden' : ''">
                 <form th:action="@{/instructor/journals}" method="get" class="flex flex-col gap-1.5">
                     <select th:if="${isViewer}" name="selectedInstrId" class="hm-input hm-input-sky">
                         <option value="">전체 강사</option>
