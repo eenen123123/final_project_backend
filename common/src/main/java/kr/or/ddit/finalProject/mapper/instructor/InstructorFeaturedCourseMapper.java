@@ -21,4 +21,8 @@ public interface InstructorFeaturedCourseMapper {
     void deleteFeaturedCourse(@Param("instrUuid") String instrUuid,
                               @Param("courseSn") Long courseSn);
 
+    void updateDisplayOrder(@Param("instrUuid") String instrUuid,
+                             @Param("courseSn") Long courseSn,
+                             @Param("displayOrder") int displayOrder);
+
 }
