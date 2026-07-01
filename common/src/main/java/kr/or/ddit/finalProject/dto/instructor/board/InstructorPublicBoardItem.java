@@ -30,4 +30,7 @@ public class InstructorPublicBoardItem {
 
     /** 첨부파일 존재 여부 (Y/N) */
     private String hasFile;
+
+    /** 비밀글 여부 (Y/N, QNA 타입일 때만 유효) */
+    private String secrYn;
 }

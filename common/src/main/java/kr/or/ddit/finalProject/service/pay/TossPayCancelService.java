@@ -3,6 +3,7 @@ package kr.or.ddit.finalProject.service.pay;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import kr.or.ddit.finalProject.dto.coupon.AssetType;
 import kr.or.ddit.finalProject.dto.order.CancelReason;
 import kr.or.ddit.finalProject.dto.order.OrderDto;
 import kr.or.ddit.finalProject.dto.order.OrderStatus;
@@ -98,17 +99,36 @@ public class TossPayCancelService {
         // 쿠폰 복원 (사용된 쿠폰 USE_YN = 'N' 초기화)
         couponMapper.restoreCoupons(ordSn);
 
-        // 포인트 복원 (포인트 사용한 경우)
+        // 포인트 복원 및 적립 포인트 회수
         OrderDto order = orderMapper.selectOrderByOrdId(payHist.getPtnrOrdId());
-        if (order != null && order.getPointAmt() != null && order.getPointAmt() > 0) {
-            pointService.earnPoint(
-                order.getUserId(),
-                order.getPointType(),
-                order.getPointAmt(),
-                ordSn,
-                "취소/환불 포인트 복원 - " + order.getOrdNm()
-            );
-            log.info("포인트 복원 - userId: {}, amt: {}", order.getUserId(), order.getPointAmt());
+        if (order != null) {
+            // 사용 포인트 복원
+            if (order.getPointAmt() != null && order.getPointAmt() > 0) {
+                pointService.earnPoint(
+                    order.getUserId(),
+                    order.getPointType(),
+                    order.getPointAmt(),
+                    ordSn,
+                    "취소/환불 포인트 복원 - " + order.getOrdNm()
+                );
+                log.info("포인트 복원 - userId: {}, amt: {}", order.getUserId(), order.getPointAmt());
+            }
+
+            // 결제 완료 시 1% 적립된 HM포인트 회수
+            long earnAmt = payHist.getTotAmt() / 100;
+            if (earnAmt > 0) {
+                long balance = pointService.getPointBalance(order.getUserId(), AssetType.HM_POINT);
+                long reclaimAmt = Math.min(earnAmt, balance);
+                if (reclaimAmt > 0) {
+                    pointService.usePoint(order.getUserId(), AssetType.HM_POINT, reclaimAmt, ordSn,
+                            "취소/환불 적립 포인트 회수 - " + order.getOrdNm());
+                    log.info("적립 포인트 회수 - userId: {}, 회수={}p", order.getUserId(), reclaimAmt);
+                }
+                if (reclaimAmt < earnAmt) {
+                    log.warn("적립 포인트 일부 회수 불가 (잔액 부족): userId={}, 회수대상={}p, 실제회수={}p",
+                            order.getUserId(), earnAmt, reclaimAmt);
+                }
+            }
         }
 
         log.info("취소 승인 완료 - ordSn: {}, adminId: {}", ordSn, adminId);

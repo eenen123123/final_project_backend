@@ -9,15 +9,15 @@
 <body>
 <div id="content">
 
-  <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
-    <div class="px-7 py-5 border-b border-slate-100">
+  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+    <div class="px-7 py-5 border-b border-slate-200">
       <h2 class="text-base font-bold text-slate-800">강의 목록</h2>
       <p class="text-sm text-slate-400 mt-1">수강생의 강의별 완료 현황입니다.</p>
     </div>
 
     <div th:if="${#lists.isEmpty(lectureList)}"
          class="p-20 flex flex-col items-center justify-center text-center gap-4">
-      <div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 text-3xl">
+      <div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-300 text-3xl">
         <i class="fa-solid fa-play-circle"></i>
       </div>
       <p class="text-base font-medium text-slate-400">등록된 강의가 없습니다.</p>
@@ -26,7 +26,7 @@
     <div th:unless="${#lists.isEmpty(lectureList)}" class="overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>
-          <tr class="border-b border-slate-100 text-sm text-slate-400">
+          <tr class="border-b border-slate-200 text-sm text-slate-400">
             <th class="py-4 px-7 w-14 font-medium whitespace-nowrap">순서</th>
             <th class="py-4 px-7 font-medium">강의명</th>
             <th class="py-4 px-7 w-28 text-center font-medium whitespace-nowrap">재생 시간</th>
@@ -38,11 +38,11 @@
         <tbody class="text-slate-700">
           <tr th:each="lec, stat : ${lectureList}"
               th:onclick="|location.href='@{/classroom/detail/{classSn}/lectures/{lectureSn}(classSn=${classroom.classSn},lectureSn=${lec.lectureSn})}'|"
-              class="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer">
+              class="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
             <td class="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap" th:text="${stat.count}">1</td>
             <td class="py-4 px-7">
               <div class="flex items-center gap-3">
-                <span class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-blue-400 text-sm flex-shrink-0">
+                <span class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-blue-400 text-sm flex-shrink-0">
                   <i class="fa-solid fa-play"></i>
                 </span>
                 <span class="font-semibold text-slate-800 text-sm" th:text="${lec.lectureNm}">강의명</span>
@@ -93,7 +93,7 @@
       </table>
     </div>
 
-    <div class="px-7 py-4 border-t border-slate-100">
+    <div class="px-7 py-4 border-t border-slate-200">
       <p class="text-sm text-slate-400">
         전체 <span class="font-semibold text-slate-600" th:text="${#lists.size(lectureList)}">0</span>개 강의
       </p>

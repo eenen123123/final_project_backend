@@ -21,6 +21,8 @@ import kr.or.ddit.finalProject.dto.instructor.profile.InstructorListResponse;
 import kr.or.ddit.finalProject.dto.instructor.profile.InstructorRecentPostResponse;
 import kr.or.ddit.finalProject.exception.ErrorCode;
 import kr.or.ddit.finalProject.exception.FinalProjectException;
+import kr.or.ddit.finalProject.dto.instructor.profile.InstructorPublicCourseResponse;
+import kr.or.ddit.finalProject.mapper.course.CourseMapper;
 import kr.or.ddit.finalProject.mapper.instructor.InstructorBoardMapper;
 import kr.or.ddit.finalProject.mapper.instructor.InstructorCareerMapper;
 import kr.or.ddit.finalProject.mapper.instructor.InstructorFeaturedCourseMapper;
@@ -38,6 +40,7 @@ public class InstructorServiceImpl implements InstructorService {
     private final InstructorFeaturedCourseMapper featuredCourseMapper;
     private final InstructorBoardMapper instructorBoardMapper;
     private final CloudinaryUploadService cloudinaryUploadService;
+    private final CourseMapper courseMapper;
 
     // CAREER_TYPE_CD 허용 값 (01: 약력 / 02: 저서 / 03: 수상 / 04: 방송출연)
     private static final Set<String> VALID_CAREER_TYPE_CDS = Set.of("01", "02", "03", "04");
@@ -215,6 +218,41 @@ public class InstructorServiceImpl implements InstructorService {
 
         // 물리 삭제 대신 DEL_YN = 'Y'로 소프트 딜리트 처리
         careerMapper.deleteCareer(careerSn, instrUserId);
+    }
+
+    // ──────────────────────────────────────────────
+    // 대표 강좌 관리
+    // ──────────────────────────────────────────────
+
+    @Override
+    public List<InstructorPublicCourseResponse> retrieveInstructorCourses(String instrUuid) {
+        return courseMapper.selectCoursesByInstrUuid(instrUuid);
+    }
+
+    @Override
+    @Transactional
+    public void addFeaturedCourse(String instrUuid, Long courseSn) {
+        int count = featuredCourseMapper.countFeaturedCourses(instrUuid);
+        if (count >= 4) {
+            throw new FinalProjectException(ErrorCode.BAD_REQUEST, "대표 강좌는 최대 4개까지 등록할 수 있습니다.");
+        }
+        List<InstructorFeaturedCourseResponse> existing = featuredCourseMapper.selectFeaturedCourses(instrUuid);
+        boolean alreadyFeatured = existing.stream().anyMatch(f -> f.getCourseSn().equals(courseSn));
+        if (alreadyFeatured) {
+            throw new FinalProjectException(ErrorCode.BAD_REQUEST, "이미 대표 강좌로 등록된 강좌입니다.");
+        }
+        boolean owns = courseMapper.selectCoursesByInstrUuid(instrUuid).stream()
+                .anyMatch(c -> c.getCourseSn().equals(courseSn));
+        if (!owns) {
+            throw new FinalProjectException(ErrorCode.BAD_REQUEST, "본인의 강좌만 등록할 수 있습니다.");
+        }
+        featuredCourseMapper.insertFeaturedCourse(instrUuid, courseSn, count + 1);
+    }
+
+    @Override
+    @Transactional
+    public void removeFeaturedCourse(String instrUuid, Long courseSn) {
+        featuredCourseMapper.deleteFeaturedCourse(instrUuid, courseSn);
     }
 
     // ──────────────────────────────────────────────

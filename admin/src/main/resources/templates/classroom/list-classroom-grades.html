@@ -11,8 +11,8 @@
 
   <!-- 데이터가 하나도 없을 때 -->
   <div th:if="${#lists.isEmpty(weakPoints) and #lists.isEmpty(difficultyStats) and #lists.isEmpty(examTrend)}"
-       class="bg-white border border-slate-100 rounded-xl p-20 flex flex-col items-center justify-center text-center gap-4">
-    <div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 text-3xl">
+       class="bg-white border border-slate-200 rounded-xl p-20 flex flex-col items-center justify-center text-center gap-4">
+    <div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-300 text-3xl">
       <i class="fa-solid fa-chart-bar"></i>
     </div>
     <div>
@@ -30,7 +30,7 @@
     <div class="grid grid-cols-2 gap-5">
 
       <!-- 난이도별 득점률 (도넛) -->
-      <div class="bg-white border border-slate-100 rounded-xl p-6">
+      <div class="bg-white border border-slate-200 rounded-xl p-6">
         <h3 class="text-sm font-bold text-slate-700 mb-4">
           <i class="fa-solid fa-layer-group mr-1.5 text-violet-400"></i>난이도별 평균 득점률
         </h3>
@@ -57,7 +57,7 @@
       </div>
 
       <!-- 시험별 득점률 추이 (꺾은선) -->
-      <div class="bg-white border border-slate-100 rounded-xl p-6">
+      <div class="bg-white border border-slate-200 rounded-xl p-6">
         <h3 class="text-sm font-bold text-slate-700 mb-4">
           <i class="fa-solid fa-arrow-trend-up mr-1.5 text-sky-400"></i>시험별 평균 득점률 추이
         </h3>
@@ -71,7 +71,7 @@
     </div>
 
     <!-- 세부 주제별 약점 (가로 막대) -->
-    <div class="bg-white border border-slate-100 rounded-xl p-6">
+    <div class="bg-white border border-slate-200 rounded-xl p-6">
       <h3 class="text-sm font-bold text-slate-700 mb-1">
         <i class="fa-solid fa-bullseye mr-1.5 text-rose-400"></i>세부 주제별 약점 분석
       </h3>

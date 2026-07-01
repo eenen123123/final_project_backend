@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import kr.or.ddit.finalProject.dto.assignment.AssignmentBoardDto;
 import kr.or.ddit.finalProject.dto.assignment.AssignmentSubmitDto;
+import kr.or.ddit.finalProject.dto.attendance.ClassAttendanceSummaryDto;
+import kr.or.ddit.finalProject.mapper.attendance.StudentAttendanceMapper;
 import kr.or.ddit.finalProject.dto.classroom.ClassStatus;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomDto;
@@ -53,6 +55,7 @@ public class AdminClassroomController extends AbstractClassroomController {
     private final AdminActivityApprovalService adminActivityApprovalService;
     private final ExamService examService;
     private final GeminiQuestionService geminiQuestionService;
+    private final StudentAttendanceMapper studentAttendanceMapper;
 
     public AdminClassroomController(ClassroomService classroomService,
                                     AssignmentBoardService assignmentBoardService,
@@ -61,13 +64,15 @@ public class AdminClassroomController extends AbstractClassroomController {
                                     CourseService courseService,
                                     AdminActivityApprovalService adminActivityApprovalService,
                                     ExamService examService,
-                                    GeminiQuestionService geminiQuestionService) {
-        super(classroomService, assignmentBoardService, instructorBoardService);
+                                    GeminiQuestionService geminiQuestionService,
+                                    StudentAttendanceMapper studentAttendanceMapper) {
+        super(classroomService, assignmentBoardService, instructorBoardService, examService);
         this.lectureService = lectureService;
         this.courseService = courseService;
         this.adminActivityApprovalService = adminActivityApprovalService;
         this.examService = examService;
         this.geminiQuestionService = geminiQuestionService;
+        this.studentAttendanceMapper = studentAttendanceMapper;
     }
 
     // 클래스룸 목록 페이지 렌더링 (데이터는 AJAX로 별도 로드)
@@ -215,9 +220,7 @@ public class AdminClassroomController extends AbstractClassroomController {
                 .limit(5)
                 .collect(Collectors.toList());
         model.addAttribute("upcomingExams", upcomingExams);
-
-        // ── 액션 아이템: 시험 채점 대기
-        model.addAttribute("pendingExamGradeCount", examService.countPendingGradesByClassSn(classSn));
+        // pendingExamGradeCount는 addExamTabBadge()에서 공통 주입
 
         // ── 강좌 진도율 요약
         List<ClassroomLectureResponse> lectures = classroomService.retrieveLecturesWithProgress(classSn);
@@ -358,6 +361,23 @@ public class AdminClassroomController extends AbstractClassroomController {
         return "classroom/list-classroom-members";
     }
 
+    // ── 출결 관리 ──────────────────────────────────────────────────
+
+    // 학생별 근태 특이사항(결석/지각/조퇴) 조회
+    @GetMapping("/detail/{classSn}/attendance")
+    public String attendancePage(@PathVariable Long classSn,
+            Model model, Authentication authentication) {
+        ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
+        if (classroom == null) return "redirect:/classroom/list";
+
+        List<ClassAttendanceSummaryDto> rows =
+                studentAttendanceMapper.selectAttendanceSummaryByClassSn(classSn);
+
+        model.addAttribute("classroom", classroom);
+        model.addAttribute("attendanceRows", rows);
+        return "classroom/list-classroom-attendance";
+    }
+
     // 수강생 상세 — 기본정보 + 강의진도 + 과제 + 시험 + 최근 QnA
     @GetMapping("/detail/{classSn}/members/{userId}")
     public String memberDetail(@PathVariable Long classSn, @PathVariable String userId,
@@ -381,6 +401,7 @@ public class AdminClassroomController extends AbstractClassroomController {
         model.addAttribute("assignments", assignmentBoardService.getAssignmentsByStudent(classSn, userId));
         model.addAttribute("exams", examService.retrieveExamsByStudent(classSn, userId));
         model.addAttribute("recentQna", instructorBoardService.getRecentQnaByStudent(classSn, userId, 5));
+        model.addAttribute("attendanceHistory", studentAttendanceMapper.selectAttendanceHistoryByStudent(userId));
         return "classroom/detail-classroom-member";
     }
 }

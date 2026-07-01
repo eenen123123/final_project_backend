@@ -76,18 +76,29 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // 쿠폰 할인 적용 (배송비 추가 전 상품금액에만 적용)
-        if (coupons != null && !coupons.isEmpty()) {
-            List<MemberCouponPointDto> available = couponMapper.selectAvailableCouponsForCheckout(userId);
+        // availableCoupons는 예약 단계에서도 재사용 (중복 조회 방지)
+        List<MemberCouponPointDto> availableCoupons = (coupons != null && !coupons.isEmpty())
+                ? couponMapper.selectAvailableCouponsForCheckout(userId)
+                : java.util.Collections.emptyList();
+
+        if (!availableCoupons.isEmpty()) {
             for (OrderCreateRequest.CouponApplication ca : coupons) {
-                MemberCouponPointDto uc = available.stream()
+                MemberCouponPointDto uc = availableCoupons.stream()
                         .filter(c -> c.getMcpntSn().equals(ca.getMcpntSn()))
                         .findFirst().orElse(null);
                 if (uc == null || uc.getDiscType() == null) continue;
 
-                long baseAmt = orderItems.stream()
-                        .filter(i -> "ALL".equals(uc.getUseLimitCd()) || i.getProdDivCd().name().equals(uc.getUseLimitCd()))
-                        .mapToLong(i -> i.getProdPrice() * i.getItemQty())
-                        .sum();
+                // prodSn으로 쿠폰이 적용된 특정 상품만 baseAmt로 사용 (전체 동일 타입 합산 방지)
+                long baseAmt = (ca.getProdSn() != null && ca.getProdDivCd() != null)
+                        ? orderItems.stream()
+                                .filter(i -> ca.getProdSn().equals(i.getProdSn())
+                                        && i.getProdDivCd().name().equals(ca.getProdDivCd()))
+                                .mapToLong(i -> i.getProdPrice() * i.getItemQty())
+                                .findFirst().orElse(0L)
+                        : orderItems.stream()
+                                .filter(i -> "ALL".equals(uc.getUseLimitCd()) || i.getProdDivCd().name().equals(uc.getUseLimitCd()))
+                                .mapToLong(i -> i.getProdPrice() * i.getItemQty())
+                                .sum();
 
                 long disc = uc.getDiscType().name().equals("FIXED")
                         ? Math.min(uc.getDiscAmt() != null ? uc.getDiscAmt() : 0, baseAmt)
@@ -118,6 +129,11 @@ public class OrderServiceImpl implements OrderService {
             }
             // 포인트 차감 후 실제 현금 결제액 (토스 결제 금액 = 상품금액 - 포인트)
             totAmt -= pointAmt;
+        }
+
+        // 0원 결제 방어 (쿠폰+포인트 전액 할인 시 Toss가 0원 결제를 허용하지 않음)
+        if (totAmt <= 0) {
+            throw new FinalProjectException(ErrorCode.BAD_REQUEST);
         }
 
         String ordNm = orderItems.get(0).getProdNm();
@@ -167,14 +183,15 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
-        // 쿠폰 예약 (ordSn 확보 후)
-        if (coupons != null && !coupons.isEmpty()) {
-            List<MemberCouponPointDto> available = couponMapper.selectAvailableCouponsForCheckout(userId);
-            for (OrderCreateRequest.CouponApplication ca : coupons) {
-                boolean valid = available.stream().anyMatch(c -> c.getMcpntSn().equals(ca.getMcpntSn()));
-                if (valid) {
-                    couponMapper.reserveCoupon(ca.getMcpntSn(), order.getOrdSn());
-                }
+        // 쿠폰 예약 (ordSn 확보 후) — availableCoupons 재사용, 예약 실패 시 트랜잭션 롤백
+        for (OrderCreateRequest.CouponApplication ca : coupons != null ? coupons : java.util.Collections.<OrderCreateRequest.CouponApplication>emptyList()) {
+            boolean valid = availableCoupons.stream().anyMatch(c -> c.getMcpntSn().equals(ca.getMcpntSn()));
+            if (!valid) continue;
+            int reserved = couponMapper.reserveCoupon(ca.getMcpntSn(), order.getOrdSn());
+            if (reserved == 0) {
+                // 할인 계산 후 쿠폰이 이미 사용됐거나 만료된 경우 → 주문 전체 롤백
+                log.warn("쿠폰 예약 실패 (이미 사용 or 만료) - mcpntSn: {}, userId: {}", ca.getMcpntSn(), userId);
+                throw new FinalProjectException(ErrorCode.COUPON_INACTIVE);
             }
         }
 

@@ -8,7 +8,7 @@
     class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
   >
     <div>
-      <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+      <!-- <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
         <a
           th:href="@{/admin/course/list}"
           class="hover:text-violet-500 transition-colors"
@@ -18,7 +18,7 @@
         <span class="text-violet-500 font-medium" th:text="${course.courseNm}"
           >강좌명</span
         >
-      </div>
+      </div> -->
       <h1
         class="text-2xl font-bold text-slate-900 tracking-tight"
         th:text="${course.courseNm}"
@@ -36,7 +36,10 @@
       </a>
       <button
         th:if="${#authentication.name == course.instrUserId}"
-        type="button" onclick="openDeleteModal()" class="hm-btn-danger">
+        type="button"
+        onclick="openDeleteModal()"
+        class="hm-btn-danger"
+      >
         <i class="fa-solid fa-trash"></i>
         <span>강좌 삭제</span>
       </button>

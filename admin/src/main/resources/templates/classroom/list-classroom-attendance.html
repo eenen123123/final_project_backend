@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html th:replace="~{classroom/layout-classroom :: layout(
+    ${classroom.classNm} + ' | 출결 관리',
+    ${classroom},
+    'attendance',
+    ~{:: #content}
+)}" lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div id="content">
+
+  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+
+    <!-- 헤더 -->
+    <div class="px-7 py-5 border-b border-slate-200">
+      <h2 class="text-base font-bold text-slate-800">출결 관리</h2>
+      <p class="text-sm text-slate-400 mt-1">수강생별 근태 특이사항(결석·지각·조퇴) 현황입니다. 근태 특이사항은 행정팀장이 등록·관리합니다.</p>
+    </div>
+
+    <!-- 수강생 없음 -->
+    <div th:if="${#lists.isEmpty(attendanceRows)}"
+         class="p-20 flex flex-col items-center justify-center text-center gap-4">
+      <div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-300 text-3xl">
+        <i class="fa-solid fa-clipboard-check"></i>
+      </div>
+      <p class="text-base font-medium text-slate-400">등록된 수강생이 없습니다.</p>
+    </div>
+
+    <!-- 특이사항 집계 테이블 -->
+    <div th:unless="${#lists.isEmpty(attendanceRows)}" class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-slate-200 text-sm text-slate-400">
+            <th class="py-4 px-7 w-14 font-medium">#</th>
+            <th class="py-4 px-7 font-medium">이름</th>
+            <th class="py-4 px-7 w-24 text-center font-medium">결석</th>
+            <th class="py-4 px-7 w-24 text-center font-medium">지각</th>
+            <th class="py-4 px-7 w-24 text-center font-medium">조퇴</th>
+            <th class="py-4 px-7 font-medium">최근 특이사항</th>
+          </tr>
+        </thead>
+        <tbody class="text-slate-700">
+          <tr th:each="row, stat : ${attendanceRows}"
+              class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+            <td class="py-4 px-7 text-sm text-slate-300 font-mono"
+                th:text="${stat.count}">1</td>
+            <td class="py-4 px-7 text-sm font-semibold text-slate-800"
+                th:text="${row.studentName}">홍길동</td>
+            <td class="py-4 px-7 text-center text-sm"
+                th:classappend="${row.absentCnt > 0} ? 'text-red-500 font-semibold' : 'text-slate-400'"
+                th:text="${row.absentCnt}">0</td>
+            <td class="py-4 px-7 text-center text-sm"
+                th:classappend="${row.lateCnt > 0} ? 'text-amber-500 font-semibold' : 'text-slate-400'"
+                th:text="${row.lateCnt}">0</td>
+            <td class="py-4 px-7 text-center text-sm"
+                th:classappend="${row.earlyCnt > 0} ? 'text-orange-500 font-semibold' : 'text-slate-400'"
+                th:text="${row.earlyCnt}">0</td>
+            <td class="py-4 px-7 text-sm text-slate-500">
+              <span th:if="${row.lastNoteDt == null}">-</span>
+              <span th:unless="${row.lastNoteDt == null}">
+                <span class="text-xs text-slate-400 font-mono"
+                      th:text="${#temporals.format(row.lastNoteDt, 'yyyy-MM-dd')}">2026-01-01</span>
+                <span class="text-xs font-semibold px-1.5 py-0.5 rounded ml-1"
+                      th:classappend="${row.lastType == 'ABSENT'} ? 'bg-red-50 text-red-500' : (${row.lastType == 'LATE'} ? 'bg-amber-50 text-amber-500' : 'bg-orange-50 text-orange-500')"
+                      th:text="${row.lastType == 'ABSENT'} ? '결석' : (${row.lastType == 'LATE'} ? '지각' : '조퇴')">결석</span>
+                <span th:if="${row.lastNote != null and !#strings.isEmpty(row.lastNote)}"
+                      th:text="${row.lastNote}"> 사유</span>
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(attendanceRows)}"
+         class="px-7 py-4 border-t border-slate-200">
+      <p class="text-sm text-slate-400">
+        총 <span class="font-semibold text-slate-600"
+                 th:text="${#lists.size(attendanceRows)}">0</span>명
+      </p>
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>

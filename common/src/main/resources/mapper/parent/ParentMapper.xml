@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.parent.ParentMapper">
+
+    <!-- 학부모의 자녀 목록 조회 (ENROLLED 클래스룸별 각각 반환) -->
+    <select id="selectChildrenByParentId" resultType="kr.or.ddit.finalProject.dto.parent.ParentChildDto">
+        SELECT
+            s.STD_USER_ID        AS studentId,
+            m.USER_NAME          AS studentName,
+            s.ENRL_SCHL_NM       AS enrlSchlNm,
+            cl.CLASS_SN          AS classSn,
+            cl.CLASS_NM          AS classroomName,
+            instr_m.USER_NAME    AS instructorName,
+            TO_CHAR(cm.REG_DT, 'YYYY-MM-DD') AS enrollStartDate,
+            (
+                SELECT ROUND(
+                    COUNT(asub.ASGMT_SN) * 100.0
+                    / NULLIF(COUNT(ab.ASGMT_SN), 0)
+                )
+                FROM ASSIGNMENT_BOARD ab
+                LEFT JOIN ASSIGNMENT_SUBMIT asub
+                       ON ab.ASGMT_SN = asub.ASGMT_SN AND asub.SBMT_USER_ID = s.STD_USER_ID
+                WHERE ab.CLASS_SN = cl.CLASS_SN
+            ) AS assignmentRate,
+            (
+                SELECT ROUND(AVG(et.TOT_SCORE), 1)
+                FROM EXAM_TAKER et
+                JOIN EXAM e ON et.EXAM_SN = e.EXAM_SN
+                WHERE et.STD_USER_ID = s.STD_USER_ID
+                  AND e.CLASS_SN = cl.CLASS_SN
+                  AND et.TOT_SCORE IS NOT NULL
+            ) AS recentExamAvgScore
+        FROM STUDENT s
+        JOIN MEMBER m ON s.STD_USER_ID = m.USER_ID
+        JOIN CLASSROOM_MEMBER cm ON cm.USER_ID = s.STD_USER_ID AND cm.ENRL_STAT_CD = 'ENROLLED'
+        JOIN CLASSROOM cl ON cm.CLASS_SN = cl.CLASS_SN
+        JOIN COURSE c ON cl.COURSE_SN = c.COURSE_SN
+        JOIN MEMBER instr_m ON c.INSTR_USER_ID = instr_m.USER_ID
+        WHERE s.PRNT_USER_ID = #{parentId}
+        ORDER BY m.USER_NAME, cm.REG_DT DESC
+    </select>
+
+    <!-- 학부모-자녀 관계 확인 -->
+    <select id="isParentOf" resultType="boolean">
+        SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END
+        FROM STUDENT
+        WHERE STD_USER_ID = #{studentId}
+          AND PRNT_USER_ID = #{parentId}
+    </select>
+
+    <!-- 월별 출결 기록 조회 -->
+    <select id="selectMonthlyAttendance" resultType="kr.or.ddit.finalProject.dto.student.StudentAttendanceDto">
+        SELECT
+            ATND_SN      AS atndSn,
+            STD_USER_ID  AS stdUserId,
+            ATND_TYPE_CD AS atndTypeCd,
+            ATND_REG_DT  AS atndRegDt,
+            ATND_NOTE_CN AS atndNoteCn
+        FROM STUDENT_ATTENDANCE
+        WHERE STD_USER_ID = #{studentId}
+          AND EXTRACT(YEAR  FROM ATND_REG_DT) = #{year}
+          AND EXTRACT(MONTH FROM ATND_REG_DT) = #{month}
+        ORDER BY ATND_REG_DT
+    </select>
+
+    <!-- 수강 기간 전체 누적 근태 특이사항(결석/지각/조퇴) 요약 -->
+    <select id="selectAttendanceSummary" resultType="kr.or.ddit.finalProject.dto.parent.ParentAttendanceSummaryDto">
+        SELECT
+            NVL(SUM(CASE WHEN TRIM(ATND_TYPE_CD) = '03' THEN 1 ELSE 0 END), 0) AS lateCount,
+            NVL(SUM(CASE WHEN TRIM(ATND_TYPE_CD) = '02' THEN 1 ELSE 0 END), 0) AS absentCount,
+            NVL(SUM(CASE WHEN TRIM(ATND_TYPE_CD) = '04' THEN 1 ELSE 0 END), 0) AS earlyLeaveCount
+        FROM STUDENT_ATTENDANCE
+        WHERE STD_USER_ID = #{studentId}
+          AND TRIM(ATND_TYPE_CD) IN ('02', '03', '04')
+    </select>
+
+</mapper>

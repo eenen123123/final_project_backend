@@ -107,15 +107,40 @@ public interface InstructorBoardService {
     // ── 공개 강사 게시판 (React 프론트 전용) ─────────────────────────
 
     /**
-     * 강사 공개 게시판 목록 조회 (페이징).
-     * @param pageIndex 0-based 페이지 인덱스 (React 프론트 기준)
+     * 강사 공개 게시판 목록 조회 (페이징 + 검색).
+     * @param pageIndex  0-based 페이지 인덱스 (React 프론트 기준)
+     * @param searchType "title" | "writer" | null (전체)
+     * @param keyword    검색어, null 또는 빈 문자열이면 전체 조회
      */
     PageResponse<InstructorPublicBoardItem> getPublicBoardList(
-            String instrUuid, String boardTypeCd, int pageIndex, int size);
+            String instrUuid, String boardTypeCd, int pageIndex, int size,
+            String searchType, String keyword);
 
     /** 강사 공개 게시판 상세 조회 (이전/다음글, 첨부파일 포함) + 조회수 증가 */
-    InstructorPublicBoardDetail getPublicBoardDetail(String instrUuid, Long postSn);
+    default InstructorPublicBoardDetail getPublicBoardDetail(String instrUuid, Long postSn) {
+        return getPublicBoardDetail(instrUuid, postSn, null);
+    }
+
+    /**
+     * 강사 공개 게시판 상세 조회 (currentUserId가 있으면 본인 비밀글도 조회 가능).
+     * isMyPost·secrYn 필드는 이 메서드에서 채워진다.
+     */
+    InstructorPublicBoardDetail getPublicBoardDetail(String instrUuid, Long postSn, String currentUserId);
+
+    /** 게시글 존재 여부 확인 (비밀글 여부 무관 — 403 vs 404 구분용) */
+    boolean existsPublicBoard(String instrUuid, Long postSn);  // impl에서 COUNT > 0 변환
 
     /** 조회수 증가 — 학생이 게시글 상세를 열람할 때만 호출. 관리자 화면에서는 호출 금지 */
     void incrementViewCount(Long postSn);
+
+    // ── 공개 강사 게시판 Q&A CRUD ─────────────────────────────────────
+
+    /** 강사 공개 게시판 Q&A 등록 (INSTRUCTOR_BOARD + INSTRUCTOR_QNA child 동시 생성) */
+    void insertPublicQna(String instrUuid, String wrtrUserId, String postSj, String postCn, String secrYn);
+
+    /** 강사 공개 게시판 Q&A 수정 (작성자 본인만) */
+    void updatePublicQna(Long postSn, String wrtrUserId, String postSj, String postCn, String secrYn);
+
+    /** 강사 공개 게시판 Q&A 소프트 삭제 (작성자 본인만) */
+    void deletePublicQna(Long postSn, String wrtrUserId);
 }

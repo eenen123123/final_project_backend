@@ -6,19 +6,6 @@
     class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
   >
     <div>
-      <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
-        <a
-          th:href="@{/admin/course/list}"
-          class="hover:text-violet-500 transition-colors"
-          >강좌 관리</a
-        >
-        <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        <a th:href="@{/admin/course/detail(courseSn=${course.courseSn})}"
-          th:text="${course.courseNm}"
-          class="text-slate-600 font-medium hover:text-violet-500 transition-colors">강좌명</a>
-        <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        <span class="text-violet-500 font-medium">강의 목록</span>
-      </div>
       <h1
         class="text-2xl font-bold text-slate-900 tracking-tight"
         th:text="${course?.courseNm} + ' 강의 목록'"
@@ -67,20 +54,19 @@
       <table class="w-full text-left border-collapse">
         <thead>
           <tr
-            class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider"
+            class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 tracking-wider whitespace-nowrap"
           >
             <th class="py-4 px-6 w-16 text-center">순서</th>
             <th class="py-4 px-6">강의명</th>
-            <th class="py-4 px-6 w-28">유형</th>
+            <th class="py-4 px-6 w-28 text-center">재생 시간</th>
             <th class="py-4 px-6 w-24 text-center">공개 여부</th>
             <th class="py-4 px-6 w-20 text-center">잠금</th>
-            <th class="py-4 px-6 w-36 text-center">제어</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-50 text-sm text-slate-700">
           <!-- 강의 없을 때 -->
           <tr th:if="${lectures == null or lectures.isEmpty()}">
-            <td colspan="6" class="py-16 text-center">
+            <td colspan="5" class="py-16 text-center">
               <div class="flex flex-col items-center gap-3 text-slate-300">
                 <i class="fa-solid fa-film text-4xl"></i>
                 <p class="text-sm">등록된 강의가 없습니다.</p>
@@ -97,7 +83,8 @@
           <!-- 강의 목록 -->
           <tr
             th:each="lec, iter : ${lectures}"
-            class="hover:bg-slate-50/60 transition-colors"
+            class="hover:bg-slate-50/60 transition-colors cursor-pointer"
+            th:onclick="|location.href='@{/admin/lectures/view(lectureId=${lec.lectureSn})}'|"
           >
             <td class="py-4 px-6 text-center">
               <span
@@ -115,42 +102,25 @@
               </p>
               <p
                 class="text-xs text-slate-400 mt-0.5 line-clamp-1 max-w-sm"
-                th:if="${lec.lectureExplnCn}"
+                th:if="${lec.lectureExplnCn != null and !#strings.isEmpty(lec.lectureExplnCn)}"
                 th:text="${lec.lectureExplnCn}"
               ></p>
             </td>
-            <td class="py-4 px-6">
+            <td class="py-4 px-6 text-center text-xs">
               <span
-                th:switch="${lec.lectureTypeCd}"
-                class="px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                th:if="${lec.lectureDuration != null and lec.lectureDuration > 0}"
+                class="font-medium text-slate-700"
               >
+                <i class="fa-regular fa-clock mr-1 text-slate-400"></i>
                 <span
-                  th:case="'VOD'"
-                  class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-violet-50 text-violet-600"
-                  >영상(VOD)</span
-                >
-                <span
-                  th:case="'LIVE'"
-                  class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-500"
-                  >라이브</span
-                >
-                <span
-                  th:case="'QUIZ'"
-                  class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-violet-50 text-violet-600"
-                  >퀴즈</span
-                >
-                <span
-                  th:case="'DOC'"
-                  class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-50 text-sky-600"
-                  >자료</span
-                >
-                <span
-                  th:case="*"
-                  class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-500"
-                  th:text="${lec.lectureTypeCd}"
-                  >-</span
-                >
+                  th:text="${#numbers.formatInteger(lec.lectureDuration / 60, 1, 'DEFAULT') + ':' + (lec.lectureDuration % 60 < 10 ? '0' : '') + (lec.lectureDuration % 60)}"
+                ></span>
               </span>
+              <span
+                th:unless="${lec.lectureDuration != null and lec.lectureDuration > 0}"
+                class="text-slate-300"
+                >-</span
+              >
             </td>
             <td class="py-4 px-6 text-center">
               <span
@@ -174,31 +144,8 @@
               <span
                 th:unless="${lec.lockYn == 'Y'}"
                 class="text-slate-300 text-xs"
-                >-</span
+                >해제</span
               >
-            </td>
-            <td class="py-4 px-6 text-center">
-              <div class="flex items-center justify-center gap-1">
-                <a
-                  th:href="@{/admin/lectures/view(lectureId=${lec.lectureSn})}"
-                  class="p-1.5 text-slate-400 hover:text-violet-500 transition-colors"
-                  title="미리보기"
-                >
-                  <i class="fa-solid fa-play text-sm"></i>
-                </a>
-                <button
-                  class="p-1.5 text-slate-400 hover:text-sky-500 transition-colors"
-                  title="수정"
-                >
-                  <i class="fa-solid fa-pen text-sm"></i>
-                </button>
-                <button
-                  class="p-1.5 text-slate-400 hover:text-red-500 transition-colors"
-                  title="삭제"
-                >
-                  <i class="fa-solid fa-trash text-sm"></i>
-                </button>
-              </div>
             </td>
           </tr>
         </tbody>

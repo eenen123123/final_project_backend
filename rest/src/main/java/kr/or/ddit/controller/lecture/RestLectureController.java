@@ -28,11 +28,12 @@ public class RestLectureController {
     @GetMapping("/info")
     public ResponseEntity<LectureDto> getLectureInfo(@RequestParam Long lectureId, @RequestParam Long courseId,
             Authentication authentication) {
-        // 강의 정보를 조회하고, 해당 사용자가 접근 가능한 강의인지 확인
-
-        // 했다 치고 해당 강의의 정보를 반환
-
         LectureDto lectureDto = lectureService.retrieveLectureBySn(lectureId);
+
+        if (lectureDto == null || !courseId.equals(lectureDto.getCourseSn())
+                || !"Y".equals(lectureDto.getOpnnYn())) {
+            return ResponseEntity.notFound().build();
+        }
 
         return ResponseEntity.ok(lectureDto);
     }

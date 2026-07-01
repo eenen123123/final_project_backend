@@ -1,4 +1,4 @@
-<title th:fragment="pageTitle">강의 등록 | HERMES</title>
+<title th:fragment="pageTitle" th:text="${lecture != null} ? '강의 수정 | HERMES' : '강의 등록 | HERMES'">강의 등록 | HERMES</title>
 
 <style>
   .upload-zone {
@@ -28,34 +28,17 @@
 
 <div class="space-y-6">
   <!-- ① 페이지 헤더 -->
-  <div
-    class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
-  >
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
     <div>
-      <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
-        <a th:href="@{/admin/course/list}" class="hover:text-violet-500 transition-colors"
-          >강좌 관리</a
-        >
-        <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        <a th:href="@{/admin/course/detail(courseSn=${course.courseSn})}"
-          th:text="${course.courseNm}"
-          class="text-slate-600 font-medium hover:text-violet-500 transition-colors">강좌명</a>
-        <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        <span class="text-violet-500 font-medium">강의 등록</span>
-      </div>
-      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
-        강의 등록
-      </h1>
-      <p class="text-sm text-slate-500 mt-1">
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight"
+          th:text="${lecture != null} ? '강의 수정' : '강의 등록'">강의 등록</h1>
+      <p class="text-sm text-slate-500 mt-1"
+         th:text="${lecture != null} ? '강의 정보를 수정합니다.' : '영상 파일과 강의 정보를 입력하여 강좌에 새 강의를 추가합니다.'">
         영상 파일과 강의 정보를 입력하여 강좌에 새 강의를 추가합니다.
       </p>
-
     </div>
-    <a
-      th:href="@{/admin/lectures/list(courseId=${course.courseSn})}"
-      class="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors shrink-0"
-    >
-      <i class="fa-solid fa-arrow-left text-xs"></i>
+    <a th:href="@{/admin/lectures/list(courseId=${course.courseSn})}" class="hm-btn-secondary shrink-0">
+      <i class="fa-solid fa-arrow-left"></i>
       <span>목록으로</span>
     </a>
   </div>
@@ -69,7 +52,6 @@
         <h2 class="text-sm font-bold text-slate-700 mb-4">
           <i class="fa-solid fa-video text-violet-500 mr-2"></i>강의 영상
         </h2>
-
         <div
           class="upload-zone p-8 flex flex-col items-center justify-center text-center cursor-pointer"
           id="videoDropZone"
@@ -79,40 +61,22 @@
           onclick="document.getElementById('videoFileInput').click()"
         >
           <div id="dropPlaceholder">
-            <div
-              class="w-16 h-16 rounded-2xl bg-violet-50 text-violet-400 flex items-center justify-center text-3xl mb-4 mx-auto"
-            >
+            <div class="w-16 h-16 rounded-2xl bg-violet-50 text-violet-400 flex items-center justify-center text-3xl mb-4 mx-auto">
               <i class="fa-solid fa-clapperboard"></i>
             </div>
-            <p class="text-sm font-semibold text-slate-600">
-              파일을 드래그하거나 클릭하여 업로드
-            </p>
-            <p class="text-xs text-slate-400 mt-1">
-              MP4, MOV, AVI, MKV · 최대 10 GB
-            </p>
+            <p class="text-sm font-semibold text-slate-600">파일을 드래그하거나 클릭하여 업로드</p>
+            <p class="text-xs text-slate-400 mt-1">MP4, MOV, AVI, MKV · 최대 10 GB</p>
           </div>
           <div id="fileSelectedInfo" class="hidden w-full">
             <div class="flex items-center gap-4 bg-violet-50 rounded-xl p-4">
-              <div
-                class="w-12 h-12 rounded-xl bg-violet-100 text-violet-500 flex items-center justify-center text-xl shrink-0"
-              >
+              <div class="w-12 h-12 rounded-xl bg-violet-100 text-violet-500 flex items-center justify-center text-xl shrink-0">
                 <i class="fa-solid fa-file-video"></i>
               </div>
               <div class="text-left flex-1 min-w-0">
-                <p
-                  class="text-sm font-bold text-slate-800 truncate"
-                  id="selectedFileName"
-                >
-                  -
-                </p>
-                <p class="text-xs text-slate-500 mt-0.5" id="selectedFileSize">
-                  -
-                </p>
+                <p class="text-sm font-bold text-slate-800 truncate" id="selectedFileName">-</p>
+                <p class="text-xs text-slate-500 mt-0.5" id="selectedFileSize">-</p>
               </div>
-              <button
-                onclick="clearVideo(event)"
-                class="text-slate-400 hover:text-red-500 transition-colors shrink-0 p-1"
-              >
+              <button onclick="clearVideo(event)" class="text-slate-400 hover:text-red-500 transition-colors shrink-0 p-1">
                 <i class="fa-solid fa-xmark"></i>
               </button>
             </div>
@@ -123,22 +87,12 @@
                 <span id="progressPct">0%</span>
               </div>
               <div class="progress-bar-track">
-                <div
-                  class="progress-bar-fill"
-                  id="progressBar"
-                  style="width: 0%"
-                ></div>
+                <div class="progress-bar-fill" id="progressBar" style="width: 0%"></div>
               </div>
             </div>
           </div>
         </div>
-        <input
-          type="file"
-          id="videoFileInput"
-          accept="video/*"
-          class="hidden"
-          onchange="handleFileSelect(this.files)"
-        />
+        <input type="file" id="videoFileInput" accept="video/*" class="hidden" onchange="handleFileSelect(this.files)" />
       </div>
 
       <!-- 강의 정보 입력 -->
@@ -150,11 +104,12 @@
         <form
           id="lectureForm"
           class="space-y-5"
-          th:action="@{/admin/lectures/insert}"
+          th:action="${lecture != null} ? @{/admin/lectures/edit} : @{/admin/lectures/insert}"
           method="post"
         >
+          <input th:if="${lecture != null}" type="hidden" name="lectureSn" th:value="${lecture.lectureSn}" />
           <input type="hidden" name="courseSn" th:value="${course.courseSn}" />
-          <input type="hidden" name="atchFileId" id="atchFileId" />
+          <input type="hidden" name="atchFileId" id="atchFileId" th:value="${lecture?.atchFileId}" />
 
           <!-- 강의명 -->
           <div>
@@ -167,21 +122,20 @@
               id="lectureNm"
               class="hm-input hm-input-violet"
               placeholder="예) 15강 삼각함수의 활용"
+              th:value="${lecture?.lectureNm}"
             />
           </div>
 
           <!-- 정렬 순서 -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-medium text-slate-500 mb-1.5"
-                >정렬 순서</label
-              >
+              <label class="block text-xs font-medium text-slate-500 mb-1.5">정렬 순서</label>
               <input
                 type="number"
                 name="sortOrd"
                 id="sortOrd"
                 class="hm-input hm-input-violet"
-                th:value="${lectures != null ? lectures.size() + 1 : 1}"
+                th:value="${lecture != null ? lecture.sortOrd : (lectures != null ? lectures.size() + 1 : 1)}"
                 min="1"
               />
             </div>
@@ -189,76 +143,49 @@
 
           <!-- 강의 설명 -->
           <div>
-            <label class="block text-xs font-medium text-slate-500 mb-1.5"
-              >강의 설명</label
-            >
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">강의 설명</label>
             <textarea
               name="lectureExplnCn"
               id="lectureExplnCn"
               rows="4"
               class="hm-input hm-input-violet resize-none"
               placeholder="이 강의에서 다루는 내용을 간략히 설명해 주세요."
+              th:text="${lecture?.lectureExplnCn}"
             ></textarea>
           </div>
 
           <!-- 공개 여부 + 잠금 여부 -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-medium text-slate-500 mb-2"
-                >공개 여부</label
-              >
+              <label class="block text-xs font-medium text-slate-500 mb-2">공개 여부</label>
               <div class="flex items-center gap-5 h-10">
-                <label
-                  class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"
-                >
-                  <input
-                    type="radio"
-                    name="opnnYn"
-                    value="Y"
-                    checked
-                    class="accent-violet-500"
-                  />
+                <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                  <input type="radio" name="opnnYn" value="Y"
+                    th:checked="${lecture == null or lecture.opnnYn == 'Y'}"
+                    class="accent-violet-500" />
                   <span>공개</span>
                 </label>
-                <label
-                  class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"
-                >
-                  <input
-                    type="radio"
-                    name="opnnYn"
-                    value="N"
-                    class="accent-violet-500"
-                  />
+                <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                  <input type="radio" name="opnnYn" value="N"
+                    th:checked="${lecture != null and lecture.opnnYn == 'N'}"
+                    class="accent-violet-500" />
                   <span>비공개</span>
                 </label>
               </div>
             </div>
             <div>
-              <label class="block text-xs font-medium text-slate-500 mb-2"
-                >수강 잠금</label
-              >
+              <label class="block text-xs font-medium text-slate-500 mb-2">수강 잠금</label>
               <div class="flex items-center gap-5 h-10">
-                <label
-                  class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"
-                >
-                  <input
-                    type="radio"
-                    name="lockYn"
-                    value="N"
-                    checked
-                    class="accent-violet-500"
-                  />
+                <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                  <input type="radio" name="lockYn" value="N"
+                    th:checked="${lecture == null or lecture.lockYn == 'N'}"
+                    class="accent-violet-500" />
                   <span>해제</span>
                 </label>
-                <label
-                  class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"
-                >
-                  <input
-                    type="radio"
-                    name="lockYn"
-                    value="Y"
-                    class="accent-violet-500"
-                  />
+                <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                  <input type="radio" name="lockYn" value="Y"
+                    th:checked="${lecture != null and lecture.lockYn == 'Y'}"
+                    class="accent-violet-500" />
                   <span>잠금</span>
                 </label>
               </div>
@@ -267,29 +194,24 @@
 
           <!-- 선행 강의 -->
           <div>
-            <label class="block text-xs font-medium text-slate-500 mb-1.5"
-              >선행 강의</label
-            >
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">선행 강의</label>
             <select name="prereqLectureSn" class="hm-input hm-input-violet">
               <option value="">없음 (바로 수강 가능)</option>
               <option
                 th:each="lec : ${lectures}"
+                th:if="${lecture == null or lec.lectureSn != lecture.lectureSn}"
                 th:value="${lec.lectureSn}"
                 th:text="${lec.sortOrd + '. ' + lec.lectureNm}"
-              >
-                강의명
-              </option>
+                th:selected="${lecture != null and lecture.prereqLectureSn == lec.lectureSn}"
+              >강의명</option>
             </select>
           </div>
 
-          <!-- 등록 버튼 -->
-          <button
-            type="button"
-            onclick="submitLecture()"
-            class="w-full hm-btn-primary hm-btn-violet py-3.5 text-base"
-          >
-            <i class="fa-solid fa-circle-plus text-lg"></i>
-            <span>강의 등록</span>
+          <!-- 등록/수정 버튼 -->
+          <button type="button" onclick="submitLecture()" class="w-full hm-btn-primary hm-btn-violet py-3.5 text-base">
+            <i class="fa-solid fa-circle-plus text-lg" th:classappend="${lecture != null} ? 'd-none'"></i>
+            <i class="fa-solid fa-floppy-disk text-lg" th:classappend="${lecture == null} ? 'd-none'"></i>
+            <span th:text="${lecture != null} ? '강의 수정' : '강의 등록'">강의 등록</span>
           </button>
         </form>
       </div>
@@ -305,43 +227,24 @@
         <div class="space-y-3">
           <div>
             <p class="text-xs text-slate-400">강좌명</p>
-            <p
-              class="text-sm font-bold text-slate-800 mt-0.5"
-              th:text="${course.courseNm}"
-            >
-              -
-            </p>
+            <p class="text-sm font-bold text-slate-800 mt-0.5" th:text="${course.courseNm}">-</p>
           </div>
           <div th:if="${course.courseExplnCn}">
             <p class="text-xs text-slate-400">강좌 설명</p>
-            <p
-              class="text-xs text-slate-600 mt-0.5 leading-relaxed line-clamp-3"
-              th:text="${course.courseExplnCn}"
-            >
-              -
-            </p>
+            <p class="text-xs text-slate-600 mt-0.5 leading-relaxed line-clamp-3" th:text="${course.courseExplnCn}">-</p>
           </div>
           <div class="flex items-center gap-4 pt-1">
             <div class="flex-1 bg-slate-50 rounded-xl p-3 text-center">
               <p class="text-xs text-slate-400">총 강의 수</p>
               <p class="text-lg font-bold text-slate-800 mt-0.5">
-                <span th:text="${lectures != null ? lectures.size() : 0}"
-                  >0</span
-                >
+                <span th:text="${lectures != null ? lectures.size() : 0}">0</span>
                 <span class="text-xs text-slate-400 font-normal">개</span>
               </p>
             </div>
-            <div
-              class="flex-1 bg-slate-50 rounded-xl p-3 text-center"
-              th:if="${course.coursePrice != null}"
-            >
+            <div class="flex-1 bg-slate-50 rounded-xl p-3 text-center" th:if="${course.coursePrice != null}">
               <p class="text-xs text-slate-400">수강료</p>
-              <p
-                class="text-sm font-bold text-slate-800 mt-0.5"
-                th:text="${#numbers.formatInteger(course.coursePrice, 1, 'COMMA') + '원'}"
-              >
-                -
-              </p>
+              <p class="text-sm font-bold text-slate-800 mt-0.5"
+                 th:text="${#numbers.formatInteger(course.coursePrice, 1, 'COMMA') + '원'}">-</p>
             </div>
           </div>
         </div>
@@ -354,53 +257,30 @@
             <i class="fa-solid fa-list text-violet-500 mr-2"></i>등록된 강의
           </h2>
         </div>
-
         <div class="overflow-y-auto" style="max-height: 480px">
-          <!-- 강의 없을 때 -->
-          <div
-            th:if="${lectures == null or lectures.isEmpty()}"
-            class="py-12 text-center"
-          >
-            <div
-              class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-300 flex items-center justify-center text-xl mx-auto mb-3"
-            >
+          <div th:if="${lectures == null or lectures.isEmpty()}" class="py-12 text-center">
+            <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-300 flex items-center justify-center text-xl mx-auto mb-3">
               <i class="fa-solid fa-film"></i>
             </div>
             <p class="text-xs text-slate-400">등록된 강의가 없습니다.</p>
           </div>
-
-          <!-- 강의 목록 -->
-          <ul
-            th:unless="${lectures == null or lectures.isEmpty()}"
-            class="divide-y divide-slate-50"
-          >
+          <ul th:unless="${lectures == null or lectures.isEmpty()}" class="divide-y divide-slate-50">
             <li
               th:each="lec, iter : ${lectures}"
               class="flex items-center gap-3 px-5 py-3 hover:bg-slate-50/70 transition-colors"
+              th:classappend="${lecture != null and lec.lectureSn == lecture.lectureSn} ? 'bg-violet-50/40'"
             >
-              <span
-                class="w-6 h-6 rounded-lg bg-violet-50 text-violet-500 text-xs font-bold flex items-center justify-center shrink-0"
-                th:text="${iter.index + 1}"
-                >1</span
-              >
+              <span class="w-6 h-6 rounded-lg bg-violet-50 text-violet-500 text-xs font-bold flex items-center justify-center shrink-0"
+                    th:text="${iter.index + 1}">1</span>
               <div class="flex-1 min-w-0">
-                <p
-                  class="text-sm font-medium text-slate-700 truncate"
-                  th:text="${lec.lectureNm}"
-                >
-                  강의명
-                </p>
+                <p class="text-sm font-medium text-slate-700 truncate" th:text="${lec.lectureNm}">강의명</p>
                 <div class="flex items-center gap-1.5 mt-0.5">
                   <span
                     class="text-[10px] px-1.5 py-0.5 rounded-full font-semibold"
                     th:classappend="${lec.opnnYn == 'Y'} ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'"
                     th:text="${lec.opnnYn == 'Y'} ? '공개' : '비공개'"
-                    >공개</span
-                  >
-                  <span
-                    th:if="${lec.lockYn == 'Y'}"
-                    class="text-[10px] px-1.5 py-0.5 rounded-full font-semibold bg-amber-50 text-amber-600"
-                  >
+                  >공개</span>
+                  <span th:if="${lec.lockYn == 'Y'}" class="text-[10px] px-1.5 py-0.5 rounded-full font-semibold bg-amber-50 text-amber-600">
                     <i class="fa-solid fa-lock text-[9px] mr-0.5"></i>잠금
                   </span>
                 </div>
@@ -416,6 +296,7 @@
 <!-- ===== 페이지 스크립트 ===== -->
 <script th:inline="javascript">
   const COURSE_SN = /*[[${course.courseSn}]]*/ "";
+  const IS_EDIT = /*[[${lecture != null}]]*/ false;
   let selectedFile = null;
   let uploading = false;
 
@@ -507,7 +388,7 @@
     });
   }
 
-  /* ── 등록 ── */
+  /* ── 등록/수정 ── */
   async function submitLecture() {
     if (uploading) return;
 
@@ -526,10 +407,9 @@
       uploading = false;
 
       if (!fileServerId) return;
-      alert("영상 번호: " + fileServerId); // 디버그용
 
       document.getElementById("atchFileId").value = fileServerId;
-      showHermesToast("영상 업로드 완료. 강의를 등록합니다.", "success");
+      showHermesToast("영상 업로드 완료. 강의를 " + (IS_EDIT ? "수정" : "등록") + "합니다.", "success");
     }
 
     document.getElementById("lectureForm").submit();

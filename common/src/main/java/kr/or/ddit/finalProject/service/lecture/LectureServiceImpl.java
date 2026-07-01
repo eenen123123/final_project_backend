@@ -52,6 +52,7 @@ public class LectureServiceImpl implements LectureService {
     }
 
     @Override
+    @Transactional
     public void updateLectureProgress(Long lectureId, Long courseId, Integer progress, String userId) {
         // TODO: 강의를 수강하는 사용자가 해당 강의에 접근 권한이 있는지 확인하는 로직 추가 필요
 
@@ -69,6 +70,8 @@ public class LectureServiceImpl implements LectureService {
         if (!currentUserId.equals(original.getRgtrId())) {
             throw new SecurityException("본인이 작성한 강의만 삭제할 수 있습니다.");
         }
+        // LECTURE_PROGRESS가 LECTURE을 FK로 참조하므로 먼저 삭제해야 FK 위반이 나지 않는다.
+        lectureMapper.deleteLectureProgressByLectureSn(lectureSn);
         lectureMapper.deleteLecture(lectureSn);
     }
 

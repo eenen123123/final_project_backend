@@ -29,5 +29,6 @@ public class OrderCreateRequest {
     public static class CouponApplication {
         private Long mcpntSn;     // 사용자 쿠폰 PK
         private String prodDivCd; // 적용 상품 유형 (COURSE / TEXTBOOK)
+        private Long prodSn;      // 쿠폰을 적용한 상품 PK
     }
 }

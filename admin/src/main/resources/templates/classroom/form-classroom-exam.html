@@ -26,8 +26,8 @@
             id="examForm">
 
         <!-- 기본 정보 -->
-        <div class="bg-white border border-slate-100 rounded-xl overflow-hidden mb-5">
-          <div class="px-7 py-5 border-b border-slate-100">
+        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden mb-5">
+          <div class="px-7 py-5 border-b border-slate-200">
             <h2 class="text-base font-bold text-slate-800" th:text="${exam != null} ? '시험 수정' : '시험 등록'">시험 등록</h2>
           </div>
           <div class="px-7 py-6 flex flex-col gap-5">
@@ -58,8 +58,8 @@
         </div>
 
         <!-- 문항 선택 -->
-        <div class="bg-white border border-slate-100 rounded-xl overflow-hidden mb-5">
-          <div class="px-7 py-5 border-b border-slate-100 flex items-center justify-between">
+        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden mb-5">
+          <div class="px-7 py-5 border-b border-slate-200 flex items-center justify-between">
             <div>
               <h2 class="text-base font-bold text-slate-800">문항 선택</h2>
               <p class="text-sm text-slate-400 mt-1">시험에 포함할 문항을 선택하세요.</p>
@@ -70,7 +70,7 @@
           <div th:if="${#lists.isEmpty(myQuestions)}"
             class="p-16 flex flex-col items-center justify-center text-center gap-3">
             <div
-              class="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 text-3xl">
+              class="w-16 h-16 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-300 text-3xl">
               <i class="fa-solid fa-file-circle-xmark"></i>
             </div>
             <p class="text-sm font-medium text-slate-400">등록된 문항이 없습니다.</p>
@@ -80,7 +80,7 @@
           <div th:unless="${#lists.isEmpty(myQuestions)}" class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
               <thead>
-                <tr class="border-b border-slate-100 text-sm text-slate-400">
+                <tr class="border-b border-slate-200 text-sm text-slate-400">
                   <th class="py-3 px-7 w-16 text-center font-medium whitespace-nowrap">순서</th>
                   <th class="py-3 px-4 font-medium">문항 내용</th>
                   <th class="py-3 px-4 w-24 text-center font-medium whitespace-nowrap">유형</th>
@@ -90,7 +90,7 @@
               </thead>
               <tbody class="text-slate-700">
                 <tr th:each="q : ${myQuestions}"
-                  class="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer"
+                  class="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer"
                   th:data-qstn-sn="${q.qstnSn}" onclick="toggleRow(this)">
                   <td class="py-3 px-7 text-center">
                     <span class="order-badge inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold border-2 border-slate-200 text-slate-300 transition-all"></span>

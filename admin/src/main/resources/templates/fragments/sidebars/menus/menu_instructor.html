@@ -14,14 +14,6 @@
       </a>
     </li>
 
-    <li th:if="${allowedMenus == null or allowedMenus.contains('instructor_board')}">
-      <a href="/instructor/board/list" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/instructor/board')} ? 'active'">
-        <i class="fa-solid fa-clipboard sidebar-icon"></i>
-        <span class="sidebar-link-text">강사 게시판</span>
-      </a>
-    </li>
-
     <li th:if="${allowedMenus == null or allowedMenus.contains('questions')}">
       <a href="/instructor/questions" class="sidebar-link"
          th:classappend="${currentUri.startsWith('/instructor/questions')} ? 'active'">
@@ -30,13 +22,20 @@
       </a>
     </li>
 
-    <li th:if="${allowedMenus == null or allowedMenus.contains('work_log')}">
-      <a href="/instructor/journals" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/instructor/journals')} ? 'active'">
-        <i class="fa-solid fa-book sidebar-icon"></i>
-        <span class="sidebar-link-text">업무 일지</span>
+
+    
+    
+    <li th:if="${allowedMenus == null or allowedMenus.contains('instructor_board')}">
+      <a href="/instructor/board/list" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/instructor/board')} ? 'active'">
+        <i class="fa-solid fa-clipboard sidebar-icon"></i>
+        <span class="sidebar-link-text">강사 게시판</span>
       </a>
     </li>
+
+    
+
+    
 
     <li th:if="${allowedMenus == null or allowedMenus.contains('curriculum')}">
       <a href="/instructor/curriculum" class="sidebar-link"
@@ -51,6 +50,13 @@
          th:classappend="${currentUri.startsWith('/instructor/profile')} ? 'active'">
         <i class="fa-solid fa-address-card sidebar-icon"></i>
         <span class="sidebar-link-text">개인 페이지 관리</span>
+      </a>
+    </li>
+    <li th:if="${allowedMenus == null or allowedMenus.contains('work_log')}">
+      <a href="/instructor/journals" class="sidebar-link"
+         th:classappend="${currentUri.startsWith('/instructor/journals')} ? 'active'">
+        <i class="fa-solid fa-book sidebar-icon"></i>
+        <span class="sidebar-link-text">업무 일지</span>
       </a>
     </li>
 

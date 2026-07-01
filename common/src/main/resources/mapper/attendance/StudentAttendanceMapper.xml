@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.finalProject.mapper.attendance.StudentAttendanceMapper">
+
+    <!-- 클래스룸 수강생별 근태 특이사항(결석/지각/조퇴) 집계 -->
+    <select id="selectAttendanceSummaryByClassSn"
+            resultType="kr.or.ddit.finalProject.dto.attendance.ClassAttendanceSummaryDto">
+        SELECT
+            cm.USER_ID  AS studentId,
+            m.USER_NAME AS studentName,
+            SUM(CASE WHEN TRIM(a.ATND_TYPE_CD) = '02' THEN 1 ELSE 0 END) AS absentCnt,
+            SUM(CASE WHEN TRIM(a.ATND_TYPE_CD) = '03' THEN 1 ELSE 0 END) AS lateCnt,
+            SUM(CASE WHEN TRIM(a.ATND_TYPE_CD) = '04' THEN 1 ELSE 0 END) AS earlyCnt,
+            (SELECT LN.ATND_NOTE_CN FROM (
+                SELECT A2.ATND_NOTE_CN
+                FROM STUDENT_ATTENDANCE A2
+                WHERE A2.STD_USER_ID = cm.USER_ID
+                  AND TRIM(A2.ATND_TYPE_CD) IN ('02', '03', '04')
+                ORDER BY A2.ATND_REG_DT DESC
+             ) LN WHERE ROWNUM = 1)                                      AS lastNote,
+            (SELECT LT.STATUS FROM (
+                SELECT CASE TRIM(A3.ATND_TYPE_CD)
+                           WHEN '02' THEN 'ABSENT'
+                           WHEN '03' THEN 'LATE'
+                           WHEN '04' THEN 'EARLY_LEAVE'
+                       END AS STATUS
+                FROM STUDENT_ATTENDANCE A3
+                WHERE A3.STD_USER_ID = cm.USER_ID
+                  AND TRIM(A3.ATND_TYPE_CD) IN ('02', '03', '04')
+                ORDER BY A3.ATND_REG_DT DESC
+             ) LT WHERE ROWNUM = 1)                                      AS lastType,
+            MAX(CASE WHEN TRIM(a.ATND_TYPE_CD) IN ('02','03','04') THEN a.ATND_REG_DT END) AS lastNoteDt
+        FROM CLASSROOM_MEMBER cm
+        JOIN MEMBER m ON m.USER_ID = cm.USER_ID
+        LEFT JOIN STUDENT_ATTENDANCE a ON a.STD_USER_ID = cm.USER_ID
+        WHERE cm.CLASS_SN     = #{classSn}
+          AND cm.ENRL_STAT_CD = 'ENROLLED'
+        GROUP BY cm.USER_ID, m.USER_NAME
+        ORDER BY m.USER_NAME
+    </select>
+
+    <!-- 학생 1명의 근태 특이사항(결석/지각/조퇴) 전체 이력 -->
+    <select id="selectAttendanceHistoryByStudent"
+            resultType="kr.or.ddit.finalProject.dto.attendance.AttendanceHistoryDto">
+        SELECT
+            CASE TRIM(ATND_TYPE_CD)
+                WHEN '02' THEN 'ABSENT'
+                WHEN '03' THEN 'LATE'
+                WHEN '04' THEN 'EARLY_LEAVE'
+            END          AS atndType,
+            ATND_REG_DT  AS atndRegDt,
+            ATND_NOTE_CN AS note
+        FROM STUDENT_ATTENDANCE
+        WHERE STD_USER_ID = #{userId}
+          AND TRIM(ATND_TYPE_CD) IN ('02', '03', '04')
+        ORDER BY ATND_REG_DT DESC
+    </select>
+
+</mapper>

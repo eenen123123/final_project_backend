@@ -12,6 +12,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.or.ddit.finalProject.service.assignment.AssignmentBoardService;
 import kr.or.ddit.finalProject.service.classroom.ClassroomService;
+import kr.or.ddit.finalProject.service.exam.ExamService;
 import kr.or.ddit.finalProject.service.instructor.InstructorBoardService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,8 +25,9 @@ public class AdminClassroomQnaController extends AbstractClassroomController {
 
     public AdminClassroomQnaController(ClassroomService classroomService,
                                        AssignmentBoardService assignmentBoardService,
-                                       InstructorBoardService instructorBoardService) {
-        super(classroomService, assignmentBoardService, instructorBoardService);
+                                       InstructorBoardService instructorBoardService,
+                                       ExamService examService) {
+        super(classroomService, assignmentBoardService, instructorBoardService, examService);
     }
 
     // Q&A 목록

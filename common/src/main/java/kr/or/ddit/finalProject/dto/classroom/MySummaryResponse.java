@@ -9,5 +9,5 @@ public class MySummaryResponse {
     private int progressRate;
     private int assignSubmitRate;
     private int upcomingExamCount;
-    private Double avgScore;
+    private Double examAvgScore;
 }

@@ -5,6 +5,23 @@
 
 <mapper namespace="kr.or.ddit.finalProject.mapper.instructor.InstructorFeaturedCourseMapper">
 
+  <select id="countFeaturedCourses" resultType="int">
+    SELECT COUNT(*)
+    FROM INSTRUCTOR_FEATURED_COURSE
+    WHERE INSTR_UUID = #{instrUuid}
+  </select>
+
+  <insert id="insertFeaturedCourse">
+    INSERT INTO INSTRUCTOR_FEATURED_COURSE (INSTR_UUID, COURSE_SN, DISPLAY_ORDER)
+    VALUES (#{instrUuid}, #{courseSn}, #{displayOrder})
+  </insert>
+
+  <delete id="deleteFeaturedCourse">
+    DELETE FROM INSTRUCTOR_FEATURED_COURSE
+    WHERE INSTR_UUID = #{instrUuid}
+      AND COURSE_SN  = #{courseSn}
+  </delete>
+
   <select id="selectFeaturedCourses"
           resultType="kr.or.ddit.finalProject.dto.instructor.profile.InstructorFeaturedCourseResponse">
     SELECT

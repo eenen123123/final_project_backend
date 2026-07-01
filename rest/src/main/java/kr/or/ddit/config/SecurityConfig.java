@@ -49,12 +49,16 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/member/email-code/verify")
                         .permitAll()
 
-                        .requestMatchers("/api/parent/join/**").authenticated()
+                        .requestMatchers("/api/parent/**").authenticated()
 
                         .requestMatchers(HttpMethod.GET, "/api/qna/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/qna").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/files/*/download").permitAll()
                         .requestMatchers("/api/files/**").authenticated()
+
+                        .requestMatchers(HttpMethod.POST, "/api/instructors/*/board/qna").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/instructors/*/board/*").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/instructors/*/board/*").authenticated()
 
                         .requestMatchers("/").permitAll().anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter,
