@@ -23,8 +23,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import kr.or.ddit.finalProject.dto.assignment.AssignmentBoardDto;
 import kr.or.ddit.finalProject.dto.assignment.AssignmentSubmitDto;
-import kr.or.ddit.finalProject.dto.attendance.AttendanceRowDto;
-import kr.or.ddit.finalProject.dto.attendance.AttendanceUpsertDto;
+import kr.or.ddit.finalProject.dto.attendance.ClassAttendanceSummaryDto;
 import kr.or.ddit.finalProject.mapper.attendance.StudentAttendanceMapper;
 import kr.or.ddit.finalProject.dto.classroom.ClassStatus;
 import kr.or.ddit.finalProject.dto.classroom.ClassroomDetailResponse;
@@ -366,64 +365,19 @@ public class AdminClassroomController extends AbstractClassroomController {
 
     // ── 출결 관리 ──────────────────────────────────────────────────
 
-    // 출결 페이지 렌더링 (기본: 오늘 날짜)
+    // 학생별 근태 특이사항(결석/지각/조퇴) 조회
     @GetMapping("/detail/{classSn}/attendance")
     public String attendancePage(@PathVariable Long classSn,
-            @RequestParam(required = false) String date,
             Model model, Authentication authentication) {
         ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
         if (classroom == null) return "redirect:/classroom/list";
 
-        String targetDate = (date != null && !date.isBlank()) ? date
-                : LocalDate.now().toString();
-
-        List<AttendanceRowDto> rows =
-                studentAttendanceMapper.selectAttendanceByClassSnAndDate(classSn, targetDate);
+        List<ClassAttendanceSummaryDto> rows =
+                studentAttendanceMapper.selectAttendanceSummaryByClassSn(classSn);
 
         model.addAttribute("classroom", classroom);
-        model.addAttribute("targetDate", targetDate);
         model.addAttribute("attendanceRows", rows);
         return "classroom/list-classroom-attendance";
-    }
-
-    // 출결 일괄 저장 (AJAX)
-    @PostMapping("/detail/{classSn}/attendance")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> saveAttendance(
-            @PathVariable Long classSn,
-            @RequestParam String date,
-            @RequestParam Map<String, String> params,
-            Authentication authentication) {
-        ClassroomDetailResponse classroom = getOwnedClassroom(classSn, authentication.getName());
-        if (classroom == null) return ResponseEntity.status(403).body(Map.of("success", false));
-
-        // params에서 studentId → typeCd 매핑 추출 (key 형식: "status_std001")
-        params.entrySet().stream()
-                .filter(e -> e.getKey().startsWith("status_"))
-                .forEach(e -> {
-                    String stdUserId = e.getKey().substring(7);
-                    String typeCd = resolveTypeCd(e.getValue());
-                    if (typeCd != null) {
-                        AttendanceUpsertDto dto = new AttendanceUpsertDto();
-                        dto.setStdUserId(stdUserId);
-                        dto.setAtndTypeCd(typeCd);
-                        dto.setDate(date);
-                        studentAttendanceMapper.upsertAttendance(dto);
-                    }
-                });
-
-        return ResponseEntity.ok(Map.of("success", true));
-    }
-
-    private String resolveTypeCd(String status) {
-        if (status == null) return null;
-        switch (status) {
-            case "ATTEND":      return "01";
-            case "ABSENT":      return "02";
-            case "LATE":        return "03";
-            case "EARLY_LEAVE": return "04";
-            default:            return null;
-        }
     }
 
     // 수강생 상세 — 기본정보 + 강의진도 + 과제 + 시험 + 최근 QnA
@@ -449,6 +403,7 @@ public class AdminClassroomController extends AbstractClassroomController {
         model.addAttribute("assignments", assignmentBoardService.getAssignmentsByStudent(classSn, userId));
         model.addAttribute("exams", examService.retrieveExamsByStudent(classSn, userId));
         model.addAttribute("recentQna", instructorBoardService.getRecentQnaByStudent(classSn, userId, 5));
+        model.addAttribute("attendanceHistory", studentAttendanceMapper.selectAttendanceHistoryByStudent(userId));
         return "classroom/detail-classroom-member";
     }
 }

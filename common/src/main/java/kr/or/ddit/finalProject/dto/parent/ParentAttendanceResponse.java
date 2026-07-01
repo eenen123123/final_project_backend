@@ -13,7 +13,6 @@ public class ParentAttendanceResponse {
 
     private int year;
     private int month;
-    private int attendCount;
     private int lateCount;
     private int absentCount;
     private int earlyLeaveCount;
@@ -25,5 +24,6 @@ public class ParentAttendanceResponse {
     public static class Record {
         private int day;
         private String status;
+        private String note;
     }
 }

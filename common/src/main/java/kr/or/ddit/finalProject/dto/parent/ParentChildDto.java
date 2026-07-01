@@ -14,7 +14,6 @@ public class ParentChildDto {
     private String instructorName;
     private String enrollStartDate;
 
-    private Integer attendanceRate;
     private Integer assignmentRate;
     private Double recentExamAvgScore;
 }

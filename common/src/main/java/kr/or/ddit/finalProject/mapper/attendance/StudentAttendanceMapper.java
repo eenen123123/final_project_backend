@@ -5,23 +5,17 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import kr.or.ddit.finalProject.dto.attendance.AttendanceRowDto;
-import kr.or.ddit.finalProject.dto.attendance.AttendanceUpsertDto;
-import kr.or.ddit.finalProject.dto.attendance.MyAttendanceDto;
+import kr.or.ddit.finalProject.dto.attendance.AttendanceHistoryDto;
+import kr.or.ddit.finalProject.dto.attendance.ClassAttendanceSummaryDto;
 
 @Mapper
 public interface StudentAttendanceMapper {
 
-    /** 특정 날짜의 클래스룸 수강생 전원 출결 현황 조회 */
-    List<AttendanceRowDto> selectAttendanceByClassSnAndDate(
-            @Param("classSn") Long classSn,
-            @Param("date") String date);
+    /** 클래스룸 수강생별 근태 특이사항(결석/지각/조퇴) 집계 */
+    List<ClassAttendanceSummaryDto> selectAttendanceSummaryByClassSn(
+            @Param("classSn") Long classSn);
 
-    /** 학생 1명의 특정 날짜 출결 upsert */
-    void upsertAttendance(AttendanceUpsertDto dto);
-
-    /** 학생 본인의 클래스룸 출석 이력 전체 조회 */
-    List<MyAttendanceDto> selectMyAttendanceByClassSn(
-            @Param("classSn") Long classSn,
+    /** 학생 1명의 근태 특이사항(결석/지각/조퇴) 전체 이력 */
+    List<AttendanceHistoryDto> selectAttendanceHistoryByStudent(
             @Param("userId") String userId);
 }

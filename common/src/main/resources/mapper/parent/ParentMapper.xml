@@ -16,34 +16,6 @@
             TO_CHAR(cm.REG_DT, 'YYYY-MM-DD') AS enrollStartDate,
             (
                 SELECT ROUND(
-                    (
-                        SELECT COUNT(*)
-                        FROM STUDENT_ATTENDANCE a
-                        WHERE a.STD_USER_ID = s.STD_USER_ID
-                          AND TRIM(a.ATND_TYPE_CD) IN ('01','03','04')
-                          AND TRUNC(a.ATND_REG_DT) IN (
-                              SELECT DISTINCT TRUNC(sa2.ATND_REG_DT)
-                              FROM STUDENT_ATTENDANCE sa2
-                              JOIN CLASSROOM_MEMBER cm3 ON cm3.USER_ID = sa2.STD_USER_ID
-                              WHERE cm3.CLASS_SN = cl.CLASS_SN
-                                AND cm3.ENRL_STAT_CD = 'ENROLLED'
-                          )
-                    ) * 100.0
-                    / NULLIF(
-                        (
-                            SELECT COUNT(DISTINCT TRUNC(sa2.ATND_REG_DT))
-                            FROM STUDENT_ATTENDANCE sa2
-                            JOIN CLASSROOM_MEMBER cm3 ON cm3.USER_ID = sa2.STD_USER_ID
-                            WHERE cm3.CLASS_SN = cl.CLASS_SN
-                              AND cm3.ENRL_STAT_CD = 'ENROLLED'
-                        ),
-                        0
-                    )
-                )
-                FROM DUAL
-            ) AS attendanceRate,
-            (
-                SELECT ROUND(
                     COUNT(asub.ASGMT_SN) * 100.0
                     / NULLIF(COUNT(ab.ASGMT_SN), 0)
                 )
@@ -84,7 +56,8 @@
             ATND_SN      AS atndSn,
             STD_USER_ID  AS stdUserId,
             ATND_TYPE_CD AS atndTypeCd,
-            ATND_REG_DT  AS atndRegDt
+            ATND_REG_DT  AS atndRegDt,
+            ATND_NOTE_CN AS atndNoteCn
         FROM STUDENT_ATTENDANCE
         WHERE STD_USER_ID = #{studentId}
           AND EXTRACT(YEAR  FROM ATND_REG_DT) = #{year}
