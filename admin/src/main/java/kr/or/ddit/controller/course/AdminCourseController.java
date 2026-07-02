@@ -19,7 +19,6 @@ import kr.or.ddit.finalProject.dto.course.CourseDto;
 import kr.or.ddit.finalProject.dto.subject.SubjectDto;
 import kr.or.ddit.finalProject.paging.PaginationInfo;
 import kr.or.ddit.finalProject.service.course.CourseService;
-import kr.or.ddit.finalProject.service.curriculum.CurriculumService;
 import lombok.RequiredArgsConstructor;
 
 @Controller
@@ -28,14 +27,12 @@ import lombok.RequiredArgsConstructor;
 public class AdminCourseController {
 
     private final CourseService courseService;
-    private final CurriculumService curriculumService;
 
     /**
-     * 강좌 등록 폼 페이지 반환. 현재 로그인한 강사의 커리큘럼 목록과 과목 분류 목록을 모델에 담아 전달한다.
+     * 강좌 등록 폼 페이지 반환. 과목 분류 목록을 모델에 담아 전달한다.
      */
     @GetMapping("/insert")
     public String insertForm(Model model, Authentication authentication) {
-        model.addAttribute("curriculumList", curriculumService.retrieveList(authentication.getName()));
         model.addAttribute("subjClList", courseService.retrieveSubjectClassificationList());
         return "admin:/course/form-course";
     }
@@ -99,7 +96,6 @@ public class AdminCourseController {
         if (!model.containsAttribute("course")) {
             model.addAttribute("course", course);
         }
-        model.addAttribute("curriculumList", curriculumService.retrieveList(authentication.getName()));
         model.addAttribute("subjClList", courseService.retrieveSubjectClassificationList());
         return "admin:/course/form-course";
     }
@@ -177,6 +173,7 @@ public class AdminCourseController {
                 .keyword(keyword).opnnYn(opnnYn).build();
         paginationInfo.setDetailCondition(condition);
         int totalCount = courseService.retrieveCourseListCount(paginationInfo);
+        paginationInfo.setTotalCount(totalCount);
         List<CourseDto> courseList = courseService.retrieveCourseList(paginationInfo);
         model.addAttribute("courseList", courseList);
         model.addAttribute("totalCount", totalCount);

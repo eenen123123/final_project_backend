@@ -1,22 +1,23 @@
 <div class="sidebar-section"
-     th:if="${allowedMenus == null or allowedMenus.contains('customer_center') or allowedMenus.contains('user_management') or allowedMenus.contains('org_management') or allowedMenus.contains('blacklist') or allowedMenus.contains('billing') or allowedMenus.contains('textbook') or allowedMenus.contains('orders') or allowedMenus.contains('featured') or allowedMenus.contains('coupon') or allowedMenus.contains('common_codes') or allowedMenus.contains('certificate_manage') or allowedMenus.contains('subject')}"
-     data-section-key="행정 업무" style="--section-color: #3b82f6;">
-  <p class="sidebar-title text-blue-500 sidebar-section-toggle"><i class="fa-solid fa-building-user sidebar-section-icon"></i>행정 업무<i class="fa-solid fa-chevron-down sidebar-section-arrow"></i></p>
+  th:if="${allowedMenus == null or allowedMenus.contains('customer_center') or allowedMenus.contains('user_management') or allowedMenus.contains('org_management') or allowedMenus.contains('blacklist') or allowedMenus.contains('billing') or allowedMenus.contains('textbook') or allowedMenus.contains('orders') or allowedMenus.contains('featured') or allowedMenus.contains('coupon') or allowedMenus.contains('common_codes') or allowedMenus.contains('certificate_manage') or allowedMenus.contains('subject')}"
+  data-section-key="행정 업무" style="--section-color: #3b82f6;">
+  <p class="sidebar-title text-blue-500 sidebar-section-toggle"><i
+      class="fa-solid fa-building-user sidebar-section-icon"></i>행정 업무<i
+      class="fa-solid fa-chevron-down sidebar-section-arrow"></i></p>
   <ul class="sidebar-list">
 
-    
+
 
     <li th:if="${allowedMenus == null or allowedMenus.contains('user_management')}">
       <a href="/admin/employees" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/admin/employees')} ? 'active'">
+        th:classappend="${currentUri.startsWith('/admin/employees')} ? 'active'">
         <i class="fa-solid fa-users-gear sidebar-icon"></i>
         <span class="sidebar-link-text">사용자 관리</span>
       </a>
     </li>
 
     <li th:if="${allowedMenus == null or allowedMenus.contains('org_management')}">
-      <a href="/admin/org" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/admin/org')} ? 'active'">
+      <a href="/admin/org" class="sidebar-link" th:classappend="${currentUri.startsWith('/admin/org')} ? 'active'">
         <i class="fa-solid fa-sitemap sidebar-icon"></i>
         <span class="sidebar-link-text">조직 관리</span>
       </a>
@@ -24,7 +25,7 @@
 
     <li th:if="${allowedMenus == null or allowedMenus.contains('blacklist')}">
       <a href="/admin/blacklist" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/admin/blacklist')} ? 'active'">
+        th:classappend="${currentUri.startsWith('/admin/blacklist')} ? 'active'">
         <i class="fa-solid fa-user-slash sidebar-icon"></i>
         <span class="sidebar-link-text">블랙리스트 관리</span>
       </a>
@@ -32,7 +33,7 @@
 
     <li th:if="${allowedMenus == null or allowedMenus.contains('billing')}">
       <a href="/admin/billing" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/admin/billing')} ? 'active'">
+        th:classappend="${currentUri.startsWith('/admin/billing')} ? 'active'">
         <i class="fa-solid fa-money-check-dollar sidebar-icon"></i>
         <span class="sidebar-link-text">원비 및 수납 관리</span>
       </a>
@@ -40,31 +41,31 @@
 
     <li th:if="${allowedMenus == null or allowedMenus.contains('subject')}">
       <a href="/admin/subject" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/admin/subject')} ? 'active'">
+        th:classappend="${currentUri.startsWith('/admin/subject')} ? 'active'">
         <i class="fa-solid fa-book sidebar-icon"></i>
         <span class="sidebar-link-text">과목 관리</span>
       </a>
     </li>
     <li th:if="${allowedMenus == null or allowedMenus.contains('textbook')}">
       <a href="/admin/textbook" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/admin/textbook')} ? 'active'">
+        th:classappend="${currentUri.startsWith('/admin/textbook')} ? 'active'">
         <i class="fa-solid fa-book sidebar-icon"></i>
         <span class="sidebar-link-text">교재 관리</span>
       </a>
     </li>
 
-    
+
 
     <li th:if="${allowedMenus == null or allowedMenus.contains('featured')}">
       <a href="/admin/featured" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/admin/featured')} ? 'active'">
+        th:classappend="${currentUri.startsWith('/admin/featured')} ? 'active'">
         <i class="fa-solid fa-star sidebar-icon"></i>
         <span class="sidebar-link-text">추천 항목 관리</span>
       </a>
     </li>
     <li th:if="${allowedMenus == null or allowedMenus.contains('orders')}">
       <a href="/admin/orders" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/admin/orders')} ? 'active'">
+        th:classappend="${currentUri.startsWith('/admin/orders')} ? 'active'">
         <i class="fa-solid fa-receipt sidebar-icon"></i>
         <span class="sidebar-link-text">주문 관리</span>
       </a>
@@ -72,36 +73,36 @@
 
     <li th:if="${allowedMenus == null or allowedMenus.contains('coupon')}">
       <a href="/admin/coupon" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/admin/coupon')} ? 'active'">
+        th:classappend="${currentUri.startsWith('/admin/coupon')} ? 'active'">
         <i class="fa-solid fa-ticket sidebar-icon"></i>
         <span class="sidebar-link-text">쿠폰/포인트 관리</span>
       </a>
     </li>
- <li th:if="${allowedMenus == null or allowedMenus.contains('customer_center')}">
+    <li th:if="${allowedMenus == null or allowedMenus.contains('customer_center')}">
       <a href="/admin/board/customer-service" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/admin/board/customer-service')} ? 'active'">
+        th:classappend="${currentUri.startsWith('/admin/board/customer-service')} ? 'active'">
         <i class="fa-solid fa-headset sidebar-icon"></i>
         <span class="sidebar-link-text">고객센터 관리</span>
       </a>
     </li>
-    <li th:if="${allowedMenus == null or allowedMenus.contains('common_codes')}">
-      <a href="/admin/common-codes" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/admin/common-codes')} ? 'active'">
-        <i class="fa-solid fa-list-check sidebar-icon"></i>
-        <span class="sidebar-link-text">공통코드 관리</span>
-      </a>
-    </li>
-   
+
+
 
     <li th:if="${allowedMenus == null or allowedMenus.contains('certificate_manage')}">
       <a href="/admin/certificates" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/admin/certificates')} ? 'active'">
+        th:classappend="${currentUri.startsWith('/admin/certificates')} ? 'active'">
         <i class="fa-solid fa-certificate sidebar-icon"></i>
         <span class="sidebar-link-text">증명서 발급 관리</span>
       </a>
     </li>
+    <li th:if="${allowedMenus == null or allowedMenus.contains('common_codes')}">
+      <a href="/admin/common-codes" class="sidebar-link"
+        th:classappend="${currentUri.startsWith('/admin/common-codes')} ? 'active'">
+        <i class="fa-solid fa-list-check sidebar-icon"></i>
+        <span class="sidebar-link-text">공통코드 관리</span>
+      </a>
+    </li>
 
-    
 
   </ul>
 </div>

@@ -71,6 +71,16 @@ public interface CourseMapper {
     int countLectureByCourse(@Param("courseSn") Long courseSn);
 
     /**
+     * 해당 강좌의 수강 신청(COURSE_ENROLLMENT) 수를 반환한다. 강좌 삭제 가능 여부 판단에 사용된다.
+     */
+    int countEnrollmentByCourse(@Param("courseSn") Long courseSn);
+
+    /**
+     * 해당 강좌가 강사 대표 강좌(INSTRUCTOR_FEATURED_COURSE)로 등록된 수를 반환한다. 강좌 삭제 가능 여부 판단에 사용된다.
+     */
+    int countFeaturedByCourse(@Param("courseSn") Long courseSn);
+
+    /**
      * 강좌의 첨부파일 ID를 갱신한다.
      */
     int updateCourseAtchFileId(@Param("courseSn") Long courseSn,

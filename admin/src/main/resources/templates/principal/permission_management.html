@@ -363,10 +363,12 @@
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">업무 일지</td>
                 <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
+              <!-- 커리큘럼 기능 폐기로 권한 항목 제거
               <tr data-perm-group="instructor" data-menu-cd="curriculum" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">커리큘럼 관리</td>
                 <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>
               </tr>
+              -->
               <tr data-perm-group="instructor" data-menu-cd="my_page" class="hover:bg-slate-50/40 transition-colors">
                 <td class="py-3 px-6 text-sm font-medium text-slate-700">개인 페이지 관리</td>
                 <td th:each="grade : ${permJobGradeList}" class="py-3 px-3 text-center border-l border-slate-50"><input type="checkbox" class="hm-switch" /></td>

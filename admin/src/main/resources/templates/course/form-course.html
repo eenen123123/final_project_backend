@@ -1,11 +1,17 @@
-<title th:fragment="pageTitle"
-       th:text="${(course?.courseSn != null ? course.courseNm + ' 수정' : '강좌 등록') + ' | HERMES'}">강좌 등록 | HERMES</title>
+<title
+  th:fragment="pageTitle"
+  th:text="${(course?.courseSn != null ? course.courseNm + ' 수정' : '강좌 등록') + ' | HERMES'}"
+>
+  강좌 등록 | HERMES
+</title>
 
 <div class="space-y-6">
   <!-- 페이지 헤더 -->
-  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div
+    class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+  >
     <div>
-      <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+      <!-- <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
         <a th:href="@{/admin/course/list}" class="hover:text-violet-500 transition-colors">강좌 관리</a>
         <i class="fa-solid fa-chevron-right text-[10px]"></i>
         <th:block th:if="${course?.courseSn != null}">
@@ -16,36 +22,60 @@
         </th:block>
         <span class="text-violet-500 font-medium"
               th:text="${course?.courseSn != null ? '강좌 수정' : '강좌 등록'}">강좌 등록</span>
-      </div>
-      <h1 class="text-2xl font-bold text-slate-900 tracking-tight"
-          th:text="${course?.courseSn != null ? '강좌 수정' : '강좌 등록'}">강좌 등록</h1>
-      <p class="text-sm text-slate-500 mt-1"
-         th:text="${course?.courseSn != null ? '강좌 정보를 수정합니다.' : '새 강좌 정보를 입력하여 등록합니다.'}">새 강좌 정보를 입력하여 등록합니다.</p>
+      </div> -->
+      <h1
+        class="text-2xl font-bold text-slate-900 tracking-tight"
+        th:text="${course?.courseSn != null ? '강좌 수정' : '강좌 등록'}"
+      >
+        강좌 등록
+      </h1>
+      <p
+        class="text-sm text-slate-500 mt-1"
+        th:text="${course?.courseSn != null ? '강좌 정보를 수정합니다.' : '새 강좌 정보를 입력하여 등록합니다.'}"
+      >
+        새 강좌 정보를 입력하여 등록합니다.
+      </p>
     </div>
-    <a th:href="@{${course?.courseSn != null ? '/admin/course/detail' : '/admin/course/list'}(courseSn=${course?.courseSn})}"
-       class="hm-btn-secondary">
+    <a
+      th:href="@{${course?.courseSn != null ? '/admin/course/detail' : '/admin/course/list'}(courseSn=${course?.courseSn})}"
+      class="hm-btn-secondary"
+    >
       <i class="fa-solid fa-arrow-left text-xs"></i>
-      <span th:text="${course?.courseSn != null ? '상세로' : '목록으로'}">목록으로</span>
+      <span th:text="${course?.courseSn != null ? '상세로' : '목록으로'}"
+        >목록으로</span
+      >
     </a>
   </div>
 
   <!-- 에러 메시지 -->
-  <div th:if="${errorMsg}"
-       class="flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl px-5 py-3">
+  <div
+    th:if="${errorMsg}"
+    class="flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl px-5 py-3"
+  >
     <i class="fa-solid fa-circle-exclamation"></i>
     <span th:text="${errorMsg}"></span>
   </div>
 
   <!-- 폼 -->
-  <form th:action="@{${course?.courseSn != null ? '/admin/course/edit' : '/admin/course/insert'}}"
-        method="post" class="space-y-5" novalidate
-        th:data-init-subj-cl-id="${course?.subjClId}"
-        th:data-init-subj-id="${course?.subjId}">
-
-    <input th:if="${course?.courseSn != null}" type="hidden" name="courseSn" th:value="${course.courseSn}"/>
+  <form
+    th:action="@{${course?.courseSn != null ? '/admin/course/edit' : '/admin/course/insert'}}"
+    method="post"
+    class="space-y-5"
+    novalidate
+    th:data-init-subj-cl-id="${course?.subjClId}"
+    th:data-init-subj-id="${course?.subjId}"
+  >
+    <input
+      th:if="${course?.courseSn != null}"
+      type="hidden"
+      name="courseSn"
+      th:value="${course.courseSn}"
+    />
 
     <!-- 기본 정보 -->
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-5">
+    <div
+      class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-5"
+    >
       <h2 class="text-sm font-bold text-slate-700">
         <i class="fa-solid fa-circle-info text-violet-500 mr-2"></i>기본 정보
       </h2>
@@ -54,134 +84,171 @@
         <label class="block text-xs font-medium text-slate-500 mb-1.5">
           강좌명 <span class="text-red-400">*</span>
         </label>
-        <input type="text" id="courseNm" name="courseNm"
-               th:value="${course?.courseNm}"
-               class="hm-input hm-input-violet"
-               placeholder="예) 수능 수학 완성 — 미적분"/>
+        <input
+          type="text"
+          id="courseNm"
+          name="courseNm"
+          th:value="${course?.courseNm}"
+          class="hm-input hm-input-violet"
+          placeholder="예) 수능 수학 완성 — 미적분"
+        />
         <p id="courseNm-err" class="hidden text-xs text-red-500 mt-1"></p>
       </div>
 
       <!-- 강좌 설명 -->
       <div>
-        <label class="block text-xs font-medium text-slate-500 mb-1.5">강좌 설명</label>
-        <textarea name="courseExplnCn" rows="4"
-                  class="hm-input hm-input-violet resize-none"
-                  placeholder="강좌의 목표와 내용을 간략히 설명해 주세요."
-                  th:text="${course?.courseExplnCn}"></textarea>
+        <label class="block text-xs font-medium text-slate-500 mb-1.5"
+          >강좌 설명</label
+        >
+        <textarea
+          name="courseExplnCn"
+          rows="4"
+          class="hm-input hm-input-violet resize-none"
+          placeholder="강좌의 목표와 내용을 간략히 설명해 주세요."
+          th:text="${course?.courseExplnCn}"
+        ></textarea>
       </div>
-
-      <!-- 공개 여부 / 수강료 -->
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-xs font-medium text-slate-500 mb-2">공개 여부</label>
-          <div class="flex items-center gap-5 h-10">
-            <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
-              <input type="radio" name="opnnYn" value="Y"
-                     th:checked="${course == null or course.opnnYn == 'Y'}"
-                     class="accent-violet-500"/>
-              <span>공개</span>
-            </label>
-            <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
-              <input type="radio" name="opnnYn" value="N"
-                     th:checked="${course != null and course.opnnYn == 'N'}"
-                     class="accent-violet-500"/>
-              <span>비공개</span>
-            </label>
-          </div>
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-500 mb-1.5">수강료 (원)</label>
-          <input type="number" id="coursePrice" name="coursePrice"
-                 th:value="${course != null ? course.coursePrice : 0}"
-                 min="0"
-                 class="hm-input hm-input-violet"
-                 onfocus="this.select()"
-                 oninput="if(this.value.length>1&&this.value[0]==='0')this.value=String(Number(this.value))"/>
-          <p id="coursePrice-err" class="hidden text-xs text-red-500 mt-1"></p>
-        </div>
-      </div>
-    </div>
-
-    <!-- 분류 / 커리큘럼 -->
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-5">
-      <h2 class="text-sm font-bold text-slate-700">
-        <i class="fa-solid fa-sitemap text-violet-500 mr-2"></i>분류 &amp; 커리큘럼
-      </h2>
 
       <!-- 과목 분류 → 과목 -->
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block text-xs font-medium text-slate-500 mb-1.5">과목 분류</label>
-          <select id="subjClId" name="subjClId" class="hm-input hm-input-violet" onchange="loadSubjects(this.value)">
+          <label class="block text-xs font-medium text-slate-500 mb-1.5"
+            >과목 분류</label
+          >
+          <select
+            id="subjClId"
+            name="subjClId"
+            class="hm-input hm-input-violet"
+            onchange="loadSubjects(this.value)"
+          >
             <option value="">— 선택 안 함 —</option>
-            <option th:each="cl : ${subjClList}"
-                    th:value="${cl.subjClId}"
-                    th:selected="${course?.subjClId == cl.subjClId}"
-                    th:text="${cl.subjClNm}">분류명</option>
+            <option
+              th:each="cl : ${subjClList}"
+              th:value="${cl.subjClId}"
+              th:selected="${course?.subjClId == cl.subjClId}"
+              th:text="${cl.subjClNm}"
+            >
+              분류명
+            </option>
           </select>
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-500 mb-1.5">과목</label>
-          <select id="subjId" name="subjId" class="hm-input hm-input-violet" disabled>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5"
+            >과목</label
+          >
+          <select
+            id="subjId"
+            name="subjId"
+            class="hm-input hm-input-violet"
+            disabled
+          >
             <option value="">— 분류를 먼저 선택 —</option>
           </select>
         </div>
       </div>
 
-      <!-- 커리큘럼 -->
-      <div>
-        <label class="block text-xs font-medium text-slate-500 mb-1.5">커리큘럼</label>
-        <select id="curriculumId" name="curriculumId" class="hm-input hm-input-violet">
-          <option value="">— 선택 안 함 (독립 강좌) —</option>
-          <option th:each="cur : ${curriculumList}"
-                  th:value="${cur.curriculumId}"
-                  th:selected="${course?.curriculumId == cur.curriculumId}"
-                  th:text="${cur.title}">커리큘럼명</option>
-        </select>
+      <!-- 공개 여부 / 수강료 -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-2"
+            >공개 여부</label
+          >
+          <div class="flex items-center gap-5 h-10">
+            <label
+              class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"
+            >
+              <input
+                type="radio"
+                name="opnnYn"
+                value="Y"
+                th:checked="${course == null or course.opnnYn == 'Y'}"
+                class="accent-violet-500"
+              />
+              <span>공개</span>
+            </label>
+            <label
+              class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"
+            >
+              <input
+                type="radio"
+                name="opnnYn"
+                value="N"
+                th:checked="${course != null and course.opnnYn == 'N'}"
+                class="accent-violet-500"
+              />
+              <span>비공개</span>
+            </label>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1.5"
+            >수강료 (원)</label
+          >
+          <input
+            type="number"
+            id="coursePrice"
+            name="coursePrice"
+            th:value="${course != null ? course.coursePrice : 0}"
+            min="0"
+            class="hm-input hm-input-violet"
+            onfocus="this.select()"
+            oninput="
+              if (this.value.length > 1 && this.value[0] === '0')
+                this.value = String(Number(this.value));
+            "
+          />
+          <p id="coursePrice-err" class="hidden text-xs text-red-500 mt-1"></p>
+        </div>
       </div>
     </div>
 
     <!-- 버튼 -->
     <div class="flex justify-end gap-3">
-      <a th:href="@{${course?.courseSn != null ? '/admin/course/detail' : '/admin/course/list'}(courseSn=${course?.courseSn})}"
-         class="hm-btn-secondary">
+      <a
+        th:href="@{${course?.courseSn != null ? '/admin/course/detail' : '/admin/course/list'}(courseSn=${course?.courseSn})}"
+        class="hm-btn-secondary"
+      >
         취소
       </a>
       <button type="submit" class="hm-btn-primary hm-btn-violet px-8">
-        <i th:class="${course?.courseSn != null ? 'fa-solid fa-pen' : 'fa-solid fa-circle-plus'}"></i>
-        <span th:text="${course?.courseSn != null ? '수정 완료' : '강좌 등록'}">강좌 등록</span>
+        <i
+          th:class="${course?.courseSn != null ? 'fa-solid fa-pen' : 'fa-solid fa-circle-plus'}"
+        ></i>
+        <span th:text="${course?.courseSn != null ? '수정 완료' : '강좌 등록'}"
+          >강좌 등록</span
+        >
       </button>
     </div>
   </form>
 </div>
 
 <script>
-  document.querySelector('form').addEventListener('submit', function (e) {
+  document.querySelector("form").addEventListener("submit", function (e) {
     let valid = true;
 
-    const nm = document.getElementById('courseNm');
-    const nmErr = document.getElementById('courseNm-err');
+    const nm = document.getElementById("courseNm");
+    const nmErr = document.getElementById("courseNm-err");
     const nmVal = nm.value.trim();
     if (!nmVal) {
-      nmErr.textContent = '강좌명은 필수 입력 항목입니다.';
-      nmErr.classList.remove('hidden');
+      nmErr.textContent = "강좌명은 필수 입력 항목입니다.";
+      nmErr.classList.remove("hidden");
       valid = false;
     } else if (nmVal.length > 200) {
-      nmErr.textContent = '강좌명은 200자 이내로 입력해 주세요.';
-      nmErr.classList.remove('hidden');
+      nmErr.textContent = "강좌명은 200자 이내로 입력해 주세요.";
+      nmErr.classList.remove("hidden");
       valid = false;
     } else {
-      nmErr.classList.add('hidden');
+      nmErr.classList.add("hidden");
     }
 
-    const price = document.getElementById('coursePrice');
-    const priceErr = document.getElementById('coursePrice-err');
-    if (price.value !== '' && Number(price.value) < 0) {
-      priceErr.textContent = '수강료는 0원 이상이어야 합니다.';
-      priceErr.classList.remove('hidden');
+    const price = document.getElementById("coursePrice");
+    const priceErr = document.getElementById("coursePrice-err");
+    if (price.value !== "" && Number(price.value) < 0) {
+      priceErr.textContent = "수강료는 0원 이상이어야 합니다.";
+      priceErr.classList.remove("hidden");
       valid = false;
     } else {
-      priceErr.classList.add('hidden');
+      priceErr.classList.add("hidden");
     }
 
     if (!valid) {
@@ -192,14 +259,14 @@
   });
 
   (function initSubjectSelect() {
-    const form = document.querySelector('form');
+    const form = document.querySelector("form");
     const subjClId = form.dataset.initSubjClId;
     const subjId = form.dataset.initSubjId;
     if (subjClId) loadSubjects(subjClId, subjId);
   })();
 
   function loadSubjects(subjClId, selectSubjId) {
-    const subjSelect = document.getElementById('subjId');
+    const subjSelect = document.getElementById("subjId");
     subjSelect.innerHTML = '<option value="">— 불러오는 중 —</option>';
     subjSelect.disabled = true;
 
@@ -209,12 +276,12 @@
       return;
     }
 
-    fetch('/admin/course/subjects?subjClId=' + subjClId)
-      .then(res => res.json())
-      .then(data => {
+    fetch("/admin/course/subjects?subjClId=" + subjClId)
+      .then((res) => res.json())
+      .then((data) => {
         subjSelect.innerHTML = '<option value="">— 선택 안 함 —</option>';
-        data.forEach(s => {
-          const opt = document.createElement('option');
+        data.forEach((s) => {
+          const opt = document.createElement("option");
           opt.value = s.subjId;
           opt.textContent = s.subjNm;
           subjSelect.appendChild(opt);

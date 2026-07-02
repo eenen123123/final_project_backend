@@ -188,6 +188,11 @@ public enum ErrorCode {
     COUPON_ALREADY_ISSUED(HttpStatus.CONFLICT, "이미 발급받은 쿠폰입니다."),
 
     // 포인트 관련
+    // 수강 관련
+    ENROLLMENT_EXPIRED(HttpStatus.FORBIDDEN, "수강 기간이 만료된 강좌입니다."),
+    ENROLLMENT_NOT_FOUND(HttpStatus.FORBIDDEN, "수강 권한이 없는 강좌입니다."),
+
+    // 포인트 관련
     POINT_INVALID_AMOUNT(HttpStatus.BAD_REQUEST, "포인트 금액은 1 이상이어야 합니다."),
     POINT_INVALID_TYPE(HttpStatus.BAD_REQUEST, "쿠폰 유형은 포인트로 처리할 수 없습니다."),
     POINT_MINIMUM_USAGE(HttpStatus.BAD_REQUEST, "포인트는 1,000p 이상부터 사용 가능합니다."),

@@ -148,7 +148,7 @@ public class StaffBillingController {
         return ResponseEntity.ok(toResponse(resp, paging));
     }
 
-    /** 외부 급여지급 프로그램 수납 Excel 업로드 적재 */
+    /** 외부 결제 프로그램 수납 Excel 업로드 적재 */
     @PostMapping("/upload")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> upload(@RequestParam("file") MultipartFile file) {

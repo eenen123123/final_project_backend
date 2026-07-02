@@ -1,42 +1,51 @@
-<div class="sidebar-section"
-     th:if="${allowedMenus == null or allowedMenus.contains('classroom') or allowedMenus.contains('instructor_board') or allowedMenus.contains('questions') or allowedMenus.contains('work_log') or allowedMenus.contains('curriculum') or allowedMenus.contains('my_page')}"
-     data-section-key="강사 업무" style="--section-color: #0ea5e9">
+<div
+  class="sidebar-section"
+  th:if="${allowedMenus == null or allowedMenus.contains('classroom') or allowedMenus.contains('instructor_board') or allowedMenus.contains('questions') or allowedMenus.contains('work_log') or allowedMenus.contains('curriculum') or allowedMenus.contains('my_page')}"
+  data-section-key="강사 업무"
+  style="--section-color: #0ea5e9"
+>
   <p class="sidebar-title text-sky-500 sidebar-section-toggle">
-    <i class="fa-solid fa-chalkboard-user sidebar-section-icon"></i>강사 업무<i class="fa-solid fa-chevron-down sidebar-section-arrow"></i>
+    <i class="fa-solid fa-chalkboard-user sidebar-section-icon"></i>강사 업무<i
+      class="fa-solid fa-chevron-down sidebar-section-arrow"
+    ></i>
   </p>
   <ul class="sidebar-list">
-
     <li th:if="${allowedMenus == null or allowedMenus.contains('classroom')}">
-      <a href="/classroom/list" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/classroom')} ? 'active'">
+      <a
+        href="/classroom/list"
+        class="sidebar-link"
+        th:classappend="${currentUri.startsWith('/classroom')} ? 'active'"
+      >
         <i class="fa-solid fa-chalkboard sidebar-icon"></i>
         <span class="sidebar-link-text">담당 클래스 관리</span>
       </a>
     </li>
 
     <li th:if="${allowedMenus == null or allowedMenus.contains('questions')}">
-      <a href="/instructor/questions" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/instructor/questions')} ? 'active'">
+      <a
+        href="/instructor/questions"
+        class="sidebar-link"
+        th:classappend="${currentUri.startsWith('/instructor/questions')} ? 'active'"
+      >
         <i class="fa-solid fa-marker sidebar-icon"></i>
         <span class="sidebar-link-text">문항 관리</span>
       </a>
     </li>
 
-
-    
-    
-    <li th:if="${allowedMenus == null or allowedMenus.contains('instructor_board')}">
-      <a href="/instructor/board/list" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/instructor/board')} ? 'active'">
+    <li
+      th:if="${allowedMenus == null or allowedMenus.contains('instructor_board')}"
+    >
+      <a
+        href="/instructor/board/list"
+        class="sidebar-link"
+        th:classappend="${currentUri.startsWith('/instructor/board')} ? 'active'"
+      >
         <i class="fa-solid fa-clipboard sidebar-icon"></i>
         <span class="sidebar-link-text">강사 게시판</span>
       </a>
     </li>
 
-    
-
-    
-
+    <!-- 커리큘럼 기능 폐기로 메뉴 비활성화
     <li th:if="${allowedMenus == null or allowedMenus.contains('curriculum')}">
       <a href="/instructor/curriculum" class="sidebar-link"
          th:classappend="${currentUri.startsWith('/instructor/curriculum')} ? 'active'">
@@ -44,21 +53,27 @@
         <span class="sidebar-link-text">커리큘럼 관리</span>
       </a>
     </li>
+    -->
 
     <li th:if="${allowedMenus == null or allowedMenus.contains('my_page')}">
-      <a href="/instructor/profile/instructor" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/instructor/profile')} ? 'active'">
+      <a
+        href="/instructor/profile/instructor"
+        class="sidebar-link"
+        th:classappend="${currentUri.startsWith('/instructor/profile')} ? 'active'"
+      >
         <i class="fa-solid fa-address-card sidebar-icon"></i>
         <span class="sidebar-link-text">개인 페이지 관리</span>
       </a>
     </li>
     <li th:if="${allowedMenus == null or allowedMenus.contains('work_log')}">
-      <a href="/instructor/journals" class="sidebar-link"
-         th:classappend="${currentUri.startsWith('/instructor/journals')} ? 'active'">
+      <a
+        href="/instructor/journals"
+        class="sidebar-link"
+        th:classappend="${currentUri.startsWith('/instructor/journals')} ? 'active'"
+      >
         <i class="fa-solid fa-book sidebar-icon"></i>
         <span class="sidebar-link-text">업무 일지</span>
       </a>
     </li>
-
   </ul>
 </div>

@@ -253,6 +253,14 @@ public class InstructorServiceImpl implements InstructorService {
     @Transactional
     public void removeFeaturedCourse(String instrUuid, Long courseSn) {
         featuredCourseMapper.deleteFeaturedCourse(instrUuid, courseSn);
+        List<InstructorFeaturedCourseResponse> remaining = featuredCourseMapper.selectFeaturedCourses(instrUuid);
+        for (int i = 0; i < remaining.size(); i++) {
+            InstructorFeaturedCourseResponse fc = remaining.get(i);
+            int newOrder = i + 1;
+            if (fc.getDisplayOrder() != newOrder) {
+                featuredCourseMapper.updateDisplayOrder(instrUuid, fc.getCourseSn(), newOrder);
+            }
+        }
     }
 
     // ──────────────────────────────────────────────
