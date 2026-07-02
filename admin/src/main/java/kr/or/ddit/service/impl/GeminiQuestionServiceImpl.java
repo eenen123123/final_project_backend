@@ -3,7 +3,10 @@ package kr.or.ddit.service.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genai.Client;
+import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.GenerateContentResponse;
+import com.google.genai.types.Schema;
+import com.google.genai.types.Type;
 import kr.or.ddit.finalProject.dto.exam.DifficultyStatsDto;
 import kr.or.ddit.finalProject.dto.exam.ExamTrendDto;
 import kr.or.ddit.finalProject.dto.exam.GeminiQuestionRequest;
@@ -64,8 +67,10 @@ public class GeminiQuestionServiceImpl implements GeminiQuestionService {
 
     @Override
     public QuestionDto generateQuestion(GeminiQuestionRequest request) {
+        QuestionType type = request.getQstnTypeCd() != null
+                ? request.getQstnTypeCd() : QuestionType.MULTIPLE_CHOICE;
         String prompt = buildPrompt(request);
-        String rawJson = callGemini(prompt);
+        String rawJson = callGemini(prompt, type);
         return parseResponse(rawJson, request);
     }
 
@@ -135,7 +140,7 @@ public class GeminiQuestionServiceImpl implements GeminiQuestionService {
                       "explanation": "상세 풀이 (수식 포함 가능)",
                       "chart_data": null
                     }
-                    도표 문제인 경우 chart_data에 Chart.js 호환 JSON을 포함하라.
+                    도표 문제인 경우 chart_data에 Chart.js 호환 JSON을 문자열로 인코딩하여 포함하라. 없으면 null.
                     JSON 외 어떤 텍스트도 출력하지 말 것.
                     """);
         }
@@ -143,10 +148,52 @@ public class GeminiQuestionServiceImpl implements GeminiQuestionService {
         return sb.toString();
     }
 
-    private String callGemini(String prompt) {
+    private Schema buildSchema(QuestionType type) {
+        Type stringType = new Type(Type.Known.STRING);
+        Type objectType = new Type(Type.Known.OBJECT);
+
+        Map<String, Schema> properties = new java.util.LinkedHashMap<>();
+        properties.put("topic", Schema.builder().type(stringType).build());
+        properties.put("problem_text", Schema.builder().type(stringType).build());
+        properties.put("correct_answer", Schema.builder().type(stringType).build());
+        properties.put("explanation", Schema.builder().type(stringType).build());
+
+        List<String> required = new java.util.ArrayList<>(
+                List.of("topic", "problem_text", "correct_answer", "explanation"));
+
+        if (type == QuestionType.MULTIPLE_CHOICE) {
+            Map<String, Schema> optionProps = new java.util.LinkedHashMap<>();
+            for (String key : List.of("A", "B", "C", "D", "E")) {
+                optionProps.put(key, Schema.builder().type(stringType).build());
+            }
+            properties.put("options", Schema.builder()
+                    .type(objectType)
+                    .properties(optionProps)
+                    .required(List.of("A", "B", "C", "D", "E"))
+                    .build());
+            properties.put("chart_data", Schema.builder()
+                    .type(stringType)
+                    .nullable(true)
+                    .description("도표 문제인 경우 Chart.js 호환 JSON을 문자열로 인코딩. 없으면 null")
+                    .build());
+            required.add("options");
+        }
+
+        return Schema.builder()
+                .type(objectType)
+                .properties(properties)
+                .required(required)
+                .build();
+    }
+
+    private String callGemini(String prompt, QuestionType type) {
         try {
             Client client = Client.builder().apiKey(geminiApiKey).build();
-            GenerateContentResponse response = client.models.generateContent(MODEL, prompt, null);
+            GenerateContentConfig config = GenerateContentConfig.builder()
+                    .responseMimeType("application/json")
+                    .responseSchema(buildSchema(type))
+                    .build();
+            GenerateContentResponse response = client.models.generateContent(MODEL, prompt, config);
             String text = response.text();
             if (text == null || text.isBlank()) {
                 throw new FinalProjectException(ErrorCode.GEMINI_EMPTY_RESPONSE);
@@ -156,9 +203,12 @@ public class GeminiQuestionServiceImpl implements GeminiQuestionService {
             if (text.startsWith("```")) {
                 text = text.replaceAll("^```[a-zA-Z]*\\n?", "").replaceAll("```$", "").strip();
             }
-            // LaTeX 백슬래시(\log, \frac 등)가 JSON 이스케이프로 오해되는 것을 방지
-            // JSON 표준 이스케이프(", \, /, b, f, n, r, t, uXXXX)가 아닌 \X를 \\X로 치환
-            text = text.replaceAll("\\\\(?![\"\\\\\\//bfnrtu])", "\\\\\\\\");
+            // LaTeX 백슬래시(\log, \frac, \times, \tau 등)가 JSON 이스케이프로 오해되는 것을 방지
+            // 이미 이스케이프된 \\, \", 유니코드 이스케이프(u + 16진수 4자리)는 건드리지 않고, 그 외 단일 백슬래시만 \\X로 치환
+            // (기존에는 다음 글자가 b/f/n/r/t/u면 "이미 올바른 JSON 이스케이프"로 간주해 건너뛰었으나,
+            //  \tau·\times처럼 그 글자로 시작하는 LaTeX 명령까지 오탐되어 깨졌고,
+            //  Gemini가 스스로 \\log처럼 이중 이스케이프해 준 경우 세 번째 백슬래시가 추가되어 파싱이 깨졌다)
+            text = text.replaceAll("(?<!\\\\)\\\\(?!\\\\|\"|u[0-9a-fA-F]{4})", "\\\\\\\\");
             return text;
         } catch (FinalProjectException e) {
             throw e;
@@ -198,7 +248,7 @@ public class GeminiQuestionServiceImpl implements GeminiQuestionService {
                     dto.setChoices(choices);
                 }
                 if (map.get("chart_data") != null) {
-                    dto.setChartData(objectMapper.writeValueAsString(map.get("chart_data")));
+                    dto.setChartData((String) map.get("chart_data"));
                 }
             }
 
