@@ -99,7 +99,7 @@ public class NoteController {
         PostMasterDto postMasterDto =
                 postService.getPostById(Long.valueOf(postSn), rcvrUserId, authentication);
         model.addAttribute("post", postMasterDto);
-        return "/note/noteRead";
+        return "note/noteRead";
     }
 
     @PostMapping("/delete")
