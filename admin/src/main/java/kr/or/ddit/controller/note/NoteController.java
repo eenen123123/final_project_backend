@@ -75,7 +75,7 @@ public class NoteController {
         model.addAttribute("replyTo", replyTo != null ? replyTo : "");
         model.addAttribute("replySubject",
                 subject != null && !subject.isBlank() ? "Re: " + subject : "");
-        return "/note/noteForm";
+        return "note/noteForm";
     }
 
     @PostMapping("/send")
