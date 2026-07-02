@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * 직원 급여 계좌 (EMPLOYEE_BANK_ACCOUNT)
- * 직원당 1건(1:1). 외부 급여지급 프로그램이 참조한다.
+ * 직원당 1건(1:1). 외부 결제 프로그램이 참조한다.
  */
 @Data
 @Builder
