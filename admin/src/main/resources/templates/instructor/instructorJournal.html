@@ -142,12 +142,8 @@
                         수정: <span th:text="${selected.mdfcnDt}"></span>
                     </span>
                 </div>
-                <div class="detail-content" th:utext="${selected.jrnlCont}">내용</div>
-                <script>
-                    document.querySelectorAll('.detail-content img[data-file-id]').forEach(function(img) {
-                        img.src = '/admin/files/' + img.dataset.fileId + '/view';
-                    });
-                </script>
+                <div class="detail-content" id="journal-viewer"></div>
+                <input type="hidden" id="journal-cont-init" th:value="${selected.jrnlCont}" />
             </div>
 
             <!-- (3) 새 일지 작성 폼 -->
@@ -249,7 +245,7 @@
 </div>
 
 <th:block th:fragment="pageJs">
-    <th:block th:if="${mode == 'new' or mode == 'edit'}">
+    <th:block th:if="${mode == 'new' or mode == 'edit' or mode == 'view'}">
         <script defer th:src="@{/js/tiptap/tiptap-editor.iife.js}"></script>
     </th:block>
     <script defer th:src="@{/js/instructor/instructorJournal.js}"></script>
