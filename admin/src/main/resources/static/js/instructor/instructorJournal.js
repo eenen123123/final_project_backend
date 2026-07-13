@@ -36,6 +36,29 @@ document.addEventListener('DOMContentLoaded', function () {
     function initEditors() {
         if (typeof TipTapEditor === 'undefined') return;
 
+        if (document.getElementById('journal-viewer')) {
+            const initInput = document.getElementById('journal-cont-init');
+            const content = initInput ? initInput.value : '';
+            let initial = '';
+            let htmlToRestore = null;
+            if (content) {
+                try { JSON.parse(content); initial = content; }
+                catch { htmlToRestore = content; }
+            }
+            TipTapEditor.mount('journal-viewer', {
+                editable: false,
+                initialContent: initial,
+                imageUrlResolver: (fileId) => `/admin/files/${fileId}/view`,
+            });
+            if (htmlToRestore) {
+                const t = setInterval(() => {
+                    const el = document.querySelector('#journal-viewer .tiptap');
+                    if (el && el.editor) { el.editor.commands.setContent(htmlToRestore); clearInterval(t); }
+                }, 50);
+                setTimeout(() => clearInterval(t), 3000);
+            }
+        }
+
         if (document.getElementById('editor-create')) {
             TipTapEditor.mount('editor-create', {
                 editable: true,

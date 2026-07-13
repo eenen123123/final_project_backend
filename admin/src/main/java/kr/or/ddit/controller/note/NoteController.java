@@ -75,7 +75,7 @@ public class NoteController {
         model.addAttribute("replyTo", replyTo != null ? replyTo : "");
         model.addAttribute("replySubject",
                 subject != null && !subject.isBlank() ? "Re: " + subject : "");
-        return "/note/noteForm";
+        return "note/noteForm";
     }
 
     @PostMapping("/send")
@@ -99,7 +99,7 @@ public class NoteController {
         PostMasterDto postMasterDto =
                 postService.getPostById(Long.valueOf(postSn), rcvrUserId, authentication);
         model.addAttribute("post", postMasterDto);
-        return "/note/noteRead";
+        return "note/noteRead";
     }
 
     @PostMapping("/delete")
