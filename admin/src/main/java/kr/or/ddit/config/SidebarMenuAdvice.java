@@ -26,7 +26,8 @@ public class SidebarMenuAdvice {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) return Set.of();
 
-        if (hasAuthority(auth, "D400") || hasAuthority(auth, "Z001")) {
+        // 원장(D400/Z001) 및 뷰어(Z002) — 모든 메뉴 표시
+        if (hasAuthority(auth, "D400") || hasAuthority(auth, "Z001") || hasAuthority(auth, "Z002")) {
             return null;
         }
 
