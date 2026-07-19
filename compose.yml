@@ -18,6 +18,8 @@ services:
     image: ddit-backend:latest   # rest 가 빌드한 이미지를 그대로 사용 (재빌드 X)
     depends_on:
       - rest
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       - APP_JAR=admin.jar
     volumes:
