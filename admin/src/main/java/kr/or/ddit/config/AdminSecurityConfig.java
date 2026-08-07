@@ -6,8 +6,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import lombok.RequiredArgsConstructor;
 
@@ -48,6 +51,12 @@ public class AdminSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(requests -> requests
+                // 뷰어(직급 Z002): 읽기 전용 계정 — 반드시 다른 규칙보다 먼저 평가
+                //   · GET 이 아닌 요청(저장/수정/삭제/승인 등)은 무조건 거부
+                //   · GET 요청은 전체 메뉴 조회를 위해 전부 허용
+                .requestMatchers(viewerWriteRequest()).denyAll()
+                .requestMatchers(viewerReadRequest()).permitAll()
+
                 // 정적 리소스에 대한 보안 설정을 무시하도록 구성
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
 
@@ -104,4 +113,21 @@ public class AdminSecurityConfig {
         return http.build();
     }
     //@formatter:on
+
+    // 뷰어(읽기 전용) 계정 여부 — 직급 권한이 Z002 이면 뷰어
+    private boolean isViewer() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.isAuthenticated() && auth.getAuthorities().stream()
+                .anyMatch(a -> "Z002".equals(a.getAuthority()));
+    }
+
+    // 뷰어의 쓰기 요청(GET 이외): 저장/수정/삭제/승인 등 → 차단 대상
+    private RequestMatcher viewerWriteRequest() {
+        return request -> isViewer() && !HttpMethod.GET.matches(request.getMethod());
+    }
+
+    // 뷰어의 읽기 요청(GET): 전체 메뉴 조회 허용 대상
+    private RequestMatcher viewerReadRequest() {
+        return request -> isViewer() && HttpMethod.GET.matches(request.getMethod());
+    }
 }
