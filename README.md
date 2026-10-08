@@ -66,7 +66,7 @@ flowchart LR
         direction TB
         file_server["파일 서버<br/>업로드 · 다운로드 · 스트리밍<br/>paste.maerchen.dev"]
         file_db[("File Server DB<br/>파일 메타데이터")]
-        redis[("Redis<br/>파일 접근 토큰<br/>TTL 30분")]
+        redis[("Redis<br/>파일 접근 토큰<br/>TTL 10분")]
     end
 
     %% 진입
